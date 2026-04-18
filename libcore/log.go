@@ -1,6 +1,7 @@
 package libcore
 
 import (
+	"bufio"
 	"context"
 	"io"
 	"io/fs"
@@ -9,15 +10,15 @@ import (
 	"sync"
 	"time"
 
-	"libcore/oscall"
-	"libcore/ringqueue"
-	"libcore/vario"
-
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
+
+	"libcore/oscall"
+	"libcore/ringqueue"
+	"libcore/vario"
 )
 
 func LogDebug(l string) {
@@ -270,12 +271,17 @@ func (c *Client) SubscribeLogs(callback LogItemFunc) error {
 }
 
 func (s *Service) handleSubscribeLogs(conn io.ReadWriter) error {
+	writer := bufio.NewWriter(conn)
 	buffer := platformLogWrapper.All()
 	for i := range buffer {
-		err := writeLogEntry(conn, buffer[i])
+		err := writeLogEntry(writer, buffer[i])
 		if err != nil {
 			return E.Cause(err, "write log entry buffer ", i)
 		}
+	}
+	err := writer.Flush()
+	if err != nil {
+		return E.Cause(err, "flush log entry buffer")
 	}
 	subscription, done, err := platformLogWrapper.Subscribe()
 	if err != nil {
@@ -285,9 +291,13 @@ func (s *Service) handleSubscribeLogs(conn io.ReadWriter) error {
 	for {
 		select {
 		case entry := <-subscription:
-			err := writeLogEntry(conn, entry)
+			err := writeLogEntry(writer, entry)
 			if err != nil {
 				return E.Cause(err, "write entry")
+			}
+			err = writer.Flush()
+			if err != nil {
+				return E.Cause(err, "flush entry")
 			}
 		case <-done:
 			return nil

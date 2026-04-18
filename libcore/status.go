@@ -1,6 +1,7 @@
 package libcore
 
 import (
+	"bufio"
 	"cmp"
 	"encoding/binary"
 	"io"
@@ -43,11 +44,12 @@ func (s *Service) handleQueryConnections(conn io.ReadWriter, instance *boxInstan
 		trackerInfos = append(trackerInfos, buildTrackerInfo(tracker.Metadata()))
 		return true
 	})
-	err := vario.WriteSlices(conn, trackerInfos)
+	writer := bufio.NewWriter(conn)
+	err := vario.WriteSlices(writer, trackerInfos)
 	if err != nil {
 		return E.Cause(err, "write connections")
 	}
-	return nil
+	return writer.Flush()
 }
 
 func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata) *TrackerInfo {
@@ -119,9 +121,9 @@ type TrackerInfo struct {
 	ClosedAtUnix  int64
 	Outbound      string
 	Chain         string
-	Protocol  string
-	processes []string
-	UID       int32
+	Protocol      string
+	processes     []string
+	UID           int32
 }
 
 func (t *TrackerInfo) GetUUID() string {
@@ -362,16 +364,24 @@ func (s *Service) handleSubscribeConnections(conn io.ReadWriter, instance *boxIn
 	trafficManager := instance.api.TrafficManager()
 	trafficManager.SetEventHook(subscriber)
 	defer trafficManager.SetEventHook(nil)
+	writer := bufio.NewWriter(conn)
 	subscription, done := subscriber.Subscription()
 	for {
 		select {
 		case event := <-subscription:
-			err := writeConnectionEvent(conn, toConnectionEvent(event))
+			err := writeConnectionEvent(writer, toConnectionEvent(event))
 			if err != nil {
 				if E.IsClosed(err) {
 					return nil
 				}
 				return E.Cause(err, "write connection event")
+			}
+			err = writer.Flush()
+			if err != nil {
+				if E.IsClosed(err) {
+					return nil
+				}
+				return E.Cause(err, "flush connection event")
 			}
 		case <-done:
 			return nil

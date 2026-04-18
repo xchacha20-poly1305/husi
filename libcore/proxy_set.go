@@ -1,16 +1,17 @@
 package libcore
 
 import (
+	"bufio"
 	"io"
-
-	"libcore/plugin/pluginoption"
-	"libcore/vario"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
+
+	"libcore/plugin/pluginoption"
+	"libcore/vario"
 )
 
 func (c *Client) SelectOutbound(groupName, tag string) error {
@@ -156,11 +157,12 @@ func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance
 		}
 		proxySets = append(proxySets, buildProxySet(outboundManager, outboundGroup, historyStorage))
 	}
-	err := vario.WriteSlices(conn, proxySets)
+	writer := bufio.NewWriter(conn)
+	err := vario.WriteSlices(writer, proxySets)
 	if err != nil {
 		return E.Cause(err, "write proxy sets")
 	}
-	return nil
+	return writer.Flush()
 }
 
 func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapter.OutboundGroup, historyStorage adapter.URLTestHistoryStorage) *ProxySet {
