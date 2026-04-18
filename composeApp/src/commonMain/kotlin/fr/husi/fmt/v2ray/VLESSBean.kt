@@ -1,7 +1,6 @@
 package fr.husi.fmt.v2ray
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
 
 @KxsSerializable
@@ -21,11 +20,6 @@ class VLESSBean : StandardV2RayBean() {
     }
 
     var flow: String = ""
-
-    override fun applyFeatureSettings(other: AbstractBean) {
-        if (other !is VLESSBean) return
-        other.flow = flow
-    }
 
     override fun clone(): VLESSBean {
         return KryoConverters.deserialize(VLESSBean(), KryoConverters.serialize(this))

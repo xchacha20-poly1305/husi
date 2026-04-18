@@ -149,5 +149,20 @@ class AnyTLSBean : AbstractBean() {
         return KryoConverters.deserialize(AnyTLSBean(), KryoConverters.serialize(this))
     }
 
+    override fun applyFeatureSettings(other: AbstractBean) {
+        if (other !is AnyTLSBean) return
+        other.allowInsecure = allowInsecure
+        other.disableSNI = disableSNI
+        other.utlsFingerprint = utlsFingerprint
+        other.ech = ech
+        other.echConfig = echConfig
+        other.tlsFragment = tlsFragment
+        other.tlsFragmentFallbackDelay = tlsFragmentFallbackDelay
+        other.tlsRecordFragment = tlsRecordFragment
+        other.idleSessionCheckInterval = idleSessionCheckInterval
+        other.idleSessionTimeout = idleSessionTimeout
+        other.minIdleSession = minIdleSession
+    }
+
     override val defaultPort get() = 443
 }

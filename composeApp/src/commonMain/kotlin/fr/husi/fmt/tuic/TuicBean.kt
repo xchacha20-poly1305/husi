@@ -146,6 +146,21 @@ class TuicBean : AbstractBean() {
 
     override fun applyFeatureSettings(other: AbstractBean) {
         if (other !is TuicBean) return
+        other.allowInsecure = allowInsecure
+        other.disableSNI = disableSNI
+        other.zeroRTT = zeroRTT
+        other.mtu = mtu
+        other.udpRelayMode = udpRelayMode
+        other.congestionController = congestionController
+        other.ech = ech
+        other.echConfig = echConfig
+        other.idleTimeout = idleTimeout
+        other.keepAlivePeriod = keepAlivePeriod
+        other.streamReceiveWindow = streamReceiveWindow
+        other.connectionReceiveWindow = connectionReceiveWindow
+        other.maxConcurrentStreams = maxConcurrentStreams
+        other.initialPacketSize = initialPacketSize
+        other.disablePathMtuDiscovery = disablePathMtuDiscovery
     }
 
     override val defaultPort get() = 443

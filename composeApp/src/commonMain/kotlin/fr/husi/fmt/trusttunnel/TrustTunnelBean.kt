@@ -106,5 +106,18 @@ class TrustTunnelBean : AbstractBean() {
         return KryoConverters.deserialize(TrustTunnelBean(), KryoConverters.serialize(this))
     }
 
+    override fun applyFeatureSettings(other: AbstractBean) {
+        if (other !is TrustTunnelBean) return
+        other.allowInsecure = allowInsecure
+        other.utlsFingerprint = utlsFingerprint
+        other.ech = ech
+        other.echConfig = echConfig
+        other.tlsFragment = tlsFragment
+        other.tlsFragmentFallbackDelay = tlsFragmentFallbackDelay
+        other.tlsRecordFragment = tlsRecordFragment
+        other.healthCheck = healthCheck
+        other.quicCongestionControl = quicCongestionControl
+    }
+
     override val defaultPort get() = 443
 }

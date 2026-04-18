@@ -105,10 +105,6 @@ class ShadowQUICBean : AbstractBean() {
 
     override fun applyFeatureSettings(other: AbstractBean) {
         if (other !is ShadowQUICBean) return
-        other.password = password
-        other.username = username
-        other.sni = sni
-        other.alpn = alpn
         other.initialMTU = initialMTU
         other.minimumMTU = minimumMTU
         other.congestionControl = congestionControl

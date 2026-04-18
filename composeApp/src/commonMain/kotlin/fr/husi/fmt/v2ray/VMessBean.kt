@@ -29,6 +29,7 @@ class VMessBean : StandardV2RayBean() {
     }
 
     override fun applyFeatureSettings(other: AbstractBean) {
+        super.applyFeatureSettings(other)
         if (other !is VMessBean) return
         if (authenticatedLength) {
             other.authenticatedLength = true

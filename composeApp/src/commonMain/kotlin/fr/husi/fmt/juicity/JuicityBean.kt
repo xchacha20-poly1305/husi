@@ -55,6 +55,7 @@ class JuicityBean : AbstractBean() {
 
     override fun applyFeatureSettings(other: AbstractBean) {
         if (other !is JuicityBean) return
+        other.allowInsecure = allowInsecure
     }
 
     override val defaultPort get() = 443
