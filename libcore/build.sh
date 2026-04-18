@@ -161,7 +161,7 @@ apply_darwin_toolchain_env() {
         export SDKROOT="$DARWIN_SDKROOT"
         export CC="zig cc -target $zig_target"
         export CXX="zig c++ -target $zig_target"
-        export CGO_CFLAGS="-isysroot $SDKROOT -isystem $sdk_include_root"
+        export CGO_CFLAGS="-isysroot $SDKROOT -isystem $sdk_include_root -F$framework_root -Wno-deprecated-declarations"
         export CGO_CXXFLAGS="$CGO_CFLAGS"
         export CGO_LDFLAGS="-isysroot $SDKROOT -L$SDKROOT/usr/lib -F$framework_root"
         if [ -n "$EXTERNAL_MACOSX_DEPLOYMENT_TARGET" ]; then
@@ -223,7 +223,7 @@ apply_darwin_toolchain_env() {
     export MACOSX_DEPLOYMENT_TARGET="$deployment_target"
     export CC="$clang_bin/clang --target=${clang_arch}-apple-macos -B$mac_bin_path"
     export CXX="$clang_bin/clang++ --target=${clang_arch}-apple-macos -B$mac_bin_path"
-    export CGO_CFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET"
+    export CGO_CFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET -Wno-deprecated-declarations"
     export CGO_CXXFLAGS="$CGO_CFLAGS"
     export CGO_LDFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET"
 }
