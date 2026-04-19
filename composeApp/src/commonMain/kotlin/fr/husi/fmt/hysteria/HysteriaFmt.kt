@@ -69,7 +69,7 @@ fun parseHysteria2(link: String): HysteriaBean {
             url.username + ":" + url.password
         }
 
-        name = url.fragment
+        // name = url.fragment
 
         sni = url.queryParameter("sni")
         allowInsecure = url.parseBoolean("insecure")
@@ -100,13 +100,13 @@ fun HysteriaBean.toUri(): String {
         username = authPayload
     }
 
-    if (name.isNotBlank()) {
-        url.fragment = name
-    }
     if (allowInsecure) {
         url.addQueryParameter("insecure", "1")
     }
     if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+        name.blankAsNull()?.let {
+            url.fragment = it
+        }
         if (sni.isNotBlank()) {
             url.addQueryParameter("peer", sni)
         }
