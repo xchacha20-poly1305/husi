@@ -47,7 +47,7 @@ const customCaFile = "ca.pem"
 // UpdateRootCACerts updates Go trusted certs.
 // Set certFromJava to get cert with user trusted. ( workaround for: https://github.com/golang/go/issues/71258 )
 //
-// In each time, this appends externalAssetsPath/ca.pem to root CA.
+// On Android, this appends externalAssetsPath/ca.pem to root CA.
 func UpdateRootCACerts(certOption int32, certFromJava StringIterator) {
 	// https://github.com/golang/go/blob/30b6fd60a63c738c2736e83b6a6886a032e6f269/src/crypto/x509/root.go#L31
 	// Make sure initialize system cert pool.
@@ -148,7 +148,7 @@ func GetCert(address, serverName, mode, proxy string) (string, error) {
 	case "https":
 		certs, err = scribe.GetCert(ctx, options)
 	case "quic":
-		if target.IsFqdn() {
+		if target.IsDomain() {
 			ips, err := net.LookupIP(target.Fqdn)
 			if err != nil {
 				return "", E.Cause(err, "look up ip for ", target.Fqdn)

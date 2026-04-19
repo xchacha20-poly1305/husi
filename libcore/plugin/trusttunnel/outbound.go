@@ -102,7 +102,7 @@ func (h *Outbound) DialContext(ctx context.Context, network string, destination 
 		h.logger.InfoContext(ctx, "outbound connection to ", destination)
 		return h.client.Dial(ctx, destination)
 	case N.NetworkUDP:
-		if destination.IsFqdn() {
+		if destination.IsDomain() {
 			addresses, err := h.dnsRouter.Lookup(ctx, destination.Fqdn, adapter.DNSQueryOptions{})
 			if err != nil {
 				return nil, err
