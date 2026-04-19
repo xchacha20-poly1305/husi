@@ -63,6 +63,14 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
         onCameraResult = {}
     }
 
+    var onLocalNetworkResult by remember { mutableStateOf<(Boolean) -> Unit>({}) }
+    val localNetworkLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        onLocalNetworkResult(granted)
+        onLocalNetworkResult = {}
+    }
+
     return remember(
         context,
         queryInstalledAppsLauncher,
@@ -70,12 +78,15 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
         fineLocationLauncher,
         backgroundLocationLauncher,
         cameraLauncher,
+        localNetworkLauncher,
     ) {
         object : PermissionPlatform {
             private val supportsPostNotificationPermission: Boolean
                 get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
             private val needsBackgroundLocationPermission: Boolean
                 get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            private val supportsLocalNetworkPermission: Boolean
+                get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN
 
             override fun hasPermission(permission: AppPermission): Boolean {
                 return when (permission) {
@@ -96,6 +107,14 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
                                         context.hasGrantedPermission(Permission.BackgroundLocation))
 
                     AppPermission.Camera -> context.hasGrantedPermission(Permission.Camera)
+
+                    AppPermission.LocalNetwork -> {
+                        if (!supportsLocalNetworkPermission) {
+                            true
+                        } else {
+                            context.hasGrantedPermission(Permission.LocalNetwork)
+                        }
+                    }
                 }
             }
 
@@ -118,6 +137,14 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
                                         context.hasPlatformPermission(Permission.BackgroundLocation))
 
                     AppPermission.Camera -> context.hasPlatformPermission(Permission.Camera)
+
+                    AppPermission.LocalNetwork -> {
+                        if (!supportsLocalNetworkPermission) {
+                            false
+                        } else {
+                            context.hasPlatformPermission(Permission.LocalNetwork)
+                        }
+                    }
                 }
             }
 
@@ -149,6 +176,11 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
                     AppPermission.Camera -> {
                         onCameraResult = onResult
                         cameraLauncher.launch(Permission.Camera)
+                    }
+
+                    AppPermission.LocalNetwork -> {
+                        onLocalNetworkResult = onResult
+                        localNetworkLauncher.launch(Permission.LocalNetwork)
                     }
                 }
             }
@@ -206,6 +238,7 @@ private object Permission {
     const val FineLocation = Manifest.permission.ACCESS_FINE_LOCATION
     const val BackgroundLocation = Manifest.permission.ACCESS_BACKGROUND_LOCATION
     const val Camera = Manifest.permission.CAMERA
+    const val LocalNetwork = Manifest.permission.ACCESS_LOCAL_NETWORK
 }
 
 private fun Context.hasGrantedPermission(permission: String): Boolean =

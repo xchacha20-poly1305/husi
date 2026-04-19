@@ -9,6 +9,7 @@ import android.system.ErrnoException
 import androidx.annotation.RequiresApi
 import fr.husi.libcore.ExchangeContext
 import fr.husi.libcore.LocalDNSTransport
+import fr.husi.repository.resolveAndroidRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.asExecutor
@@ -25,6 +26,16 @@ object LocalResolver : LocalDNSTransport {
     override fun raw(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
     }
+
+    private val resolverInstance: DnsResolver? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+            DnsResolver(resolveAndroidRepository().context, null)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            @Suppress("DEPRECATION")
+            DnsResolver.getInstance()
+        } else {
+            null
+        }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun exchange(ctx: ExchangeContext, message: ByteArray) {
@@ -54,7 +65,7 @@ object LocalResolver : LocalDNSTransport {
                             continuation.tryResumeWithException(error)
                         }
                     }
-                    DnsResolver.getInstance().rawQuery(
+                    resolverInstance!!.rawQuery(
                         defaultNetwork,
                         message,
                         DnsResolver.FLAG_NO_RETRY,
@@ -104,7 +115,7 @@ object LocalResolver : LocalDNSTransport {
                             else -> null
                         }
                         if (type != null) {
-                            DnsResolver.getInstance().query(
+                            resolverInstance!!.query(
                                 defaultNetwork,
                                 domain,
                                 type,
@@ -114,7 +125,7 @@ object LocalResolver : LocalDNSTransport {
                                 callback,
                             )
                         } else {
-                            DnsResolver.getInstance().query(
+                            resolverInstance!!.query(
                                 defaultNetwork,
                                 domain,
                                 DnsResolver.FLAG_NO_RETRY,

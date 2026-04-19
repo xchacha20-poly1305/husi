@@ -235,7 +235,7 @@ kotlin {
 
     android {
         namespace = "fr.husi.lib"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 24
         androidResources {
             enable = true

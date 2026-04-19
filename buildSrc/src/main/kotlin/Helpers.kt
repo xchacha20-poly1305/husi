@@ -94,8 +94,8 @@ fun Project.requireTargetAbi(): String {
 
 fun Project.setupCommon() {
     android.apply {
-        buildToolsVersion = "36.1.0"
-        compileSdk = 36
+        buildToolsVersion = "37.0.0"
+        compileSdk = 37
         defaultConfig.apply {
             minSdk = 24
         }

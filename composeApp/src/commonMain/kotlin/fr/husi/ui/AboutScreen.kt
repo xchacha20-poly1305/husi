@@ -46,7 +46,6 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.BuildConfig
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
@@ -55,12 +54,13 @@ import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.libcore.Libcore
+import fr.husi.permission.AppPermission
+import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.launch
@@ -99,6 +99,11 @@ fun AboutScreen(
 
     val shouldRequestBattery = rememberShouldRequestBatteryOptimizations()
     val requestIgnoreBatteryOptimizations = rememberRequestIgnoreBatteryOptimizations()
+
+    val permissionPlatform = LocalPermissionPlatform.current
+    val canRequestLocalNetwork =
+        permissionPlatform.canRequestPermission(AppPermission.LocalNetwork) &&
+                !permissionPlatform.hasPermission(AppPermission.LocalNetwork)
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
@@ -209,6 +214,18 @@ fun AboutScreen(
                                 title = stringResource(Res.string.ignore_battery_optimizations),
                                 description = stringResource(Res.string.ignore_battery_optimizations_sum),
                                 onCLick = { requestIgnoreBatteryOptimizations() },
+                            )
+                        }
+                        if (canRequestLocalNetwork) {
+                            CardItem(
+                                icon = { Icon(vectorResource(Res.drawable.router), null) },
+                                title = stringResource(Res.string.access_local_network),
+                                description = stringResource(Res.string.access_local_network_sum),
+                                onCLick = {
+                                    permissionPlatform.requestPermission(AppPermission.LocalNetwork) { granted ->
+                                        if (!granted) permissionPlatform.openPermissionSettings()
+                                    }
+                                },
                             )
                         }
                         CardItem(

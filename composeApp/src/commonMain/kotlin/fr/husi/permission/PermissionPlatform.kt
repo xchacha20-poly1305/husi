@@ -7,6 +7,7 @@ enum class AppPermission {
     PostNotifications,
     WifiInfo,
     Camera,
+    LocalNetwork,
 }
 
 interface PermissionPlatform {

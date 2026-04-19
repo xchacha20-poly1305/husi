@@ -269,6 +269,8 @@
     <string name="deduplication">重複資料刪除</string>
     <string name="ignore_battery_optimizations">忽略電池效能最佳化</string>
     <string name="ignore_battery_optimizations_sum">移除一些限制</string>
+    <string name="access_local_network">存取本機網路</string>
+    <string name="access_local_network_sum">允許連線至區域網路內的裝置</string>
     <string name="ss_cat">Shadowsocks 設定</string>
     <string name="need_reload">重新載入代理服務以套用修改</string>
     <string name="route_warn">請在新增客製化規則前閱讀文件，否則您可能會無法連線至網際網路。</string>
