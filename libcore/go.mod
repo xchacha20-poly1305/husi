@@ -8,9 +8,9 @@ require (
 	github.com/klauspost/compress v1.18.5
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
-	github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386
-	github.com/sagernet/sing-box v1.14.0-alpha.14
-	github.com/sagernet/sing-tun v0.8.8-0.20260410061515-018f5eaae695
+	github.com/sagernet/sing v0.8.9-0.20260420011825-ee298fea05e6
+	github.com/sagernet/sing-box v1.14.0-alpha.15
+	github.com/sagernet/sing-tun v0.8.10-0.20260420012056-73f8bbda86a6
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -50,7 +50,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/ebitengine/purego v0.9.1 // indirect
 	github.com/florianl/go-nfqueue/v2 v2.0.2 // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-chi/chi/v5 v5.2.5 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
@@ -107,9 +107,9 @@ require (
 	github.com/sagernet/cronet-go/lib/tvos_arm64_simulator v0.0.0-20260413092954-cd09eb3e271b // indirect
 	github.com/sagernet/cronet-go/lib/windows_amd64 v0.0.0-20260413092954-cd09eb3e271b // indirect
 	github.com/sagernet/cronet-go/lib/windows_arm64 v0.0.0-20260413092954-cd09eb3e271b // indirect
-	github.com/sagernet/fswatch v0.1.1 // indirect
+	github.com/sagernet/fswatch v0.1.2 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
-	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
+	github.com/sagernet/nftables v0.3.0-mod.2 // indirect
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.4 // indirect
 	github.com/sagernet/sing-mux v0.3.4 // indirect
 	github.com/sagernet/sing-quic v0.6.2-0.20260412143638-8f65b6be7cd6 // indirect
