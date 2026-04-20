@@ -1,5 +1,6 @@
 package fr.husi.bg
 
+import android.annotation.SuppressLint
 import android.net.Network
 import fr.husi.libcore.InterfaceUpdateListener
 import fr.husi.repository.resolveAndroidRepository
@@ -7,6 +8,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.net.NetworkInterface
 
+@SuppressLint("MissingPermission")
 object DefaultNetworkMonitor {
     var defaultNetwork: Network? = null
     private var listener: InterfaceUpdateListener? = null
@@ -56,18 +58,22 @@ object DefaultNetworkMonitor {
 
     private fun checkDefaultInterfaceUpdate(newNetwork: Network?) {
         val listener = listener ?: return
+        val repo = resolveAndroidRepository()
         if (newNetwork != null) {
-            val interfaceName =
-                resolveAndroidRepository().connectivity.getLinkProperties(newNetwork)?.interfaceName
             for (times in 0 until 10) {
+                val linkProperties = repo.connectivity.getLinkProperties(newNetwork)
+                if (linkProperties == null) {
+                    Thread.sleep(100)
+                    continue
+                }
                 var interfaceIndex: Int
                 try {
-                    interfaceIndex = NetworkInterface.getByName(interfaceName).index
+                    interfaceIndex = NetworkInterface.getByName(linkProperties.interfaceName).index
                 } catch (_: Exception) {
                     Thread.sleep(100)
                     continue
                 }
-                listener.updateDefaultInterface(interfaceName, interfaceIndex)
+                listener.updateDefaultInterface(linkProperties.interfaceName, interfaceIndex)
             }
         } else {
             listener.updateDefaultInterface("", -1)
