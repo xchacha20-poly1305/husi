@@ -21,6 +21,7 @@ import fr.husi.ktx.long
 import fr.husi.ktx.parsePort
 import fr.husi.ktx.string
 import fr.husi.ktx.stringSet
+import fr.husi.platform.PlatformInfo
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -99,7 +100,9 @@ object DataStore {
     var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
     // var forcedSearchProcess by configurationStore.boolean(Key.FORCED_SEARCH_PROCESS) { false }
 
-    //    var tcpKeepAliveInterval by configurationStore.int(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
+    var disableTcpKeepAlive by configurationStore.boolean(Key.DISABLE_TCP_KEEP_ALIVE) { PlatformInfo.isAndroid }
+    var tcpKeepAliveIdle by configurationStore.string(Key.TCP_KEEP_ALIVE_IDLE) { "5m" }
+    var tcpKeepAliveInterval by configurationStore.string(Key.TCP_KEEP_ALIVE_INTERVAL) { "75s" }
     var mtu by configurationStore.int(Key.MTU) { 9000 }
     var vpnSessionName by configurationStore.string(Key.VPN_SESSION_NAME) { "" }
     var tunInterfaceName by configurationStore.string(Key.TUN_INTERFACE_NAME) { "" }

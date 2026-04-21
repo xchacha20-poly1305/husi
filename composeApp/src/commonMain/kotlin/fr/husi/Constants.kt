@@ -76,6 +76,8 @@ object Key {
     const val CONNECTION_TEST_TIMEOUT = "connectionTestTimeout"
 
     const val SECURITY_ADVISORY = "securityAdvisory"
+    const val DISABLE_TCP_KEEP_ALIVE = "disableTcpKeepAlive"
+    const val TCP_KEEP_ALIVE_IDLE = "tcpKeepAliveIdle"
     const val TCP_KEEP_ALIVE_INTERVAL = "tcpKeepAliveInterval"
     const val LOG_LEVEL = "logLevel"
     const val LOG_MAX_LINE = "logMaxLine"

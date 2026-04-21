@@ -127,11 +127,13 @@ import fr.husi.resources.developer_mode
 import fr.husi.resources.direct_dns
 import fr.husi.resources.directions_boat
 import fr.husi.resources.disable
+import fr.husi.resources.disable_tcp_keep_alive
 import fr.husi.resources.dns
 import fr.husi.resources.dns_hosts
 import fr.husi.resources.domain_strategy_for_direct
 import fr.husi.resources.domain_strategy_for_server
 import fr.husi.resources.download
+import fr.husi.resources.ecg
 import fr.husi.resources.emoji_emotions
 import fr.husi.resources.enable
 import fr.husi.resources.enable_ntp
@@ -148,6 +150,7 @@ import fr.husi.resources.flight_takeoff
 import fr.husi.resources.flip_camera_android
 import fr.husi.resources.follow_system
 import fr.husi.resources.general_settings
+import fr.husi.resources.hourglass_top
 import fr.husi.resources.hybrid
 import fr.husi.resources.hysteria2_provider
 import fr.husi.resources.hysteria_download_mbps
@@ -214,11 +217,14 @@ import fr.husi.resources.shutter_speed
 import fr.husi.resources.speed
 import fr.husi.resources.speed_interval
 import fr.husi.resources.system_and_user
+import fr.husi.resources.tcp_keep_alive_idle
+import fr.husi.resources.tcp_keep_alive_interval
 import fr.husi.resources.test_concurrency
 import fr.husi.resources.test_timeout
 import fr.husi.resources.text_select_end
 import fr.husi.resources.theme
 import fr.husi.resources.timelapse
+import fr.husi.resources.timer
 import fr.husi.resources.traffic
 import fr.husi.resources.transform
 import fr.husi.resources.transgender
@@ -317,6 +323,10 @@ fun SettingsScreen(
     val serviceModeState by DataStore.configurationStore
         .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
         .collectAsStateWithLifecycle(Key.MODE_VPN)
+    val defaultDisableTcpKeepAlive = PlatformInfo.isAndroid
+    val disableTcpKeepAliveState by DataStore.configurationStore
+        .booleanFlow(Key.DISABLE_TCP_KEEP_ALIVE, defaultDisableTcpKeepAlive)
+        .collectAsStateWithLifecycle(defaultDisableTcpKeepAlive)
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
@@ -813,6 +823,75 @@ fun SettingsScreen(
                             },
                             valueToText = { AnnotatedString(it) },
                         )
+                    }
+                    item(Key.DISABLE_TCP_KEEP_ALIVE, PreferenceType.SWITCH) {
+                        val value by DataStore.configurationStore
+                            .booleanFlow(Key.DISABLE_TCP_KEEP_ALIVE, false)
+                            .collectAsStateWithLifecycle(false)
+                        SwitchPreference(
+                            value = value,
+                            onValueChange = {
+                                DataStore.disableTcpKeepAlive = it
+                                needReload()
+                            },
+                            title = { Text(stringResource(Res.string.disable_tcp_keep_alive)) },
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.ecg),
+                                    null,
+                                )
+                            },
+                        )
+                    }
+                    item(Key.TCP_KEEP_ALIVE_IDLE, PreferenceType.TEXT_FIELD) {
+                        val value by DataStore.configurationStore
+                            .stringFlow(Key.TCP_KEEP_ALIVE_IDLE, "")
+                            .collectAsStateWithLifecycle("")
+                        TextFieldPreference(
+                            value = value,
+                            onValueChange = {
+                                DataStore.tcpKeepAliveIdle = it
+                                needReload()
+                            },
+                            title = { Text(stringResource(Res.string.tcp_keep_alive_idle)) },
+                            textToValue = { it },
+                            enabled = !disableTcpKeepAliveState,
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.hourglass_top),
+                                    null,
+                                )
+                            },
+                            summary = { Text(contentOrUnset(value)) },
+                            valueToText = { it },
+                        ) { value, onValueChange, onOk ->
+                            DurationTextField(value, onValueChange, onOk)
+                        }
+                    }
+                    item(Key.TCP_KEEP_ALIVE_INTERVAL, PreferenceType.TEXT_FIELD) {
+                        val value by DataStore.configurationStore
+                            .stringFlow(Key.TCP_KEEP_ALIVE_INTERVAL, "")
+                            .collectAsStateWithLifecycle("")
+                        TextFieldPreference(
+                            value = value,
+                            onValueChange = {
+                                DataStore.tcpKeepAliveInterval = it
+                                needReload()
+                            },
+                            title = { Text(stringResource(Res.string.tcp_keep_alive_interval)) },
+                            textToValue = { it },
+                            enabled = !disableTcpKeepAliveState,
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.timer),
+                                    null,
+                                )
+                            },
+                            summary = { Text(contentOrUnset(value)) },
+                            valueToText = { it },
+                        ) { value, onValueChange, onOk ->
+                            DurationTextField(value, onValueChange, onOk)
+                        }
                     }
                     /*item(Key.FORCED_SEARCH_PROCESS, PreferenceType.SWITCH) {
                         val value by DataStore.configurationStore

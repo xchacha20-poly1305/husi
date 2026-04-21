@@ -189,7 +189,9 @@
     <string name="domain_strategy">Domain Resolution Strategy</string>
     <string name="enable_mux">Enable Multiplexer</string>
     <string name="mux_sum">Mux is designed to reduce connecting handshake latency, not to increase connection throughput. Using Mux to watch videos, download or speed test is usually counter productive. If the server does not support it, you will not be able to access the Internet.</string>
+    <string name="disable_tcp_keep_alive">Disable TCP keep alive</string>
     <string name="tcp_keep_alive_interval">TCP keep active packet delivery interval</string>
+    <string name="tcp_keep_alive_idle">TCP keep alive max idle duration</string>
     <string name="proxied_apps">Apps VPN mode</string>
     <string name="proxied_apps_summary">Configure VPN mode for selected apps</string>
     <string name="on">On</string>

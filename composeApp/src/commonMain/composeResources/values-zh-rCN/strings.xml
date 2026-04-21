@@ -196,7 +196,9 @@
     <string name="circular_reference">循环引用</string>
     <string name="circular_reference_sum">路由中不能包含自己.</string>
     <string name="mux_sum">多路复用是为了减少与服务器的握手延迟而设计, 而非提高连接的吞吐量. 用于看视频、下载或者测速通常都有反效果。如果服务器不支持，则无法上网。</string>
+    <string name="disable_tcp_keep_alive">禁用 TCP 保活</string>
     <string name="tcp_keep_alive_interval">TCP 保持活跃数据包发送间隔</string>
+    <string name="tcp_keep_alive_idle">TCP 保活最大空闲时间</string>
     <string name="route_add">新建路由规则</string>
     <string name="delete_route_prompt">您确定要移除此路由吗?</string>
     <string name="route_name">路由名称</string>

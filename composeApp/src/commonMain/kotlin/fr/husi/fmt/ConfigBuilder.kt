@@ -39,7 +39,6 @@ import fr.husi.fmt.anytls.buildSingBoxOutboundAnyTLSBean
 import fr.husi.fmt.config.ConfigBean
 import fr.husi.fmt.direct.DirectBean
 import fr.husi.fmt.direct.buildSingBoxOutboundDirectBean
-import fr.husi.platform.PlatformInfo
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.hysteria.buildSingBoxOutboundHysteriaBean
 import fr.husi.fmt.internal.ChainBean
@@ -68,11 +67,10 @@ import fr.husi.fmt.wireguard.WireGuardBean
 import fr.husi.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.asKxsMap
-import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.defaultOr
-import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.invariantPathString
+import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.kxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.mergeJson
@@ -81,8 +79,10 @@ import fr.husi.ktx.reverse
 import fr.husi.ktx.showToast
 import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonMapKxs
+import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
+import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -246,6 +246,9 @@ fun buildConfig(
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     val defaultStrategy = DataStore.networkStrategy.blankAsNull()
+    val disableTcpKeepAlive = DataStore.disableTcpKeepAlive
+    val tcpKeepAliveIdle = DataStore.tcpKeepAliveIdle.blankAsNull()
+    val tcpKeepAliveInterval = DataStore.tcpKeepAliveInterval.blankAsNull()
     lateinit var mainTag: String
 
     val readableNames = mutableSetOf(TAG_DIRECT, TAG_BLOCK)
@@ -543,9 +546,16 @@ fun buildConfig(
                     }
 
                     currentOutbound.apply {
-//                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
-//                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
                         if (!forTest && bean !is ProxySetBean) {
+                            if (disableTcpKeepAlive) {
+                                this["disable_tcp_keep_alive"] = true
+                                tcpKeepAliveIdle?.let {
+                                    this["tcp_keep_alive"] = it
+                                }
+                                tcpKeepAliveInterval?.let {
+                                    this["tcp_keep_alive_interval"] = it
+                                }
+                            }
                             if (networkPreferredInterfaces.isNotEmpty()) {
                                 this["network_type"] = networkPreferredInterfaces
                                 this["network_strategy"] =
@@ -1026,6 +1036,11 @@ fun buildConfig(
                 }
 
                 if (!forTest) {
+                    if (disableTcpKeepAlive) {
+                        disable_tcp_keep_alive = true
+                        tcp_keep_alive = tcpKeepAliveIdle
+                        tcp_keep_alive_interval = tcpKeepAliveInterval
+                    }
                     if (networkPreferredInterfaces.isNotEmpty()) {
                         network_type = networkPreferredInterfaces.toMutableList()
                         network_strategy = mapNetworkInterfaceStrategy(networkInterfaceStrategy)
