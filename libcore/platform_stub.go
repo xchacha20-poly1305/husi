@@ -1,6 +1,7 @@
 package libcore
 
 import (
+	"net/netip"
 	"os"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -91,6 +92,10 @@ func (p platformInterfaceStub) SendNotification(_ *adapter.Notification) error {
 }
 
 func (p platformInterfaceStub) SystemCertificates() []string {
+	return nil
+}
+
+func (p platformInterfaceStub) MyInterfaceAddress() []netip.Addr {
 	return nil
 }
 

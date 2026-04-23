@@ -8,8 +8,8 @@ require (
 	github.com/klauspost/compress v1.18.5
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
-	github.com/sagernet/sing v0.8.9-0.20260420011825-ee298fea05e6
-	github.com/sagernet/sing-box v1.14.0-alpha.15
+	github.com/sagernet/sing v0.8.10-0.20260421111925-3e730f2301b4
+	github.com/sagernet/sing-box v1.14.0-alpha.17
 	github.com/sagernet/sing-tun v0.8.10-0.20260420012056-73f8bbda86a6
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
@@ -43,7 +43,7 @@ require (
 	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/anytls/sing-anytls v0.0.11 // indirect
-	github.com/caddyserver/certmagic v0.25.2 // indirect
+	github.com/caddyserver/certmagic v0.25.3-0.20260421143802-60d9d8b415d6 // indirect
 	github.com/caddyserver/zerossl v0.1.5 // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/database64128/tfo-go/v2 v2.3.2 // indirect
