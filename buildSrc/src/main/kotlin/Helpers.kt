@@ -1,7 +1,8 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.android.build.api.variant.impl.VariantOutputImpl
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
@@ -338,14 +339,6 @@ fun Project.setupPlugin(projectName: String) {
 
 }
 
-private fun String.cap(): String = replaceFirstChar {
-    if (it.isLowerCase()) {
-        it.titlecase(Locale.ROOT)
-    } else {
-        it.toString()
-    }
-}
-
 private fun Project.registerApkRenamer(
     replaceFrom: String,
     replaceToTemplate: String,
@@ -355,16 +348,15 @@ private fun Project.registerApkRenamer(
 
     androidComponents.onVariants { variant ->
         variant.outputs.forEach { output ->
-            val outputImpl = output as? VariantOutputImpl ?: return@forEach
             val versionName = output.versionName.orNull.orEmpty()
             val replaceTo = replaceToTemplate.replace("%VERSION_NAME%", versionName)
-            val originalFileName = outputImpl.outputFileName.get()
+            val originalFileName = output.outputFileName.get()
             var newName = originalFileName.replace(replaceFrom, replaceTo)
             for (stripToken in stripTokens) {
                 newName = newName.replace(stripToken, "")
             }
             if (newName != originalFileName) {
-                outputImpl.outputFileName.set(newName)
+                output.outputFileName.set(newName)
             }
         }
     }
