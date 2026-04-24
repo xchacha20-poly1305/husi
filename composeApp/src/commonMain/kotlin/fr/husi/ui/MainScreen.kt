@@ -17,7 +17,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +32,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import fr.husi.AlertType
 import fr.husi.bg.Alert
@@ -93,8 +93,6 @@ import fr.husi.resources.settings
 import fr.husi.resources.transform
 import fr.husi.resources.view_list
 import fr.husi.resources.warning_amber
-import fr.husi.results.LocalResultEventBus
-import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -152,7 +150,6 @@ private fun MainScreenContent(
 
     val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
-    val resultBus = remember { ResultEventBus() }
     val drawerStateHolder = rememberDrawerStateHolder()
     val navigator = remember(koinScope, backStack) {
         koinScope.get<Navigator> {
@@ -381,26 +378,23 @@ private fun MainScreenContent(
             }
         }
 
-        CompositionLocalProvider(
-            LocalResultEventBus provides resultBus,
-        ) {
-            NavDisplay(
-                backStack = backStack,
-                onBack = navigator::popBackStack,
-                entryDecorators = listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
-                ),
-                entryProvider = entryProvider,
-            )
+        NavDisplay(
+            backStack = backStack,
+            onBack = navigator::popBackStack,
+            entryDecorators = listOf(
+                rememberResultEventBusNavEntryDecorator(),
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+            entryProvider = entryProvider,
+        )
 
-            profilePickerController.session?.let { session ->
-                ProfileSelectSheet(
-                    preSelected = session.preSelected,
-                    onDismiss = profilePickerController::dismiss,
-                    onSelected = profilePickerController::select,
-                )
-            }
+        profilePickerController.session?.let { session ->
+            ProfileSelectSheet(
+                preSelected = session.preSelected,
+                onDismiss = profilePickerController::dismiss,
+                onSelected = profilePickerController::select,
+            )
         }
     }
 

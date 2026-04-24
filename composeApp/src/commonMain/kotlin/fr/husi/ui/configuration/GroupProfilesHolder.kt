@@ -112,8 +112,8 @@ import fr.husi.resources.standard
 import fr.husi.resources.traffic
 import fr.husi.resources.unavailable
 import fr.husi.resources.warning
-import fr.husi.results.LocalResultEventBus
-import fr.husi.results.ResultEffect
+import androidx.navigation3.runtime.result.LocalResultEventBus
+import androidx.navigation3.runtime.result.ResultEffect
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle

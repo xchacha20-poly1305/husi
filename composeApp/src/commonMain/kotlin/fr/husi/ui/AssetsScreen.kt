@@ -79,7 +79,7 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
-import fr.husi.results.ResultEffect
+import androidx.navigation3.runtime.result.ResultEffect
 import fr.husi.resources.*
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.name

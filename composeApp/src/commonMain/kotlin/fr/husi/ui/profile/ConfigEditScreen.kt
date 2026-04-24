@@ -119,8 +119,8 @@ import fr.husi.resources.redo
 import fr.husi.resources.undo
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
-import fr.husi.results.LocalResultEventBus
-import fr.husi.results.ResultEventBus
+import androidx.navigation3.runtime.result.LocalResultEventBus
+import androidx.navigation3.runtime.result.ResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.coroutineScope

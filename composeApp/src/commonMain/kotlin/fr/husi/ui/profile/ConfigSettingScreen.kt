@@ -54,7 +54,7 @@ import fr.husi.resources.profile_name
 import fr.husi.resources.question_mark
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
-import fr.husi.results.ResultEffect
+import androidx.navigation3.runtime.result.ResultEffect
 import fr.husi.ui.NavRoutes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter

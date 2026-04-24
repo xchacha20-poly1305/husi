@@ -61,7 +61,7 @@ import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.url
 import fr.husi.resources.warning
 import fr.husi.resources.warning_amber
-import fr.husi.results.LocalResultEventBus
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.runBlocking

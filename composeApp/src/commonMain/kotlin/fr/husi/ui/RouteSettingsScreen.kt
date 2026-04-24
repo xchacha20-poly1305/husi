@@ -139,7 +139,7 @@ import fr.husi.resources.warning
 import fr.husi.resources.warning_amber
 import fr.husi.resources.wifi
 import fr.husi.resources.wifi_find
-import fr.husi.results.ResultEffect
+import androidx.navigation3.runtime.result.ResultEffect
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.runBlocking
