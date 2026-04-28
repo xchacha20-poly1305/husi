@@ -3,6 +3,7 @@ module libcore
 go 1.26
 
 require (
+	codeberg.org/xchacha20-poly1305/pkgsite-go v0.3.1
 	github.com/dyhkwong/sing-juicity v0.1.2
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.5

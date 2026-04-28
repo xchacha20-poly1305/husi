@@ -191,7 +191,8 @@ make assets
 Generate open source license metadata:
 
 ```shell
-./gradlew :composeApp:exportLibraryDefinitions
+make aboutlibraries_go
+make aboutlibraries_android
 ```
 
 This writes Android metadata to
@@ -221,7 +222,8 @@ make desktop
 Generate desktop open source license metadata:
 
 ```shell
-./gradlew :composeApp:exportLibraryDefinitionsDesktop
+make aboutlibraries_go
+make aboutlibraries_desktop
 ```
 
 This writes desktop metadata to
