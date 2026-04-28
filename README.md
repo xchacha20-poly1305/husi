@@ -194,6 +194,9 @@ Generate open source license metadata:
 ./gradlew :composeApp:exportLibraryDefinitions
 ```
 
+This writes Android metadata to
+`composeApp/src/androidMain/composeResources/files/aboutlibraries.json`.
+
 Compile the release version:
 
 ```shell
@@ -214,6 +217,15 @@ Run the desktop application:
 ```shell
 make desktop
 ```
+
+Generate desktop open source license metadata:
+
+```shell
+./gradlew :composeApp:exportLibraryDefinitionsDesktop
+```
+
+This writes desktop metadata to
+`composeApp/src/desktopMain/composeResources/files/aboutlibraries.json`.
 
 Package a distributable for the current OS:
 

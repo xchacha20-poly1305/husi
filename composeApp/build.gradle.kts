@@ -382,8 +382,30 @@ aboutLibraries {
         configPath = file("src/commonMain/aboutlibraries")
     }
     export {
-        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
+        variant = "android"
+        outputFile = file("src/androidMain/composeResources/files/aboutlibraries.json")
     }
+    exports {
+        create("desktop") {
+            outputFile = file("src/desktopMain/composeResources/files/aboutlibraries.json")
+        }
+    }
+}
+
+tasks.named("prepareComposeResourcesTaskForAndroidMain") {
+    dependsOn("exportLibraryDefinitions")
+}
+
+tasks.named("prepareComposeResourcesTaskForDesktopMain") {
+    dependsOn("exportLibraryDefinitionsDesktop")
+}
+
+tasks.named("copyNonXmlValueResourcesForAndroidMain") {
+    dependsOn("exportLibraryDefinitions")
+}
+
+tasks.named("copyNonXmlValueResourcesForDesktopMain") {
+    dependsOn("exportLibraryDefinitionsDesktop")
 }
 
 ksp {
