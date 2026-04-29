@@ -412,7 +412,7 @@
     <string name="log_level">Тип журнала</string>
     <string name="landing_proxy">Конечный прокси</string>
     <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
-    <string name="menu_dashboard">Панель sing-box</string>
+    <string name="menu_dashboard">Панель</string>
     <string name="action_copy">Копировать</string>
     <string name="mux_sum">Mux снижает задержку соединения, но не увеличивает его пропускную способность. Неэффективен для просмотра видео, загрузок и тестов скорости. Необходима поддержка на стороне сервера.</string>
     <string name="mux_type">Протокол мультиплексирования</string>
