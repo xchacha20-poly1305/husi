@@ -21,6 +21,7 @@ go.work*
 *.tar
 *.swp
 .gradle-home/
+/composeApp/src/commonMain/aboutlibraries/libraries/go_*.json
 
 # Vibe coding
 .claude
