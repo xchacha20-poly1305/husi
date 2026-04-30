@@ -27,13 +27,13 @@ import (
 )
 
 //go:linkname systemRoots crypto/x509.systemRoots
-//go:linkname boxMozillaCert github.com/sagernet/sing-box/common/certificate.mozillaIncluded
-//go:linkname boxChromeCert github.com/sagernet/sing-box/common/certificate.chromeIncluded
-var (
-	systemRoots    *x509.CertPool
-	boxMozillaCert *x509.CertPool
-	boxChromeCert  *x509.CertPool
-)
+var systemRoots *x509.CertPool
+
+//go:linkname chromeIncludedPEM github.com/sagernet/sing-box/common/certificate.chromeIncludedPEM
+func chromeIncludedPEM() string
+
+//go:linkname mozillaIncludedPEM github.com/sagernet/sing-box/common/certificate.mozillaIncludedPEM
+func mozillaIncludedPEM() string
 
 const (
 	CertGoOrigin int32 = iota
@@ -70,9 +70,17 @@ func UpdateRootCACerts(certOption int32, certFromJava StringIterator) {
 			}
 		}
 	case CertMozilla:
-		roots = boxMozillaCert.Clone()
+		roots = x509.NewCertPool()
+		if !roots.AppendCertsFromPEM([]byte(mozillaIncludedPEM())) {
+			log.Error("failed to load Mozilla cert")
+			roots = sysRoots
+		}
 	case CertChrome:
-		roots = boxChromeCert.Clone()
+		roots = x509.NewCertPool()
+		if !roots.AppendCertsFromPEM([]byte(chromeIncludedPEM())) {
+			log.Error("failed to load Chrome cert")
+			roots = sysRoots
+		}
 	default:
 		panic("unknown cert option")
 	}
