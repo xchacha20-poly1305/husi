@@ -7,6 +7,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 METADATA_FILE="$ROOT_DIR/husi.properties"
 DESKTOP_METADATA_FILE="$ROOT_DIR/release/desktop/package-metadata.sh"
 NSIS_TEMPLATE_FILE="$ROOT_DIR/release/windows/desktop/installer.nsi"
+WINDOWS_JAVA_OPTS_FILE="$ROOT_DIR/release/windows/desktop/desktop-java-opts.conf"
 JAR_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/jars"
 OUTPUT_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/packages/windows"
 TAG_NAME=""
@@ -419,7 +420,7 @@ prepare_rootfs() {
     cp "$INPUT_JAR" "$root/app/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$launcher_path"
     chmod 755 "$launcher_path"
-    cp "$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf" "$root/desktop-java-opts.conf.template"
+    cp "$WINDOWS_JAVA_OPTS_FILE" "$root/desktop-java-opts.conf.template"
     cp "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" "$root/desktop-app-args.conf.template"
     cp "$ROOT_DIR/LICENSE" "$root/LICENSE"
     touch_path_tree "$root"
@@ -486,7 +487,7 @@ build_nsis() {
         "__HUSI_LICENSE_FILE__" "$ROOT_DIR/LICENSE" \
         "__HUSI_LAUNCHER_FILE__" "$INPUT_LAUNCHER_BIN" \
         "__HUSI_JAR_FILE__" "$INPUT_JAR" \
-        "__HUSI_JAVA_OPTS_FILE__" "$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf" \
+        "__HUSI_JAVA_OPTS_FILE__" "$WINDOWS_JAVA_OPTS_FILE" \
         "__HUSI_APP_ARGS_FILE__" "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" \
         "__HUSI_URL_SCHEME_REGISTRY__" "$url_scheme_registry" \
         "__HUSI_URL_SCHEME_UNREGISTRY__" "$url_scheme_unregistry"
