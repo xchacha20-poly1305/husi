@@ -245,18 +245,10 @@ fn fileExists(path: []const u8) bool {
     return true;
 }
 
-fn touchFile(path: []const u8) !void {
-    const file = try fs.createFileAbsolute(path, .{ .exclusive = false });
-    file.close();
-}
-
-fn ensureUserConfigFile(config_path: []const u8, template_path: []const u8) !void {
-    if (fileExists(config_path)) return;
-    if (fileExists(template_path)) {
-        try fs.cwd().copyFile(template_path, fs.cwd(), config_path, .{});
-    } else {
-        try touchFile(config_path);
-    }
+fn resolveArgsFile(user_path: []const u8, template_path: []const u8) ?[]const u8 {
+    if (fileExists(user_path)) return user_path;
+    if (fileExists(template_path)) return template_path;
+    return null;
 }
 
 const RuntimePaths = struct {
@@ -365,8 +357,6 @@ fn resolveUserConfigPaths(allocator: mem.Allocator) !UserConfigPaths {
     const config_dir = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ config_base, husi_config_dir_name });
     defer allocator.free(config_dir);
 
-    try fs.cwd().makePath(config_dir);
-
     const java_opts_path = try std.fmt.allocPrint(allocator, "{s}/desktop-java-opts.conf", .{config_dir});
     errdefer allocator.free(java_opts_path);
     const app_args_path = try std.fmt.allocPrint(allocator, "{s}/desktop-app-args.conf", .{config_dir});
@@ -469,26 +459,21 @@ pub fn main() !u8 {
         return 1;
     };
 
-    ensureUserConfigFile(user_config.java_opts_path, java_opts_template) catch |err| {
-        std.debug.print("ensure java opts config failed: {}\n", .{err});
-        return 1;
-    };
-    ensureUserConfigFile(user_config.app_args_path, app_args_template) catch |err| {
-        std.debug.print("ensure app args config failed: {}\n", .{err});
-        return 1;
-    };
-
     var java_opts: ArrayList([]u8) = .empty;
     var app_args: ArrayList([]u8) = .empty;
 
-    readArgsFile(allocator, user_config.java_opts_path, &java_opts) catch |err| {
-        std.debug.print("read java opts file failed: {}\n", .{err});
-        return 1;
-    };
-    readArgsFile(allocator, user_config.app_args_path, &app_args) catch |err| {
-        std.debug.print("read app args file failed: {}\n", .{err});
-        return 1;
-    };
+    if (resolveArgsFile(user_config.java_opts_path, java_opts_template)) |path| {
+        readArgsFile(allocator, path, &java_opts) catch |err| {
+            std.debug.print("read java opts file failed: {}\n", .{err});
+            return 1;
+        };
+    }
+    if (resolveArgsFile(user_config.app_args_path, app_args_template)) |path| {
+        readArgsFile(allocator, path, &app_args) catch |err| {
+            std.debug.print("read app args file failed: {}\n", .{err});
+            return 1;
+        };
+    }
 
     const java_command = selectJavaCommand(allocator) catch |err| {
         std.debug.print("select_java_command failed: {}\n", .{err});
