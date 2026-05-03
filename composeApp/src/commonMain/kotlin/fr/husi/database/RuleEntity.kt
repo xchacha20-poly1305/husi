@@ -54,6 +54,8 @@ data class RuleEntity(
     @ColumnInfo(defaultValue = "0") var tlsFragment: Boolean = false,
     @ColumnInfo(defaultValue = "0") var tlsRecordFragment: Boolean = false,
     @ColumnInfo(defaultValue = "") var tlsFragmentFallbackDelay: String = "",
+    @ColumnInfo(defaultValue = "") var tlsSpoof: String = "",
+    @ColumnInfo(defaultValue = "") var tlsSpoofMethod: String = "",
 
     // action: resolve
     @ColumnInfo(defaultValue = "") var resolveStrategy: String = "",

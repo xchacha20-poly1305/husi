@@ -577,6 +577,8 @@ private fun RuleEntity.summary(): String {
     if (tlsRecordFragment) {
         summary += "TLS record fragment\n"
     }
+    if (tlsSpoof.isNotBlank()) summary += "tlsSpoof: $tlsSpoof\n"
+    if (tlsSpoofMethod.isNotBlank()) summary += "tlsSpoofMethod: $tlsSpoofMethod\n"
 
     if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy\n"
     if (resolveDisableCache) summary += "resolveDisableCache\n"

@@ -948,6 +948,8 @@ fun buildConfig(
                         if (rule.tlsRecordFragment) {
                             tls_record_fragment = true
                         }
+                        tls_spoof = rule.tlsSpoof.blankAsNull()
+                        tls_spoof_method = rule.tlsSpoofMethod.blankAsNull()
                     }
 
                     SingBoxOptions.ACTION_RESOLVE -> {

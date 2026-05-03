@@ -77,6 +77,7 @@ import fr.husi.resources.category
 import fr.husi.resources.clash_mode
 import fr.husi.resources.close
 import fr.husi.resources.compare_arrows
+import fr.husi.resources.computer_cancel
 import fr.husi.resources.custom_config
 import fr.husi.resources.delete
 import fr.husi.resources.delete_confirm_prompt
@@ -84,6 +85,7 @@ import fr.husi.resources.directions_boat
 import fr.husi.resources.dns
 import fr.husi.resources.dns_only
 import fr.husi.resources.domain
+import fr.husi.resources.domino_mask
 import fr.husi.resources.done
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.empty_route
@@ -134,12 +136,15 @@ import fr.husi.resources.timer
 import fr.husi.resources.tls_fragment
 import fr.husi.resources.tls_fragment_fallback_delay
 import fr.husi.resources.tls_record_fragment
+import fr.husi.resources.tls_spoof
+import fr.husi.resources.tls_spoof_method
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
 import fr.husi.resources.warning_amber
 import fr.husi.resources.wifi
 import fr.husi.resources.wifi_find
 import fr.husi.results.ResultEffect
+import fr.husi.ui.profile.tlsSpoofMethod
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.runBlocking
@@ -836,6 +841,32 @@ private fun RouteSettings(
                                 )
                             },
                         )
+                    }
+                    if (!PlatformInfo.isAndroid) {
+                        item("tls_spoof") {
+                            TextFieldPreference(
+                                value = uiState.tlsSpoof,
+                                onValueChange = { viewModel.setTlsSpoof(it) },
+                                title = { Text(stringResource(Res.string.tls_spoof)) },
+                                textToValue = { it },
+                                icon = { Icon(vectorResource(Res.drawable.domino_mask), null) },
+                                summary = { Text(contentOrUnset(uiState.tlsSpoof)) },
+                                valueToText = { it },
+                            )
+                        }
+                        item("tls_spoof_method") {
+                            ListPreference(
+                                value = uiState.tlsSpoofMethod,
+                                values = tlsSpoofMethod,
+                                onValueChange = { viewModel.setTlsSpoofMethod(it) },
+                                title = { Text(stringResource(Res.string.tls_spoof_method)) },
+                                enabled = uiState.tlsSpoof.isNotBlank(),
+                                icon = { Icon(vectorResource(Res.drawable.computer_cancel), null) },
+                                summary = { Text(contentOrUnset(uiState.tlsSpoofMethod)) },
+                                type = ListPreferenceType.DROPDOWN_MENU,
+                                valueToText = { AnnotatedString(it) },
+                            )
+                        }
                     }
                 }
 

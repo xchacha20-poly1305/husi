@@ -288,7 +288,7 @@ private fun LazyListScope.trustTunnelSettings(
         item("tls_spoof_method") {
             ListPreference(
                 value = uiState.tlsSpoofMethod,
-                values = listOf("wrong-sequence", "wrong-checksum"),
+                values = tlsSpoofMethod,
                 onValueChange = { viewModel.setTlsSpoofMethod(it) },
                 title = { Text(stringResource(Res.string.tls_spoof_method)) },
                 enabled = !uiState.quic && uiState.tlsSpoof.isNotBlank(),

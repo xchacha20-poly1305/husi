@@ -307,7 +307,7 @@ internal fun LazyListScope.tlsSettings(
                     )
                     ListPreference(
                         value = state.tlsSpoofMethod,
-                        values = listOf("wrong-sequence", "wrong-checksum"),
+                        values = tlsSpoofMethod,
                         onValueChange = { viewModel.setTlsSpoofMethod(it) },
                         title = { Text(stringResource(Res.string.tls_spoof_method)) },
                         enabled = state.tlsSpoof.isNotBlank(),

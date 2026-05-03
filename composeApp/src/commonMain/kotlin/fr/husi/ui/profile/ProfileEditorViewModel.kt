@@ -21,7 +21,10 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.mux_max_connections
+import fr.husi.resources.mux_max_streams
+import fr.husi.resources.mux_min_streams
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -182,4 +185,13 @@ internal val muxStrategies = listOf(
     Res.string.mux_max_connections,
     Res.string.mux_min_streams,
     Res.string.mux_max_streams,
+)
+
+val tlsSpoofMethod = listOf(
+    "",
+    SingBoxOptions.TLS_SPOOF_WRONG_SEQUENCE,
+    SingBoxOptions.TLS_SPOOF_WRONG_CHECKSUM,
+    SingBoxOptions.TLS_SPOOF_WRONG_ACK,
+    SingBoxOptions.TLS_SPOOF_WRONG_MD5,
+    SingBoxOptions.TLS_SPOOF_WRONG_TIMESTAMP,
 )

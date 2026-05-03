@@ -46,6 +46,8 @@ data class RouteSettingsUiState(
     val tlsFragment: Boolean = false,
     val tlsRecordFragment: Boolean = false,
     val tlsFragmentFallbackDelay: String = "",
+    val tlsSpoof: String = "",
+    val tlsSpoofMethod: String = "",
 
     val resolveStrategy: String = "",
     val resolveDisableCache: Boolean = false,
@@ -168,6 +170,8 @@ internal class RouteSettingsViewModel(
                 tlsFragment = entity.tlsFragment,
                 tlsRecordFragment = entity.tlsRecordFragment,
                 tlsFragmentFallbackDelay = entity.tlsFragmentFallbackDelay,
+                tlsSpoof = entity.tlsSpoof,
+                tlsSpoofMethod = entity.tlsSpoofMethod,
 
                 resolveStrategy = entity.resolveStrategy,
                 resolveDisableCache = entity.resolveDisableCache,
@@ -215,6 +219,8 @@ internal class RouteSettingsViewModel(
         tlsFragment = state.tlsFragment
         tlsRecordFragment = state.tlsRecordFragment
         tlsFragmentFallbackDelay = state.tlsFragmentFallbackDelay
+        tlsSpoof = state.tlsSpoof
+        tlsSpoofMethod = state.tlsSpoofMethod
 
         resolveStrategy = state.resolveStrategy
         resolveDisableCache = state.resolveDisableCache
@@ -344,6 +350,14 @@ internal class RouteSettingsViewModel(
 
     fun setTlsFragmentFallbackDelay(tlsFragmentFallbackDelay: String) = viewModelScope.launch {
         _uiState.update { it.copy(tlsFragmentFallbackDelay = tlsFragmentFallbackDelay) }
+    }
+
+    fun setTlsSpoof(tlsSpoof: String) = viewModelScope.launch {
+        _uiState.update { it.copy(tlsSpoof = tlsSpoof) }
+    }
+
+    fun setTlsSpoofMethod(tlsSpoofMethod: String) = viewModelScope.launch {
+        _uiState.update { it.copy(tlsSpoofMethod = tlsSpoofMethod) }
     }
 
     fun setResolveStrategy(resolveStrategy: String) = viewModelScope.launch {

@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +414
+    // Generate on line +422
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
@@ -111,6 +111,12 @@ object SingBoxOptions {
     const val FINGERPRINT_ANDROID = "android"
     const val FINGERPRINT_RANDOM = "random"
     const val FINGERPRINT_RANDOMIZED = "randomized"
+
+    const val TLS_SPOOF_WRONG_SEQUENCE = "wrong-sequence"
+    const val TLS_SPOOF_WRONG_CHECKSUM = "wrong-checksum"
+    const val TLS_SPOOF_WRONG_ACK = "wrong-ack"
+    const val TLS_SPOOF_WRONG_MD5 = "wrong-md5"
+    const val TLS_SPOOF_WRONG_TIMESTAMP = "wrong-timestamp"
 
     // base
 
