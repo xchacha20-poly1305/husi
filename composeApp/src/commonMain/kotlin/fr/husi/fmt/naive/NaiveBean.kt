@@ -31,6 +31,8 @@ class NaiveBean : AbstractBean() {
     var extraHeaders: String = ""
     var sni: String = ""
     var insecureConcurrency: Int = 0
+    var tunnelTimeout: Int = 0
+    var idleTimeout: Int = 0
 
     // sing-box server
     var udpOverTcp: Boolean = false
@@ -49,7 +51,7 @@ class NaiveBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(3)
+        output.writeInt(4)
         super.serialize(output)
 
         // version 0
@@ -71,6 +73,10 @@ class NaiveBean : AbstractBean() {
 
         // version 3
         output.writeString(quicCongestionControl)
+
+        // version 4
+        output.writeInt(tunnelTimeout)
+        output.writeInt(idleTimeout)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -96,6 +102,11 @@ class NaiveBean : AbstractBean() {
 
         if (version >= 3) {
             quicCongestionControl = input.readString()
+        }
+
+        if (version >= 4) {
+            tunnelTimeout = input.readInt()
+            idleTimeout = input.readInt()
         }
     }
 

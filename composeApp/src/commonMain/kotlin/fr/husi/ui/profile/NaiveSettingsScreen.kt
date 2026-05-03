@@ -33,8 +33,10 @@ import fr.husi.resources.extra_headers
 import fr.husi.resources.grain
 import fr.husi.resources.grid_3x3
 import fr.husi.resources.https
+import fr.husi.resources.naive_idle_timeout
 import fr.husi.resources.naive_insecure_concurrency
 import fr.husi.resources.naive_insecure_concurrency_summary
+import fr.husi.resources.naive_tunnel_timeout
 import fr.husi.resources.nfc
 import fr.husi.resources.not_set
 import fr.husi.resources.password
@@ -51,6 +53,7 @@ import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.sni
 import fr.husi.resources.speed
+import fr.husi.resources.timelapse
 import fr.husi.resources.traffic
 import fr.husi.resources.tuic_congestion_controller
 import fr.husi.resources.udp_over_tcp
@@ -234,6 +237,48 @@ private fun LazyListScope.naiveSettings(
 
                     UIntegerTextField(value, onValueChange, onOk)
                 }
+            },
+        )
+    }
+    item("tunnel_timeout") {
+        TextFieldPreference(
+            value = uiState.tunnelTimeout,
+            onValueChange = { viewModel.setTunnelTimeout(it) },
+            title = { Text(stringResource(Res.string.naive_tunnel_timeout)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            summary = {
+                val text = if (uiState.tunnelTimeout == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.tunnelTimeout.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("idle_timeout") {
+        TextFieldPreference(
+            value = uiState.idleTimeout,
+            onValueChange = { viewModel.setIdleTimeout(it) },
+            title = { Text(stringResource(Res.string.naive_idle_timeout)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            summary = {
+                val text = if (uiState.idleTimeout == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.idleTimeout.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
             },
         )
     }

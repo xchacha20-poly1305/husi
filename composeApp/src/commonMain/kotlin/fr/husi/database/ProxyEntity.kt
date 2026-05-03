@@ -374,6 +374,9 @@ data class ProxyEntity(
                 if (bean.noPostQuantum) {
                     return true
                 }
+                if (bean.tunnelTimeout > 0 || bean.idleTimeout > 0) {
+                    return true
+                }
                 DataStore.providerNaive == ProtocolProvider.PLUGIN
             }
 

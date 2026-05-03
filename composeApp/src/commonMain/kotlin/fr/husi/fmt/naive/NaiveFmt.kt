@@ -86,6 +86,8 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
         "extra-headers" to extraHeaders.takeIf { it.isNotBlank() }?.split("\n")?.joinToString("\r\n"),
         "log" to if (DataStore.logLevel > 0) "" else null,
         "insecure-concurrency" to insecureConcurrency.takeIf { it > 0 },
+        "tunnel-timeout" to tunnelTimeout.takeIf { it > 0 },
+        "idle-timeout" to idleTimeout.takeIf { it > 0 },
         "no-post-quantum" to noPostQuantum,
     ).toJsonStringKxs()
 }

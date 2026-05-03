@@ -20,6 +20,8 @@ internal data class NaiveUiState(
     val sni: String = "",
     val extraHeaders: String = "",
     val insecureConcurrency: Int = 0,
+    val tunnelTimeout: Int = 0,
+    val idleTimeout: Int = 0,
     val udpOverTcp: Boolean = false,
     val noPostQuantum: Boolean = false,
     val enableEch: Boolean = false,
@@ -49,6 +51,8 @@ internal class NaiveSettingsViewModel : ProfileEditorViewModel<NaiveBean>() {
                 sni = sni,
                 extraHeaders = extraHeaders,
                 insecureConcurrency = insecureConcurrency,
+                tunnelTimeout = tunnelTimeout,
+                idleTimeout = idleTimeout,
                 udpOverTcp = udpOverTcp,
                 noPostQuantum = noPostQuantum,
                 enableEch = enableEch,
@@ -74,6 +78,8 @@ internal class NaiveSettingsViewModel : ProfileEditorViewModel<NaiveBean>() {
         sni = state.sni
         extraHeaders = state.extraHeaders
         insecureConcurrency = state.insecureConcurrency
+        tunnelTimeout = state.tunnelTimeout
+        idleTimeout = state.idleTimeout
         udpOverTcp = state.udpOverTcp
         noPostQuantum = state.noPostQuantum
         enableEch = state.enableEch
@@ -130,6 +136,14 @@ internal class NaiveSettingsViewModel : ProfileEditorViewModel<NaiveBean>() {
 
     fun setInsecureConcurrency(concurrency: Int) {
         _uiState.update { it.copy(insecureConcurrency = concurrency) }
+    }
+
+    fun setTunnelTimeout(timeout: Int) {
+        _uiState.update { it.copy(tunnelTimeout = timeout) }
+    }
+
+    fun setIdleTimeout(timeout: Int) {
+        _uiState.update { it.copy(idleTimeout = timeout) }
     }
 
     fun setUdpOverTcp(uot: Boolean) {

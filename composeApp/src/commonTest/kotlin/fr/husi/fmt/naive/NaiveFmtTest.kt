@@ -1,14 +1,21 @@
 package fr.husi.fmt.naive
 
+import fr.husi.database.DataStore
 import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.toJsonMapKxs
+import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class NaiveFmtTest {
+class NaiveFmtTest : HusiKoinTest() {
+
+    override suspend fun postStartKoin() {
+        DataStore.configurationStore.reset()
+    }
 
     @Test
     fun `parseNaive should parse naive+https url`() {
@@ -87,6 +94,34 @@ class NaiveFmtTest {
         val outbound = buildSingBoxOutboundNaiveBean(bean)
 
         assertNull(outbound.insecure_concurrency)
+    }
+
+    @Test
+    fun `buildNaiveConfig should include timeout options`() {
+        val bean = NaiveBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            tunnelTimeout = 600
+            idleTimeout = 300
+        }
+
+        val config = bean.buildNaiveConfig(1080).toJsonMapKxs()
+
+        assertEquals(600L, config["tunnel-timeout"])
+        assertEquals(300L, config["idle-timeout"])
+    }
+
+    @Test
+    fun `NaiveBean serialize round-trip should preserve timeout options`() {
+        val source = NaiveBean().apply {
+            tunnelTimeout = 600
+            idleTimeout = 300
+        }
+
+        val restored = source.clone()
+
+        assertEquals(600, restored.tunnelTimeout)
+        assertEquals(300, restored.idleTimeout)
     }
 
     @Test
