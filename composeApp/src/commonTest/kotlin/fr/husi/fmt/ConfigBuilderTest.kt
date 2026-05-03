@@ -176,6 +176,61 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig should keep server domain for chained outbound`() = runBlocking {
+        DataStore.domainStrategyForServer = "auto"
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val local = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "local",
+            host = "127.0.0.1",
+            port = 1080,
+        )
+        val remote = createSocksProxy(
+            groupId = group.id,
+            order = 2,
+            name = "remote",
+            host = "chain.example.com",
+            port = 1080,
+        )
+        val chain = createChain(
+            groupId = group.id,
+            order = 3,
+            name = "chain",
+            proxies = listOf(local.id, remote.id),
+        )
+
+        val outbounds = parseOutbounds(buildConfig(chain))
+
+        assertEquals("local", outbounds["remote"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals(null, outbounds["remote"]?.get("domain_resolver"))
+    }
+
+    @Test
+    fun `buildConfig should keep remote DNS domain through detour`() = runBlocking {
+        DataStore.remoteDns = "tcp://dns.example.com"
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        val dnsServers = parseDnsServers(buildConfig(proxy))
+
+        assertEquals("main", dnsServers[TAG_DNS_REMOTE]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals(null, dnsServers[TAG_DNS_REMOTE]?.get("domain_resolver"))
+    }
+
+    @Test
     fun `buildConfig should expand group chain front and landing around proxy set`() = runBlocking {
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -559,6 +614,13 @@ class ConfigBuilderTest : HusiKoinTest() {
             .jsonObject["rules"]!!
             .jsonArray
             .map { it.jsonObject }
+
+    private fun parseDnsServers(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.config).jsonObject["dns"]!!
+            .jsonObject["servers"]!!
+            .jsonArray
+            .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
+            .mapValues { it.value.jsonObject }
 
     private fun parseTunInbound(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["inbounds"]!!

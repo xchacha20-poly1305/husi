@@ -409,13 +409,14 @@ fun buildDNSServer(
     } else {
         Libcore.parseURL(link)
     }
+    val resolver = domainResolver.takeIf { out.isNullOrBlank() }
 
     return when (val scheme = url.scheme) {
         SingBoxOptions.DNS_TYPE_TLS -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
             type = scheme
             server = url.host
             server_port = url.ports.toIntOrNull()
-            domain_resolver = domainResolver
+            domain_resolver = resolver
             tls = OutboundTLSOptions().apply {
                 enabled = true
             }
@@ -428,7 +429,7 @@ fun buildDNSServer(
             type = scheme
             server = url.host
             server_port = url.ports.toIntOrNull()
-            domain_resolver = domainResolver
+            domain_resolver = resolver
             tls = OutboundTLSOptions().apply {
                 enabled = true
             }
@@ -443,7 +444,7 @@ fun buildDNSServer(
             }
             server = url.host
             server_port = url.ports.toIntOrNull()
-            domain_resolver = domainResolver
+            domain_resolver = resolver
             tls = OutboundTLSOptions().apply {
                 enabled = true
             }
@@ -456,7 +457,7 @@ fun buildDNSServer(
                 type = SingBoxOptions.DNS_TYPE_TCP
                 server = url.host
                 server_port = url.ports.toIntOrNull()
-                domain_resolver = domainResolver
+                domain_resolver = resolver
                 detour = out
                 if (url.parseBoolean("reuse")) reuse = true
                 if (url.parseBoolean("pipeline")) pipeline = true
@@ -470,7 +471,7 @@ fun buildDNSServer(
             }
             server = url.host
             server_port = url.ports.toIntOrNull()
-            domain_resolver = domainResolver
+            domain_resolver = resolver
             detour = out
         }
 

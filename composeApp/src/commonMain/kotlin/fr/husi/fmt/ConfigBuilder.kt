@@ -430,11 +430,16 @@ fun buildConfig(
                 }
             }
 
+            fun JSONMap.detourTo(tag: String) {
+                this["detour"] = tag
+                remove("domain_resolver")
+            }
+
             fun connectChainNode(previousEntity: ProxyEntity, currentTag: String) {
                 if (previousEntity.requireBean() is ProxySetBean) {
                     for (member in previousEntity.resolveProxySetMembers()) {
                         val memberTag = checkNotNull(reservedTags[member.id])
-                        outboundsByTag[memberTag]?.set("detour", currentTag)
+                        outboundsByTag[memberTag]?.detourTo(currentTag)
                     }
                     return
                 }
@@ -449,7 +454,7 @@ fun buildConfig(
                     )
                 } else {
                     val previousTag = checkNotNull(reservedTags[previousEntity.id])
-                    outboundsByTag[previousTag]?.set("detour", currentTag)
+                    outboundsByTag[previousTag]?.detourTo(currentTag)
                 }
             }
 
@@ -603,6 +608,9 @@ fun buildConfig(
                     // custom JSON merge
                     bean.customOutboundJson.blankAsNull()?.toJsonMapKxs()?.let {
                         mergeJson(it, currentOutbound)
+                    }
+                    if (this["detour"] != null) {
+                        remove("domain_resolver")
                     }
                 }
 
