@@ -21,13 +21,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PlainTooltip
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -65,6 +62,9 @@ import fr.husi.compose.SheetSectionTitle
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.colorForUrlTestDelay
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
+import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.database.DataStore
@@ -292,7 +292,7 @@ internal fun GroupHolderScreen(
                     },
                     exportToFile = { name, config ->
                         exportConfig = config
-                        exportFileLauncher.launch(name, "json")
+                        exportFileLauncher.launch(suggestedName = name, defaultExtension = "json")
                     },
                     showErrorAlert = { showErrorAlert = it },
                     onCopySuccess = onCopySuccess,

@@ -17,7 +17,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -28,7 +27,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -68,6 +66,8 @@ import fr.husi.compose.SheetSectionTitle
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.compose.withNavigation
@@ -112,8 +112,8 @@ import fr.husi.resources.share
 import fr.husi.resources.share_qr_nfc
 import fr.husi.resources.share_subscription
 import fr.husi.resources.subscription_expire
-import fr.husi.resources.subscription_traffic
 import fr.husi.resources.subscription_last_updated
+import fr.husi.resources.subscription_traffic
 import fr.husi.resources.subscription_used
 import fr.husi.resources.undo
 import fr.husi.resources.update
@@ -342,8 +342,8 @@ fun GroupScreen(
                             exportToFile = {
                                 groupToExport = groupState.group.id
                                 exportProfiles.launch(
-                                    "profiles_${groupState.group.displayName()}",
-                                    "txt",
+                                    suggestedName = "profiles_${groupState.group.displayName()}",
+                                    defaultExtension = "txt",
                                 )
                             },
                         )
@@ -601,7 +601,11 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                     onClick = {
                                                         scope.launch {
                                                             clipboard.setPlainText(link)
-                                                            snackbar(resolveRepository().getString(Res.string.copy_success))
+                                                            snackbar(
+                                                                resolveRepository().getString(
+                                                                    Res.string.copy_success,
+                                                                ),
+                                                            )
                                                         }
                                                         showOptionsSheet = false
                                                     },
@@ -649,7 +653,11 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                     onClick = {
                                                         scope.launch {
                                                             clipboard.setPlainText(group.toUniversalLink())
-                                                            snackbar(resolveRepository().getString(Res.string.copy_success))
+                                                            snackbar(
+                                                                resolveRepository().getString(
+                                                                    Res.string.copy_success,
+                                                                ),
+                                                            )
                                                         }
                                                         showOptionsSheet = false
                                                     },

@@ -120,7 +120,7 @@ fun QRCodeDialog(
                         text = { Text(stringResource(Res.string.save_to_system)) },
                         onClick = {
                             showMenu = false
-                            fileSaver.launch(suggestedName = name, extension = "png")
+                            fileSaver.launch(suggestedName = name, defaultExtension = "png")
                         },
                         leadingIcon = {
                             Icon(

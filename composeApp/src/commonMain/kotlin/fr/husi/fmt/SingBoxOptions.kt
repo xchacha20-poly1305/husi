@@ -615,6 +615,9 @@ object SingBoxOptions {
         var strategy: String? = null
 
         @JvmField
+        var timeout: String? = null
+
+        @JvmField
         var disable_cache: Boolean? = null
 
         @JvmField
@@ -639,6 +642,9 @@ object SingBoxOptions {
 
         @JvmField
         var strategy: String? = null
+
+        @JvmField
+        var timeout: String? = null
 
         @JvmField
         var disable_cache: Boolean? = null
@@ -1203,6 +1209,9 @@ object SingBoxOptions {
         var server: String? = null
 
         @JvmField
+        var timeout: String? = null
+
+        @JvmField
         var strategy: String? = null
 
         @JvmField
@@ -1592,6 +1601,12 @@ object SingBoxOptions {
         var tls_record_fragment: Boolean? = null
 
         @JvmField
+        var tls_spoof: String? = null
+
+        @JvmField
+        var tls_spoof_method: String? = null
+
+        @JvmField
         var detour: String? = null
 
         @JvmField
@@ -1730,6 +1745,12 @@ object SingBoxOptions {
 
         @JvmField
         var tls_record_fragment: Boolean? = null
+
+        @JvmField
+        var tls_spoof: String? = null
+
+        @JvmField
+        var tls_spoof_method: String? = null
 
         @JvmField
         var detour: String? = null
@@ -1933,6 +1954,9 @@ object SingBoxOptions {
         var source_hostname: MutableList<String>? = null
 
         @JvmField
+        var preferred_by: MutableList<String>? = null
+
+        @JvmField
         var rule_set: MutableList<String>? = null
 
         @JvmField
@@ -1988,6 +2012,9 @@ object SingBoxOptions {
         var server: String? = null
 
         @JvmField
+        var timeout: String? = null
+
+        @JvmField
         var strategy: String? = null
 
         @JvmField
@@ -2041,6 +2068,9 @@ object SingBoxOptions {
 
         @JvmField
         var server: String? = null
+
+        @JvmField
+        var timeout: String? = null
 
         @JvmField
         var strategy: String? = null
@@ -2280,6 +2310,12 @@ object SingBoxOptions {
 
         @JvmField
         var address: MutableList<String>? = null
+
+        @JvmField
+        var dns_mode: String? = null
+
+        @JvmField
+        var dns_address: MutableList<String>? = null
 
         @JvmField
         var auto_route: Boolean? = null
@@ -3122,6 +3158,15 @@ object SingBoxOptions {
 
         @JvmField
         var client_version: String? = null
+
+        @JvmField
+        var cipher: MutableList<String>? = null
+
+        @JvmField
+        var mac: MutableList<String>? = null
+
+        @JvmField
+        var kex_algorithm: MutableList<String>? = null
 
     }
 
@@ -4424,6 +4469,9 @@ object SingBoxOptions {
 
         @JvmField
         var prefer_go: Boolean? = null
+
+        @JvmField
+        var neighbor_domain: MutableList<String>? = null
 
     }
 

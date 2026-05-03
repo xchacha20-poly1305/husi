@@ -15,14 +15,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import fr.husi.compose.material3.Button
-import fr.husi.compose.material3.Checkbox
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +37,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.TextButton
+import fr.husi.compose.material3.Button
+import fr.husi.compose.material3.Checkbox
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.ktx.Logs
 import fr.husi.ktx.currentBackupFileTimestamp
@@ -120,7 +120,7 @@ internal fun BackupScreen(
         uiState.exported?.let {
             val time = currentBackupFileTimestamp()
             val fileName = "husi_backup_${time}"
-            exportFileLauncher.launch(fileName, "json")
+            exportFileLauncher.launch(suggestedName = fileName, defaultExtension = "json")
         }
     }
 
