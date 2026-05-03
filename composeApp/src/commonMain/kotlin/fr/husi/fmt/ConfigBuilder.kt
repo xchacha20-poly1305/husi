@@ -27,6 +27,7 @@ import fr.husi.fmt.SingBoxOptions.NTPOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_HostsDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_MDNSDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.OptimisticDNSOptions
 import fr.husi.fmt.SingBoxOptions.Outbound
 import fr.husi.fmt.SingBoxOptions.Outbound_DirectOptions
@@ -102,6 +103,7 @@ const val TAG_DNS_DIRECT = "dns-direct"
 const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
 const val TAG_DNS_HOSTS = "dns-hosts"
+const val TAG_DNS_MDNS = "dns-mdns"
 
 const val LOCALHOST4 = "127.0.0.1"
 
@@ -223,6 +225,9 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
+    val mDNSInterfaces by lazy {
+        DataStore.mDNS.blankAsNull()?.listByLineOrComma()?.takeIf { it.isNotEmpty() }
+    }
     val localDNSPort = DataStore.localDNSPort.takeIf { it > 0 }
     val useFakeDns by lazy { !forTest && DataStore.enableFakeDns }
     val fakeDNSForAll by lazy { useFakeDns && DataStore.fakeDNSForAll }
@@ -1255,6 +1260,29 @@ fun buildConfig(
                     }.asKxsMap(),
                 )
             }
+
+            // mDNS
+            val resolveMDNSByLocal = mDNSInterfaces == null
+            if (!resolveMDNSByLocal) {
+                dns!!.servers!!.add(
+                    NewDNSServerOptions_MDNSDNSServerOptions().apply {
+                        type = SingBoxOptions.DNS_TYPE_MDNS
+                        tag = TAG_DNS_MDNS
+                        `interface` = mDNSInterfaces!!.toMutableList()
+                    },
+                )
+            }
+            dns!!.rules!!.add(
+                0,
+                DNSRule_Default().apply {
+                    preferred_by = mutableListOf(TAG_DNS_MDNS)
+                    server = if (resolveMDNSByLocal) {
+                        TAG_DNS_LOCAL
+                    } else {
+                        TAG_DNS_MDNS
+                    }
+                }.asKxsMap(),
+            )
 
             // clash mode
             dns!!.rules!!.add(

@@ -178,4 +178,5 @@ var newDNSServerList = []any{
 	pluginoption.RemoteTLSDNSServerOptions{},
 	option.RemoteHTTPSDNSServerOptions{},
 	option.FakeIPDNSServerOptions{},
+	option.MDNSDNSServerOptions{},
 }

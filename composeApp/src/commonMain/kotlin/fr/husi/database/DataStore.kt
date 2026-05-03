@@ -120,6 +120,7 @@ object DataStore {
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
+    var mDNS by configurationStore.string(Key.MDNS) { "" }
     var domainStrategyForDirect by configurationStore.string(Key.DOMAIN_STRATEGY_FOR_DIRECT)
     var domainStrategyForServer by configurationStore.string(Key.DOMAIN_STRATEGY_FOR_SERVER)
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }

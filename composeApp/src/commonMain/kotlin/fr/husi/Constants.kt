@@ -31,6 +31,7 @@ object Key {
 
     const val REMOTE_DNS = "remoteDns"
     const val DIRECT_DNS = "directDns"
+    const val MDNS = "mDNS"
     const val DOMAIN_STRATEGY_FOR_DIRECT = "domain_strategy_for_direct"
     const val DOMAIN_STRATEGY_FOR_SERVER = "domain_strategy_for_server"
     const val ENABLE_FAKE_DNS = "enableFakeDns"

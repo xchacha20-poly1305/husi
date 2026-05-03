@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +422
+    // Generate on line +423
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
@@ -95,6 +95,7 @@ object SingBoxOptions {
     const val DNS_TYPE_RCODE = "rcode"
     const val DNS_TYPE_FAKEIP = "fakeip"
     const val DNS_TYPE_HOSTS = "hosts"
+    const val DNS_TYPE_MDNS = "mdns"
 
     const val NETWORK_TYPE_WIFI = "wifi"
     const val NETWORK_TYPE_CELLULAR = "cellular"
@@ -4845,6 +4846,89 @@ object SingBoxOptions {
 
         @JvmField
         var inet6_range: String? = null
+
+    }
+
+    @KxsSerializable
+    open class NewDNSServerOptions_MDNSDNSServerOptions : NewDNSServerOptions() {
+
+        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type RawLocalDNSServerOptions
+        // Generate note: nested type DialerOptions
+        @JvmField
+        var detour: String? = null
+
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var inet4_bind_address: String? = null
+
+        @JvmField
+        var inet6_bind_address: String? = null
+
+        @JvmField
+        var bind_address_no_port: Boolean? = null
+
+        @JvmField
+        var protect_path: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var connect_timeout: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var domain_resolver: DomainResolveOptions? = null
+
+        @JvmField
+        var network_strategy: String? = null
+
+        @JvmField
+        var network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_delay: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
+
+        @JvmField
+        var prefer_go: Boolean? = null
+
+        @JvmField
+        var neighbor_domain: MutableList<String>? = null
+
+        @JvmField
+        var `interface`: MutableList<String>? = null
 
     }
 

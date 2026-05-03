@@ -171,6 +171,7 @@ import fr.husi.resources.log_level
 import fr.husi.resources.long_click_to_see_name
 import fr.husi.resources.max_log_line
 import fr.husi.resources.menu
+import fr.husi.resources.mdns
 import fr.husi.resources.mozilla
 import fr.husi.resources.mtu
 import fr.husi.resources.nat
@@ -1145,6 +1146,28 @@ fun SettingsScreen(
                                 needReload()
                             },
                             title = { Text(stringResource(Res.string.direct_dns)) },
+                            textToValue = { it },
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.dns),
+                                    null,
+                                )
+                            },
+                            summary = { Text(contentOrUnset(value)) },
+                            valueToText = { it },
+                        )
+                    }
+                    item(Key.MDNS, PreferenceType.TEXT_FIELD) {
+                        val value by DataStore.configurationStore
+                            .stringFlow(Key.MDNS, "")
+                            .collectAsStateWithLifecycle("")
+                        TextFieldPreference(
+                            value = value,
+                            onValueChange = {
+                                DataStore.mDNS = it
+                                needReload()
+                            },
+                            title = { Text(stringResource(Res.string.mdns)) },
                             textToValue = { it },
                             icon = {
                                 Icon(
