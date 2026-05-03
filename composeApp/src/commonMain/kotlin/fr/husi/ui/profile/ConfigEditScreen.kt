@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
@@ -36,17 +37,14 @@ import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
-import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalFloatingToolbar
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -95,6 +93,10 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.TooltipIconButton
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.repository.resolveRepository
@@ -136,6 +138,7 @@ private fun RepeatableIconButton(
     imageVector: ImageVector,
     contentDescription: String,
     enabled: Boolean = true,
+    contentColor: Color = LocalContentColor.current,
     initialDelay: Long = 500L,
     repeatDelay: Long = 60L,
     onClick: () -> Unit,
@@ -168,9 +171,9 @@ private fun RepeatableIconButton(
             imageVector = imageVector,
             contentDescription = contentDescription,
             tint = if (enabled) {
-                LocalContentColor.current
+                contentColor
             } else {
-                LocalContentColor.current.copy(alpha = 0.38f)
+                contentColor.copy(alpha = 0.38f)
             },
         )
     }
@@ -189,7 +192,7 @@ fun ConfigEditScreen(
     val viewModel: ConfigEditViewModel = viewModel {
         ConfigEditViewModel(initialText)
     }
-    // Force LTR ( this is json editor + make AutoMirrored arrow correct  )
+    // Force LTR ( this is JSON editor + make AutoMirrored arrow correct  )
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         ConfigEditScreenContent(
             modifier = modifier,
@@ -331,8 +334,12 @@ private fun ConfigEditScreenContent(
             val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
             val navigationPadding =
                 WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            val toolbarYOffset = ScreenOffset + imePadding + navigationPadding
+            val toolbarYOffset = ScreenOffset + maxOf(imePadding, navigationPadding)
             var toolbarHeightPx by remember { mutableIntStateOf(0) }
+            val toolbarButtonContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+            val toolbarIconButtonColors = IconButtonDefaults.iconButtonColors(
+                contentColor = toolbarButtonContentColor,
+            )
             HorizontalFloatingToolbar(
                 expanded = true,
                 modifier = Modifier
@@ -349,9 +356,6 @@ private fun ConfigEditScreenContent(
                         alpha = 0.8f,
                     ),
                 ),
-                scrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
-                    FloatingToolbarExitDirection.Bottom,
-                ),
             ) {
                 Row(
                     modifier = Modifier
@@ -365,37 +369,42 @@ private fun ConfigEditScreenContent(
                         .horizontalScroll(rememberScrollState()),
                 ) {
                     if (showFloatingToolbarSymbolAndCursorButtons) {
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.keyboard_tab),
+                        TooltipIconButton(
+                            icon = vectorResource(Res.drawable.keyboard_tab),
                             contentDescription = stringResource(Res.string.indent),
+                            colors = toolbarIconButtonColors,
                             onClick = {
                                 // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
                                 viewModel.insertText(" ".repeat(2))
                             },
                         )
                     }
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.undo),
+                    TooltipIconButton(
+                        icon = vectorResource(Res.drawable.undo),
                         contentDescription = stringResource(Res.string.undo),
                         enabled = uiState.canUndo,
+                        colors = toolbarIconButtonColors,
                         onClick = viewModel::undo,
                     )
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.redo),
+                    TooltipIconButton(
+                        icon = vectorResource(Res.drawable.redo),
                         contentDescription = stringResource(Res.string.redo),
                         enabled = uiState.canRedo,
+                        colors = toolbarIconButtonColors,
                         onClick = viewModel::redo,
                     )
                     if (showFloatingToolbarSymbolAndCursorButtons) {
                         RepeatableIconButton(
                             imageVector = vectorResource(Res.drawable.keyboard_arrow_left),
                             contentDescription = "<-",
+                            contentColor = toolbarButtonContentColor,
                             onClick = { viewModel.moveCursor(-1) },
                         )
 
                         RepeatableIconButton(
                             imageVector = vectorResource(Res.drawable.keyboard_arrow_right),
                             contentDescription = "->",
+                            contentColor = toolbarButtonContentColor,
                             onClick = { viewModel.moveCursor(1) },
                         )
 
@@ -405,6 +414,7 @@ private fun ConfigEditScreenContent(
                                 onClick = {
                                     viewModel.insertText(key)
                                 },
+                                contentColor = toolbarButtonContentColor,
                             ) {
                                 Text(
                                     text = key,
@@ -416,14 +426,16 @@ private fun ConfigEditScreenContent(
                         }
                     }
 
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.format_align_left),
+                    TooltipIconButton(
+                        icon = vectorResource(Res.drawable.format_align_left),
                         contentDescription = stringResource(Res.string.action_format),
+                        colors = toolbarIconButtonColors,
                         onClick = { viewModel.formatCurrentText() },
                     )
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.info),
+                    TooltipIconButton(
+                        icon = vectorResource(Res.drawable.info),
                         contentDescription = stringResource(Res.string.action_test_config),
+                        colors = toolbarIconButtonColors,
                         onClick = {
                             coroutineScope.launch {
                                 viewModel.checkConfig()
@@ -433,9 +445,17 @@ private fun ConfigEditScreenContent(
                 }
             }
             val extraHeight = with(density) { toolbarHeightPx.toDp() } + toolbarYOffset
+            var editorHeightPx by remember { mutableIntStateOf(0) }
+            val editorMinHeight = (
+                    with(density) { editorHeightPx.toDp() } - extraHeight
+                    ).coerceAtLeast(0.dp)
             val focusRequester = remember { FocusRequester() }
             val verticalScrollState = rememberScrollState()
-            Row(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onSizeChanged { editorHeightPx = it.height },
+            ) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -452,6 +472,7 @@ private fun ConfigEditScreenContent(
                         state = viewModel.textFieldState,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .heightIn(min = editorMinHeight)
                             .focusRequester(focusRequester)
                             .onPreviewKeyEvent { keyEvent ->
                                 if (keyEvent.type != KeyEventType.KeyDown) {
@@ -522,7 +543,7 @@ private fun ConfigEditScreenContent(
     )
 }
 
-@Preview()
+@Preview
 @Composable
 private fun PreviewConfigEditScreen() {
     CompositionLocalProvider(
