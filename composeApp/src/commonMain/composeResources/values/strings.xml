@@ -111,7 +111,7 @@
     <string name="cag_dns">DNS Settings</string>
     <string name="remote_dns">Remote DNS</string>
     <string name="direct_dns">Direct DNS</string>
-    <string name="mdns" translatable="false">mDNS</string>
+    <string name="mdns_network_interfaces">mDNS Network Interfaces</string>
     <string name="enable_fakedns">Enable FakeDNS</string>
     <string name="fakedns_message">May cause other applications need to be restarted to reconnect to the network after proxy stopped</string>
     <string name="dns_hosts">Domain rewrite</string>

@@ -351,6 +351,7 @@
     <string name="clear_profiles_message">您确定要清空该分组吗?</string>
     <string name="remote_dns">远程 DNS</string>
     <string name="direct_dns">直连 DNS</string>
+    <string name="mdns_network_interfaces">mDNS 网络接口</string>
     <string name="enable_fakedns">启用 FakeDNS</string>
     <string name="fakedns_message">可能导致其他应用程序在代理停止后需要重新启动以重新连接到网络</string>
     <string name="dns_hosts">域名重写</string>

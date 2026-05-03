@@ -14,3 +14,5 @@ internal actual fun SingBoxOptions.Inbound_TunOptions.applyPlatformConfig() {
         auto_redirect = true
     }
 }
+
+internal actual val localDNSSupportRaw: Boolean = true

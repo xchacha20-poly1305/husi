@@ -9,6 +9,7 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/dns"
+	"github.com/sagernet/sing-box/dns/transport/mdns"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -39,11 +40,15 @@ func (p *platformTransport) Close() error {
 	return nil
 }
 
-func newPlatformTransport(iif LocalDNSTransport, tag string, options option.LocalDNSServerOptions) *platformTransport {
-	return &platformTransport{
+func newPlatformTransport(iif LocalDNSTransport, tag string, options option.LocalDNSServerOptions) adapter.DNSTransport {
+	transport := platformTransport{
 		TransportAdapter: dns.NewTransportAdapterWithLocalOptions(C.DNSTypeLocal, tag, options),
 		iif:              iif,
 	}
+	if iif.Raw() {
+		return &mDNSPlatformTransport{transport}
+	}
+	return &transport
 }
 
 func (p *platformTransport) Reset() {
@@ -106,6 +111,16 @@ func (p *platformTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*m
 		}
 		return dns.FixedResponse(message.Id, question, responseAddrs, C.DefaultDNSTTL), nil
 	}
+}
+
+var _ adapter.DNSTransportWithPreferredDomain = (*mDNSPlatformTransport)(nil)
+
+type mDNSPlatformTransport struct {
+	platformTransport
+}
+
+func (m *mDNSPlatformTransport) PreferredDomain(domain string) bool {
+	return mdns.IsLocalDomain(domain)
 }
 
 type Func interface {

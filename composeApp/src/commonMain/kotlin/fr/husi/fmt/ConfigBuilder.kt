@@ -1244,12 +1244,12 @@ fun buildConfig(
                 )
             }
 
-            fun addPreferredDNSRule(preferredBy: String, serverTag: String) {
+            fun addPreferredDNSRule(tag: String) {
                 dns!!.rules!!.add(
                     0,
                     DNSRule_Default().apply {
-                        preferred_by = mutableListOf(preferredBy)
-                        server = serverTag
+                        preferred_by = mutableListOf(tag)
+                        server = tag
                     }.asKxsMap(),
                 )
             }
@@ -1262,24 +1262,23 @@ fun buildConfig(
                         predefined = it.toMutableMap()
                     },
                 )
-                addPreferredDNSRule(SingBoxOptions.DNS_TYPE_HOSTS, TAG_DNS_HOSTS)
+                addPreferredDNSRule(TAG_DNS_HOSTS)
             }
-            addPreferredDNSRule(SingBoxOptions.DNS_TYPE_LOCAL, TAG_DNS_LOCAL)
+            addPreferredDNSRule(TAG_DNS_LOCAL)
 
             // mDNS
             // Make sure mDNS rule before local, because local includes mDNS
-            val resolveMDNSByLocal = mDNSInterfaces == null
+            val resolveMDNSByLocal = localDNSSupportRaw && mDNSInterfaces == null
             if (!resolveMDNSByLocal) {
                 dns!!.servers!!.add(
                     NewDNSServerOptions_MDNSDNSServerOptions().apply {
                         type = SingBoxOptions.DNS_TYPE_MDNS
                         tag = TAG_DNS_MDNS
-                        `interface` = mDNSInterfaces!!.toMutableList()
+                        `interface` = mDNSInterfaces?.toMutableList()
                     },
                 )
             }
             addPreferredDNSRule(
-                SingBoxOptions.DNS_TYPE_MDNS,
                 if (resolveMDNSByLocal) {
                     TAG_DNS_LOCAL
                 } else {

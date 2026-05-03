@@ -67,7 +67,6 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.HostTextField
 import fr.husi.compose.LinkOrContentTextField
-import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.PortTextField
@@ -170,8 +169,8 @@ import fr.husi.resources.lock
 import fr.husi.resources.log_level
 import fr.husi.resources.long_click_to_see_name
 import fr.husi.resources.max_log_line
+import fr.husi.resources.mdns_network_interfaces
 import fr.husi.resources.menu
-import fr.husi.resources.mdns
 import fr.husi.resources.mozilla
 import fr.husi.resources.mtu
 import fr.husi.resources.nat
@@ -1167,11 +1166,11 @@ fun SettingsScreen(
                                 DataStore.mDNS = it
                                 needReload()
                             },
-                            title = { Text(stringResource(Res.string.mdns)) },
+                            title = { Text(stringResource(Res.string.mdns_network_interfaces)) },
                             textToValue = { it },
                             icon = {
                                 Icon(
-                                    vectorResource(Res.drawable.dns),
+                                    vectorResource(Res.drawable.wifi),
                                     null,
                                 )
                             },
