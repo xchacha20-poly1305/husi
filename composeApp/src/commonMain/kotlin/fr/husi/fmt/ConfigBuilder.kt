@@ -1244,6 +1244,16 @@ fun buildConfig(
                 )
             }
 
+            fun addPreferredDNSRule(preferredBy: String, serverTag: String) {
+                dns!!.rules!!.add(
+                    0,
+                    DNSRule_Default().apply {
+                        preferred_by = mutableListOf(preferredBy)
+                        server = serverTag
+                    }.asKxsMap(),
+                )
+            }
+
             dnsHosts?.let {
                 dns!!.servers!!.add(
                     NewDNSServerOptions_HostsDNSServerOptions().apply {
@@ -1252,16 +1262,12 @@ fun buildConfig(
                         predefined = it.toMutableMap()
                     },
                 )
-                dns!!.rules!!.add(
-                    0,
-                    DNSRule_Default().apply {
-                        server = TAG_DNS_HOSTS
-                        ip_accept_any = true
-                    }.asKxsMap(),
-                )
+                addPreferredDNSRule(SingBoxOptions.DNS_TYPE_HOSTS, TAG_DNS_HOSTS)
             }
+            addPreferredDNSRule(SingBoxOptions.DNS_TYPE_LOCAL, TAG_DNS_LOCAL)
 
             // mDNS
+            // Make sure mDNS rule before local, because local includes mDNS
             val resolveMDNSByLocal = mDNSInterfaces == null
             if (!resolveMDNSByLocal) {
                 dns!!.servers!!.add(
@@ -1272,16 +1278,13 @@ fun buildConfig(
                     },
                 )
             }
-            dns!!.rules!!.add(
-                0,
-                DNSRule_Default().apply {
-                    preferred_by = mutableListOf(TAG_DNS_MDNS)
-                    server = if (resolveMDNSByLocal) {
-                        TAG_DNS_LOCAL
-                    } else {
-                        TAG_DNS_MDNS
-                    }
-                }.asKxsMap(),
+            addPreferredDNSRule(
+                SingBoxOptions.DNS_TYPE_MDNS,
+                if (resolveMDNSByLocal) {
+                    TAG_DNS_LOCAL
+                } else {
+                    TAG_DNS_MDNS
+                },
             )
 
             // clash mode
