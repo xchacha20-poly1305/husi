@@ -392,22 +392,6 @@ aboutLibraries {
     }
 }
 
-tasks.named("prepareComposeResourcesTaskForAndroidMain") {
-    dependsOn("exportLibraryDefinitions")
-}
-
-tasks.named("prepareComposeResourcesTaskForDesktopMain") {
-    dependsOn("exportLibraryDefinitionsDesktop")
-}
-
-tasks.named("copyNonXmlValueResourcesForAndroidMain") {
-    dependsOn("exportLibraryDefinitions")
-}
-
-tasks.named("copyNonXmlValueResourcesForDesktopMain") {
-    dependsOn("exportLibraryDefinitionsDesktop")
-}
-
 ksp {
     arg("room.incremental", "true")
     arg("room.schemaLocation", "${projectDir}/schemas")
