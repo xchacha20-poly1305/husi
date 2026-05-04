@@ -158,6 +158,7 @@ internal class RouteSettingsViewModel(
                 clashMode = entity.clashMode,
                 networkType = entity.networkType,
                 networkIsExpensive = entity.networkIsExpensive,
+                networkInterfaceAddress = entity.networkInterfaceAddress,
 
                 dnsOnly = entity.dnsOnly,
 
@@ -207,6 +208,7 @@ internal class RouteSettingsViewModel(
         clashMode = state.clashMode
         networkType = state.networkType
         networkIsExpensive = state.networkIsExpensive
+        networkInterfaceAddress = state.networkInterfaceAddress
 
         dnsOnly = state.dnsOnly
 
