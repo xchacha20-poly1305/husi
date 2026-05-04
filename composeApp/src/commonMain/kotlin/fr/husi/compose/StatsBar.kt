@@ -3,6 +3,7 @@
 package fr.husi.compose
 
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.MaterialTheme
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,10 +29,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.bg.ServiceStatus
+import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.readableUrlTestError
 import fr.husi.libcore.Libcore
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.connection_test_available
+import fr.husi.resources.connection_test_available_http
+import fr.husi.resources.connection_test_error
+import fr.husi.resources.connection_test_testing
+import fr.husi.resources.speed
+import fr.husi.resources.vpn_connected
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.URLTestStatus
 import kotlinx.coroutines.flow.map
@@ -46,10 +53,11 @@ fun StatsBar(
     mainViewModel: MainViewModel,
 ) {
     val urlTestStatus by mainViewModel.urlTestStatus.collectAsStateWithLifecycle()
-    val isHTTPS by DataStore.configurationStore
-        .stringFlow(Key.CONNECTION_TEST_URL)
-        .map { it.startsWith("https://") }
-        .collectAsStateWithLifecycle(false)
+    val isHTTPS by remember {
+        DataStore.configurationStore
+            .stringFlow(Key.CONNECTION_TEST_URL)
+            .map { it.startsWith("https://") }
+    }.collectAsStateWithLifecycle(false)
 
     var totalHeight by remember { mutableIntStateOf(0) }
     val offsetY by animateIntAsState(
@@ -75,6 +83,11 @@ fun StatsBar(
             expanded = true,
             modifier = Modifier
                 .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    shape = FloatingToolbarDefaults.ContainerShape,
+                )
                 .then(
                     if (visible) {
                         Modifier.clickable { mainViewModel.urlTest() }
@@ -83,8 +96,8 @@ fun StatsBar(
                     },
                 ),
             colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(
-                    alpha = 0.88f,
+                toolbarContainerColor = MaterialTheme.colorScheme.surface.copy(
+                    alpha = 0.72f,
                 ),
             ),
         ) {
