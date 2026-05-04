@@ -778,4 +778,5 @@
     <string name="traffic_pattern">Traffic Pattern</string>
     <string name="route_invert">Invert Match</string>
     <string name="latency">Latency</string>
+    <string name="select_file">Select File</string>
 </resources>

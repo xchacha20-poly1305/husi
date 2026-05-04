@@ -715,4 +715,5 @@
     <string name="traffic_pattern">流量模式</string>
     <string name="route_invert">反转匹配</string>
     <string name="latency">延迟</string>
+    <string name="select_file">选择文件</string>
 </resources>
