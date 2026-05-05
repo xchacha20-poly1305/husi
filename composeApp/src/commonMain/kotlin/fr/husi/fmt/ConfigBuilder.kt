@@ -33,7 +33,6 @@ import fr.husi.fmt.SingBoxOptions.Outbound
 import fr.husi.fmt.SingBoxOptions.Outbound_DirectOptions
 import fr.husi.fmt.SingBoxOptions.Outbound_SOCKSOptions
 import fr.husi.fmt.SingBoxOptions.Rule_Default
-import fr.husi.fmt.SingBoxOptions.Rule_Logical
 import fr.husi.fmt.SingBoxOptions.User
 import fr.husi.fmt.anytls.AnyTLSBean
 import fr.husi.fmt.anytls.buildSingBoxOutboundAnyTLSBean
@@ -1187,32 +1186,16 @@ fun buildConfig(
                 }.asKxsMap(),
             )
 
-            // built-in DNS rules
-            val builtInDNSRule = localDNSPort?.let {
-                Rule_Logical().also {
-                    it.type = SingBoxOptions.TYPE_LOGICAL
-                    it.mode = SingBoxOptions.LOGICAL_OR
-                    it.rules = mutableListOf(
-                        Rule_Default().apply {
-                            inbound = mutableListOf(TAG_DNS_IN)
-                        }.toJsonObjectKxs(),
-                        Rule_Default().apply {
-                            ip_cidr = mutableListOf(
-                                VpnConstants.PRIVATE_VLAN4_ROUTER,
-                                VpnConstants.PRIVATE_VLAN6_ROUTER,
-                            )
-                        }.toJsonObjectKxs(),
-                    )
-                    it.action = SingBoxOptions.ACTION_HIJACK_DNS
-                }.asKxsMap()
-            } ?: Rule_Default().apply {
-                ip_cidr = mutableListOf(
-                    VpnConstants.PRIVATE_VLAN4_ROUTER,
-                    VpnConstants.PRIVATE_VLAN6_ROUTER,
+            // built-in DNS rules; sing-tun auto-hijacks TUN traffic to the derived DNS gateway
+            localDNSPort?.let {
+                route!!.rules!!.add(
+                    0,
+                    Rule_Default().apply {
+                        inbound = mutableListOf(TAG_DNS_IN)
+                        action = SingBoxOptions.ACTION_HIJACK_DNS
+                    }.asKxsMap(),
                 )
-                action = SingBoxOptions.ACTION_HIJACK_DNS
-            }.asKxsMap()
-            route!!.rules!!.add(0, builtInDNSRule)
+            }
 
             // FakeDNS obj
             if (useFakeDns) {
