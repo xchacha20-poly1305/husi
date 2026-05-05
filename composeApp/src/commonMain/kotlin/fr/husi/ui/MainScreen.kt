@@ -3,7 +3,6 @@
 package fr.husi.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,8 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import fr.husi.AlertType
 import fr.husi.bg.Alert
@@ -41,7 +40,6 @@ import fr.husi.bg.Executable
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
 import fr.husi.compose.ScrollableDialog
-import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.DrawerItem
 import fr.husi.compose.material3.Icon
@@ -58,6 +56,7 @@ import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
+import fr.husi.resources.access_local_network_denied
 import fr.husi.resources.action_download
 import fr.husi.resources.bug_report
 import fr.husi.resources.cancel
@@ -202,6 +201,17 @@ private fun MainScreenContent(
             permission.hasPermission(AppPermission.PostNotifications)
         if (!hasPostNotification) {
             permission.requestPermission(AppPermission.PostNotifications)
+        }
+    }
+
+    var showLocalNetworkDeniedDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (permission.canRequestPermission(AppPermission.LocalNetwork) &&
+            !permission.hasPermission(AppPermission.LocalNetwork)
+        ) {
+            permission.requestPermission(AppPermission.LocalNetwork) { granted ->
+                if (!granted) showLocalNetworkDeniedDialog = true
+            }
         }
     }
 
@@ -423,6 +433,28 @@ private fun MainScreenContent(
         },
         title = { Text(stringResource(Res.string.permission_denied)) },
         text = { Text(stringResource(Res.string.query_package_denied)) },
+    )
+
+    if (showLocalNetworkDeniedDialog) AlertDialog(
+        onDismissRequest = {},
+        confirmButton = {
+            TextButton(stringResource(Res.string.ok)) {
+                showLocalNetworkDeniedDialog = false
+                permission.requestPermission(AppPermission.LocalNetwork) { granted ->
+                    if (!granted) showLocalNetworkDeniedDialog = true
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(stringResource(Res.string.no_thanks)) {
+                showLocalNetworkDeniedDialog = false
+            }
+        },
+        icon = {
+            Icon(vectorResource(Res.drawable.warning_amber), null)
+        },
+        title = { Text(stringResource(Res.string.permission_denied)) },
+        text = { Text(stringResource(Res.string.access_local_network_denied)) },
     )
 
     if (showServiceAlert != null) {

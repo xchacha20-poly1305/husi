@@ -250,8 +250,6 @@
     <string name="certificates">证书 (链)</string>
     <string name="ignore_battery_optimizations">忽略电池优化</string>
     <string name="ignore_battery_optimizations_sum">移除一些限制</string>
-    <string name="access_local_network">访问本地网络</string>
-    <string name="access_local_network_sum">允许连接到局域网内的设备</string>
     <string name="document">文档</string>
     <string name="early_data_header_name">前置数据标头</string>
     <string name="config_settings">配置设置</string>
@@ -671,6 +669,7 @@
     <string name="not_found">未找到</string>
     <string name="full">完整</string>
     <string name="query_package_denied">我们需要查询所有包的权限，用于根据应用路由。</string>
+    <string name="access_local_network_denied">我们需要访问本地网络的权限，用于连接局域网内的代理和设备。</string>
     <string name="more">更多</string>
     <string name="redo">重做</string>
     <string name="indent">缩进</string>

@@ -306,8 +306,6 @@
     <string name="deduplication">Deduplication</string>
     <string name="ignore_battery_optimizations">Ignore battery optimizations</string>
     <string name="ignore_battery_optimizations_sum">Remove some restrictions</string>
-    <string name="access_local_network">Access local network</string>
-    <string name="access_local_network_sum">Allow connecting to devices on the local network</string>
     <!-- plugin -->
     <string name="plugin">Plugin</string>
     <string name="plugin_configure">Configure…</string>
@@ -732,6 +730,7 @@
     <string name="not_found">Not found</string>
     <string name="full">Full</string>
     <string name="query_package_denied">We need query all packages permission to route based on application.</string>
+    <string name="access_local_network_denied">We need access local network permission to connect to proxies and devices on your LAN.</string>
     <string name="more">More</string>
     <string name="redo">Redo</string>
     <string name="indent">Indent</string>

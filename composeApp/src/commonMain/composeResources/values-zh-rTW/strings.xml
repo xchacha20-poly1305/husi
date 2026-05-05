@@ -269,8 +269,6 @@
     <string name="deduplication">重複資料刪除</string>
     <string name="ignore_battery_optimizations">忽略電池效能最佳化</string>
     <string name="ignore_battery_optimizations_sum">移除一些限制</string>
-    <string name="access_local_network">存取本機網路</string>
-    <string name="access_local_network_sum">允許連線至區域網路內的裝置</string>
     <string name="ss_cat">Shadowsocks 設定</string>
     <string name="need_reload">重新載入代理服務以套用修改</string>
     <string name="route_warn">請在新增客製化規則前閱讀文件，否則您可能會無法連線至網際網路。</string>
@@ -627,6 +625,7 @@
     <string name="expect_srs">檔名預期以「.srs」為副檔名</string>
     <string name="warn_starte_with_geo">檔名以「geosite-」或「geoip-」開頭的檔案可能會被清除。</string>
     <string name="permission_denied">權限被拒</string>
+    <string name="access_local_network_denied">我們需要存取區域網路的權限，以連線至區域網路內的代理和裝置。</string>
     <string name="save_to_system">儲存至系統</string>
     <string name="saved_to_download">文件已儲存至下載目錄。</string>
     <string name="network_interfaces">網路介面</string>
