@@ -173,7 +173,8 @@ val composeDesktopVersion = libs.versions.composeMultiplatform.get()
 
 val desktopJarName = desktopTarget.libcoreDesktopJarName
 val desktopJarFile = layout.projectDirectory.file("libs/$desktopJarName").asFile
-val libcoreDesktopJar =
+val libcoreDesktopJarOptional = desktopJarFile.takeIf { it.isFile }?.let { files(it) }
+val libcoreDesktopJarRequired =
     files({
         require(desktopJarFile.isFile) {
             "Missing desktop libcore jar '${desktopJarFile.path}'. Build it first, e.g. make libcore_desktop DESKTOP_TARGETS=$desktopTarget."
@@ -248,8 +249,10 @@ kotlin {
         val commonMain by getting {
             kotlin.srcDir(generateBuildConfig)
             dependencies {
-                // This is workaround for IDE to get libcore info
-                compileOnly(libcoreDesktopJar)
+                // Optional workaround for IDE to get libcore info
+                libcoreDesktopJarOptional?.let {
+                    compileOnly(it)
+                }
 
                 implementation(libs.jetbrains.compose.runtime)
                 implementation(libs.jetbrains.compose.foundation)
@@ -350,7 +353,7 @@ kotlin {
                 }
                 implementation(libs.clikt)
                 implementation(libs.kotlinx.coroutines.swing)
-                implementation(libcoreDesktopJar)
+                implementation(libcoreDesktopJarRequired)
             }
         }
     }
