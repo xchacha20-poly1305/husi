@@ -1244,6 +1244,9 @@ fun buildConfig(
                 )
             }
 
+            // Pre-filter:
+            // Hosts [->mDNS] -> local
+
             fun addPreferredDNSRule(tag: String) {
                 dns!!.rules!!.add(
                     0,
@@ -1254,16 +1257,6 @@ fun buildConfig(
                 )
             }
 
-            dnsHosts?.let {
-                dns!!.servers!!.add(
-                    NewDNSServerOptions_HostsDNSServerOptions().apply {
-                        type = SingBoxOptions.DNS_TYPE_HOSTS
-                        tag = TAG_DNS_HOSTS
-                        predefined = it.toMutableMap()
-                    },
-                )
-                addPreferredDNSRule(TAG_DNS_HOSTS)
-            }
             addPreferredDNSRule(TAG_DNS_LOCAL)
 
             // mDNS
@@ -1277,14 +1270,19 @@ fun buildConfig(
                         `interface` = mDNSInterfaces?.toMutableList()
                     },
                 )
+                addPreferredDNSRule(TAG_DNS_MDNS)
             }
-            addPreferredDNSRule(
-                if (resolveMDNSByLocal) {
-                    TAG_DNS_LOCAL
-                } else {
-                    TAG_DNS_MDNS
-                },
-            )
+
+            dnsHosts?.let {
+                dns!!.servers!!.add(
+                    NewDNSServerOptions_HostsDNSServerOptions().apply {
+                        type = SingBoxOptions.DNS_TYPE_HOSTS
+                        tag = TAG_DNS_HOSTS
+                        predefined = it.toMutableMap()
+                    },
+                )
+                addPreferredDNSRule(TAG_DNS_HOSTS)
+            }
 
             // clash mode
             dns!!.rules!!.add(

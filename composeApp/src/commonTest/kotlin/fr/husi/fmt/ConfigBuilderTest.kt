@@ -231,30 +231,6 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildConfig should resolve mDNS by local DNS when interface list is empty`() = runBlocking {
-        val group = ProxyGroup(name = "group").applyDefaultValues()
-        group.id = SagerDatabase.groupDao.createGroup(group)
-
-        val proxy = createSocksProxy(
-            groupId = group.id,
-            order = 1,
-            name = "main",
-            host = "1.1.1.1",
-            port = 1080,
-        )
-
-        val result = buildConfig(proxy)
-        val dnsServers = parseDnsServers(result)
-        val dnsRules = parseDnsRules(result)
-        val mdnsRule = dnsRules.first {
-            it["preferred_by"]?.jsonArray?.map { item -> item.jsonPrimitive.content } == listOf(TAG_DNS_MDNS)
-        }
-
-        assertEquals(null, dnsServers[TAG_DNS_MDNS])
-        assertEquals(TAG_DNS_LOCAL, mdnsRule["server"]?.jsonPrimitive?.content)
-    }
-
-    @Test
     fun `buildConfig should add mDNS server for configured interfaces`() = runBlocking {
         DataStore.mDNS = "wlan0, eth0\nap0"
 
