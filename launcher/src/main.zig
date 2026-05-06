@@ -1,6 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const fs = std.fs;
+const Io = std.Io;
 const mem = std.mem;
 const process = std.process;
 const ArrayList = std.ArrayList;
@@ -121,7 +122,8 @@ const PlatformPrivilege = switch (native_os) {
             try capset(&header, &data);
         }
 
-        fn prepare(allocator: mem.Allocator) !bool {
+        fn prepare(io: Io, allocator: mem.Allocator) !bool {
+            _ = io;
             _ = allocator;
 
             const ambient_caps = [_]c_int{
@@ -141,27 +143,29 @@ const PlatformPrivilege = switch (native_os) {
     .macos => struct {
         const c = std.c;
 
-        fn isPrivileged(exe_path: []const u8) bool {
-            const file = fs.openFileAbsolute(exe_path, .{}) catch return false;
-            defer file.close();
+        fn isPrivileged(io: Io, exe_path: []const u8) bool {
+            const file = Io.Dir.openFileAbsolute(io, exe_path, .{}) catch return false;
+            defer file.close(io);
             var stat: c.Stat = undefined;
             if (c.fstat(file.handle, &stat) != 0) return false;
             const S_ISUID = 0o4000;
             return stat.uid == 0 and stat.gid == 0 and (stat.mode & S_ISUID) != 0;
         }
 
-        fn runElevated(allocator: mem.Allocator, command: []const u8) !void {
+        fn runElevated(io: Io, allocator: mem.Allocator, command: []const u8) !void {
             const script = try std.fmt.allocPrint(allocator, "do shell script \"{s}\" with administrator privileges", .{command});
             defer allocator.free(script);
 
-            var child = process.Child.init(&.{ "osascript", "-e", script }, allocator);
-            child.stdin_behavior = .Ignore;
-            child.stdout_behavior = .Ignore;
-            child.stderr_behavior = .Ignore;
+            var child = try process.spawn(io, .{
+                .argv = &.{ "osascript", "-e", script },
+                .stdin = .ignore,
+                .stdout = .ignore,
+                .stderr = .ignore,
+            });
 
-            const term = try child.spawnAndWait();
+            const term = try child.wait(io);
             switch (term) {
-                .Exited => |code| {
+                .exited => |code| {
                     if (code == 0) return;
                 },
                 else => {},
@@ -169,19 +173,20 @@ const PlatformPrivilege = switch (native_os) {
             return error.ElevationFailed;
         }
 
-        fn prepare(allocator: mem.Allocator) !bool {
-            const exe_path = try findSelfExePath();
-            if (isPrivileged(exe_path)) return false;
+        fn prepare(io: Io, allocator: mem.Allocator) !bool {
+            const exe_path = try findSelfExePath(io);
+            if (isPrivileged(io, exe_path)) return false;
 
             const command = try std.fmt.allocPrint(allocator, "chown root:wheel {s} && chmod u+s {s}", .{ exe_path, exe_path });
             defer allocator.free(command);
-            try runElevated(allocator, command);
+            try runElevated(io, allocator, command);
             return true;
         }
     },
     .windows => struct {
         // Already got via mainfest
-        fn prepare(allocator: mem.Allocator) !bool {
+        fn prepare(io: Io, allocator: mem.Allocator) !bool {
+            _ = io;
             _ = allocator;
             return false;
         }
@@ -189,37 +194,28 @@ const PlatformPrivilege = switch (native_os) {
     else => unreachable,
 };
 
-var self_exe_buf: [fs.max_path_bytes]u8 = undefined;
+var self_exe_buf: [Io.Dir.max_path_bytes]u8 = undefined;
 var self_path: ?[]const u8 = null;
 
-fn findSelfExePath() ![]const u8 {
+fn findSelfExePath(io: Io) ![]const u8 {
     if (self_path) |path| {
         return path;
     }
-    self_path = try fs.selfExePath(&self_exe_buf);
+    const size = try process.executablePath(io, &self_exe_buf);
+    self_path = self_exe_buf[0..size];
     return self_path.?;
 }
 
-fn restartSelf(allocator: mem.Allocator) !u8 {
-    const proc_args = try process.argsAlloc(allocator);
-    var child = process.Child.init(proc_args, allocator);
-    child.stdin_behavior = .Inherit;
-    child.stdout_behavior = .Inherit;
-    child.stderr_behavior = .Inherit;
-    try child.spawn();
-    return 0;
-}
-
-fn readArgsFile(allocator: mem.Allocator, path: []const u8, list: *ArrayList([]u8)) !void {
-    const file = try fs.openFileAbsolute(path, .{});
-    defer file.close();
+fn readArgsFile(io: Io, allocator: mem.Allocator, path: []const u8, list: *ArrayList([]u8)) !void {
+    const file = try Io.Dir.openFileAbsolute(io, path, .{});
+    defer file.close(io);
 
     // will not too big...
     const read_buf_size = 512;
     var file_buf: [read_buf_size]u8 = undefined;
-    var reader = file.reader(&file_buf);
+    var reader = file.reader(io, &file_buf);
 
-    var ioAllocating: std.Io.Writer.Allocating = .init(allocator);
+    var ioAllocating: Io.Writer.Allocating = .init(allocator);
     defer ioAllocating.deinit();
 
     while (true) {
@@ -240,14 +236,14 @@ fn readArgsFile(allocator: mem.Allocator, path: []const u8, list: *ArrayList([]u
     }
 }
 
-fn fileExists(path: []const u8) bool {
-    fs.accessAbsolute(path, .{}) catch return false;
+fn fileExists(io: Io, path: []const u8) bool {
+    Io.Dir.accessAbsolute(io, path, .{}) catch return false;
     return true;
 }
 
-fn resolveArgsFile(user_path: []const u8, template_path: []const u8) ?[]const u8 {
-    if (fileExists(user_path)) return user_path;
-    if (fileExists(template_path)) return template_path;
+fn resolveArgsFile(io: Io, user_path: []const u8, template_path: []const u8) ?[]const u8 {
+    if (fileExists(io, user_path)) return user_path;
+    if (fileExists(io, template_path)) return template_path;
     return null;
 }
 
@@ -262,15 +258,15 @@ const MacOSAppBundleOptions = struct {
     dock_icon_path: ?[]const u8,
 };
 
-fn resolveRuntimePaths(allocator: mem.Allocator) !RuntimePaths {
-    const exe_path = try findSelfExePath();
+fn resolveRuntimePaths(io: Io, allocator: mem.Allocator) !RuntimePaths {
+    const exe_path = try findSelfExePath(io);
 
-    const launcher_dir_slice = fs.path.dirname(exe_path) orelse return error.BadExePath;
+    const launcher_dir_slice = Io.Dir.path.dirname(exe_path) orelse return error.BadExePath;
     const launcher_dir = try allocator.dupe(u8, launcher_dir_slice);
     errdefer allocator.free(launcher_dir);
 
     const direct_jar_path = try std.fmt.allocPrint(allocator, "{s}/app/{s}.jar", .{ launcher_dir_slice, husi_package_name });
-    if (fileExists(direct_jar_path)) {
+    if (fileExists(io, direct_jar_path)) {
         return RuntimePaths{
             .launcher_dir = launcher_dir,
             .app_root = launcher_dir,
@@ -279,7 +275,7 @@ fn resolveRuntimePaths(allocator: mem.Allocator) !RuntimePaths {
     }
     allocator.free(direct_jar_path);
 
-    const app_root_slice = fs.path.dirname(launcher_dir_slice) orelse return error.BadExePath;
+    const app_root_slice = Io.Dir.path.dirname(launcher_dir_slice) orelse return error.BadExePath;
     const app_root = try allocator.dupe(u8, app_root_slice);
     errdefer allocator.free(app_root);
 
@@ -292,11 +288,11 @@ fn resolveRuntimePaths(allocator: mem.Allocator) !RuntimePaths {
     };
 }
 
-fn resolveMacOSAppBundleOptions(allocator: mem.Allocator, runtime: RuntimePaths) !?MacOSAppBundleOptions {
+fn resolveMacOSAppBundleOptions(io: Io, allocator: mem.Allocator, runtime: RuntimePaths) !?MacOSAppBundleOptions {
     if (native_os != .macos) return null;
 
-    const bundle_root_slice = fs.path.dirname(runtime.app_root) orelse return null;
-    const bundle_name = fs.path.basename(bundle_root_slice);
+    const bundle_root_slice = Io.Dir.path.dirname(runtime.app_root) orelse return null;
+    const bundle_name = Io.Dir.path.basename(bundle_root_slice);
 
     var dock_name: ?[]const u8 = null;
     if (mem.endsWith(u8, bundle_name, ".app")) {
@@ -309,7 +305,7 @@ fn resolveMacOSAppBundleOptions(allocator: mem.Allocator, runtime: RuntimePaths)
     }
 
     const dock_icon_candidate = try std.fmt.allocPrint(allocator, "{s}/Resources/{s}.icns", .{ runtime.app_root, husi_package_name });
-    const dock_icon_path = if (fileExists(dock_icon_candidate)) dock_icon_candidate else blk: {
+    const dock_icon_path = if (fileExists(io, dock_icon_candidate)) dock_icon_candidate else blk: {
         allocator.free(dock_icon_candidate);
         break :blk null;
     };
@@ -327,31 +323,39 @@ const UserConfigPaths = struct {
     app_args_path: []u8,
 };
 
-fn resolveConfigBase(allocator: mem.Allocator) ![]u8 {
+fn resolveConfigBase(allocator: mem.Allocator, env_map: *process.Environ.Map) ![]u8 {
     switch (native_os) {
         .linux => {
-            if (process.getEnvVarOwned(allocator, "XDG_CONFIG_HOME") catch null) |xdg| {
-                if (xdg.len > 0) return xdg;
-                allocator.free(xdg);
+            if (env_map.get("XDG_CONFIG_HOME")) |xdg| {
+                if (xdg.len > 0) {
+                    return allocator.dupe(u8, xdg);
+                }
             }
-            const home = try process.getEnvVarOwned(allocator, "HOME");
-            defer allocator.free(home);
-            return std.fmt.allocPrint(allocator, "{s}/.config", .{home});
+            if (env_map.get("HOME")) |home| {
+                if (home.len > 0) {
+                    return std.fmt.allocPrint(allocator, "{s}/.config", .{home});
+                }
+            }
         },
         .macos => {
-            const home = try process.getEnvVarOwned(allocator, "HOME");
-            defer allocator.free(home);
-            return std.fmt.allocPrint(allocator, "{s}/Library/Application Support", .{home});
+            if (env_map.get("HOME")) |home| {
+                if (home.len > 0) {
+                    return std.fmt.allocPrint(allocator, "{s}/Library/Application Support", .{home});
+                }
+            }
         },
         .windows => {
-            return try process.getEnvVarOwned(allocator, "APPDATA");
+            if (env_map.get("APPDATA")) |app_data| {
+                if (app_data.len > 0) return allocator.dupe(u8, app_data);
+            }
         },
         else => unreachable,
     }
+    return error.MissingHome;
 }
 
-fn resolveUserConfigPaths(allocator: mem.Allocator) !UserConfigPaths {
-    const config_base = try resolveConfigBase(allocator);
+fn resolveUserConfigPaths(allocator: mem.Allocator, env_map: *process.Environ.Map) !UserConfigPaths {
+    const config_base = try resolveConfigBase(allocator, env_map);
     defer allocator.free(config_base);
 
     const config_dir = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ config_base, husi_config_dir_name });
@@ -367,12 +371,11 @@ fn resolveUserConfigPaths(allocator: mem.Allocator) !UserConfigPaths {
     };
 }
 
-fn resolveMacOSJavaHome(allocator: mem.Allocator) !?[]const u8 {
+fn resolveMacOSJavaHome(io: Io, allocator: mem.Allocator) !?[]const u8 {
     if (native_os != .macos) return null;
 
     const java_version = "21";
-    const result = process.Child.run(.{
-        .allocator = allocator,
+    const result = process.run(allocator, io, .{
         .argv = &.{ "/usr/libexec/java_home", "-v", java_version },
     }) catch |err| switch (err) {
         error.FileNotFound => return null,
@@ -382,7 +385,7 @@ fn resolveMacOSJavaHome(allocator: mem.Allocator) !?[]const u8 {
     defer allocator.free(result.stderr);
 
     switch (result.term) {
-        .Exited => |code| {
+        .exited => |code| {
             if (code != 0) return null;
         },
         else => return null,
@@ -392,13 +395,13 @@ fn resolveMacOSJavaHome(allocator: mem.Allocator) !?[]const u8 {
     if (java_home.len == 0) return null;
 
     const java_bin = try std.fmt.allocPrint(allocator, "{s}/bin/java", .{java_home});
-    if (fileExists(java_bin)) return java_bin;
+    if (fileExists(io, java_bin)) return java_bin;
 
     allocator.free(java_bin);
     return null;
 }
 
-fn resolveJavaHomeCommand(allocator: mem.Allocator, java_home: []const u8) !?[]const u8 {
+fn resolveJavaHomeCommand(io: Io, allocator: mem.Allocator, java_home: []const u8) !?[]const u8 {
     if (java_home.len == 0) return null;
 
     const candidate_names = if (native_os == .windows)
@@ -407,8 +410,8 @@ fn resolveJavaHomeCommand(allocator: mem.Allocator, java_home: []const u8) !?[]c
         [_][]const u8{"java"};
 
     for (candidate_names) |candidate_name| {
-        const candidate = try fs.path.join(allocator, &.{ java_home, "bin", candidate_name });
-        if (fs.accessAbsolute(candidate, .{})) |_| {
+        const candidate = try Io.Dir.path.join(allocator, &.{ java_home, "bin", candidate_name });
+        if (Io.Dir.accessAbsolute(io, candidate, .{})) |_| {
             return candidate;
         } else |_| {
             allocator.free(candidate);
@@ -418,35 +421,40 @@ fn resolveJavaHomeCommand(allocator: mem.Allocator, java_home: []const u8) !?[]c
     return null;
 }
 
-fn selectJavaCommand(allocator: mem.Allocator) ![]const u8 {
-    if (process.getEnvVarOwned(allocator, "JAVA_HOME") catch null) |java_home| {
-        defer allocator.free(java_home);
-        if (try resolveJavaHomeCommand(allocator, java_home)) |bin| return bin;
+fn selectJavaCommand(io: Io, allocator: mem.Allocator, env_map: *process.Environ.Map) ![]const u8 {
+    if (env_map.get("JAVA_HOME")) |java_home| {
+        if (try resolveJavaHomeCommand(io, allocator, java_home)) |bin| {
+            return bin;
+        }
     }
-    if (process.getEnvVarOwned(allocator, "JAVA") catch null) |java_env| {
-        if (java_env.len > 0) return java_env;
-        allocator.free(java_env);
+    if (env_map.get("JAVA")) |java_env| {
+        if (java_env.len > 0) {
+            return allocator.dupe(u8, java_env);
+        }
     }
-    if (try resolveMacOSJavaHome(allocator)) |java_bin| {
+    if (try resolveMacOSJavaHome(io, allocator)) |java_bin| {
         return java_bin;
     }
     return allocator.dupe(u8, "java");
 }
 
-pub fn main() !u8 {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
+pub fn main(init: std.process.Init) !u8 {
+    const io = init.io;
+    const arena = init.arena;
     const allocator = arena.allocator();
 
-    const relaunch_required = PlatformPrivilege.prepare(allocator) catch |err| onFailed: {
+    const relaunch_required = PlatformPrivilege.prepare(io, allocator) catch |err| onFailed: {
         std.debug.print("WARN: prepare_launch_environment failed: {}\n", .{err});
         break :onFailed false;
     };
     if (relaunch_required) {
-        return restartSelf(allocator);
+        const args = try init.minimal.args.toSlice(allocator);
+        return process.replace(io, .{
+            .argv = args,
+        });
     }
 
-    const runtime = resolveRuntimePaths(allocator) catch |err| {
+    const runtime = resolveRuntimePaths(io, allocator) catch |err| {
         std.debug.print("resolve_runtime_paths failed: {}\n", .{err});
         return 1;
     };
@@ -454,7 +462,7 @@ pub fn main() !u8 {
     const java_opts_template = try std.fmt.allocPrint(allocator, "{s}/desktop-java-opts.conf.template", .{runtime.launcher_dir});
     const app_args_template = try std.fmt.allocPrint(allocator, "{s}/desktop-app-args.conf.template", .{runtime.launcher_dir});
 
-    const user_config = resolveUserConfigPaths(allocator) catch |err| {
+    const user_config = resolveUserConfigPaths(allocator, init.environ_map) catch |err| {
         std.debug.print("resolve_user_config_paths failed: {}\n", .{err});
         return 1;
     };
@@ -462,31 +470,29 @@ pub fn main() !u8 {
     var java_opts: ArrayList([]u8) = .empty;
     var app_args: ArrayList([]u8) = .empty;
 
-    if (resolveArgsFile(user_config.java_opts_path, java_opts_template)) |path| {
-        readArgsFile(allocator, path, &java_opts) catch |err| {
+    if (resolveArgsFile(io, user_config.java_opts_path, java_opts_template)) |path| {
+        readArgsFile(io, allocator, path, &java_opts) catch |err| {
             std.debug.print("read java opts file failed: {}\n", .{err});
             return 1;
         };
     }
-    if (resolveArgsFile(user_config.app_args_path, app_args_template)) |path| {
-        readArgsFile(allocator, path, &app_args) catch |err| {
+    if (resolveArgsFile(io, user_config.app_args_path, app_args_template)) |path| {
+        readArgsFile(io, allocator, path, &app_args) catch |err| {
             std.debug.print("read app args file failed: {}\n", .{err});
             return 1;
         };
     }
 
-    const java_command = selectJavaCommand(allocator) catch |err| {
+    const java_command = selectJavaCommand(io, allocator, init.environ_map) catch |err| {
         std.debug.print("select_java_command failed: {}\n", .{err});
         return 1;
     };
-
-    const proc_args = try process.argsAlloc(allocator);
 
     // java [java_opts...] -jar <jar> [app_args...] [passthrough args...]
     var child_argv: ArrayList([]const u8) = .empty;
 
     try child_argv.append(allocator, java_command);
-    if (try resolveMacOSAppBundleOptions(allocator, runtime)) |bundle_options| {
+    if (try resolveMacOSAppBundleOptions(io, allocator, runtime)) |bundle_options| {
         if (bundle_options.dock_name) |dock_name| {
             try child_argv.append(allocator, try std.fmt.allocPrint(allocator, "-Xdock:name={s}", .{dock_name}));
         }
@@ -498,24 +504,27 @@ pub fn main() !u8 {
     try child_argv.append(allocator, "-jar");
     try child_argv.append(allocator, runtime.jar_path);
     for (app_args.items) |arg| try child_argv.append(allocator, arg);
-    for (proc_args[1..]) |arg| try child_argv.append(allocator, arg);
+
+    var args_iterator = try process.Args.iterateAllocator(init.minimal.args, allocator);
+    defer args_iterator.deinit();
+    _ = args_iterator.skip();
+    while (args_iterator.next()) |arg| {
+        try child_argv.append(allocator, arg);
+    }
 
     while (true) {
-        var child = process.Child.init(child_argv.items, allocator);
-        child.stdin_behavior = .Inherit;
-        child.stdout_behavior = .Inherit;
-        child.stderr_behavior = .Inherit;
-        if (native_os == .windows) {
-            child.create_no_window = true;
-        }
+        var child = try process.spawn(io, .{
+            .argv = child_argv.items,
+            .create_no_window = native_os == .windows,
+        });
 
-        const term = child.spawnAndWait() catch |err| {
+        const term = child.wait(io) catch |err| {
             std.debug.print("spawn and wait failed: {}\n", .{err});
             return 1;
         };
 
         switch (term) {
-            .Exited => |code| {
+            .exited => |code| {
                 if (code == husi_exit_restart) continue;
                 return code;
             },

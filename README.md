@@ -211,7 +211,7 @@ The APK file will be located in `androidApp/build/outputs/apk`.
 Environment:
 
 * jdk-21
-* zig 0.15
+* zig 0.16
 
 Run the desktop application:
 

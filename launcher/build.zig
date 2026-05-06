@@ -15,6 +15,7 @@ pub fn build(b: *std.Build) void {
             .target = target,
             .optimize = optimize,
             .strip = if (optimize != .Debug) true else null,
+            .unwind_tables = if (optimize != .Debug) .none else null, // Decrease 10 kB for zig 0.16 boom
             .imports = &.{
                 .{ .name = "config", .module = options.createModule() },
             },
