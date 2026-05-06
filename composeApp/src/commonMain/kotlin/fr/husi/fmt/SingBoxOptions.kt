@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +423
+    // Generate on line +427
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
@@ -96,6 +96,10 @@ object SingBoxOptions {
     const val DNS_TYPE_FAKEIP = "fakeip"
     const val DNS_TYPE_HOSTS = "hosts"
     const val DNS_TYPE_MDNS = "mdns"
+
+    const val TUN_DNS_MODE_DISABLED = "disabled"
+    const val TUN_DNS_MODE_NATIVE = "native"
+    const val TUN_DNS_MODE_HIJACK = "hijack"
 
     const val NETWORK_TYPE_WIFI = "wifi"
     const val NETWORK_TYPE_CELLULAR = "cellular"
