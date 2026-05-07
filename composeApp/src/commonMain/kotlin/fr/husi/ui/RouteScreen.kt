@@ -74,6 +74,7 @@ import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
+import fr.husi.compose.fadingBottomEdge
 import fr.husi.compose.navigationBarsAlwaysInsets
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.rememberScrollHideState
@@ -308,7 +309,8 @@ fun RouteScreen(
                 DragDropSwipeLazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(1f)
+                        .fadingBottomEdge(dragDropListState.lazyListState),
                     state = dragDropListState,
                     items = uiState.rules.toImmutableList(),
                     key = { it.id },

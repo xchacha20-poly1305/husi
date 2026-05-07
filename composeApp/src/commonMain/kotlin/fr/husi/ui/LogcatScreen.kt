@@ -83,6 +83,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.ansiEscape
+import fr.husi.compose.fadingBottomEdge
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.readableMessage
@@ -326,7 +327,8 @@ fun LogcatScreen(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                .fadingBottomEdge(listState),
                             state = listState,
                             contentPadding = contentPadding,
                         ) {

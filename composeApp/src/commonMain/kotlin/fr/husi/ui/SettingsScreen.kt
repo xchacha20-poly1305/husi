@@ -77,6 +77,7 @@ import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.fadingBottomEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Surface
 import fr.husi.compose.material3.Text
@@ -381,7 +382,8 @@ fun SettingsScreen(
                     state = listState,
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight(),
+                        .fillMaxHeight()
+                        .fadingBottomEdge(listState),
                     contentPadding = contentPadding,
                 ) {
                     item(Key.GENERAL_SETTINGS, PreferenceType.CATEGORY) {

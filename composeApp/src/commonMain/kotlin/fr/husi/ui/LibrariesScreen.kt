@@ -34,6 +34,7 @@ import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.TextButton
+import fr.husi.compose.fadingBottomEdge
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.emptyAsNull
 import fr.husi.resources.Res
@@ -87,7 +88,8 @@ fun LibrariesScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .fadingBottomEdge(listState),
                 lazyListState = listState,
                 contentPadding = contentPadding,
                 onLibraryClick = { library ->

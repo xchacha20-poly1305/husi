@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.fadingBottomEdge
 import fr.husi.compose.theme.LogColors
 import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
@@ -69,7 +70,8 @@ internal fun DashboardConnectionsScreen(
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
+                    .fillMaxHeight()
+                    .fadingBottomEdge(listState),
                 state = listState,
                 contentPadding = PaddingValues(bottom = bottomPadding),
                 verticalArrangement = Arrangement.spacedBy(itemSpacing),
