@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.withNavigation
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
@@ -549,7 +549,7 @@ private fun ConnectionDataCard(
         }
     } else {
         OutlinedCard(
-            modifier = cardModifier.combinedClickable(
+            modifier = cardModifier.platformCombinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),

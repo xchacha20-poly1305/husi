@@ -1,6 +1,5 @@
 package fr.husi.ui
 
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +49,7 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.PlatformMenuIcon
+import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
@@ -387,7 +387,7 @@ private fun CardItem(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = 56.dp)
-            .combinedClickable(
+            .platformCombinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
