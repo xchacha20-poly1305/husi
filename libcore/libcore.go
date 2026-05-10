@@ -12,7 +12,7 @@ import (
 
 const ProtectPath = "protect_path"
 
-func InitCore(shouldOperateFiles bool,
+func InitCore(shouldOperateFiles, truncateLog bool,
 	cachePath, internalAssets, externalAssets string,
 	maxLogLines int32, logLevel int32,
 	useOfficialAssets bool,
@@ -30,7 +30,7 @@ func InitCore(shouldOperateFiles bool,
 	if maxLogLines < 50 {
 		maxLogLines = 50
 	}
-	_ = setupLog(int(maxLogLines), filepath.Join(externalAssets, "stderr.log"), log.Level(logLevel), shouldOperateFiles)
+	_ = setupLog(int(maxLogLines), filepath.Join(externalAssets, "stderr.log"), log.Level(logLevel), truncateLog)
 
 	if shouldOperateFiles {
 		if debugMode {

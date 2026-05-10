@@ -62,17 +62,17 @@ var (
 	logFactory log.ObservableFactory
 )
 
-func setupLog(maxLogLine int, path string, level log.Level, notTruncateOnStart bool) (err error) {
+func setupLog(maxLogLine int, path string, level log.Level, truncate bool) (err error) {
 	if platformLogWrapper != nil {
 		return
 	}
 
 	var file *os.File
 	flags := os.O_CREATE | os.O_WRONLY
-	if notTruncateOnStart {
-		flags |= os.O_APPEND
-	} else {
+	if truncate {
 		flags |= os.O_TRUNC
+	} else {
+		flags |= os.O_APPEND
 	}
 	file, err = os.OpenFile(path, flags, 0o644)
 	if err != nil {

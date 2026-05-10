@@ -72,6 +72,7 @@ class Application : Application(),
         }
         Libcore.initCore(
             isBgProcess,
+            !isBgProcess,
             cacheDir.invariantDirectoryPathString(),
             filesDir.invariantDirectoryPathString(),
             externalAssets.invariantDirectoryPathString(),

@@ -357,6 +357,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         }
         Libcore.initCore(
             true,
+            true,
             cacheDir,
             filesDir,
             externalAssetsDir,
