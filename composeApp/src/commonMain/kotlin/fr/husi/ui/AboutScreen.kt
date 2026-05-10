@@ -20,14 +20,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -49,24 +48,48 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.BuildConfig
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
-import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.setPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.android
+import fr.husi.resources.app_name
+import fr.husi.resources.battery_charging_full
+import fr.husi.resources.build
+import fr.husi.resources.build_environment
+import fr.husi.resources.code
+import fr.husi.resources.copy_success
+import fr.husi.resources.g_translate
+import fr.husi.resources.gavel
+import fr.husi.resources.github
+import fr.husi.resources.ignore_battery_optimizations
+import fr.husi.resources.ignore_battery_optimizations_sum
+import fr.husi.resources.library_music
+import fr.husi.resources.menu
+import fr.husi.resources.menu_about
+import fr.husi.resources.ok
+import fr.husi.resources.oss_licenses
+import fr.husi.resources.project
+import fr.husi.resources.shuowenxiaozhuan_husi
+import fr.husi.resources.translate_platform
+import fr.husi.resources.version_x
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -76,6 +99,7 @@ fun AboutScreen(
     onDrawerClick: () -> Unit,
     onNavigateToLibraries: () -> Unit,
 ) {
+    val clipboard = LocalClipboard.current
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
@@ -84,8 +108,10 @@ fun AboutScreen(
     val scrollHideVisible by rememberScrollHideState(listState)
     var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
-    val displayVersion = remember { "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})" }
-    val releaseLink = remember {
+    val displayVersion = remember(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE) {
+        "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+    }
+    val releaseLink = remember(BuildConfig.VERSION_NAME) {
         val isPreVersion = Libcore.isPreRelease(BuildConfig.VERSION_NAME)
         if (isPreVersion) {
             "https://codeberg.org/xchacha20-poly1305/husi/releases"
@@ -93,12 +119,25 @@ fun AboutScreen(
             "https://codeberg.org/xchacha20-poly1305/husi/releases/latest"
         }
     }
-    val coreVersion = remember { Libcore.version() }
+    val boxVersion = remember { Libcore.versionBox() }
+    val buildEnvironment = remember { Libcore.buildEnvironment() }
 
     val shouldRequestBattery = rememberShouldRequestBatteryOptimizations()
     val requestIgnoreBatteryOptimizations = rememberRequestIgnoreBatteryOptimizations()
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+
+    fun putToClipboard(text: String) {
+        scope.launch {
+            clipboard.setPlainText(text)
+            val repo = resolveRepository()
+            snackbarState.showSnackbar(
+                message = repo.getString(Res.string.copy_success),
+                actionLabel = repo.getString(Res.string.ok),
+                duration = SnackbarDuration.Short,
+            )
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -154,136 +193,135 @@ fun AboutScreen(
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = contentPadding,
             ) {
-            item("versions_card") {
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        val isChinese = Locale.current.language == "zh"
-                        CardItem(
-                            icon = { Icon(vectorResource(Res.drawable.android), null) },
-                            title = stringResource(Res.string.app_name),
-                            titleTextStyle = if (isChinese) {
-                                MaterialTheme.typography.titleMedium.copy(
-                                    fontFamily = FontFamily(Font(Res.font.shuowenxiaozhuan_husi)),
-                                )
-                            } else {
-                                null
-                            },
-                            description = displayVersion,
-                            onCLick = {
-                                uriHandler.openUri(releaseLink)
-                            },
-                        )
-                        CardItem(
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.library_music),
-                                    null,
-                                )
-                            },
-                            title = stringResource(Res.string.version_x, "sing-box"),
-                            description = coreVersion,
-                            onCLick = {
-                                uriHandler.openUri("https://github.com/SagerNet/sing-box")
-                            },
-                        )
-
-                        if (shouldRequestBattery) {
-                            CardItem(
-                                icon = {
-                                    Icon(
-                                        vectorResource(Res.drawable.battery_charging_full),
-                                        null,
-                                    )
-                                },
-                                title = stringResource(Res.string.ignore_battery_optimizations),
-                                description = stringResource(Res.string.ignore_battery_optimizations_sum),
-                                onCLick = { requestIgnoreBatteryOptimizations() },
-                            )
-                        }
-                        CardItem(
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.public_icon),
-                                    null,
-                                )
-                            },
-                            title = stringResource(Res.string.sekai),
-                            onCLick = {
-                                uriHandler.openUri("https://sekai.icu/sponsor")
-                            },
-                            onLongClick = {
-                                val isExpert = !DataStore.isExpert
-                                DataStore.isExpert = isExpert
-                                scope.launch {
-                                    snackbarState.showSnackbar(
-                                        message = "isExpert: $isExpert",
-                                        actionLabel = resolveRepository().getString(Res.string.ok),
-                                        duration = SnackbarDuration.Short,
-                                    )
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-
-                item("project_card") {
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                ) {
-                    Column(
+                item("versions_card") {
+                    OutlinedCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp),
                     ) {
-                        Text(
-                            text = stringResource(Res.string.project),
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            val isChinese = Locale.current.language == "zh"
+                            CardItem(
+                                icon = { Icon(vectorResource(Res.drawable.android), null) },
+                                title = stringResource(Res.string.app_name),
+                                titleTextStyle = if (isChinese) {
+                                    MaterialTheme.typography.titleMedium.copy(
+                                        fontFamily = FontFamily(Font(Res.font.shuowenxiaozhuan_husi)),
+                                    )
+                                } else {
+                                    null
+                                },
+                                description = displayVersion,
+                                onClick = { putToClipboard(displayVersion) },
+                                onLongClick = { uriHandler.openUri(releaseLink) },
+                            )
+                            CardItem(
+                                icon = {
+                                    Icon(
+                                        vectorResource(Res.drawable.library_music),
+                                        null,
+                                    )
+                                },
+                                title = stringResource(Res.string.version_x, "sing-box"),
+                                description = boxVersion,
+                                onClick = { putToClipboard(boxVersion) },
+                                onLongClick = {
+                                    uriHandler.openUri("https://github.com/SagerNet/sing-box")
+                                },
+                            )
+                            CardItem(
+                                icon = {
+                                    Icon(
+                                        vectorResource(Res.drawable.build),
+                                        null,
+                                    )
+                                },
+                                title = stringResource(Res.string.build_environment),
+                                description = buildEnvironment,
+                                onClick = { putToClipboard(buildEnvironment) },
+                                onLongClick = {
+                                    val isExpert = !DataStore.isExpert
+                                    DataStore.isExpert = isExpert
+                                    scope.launch {
+                                        snackbarState.showSnackbar(
+                                            message = "isExpert: $isExpert",
+                                            actionLabel = resolveRepository().getString(Res.string.ok),
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                    }
+                                },
+                            )
 
-                        CardItem(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            icon = { Icon(vectorResource(Res.drawable.code), null) },
-                            title = stringResource(Res.string.github),
-                            onCLick = { uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi") },
-                        )
-                        CardItem(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.g_translate),
-                                    null,
+                            if (shouldRequestBattery) {
+                                CardItem(
+                                    icon = {
+                                        Icon(
+                                            vectorResource(Res.drawable.battery_charging_full),
+                                            null,
+                                        )
+                                    },
+                                    title = stringResource(Res.string.ignore_battery_optimizations),
+                                    description = stringResource(Res.string.ignore_battery_optimizations_sum),
+                                    onClick = { requestIgnoreBatteryOptimizations() },
                                 )
-                            },
-                            title = stringResource(Res.string.translate_platform),
-                            onCLick = { uriHandler.openUri("https://hosted.weblate.org/projects/husi/husi/") },
-                        )
-                        CardItem(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.gavel),
-                                    null,
-                                )
-                            },
-                            title = stringResource(Res.string.oss_licenses),
-                            onCLick = onNavigateToLibraries,
-                        )
+                            }
+                        }
                     }
                 }
-            }
+
+                item("project_card") {
+                    OutlinedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.project),
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+
+                            CardItem(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                icon = { Icon(vectorResource(Res.drawable.code), null) },
+                                title = stringResource(Res.string.github),
+                                onClick = { uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi") },
+                            )
+                            CardItem(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                icon = {
+                                    Icon(
+                                        vectorResource(Res.drawable.g_translate),
+                                        null,
+                                    )
+                                },
+                                title = stringResource(Res.string.translate_platform),
+                                onClick = { uriHandler.openUri("https://hosted.weblate.org/projects/husi/husi/") },
+                            )
+                            CardItem(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                icon = {
+                                    Icon(
+                                        vectorResource(Res.drawable.gavel),
+                                        null,
+                                    )
+                                },
+                                title = stringResource(Res.string.oss_licenses),
+                                onClick = onNavigateToLibraries,
+                            )
+                        }
+                    }
+                }
             }
 
             BoxedVerticalScrollbar(
@@ -342,7 +380,7 @@ private fun CardItem(
     title: String,
     titleTextStyle: TextStyle? = null,
     description: String? = null,
-    onCLick: () -> Unit = {},
+    onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
 ) {
     Row(
@@ -350,7 +388,7 @@ private fun CardItem(
             .fillMaxWidth()
             .defaultMinSize(minHeight = 56.dp)
             .combinedClickable(
-                onClick = onCLick,
+                onClick = onClick,
                 onLongClick = onLongClick,
             ),
         verticalAlignment = Alignment.CenterVertically,

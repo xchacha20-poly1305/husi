@@ -466,7 +466,6 @@
     <string name="hop_interval">Интервал переключения портов(второй)</string>
     <string name="test_timeout">Тайм-аут теста (мс)</string>
     <string name="get_cert_server_hint">Целевой сервер</string>
-    <string name="sekai">nekohasekai</string>
     <string name="no_thanks">Нет, спасибо</string>
     <string name="location_permission_description">Ваше правило маршрутизации содержит правила маршрутизации Wi-Fi SSID или Wi-Fi BSSID. Чтобы они работали, husi использует разрешение на определение местоположения в фоновом режиме, чтобы получать информацию о подключенной сети Wi-Fi. Информация будет использоваться только для целей маршрутизации.</string>
     <string name="location_permission_background_description">На Android 10 и выше требуется разрешение на определение местоположения в фоновом режиме. Выберите Разрешить все время, чтобы предоставить разрешение.</string>

@@ -1,15 +1,12 @@
 package libcore
 
 import (
-	"cmp"
 	"runtime"
 	"runtime/debug"
-	"slices"
-	"strings"
-	"sync"
 
 	"github.com/sagernet/sing-box/common/badversion"
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing/common"
 )
 
 // VersionBox returns sing-box version
@@ -17,37 +14,14 @@ func VersionBox() string {
 	return C.Version
 }
 
-// Version shows detail version. Format:
-//
-//	sing-box: {C.Version}
-//	{go_version}@{os}/{arch}
-//	{tags}
-func Version() string {
-	return detailVersion()
-}
-
-var detailVersion = sync.OnceValue(loadDetailVersion)
-
-func loadDetailVersion() string {
-	builder := []string{
-		"sing-box: " + C.Version,
-		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
-	}
-
+// BuildEnvironment returns Go version and build tags.
+func BuildEnvironment() string {
+	buildEnvironment := runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH + "\n"
 	debugInfo, _ := debug.ReadBuildInfo()
-
-	tagsSettingIndex, found := slices.BinarySearchFunc(
-		debugInfo.Settings,
-		debug.BuildSetting{Key: "-tags"},
-		func(a, b debug.BuildSetting) int {
-			return cmp.Compare(a.Key, b.Key)
-		},
-	)
-	if found {
-		builder = append(builder, debugInfo.Settings[tagsSettingIndex].Value)
-	}
-
-	return strings.Join(builder, "\n")
+	buildEnvironment += common.Find(debugInfo.Settings, func(it debug.BuildSetting) bool {
+		return it.Key == "-tags"
+	}).Value
+	return buildEnvironment
 }
 
 func IsPreRelease(versionName string) bool {

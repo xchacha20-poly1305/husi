@@ -235,7 +235,6 @@
     <string name="test_concurrency">Число паралельних підключень</string>
     <string name="mux_type">Протокол мультиплексування</string>
     <string name="assets_update">Оновити геодані</string>
-    <string name="sekai">nekohasekai</string>
     <plurals name="removed">
         <item quantity="one">Видалено</item>
         <item quantity="few">%1$d елемента видалено</item>
