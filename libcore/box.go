@@ -171,7 +171,7 @@ func (b *boxInstance) CloseTimeout(timeout time.Duration) (err error) {
 }
 
 func (b *boxInstance) NeedWIFIState() bool {
-	return b.anchor != nil || b.Box.Network().NeedWIFIState()
+	return b.anchor != nil || b.Network().NeedWIFIState()
 }
 
 func (b *boxInstance) QueryStats(tag string, isUpload bool) int64 {
@@ -183,4 +183,8 @@ func (b *boxInstance) historyStorage() adapter.URLTestHistoryStorage {
 		return nil
 	}
 	return b.api.HistoryStorage()
+}
+
+func (b *boxInstance) resetNetwork() {
+	b.Network().ResetNetwork()
 }

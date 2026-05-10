@@ -84,7 +84,7 @@ func (s *Service) ResetNetwork() {
 	s.access.RLock()
 	defer s.access.RUnlock()
 	if s.instance != nil {
-		s.instance.ResetNetwork()
+		s.instance.resetNetwork()
 	}
 }
 
@@ -336,7 +336,7 @@ func (s *Service) handleRequest(conn net.Conn) error {
 		if err != nil {
 			return err
 		}
-		instance.ResetNetwork()
+		instance.resetNetwork()
 		return nil
 	case commandSubscribeLogs:
 		err := s.handleSubscribeLogs(conn)
