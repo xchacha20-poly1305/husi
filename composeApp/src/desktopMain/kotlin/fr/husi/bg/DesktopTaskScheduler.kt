@@ -9,6 +9,7 @@ import fr.husi.quoteSystemdArgument
 import fr.husi.quoteWindowsArgument
 import fr.husi.xmlEscape
 import java.io.File
+import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -49,8 +50,6 @@ private class DesktopTaskSchedulerManager {
     companion object {
         private const val LINUX_UNIT_PREFIX = "fr.husi.desktop"
         private const val WINDOWS_TASK_PREFIX = "Husi-"
-        private val windowsDateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy")
-        private val windowsTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     }
 
     suspend fun reconfigure(task: DesktopTaskDefinition) {
@@ -223,28 +222,76 @@ private class DesktopTaskSchedulerManager {
         launcherCommand: List<String>,
         schedule: DesktopTaskSchedule,
     ) {
-        val commandLine = launcherCommand.joinToString(" ", transform = ::quoteWindowsArgument)
         val firstRunAt = LocalDateTime.now()
             .plusSeconds(schedule.initialDelaySeconds.coerceAtLeast(60L))
-        runCommand(
-            "schtasks",
-            "/create",
-            "/tn",
-            windowsTaskName(taskId),
-            "/tr",
-            commandLine,
-            "/sc",
-            "once",
-            "/sd",
-            firstRunAt.format(windowsDateFormatter),
-            "/st",
-            firstRunAt.format(windowsTimeFormatter),
-            "/ri",
-            schedule.repeatIntervalMinutes.toString(),
-            "/du",
-            "9999:59",
-            "/f",
-        )
+        // schtasks /sd /st parse dates per the user's locale (e.g. yyyy/M/d on zh-CN), so a fixed
+        // pattern always fails on non-en-US systems. Import an XML definition instead — its
+        // <StartBoundary> is ISO 8601 and locale-independent.
+        val xml = buildWindowsTaskXml(launcherCommand, firstRunAt, schedule.repeatIntervalMinutes)
+        val xmlFile = File.createTempFile("husi-task-", ".xml")
+        try {
+            xmlFile.writeText(xml, Charsets.UTF_16)
+            runCommand(
+                "schtasks",
+                "/create",
+                "/tn",
+                windowsTaskName(taskId),
+                "/xml",
+                xmlFile.absolutePath,
+                "/f",
+            )
+        } finally {
+            xmlFile.delete()
+        }
+    }
+
+    private fun buildWindowsTaskXml(
+        launcherCommand: List<String>,
+        firstRunAt: LocalDateTime,
+        repeatIntervalMinutes: Int,
+    ): String {
+        val command = launcherCommand.first()
+        val arguments = launcherCommand
+            .drop(1)
+            .joinToString(" ", transform = ::quoteWindowsArgument)
+        val startBoundary = firstRunAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        return """
+            <?xml version="1.0" encoding="UTF-16"?>
+            <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+              <Triggers>
+                <TimeTrigger>
+                  <StartBoundary>$startBoundary</StartBoundary>
+                  <Repetition>
+                    <Interval>PT${repeatIntervalMinutes}M</Interval>
+                    <StopAtDurationEnd>false</StopAtDurationEnd>
+                  </Repetition>
+                  <Enabled>true</Enabled>
+                </TimeTrigger>
+              </Triggers>
+              <Principals>
+                <Principal id="Author">
+                  <LogonType>InteractiveToken</LogonType>
+                  <RunLevel>LeastPrivilege</RunLevel>
+                </Principal>
+              </Principals>
+              <Settings>
+                <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+                <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+                <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+                <StartWhenAvailable>true</StartWhenAvailable>
+                <AllowStartOnDemand>true</AllowStartOnDemand>
+                <Enabled>true</Enabled>
+                <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+                <Priority>7</Priority>
+              </Settings>
+              <Actions Context="Author">
+                <Exec>
+                  <Command>${xmlEscape(command)}</Command>
+                  <Arguments>${xmlEscape(arguments)}</Arguments>
+                </Exec>
+              </Actions>
+            </Task>
+            """.trimIndent() + "\n"
     }
 
     private fun removeWindowsTask(taskId: String) {
@@ -280,7 +327,7 @@ private class DesktopTaskSchedulerManager {
         val process = ProcessBuilder(args)
             .redirectErrorStream(true)
             .start()
-        val output = process.inputStream.bufferedReader().use { it.readText().trim() }
+        val output = process.inputStream.bufferedReader(nativeCharset).use { it.readText().trim() }
         val exitCode = process.waitFor()
         check(exitCode == 0) {
             output.ifBlank {
@@ -288,6 +335,17 @@ private class DesktopTaskSchedulerManager {
             }
         }
         return output
+    }
+
+    /** Subprocess stdout uses the OS native code page (e.g. GBK on zh-CN Windows). Since JEP 400
+     * (JDK 18+) Charset.defaultCharset() is UTF-8 on Windows, which mangles non-ASCII output;
+     * native.encoding is the JDK-standard way to recover the OS encoding.
+     */
+    private val nativeCharset: Charset = run {
+        val name = System.getProperty("native.encoding")
+            ?: System.getProperty("sun.jnu.encoding")
+        name?.let { runCatching { Charset.forName(it) }.getOrNull() }
+            ?: Charset.defaultCharset()
     }
 
     private fun deleteFileIfPresent(file: File) {
