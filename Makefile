@@ -142,7 +142,7 @@ test_go:
 	cd libcore/ && go test -v -count=1 ./...
 
 plugin:
-	BUILD_PLUGIN=$(PLUGIN) ./gradlew :plugin:$(PLUGIN):assembleFossRelease --configuration-cache
+	BUILD_PLUGIN=$(PLUGIN) ./gradlew :plugin:$(PLUGIN):assembleFossRelease
 
 generate_option:
 	cd ./libcore/cmd/boxoption && go run . | $(CLIP)
