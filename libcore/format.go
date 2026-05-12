@@ -10,9 +10,6 @@ import (
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
-	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/dns"
-	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/byteformats"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -22,13 +19,7 @@ import (
 
 func baseContext(platformInterface PlatformInterface) context.Context {
 	dnsRegistry := distro.DNSTransportRegistry()
-	if platformInterface != nil && platformInterface.HasCoreFunction() {
-		if localTransport := platformInterface.LocalDNSTransport(); localTransport != nil {
-			dns.RegisterTransport[option.LocalDNSServerOptions](dnsRegistry, C.DNSTypeLocal, func(ctx context.Context, logger log.ContextLogger, tag string, options option.LocalDNSServerOptions) (adapter.DNSTransport, error) {
-				return newPlatformTransport(localTransport, tag, options), nil
-			})
-		}
-	}
+	registerPlatformLocalDNSTransport(dnsRegistry, platformInterface)
 	return box.Context(
 		context.Background(),
 		distro.InboundRegistry(),

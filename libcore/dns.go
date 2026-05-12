@@ -1,3 +1,5 @@
+//go:build android
+
 package libcore
 
 import (
@@ -10,6 +12,7 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/dns"
 	"github.com/sagernet/sing-box/dns/transport/mdns"
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -49,6 +52,19 @@ func newPlatformTransport(iif LocalDNSTransport, tag string, options option.Loca
 		return &mDNSPlatformTransport{transport}
 	}
 	return &transport
+}
+
+func registerPlatformLocalDNSTransport(registry *dns.TransportRegistry, platformInterface PlatformInterface) {
+	if platformInterface == nil {
+		return
+	}
+	localTransport := platformInterface.LocalDNSTransport()
+	if localTransport == nil {
+		return
+	}
+	dns.RegisterTransport[option.LocalDNSServerOptions](registry, C.DNSTypeLocal, func(ctx context.Context, logger log.ContextLogger, tag string, options option.LocalDNSServerOptions) (adapter.DNSTransport, error) {
+		return newPlatformTransport(localTransport, tag, options), nil
+	})
 }
 
 func (p *platformTransport) Reset() {

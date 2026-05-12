@@ -2,7 +2,6 @@ package libcore
 
 // PlatformInterface also named "iif".
 type PlatformInterface interface {
-	HasCoreFunction() bool
 	LocalDNSTransport() LocalDNSTransport
 	AutoDetectInterfaceControl(fd int32) bool
 	OpenTun() (int32, error)
@@ -18,8 +17,4 @@ type PlatformInterface interface {
 	OnGroupSelectedChange(group, old, now string)
 	OnDeepLink(deepLink string)
 	OnTask(taskID string)
-}
-
-type StringFunc interface {
-	Invoke(string)
 }

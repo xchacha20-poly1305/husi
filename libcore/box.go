@@ -49,14 +49,7 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 	ctx, cancel := context.WithCancel(ctx)
 	ctx = pause.WithDefaultManager(ctx)
 	var platformLogWriter log.PlatformWriter
-	interfaceWrapper := &boxPlatformInterfaceWrapper{
-		useProcFS: platformInterface.UseProcFS(),
-		forTest:   forTest,
-	}
-	if platformInterface.HasCoreFunction() {
-		interfaceWrapper.iif = platformInterface
-		service.MustRegister[adapter.PlatformInterface](ctx, interfaceWrapper)
-	}
+	registerPlatformInterface(ctx, platformInterface, forTest)
 
 	if !forTest {
 		service.MustRegister[deprecated.Manager](ctx, deprecated.NewStderrManager(log.StdLogger()))
@@ -88,15 +81,7 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 
 	if !forTest {
 		// Protect
-		if C.IsAndroid {
-			b.protect, err = protect.New(log.ContextWithNewID(ctx), logFactory.NewLogger("protect"), ProtectPath, func(fd int) error {
-				_ = platformInterface.AutoDetectInterfaceControl(int32(fd))
-				return nil
-			})
-			if err != nil {
-				log.WarnContext(ctx, "create protect service: ", err)
-			}
-		}
+		buildProtectService(b, ctx, platformInterface)
 
 		// API
 		b.api = service.FromContext[adapter.ClashServer](b.ctx).(*combinedapi.CombinedAPI)

@@ -139,8 +139,6 @@ class AndroidPlatformInterface : PlatformInterface {
         return InterfaceArray(interfaces.iterator(), interfaces.size)
     }
 
-    override fun hasCoreFunction() = true
-
     override fun localDNSTransport(): LocalDNSTransport = LocalResolver
 
     override fun onGroupSelectedChange(group: String, old: String, now: String) {
