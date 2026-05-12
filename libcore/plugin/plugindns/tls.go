@@ -23,6 +23,8 @@ import (
 
 var _ adapter.DNSTransport = (*TLSTransport)(nil)
 
+const tlsDNSMaxInflight = 8
+
 func RegisterTLS(registry *dns.TransportRegistry) {
 	dns.RegisterTransport[pluginoption.RemoteTLSDNSServerOptions](registry, C.DNSTypeTLS, NewTLS)
 }
@@ -56,31 +58,38 @@ func NewTLS(ctx context.Context, logger log.ContextLogger, tag string, options p
 	if !serverAddr.IsValid() {
 		return nil, E.New("invalid server address: ", serverAddr)
 	}
-	return NewTLSRaw(logger, dns.NewTransportAdapterWithRemoteOptions(C.DNSTypeTLS, tag, options.RemoteDNSServerOptions), transportDialer, serverAddr, tlsConfig, options.Pipeline), nil
+	return newTLSRaw(logger, dns.NewTransportAdapterWithRemoteOptions(C.DNSTypeTLS, tag, options.RemoteDNSServerOptions), transportDialer, serverAddr, tlsConfig, options.Pipeline), nil
 }
 
-func NewTLSRaw(logger logger.ContextLogger, adapter dns.TransportAdapter, dialer N.Dialer, serverAddr M.Socksaddr, tlsConfig tls.Config, pipeline bool) *TLSTransport {
-	mode := transport.ConnPoolOrdered
-	if pipeline {
-		mode = transport.ConnPoolSingle
-	}
+func newTLSRaw(logger logger.ContextLogger, adapter dns.TransportAdapter, dialer N.Dialer, serverAddr M.Socksaddr, tlsConfig tls.Config, pipeline bool) *TLSTransport {
 	return &TLSTransport{
 		TransportAdapter: adapter,
 		logger:           logger,
 		dialer:           tls.NewDialer(dialer, tlsConfig),
 		serverAddr:       serverAddr,
 		tlsConfig:        tlsConfig,
-		connections: transport.NewConnPool(transport.ConnPoolOptions[*reusableDNSConn]{
-			Mode: mode,
-			IsAlive: func(conn *reusableDNSConn) bool {
-				return conn != nil
-			},
-			Close: func(conn *reusableDNSConn, _ error) {
-				_ = conn.Close()
-			},
-		}),
-		pipeline: pipeline,
+		connections:      newTLSConnPool(pipeline),
+		pipeline:         pipeline,
 	}
+}
+
+func newTLSConnPool(pipeline bool) *transport.ConnPool[*reusableDNSConn] {
+	mode := transport.ConnPoolOrdered
+	maxInflight := tlsDNSMaxInflight
+	if pipeline {
+		mode = transport.ConnPoolSingle
+		maxInflight = 0
+	}
+	return transport.NewConnPool(transport.ConnPoolOptions[*reusableDNSConn]{
+		Mode:        mode,
+		MaxInflight: maxInflight,
+		IsAlive: func(conn *reusableDNSConn) bool {
+			return conn != nil
+		},
+		Close: func(conn *reusableDNSConn, _ error) {
+			_ = conn.Close()
+		},
+	})
 }
 
 func (t *TLSTransport) Start(stage adapter.StartStage) error {
@@ -105,7 +114,7 @@ func (t *TLSTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.M
 			if err != nil {
 				return nil, E.Cause(err, "dial TLS connection")
 			}
-			return newReusableDNSConn(tlsConn, t.logger), nil
+			return newReusableDNSConn(tlsConn, t.logger, tlsConn.NetConn()), nil
 		})
 		if err != nil {
 			return nil, err
@@ -123,7 +132,7 @@ func (t *TLSTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.M
 			if err != nil {
 				return nil, E.Cause(err, "dial TLS connection")
 			}
-			return newReusableDNSConn(tlsConn, t.logger), nil
+			return newReusableDNSConn(tlsConn, t.logger, tlsConn.NetConn()), nil
 		})
 		if err != nil {
 			return nil, err

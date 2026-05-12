@@ -8,6 +8,7 @@ import (
 
 	"github.com/sagernet/sing-box/dns/transport"
 	"github.com/sagernet/sing/common"
+	"github.com/sagernet/sing/common/bufio/deadline"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
 
@@ -22,7 +23,8 @@ type reusableDNSCallback struct {
 
 type reusableDNSConn struct {
 	net.Conn
-	logger logger.ContextLogger
+	logger            logger.ContextLogger
+	needDeadlineClose bool
 
 	access   sync.RWMutex
 	queryID  uint16
@@ -32,11 +34,12 @@ type reusableDNSConn struct {
 	startReadOnce sync.Once
 }
 
-func newReusableDNSConn(conn net.Conn, logger logger.ContextLogger) *reusableDNSConn {
+func newReusableDNSConn(conn net.Conn, logger logger.ContextLogger, deadlineConn net.Conn) *reusableDNSConn {
 	return &reusableDNSConn{
-		Conn:     conn,
-		logger:   logger,
-		callback: make(map[uint16]*reusableDNSCallback),
+		Conn:              conn,
+		logger:            logger,
+		needDeadlineClose: deadline.NeedAdditionalReadDeadline(deadlineConn),
+		callback:          make(map[uint16]*reusableDNSCallback),
 	}
 }
 
@@ -54,9 +57,7 @@ func (c *reusableDNSConn) nextAvailableQueryID() (uint16, error) {
 }
 
 func (c *reusableDNSConn) exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, error) {
-	if deadline, loaded := ctx.Deadline(); loaded {
-		_ = c.SetDeadline(deadline)
-	}
+	defer setConnDeadline(ctx, c, c.needDeadlineClose)()
 	err := transport.WriteMessage(c.Conn, message.Id, message)
 	if err != nil {
 		return nil, E.Cause(err, "write request")
@@ -65,8 +66,21 @@ func (c *reusableDNSConn) exchange(ctx context.Context, message *mDNS.Msg) (*mDN
 	if err != nil {
 		return nil, E.Cause(err, "read response")
 	}
-	_ = c.SetDeadline(time.Time{})
 	return response, nil
+}
+
+func setConnDeadline(ctx context.Context, conn net.Conn, needClose bool) func() {
+	if needClose {
+		stop := context.AfterFunc(ctx, func() {
+			_ = conn.Close()
+		})
+		return func() { stop() }
+	}
+	if deadline, loaded := ctx.Deadline(); loaded {
+		_ = conn.SetDeadline(deadline)
+		return func() { _ = conn.SetDeadline(time.Time{}) }
+	}
+	return func() {}
 }
 
 func (c *reusableDNSConn) exchangePipeline(ctx context.Context, connCtx context.Context, message *mDNS.Msg, onError func(error)) (*mDNS.Msg, error) {

@@ -98,8 +98,8 @@ func (t *TCPTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.M
 		if err != nil {
 			return nil, E.Cause(err, "dial TCP connection")
 		}
-		defer common.Close(conn)
-		return newReusableDNSConn(conn, t.logger).exchange(ctx, message)
+		defer conn.Close()
+		return newReusableDNSConn(conn, t.logger, conn).exchange(ctx, message)
 	}
 
 	if t.pipeline {
@@ -108,7 +108,7 @@ func (t *TCPTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.M
 			if err != nil {
 				return nil, E.Cause(err, "dial TCP connection")
 			}
-			return newReusableDNSConn(rawConn, t.logger), nil
+			return newReusableDNSConn(rawConn, t.logger, rawConn), nil
 		})
 		if err != nil {
 			return nil, err
@@ -126,7 +126,7 @@ func (t *TCPTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.M
 			if err != nil {
 				return nil, E.Cause(err, "dial")
 			}
-			return newReusableDNSConn(rawConn, t.logger), nil
+			return newReusableDNSConn(rawConn, t.logger, rawConn), nil
 		})
 		if err != nil {
 			return nil, err
