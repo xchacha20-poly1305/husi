@@ -925,6 +925,10 @@ fun SettingsScreen(
                                 StringOrRes.Direct("Chocolate4U/Iran-sing-box-rules")
                             }
 
+                            RuleProvider.RUNETFREEDOM -> {
+                                StringOrRes.Direct("runetfreedom/russia-v2ray-rules-dat")
+                            }
+
                             RuleProvider.CUSTOM -> StringOrRes.Res(Res.string.custom_rule_provider)
                             else -> StringOrRes.Res(Res.string.route_rules_official)
                         }
@@ -940,6 +944,7 @@ fun SettingsScreen(
                                 RuleProvider.OFFICIAL,
                                 RuleProvider.LOYALSOLDIER,
                                 RuleProvider.CHOCOLATE4U,
+                                RuleProvider.RUNETFREEDOM,
                                 RuleProvider.CUSTOM,
                             ),
                             title = { Text(stringResource(Res.string.route_rules_provider)) },

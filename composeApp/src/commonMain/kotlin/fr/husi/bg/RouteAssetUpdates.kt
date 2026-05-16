@@ -58,16 +58,29 @@ internal suspend fun updateManagedRouteAssets(
     val destinationDir = routeGeoDir(externalAssetsDir)
     val versionFiles = routeVersionFiles(externalAssetsDir)
     val provider = DataStore.rulesProvider
-    val updater = if (provider == RuleProvider.CUSTOM) {
-        CustomAssetUpdater(
+    val updater = when (provider) {
+        RuleProvider.CUSTOM -> CustomAssetUpdater(
             versionFiles = versionFiles,
             updateProgress = updateProgress,
             cacheDir = cacheDir,
             destinationDir = destinationDir,
             links = DataStore.customRuleProvider.lines().filter { it.isNotBlank() },
         )
-    } else {
-        GithubAssetUpdater(
+        RuleProvider.RUNETFREEDOM -> GithubReleaseZipUpdater(
+            versionFiles = versionFiles,
+            updateProgress = updateProgress,
+            cacheDir = cacheDir,
+            destinationDir = destinationDir,
+            source = GithubReleaseSource(
+                repository = GithubRepository(
+                    author = "runetfreedom",
+                    name = "russia-v2ray-rules-dat",
+                ),
+                assetName = "sing-box.zip",
+                versionFile = versionFiles[0],
+            ),
+        )
+        else -> GithubAssetUpdater(
             versionFiles = versionFiles,
             updateProgress = updateProgress,
             cacheDir = cacheDir,
@@ -152,6 +165,12 @@ internal data class GithubRepository(
 
 internal data class GithubAssetSource(
     val repository: GithubRepository,
+    val versionFile: File,
+)
+
+internal data class GithubReleaseSource(
+    val repository: GithubRepository,
+    val assetName: String,
     val versionFile: File,
 )
 
@@ -372,5 +391,47 @@ internal class GithubAssetUpdater(
         val response =
             newRequest("https://api.github.com/repos/${repository.fullName}/releases/latest").execute()
         return kxs.decodeFromString<GithubRelease>(response.contentString).tagName.blankAsNull().orEmpty()
+    }
+}
+
+internal class GithubReleaseZipUpdater(
+    versionFiles: List<File>,
+    updateProgress: UpdateProgress,
+    cacheDir: File,
+    destinationDir: File,
+    val source: GithubReleaseSource,
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
+
+    override suspend fun check(): List<UpdateInfo> {
+        val response = newRequest(
+            "https://api.github.com/repos/${source.repository.fullName}/releases/latest",
+        ).execute()
+        val latestVersion = kxs.decodeFromString<GithubRelease>(response.contentString)
+            .tagName.blankAsNull().orEmpty()
+        val currentVersion = source.versionFile.takeIf(File::isFile)
+            ?.readText()?.trim().orEmpty()
+        return if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
+            listOf(UpdateInfo.Github(GithubAssetSource(source.repository, source.versionFile), latestVersion))
+        } else emptyList()
+    }
+
+    override suspend fun performUpdate(updates: List<UpdateInfo>) {
+        val update = updates.firstOrNull() as? UpdateInfo.Github ?: return
+        val tag = update.newVersion
+        val url = "https://github.com/${source.repository.fullName}/releases/download/$tag/${source.assetName}"
+        val cacheFile = cacheDir.resolve("${source.repository.name}-$tag.tmp")
+        cacheFile.parentFile?.mkdirs()
+        cacheFile.deleteOnExit()
+        try {
+            updateProgress(10f)
+            newRequest(url).execute().writeTo(cacheFile.absolutePath, null)
+            updateProgress(60f)
+            Libcore.tryUnpack(cacheFile.absolutePath, destinationDir.absolutePath)
+            updateProgress(25f)
+            versionFiles.forEach { it.writeText(tag) }
+            updateProgress(5f)
+        } finally {
+            cacheFile.runCatching { delete() }
+        }
     }
 }
