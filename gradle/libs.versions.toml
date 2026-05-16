@@ -31,6 +31,7 @@ fileKit = "0.14.1"
 kryo = "5.6.2"
 ini4j = "0.5.4"
 junitBom = "6.0.3"
+mockk = "1.14.9"
 aboutlibraries = "14.2.0"
 androidxTv = "1.1.0"
 agp = "9.2.1"
@@ -80,6 +81,7 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
 agp-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }

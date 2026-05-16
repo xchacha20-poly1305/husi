@@ -7,6 +7,7 @@ import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
 import fr.husi.libcore.CopyCallback
+import fr.husi.libcore.HTTPClient
 import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.Libcore
 import kotlinx.datetime.LocalDateTime
@@ -20,6 +21,10 @@ import java.io.File
 import kotlin.time.Clock
 
 internal typealias UpdateProgress = (Float) -> Unit
+
+internal interface RemoteSource {
+    fun fetchString(url: String): String
+}
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 private val assetVersionFormat = LocalDateTime.Format {
@@ -226,6 +231,15 @@ internal fun buildGithubAssetSources(provider: Int, versionFiles: List<File>): L
     }
 }
 
+internal fun githubApiReleaseUrl(fullName: String): String =
+    "https://api.github.com/repos/$fullName/releases/latest"
+
+internal fun githubCodloadTarGzUrl(fullName: String, branchName: String): String =
+    "https://codeload.github.com/$fullName/tar.gz/refs/heads/$branchName"
+
+internal fun githubReleaseDownloadUrl(fullName: String, tag: String, assetName: String): String =
+    "https://github.com/$fullName/releases/download/$tag/$assetName"
+
 internal sealed class UpdateInfo {
     data class Github(val source: GithubAssetSource, val newVersion: String) : UpdateInfo()
     data class Custom(val link: String) : UpdateInfo()
@@ -236,17 +250,24 @@ internal abstract class AssetsUpdater(
     val updateProgress: UpdateProgress,
     val cacheDir: File,
     val destinationDir: File,
+    remoteSource: RemoteSource? = null,
 ) {
-    private val httpClient = Libcore.newHttpClient().apply {
-        keepAlive()
-        if (DataStore.serviceState.connected) {
-            useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+    private val httpClient: HTTPClient? = if (remoteSource == null) {
+        Libcore.newHttpClient().apply {
+            keepAlive()
+            if (DataStore.serviceState.connected) {
+                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            }
         }
-    }
+    } else null
 
-    fun newRequest(url: String): HTTPRequest = httpClient.newRequest().apply {
+    fun newRequest(url: String): HTTPRequest = requireNotNull(httpClient).newRequest().apply {
         setURL(url)
         setUserAgent(USER_AGENT)
+    }
+
+    protected val remoteSource: RemoteSource = remoteSource ?: object : RemoteSource {
+        override fun fetchString(url: String): String = newRequest(url).execute().contentString
     }
 
     suspend fun runUpdateIfAvailable() {
@@ -259,9 +280,9 @@ internal abstract class AssetsUpdater(
         }
     }
 
-    protected abstract suspend fun check(): List<UpdateInfo>
+    internal abstract suspend fun check(): List<UpdateInfo>
 
-    protected abstract suspend fun performUpdate(updates: List<UpdateInfo>)
+    internal abstract suspend fun performUpdate(updates: List<UpdateInfo>)
 }
 
 internal class CustomAssetUpdater(
@@ -270,7 +291,8 @@ internal class CustomAssetUpdater(
     cacheDir: File,
     destinationDir: File,
     val links: List<String>,
-) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
+    remoteSource: RemoteSource? = null,
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
 
     override suspend fun check(): List<UpdateInfo> = links.map { link ->
         UpdateInfo.Custom(link)
@@ -318,7 +340,8 @@ internal class GithubAssetUpdater(
     destinationDir: File,
     val sources: List<GithubAssetSource>,
     val useUnstableBranch: Boolean,
-) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
+    remoteSource: RemoteSource? = null,
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
 
     override suspend fun check(): List<UpdateInfo> {
         val updatesNeeded = mutableListOf<UpdateInfo.Github>()
@@ -349,8 +372,7 @@ internal class GithubAssetUpdater(
                 update as UpdateInfo.Github
                 val source = update.source
                 val branchName = source.repository.resolveBranch(useUnstableBranch)
-                val url =
-                    "https://codeload.github.com/${source.repository.fullName}/tar.gz/refs/heads/$branchName"
+                val url = githubCodloadTarGzUrl(source.repository.fullName, branchName)
                 val response = newRequest(url).execute()
 
                 val cacheFile = cacheDir.resolve(
@@ -388,9 +410,8 @@ internal class GithubAssetUpdater(
     }
 
     private fun fetchVersion(repository: GithubRepository): String {
-        val response =
-            newRequest("https://api.github.com/repos/${repository.fullName}/releases/latest").execute()
-        return kxs.decodeFromString<GithubRelease>(response.contentString).tagName.blankAsNull().orEmpty()
+        val body = remoteSource.fetchString(githubApiReleaseUrl(repository.fullName))
+        return kxs.decodeFromString<GithubRelease>(body).tagName.blankAsNull().orEmpty()
     }
 }
 
@@ -400,13 +421,12 @@ internal class GithubReleaseZipUpdater(
     cacheDir: File,
     destinationDir: File,
     val source: GithubReleaseSource,
-) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
+    remoteSource: RemoteSource? = null,
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
 
     override suspend fun check(): List<UpdateInfo> {
-        val response = newRequest(
-            "https://api.github.com/repos/${source.repository.fullName}/releases/latest",
-        ).execute()
-        val latestVersion = kxs.decodeFromString<GithubRelease>(response.contentString)
+        val body = remoteSource.fetchString(githubApiReleaseUrl(source.repository.fullName))
+        val latestVersion = kxs.decodeFromString<GithubRelease>(body)
             .tagName.blankAsNull().orEmpty()
         val currentVersion = source.versionFile.takeIf(File::isFile)
             ?.readText()?.trim().orEmpty()
@@ -418,7 +438,7 @@ internal class GithubReleaseZipUpdater(
     override suspend fun performUpdate(updates: List<UpdateInfo>) {
         val update = updates.firstOrNull() as? UpdateInfo.Github ?: return
         val tag = update.newVersion
-        val url = "https://github.com/${source.repository.fullName}/releases/download/$tag/${source.assetName}"
+        val url = githubReleaseDownloadUrl(source.repository.fullName, tag, source.assetName)
         val cacheFile = cacheDir.resolve("${source.repository.name}-$tag.tmp")
         cacheFile.parentFile?.mkdirs()
         cacheFile.deleteOnExit()
