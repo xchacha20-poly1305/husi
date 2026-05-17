@@ -62,7 +62,7 @@ import fr.husi.compose.SheetSectionTitle
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.colorForUrlTestDelay
-import fr.husi.compose.fadingBottomEdge
+import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Text
@@ -259,7 +259,7 @@ internal fun GroupHolderScreen(
                 .weight(1f)
                 .fillMaxHeight()
                 .focusRequester(focusRequester)
-                .fadingBottomEdge(dragDropListState.lazyListState),
+                .fadingEdge(dragDropListState.lazyListState),
             state = dragDropListState,
             items = uiState.profiles.toImmutableList(),
             key = { it.profile.id },

@@ -3,12 +3,14 @@
 package fr.husi.ui.profile
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -80,6 +82,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -94,6 +97,7 @@ import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.TooltipIconButton
+import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Text
@@ -125,6 +129,7 @@ import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -176,6 +181,130 @@ private fun RepeatableIconButton(
                 contentColor.copy(alpha = 0.38f)
             },
         )
+    }
+}
+
+@Composable
+private fun BoxScope.ConfigEditFloatingToolbar(
+    viewModel: ConfigEditViewModel,
+    uiState: ConfigEditUiState,
+    coroutineScope: CoroutineScope,
+    toolbarYOffset: Dp,
+    onHeightChanged: (Int) -> Unit,
+) {
+    val toolbarButtonContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+    val toolbarIconButtonColors = IconButtonDefaults.iconButtonColors(
+        contentColor = toolbarButtonContentColor,
+    )
+    HorizontalFloatingToolbar(
+        expanded = true,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .offset(y = -toolbarYOffset)
+            .zIndex(1f)
+            .onSizeChanged { onHeightChanged(it.height) },
+        colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+            toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(
+                alpha = 0.9f,
+            ),
+            toolbarContentColor = MaterialTheme.colorScheme.primary.copy(
+                alpha = 0.8f,
+            ),
+        ),
+    ) {
+        val toolbarScrollState = rememberScrollState()
+        Row(
+            modifier = Modifier
+                .then(
+                    if (useCompactConfigEditFloatingToolbar) {
+                        Modifier
+                    } else {
+                        Modifier.fillMaxWidth()
+                    },
+                )
+                .fadingEdge(
+                    scrollableState = toolbarScrollState,
+                    orientation = Orientation.Horizontal,
+                    fadeStart = true,
+                    fadeEnd = true,
+                )
+                .horizontalScroll(toolbarScrollState),
+        ) {
+            if (showFloatingToolbarSymbolAndCursorButtons) {
+                TooltipIconButton(
+                    icon = vectorResource(Res.drawable.keyboard_tab),
+                    contentDescription = stringResource(Res.string.indent),
+                    colors = toolbarIconButtonColors,
+                    onClick = {
+                        // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
+                        viewModel.insertText(" ".repeat(2))
+                    },
+                )
+            }
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.undo),
+                contentDescription = stringResource(Res.string.undo),
+                enabled = uiState.canUndo,
+                colors = toolbarIconButtonColors,
+                onClick = viewModel::undo,
+            )
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.redo),
+                contentDescription = stringResource(Res.string.redo),
+                enabled = uiState.canRedo,
+                colors = toolbarIconButtonColors,
+                onClick = viewModel::redo,
+            )
+            if (showFloatingToolbarSymbolAndCursorButtons) {
+                RepeatableIconButton(
+                    imageVector = vectorResource(Res.drawable.keyboard_arrow_left),
+                    contentDescription = "<-",
+                    contentColor = toolbarButtonContentColor,
+                    onClick = { viewModel.moveCursor(-1) },
+                )
+
+                RepeatableIconButton(
+                    imageVector = vectorResource(Res.drawable.keyboard_arrow_right),
+                    contentDescription = "->",
+                    contentColor = toolbarButtonContentColor,
+                    onClick = { viewModel.moveCursor(1) },
+                )
+
+                val keys = listOf("{", "}", "[", "]", ":", "\"", "_", "-")
+                keys.forEach { key ->
+                    IconButton(
+                        onClick = {
+                            viewModel.insertText(key)
+                        },
+                        contentColor = toolbarButtonContentColor,
+                    ) {
+                        Text(
+                            text = key,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
+                        )
+                    }
+                }
+            }
+
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.format_align_left),
+                contentDescription = stringResource(Res.string.action_format),
+                colors = toolbarIconButtonColors,
+                onClick = { viewModel.formatCurrentText() },
+            )
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.info),
+                contentDescription = stringResource(Res.string.action_test_config),
+                colors = toolbarIconButtonColors,
+                onClick = {
+                    coroutineScope.launch {
+                        viewModel.checkConfig()
+                    }
+                },
+            )
+        }
     }
 }
 
@@ -336,114 +465,13 @@ private fun ConfigEditScreenContent(
                 WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val toolbarYOffset = ScreenOffset + maxOf(imePadding, navigationPadding)
             var toolbarHeightPx by remember { mutableIntStateOf(0) }
-            val toolbarButtonContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-            val toolbarIconButtonColors = IconButtonDefaults.iconButtonColors(
-                contentColor = toolbarButtonContentColor,
+            ConfigEditFloatingToolbar(
+                viewModel = viewModel,
+                uiState = uiState,
+                coroutineScope = coroutineScope,
+                toolbarYOffset = toolbarYOffset,
+                onHeightChanged = { toolbarHeightPx = it },
             )
-            HorizontalFloatingToolbar(
-                expanded = true,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(y = -toolbarYOffset)
-                    .zIndex(1f)
-                    .onSizeChanged { toolbarHeightPx = it.height },
-                // Fake liquid glass
-                colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                    toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(
-                        alpha = 0.9f,
-                    ),
-                    toolbarContentColor = MaterialTheme.colorScheme.primary.copy(
-                        alpha = 0.8f,
-                    ),
-                ),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .then(
-                            if (useCompactConfigEditFloatingToolbar) {
-                                Modifier
-                            } else {
-                                Modifier.fillMaxWidth()
-                            },
-                        )
-                        .horizontalScroll(rememberScrollState()),
-                ) {
-                    if (showFloatingToolbarSymbolAndCursorButtons) {
-                        TooltipIconButton(
-                            icon = vectorResource(Res.drawable.keyboard_tab),
-                            contentDescription = stringResource(Res.string.indent),
-                            colors = toolbarIconButtonColors,
-                            onClick = {
-                                // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
-                                viewModel.insertText(" ".repeat(2))
-                            },
-                        )
-                    }
-                    TooltipIconButton(
-                        icon = vectorResource(Res.drawable.undo),
-                        contentDescription = stringResource(Res.string.undo),
-                        enabled = uiState.canUndo,
-                        colors = toolbarIconButtonColors,
-                        onClick = viewModel::undo,
-                    )
-                    TooltipIconButton(
-                        icon = vectorResource(Res.drawable.redo),
-                        contentDescription = stringResource(Res.string.redo),
-                        enabled = uiState.canRedo,
-                        colors = toolbarIconButtonColors,
-                        onClick = viewModel::redo,
-                    )
-                    if (showFloatingToolbarSymbolAndCursorButtons) {
-                        RepeatableIconButton(
-                            imageVector = vectorResource(Res.drawable.keyboard_arrow_left),
-                            contentDescription = "<-",
-                            contentColor = toolbarButtonContentColor,
-                            onClick = { viewModel.moveCursor(-1) },
-                        )
-
-                        RepeatableIconButton(
-                            imageVector = vectorResource(Res.drawable.keyboard_arrow_right),
-                            contentDescription = "->",
-                            contentColor = toolbarButtonContentColor,
-                            onClick = { viewModel.moveCursor(1) },
-                        )
-
-                        val keys = listOf("{", "}", "[", "]", ":", "\"", "_", "-")
-                        keys.forEach { key ->
-                            IconButton(
-                                onClick = {
-                                    viewModel.insertText(key)
-                                },
-                                contentColor = toolbarButtonContentColor,
-                            ) {
-                                Text(
-                                    text = key,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                )
-                            }
-                        }
-                    }
-
-                    TooltipIconButton(
-                        icon = vectorResource(Res.drawable.format_align_left),
-                        contentDescription = stringResource(Res.string.action_format),
-                        colors = toolbarIconButtonColors,
-                        onClick = { viewModel.formatCurrentText() },
-                    )
-                    TooltipIconButton(
-                        icon = vectorResource(Res.drawable.info),
-                        contentDescription = stringResource(Res.string.action_test_config),
-                        colors = toolbarIconButtonColors,
-                        onClick = {
-                            coroutineScope.launch {
-                                viewModel.checkConfig()
-                            }
-                        },
-                    )
-                }
-            }
             val extraHeight = with(density) { toolbarHeightPx.toDp() } + toolbarYOffset
             var editorHeightPx by remember { mutableIntStateOf(0) }
             val editorMinHeight = (

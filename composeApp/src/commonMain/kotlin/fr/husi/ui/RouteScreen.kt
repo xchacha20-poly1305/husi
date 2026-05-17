@@ -67,14 +67,13 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import androidx.compose.foundation.layout.fillMaxHeight
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
-import fr.husi.compose.fadingBottomEdge
+import fr.husi.compose.fadingEdge
 import fr.husi.compose.navigationBarsAlwaysInsets
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.rememberScrollHideState
@@ -310,7 +309,7 @@ fun RouteScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .fadingBottomEdge(dragDropListState.lazyListState),
+                        .fadingEdge(dragDropListState.lazyListState),
                     state = dragDropListState,
                     items = uiState.rules.toImmutableList(),
                     key = { it.id },

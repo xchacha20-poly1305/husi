@@ -75,7 +75,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
-import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SheetActionRow
@@ -83,7 +82,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.ansiEscape
-import fr.husi.compose.fadingBottomEdge
+import fr.husi.compose.fadingEdge
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.readableMessage
@@ -328,7 +327,7 @@ fun LogcatScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                                .fadingBottomEdge(listState),
+                                .fadingEdge(listState),
                             state = listState,
                             contentPadding = contentPadding,
                         ) {

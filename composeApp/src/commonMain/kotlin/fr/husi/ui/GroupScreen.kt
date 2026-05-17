@@ -66,7 +66,7 @@ import fr.husi.compose.SheetSectionTitle
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
-import fr.husi.compose.fadingBottomEdge
+import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
@@ -283,7 +283,7 @@ fun GroupScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .fadingBottomEdge(dragDropListState.lazyListState),
+                    .fadingEdge(dragDropListState.lazyListState),
                 state = dragDropListState,
                 items = uiState.groups.toImmutableList(),
                 key = { it.group.id },
