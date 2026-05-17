@@ -176,7 +176,7 @@ resolve_tag_epoch() {
     fi
 
     TOUCH_TIMESTAMP="$(format_timestamp_from_epoch "$TAG_EPOCH" "+%Y%m%d%H%M.%S")"
-    IMAGE_MODIFICATION_DATE="$(format_timestamp_from_epoch "$TAG_EPOCH" "+%Y%m%d%H%M%S.00+0000")"
+    IMAGE_MODIFICATION_DATE="$(format_timestamp_from_epoch "$TAG_EPOCH" "+%Y%m%d%H%M%S00")"
 }
 
 normalize_platform() {
