@@ -92,7 +92,7 @@
     <string name="server_address">Сервер</string>
     <string name="profile_name">Имя профиля</string>
     <string name="connection_test_url">URL-адрес для тестирования соединений</string>
-    <string name="port_proxy">Порт прокси SOCKS5</string>
+    <string name="port_proxy">Порт Mixed-прокси (SOCKS + HTTP)</string>
     <string name="app_version">Версия</string>
     <string name="oss_licenses">Лицензии с открытым исходным кодом</string>
     <string name="telegram">Канал обновлений в Telegram</string>
@@ -160,7 +160,7 @@
     <string name="group_basic">Базовый</string>
     <string name="trojan_provider">Провайдер Trojan</string>
     <string name="protocol_settings">Настройки протоколов</string>
-    <string name="append_http_proxy_sum">HTTP-прокси будет использоваться напрямую из (браузера / некоторых поддерживаемых приложений), без использования виртуального сетевого интерфейса (Android 10+)</string>
+    <string name="append_http_proxy_sum">Браузер / некоторые поддерживаемые приложения будут использовать порт HTTP-прокси напрямую, минуя виртуальный сетевой адаптер (требуется Android 10+ и порт с доступом без аутентификации)</string>
     <string name="append_http_proxy">Добавить HTTP-прокси к VPN</string>
     <string name="connection_test_timeout">Тайм-аут</string>
     <string name="connection_test_unreachable">Недоступен</string>
@@ -321,17 +321,17 @@
     <string name="ws_path">Путь к WebSocket</string>
     <string name="ws_host">Хост WebSocket</string>
     <string name="alter_id">ID альтернативной аутентификации</string>
-    <string name="uuid">Логин пользователя</string>
+    <string name="uuid">Идентификатор пользователя</string>
     <string name="obfs_param">Параметры Obfs</string>
     <string name="obfs">Obfs</string>
     <string name="protocol_param">Параметры протокола</string>
     <string name="username_opt">Имя пользователя (необязательно)</string>
     <string name="speed">%1$s/с</string>
     <string name="hysteria_download_mbps">Максимальная скорость загрузки (в Мбит/с) (Brutal)</string>
-    <string name="hysteria_upload_mbps">Максимальная скорость загрузки (в Мбит/с) (Hysteria)</string>
+    <string name="hysteria_upload_mbps">Максимальная скорость отправки (в Мбит/с) (Hysteria)</string>
     <string name="hysteria_auth_payload">Полезные данные аутентификации</string>
     <string name="hysteria_auth_type">Тип аутентификации</string>
-    <string name="hysteria_obfs">Обфускация пароля</string>
+    <string name="hysteria_obfs">Пароль обфускации</string>
     <string name="experimental_settings">Экспериментальные</string>
     <string name="route_for">Правило для %1$s</string>
     <string name="app_no_launcher">У приложения нет интерфейса.</string>
@@ -429,7 +429,7 @@
     <string name="front_proxy">Начальный прокси</string>
     <string name="reset_connections">Сброс соединений</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
-    <string name="inbound_password">Пароль пользователя SOCKS5</string>
+    <string name="inbound_password">Пароль Mixed-прокси</string>
     <string name="vpn_app_type">Тип приложения</string>
     <string name="vpn_core_type">Тип ядра</string>
     <string name="vpn_core_path">Обнаруженный путь</string>
@@ -437,7 +437,7 @@
     <string name="vpn_app_type_other">Другой</string>
     <string name="nat_stun_server_hint">STUN сервер</string>
     <string name="vpn_core_type_unknown">Неизвестный</string>
-    <string name="inbound_username">Имя пользователя SOCKS5</string>
+    <string name="inbound_username">Имя пользователя Mixed-прокси</string>
     <string name="route_opt_block_quic">Блокировать QUIC</string>
     <string name="get_cert">Получение сертификатов</string>
     <string name="get_cert_summary">Получить TLS сертификаты целевого сервера. Поддержка https и QUIC.</string>
@@ -463,7 +463,7 @@
     <string name="test_concurrency">Количество параллельных тестовых соединений</string>
     <string name="tuic_udp_relay_mode">Режим ретрансляции UDP</string>
     <string name="tuic_reduce_rtt">Использовать 0-RTT для ускорения рукопожатия через QUIC</string>
-    <string name="hop_interval">Интервал переключения портов(второй)</string>
+    <string name="hop_interval">Интервал переключения портов</string>
     <string name="test_timeout">Тайм-аут теста (мс)</string>
     <string name="get_cert_server_hint">Целевой сервер</string>
     <string name="no_thanks">Нет, спасибо</string>
@@ -524,7 +524,7 @@
     <string name="mux_max_streams">Максимум потоков</string>
     <string name="traffic_connections">Соединения</string>
     <string name="mux_max_connections">Максимум соединений</string>
-    <string name="mux_strategy">Статегия Mux</string>
+    <string name="mux_strategy">Стратегия Mux</string>
     <string name="mux_number">Стратегия Mux - Количество</string>
     <string name="status_status">Статус</string>
     <string name="override_address">Переопределить адрес</string>
@@ -536,8 +536,8 @@
     <string name="network_ethernet">Проводное подключение</string>
     <string name="network_cellular">Сотовая связь</string>
     <string name="network_interface_preference_detail">Включение набора с использованием нескольких сетевых интерфейсов</string>
-    <string name="network_interface_preference">Настройки сетевого интерфейса</string>
-    <string name="network_interface_strategy">Стратегия сетевого интерфейса</string>
+    <string name="network_interface_preference">Предпочтительные сетевые интерфейсы</string>
+    <string name="network_interface_strategy">Стратегия выбора сетевого интерфейса</string>
     <string name="network_expensive">Платная сеть</string>
     <string name="listen_port">Прослушиваемый порт</string>
     <string name="certificate_authority">Центр сертификации</string>
@@ -561,7 +561,7 @@
     <string name="proxy_set">Набор прокси</string>
     <string name="interrupt_exist_connections">Прерывать активные соединения</string>
     <string name="urltest_interval">Интервал URL-теста</string>
-    <string name="idle_timeout">Тайм-аут до IDLE (прекращения цикла тестирования)</string>
+    <string name="idle_timeout">Тайм-аут цикла тестирования при простое</string>
     <string name="urltest_tolerance">Допустимое отклонение от сервера с лучшим откликом (мс)</string>
     <string name="route_action">Действие маршрутизации</string>
     <string name="prefer_ipv4">Предпочитать IPv4</string>
@@ -573,7 +573,7 @@
     <string name="ipv4_only">Только IPv4</string>
     <string name="ipv6_only">Только IPv6</string>
     <string name="filter_regex">Фильтр (Regex)</string>
-    <string name="update_proxy_apps_when_install">Обновлять \"Режим VPN для приложений\" при установке приложений</string>
+    <string name="update_proxy_apps_when_install">Обновлять "Режим VPN для приложений" при установке приложений</string>
     <string name="tasker_settings">Настройки Tasker</string>
     <string name="tasker_action">Действие Tasker</string>
     <string name="tasker_action_start_service">Запуск сервиса</string>
@@ -632,8 +632,8 @@
     <string name="back">Назад</string>
     <string name="have_a_nice_day">Хорошего дня!</string>
     <string name="not_set">Не установлено</string>
-    <string name="fake_dns_for_all_sum">Унификация сетевой стратегии и поведения приложений.</string>
-    <string name="fake_dns_for_all">Применять поддельный DNS (Fake DNS) для каждого домена</string>
+    <string name="fake_dns_for_all_sum">Унифицировать сетевые стратегии, предпочитаемые приложениями.</string>
+    <string name="fake_dns_for_all">Применять Fake DNS для каждого домена</string>
     <string name="internal_link">Внутренняя ссылка</string>
     <string name="fake_ip_range_4">Диапазон поддельных IP (IPv4)</string>
     <string name="fake_ip_range_6">Диапазон поддельных IP (IPv6)</string>
@@ -727,4 +727,6 @@
     <string name="naive_idle_timeout">Тайм-аут при простое (сек.)</string>
     <string name="access_local_network_denied">Для подключения к прокси и устройствам в локальной сети требуется разрешение на доступ к локальной сети.</string>
     <string name="naive_tunnel_timeout">Тайм-аут туннеля (сек.)</string>
+    <string name="build_environment">Среда сборки</string>
+    <string name="select_file">Выбрать файл</string>
 </resources>
