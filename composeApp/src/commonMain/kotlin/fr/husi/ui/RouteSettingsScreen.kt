@@ -25,7 +25,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +46,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.AutoCompleteTextField
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.MapPreference
 import fr.husi.compose.MultilineTextField
@@ -54,6 +55,7 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
@@ -220,8 +222,7 @@ internal fun RouteSettingsScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.menu_route)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -234,31 +235,38 @@ internal fun RouteSettingsScreen(
                         }
                     }
                 },
+                title = { Text(stringResource(Res.string.menu_route)) },
                 actions = {
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.delete),
-                        contentDescription = stringResource(Res.string.delete),
-                        onClick = { showDeleteConfirm = true },
-                    )
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.done),
-                        contentDescription = stringResource(Res.string.apply),
-                    ) {
-                        if (uiState.needsRules()) {
-                            showEmptyRouteAlert = true
-                        } else if (isDirty) {
-                            saveAndExit()
-                        } else {
-                            showNoChangesAlert = true
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.delete),
+                            contentDescription = stringResource(Res.string.delete),
+                            onClick = { showDeleteConfirm = true },
+                        )
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.done),
+                            contentDescription = stringResource(Res.string.apply),
+                        ) {
+                            if (uiState.needsRules()) {
+                                showEmptyRouteAlert = true
+                            } else if (isDirty) {
+                                saveAndExit()
+                            } else {
+                                showNoChangesAlert = true
+                            }
                         }
                     }
 
                     Box {
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.more_vert),
-                            contentDescription = stringResource(Res.string.more),
-                        ) {
-                            showExpandedMenu = true
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                            ) {
+                                showExpandedMenu = true
+                            }
                         }
                         DropdownMenuPopup(
                             expanded = showExpandedMenu,
@@ -445,7 +453,12 @@ private fun RouteSettings(
             state = listState,
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .fadingEdge(
+                    scrollableState = listState,
+                    fadeStart = true,
+                    fadeEnd = true,
+                ),
             contentPadding = contentPadding,
         ) {
             item("name") {

@@ -12,14 +12,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AppBarRow
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,20 +31,23 @@ import fr.husi.GroupType
 import fr.husi.SubscriptionType
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.LinkOrContentTextField
-import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.auto_update
@@ -147,8 +145,7 @@ internal fun GroupSettingsScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.group_settings)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -157,33 +154,27 @@ internal fun GroupSettingsScreen(
                         onBackPress()
                     }
                 },
+                title = { Text(stringResource(Res.string.group_settings)) },
                 actions = {
-                    AppBarRow(
-                        overflowIndicator = ::MoreOverIcon,
-                    ) {
-                        clickableItem(
-                            onClick = {
-                                if (viewModel.isNew) {
-                                    onBackPress()
-                                } else {
-                                    showDeleteAlert = true
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.delete),
-                                    null,
-                                )
-                            },
-                            label = runBlocking { resolveRepository().getString(Res.string.delete) },
-                        )
-                        clickableItem(
-                            onClick = ::saveAndExit,
-                            icon = {
-                                Icon(vectorResource(Res.drawable.done), null)
-                            },
-                            label = runBlocking { resolveRepository().getString(Res.string.apply) },
-                        )
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.delete),
+                            contentDescription = stringResource(Res.string.delete),
+                        ) {
+                            if (viewModel.isNew) {
+                                onBackPress()
+                            } else {
+                                showDeleteAlert = true
+                            }
+                        }
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.done),
+                            contentDescription = stringResource(Res.string.apply),
+                        ) {
+                            saveAndExit()
+                        }
                     }
                 },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -200,7 +191,12 @@ internal fun GroupSettingsScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .fadingEdge(
+                            scrollableState = listState,
+                            fadeStart = true,
+                            fadeEnd = true,
+                        ),
                     contentPadding = contentPadding,
                 ) {
                     groupSettings(

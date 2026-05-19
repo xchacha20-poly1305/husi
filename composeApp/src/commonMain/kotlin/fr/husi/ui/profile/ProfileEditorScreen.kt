@@ -28,12 +28,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,8 +48,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.GroupType
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.database.ProxyEntity
 import fr.husi.database.SagerDatabase
@@ -303,8 +305,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(title)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -317,27 +318,36 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                         }
                     }
                 },
+                title = { Text(stringResource(title)) },
                 actions = {
-                    if (!viewModel.isNew) SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.delete),
-                        contentDescription = stringResource(Res.string.delete),
-                        onClick = { showDeleteAlert = true },
-                    )
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.done),
-                        contentDescription = stringResource(Res.string.apply),
-                        onClick = {
-                            viewModel.save()
-                            onResult(true)
-                        },
-                    )
+                    if (!viewModel.isNew) {
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.delete),
+                                contentDescription = stringResource(Res.string.delete),
+                                onClick = { showDeleteAlert = true },
+                            )
+                        }
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.done),
+                            contentDescription = stringResource(Res.string.apply),
+                            onClick = {
+                                viewModel.save()
+                                onResult(true)
+                            },
+                        )
+                    }
 
                     Box {
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.more_vert),
-                            contentDescription = stringResource(Res.string.more),
-                        ) {
-                            showExtendMenu = true
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                            ) {
+                                showExtendMenu = true
+                            }
                         }
                         DropdownMenuPopup(
                             expanded = showExtendMenu,
@@ -519,7 +529,12 @@ private fun <T : AbstractBean> ProfileSettingsMainColumn(
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
+                    .fillMaxHeight()
+                    .fadingEdge(
+                        scrollableState = listState,
+                        fadeStart = true,
+                        fadeEnd = true,
+                    ),
                 state = listState,
             ) {
                 settings(this, uiState) { key ->

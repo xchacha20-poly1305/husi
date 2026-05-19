@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.SimpleTopAppBar
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.repository.FakeRepository
@@ -100,8 +100,7 @@ internal fun SpeedtestScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            SimpleTopAppBar(
-                title = { Text(stringResource(Res.string.speed_test)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -109,6 +108,7 @@ internal fun SpeedtestScreen(
                         onClick = onBackPress,
                     )
                 },
+                title = { Text(stringResource(Res.string.speed_test)) },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )

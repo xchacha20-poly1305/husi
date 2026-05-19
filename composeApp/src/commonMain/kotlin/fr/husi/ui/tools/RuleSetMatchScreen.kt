@@ -21,14 +21,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
-import fr.husi.compose.material3.Button
-import fr.husi.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,21 +34,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.SimpleTopAppBar
-import fr.husi.compose.TextButton
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TextButton
+import fr.husi.compose.material3.Button
+import fr.husi.compose.material3.Card
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
+import fr.husi.resources.Res
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
+import fr.husi.resources.destination_address
+import fr.husi.resources.error
+import fr.husi.resources.error_title
+import fr.husi.resources.ok
+import fr.husi.resources.rule_set_match
+import fr.husi.resources.start
 import fr.husi.ui.getStringOrRes
-import fr.husi.resources.*
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @Composable
 internal fun RuleSetMatchScreen(
@@ -78,8 +86,7 @@ internal fun RuleSetMatchScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            SimpleTopAppBar(
-                title = { Text(stringResource(Res.string.rule_set_match)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -87,6 +94,7 @@ internal fun RuleSetMatchScreen(
                         onClick = onBackPress,
                     )
                 },
+                title = { Text(stringResource(Res.string.rule_set_match)) },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )

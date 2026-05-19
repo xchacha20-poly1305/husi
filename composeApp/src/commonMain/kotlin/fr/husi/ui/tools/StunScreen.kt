@@ -47,7 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.SimpleTopAppBar
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.ButtonDefaults
@@ -110,8 +110,7 @@ internal fun StunScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            SimpleTopAppBar(
-                title = { Text(stringResource(Res.string.stun_test)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -119,6 +118,7 @@ internal fun StunScreen(
                         onClick = ::exit,
                     )
                 },
+                title = { Text(stringResource(Res.string.stun_test)) },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )

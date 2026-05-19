@@ -5,7 +5,6 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,12 +28,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -43,8 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.KeyValueLine
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.ktx.blankAsNull
@@ -96,126 +96,129 @@ internal actual fun VPNScannerScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                TopAppBar(
-                    title = { Text(stringResource(Res.string.scan_vpn_app)) },
-                    navigationIcon = {
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.arrow_back),
-                            contentDescription = stringResource(Res.string.back),
-                            onClick = onBackPress,
-                        )
-                    },
-                    actions = {
+            CapsuleTopBar(
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.arrow_back),
+                        contentDescription = stringResource(Res.string.back),
+                        onClick = onBackPress,
+                    )
+                },
+                title = { Text(stringResource(Res.string.scan_vpn_app)) },
+                actions = {
+                    CapsuleActionButton {
                         SimpleIconButton(
                             imageVector = vectorResource(Res.drawable.cached),
                             contentDescription = stringResource(Res.string.refresh),
                             enabled = !isScanning,
                             onClick = { viewModel.scanVPN(context.packageManager) },
                         )
-                    },
-                    windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                    scrollBehavior = scrollBehavior,
-                )
-
-                uiState.progress?.let {
-                    LinearWavyProgressIndicator(
-                        progress = { it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter),
-                    )
-                }
-            }
+                    }
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+            )
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .paddingExceptBottom(innerPadding),
-            state = listState,
-        ) {
-            items(
-                items = uiState.appInfos,
-                key = { it.packageInfo.packageName },
-                contentType = { TYPE_ITEM_CARD },
+        Column(modifier = Modifier.fillMaxSize()) {
+            uiState.progress?.let {
+                LinearWavyProgressIndicator(
+                    progress = { it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .paddingExceptBottom(innerPadding)
+                    .fadingEdge(
+                        scrollableState = listState,
+                        fadeStart = true,
+                        fadeEnd = true,
+                    ),
+                state = listState,
             ) {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clickable {
-                            context.startActivity(
-                                Intent()
-                                    .setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                    .setData(
-                                        Uri.fromParts(
-                                            "package", it.packageInfo.packageName, null,
-                                        ),
-                                    ),
-                            )
-                        },
+                items(
+                    items = uiState.appInfos,
+                    key = { it.packageInfo.packageName },
+                    contentType = { TYPE_ITEM_CARD },
                 ) {
-                    Column {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        ) {
-                            Image(
-                                painter = rememberDrawablePainter(it.icon),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .padding(top = 4.dp),
-                            )
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable {
+                                context.startActivity(
+                                    Intent()
+                                        .setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                        .setData(
+                                            Uri.fromParts(
+                                                "package", it.packageInfo.packageName, null,
+                                            ),
+                                        ),
+                                )
+                            },
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            ) {
+                                Image(
+                                    painter = rememberDrawablePainter(it.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .padding(top = 4.dp),
+                                )
 
-                            Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
 
-                            Column {
-                                SelectionContainer {
-                                    Text(
-                                        text = it.label,
-                                        style = MaterialTheme.typography.titleMedium,
-                                    )
-                                }
-                                SelectionContainer {
-                                    Text(
-                                        text = it.packageInfo.packageName,
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
+                                Column {
+                                    SelectionContainer {
+                                        Text(
+                                            text = it.label,
+                                            style = MaterialTheme.typography.titleMedium,
+                                        )
+                                    }
+                                    SelectionContainer {
+                                        Text(
+                                            text = it.packageInfo.packageName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        KeyValueLine(
-                            key = stringResource(Res.string.vpn_app_type),
-                            value = it.vpnType.appType
-                                ?: stringResource(Res.string.vpn_app_type_other),
-                        )
-                        KeyValueLine(
-                            key = stringResource(Res.string.vpn_core_type),
-                            value = it.vpnType.coreType?.coreType
-                                ?: stringResource(Res.string.vpn_core_type_unknown),
-                        )
-                        it.vpnType.coreType?.corePath?.blankAsNull()?.let { corePath ->
                             KeyValueLine(
-                                key = stringResource(Res.string.vpn_core_path),
-                                value = corePath,
+                                key = stringResource(Res.string.vpn_app_type),
+                                value = it.vpnType.appType
+                                    ?: stringResource(Res.string.vpn_app_type_other),
                             )
-                        }
-                        it.vpnType.coreType?.goVersion?.blankAsNull()?.let { goVersion ->
                             KeyValueLine(
-                                key = stringResource(Res.string.vpn_golang_version),
-                                value = goVersion,
+                                key = stringResource(Res.string.vpn_core_type),
+                                value = it.vpnType.coreType?.coreType
+                                    ?: stringResource(Res.string.vpn_core_type_unknown),
                             )
+                            it.vpnType.coreType?.corePath?.blankAsNull()?.let { corePath ->
+                                KeyValueLine(
+                                    key = stringResource(Res.string.vpn_core_path),
+                                    value = corePath,
+                                )
+                            }
+                            it.vpnType.coreType?.goVersion?.blankAsNull()?.let { goVersion ->
+                                KeyValueLine(
+                                    key = stringResource(Res.string.vpn_golang_version),
+                                    value = goVersion,
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            item("navigation_space", TYPE_SPACER) {
-                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                item("navigation_space", TYPE_SPACER) {
+                    Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                }
             }
         }
     }

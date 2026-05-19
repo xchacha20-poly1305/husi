@@ -23,11 +23,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import fr.husi.compose.material3.Button
-import fr.husi.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +34,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -51,29 +47,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.compose.DropDownSelector
-import fr.husi.compose.PlatformMenuIcon
-import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.SimpleTopAppBar
-import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.DropDownSelector
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TooltipIconButton
+import fr.husi.compose.material3.Button
+import fr.husi.compose.material3.Card
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.readableMessage
-import fr.husi.repository.FakeRepository
 import fr.husi.repository.resolveRepository
+import fr.husi.resources.Res
+import fr.husi.resources.action_copy
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
+import fr.husi.resources.content_copy
+import fr.husi.resources.copy_success
+import fr.husi.resources.error
+import fr.husi.resources.error_title
+import fr.husi.resources.format
+import fr.husi.resources.get_cert
+import fr.husi.resources.get_cert_server_hint
+import fr.husi.resources.ok
+import fr.husi.resources.protocol
+import fr.husi.resources.route_proxy
+import fr.husi.resources.sni
+import fr.husi.resources.start
 import fr.husi.ui.ensurePreviewRepository
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,8 +107,7 @@ internal fun GetCertScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            SimpleTopAppBar(
-                title = { Text(stringResource(Res.string.get_cert)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -103,6 +115,7 @@ internal fun GetCertScreen(
                         onClick = onBack,
                     )
                 },
+                title = { Text(stringResource(Res.string.get_cert)) },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )
@@ -146,142 +159,142 @@ private fun GetCertContent(
                 .fillMaxHeight()
                 .verticalScroll(scrollState),
         ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-            ) {
-                OutlinedTextField(
-                    value = uiState.server,
-                    onValueChange = { viewModel.setServer(it) },
-                    label = { Text(stringResource(Res.string.get_cert_server_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = uiState.serverName,
-                    onValueChange = { viewModel.setServerName(it) },
-                    label = { Text(stringResource(Res.string.sni)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                DropDownSelector(
-                    label = { Text(stringResource(Res.string.protocol)) },
-                    value = uiState.protocol,
-                    values = listOf("https", "quic"),
-                    onValueChange = { viewModel.setProtocol(it) },
-                    displayValue = { it },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                DropDownSelector(
-                    label = { Text(stringResource(Res.string.format)) },
-                    value = uiState.format,
-                    values = Format.entries,
-                    onValueChange = { viewModel.setFormat(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = uiState.proxy,
-                    onValueChange = { viewModel.setProxy(it) },
-                    label = { Text(stringResource(Res.string.route_proxy)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp, horizontal = 24.dp),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            Button(
-                onClick = { viewModel.launch() },
-                enabled = !uiState.isDoing,
-            ) {
-                Text(stringResource(Res.string.start))
-            }
-        }
-
-        if (uiState.formatted.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedCard(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 16.dp),
             ) {
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
                 ) {
-                    CopyButton {
-                        copyToClipboard(uiState.formatted)
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    SelectionContainer {
-                        Text(
-                            text = uiState.formatted,
-                            fontFamily = FontFamily.Monospace,
-                        )
+                    OutlinedTextField(
+                        value = uiState.server,
+                        onValueChange = { viewModel.setServer(it) },
+                        label = { Text(stringResource(Res.string.get_cert_server_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = uiState.serverName,
+                        onValueChange = { viewModel.setServerName(it) },
+                        label = { Text(stringResource(Res.string.sni)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    DropDownSelector(
+                        label = { Text(stringResource(Res.string.protocol)) },
+                        value = uiState.protocol,
+                        values = listOf("https", "quic"),
+                        onValueChange = { viewModel.setProtocol(it) },
+                        displayValue = { it },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    DropDownSelector(
+                        label = { Text(stringResource(Res.string.format)) },
+                        value = uiState.format,
+                        values = Format.entries,
+                        onValueChange = { viewModel.setFormat(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = uiState.proxy,
+                        onValueChange = { viewModel.setProxy(it) },
+                        label = { Text(stringResource(Res.string.route_proxy)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp, horizontal = 24.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Button(
+                    onClick = { viewModel.launch() },
+                    enabled = !uiState.isDoing,
+                ) {
+                    Text(stringResource(Res.string.start))
+                }
+            }
+
+            if (uiState.formatted.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                    ) {
+                        CopyButton {
+                            copyToClipboard(uiState.formatted)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SelectionContainer {
+                            Text(
+                                text = uiState.formatted,
+                                fontFamily = FontFamily.Monospace,
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .animateContentSize(),
-        ) {
-            Column(
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedCard(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .animateContentSize(),
             ) {
-                Crossfade(
-                    targetState = uiState.isDoing,
-                    animationSpec = tween(durationMillis = 300),
-                ) { isDoing ->
-                    if (isDoing) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center,
-                        ) { LoadingIndicator() }
-                    } else {
-                        Column {
-                            CopyButton {
-                                copyToClipboard(uiState.cert)
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            SelectionContainer {
-                                Text(
-                                    text = uiState.cert,
-                                    fontFamily = FontFamily.Monospace,
-                                )
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                ) {
+                    Crossfade(
+                        targetState = uiState.isDoing,
+                        animationSpec = tween(durationMillis = 300),
+                    ) { isDoing ->
+                        if (isDoing) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center,
+                            ) { LoadingIndicator() }
+                        } else {
+                            Column {
+                                CopyButton {
+                                    copyToClipboard(uiState.cert)
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                SelectionContainer {
+                                    Text(
+                                        text = uiState.cert,
+                                        fontFamily = FontFamily.Monospace,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
             Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
@@ -330,9 +343,10 @@ private fun CopyButton(modifier: Modifier = Modifier, copy: () -> Unit) {
 @Composable
 private fun PreviewGetCert() {
     ensurePreviewRepository()
+    val viewModel = viewModel { GetCertScreenViewModel() }
 
     GetCertScreen(
-        viewModel = GetCertScreenViewModel(),
+        viewModel = viewModel,
         onBack = {},
     )
 }

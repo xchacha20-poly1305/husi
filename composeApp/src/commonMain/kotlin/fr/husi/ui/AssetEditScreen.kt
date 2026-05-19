@@ -12,14 +12,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AppBarRow
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,15 +26,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.LinkOrContentTextField
-import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.contentOrUnset
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.assets_settings
@@ -54,8 +52,8 @@ import fr.husi.resources.link
 import fr.husi.resources.no
 import fr.husi.resources.ok
 import fr.husi.resources.question_mark
-import fr.husi.resources.route_asset_name
 import fr.husi.resources.route_asset_auto_update_delay
+import fr.husi.resources.route_asset_name
 import fr.husi.resources.timer
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.url
@@ -64,7 +62,6 @@ import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -144,8 +141,7 @@ internal fun AssetEditScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.assets_settings)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -162,38 +158,32 @@ internal fun AssetEditScreen(
                         }
                     }
                 },
+                title = { Text(stringResource(Res.string.assets_settings)) },
                 actions = {
-                    AppBarRow(
-                        overflowIndicator = ::MoreOverIcon,
-                    ) {
-                        clickableItem(
-                            onClick = {
-                                val editingAssetName = viewModel.editingName
-                                if (editingAssetName.isEmpty()) {
-                                    resultBus.sendResult<AssetEditResult>(
-                                        resultKey,
-                                        AssetEditResult.Canceled,
-                                    )
-                                    onBack()
-                                } else {
-                                    showDeleteConfirm = true
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.delete),
-                                    null,
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.delete),
+                            contentDescription = stringResource(Res.string.delete),
+                        ) {
+                            val editingAssetName = viewModel.editingName
+                            if (editingAssetName.isEmpty()) {
+                                resultBus.sendResult<AssetEditResult>(
+                                    resultKey,
+                                    AssetEditResult.Canceled,
                                 )
-                            },
-                            label = runBlocking { resolveRepository().getString(Res.string.delete) },
-                        )
-                        clickableItem(
-                            onClick = ::saveAndExit,
-                            icon = {
-                                Icon(vectorResource(Res.drawable.done), null)
-                            },
-                            label = runBlocking { resolveRepository().getString(Res.string.apply) },
-                        )
+                                onBack()
+                            } else {
+                                showDeleteConfirm = true
+                            }
+                        }
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.done),
+                            contentDescription = stringResource(Res.string.apply),
+                        ) {
+                            saveAndExit()
+                        }
                     }
                 },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -209,7 +199,12 @@ internal fun AssetEditScreen(
                     state = listState,
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight(),
+                        .fillMaxHeight()
+                        .fadingEdge(
+                            scrollableState = listState,
+                            fadeStart = true,
+                            fadeEnd = true,
+                        ),
                     contentPadding = contentPadding,
                 ) {
                     assetEditSettings(
