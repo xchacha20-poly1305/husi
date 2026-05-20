@@ -338,13 +338,11 @@ fun SettingsScreen(
         topBar = {
             SimpleTopAppBar(
                 title = { Text(stringResource(Res.string.settings)) },
-                navigationIcon = {
-                    PlatformMenuIcon(
-                        imageVector = vectorResource(Res.drawable.menu),
-                        contentDescription = stringResource(Res.string.menu),
-                        onClick = onDrawerClick,
-                    )
-                },
+                navigationIcon = PlatformMenuIcon(
+                    imageVector = vectorResource(Res.drawable.menu),
+                    contentDescription = stringResource(Res.string.menu),
+                    onClick = onDrawerClick,
+                ),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )

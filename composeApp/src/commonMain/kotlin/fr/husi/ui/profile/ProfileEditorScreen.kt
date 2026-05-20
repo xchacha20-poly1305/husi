@@ -5,6 +5,7 @@ package fr.husi.ui.profile
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,11 +14,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -55,7 +54,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
-import fr.husi.compose.paddingExceptBottom
+import fr.husi.compose.withNavigation
 import fr.husi.database.ProxyEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.AbstractBean
@@ -434,7 +433,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
         },
     ) { innerPadding ->
         ProfileSettingsMainColumn(
-            modifier = Modifier.paddingExceptBottom(innerPadding),
+            contentPadding = innerPadding.withNavigation(),
             viewModel = viewModel,
             settings = settings,
         )
@@ -503,7 +502,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
 
 @Composable
 private fun <T : AbstractBean> ProfileSettingsMainColumn(
-    modifier: Modifier,
+    contentPadding: PaddingValues,
     viewModel: ProfileEditorViewModel<T>,
     settings: (
         scope: LazyListScope,
@@ -525,7 +524,7 @@ private fun <T : AbstractBean> ProfileSettingsMainColumn(
                 }
         }
 
-        Row(modifier = modifier.fillMaxSize()) {
+        Row(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -536,13 +535,10 @@ private fun <T : AbstractBean> ProfileSettingsMainColumn(
                         fadeEnd = true,
                     ),
                 state = listState,
+                contentPadding = contentPadding,
             ) {
                 settings(this, uiState) { key ->
                     scrollToKey = key
-                }
-
-                item("bottom_padding") {
-                    Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
             }
 

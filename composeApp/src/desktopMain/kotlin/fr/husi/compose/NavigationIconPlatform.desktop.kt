@@ -8,5 +8,4 @@ actual fun PlatformMenuIcon(
     imageVector: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-) {
-}
+): (@Composable () -> Unit)? = null

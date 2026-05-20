@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.vectorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.TextButton
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -38,6 +39,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun DebugScreen(
     modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp,
+    bottomPadding: Dp = 0.dp,
     onVisibleChange: (Boolean) -> Unit,
     showSnackbar: (message: String) -> Unit,
 ) {
@@ -57,6 +60,7 @@ internal fun DebugScreen(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp),
         ) {
+            Spacer(modifier = Modifier.height(topPadding))
             Spacer(modifier = Modifier.height(16.dp))
 
             ElevatedCard(
@@ -87,6 +91,7 @@ internal fun DebugScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(bottomPadding))
         }
 
         BoxedVerticalScrollbar(

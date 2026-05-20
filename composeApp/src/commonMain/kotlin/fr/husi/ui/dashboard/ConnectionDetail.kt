@@ -29,8 +29,9 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -127,7 +128,7 @@ fun ConnectionDetailScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            CapsuleTopBar(
                 title = {
                     Text(uuid)
                 },
@@ -150,45 +151,34 @@ fun ConnectionDetailScreen(
                     }
                 },
                 actions = {
-                    AppBarRow {
-                        if (isSelecting) {
-                            clickableItem(
+                    if (isSelecting) {
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.done),
+                                contentDescription = stringResource(Res.string.ok),
                                 onClick = {
                                     openRouteSettings(
                                         createRouteDraft(selectedField, connection),
                                     )
                                 },
-                                icon = {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.done),
-                                        contentDescription = stringResource(Res.string.ok),
-                                    )
-                                },
-                                label = runBlocking { resolveRepository().getString(Res.string.ok) },
                             )
-                        } else {
-                            clickableItem(
+                        }
+                    } else {
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.add_road),
+                                contentDescription = stringResource(Res.string.create_rule),
                                 onClick = { isSelecting = true },
-                                icon = {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.add_road),
-                                        contentDescription = stringResource(Res.string.create_rule),
-                                    )
-                                },
-                                label = runBlocking { resolveRepository().getString(Res.string.create_rule) },
                             )
-                            clickableItem(
+                        }
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.delete_forever),
+                                contentDescription = stringResource(Res.string.close),
                                 onClick = {
                                     viewModel.closeConnection(uuid)
                                     popup()
                                 },
-                                icon = {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.delete_forever),
-                                        contentDescription = stringResource(Res.string.close),
-                                    )
-                                },
-                                label = runBlocking { resolveRepository().getString(Res.string.close) },
                             )
                         }
                     }

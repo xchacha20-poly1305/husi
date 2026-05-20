@@ -28,8 +28,9 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -222,28 +223,30 @@ fun GroupScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            CapsuleTopBar(
                 title = { Text(stringResource(Res.string.menu_group)) },
-                navigationIcon = {
-                    PlatformMenuIcon(
-                        imageVector = vectorResource(Res.drawable.menu),
-                        contentDescription = stringResource(Res.string.menu),
-                        onClick = onDrawerClick,
-                    )
-                },
+                navigationIcon = PlatformMenuIcon(
+                    imageVector = vectorResource(Res.drawable.menu),
+                    contentDescription = stringResource(Res.string.menu),
+                    onClick = onDrawerClick,
+                ),
                 actions = {
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.update),
-                        contentDescription = stringResource(Res.string.update_all_subscription),
-                        onClick = { showUpdateAll = true },
-                    )
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.playlist_add),
-                        contentDescription = stringResource(Res.string.group_create),
-                        onClick = {
-                            openGroupSettings(0L)
-                        },
-                    )
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.update),
+                            contentDescription = stringResource(Res.string.update_all_subscription),
+                            onClick = { showUpdateAll = true },
+                        )
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.playlist_add),
+                            contentDescription = stringResource(Res.string.group_create),
+                            onClick = {
+                                openGroupSettings(0L)
+                            },
+                        )
+                    }
                 },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,

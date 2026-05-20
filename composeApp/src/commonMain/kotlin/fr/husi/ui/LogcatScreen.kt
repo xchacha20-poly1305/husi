@@ -43,8 +43,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -168,44 +169,47 @@ fun LogcatScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
+            CapsuleTopBar(
                 title = {
                     Text(stringResource(Res.string.menu_log))
                 },
-                navigationIcon = {
-                    PlatformMenuIcon(
-                        imageVector = vectorResource(Res.drawable.menu),
-                        contentDescription = stringResource(Res.string.menu),
-                        onClick = onDrawerClick,
-                    )
-                },
+                navigationIcon = PlatformMenuIcon(
+                    imageVector = vectorResource(Res.drawable.menu),
+                    contentDescription = stringResource(Res.string.menu),
+                    onClick = onDrawerClick,
+                ),
                 actions = {
-                    SimpleIconButton(
-                        imageVector = vectorResource(
-                            if (uiState.pause) {
-                                Res.drawable.play_arrow
-                            } else {
-                                Res.drawable.pause
-                            },
-                        ),
-                        contentDescription = stringResource(Res.string.pause),
-                        onClick = viewModel::togglePause,
-                    )
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.share),
-                        contentDescription = stringResource(Res.string.logcat),
-                        onClick = { showBottomSheet = true },
-                    )
-                    Box {
+                    CapsuleActionButton {
                         SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.more_vert),
-                            contentDescription = stringResource(Res.string.more),
-                            onClick = { expandMenu = true },
+                            imageVector = vectorResource(
+                                if (uiState.pause) {
+                                    Res.drawable.play_arrow
+                                } else {
+                                    Res.drawable.pause
+                                },
+                            ),
+                            contentDescription = stringResource(Res.string.pause),
+                            onClick = viewModel::togglePause,
                         )
-                        DropdownMenu(
-                            expanded = expandMenu,
-                            onDismissRequest = { expandMenu = false },
-                        ) {
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.share),
+                            contentDescription = stringResource(Res.string.logcat),
+                            onClick = { showBottomSheet = true },
+                        )
+                    }
+                    CapsuleActionButton {
+                        Box {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                                onClick = { expandMenu = true },
+                            )
+                            DropdownMenu(
+                                expanded = expandMenu,
+                                onDismissRequest = { expandMenu = false },
+                            ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(Res.string.clear_logcat)) },
                                 onClick = viewModel::clearLog,
@@ -231,6 +235,7 @@ fun LogcatScreen(
                                         )
                                     },
                                 )
+                            }
                             }
                         }
                     }

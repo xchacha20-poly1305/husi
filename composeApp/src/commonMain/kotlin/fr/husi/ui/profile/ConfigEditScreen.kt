@@ -100,7 +100,6 @@ import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Text
-import fr.husi.compose.paddingExceptBottom
 import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -450,9 +449,7 @@ private fun ConfigEditScreenContent(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .paddingExceptBottom(innerPadding),
+            modifier = Modifier.fillMaxSize(),
         ) {
             val density = LocalDensity.current
             val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
@@ -491,6 +488,7 @@ private fun ConfigEditScreenContent(
                             indication = null,
                         ) { focusRequester.requestFocus() },
                 ) {
+                    Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
                     BasicTextField(
                         state = viewModel.textFieldState,
                         modifier = Modifier

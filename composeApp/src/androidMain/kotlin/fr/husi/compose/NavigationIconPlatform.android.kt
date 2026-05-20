@@ -8,7 +8,7 @@ actual fun PlatformMenuIcon(
     imageVector: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-) {
+): (@Composable () -> Unit)? = {
     SimpleIconButton(
         imageVector = imageVector,
         contentDescription = contentDescription,

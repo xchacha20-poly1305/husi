@@ -36,8 +36,9 @@ import androidx.compose.material3.AlertDialog
 import fr.husi.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -120,7 +121,7 @@ class TaskerActivity : ComposeActivity() {
                             .fillMaxSize()
                             .nestedScroll(scrollBehavior.nestedScrollConnection),
                         topBar = {
-                            TopAppBar(
+                            CapsuleTopBar(
                                 title = { Text(stringResource(Res.string.tasker_settings)) },
                                 navigationIcon = {
                                     SimpleIconButton(
@@ -132,13 +133,15 @@ class TaskerActivity : ComposeActivity() {
                                     )
                                 },
                                 actions = {
-                                    SimpleIconButton(
-                                        imageVector = vectorResource(Res.drawable.done),
-                                        contentDescription = stringResource(Res.string.apply),
-                                        onClick = {
-                                            saveAndExit()
-                                        },
-                                    )
+                                    CapsuleActionButton {
+                                        SimpleIconButton(
+                                            imageVector = vectorResource(Res.drawable.done),
+                                            contentDescription = stringResource(Res.string.apply),
+                                            onClick = {
+                                                saveAndExit()
+                                            },
+                                        )
+                                    }
                                 },
                                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                                 scrollBehavior = scrollBehavior,

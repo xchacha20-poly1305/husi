@@ -22,14 +22,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
-import fr.husi.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -43,8 +41,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -60,8 +56,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,28 +66,58 @@ import fr.husi.RuleProvider
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.currentEpochSeconds
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.material3.Button
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
+import fr.husi.resources.Res
+import fr.husi.resources.action_import_file
+import fr.husi.resources.arrow_back
+import fr.husi.resources.assets_update
+import fr.husi.resources.back
+import fr.husi.resources.cancel
+import fr.husi.resources.delete
+import fr.husi.resources.edit
+import fr.husi.resources.group_update
+import fr.husi.resources.import_url
+import fr.husi.resources.link
+import fr.husi.resources.more
+import fr.husi.resources.more_vert
+import fr.husi.resources.note_add
+import fr.husi.resources.ok
+import fr.husi.resources.removed
+import fr.husi.resources.replay
+import fr.husi.resources.reset_rule_set
+import fr.husi.resources.route_asset_auto_update_off
+import fr.husi.resources.route_asset_auto_update_on
+import fr.husi.resources.route_asset_status
+import fr.husi.resources.route_assets
+import fr.husi.resources.route_global_asset_auto_update_delay
+import fr.husi.resources.timer
+import fr.husi.resources.undo
+import fr.husi.resources.update
 import fr.husi.results.ResultEffect
-import fr.husi.resources.*
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.io.File
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlin.random.Random
 
 private const val ASSET_BUILT_IN = 0
 private const val ASSET_CUSTOM = 1
@@ -259,8 +285,7 @@ internal fun AssetsScreen(
             Box(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                TopAppBar(
-                    title = { Text(stringResource(Res.string.route_assets)) },
+                CapsuleTopBar(
                     navigationIcon = {
                         SimpleIconButton(
                             imageVector = vectorResource(Res.drawable.arrow_back),
@@ -268,75 +293,82 @@ internal fun AssetsScreen(
                             onClick = onBackPress,
                         )
                     },
+                    title = { Text(stringResource(Res.string.route_assets)) },
                     actions = {
                         val canOperate =
                             uiState.process == null && uiState.assets.all { it.progress == null }
                         val canReset = canOperate && rulesProvider == RuleProvider.OFFICIAL
 
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.timer),
-                            contentDescription = stringResource(Res.string.route_global_asset_auto_update_delay),
-                            onClick = { showAutoUpdateDelayDialog = true },
-                        )
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.update),
-                            contentDescription = stringResource(Res.string.assets_update),
-                            enabled = canOperate,
-                            onClick = {
-                                viewModel.updateAsset(cacheDir = cacheDir)
-                            },
-                        )
-                        Box {
+                        CapsuleActionButton {
                             SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.more_vert),
-                                contentDescription = stringResource(Res.string.more),
-                                onClick = { isOverflowMenuExpanded = true },
+                                imageVector = vectorResource(Res.drawable.timer),
+                                contentDescription = stringResource(Res.string.route_global_asset_auto_update_delay),
+                                onClick = { showAutoUpdateDelayDialog = true },
                             )
+                        }
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.update),
+                                contentDescription = stringResource(Res.string.assets_update),
+                                enabled = canOperate,
+                                onClick = {
+                                    viewModel.updateAsset(cacheDir = cacheDir)
+                                },
+                            )
+                        }
+                        CapsuleActionButton {
+                            Box {
+                                SimpleIconButton(
+                                    imageVector = vectorResource(Res.drawable.more_vert),
+                                    contentDescription = stringResource(Res.string.more),
+                                    onClick = { isOverflowMenuExpanded = true },
+                                )
 
-                            DropdownMenuPopup(
-                                expanded = isOverflowMenuExpanded,
-                                onDismissRequest = { isOverflowMenuExpanded = false },
-                            ) {
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(0, 1),
+                                DropdownMenuPopup(
+                                    expanded = isOverflowMenuExpanded,
+                                    onDismissRequest = { isOverflowMenuExpanded = false },
                                 ) {
-                                    DropdownMenuItem(
-                                        selected = false,
-                                        text = { Text(stringResource(Res.string.reset_rule_set)) },
-                                        onClick = {
-                                            isOverflowMenuExpanded = false
-                                            viewModel.resetRuleSet()
-                                        },
-                                        leadingIcon = {
-                                            Icon(vectorResource(Res.drawable.replay), null)
-                                        },
-                                        enabled = canReset,
-                                        shapes = MenuDefaults.itemShape(0, 3),
-                                    )
-                                    DropdownMenuItem(
-                                        selected = false,
-                                        text = { Text(stringResource(Res.string.action_import_file)) },
-                                        onClick = {
-                                            isOverflowMenuExpanded = false
-                                            importFile.launch()
-                                        },
-                                        leadingIcon = {
-                                            Icon(vectorResource(Res.drawable.note_add), null)
-                                        },
-                                        shapes = MenuDefaults.itemShape(1, 3),
-                                    )
-                                    DropdownMenuItem(
-                                        selected = false,
-                                        text = { Text(stringResource(Res.string.import_url)) },
-                                        onClick = {
-                                            isOverflowMenuExpanded = false
-                                            openAssetEditor("")
-                                        },
-                                        leadingIcon = {
-                                            Icon(vectorResource(Res.drawable.link), null)
-                                        },
-                                        shapes = MenuDefaults.itemShape(2, 3),
-                                    )
+                                    DropdownMenuGroup(
+                                        shapes = MenuDefaults.groupShape(0, 1),
+                                    ) {
+                                        DropdownMenuItem(
+                                            selected = false,
+                                            text = { Text(stringResource(Res.string.reset_rule_set)) },
+                                            onClick = {
+                                                isOverflowMenuExpanded = false
+                                                viewModel.resetRuleSet()
+                                            },
+                                            leadingIcon = {
+                                                Icon(vectorResource(Res.drawable.replay), null)
+                                            },
+                                            enabled = canReset,
+                                            shapes = MenuDefaults.itemShape(0, 3),
+                                        )
+                                        DropdownMenuItem(
+                                            selected = false,
+                                            text = { Text(stringResource(Res.string.action_import_file)) },
+                                            onClick = {
+                                                isOverflowMenuExpanded = false
+                                                importFile.launch()
+                                            },
+                                            leadingIcon = {
+                                                Icon(vectorResource(Res.drawable.note_add), null)
+                                            },
+                                            shapes = MenuDefaults.itemShape(1, 3),
+                                        )
+                                        DropdownMenuItem(
+                                            selected = false,
+                                            text = { Text(stringResource(Res.string.import_url)) },
+                                            onClick = {
+                                                isOverflowMenuExpanded = false
+                                                openAssetEditor("")
+                                            },
+                                            leadingIcon = {
+                                                Icon(vectorResource(Res.drawable.link), null)
+                                            },
+                                            shapes = MenuDefaults.itemShape(2, 3),
+                                        )
+                                    }
                                 }
                             }
                         }

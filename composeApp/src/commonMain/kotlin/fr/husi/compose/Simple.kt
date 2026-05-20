@@ -1,5 +1,6 @@
 package fr.husi.compose
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButtonColors
@@ -12,7 +13,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTooltipState
@@ -89,13 +89,15 @@ fun TextButton(text: String, onClick: () -> Unit) {
 @Composable
 fun SimpleTopAppBar(
     title: @Composable () -> Unit,
-    navigationIcon: @Composable () -> Unit,
+    navigationIcon: (@Composable () -> Unit)?,
+    actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
-    TopAppBar(
+    CapsuleTopBar(
         title = title,
         navigationIcon = navigationIcon,
+        actions = actions,
         windowInsets = windowInsets,
         scrollBehavior = scrollBehavior,
     )

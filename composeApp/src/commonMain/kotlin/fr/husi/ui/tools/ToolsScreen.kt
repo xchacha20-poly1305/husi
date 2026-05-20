@@ -4,24 +4,18 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import fr.husi.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import fr.husi.compose.material3.Tab
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,25 +28,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.util.fastCoerceIn
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
-import fr.husi.ui.MainViewModelAlertDialog
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.StatsBar
+import fr.husi.compose.material3.PrimaryTabRow
+import fr.husi.compose.material3.Tab
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.database.DataStore
+import fr.husi.repository.resolveRepository
+import fr.husi.resources.Res
+import fr.husi.resources.backup
+import fr.husi.resources.menu
+import fr.husi.resources.menu_tools
+import fr.husi.resources.ok
+import fr.husi.resources.tools_network
 import fr.husi.ui.MainViewModel
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.getStringOrRes
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
-import fr.husi.repository.resolveRepository
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 private const val PAGE_NETWORK = 0
 private const val PAGE_BACKUP = 1
@@ -99,22 +102,52 @@ fun ToolsScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.menu_tools)) },
-                navigationIcon = {
-                    PlatformMenuIcon(
-                        imageVector = vectorResource(Res.drawable.menu),
-                        contentDescription = stringResource(Res.string.menu),
-                        onClick = onDrawerClick,
+            Surface(color = appBarContainerColor) {
+                Column {
+                    CapsuleTopBar(
+                        navigationIcon = PlatformMenuIcon(
+                            imageVector = vectorResource(Res.drawable.menu),
+                            contentDescription = stringResource(Res.string.menu),
+                            onClick = onDrawerClick,
+                        ),
+                        title = { Text(stringResource(Res.string.menu_tools)) },
+                        windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                        scrollBehavior = scrollBehavior,
                     )
-                },
-                colors = topAppBarColors.copy(
-                    containerColor = appBarContainerColor,
-                    scrolledContainerColor = appBarContainerColor,
-                ),
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                scrollBehavior = scrollBehavior,
-            )
+                    PrimaryTabRow(
+                        selectedTabIndex = pagerState.currentPage,
+                        containerColor = appBarContainerColor,
+                    ) {
+                        Tab(
+                            selected = pagerState.currentPage == PAGE_NETWORK,
+                            onClick = {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(PAGE_NETWORK)
+                                }
+                            },
+                            text = { Text(stringResource(Res.string.tools_network)) },
+                        )
+                        Tab(
+                            selected = pagerState.currentPage == PAGE_BACKUP,
+                            onClick = {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(PAGE_BACKUP)
+                                }
+                            },
+                            text = { Text(stringResource(Res.string.backup)) },
+                        )
+                        if (isExpert) Tab(
+                            selected = pagerState.currentPage == PAGE_DEBUG,
+                            onClick = {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(PAGE_DEBUG)
+                                }
+                            },
+                            text = { Text("DEBUG") },
+                        )
+                    }
+                }
+            }
         },
         snackbarHost = { SnackbarHost(snackbarState) },
         floatingActionButton = {
@@ -142,55 +175,25 @@ fun ToolsScreen(
             }
         },
     ) { innerPadding ->
+        val bottomPadding = innerPadding.calculateBottomPadding()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .paddingExceptBottom(innerPadding),
         ) {
-            PrimaryTabRow(
-                selectedTabIndex = pagerState.currentPage,
-                containerColor = appBarContainerColor,
-            ) {
-                Tab(
-                    selected = pagerState.currentPage == PAGE_NETWORK,
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(PAGE_NETWORK)
-                        }
-                    },
-                    text = { Text(stringResource(Res.string.tools_network)) },
-                )
-                Tab(
-                    selected = pagerState.currentPage == PAGE_BACKUP,
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(PAGE_BACKUP)
-                        }
-                    },
-                    text = { Text(stringResource(Res.string.backup)) },
-                )
-                if (isExpert) Tab(
-                    selected = pagerState.currentPage == PAGE_DEBUG,
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(PAGE_DEBUG)
-                        }
-                    },
-                    text = { Text("DEBUG") },
-                )
-            }
-
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
             ) { page ->
                 when (page) {
                     PAGE_NETWORK -> NetworkScreen(
+                        bottomPadding = bottomPadding,
                         onVisibleChange = { bottomVisible = it },
                         onOpenTool = onOpenTool,
                     )
 
                     PAGE_BACKUP -> BackupScreen(
+                        bottomPadding = bottomPadding,
                         onVisibleChange = { bottomVisible = it },
                         showSnackbar = { message ->
                             scope.launch {
@@ -204,6 +207,7 @@ fun ToolsScreen(
                     )
 
                     PAGE_DEBUG -> DebugScreen(
+                        bottomPadding = bottomPadding,
                         onVisibleChange = { bottomVisible = it },
                         showSnackbar = { message ->
                             scope.launch {
@@ -217,8 +221,6 @@ fun ToolsScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     }
 

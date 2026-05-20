@@ -15,10 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.fmt.config.ConfigBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
@@ -110,8 +111,7 @@ fun ConfigSettingScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.custom_config)) },
+            CapsuleTopBar(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -124,20 +124,25 @@ fun ConfigSettingScreen(
                         }
                     }
                 },
+                title = { Text(stringResource(Res.string.custom_config)) },
                 actions = {
                     if (!viewModel.isNew) {
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.delete),
-                            contentDescription = stringResource(Res.string.delete),
-                            onClick = { showDeleteAlert = true },
-                        )
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.delete),
+                                contentDescription = stringResource(Res.string.delete),
+                                onClick = { showDeleteAlert = true },
+                            )
+                        }
                     }
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.done),
-                        contentDescription = stringResource(Res.string.apply),
-                    ) {
-                        viewModel.save()
-                        onResult(true)
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.done),
+                            contentDescription = stringResource(Res.string.apply),
+                        ) {
+                            viewModel.save()
+                            onResult(true)
+                        }
                     }
                 },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),

@@ -7,5 +7,5 @@ import androidx.compose.ui.graphics.vector.ImageVector
 expect fun PlatformMenuIcon(
     imageVector: ImageVector,
     contentDescription: String,
-    onClick: ()-> Unit,
-)
+    onClick: () -> Unit,
+): (@Composable () -> Unit)?

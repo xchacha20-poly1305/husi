@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -24,8 +24,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedCard
@@ -36,9 +34,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import fr.husi.compose.material3.Switch
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -65,18 +60,22 @@ import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
-import androidx.compose.foundation.layout.fillMaxHeight
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.PlatformMenuIcon
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
-import fr.husi.compose.navigationBarsAlwaysInsets
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
+import fr.husi.compose.material3.Switch
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.RuleEntity
@@ -119,12 +118,12 @@ import fr.husi.resources.route_reset
 import fr.husi.resources.route_warn
 import fr.husi.resources.undo
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-
 
 @Composable
 fun RouteScreen(
@@ -190,53 +189,57 @@ fun RouteScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            CapsuleTopBar(
                 title = { Text(stringResource(Res.string.menu_route)) },
-                navigationIcon = {
-                    PlatformMenuIcon(
-                        imageVector = vectorResource(Res.drawable.menu),
-                        contentDescription = stringResource(Res.string.menu),
-                        onClick = onDrawerClick,
-                    )
-                },
+                navigationIcon = PlatformMenuIcon(
+                    imageVector = vectorResource(Res.drawable.menu),
+                    contentDescription = stringResource(Res.string.menu),
+                    onClick = onDrawerClick,
+                ),
                 actions = {
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.add_road),
-                        contentDescription = stringResource(Res.string.route_add),
-                        onClick = {
-                            openRouteSettings(-1L)
-                        },
-                    )
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.replay),
-                        contentDescription = stringResource(Res.string.route_reset),
-                        onClick = { showResetAlert = true },
-                    )
-                    Box {
+                    CapsuleActionButton {
                         SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.more_vert),
-                            contentDescription = stringResource(Res.string.more),
-                            onClick = { showMoreAction = true },
+                            imageVector = vectorResource(Res.drawable.add_road),
+                            contentDescription = stringResource(Res.string.route_add),
+                            onClick = {
+                                openRouteSettings(-1L)
+                            },
                         )
-                        DropdownMenu(
-                            expanded = showMoreAction,
-                            onDismissRequest = { showMoreAction = false },
-                            shape = MenuDefaults.standaloneGroupShape,
-                            containerColor = MenuDefaults.groupStandardContainerColor,
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.route_manage_assets)) },
-                                onClick = {
-                                    showMoreAction = false
-                                    openAssets()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.layers),
-                                        contentDescription = null,
-                                    )
-                                },
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.replay),
+                            contentDescription = stringResource(Res.string.route_reset),
+                            onClick = { showResetAlert = true },
+                        )
+                    }
+                    CapsuleActionButton {
+                        Box {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                                onClick = { showMoreAction = true },
                             )
+                            DropdownMenu(
+                                expanded = showMoreAction,
+                                onDismissRequest = { showMoreAction = false },
+                                shape = MenuDefaults.standaloneGroupShape,
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.route_manage_assets)) },
+                                    onClick = {
+                                        showMoreAction = false
+                                        openAssets()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = vectorResource(Res.drawable.layers),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                )
+                            }
                         }
                     }
                 },
@@ -270,6 +273,7 @@ fun RouteScreen(
             }
         },
     ) { innerPadding ->
+        val listContentPadding = innerPadding.withNavigation()
         Row(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -314,11 +318,7 @@ fun RouteScreen(
                     items = uiState.rules.toImmutableList(),
                     key = { it.id },
                     contentType = { 0 },
-                    contentPadding = PaddingValues(
-                        bottom = navigationBarsAlwaysInsets()
-                            .asPaddingValues()
-                            .calculateBottomPadding(),
-                    ),
+                    contentPadding = PaddingValues(bottom = listContentPadding.calculateBottomPadding()),
                     userScrollEnabled = true,
                     onIndicesChangedViaDragAndDrop = {
                         viewModel.submitReorder(it)

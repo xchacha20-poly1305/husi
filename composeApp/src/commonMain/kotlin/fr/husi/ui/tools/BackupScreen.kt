@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -81,6 +82,8 @@ import java.io.File
 @Composable
 internal fun BackupScreen(
     modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp,
+    bottomPadding: Dp = 0.dp,
     onVisibleChange: (Boolean) -> Unit,
     viewModel: BackupViewModel = viewModel { BackupViewModel() },
     showSnackbar: (message: String) -> Unit,
@@ -156,6 +159,7 @@ internal fun BackupScreen(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp),
         ) {
+            Spacer(modifier = Modifier.height(topPadding))
             Spacer(modifier = Modifier.height(16.dp))
 
             ElevatedCard(
@@ -246,6 +250,7 @@ internal fun BackupScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(bottomPadding))
         }
 
         BoxedVerticalScrollbar(

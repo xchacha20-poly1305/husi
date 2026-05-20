@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -46,7 +44,7 @@ import fr.husi.compose.KeyValueLine
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Text
-import fr.husi.compose.paddingExceptBottom
+import fr.husi.compose.withNavigation
 import fr.husi.ktx.blankAsNull
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_back
@@ -65,7 +63,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
 private const val TYPE_ITEM_CARD = 0
-private const val TYPE_SPACER = 1
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -131,13 +128,13 @@ internal actual fun VPNScannerScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .paddingExceptBottom(innerPadding)
                     .fadingEdge(
                         scrollableState = listState,
                         fadeStart = true,
                         fadeEnd = true,
                     ),
                 state = listState,
+                contentPadding = innerPadding.withNavigation(),
             ) {
                 items(
                     items = uiState.appInfos,
@@ -214,10 +211,6 @@ internal actual fun VPNScannerScreen(
                             }
                         }
                     }
-                }
-
-                item("navigation_space", TYPE_SPACER) {
-                    Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
             }
         }

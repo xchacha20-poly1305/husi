@@ -27,6 +27,7 @@ go.work*
 .claude
 .gemini
 .codex
+.agents
 
 # submodules
 /external

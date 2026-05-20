@@ -2,22 +2,18 @@
 
 package fr.husi.ui.configuration
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material3.AppBarWithSearch
+import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberSearchBarState
@@ -29,10 +25,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -40,6 +36,8 @@ import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.compose.CapsuleSearchInputField
+import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryScrollableTabRow
@@ -53,6 +51,7 @@ import fr.husi.resources.cancel
 import fr.husi.resources.close
 import fr.husi.resources.search
 import fr.husi.resources.search_go
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -148,69 +147,39 @@ fun ProfilePickerContent(
     bottomPadding: Dp,
 ) {
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
     val searchBarState = rememberSearchBarState()
-    val searchFieldInteractionSource = remember { MutableInteractionSource() }
-    var allowSearchInput by remember { mutableStateOf(false) }
-    val appBarColors = SearchBarDefaults.appBarWithSearchColors()
-    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-
-    LaunchedEffect(searchBarState.currentValue) {
-        when (searchBarState.currentValue) {
-            SearchBarValue.Collapsed -> allowSearchInput = false
-            SearchBarValue.Expanded -> if (!allowSearchInput) {
-                focusManager.clearFocus()
-            }
-        }
-    }
-    LaunchedEffect(searchFieldInteractionSource) {
-        searchFieldInteractionSource.interactions.collect { interaction ->
-            if (
-                interaction is PressInteraction.Press &&
-                searchBarState.currentValue == SearchBarValue.Expanded &&
-                !allowSearchInput
-            ) {
-                allowSearchInput = true
-            }
-        }
-    }
-
-    Column(
-        modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) {
-        Column(
-            modifier = Modifier
-                .background(appBarColors.appBarContainerColor)
-                .windowInsetsPadding(windowInsets),
-        ) {
-            AppBarWithSearch(
-                state = searchBarState,
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        textFieldState = state.searchTextFieldState,
-                        searchBarState = searchBarState,
-                        onSearch = { focusManager.clearFocus() },
-                        readOnly = !allowSearchInput,
-                        placeholder = { Text(stringResource(Res.string.search_go)) },
-                        leadingIcon = {
-                            Icon(vectorResource(Res.drawable.search), null)
+    val searchInputField: @Composable () -> Unit = {
+        CapsuleSearchInputField(
+            textFieldState = state.searchTextFieldState,
+            searchBarState = searchBarState,
+            onSearch = { focusManager.clearFocus() },
+            placeholder = { Text(stringResource(Res.string.search_go)) },
+            leadingIcon = {
+                Icon(vectorResource(Res.drawable.search), null)
+            },
+            trailingIcon = if (searchBarState.currentValue == SearchBarValue.Expanded) {
+                {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.close),
+                        contentDescription = stringResource(Res.string.cancel),
+                        onClick = {
+                            state.viewModel.clearSearchQuery()
+                            scope.launch { searchBarState.animateToCollapsed() }
                         },
-                        trailingIcon = if (state.searchTextFieldState.text.isNotEmpty()) {
-                            {
-                                SimpleIconButton(
-                                    imageVector = vectorResource(Res.drawable.close),
-                                    contentDescription = stringResource(Res.string.cancel),
-                                    onClick = state.viewModel::clearSearchQuery,
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                        colors = appBarColors.searchBarColors.inputFieldColors,
-                        interactionSource = searchFieldInteractionSource,
                     )
-                },
+                }
+            } else {
+                null
+            },
+        )
+    }
+
+    Column(modifier = modifier) {
+        Column {
+            CapsuleSearchTopBar(
+                inputField = searchInputField,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -218,10 +187,7 @@ fun ProfilePickerContent(
                         onClick = onDismiss,
                     )
                 },
-                actions = {},
-                colors = appBarColors,
-                scrollBehavior = scrollBehavior,
-                windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+                windowInsets = windowInsets,
             )
 
             if (state.hasGroups && state.uiState.groups.size > 1) {
@@ -231,7 +197,6 @@ fun ProfilePickerContent(
                         state.uiState.groups.size - 1,
                     ),
                     edgePadding = 0.dp,
-                    containerColor = appBarColors.appBarContainerColor,
                 ) {
                     state.uiState.groups.forEachIndexed { index, group ->
                         Tab(
@@ -257,6 +222,25 @@ fun ProfilePickerContent(
             showActions = false,
             onProfileSelect = onSelected,
             bottomPadding = bottomPadding,
+        )
+    }
+
+    ExpandedFullScreenSearchBar(
+        state = searchBarState,
+        inputField = searchInputField,
+    ) {
+        ConfigurationContent(
+            modifier = Modifier.fillMaxSize(),
+            vm = state.viewModel,
+            snackbarState = state.snackbarState,
+            pagerState = state.pagerState,
+            preSelected = state.preSelected,
+            showActions = false,
+            onProfileSelect = { id ->
+                scope.launch { searchBarState.animateToCollapsed() }
+                onSelected(id)
+            },
+            bottomPadding = 0.dp,
         )
     }
 }

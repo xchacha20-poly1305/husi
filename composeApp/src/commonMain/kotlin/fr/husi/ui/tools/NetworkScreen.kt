@@ -20,8 +20,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import fr.husi.compose.extraBottomPadding
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.ui.NavRoutes
@@ -32,6 +32,8 @@ import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 @Composable
 internal fun NetworkScreen(
     modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp,
+    bottomPadding: Dp = 0.dp,
     onVisibleChange: (Boolean) -> Unit,
     onOpenTool: (NavRoutes.ToolsPage) -> Unit,
 ) {
@@ -48,9 +50,9 @@ internal fun NetworkScreen(
                 .weight(1f)
                 .fillMaxHeight()
                 .verticalScroll(scrollState)
-                .padding(extraBottomPadding())
                 .padding(horizontal = 16.dp),
         ) {
+            Spacer(modifier = Modifier.height(topPadding))
             Spacer(modifier = Modifier.height(16.dp))
             ActivityCard(
                 title = stringResource(Res.string.stun_test),
@@ -82,6 +84,7 @@ internal fun NetworkScreen(
                 },
             )
             Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(bottomPadding))
         }
 
         BoxedVerticalScrollbar(

@@ -6,6 +6,9 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -28,11 +31,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Card
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -42,10 +42,6 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import fr.husi.compose.material3.Surface
-import fr.husi.compose.material3.Switch
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
@@ -60,23 +56,40 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.extraBottomPadding
-import fr.husi.compose.paddingExceptBottom
+import fr.husi.compose.material3.Card
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Surface
+import fr.husi.compose.material3.Switch
+import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
+import fr.husi.compose.withNavigation
 import fr.husi.ktx.blankAsNull
 import fr.husi.repository.resolveRepository
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.action_copy
+import fr.husi.resources.action_import
+import fr.husi.resources.action_import_err
+import fr.husi.resources.action_import_msg
+import fr.husi.resources.close
+import fr.husi.resources.content_paste
+import fr.husi.resources.copy_all
+import fr.husi.resources.copy_success
+import fr.husi.resources.more
+import fr.husi.resources.more_vert
+import fr.husi.resources.ok
+import fr.husi.resources.search
 import fr.husi.utils.PackageCache
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -88,6 +101,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @Immutable
 internal data class ProxiedApp(
@@ -121,7 +136,12 @@ internal abstract class BaseAppListViewModel : ViewModel() {
         }
     }
 
-    protected abstract fun updateApps(apps: List<ProxiedApp>, filteredApps: List<ProxiedApp>, isLoading: Boolean)
+    protected abstract fun updateApps(
+        apps: List<ProxiedApp>,
+        filteredApps: List<ProxiedApp>,
+        isLoading: Boolean,
+    )
+
     protected abstract fun updateSnackbar(message: StringOrRes?)
     protected abstract suspend fun afterMutation()
     protected abstract suspend fun afterItemClick(app: ProxiedApp, newIsProxied: Boolean)
@@ -150,7 +170,7 @@ internal abstract class BaseAppListViewModel : ViewModel() {
                     isProxied = proxiedUids.contains(applicationInfo.uid),
                     icon = loadIcon(packageInfo),
                     name = name,
-                )
+                ),
             )
         }
         allApps.sortWith(compareBy({ !it.isProxied }, { it.name }))
@@ -247,12 +267,12 @@ internal fun AppListContent(
     scrollState: LazyListState = rememberLazyListState(),
 ) {
     Row(
-        modifier = Modifier.paddingExceptBottom(innerPadding),
+        modifier = Modifier.fillMaxSize(),
     ) {
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             state = scrollState,
-            contentPadding = extraBottomPadding(),
+            contentPadding = innerPadding.withNavigation(),
         ) {
             items(
                 items = apps,
@@ -361,26 +381,27 @@ internal fun AppListScaffold(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val listScrollState = rememberLazyListState()
     val windowInsets = WindowInsets.safeDrawing
+    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
+    val appBarContainerColor by animateColorAsState(
+        targetValue = lerp(
+            topAppBarColors.containerColor,
+            topAppBarColors.scrolledContainerColor,
+            scrollBehavior.state.overlappedFraction.fastCoerceIn(0f, 1f),
+        ),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "appBarContainerColor",
+    )
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            val colors = TopAppBarDefaults.topAppBarColors()
-            val isScrolled = scrollBehavior.state.overlappedFraction > 0
-            val containerColor = if (isScrolled) {
-                colors.scrolledContainerColor
-            } else {
-                colors.containerColor
-            }
-
             Surface(
-                color = containerColor,
+                color = appBarContainerColor,
             ) {
                 Column {
-                    TopAppBar(
-                        title = title,
+                    CapsuleTopBar(
                         navigationIcon = {
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.close),
@@ -388,56 +409,59 @@ internal fun AppListScaffold(
                                 onClick = onNavigationClick,
                             )
                         },
+                        title = title,
                         actions = {
-                            SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.copy_all),
-                                contentDescription = stringResource(Res.string.action_copy),
-                                onClick = {
-                                    val toExport = viewModel.export()
-                                    scope.launch {
-                                        clipboard.setPlainText(toExport)
-                                        snackbarHostState.showSnackbar(
-                                            message = resolveRepository().getString(Res.string.copy_success),
-                                            actionLabel = resolveRepository().getString(Res.string.ok),
-                                            duration = SnackbarDuration.Short,
-                                        )
-                                    }
-                                },
-                            )
-                            SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.content_paste),
-                                contentDescription = stringResource(Res.string.action_import),
-                                onClick = {
-                                    scope.launch {
-                                        val text = clipboard.getClipEntry()?.clipData
-                                            ?.getItemAt(0)?.text
-                                            ?.toString()
-                                        viewModel.import(text)
-                                    }
-                                },
-                            )
-                            Box {
+                            CapsuleActionButton {
                                 SimpleIconButton(
-                                    imageVector = vectorResource(Res.drawable.more_vert),
-                                    contentDescription = stringResource(Res.string.more),
-                                    onClick = { showMoreActions = true },
+                                    imageVector = vectorResource(Res.drawable.copy_all),
+                                    contentDescription = stringResource(Res.string.action_copy),
+                                    onClick = {
+                                        val toExport = viewModel.export()
+                                        scope.launch {
+                                            clipboard.setPlainText(toExport)
+                                            snackbarHostState.showSnackbar(
+                                                message = resolveRepository().getString(Res.string.copy_success),
+                                                actionLabel = resolveRepository().getString(Res.string.ok),
+                                                duration = SnackbarDuration.Short,
+                                            )
+                                        }
+                                    },
                                 )
+                            }
+                            CapsuleActionButton {
+                                SimpleIconButton(
+                                    imageVector = vectorResource(Res.drawable.content_paste),
+                                    contentDescription = stringResource(Res.string.action_import),
+                                    onClick = {
+                                        scope.launch {
+                                            val text = clipboard.getClipEntry()?.clipData
+                                                ?.getItemAt(0)?.text
+                                                ?.toString()
+                                            viewModel.import(text)
+                                        }
+                                    },
+                                )
+                            }
+                            CapsuleActionButton {
+                                Box {
+                                    SimpleIconButton(
+                                        imageVector = vectorResource(Res.drawable.more_vert),
+                                        contentDescription = stringResource(Res.string.more),
+                                        onClick = { showMoreActions = true },
+                                    )
 
-                                DropdownMenu(
-                                    expanded = showMoreActions,
-                                    onDismissRequest = { showMoreActions = false },
-                                    shape = MenuDefaults.standaloneGroupShape,
-                                    containerColor = MenuDefaults.groupStandardContainerColor,
-                                ) {
-                                    dropdownMenuItems { showMoreActions = false }
+                                    DropdownMenu(
+                                        expanded = showMoreActions,
+                                        onDismissRequest = { showMoreActions = false },
+                                        shape = MenuDefaults.standaloneGroupShape,
+                                        containerColor = MenuDefaults.groupStandardContainerColor,
+                                    ) {
+                                        dropdownMenuItems { showMoreActions = false }
+                                    }
                                 }
                             }
                         },
                         windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                            scrolledContainerColor = Color.Transparent,
-                        ),
                         scrollBehavior = scrollBehavior,
                     )
 
