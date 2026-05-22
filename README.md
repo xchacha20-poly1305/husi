@@ -321,7 +321,7 @@ The app bundle icon is a checked-in static asset generated from
 so packaging no longer builds icons dynamically.
 
 On macOS hosts it uses native tooling: `hdiutil`.
-On Linux hosts it falls back to `genisoimage` or `mkisofs` and emits a compatibility `.dmg`
+On Linux hosts it uses `xorrisofs` and emits a compatibility `.dmg`
 (an ISO9660/HFS hybrid image that macOS can mount). For Linux fallback, `DESKTOP_TARGET`
 is required because the Gradle uber-jar task otherwise defaults to the Linux host target:
 
@@ -333,7 +333,7 @@ Required host tools:
 
 * Common: `zig`, `git`
 * macOS host: `hdiutil`
-* Linux fallback: `genisoimage` or `mkisofs`
+* Linux fallback: `xorrisofs`
 
 Package timestamps are derived from git tag `v<VERSION_NAME>` from `husi.properties`,
 not from local build time.

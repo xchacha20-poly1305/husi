@@ -48,7 +48,7 @@ Defaults:
 
 Host backends:
   macOS host     hdiutil
-  Linux host     genisoimage or mkisofs (ISO 9660 fallback)
+  Linux host     xorrisofs (ISO 9660 fallback)
 EOF
 }
 
@@ -250,14 +250,11 @@ resolve_dmg_backend() {
             DMG_COMMAND="hdiutil"
             ;;
         linux)
-            if command -v genisoimage >/dev/null 2>&1; then
-                DMG_BACKEND="genisoimage"
-                DMG_COMMAND="genisoimage"
-            elif command -v mkisofs >/dev/null 2>&1; then
-                DMG_BACKEND="mkisofs"
-                DMG_COMMAND="mkisofs"
+            if command -v xorrisofs >/dev/null 2>&1; then
+                DMG_BACKEND="xorrisofs"
+                DMG_COMMAND="xorrisofs"
             else
-                error "Linux fallback requires genisoimage or mkisofs."
+                error "Linux fallback requires xorrisofs."
                 exit 2
             fi
             ;;
@@ -277,7 +274,7 @@ require_tools() {
         hdiutil)
             tools+=(hdiutil)
             ;;
-        genisoimage|mkisofs)
+        xorrisofs)
             tools+=("$DMG_COMMAND")
             ;;
     esac
@@ -454,7 +451,7 @@ build_dmg_with_hdiutil() {
         "$output_path"
 }
 
-build_dmg_with_genisoimage() {
+build_dmg_with_xorrisofs() {
     local dmg_root="$1"
     local output_path="$2"
 
@@ -464,8 +461,7 @@ build_dmg_with_genisoimage() {
         -V "$APP_NAME $VERSION_NAME" \
         -D \
         -r \
-        -no-desktop \
-        -modification-date "$IMAGE_MODIFICATION_DATE" \
+        --modification-date="$IMAGE_MODIFICATION_DATE" \
         "$dmg_root"
 }
 
@@ -486,8 +482,8 @@ build_dmg() {
         hdiutil)
             build_dmg_with_hdiutil "$dmg_root" "$output_path"
             ;;
-        genisoimage|mkisofs)
-            build_dmg_with_genisoimage "$dmg_root" "$output_path"
+        xorrisofs)
+            build_dmg_with_xorrisofs "$dmg_root" "$output_path"
             ;;
         *)
             error "Unsupported dmg backend '$DMG_BACKEND'."
