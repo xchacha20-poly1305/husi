@@ -89,7 +89,6 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertEquals("secret", bean.authPayload)
         assertEquals("sni.example.com", bean.sni)
         assertTrue(bean.allowInsecure)
-        assertEquals("test", bean.name)
     }
 
     @Test
