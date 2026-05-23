@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +51,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,7 +79,6 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
-import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
@@ -274,51 +279,31 @@ fun RouteScreen(
         },
     ) { innerPadding ->
         val listContentPadding = innerPadding.withNavigation()
+        val density = LocalDensity.current
+        var introHeightPx by remember { mutableIntStateOf(0) }
+        val introHeightDp = with(density) { introHeightPx.toDp() }
         Row(
             modifier = Modifier.fillMaxSize(),
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
-                    .paddingExceptBottom(innerPadding),
+                    .fillMaxHeight(),
             ) {
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    elevation = CardDefaults.elevatedCardElevation(),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        val uriHandler = LocalUriHandler.current
-                        Text(
-                            text = stringResource(Res.string.route_warn),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi/wiki/Route")
-                                },
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
                 DragDropSwipeLazyColumn(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                        .fillMaxSize()
                         .fadingEdge(dragDropListState.lazyListState),
                     state = dragDropListState,
                     items = uiState.rules.toImmutableList(),
                     key = { it.id },
                     contentType = { 0 },
-                    contentPadding = PaddingValues(bottom = listContentPadding.calculateBottomPadding()),
+                    contentPadding = PaddingValues(
+                        start = listContentPadding.calculateStartPadding(LocalLayoutDirection.current),
+                        top = introHeightDp,
+                        end = listContentPadding.calculateEndPadding(LocalLayoutDirection.current),
+                        bottom = listContentPadding.calculateBottomPadding(),
+                    ),
                     userScrollEnabled = true,
                     onIndicesChangedViaDragAndDrop = {
                         viewModel.submitReorder(it)
@@ -371,7 +356,46 @@ fun RouteScreen(
                     }
                 }
 
-                // Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onSizeChanged { introHeightPx = it.height },
+                ) {
+                    OutlinedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = 4.dp,
+                                top = innerPadding.calculateTopPadding() + 4.dp,
+                                end = 4.dp,
+                                bottom = 4.dp,
+                            ),
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
+                        ),
+                        elevation = CardDefaults.elevatedCardElevation(),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            val uriHandler = LocalUriHandler.current
+                            Text(
+                                text = stringResource(Res.string.route_warn),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi/wiki/Route")
+                                    },
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
             }
 
             BoxedVerticalScrollbar(
