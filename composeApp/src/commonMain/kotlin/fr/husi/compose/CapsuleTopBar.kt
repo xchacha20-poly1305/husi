@@ -3,6 +3,8 @@
 package fr.husi.compose
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,11 +34,16 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
@@ -81,12 +88,14 @@ fun CapsuleTopBar(
             }
 
             if (title != null) {
-                PillCapsule {
-                    title()
+                Box(modifier = Modifier.weight(1f)) {
+                    PillCapsule {
+                        title()
+                    }
                 }
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
             }
-
-            Spacer(modifier = Modifier.weight(1f))
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(capsuleSpacing),
@@ -145,7 +154,9 @@ private fun PillCapsule(
                 modifier = Modifier.padding(horizontal = 20.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                content()
+                MarqueeWithFadingEdges {
+                    content()
+                }
             }
         }
     }
@@ -342,6 +353,35 @@ private fun SetHeightOffsetLimit(scrollBehavior: TopAppBarScrollBehavior?) {
     SideEffect {
         if (scrollBehavior.state.heightOffsetLimit != heightOffsetLimit) {
             scrollBehavior.state.heightOffsetLimit = heightOffsetLimit
+        }
+    }
+}
+
+@Composable
+private fun MarqueeWithFadingEdges(content: @Composable () -> Unit) {
+    var contentWidth by remember { mutableIntStateOf(0) }
+    var containerWidth by remember { mutableIntStateOf(0) }
+    val overflowing = containerWidth in 1 until contentWidth
+
+    Box(
+        modifier = Modifier
+            .onSizeChanged { containerWidth = it.width }
+            .then(
+                if (overflowing) {
+                    Modifier.fadingEdge(
+                        orientation = Orientation.Horizontal,
+                        length = 16.dp,
+                        fadeStart = true,
+                        fadeEnd = true,
+                    )
+                } else {
+                    Modifier
+                },
+            )
+            .basicMarquee(),
+    ) {
+        Box(modifier = Modifier.onSizeChanged { contentWidth = it.width }) {
+            content()
         }
     }
 }

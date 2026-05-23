@@ -16,7 +16,7 @@ choice determines which pattern to use.
 
 | Component                 | Purpose                                                                                                                                     |
 |---------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| `CapsuleTopBar`           | Replacement for `TopAppBar`: nav icon + title + actions                                                                                     |
+| `CapsuleTopBar`           | Replacement for `TopAppBar`: nav icon + title + actions. Title auto-marquees with edge feathering when it overflows — see "Long titles".    |
 | `CapsuleSearchTopBar`     | Replacement for `AppBarWithSearch`: nav icon + search capsule + actions                                                                     |
 | `CapsuleSearchInputField` | Input field wrapper for use inside `CapsuleSearchTopBar`. Handles centered placeholder + faded leading icon in the collapsed state          |
 | `CapsuleActionButton`     | Wraps an action icon (e.g. `SimpleIconButton`) in capsule styling. Every entry inside `actions = { ... }` should be wrapped in one of these |
@@ -26,6 +26,25 @@ Visual contract: the capsule fills are semi-transparent (`surfaceContainer.copy(
 a 1dp `outlineVariant` border. The topbar itself has **no background** — it floats over whatever is
 beneath. The visible "background" of the topbar comes from either an outer `Surface` (Pattern B) or
 the scrolling content showing through (Pattern A).
+
+## Long titles
+
+`CapsuleTopBar` handles title overflow automatically. The title slot is wrapped in
+`Box(Modifier.weight(1f))` so the pill is bounded to the row space left over after the nav icon and
+actions, and inside the pill the slot content is wrapped in `Modifier.basicMarquee()`. When the
+content's intrinsic width exceeds the pill's bounded width, a 16dp horizontal edge feather is added
+on each side via the shared `Modifier.fadingEdge(...)` from
+`composeApp/src/commonMain/kotlin/fr/husi/compose/Fading.kt`. Short titles render at intrinsic
+width with no marquee and no fade; actions stay right-pinned in both cases.
+
+Caller-side rule: just pass `title = { Text(stringResource(...)) }`. **Do not** add `maxLines = 1`,
+`softWrap = false`, your own `Modifier.basicMarquee()`, or any width constraint on the title — the
+component already does all of that, and stacking marquees / constraints breaks the layout.
+
+`Modifier.fadingEdge(...)` is reusable outside the topbar. Pass a `ScrollableState` for
+scroll-driven fades (e.g. LazyColumn top/bottom — this is the common case, and the function
+defaults `fadeStart = false`, `fadeEnd = true` for that scenario), or omit the `ScrollableState`
+(it defaults to `null`) for unconditional fade like the topbar's marquee branch uses.
 
 ## Pattern A — topbar sits directly above scrolling content
 
@@ -255,6 +274,11 @@ What does your topBar look like?
   `windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)` so the Scaffold owns the
   bottom inset. Use `innerPadding.withNavigation()` on LazyColumn `contentPadding`, or
   `Modifier.paddingExceptBottom(innerPadding)` for the Modifier form.
+- **Manually adding `Modifier.basicMarquee()`, `maxLines = 1`, or width constraints to a title
+  `Text`.** `CapsuleTopBar` already bounds the title pill (`Box(Modifier.weight(1f))`) and applies
+  `basicMarquee` + a conditional `fadingEdge` based on overflow detection inside the pill. Adding
+  your own marquee compounds the animation, and width constraints fight the slot's weighted layout.
+  Just pass a plain `Text(stringResource(...))`.
 
 ## Reference implementations
 

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 
 fun Modifier.fadingEdge(
-    scrollableState: ScrollableState,
+    scrollableState: ScrollableState? = null,
     orientation: Orientation = Orientation.Vertical,
     length: Dp = 64.dp,
     fadeStart: Boolean = false,
@@ -38,7 +38,7 @@ fun Modifier.fadingEdge(
         }
         val fadePx = length.toPx().fastCoerceAtMost(totalLength / limitFactor)
 
-        if (fadeStart && scrollableState.canScrollBackward) {
+        if (fadeStart && (scrollableState?.canScrollBackward ?: true)) {
             drawFadeRect(
                 isHorizontal = isHorizontal,
                 isStart = true,
@@ -47,7 +47,7 @@ fun Modifier.fadingEdge(
             )
         }
 
-        if (fadeEnd && scrollableState.canScrollForward) {
+        if (fadeEnd && (scrollableState?.canScrollForward ?: true)) {
             drawFadeRect(
                 isHorizontal = isHorizontal,
                 isStart = false,
