@@ -29,11 +29,13 @@ import fr.husi.ui.profile.ProfileEditorScreen
 import fr.husi.ui.tools.GetCertScreen
 import fr.husi.ui.tools.RuleSetMatchScreen
 import fr.husi.ui.tools.SpeedtestScreen
+import fr.husi.ui.tools.SpeedTestScreenViewModel
 import fr.husi.ui.tools.StunScreen
 import fr.husi.ui.tools.ToolsScreen
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.module.dsl.scopedOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
@@ -41,6 +43,7 @@ import org.koin.dsl.navigation3.navigation
 internal val commonNavigationModule = module {
     scope<MainScreenScope> {
         viewModelOf(::MainViewModel)
+        viewModel { SpeedTestScreenViewModel(httpClientFactory = get()) }
         scoped { (backStack: MutableList<NavKey>) ->
             Navigator(backStack)
         }

@@ -2,6 +2,8 @@ package fr.husi.di
 
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
+import fr.husi.libcore.HttpClientFactory
+import fr.husi.libcore.LibcoreHttpClientFactory
 import fr.husi.repository.Repository
 import fr.husi.ui.ImportLinkInteractor
 import org.koin.core.context.GlobalContext
@@ -13,6 +15,7 @@ import org.koin.dsl.module
 private fun commonUiModule() = module {
     single<PlatformMaterialApi> { platformMaterialApi() }
     single<PlatformThemeApi> { platformThemeApi() }
+    single<HttpClientFactory> { LibcoreHttpClientFactory }
     singleOf(::ImportLinkInteractor)
 }
 

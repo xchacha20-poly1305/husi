@@ -48,7 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.TextButton
@@ -65,7 +65,7 @@ import fr.husi.libcore.Libcore
 @Composable
 internal fun SpeedtestScreen(
     modifier: Modifier = Modifier,
-    viewModel: SpeedTestScreenViewModel = viewModel { SpeedTestScreenViewModel() },
+    viewModel: SpeedTestScreenViewModel = koinViewModel<SpeedTestScreenViewModel>(),
     onBackPress: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }

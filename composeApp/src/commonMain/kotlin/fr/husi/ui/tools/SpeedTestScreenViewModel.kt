@@ -8,18 +8,20 @@ import fr.husi.SPEED_TEST_UPLOAD_URL
 import fr.husi.SPEED_TEST_URL
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.CopyCallback
 import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.HTTPResponse
+import fr.husi.libcore.HttpClientFactory
 import fr.husi.libcore.Libcore
+import fr.husi.libcore.LibcoreHttpClientFactory
 import fr.husi.resources.Res
 import fr.husi.resources.can_not_be_empty
 import fr.husi.resources.done
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -51,7 +53,10 @@ internal sealed interface SpeedTestScreenUiEvent {
 }
 
 @Stable
-internal class SpeedTestScreenViewModel : ViewModel() {
+internal class SpeedTestScreenViewModel(
+    private val httpClientFactory: HttpClientFactory = LibcoreHttpClientFactory,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(SpeedTestScreenUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -78,7 +83,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
 
     fun doSpeedTest() {
         cancel()
-        job = viewModelScope.launch(Dispatchers.IO) {
+        job = viewModelScope.launch(ioDispatcher) {
             _uiState.update {
                 it.copy(canTest = false)
             }
@@ -119,7 +124,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
 
     private suspend fun downloadTest(url: String, timeout: Int) {
         try {
-            Libcore.newHttpClient()
+            httpClientFactory.newHttpClient()
                 .apply {
                     if (DataStore.serviceState.connected) {
                         useSocks5(
@@ -132,7 +137,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
                 .newRequest()
                 .apply {
                     setURL(url)
-                    setUserAgent(USER_AGENT)
+                    setUserAgent(httpClientFactory.userAgent)
                     setTimeout(timeout)
                     setReferer(url)
                 }
@@ -159,7 +164,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
 
     private suspend fun uploadTest(url: String, timeout: Int, length: Long) {
         try {
-            Libcore.newHttpClient()
+            httpClientFactory.newHttpClient()
                 .apply {
                     if (DataStore.serviceState.connected) {
                         useSocks5(
@@ -172,7 +177,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
                 .newRequest()
                 .apply {
                     setURL(url)
-                    setUserAgent(USER_AGENT)
+                    setUserAgent(httpClientFactory.userAgent)
                     setTimeout(timeout)
                     setReferer(url)
                     setContentZero(
@@ -199,6 +204,16 @@ internal class SpeedTestScreenViewModel : ViewModel() {
 
     private fun HTTPResponse.closeQuietly() = runCatching {
         close()
+    }
+
+    /**
+     * speed.cloudflare.com rejects requests without a same-origin Referer.
+     */
+    private fun HTTPRequest.setReferer(urlString: String) {
+        runCatching {
+            val url = httpClientFactory.parseURL(urlString)
+            setHeader("Referer", "${url.scheme}://${url.host}/")
+        }
     }
 
     enum class SpeedTestMode {
@@ -270,15 +285,5 @@ internal class SpeedTestScreenViewModel : ViewModel() {
             onFrameUpdate(speed, progress)
         }
 
-    }
-}
-
-/**
- * speed.cloudflare.com rejects requests without a same-origin Referer.
- */
-private fun HTTPRequest.setReferer(urlString: String) {
-    runCatching {
-        val url = Libcore.parseURL(urlString)
-        setHeader("Referer", "${url.scheme}://${url.host}/")
     }
 }
