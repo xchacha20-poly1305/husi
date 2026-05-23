@@ -1266,7 +1266,9 @@ fun buildConfig(
                 )
             }
 
-            addPreferredDNSRule(TAG_DNS_LOCAL)
+            if (localDNSSupportRaw) {
+                addPreferredDNSRule(TAG_DNS_LOCAL)
+            }
 
             // mDNS
             // Make sure mDNS rule before local, because local includes mDNS
