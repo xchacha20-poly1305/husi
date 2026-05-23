@@ -453,7 +453,7 @@ fun SettingsScreen(
                                 )
                             },
                             summary = { Text(getLanguageDisplayName(selectedValue)) },
-                            type = ListPreferenceType.DROPDOWN_MENU,
+                            type = ListPreferenceType.ALERT_DIALOG,
                             valueToText = { AnnotatedString(getLanguageDisplayName(it)) },
                         )
                     }
@@ -679,7 +679,7 @@ fun SettingsScreen(
                                 )
                             },
                             summary = { Text(logLevelString(value)) },
-                            type = ListPreferenceType.DROPDOWN_MENU,
+                            type = ListPreferenceType.ALERT_DIALOG,
                             valueToText = { AnnotatedString(logLevelString(it)) },
                         )
                     }
@@ -953,7 +953,7 @@ fun SettingsScreen(
                                 )
                             },
                             summary = { Text(stringOrRes(rulesProviderText(value))) },
-                            type = ListPreferenceType.DROPDOWN_MENU,
+                            type = ListPreferenceType.ALERT_DIALOG,
                             valueToText = { AnnotatedString(stringOrRes(rulesProviderText(it))) },
                         )
                     }
