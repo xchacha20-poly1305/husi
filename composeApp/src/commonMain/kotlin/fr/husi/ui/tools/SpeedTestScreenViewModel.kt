@@ -12,8 +12,12 @@ import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.CopyCallback
+import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.HTTPResponse
 import fr.husi.libcore.Libcore
+import fr.husi.resources.Res
+import fr.husi.resources.can_not_be_empty
+import fr.husi.resources.done
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +28,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
 
 @Immutable
 internal data class SpeedTestScreenUiState(
@@ -131,6 +134,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
                     setURL(url)
                     setUserAgent(USER_AGENT)
                     setTimeout(timeout)
+                    setReferer(url)
                 }
                 .execute()
                 .also {
@@ -170,6 +174,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
                     setURL(url)
                     setUserAgent(USER_AGENT)
                     setTimeout(timeout)
+                    setReferer(url)
                     setContentZero(
                         length,
                         SpeedTestCopyCallback { speed, progress ->
@@ -265,5 +270,15 @@ internal class SpeedTestScreenViewModel : ViewModel() {
             onFrameUpdate(speed, progress)
         }
 
+    }
+}
+
+/**
+ * speed.cloudflare.com rejects requests without a same-origin Referer.
+ */
+private fun HTTPRequest.setReferer(urlString: String) {
+    runCatching {
+        val url = Libcore.parseURL(urlString)
+        setHeader("Referer", "${url.scheme}://${url.host}/")
     }
 }

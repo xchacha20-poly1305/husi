@@ -158,12 +158,11 @@ func (u *netURL) GetHost() string {
 }
 
 func (u *netURL) SetHost(host string) {
-	_, port, err := net.SplitHostPort(u.Host)
-	if err != nil {
+	if _, port, err := net.SplitHostPort(u.Host); err == nil {
+		u.Host = net.JoinHostPort(host, port)
+	} else {
 		u.Host = host
 	}
-
-	u.Host = net.JoinHostPort(host, port)
 }
 
 func (u *netURL) GetFullHost() string {

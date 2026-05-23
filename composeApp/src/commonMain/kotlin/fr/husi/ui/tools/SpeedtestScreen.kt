@@ -53,7 +53,6 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
-import fr.husi.repository.FakeRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.ui.ensurePreviewRepository
 import fr.husi.ui.getStringOrRes
