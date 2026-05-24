@@ -729,4 +729,10 @@
     <string name="naive_tunnel_timeout">Тайм-аут туннеля (сек.)</string>
     <string name="build_environment">Среда сборки</string>
     <string name="select_file">Выбрать файл</string>
+    <string name="hysteria2_obfs_type">Тип обфускации</string>
+    <string name="hysteria2_gecko_min_packet_size">Gecko - Минимальный размер пакета</string>
+    <string name="hysteria2_gecko_max_packet_size">Gecko - Максимальный размер пакета</string>
+    <string name="sip003_editor">Редактор плагинов SIP003</string>
+    <string name="sip003_pick_plugin_first">Сначала выберите плагин</string>
+    <string name="sip003_obfs_mode">Режим обфускации</string>
 </resources>
