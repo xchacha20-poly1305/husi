@@ -375,7 +375,7 @@ class ConfigurationScreenViewModel : ViewModel() {
             if (config.externalIndex.any { it.chain.isNotEmpty() }) {
                 val pluginConfigs = initPlugins(config, false, cacheFiles)
                 processes = GuardedProcessPool { throw it }
-                launchPlugins(config, pluginConfigs, processes, cacheFiles)
+                launchPlugins(config, pluginConfigs, processes, cacheFiles, false)
                 delay(500L)
             }
 

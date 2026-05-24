@@ -29,6 +29,7 @@ abstract class BoxInstance(
     private val externalInstances = hashMapOf<Int, AbstractInstance>()
     open lateinit var processes: GuardedProcessPool
     private var cacheFiles = ArrayList<File>()
+    private var isVPN: Boolean = false
     fun isInitialized(): Boolean {
         return ::config.isInitialized && resolveRepository().boxService?.hasInstance() == true
     }
@@ -42,6 +43,7 @@ abstract class BoxInstance(
     }
 
     open suspend fun init(isVPN: Boolean) {
+        this.isVPN = isVPN
         buildConfig()
         pluginConfigs.putAll(initPlugins(config, isVPN, cacheFiles))
         loadConfig()
@@ -55,7 +57,7 @@ abstract class BoxInstance(
                 }
             }
         }
-        launchPlugins(config, pluginConfigs, processes, cacheFiles)
+        launchPlugins(config, pluginConfigs, processes, cacheFiles, isVPN)
         resolveRepository().boxService!!.startInstance()
     }
 

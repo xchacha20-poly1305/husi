@@ -26,6 +26,7 @@ fun initPlugins(
     val repository = resolveRepository()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     val logLevel = DataStore.logLevel
+    val shouldProtect = isVPN && PlatformInfo.isAndroid
     for ((chain) in config.externalIndex) {
         chain.entries.forEach { (port, profile) ->
             when (val bean = profile.requireBean()) {
@@ -45,7 +46,7 @@ fun initPlugins(
                         HysteriaBean.PROTOCOL_VERSION_2 -> PluginManager.init("hysteria2-plugin")
                     }
                     pluginConfigs[port] =
-                        profile.type to bean.buildHysteriaConfig(port, isVPN) { type ->
+                        profile.type to bean.buildHysteriaConfig(port, shouldProtect) { type ->
                             File(repository.cacheDir, "hysteria_${System.currentTimeMillis()}.$type").also {
                                 it.parentFile?.mkdirs()
                                 cacheFiles.add(it)
@@ -55,13 +56,13 @@ fun initPlugins(
 
                 is JuicityBean -> {
                     PluginManager.init("juicity-plugin")
-                    pluginConfigs[port] = profile.type to bean.buildJuicityConfig(port, isVPN)
+                    pluginConfigs[port] = profile.type to bean.buildJuicityConfig(port, shouldProtect)
                 }
 
                 is ShadowQUICBean -> {
                     PluginManager.init("shadowquic-plugin")
                     pluginConfigs[port] =
-                        profile.type to bean.buildShadowQUICConfig(port, isVPN, logLevel) { type ->
+                        profile.type to bean.buildShadowQUICConfig(port, shouldProtect, logLevel) { type ->
                             File(repository.cacheDir, "shadowquic_${System.currentTimeMillis()}.$type").also {
                                 it.parentFile?.mkdirs()
                                 cacheFiles.add(it)
@@ -79,9 +80,11 @@ fun launchPlugins(
     pluginConfigs: Map<Int, Pair<Int, String>>,
     processes: GuardedProcessPool,
     cacheFiles: MutableList<File>,
+    isVPN: Boolean,
 ) {
     val cacheDir = File(resolveRepository().cacheDir, "tmpcfg")
     cacheDir.mkdirs()
+    val shouldProtect = isVPN && PlatformInfo.isAndroid
 
     for ((chain) in config.externalIndex) {
         chain.entries.forEach { (port, profile) ->
@@ -93,12 +96,13 @@ fun launchPlugins(
                     val configFile = File(cacheDir, "mieru_${System.currentTimeMillis()}.json")
                     configFile.writeText(cfg)
                     cacheFiles.add(configFile)
+                    val env = mutableMapOf("MIERU_CONFIG_JSON_FILE" to configFile.absolutePath)
+                    if (shouldProtect) {
+                        env["MIERU_PROTECT_PATH"] = Libcore.ProtectPath
+                    }
                     processes.start(
                         listOf(PluginManager.init("mieru-plugin")!!.path, "run"),
-                        mutableMapOf(
-                            "MIERU_CONFIG_JSON_FILE" to configFile.absolutePath,
-                            "MIERU_PROTECT_PATH" to Libcore.ProtectPath,
-                        ),
+                        env,
                     )
                 }
 

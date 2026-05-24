@@ -94,9 +94,10 @@ internal class DesktopServiceRuntime(
         try {
             val config = fr.husi.fmt.buildConfig(profile)
             cacheFiles.clear()
+            val isVPN = DataStore.serviceMode == Key.MODE_VPN
             val pluginConfigs = initPlugins(
                 config = config,
-                isVPN = DataStore.serviceMode == Key.MODE_VPN,
+                isVPN = isVPN,
                 cacheFiles = cacheFiles,
             )
             val pool = GuardedProcessPool { throwable ->
@@ -108,6 +109,7 @@ internal class DesktopServiceRuntime(
                 pluginConfigs = pluginConfigs,
                 processes = pool,
                 cacheFiles = cacheFiles,
+                isVPN = isVPN,
             )
 
             service.newInstance(config.config)
