@@ -35,6 +35,7 @@ sealed class NavRoutes : NavKey {
                         subclass(Assets::class, Assets.serializer())
                         subclass(AppList::class, AppList.serializer())
                         subclass(ConfigEditor::class, ConfigEditor.serializer())
+                        subclass(SIP003Editor::class, SIP003Editor.serializer())
                         subclass(AssetEdit::class, AssetEdit.serializer())
                         subclass(GroupSettings::class, GroupSettings.serializer())
                         subclass(RouteSettings::class, RouteSettings.serializer())
@@ -120,6 +121,13 @@ sealed class NavRoutes : NavKey {
     @Serializable
     data class ConfigEditor(
         val initialText: String = "",
+        val resultKey: String,
+    ) : NavRoutes()
+
+    @Serializable
+    data class SIP003Editor(
+        val pluginName: String,
+        val initialOpts: String,
         val resultKey: String,
     ) : NavRoutes()
 

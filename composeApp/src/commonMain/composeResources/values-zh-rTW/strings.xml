@@ -154,6 +154,10 @@
     <string name="plugin_unknown">未知外掛程式 %1$s</string>
     <string name="plugin_untrusted">警告：此外掛程式並非來自可靠的可信來源。</string>
     <string name="plugin_auto_connect_unlock_only">此外掛程式可能不支援自動連線</string>
+    <!-- SIP003 graphical editor -->
+    <string name="sip003_editor">SIP003 外掛程式編輯器</string>
+    <string name="sip003_pick_plugin_first">請先選擇外掛程式</string>
+    <string name="sip003_obfs_mode">混淆方式</string>
     <string name="proxy_cat">伺服器設定</string>
     <string name="unsaved_changes_prompt">要儲存變更嗎？</string>
     <string name="no">否</string>

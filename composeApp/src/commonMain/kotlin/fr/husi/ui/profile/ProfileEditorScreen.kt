@@ -98,6 +98,7 @@ fun ProfileEditorScreen(
     isSubscription: Boolean,
     onOpenProfileSelect: OpenProfilePicker,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
+    onOpenSIP003Editor: (NavRoutes.SIP003Editor) -> Unit,
     onResult: (updated: Boolean) -> Unit,
 ) {
     when (type) {
@@ -178,6 +179,7 @@ fun ProfileEditorScreen(
             isSubscription = isSubscription,
             onResult = onResult,
             onOpenConfigEditor = onOpenConfigEditor,
+            onOpenSIP003Editor = onOpenSIP003Editor,
         )
 
         ProxyEntity.TYPE_NAIVE -> NaiveSettingsScreen(

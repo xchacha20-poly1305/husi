@@ -26,6 +26,7 @@ import fr.husi.ui.dashboard.ConnectionDetailScreen
 import fr.husi.ui.dashboard.DashboardScreen
 import fr.husi.ui.profile.ConfigEditScreen
 import fr.husi.ui.profile.ProfileEditorScreen
+import fr.husi.ui.profile.SIP003EditorScreen
 import fr.husi.ui.tools.GetCertScreen
 import fr.husi.ui.tools.RuleSetMatchScreen
 import fr.husi.ui.tools.SpeedtestScreen
@@ -163,6 +164,7 @@ internal val commonNavigationModule = module {
                 isSubscription = route.subscription,
                 onOpenProfileSelect = profilePickerController::open,
                 onOpenConfigEditor = navigator::navigateTo,
+                onOpenSIP003Editor = navigator::navigateTo,
                 onResult = { updated ->
                     resultBus.sendResult(route.resultKey, updated)
                     navigator.popBackStack()
@@ -198,6 +200,16 @@ internal val commonNavigationModule = module {
             val navigator = get<Navigator>()
             ConfigEditScreen(
                 initialText = route.initialText,
+                resultKey = route.resultKey,
+                onBack = { navigator.popBackStack() },
+            )
+        }
+
+        navigation<NavRoutes.SIP003Editor> { route ->
+            val navigator = get<Navigator>()
+            SIP003EditorScreen(
+                pluginName = route.pluginName,
+                initialOpts = route.initialOpts,
                 resultKey = route.resultKey,
                 onBack = { navigator.popBackStack() },
             )

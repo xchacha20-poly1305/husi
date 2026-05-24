@@ -314,6 +314,10 @@
     <string name="plugin_unknown">Unknown plugin %1$s</string>
     <string name="plugin_untrusted">Warning: This plugin does not seem to come from a known trusted source.</string>
     <string name="plugin_auto_connect_unlock_only">This plugin might not work with Auto Connect</string>
+    <!-- SIP003 graphical editor -->
+    <string name="sip003_editor">SIP003 plugin editor</string>
+    <string name="sip003_pick_plugin_first">Choose a plugin first</string>
+    <string name="sip003_obfs_mode">Obfuscation Mode</string>
     <string name="proxy_cat">Server Settings</string>
     <string name="ss_cat">Shadowsocks Settings</string>
     <string name="unsaved_changes_prompt">Changes not saved. Do you want to save?</string>
