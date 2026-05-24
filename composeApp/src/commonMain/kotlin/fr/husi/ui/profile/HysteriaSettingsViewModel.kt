@@ -16,7 +16,10 @@ internal data class HysteriaUiState(
     val protocolVersion: Int = HysteriaBean.PROTOCOL_VERSION_2,
     val address: String = "127.0.0.1",
     val ports: String = "443",
-    val obfuscation: String = "",
+    val obfsType: String = "",
+    val obfsPassword: String = "",
+    val geckoMinPacketSize: Int = 0,
+    val geckoMaxPacketSize: Int = 0,
     val authType: Int = HysteriaBean.TYPE_NONE,
     val authPayload: String = "",
     val protocol: Int = HysteriaBean.PROTOCOL_UDP,
@@ -59,7 +62,10 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
                 protocolVersion = protocolVersion,
                 address = serverAddress,
                 ports = serverPorts,
-                obfuscation = obfuscation,
+                obfsType = obfsType,
+                obfsPassword = obfsPassword,
+                geckoMinPacketSize = geckoMinPacketSize,
+                geckoMaxPacketSize = geckoMaxPacketSize,
                 authType = authPayloadType,
                 authPayload = authPayload,
                 protocol = protocol,
@@ -96,7 +102,10 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
         protocolVersion = state.protocolVersion
         serverAddress = state.address
         serverPorts = state.ports
-        obfuscation = state.obfuscation
+        obfsType = state.obfsType
+        obfsPassword = state.obfsPassword
+        geckoMinPacketSize = state.geckoMinPacketSize
+        geckoMaxPacketSize = state.geckoMaxPacketSize
         authPayloadType = state.authType
         authPayload = state.authPayload
         protocol = state.protocol
@@ -147,8 +156,20 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
         _uiState.update { it.copy(ports = ports) }
     }
 
-    fun setObfuscation(obfuscation: String) {
-        _uiState.update { it.copy(obfuscation = obfuscation) }
+    fun setObfsType(type: String) {
+        _uiState.update { it.copy(obfsType = type) }
+    }
+
+    fun setObfsPassword(obfsPassword: String) {
+        _uiState.update { it.copy(obfsPassword = obfsPassword) }
+    }
+
+    fun setGeckoMinPacketSize(size: Int) {
+        _uiState.update { it.copy(geckoMinPacketSize = size) }
+    }
+
+    fun setGeckoMaxPacketSize(size: Int) {
+        _uiState.update { it.copy(geckoMaxPacketSize = size) }
     }
 
     fun setAuthType(type: Int) {

@@ -414,6 +414,9 @@
         <item quantity="other">%1$d Applications</item>
     </plurals>
     <string name="hysteria_obfs">Obfuscation Password</string>
+    <string name="hysteria2_obfs_type">Obfuscation Type</string>
+    <string name="hysteria2_gecko_min_packet_size">Gecko Min Packet Size</string>
+    <string name="hysteria2_gecko_max_packet_size">Gecko Max Packet Size</string>
     <string name="hysteria_auth_type">Authentication Type</string>
     <string name="hysteria_auth_payload">Authentication Payload</string>
     <string name="hysteria_upload_mbps">Max Upload Speed (in Mbps) (Hysteria)</string>

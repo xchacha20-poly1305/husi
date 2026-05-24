@@ -366,6 +366,9 @@
         <item quantity="other">%1$d 个应用</item>
     </plurals>
     <string name="hysteria_obfs">混淆密码</string>
+    <string name="hysteria2_obfs_type">混淆类型</string>
+    <string name="hysteria2_gecko_min_packet_size">Gecko 最小包大小</string>
+    <string name="hysteria2_gecko_max_packet_size">Gecko 最大包大小</string>
     <string name="hysteria_auth_type">认证类型</string>
     <string name="hysteria_auth_payload">认证载荷</string>
     <string name="hysteria_upload_mbps">最大上行 (Mbps) (Brutal)</string>

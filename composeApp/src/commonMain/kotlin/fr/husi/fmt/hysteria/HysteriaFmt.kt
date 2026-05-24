@@ -40,7 +40,7 @@ fun parseHysteria1(link: String): HysteriaBean {
         }
         allowInsecure = url.parseBoolean("insecure")
         alpn = url.queryParameter("alpn")
-        obfuscation = url.queryParameter("obfsParam")
+        obfsPassword = url.queryParameter("obfsParam")
         protocol = when (url.queryParameterNotBlank("protocol")) {
             "faketcp" -> HysteriaBean.PROTOCOL_FAKETCP
 
@@ -73,7 +73,8 @@ fun parseHysteria2(link: String): HysteriaBean {
 
         sni = url.queryParameter("sni")
         allowInsecure = url.parseBoolean("insecure")
-        obfuscation = url.queryParameter("obfs-password")
+        url.queryParameterNotBlank("obfs")?.let { obfsType = it }
+        obfsPassword = url.queryParameter("obfs-password")
         /*url.queryParameterNotBlank("pinSHA256").also {
             // sing-box do not support it
         }*/
@@ -116,9 +117,9 @@ fun HysteriaBean.toUri(): String {
         if (alpn.isNotBlank()) {
             url.addQueryParameter("alpn", alpn)
         }
-        if (obfuscation.isNotBlank()) {
+        if (obfsPassword.isNotBlank()) {
             url.addQueryParameter("obfs", "xplus")
-            url.addQueryParameter("obfsParam", obfuscation)
+            url.addQueryParameter("obfsParam", obfsPassword)
         }
         when (protocol) {
             HysteriaBean.PROTOCOL_FAKETCP -> {
@@ -133,9 +134,9 @@ fun HysteriaBean.toUri(): String {
         if (sni.isNotBlank()) {
             url.addQueryParameter("sni", sni)
         }
-        if (obfuscation.isNotBlank()) {
-            url.addQueryParameter("obfs", "salamander")
-            url.addQueryParameter("obfs-password", obfuscation)
+        obfsType.blankAsNull()?.let {
+            url.addQueryParameter("obfs", it)
+            url.addQueryParameter("obfs-password", obfsPassword)
         }
         if (certificates.isNotBlank()) {
             url.addQueryParameter("pinSHA256", certificates.sha256Hex())
@@ -158,7 +159,7 @@ fun JSONMap.parseHysteria1Json(): HysteriaBean {
         getStr("hop_interval")?.also {
             hopInterval = it + "s"
         }
-        obfuscation = getStr("obfs").orEmpty()
+        obfsPassword = getStr("obfs").orEmpty()
         getStr("auth")?.also {
             authPayloadType = HysteriaBean.TYPE_BASE64
             authPayload = it
@@ -207,40 +208,39 @@ fun HysteriaBean.buildHysteriaConfig(
             } catch (_: Exception) {
                 hopInterval.toInt()
             }
-            mutableMapOf<String, Any?>(
-                "server" to address,
-                "protocol" to when (protocol) {
-                    HysteriaBean.PROTOCOL_FAKETCP -> "faketcp"
-                    HysteriaBean.PROTOCOL_WECHAT_VIDEO -> "wechat-video"
-                    else -> null
-                },
-                "socks5" to mutableMapOf("listen" to "$LOCALHOST4:$port"),
-                "retry" to 5,
-                "fast_open" to true,
-                "lazy_start" to true,
-                "obfs" to obfuscation.blankAsNull(),
-                "auth" to if (authPayloadType == HysteriaBean.TYPE_BASE64) authPayload else null,
-                "auth_str" to if (authPayloadType == HysteriaBean.TYPE_STRING) authPayload else null,
-                "server_name" to sni.blankAsNull(),
-                "alpn" to alpn.blankAsNull(),
-                "ca" to cacheFile?.let {
+            buildMap<String, Any?> {
+                put("server", address)
+                when (protocol) {
+                    HysteriaBean.PROTOCOL_FAKETCP -> put("protocol", "faketcp")
+                    HysteriaBean.PROTOCOL_WECHAT_VIDEO -> put("protocol", "wechat-video")
+                }
+                put("socks5", buildMap { put("listen", "$LOCALHOST4:$port") })
+                put("retry", 5)
+                put("fast_open", true)
+                put("lazy_start", true)
+                obfsPassword.blankAsNull()?.let { put("obfs", it) }
+                if (authPayloadType == HysteriaBean.TYPE_BASE64) put("auth", authPayload)
+                if (authPayloadType == HysteriaBean.TYPE_STRING) put("auth_str", authPayload)
+                sni.blankAsNull()?.let { put("server_name", it) }
+                alpn.blankAsNull()?.let { put("alpn", it) }
+                if (cacheFile != null) {
                     certificates.blankAsNull()?.let {
                         val caFile = cacheFile("ca")
                         caFile.writeText(certificates)
-                        caFile.absolutePath
+                        put("ca", caFile.absolutePath)
                     }
-                },
-                "insecure" to if (allowInsecure) true else null,
-                "recv_window_conn" to if (streamReceiveWindow > 0) streamReceiveWindow else null,
-                "recv_window" to if (connectionReceiveWindow > 0) connectionReceiveWindow else null,
-                "disable_mtu_discovery" to if (disableMtuDiscovery) true else null,
-                "resolver" to DataStore.localDNSPort.takeIf { it > 0 }?.let {
-                    "udp://127.0.0.1:$it"
-                },
-                "hop_interval" to if (hopSeconds > 0) hopSeconds else null,
-                "up_mbps" to generateUploadSpeed(),
-                "down_mbps" to generateDownloadSpeed(),
-            ).toJsonStringKxs()
+                }
+                if (allowInsecure) put("insecure", true)
+                if (streamReceiveWindow > 0) put("recv_window_conn", streamReceiveWindow)
+                if (connectionReceiveWindow > 0) put("recv_window", connectionReceiveWindow)
+                if (disableMtuDiscovery) put("disable_mtu_discovery", true)
+                DataStore.localDNSPort.takeIf { it > 0 }?.let {
+                    put("resolver", "udp://127.0.0.1:$it")
+                }
+                if (hopSeconds > 0) put("hop_interval", hopSeconds)
+                put("up_mbps", generateUploadSpeed())
+                put("down_mbps", generateDownloadSpeed())
+            }.toJsonStringKxs()
         }
 
         HysteriaBean.PROTOCOL_VERSION_2 -> {
@@ -265,73 +265,115 @@ fun HysteriaBean.buildHysteriaConfig(
                     keyPath = keyFile.absolutePath
                 }
             }
-            mutableMapOf<String, Any?>(
-                "server" to address,
-                "auth" to authPayload,
-                "fastOpen" to true,
-                "lazy" to true,
-                "obfs" to if (obfuscation.isNotBlank()) mutableMapOf(
-                    "type" to "salamander",
-                    "salamander" to mutableMapOf("password" to obfuscation),
-                ) else null,
-                "quic" to if (shouldProtect) mutableMapOf(
-                    "sockopts" to mutableMapOf("fdControlUnixSocket" to Libcore.ProtectPath),
-                ) else null,
-                "socks5" to mutableMapOf("listen" to "$LOCALHOST4:$port"),
-                "tls" to mutableMapOf<String, Any?>(
-                    "sni" to sni,
-                    "insecure" to allowInsecure,
-                    "ca" to caPath,
-                    "clientCertificate" to certPath,
-                    "clientKey" to keyPath,
-                ),
-                "transport" to buildMap<String, Any?> {
-                    put("type", "udp")
+            buildMap<String, Any?> {
+                put("server", address)
+                put("auth", authPayload)
+                put("fastOpen", true)
+                put("lazy", true)
+                if (obfsType.isNotBlank() && obfsPassword.isNotBlank()) {
                     put(
-                        "udp",
+                        "obfs",
                         buildMap<String, Any?> {
-                            hopInterval.blankAsNull()?.let {
-                                when (val splitResult = SplitResult.splitDash(it)) {
-                                    is SplitResult.Single -> put(
-                                        "hopInterval",
-                                        splitResult.value,
-                                    )
-
-                                    is SplitResult.Range -> {
-                                        put("minHopInterval", splitResult.start)
-                                        put("maxHopInterval", splitResult.end)
-                                    }
-                                }
-                            }
-                        },
-                    )
-                },
-                "bandwidth" to if (uploadSpeed > 0 || downloadSpeed > 0) mutableMapOf<String, Any?>(
-                    "up" to if (uploadSpeed > 0) "$uploadSpeed mbps" else null,
-                    "down" to if (downloadSpeed > 0) "$downloadSpeed mbps" else null,
-                ) else null,
-                "congestion" to buildMap<String, Any?> {
-                    put(
-                        "type",
-                        congestionControl.emptyAsNull() ?: HysteriaBean.CONGESTION_CONTROL_BBR,
-                    )
-                    when (congestionControl) {
-                        "", HysteriaBean.CONGESTION_CONTROL_BBR -> {
+                            put("type", obfsType)
                             put(
-                                "bbrProfile",
-                                when (bbrProfile) {
-                                    HysteriaBean.BBR_PROFILE_CONSERVATIVE -> "conservative"
-                                    HysteriaBean.BBR_PROFILE_STANDARD -> "standard"
-                                    HysteriaBean.BBR_PROFILE_AGGRESSIVE -> "aggressive"
-                                    else -> error("unreachable")
+                                obfsType,
+                                buildMap<String, Any?> {
+                                    put("password", obfsPassword)
+                                    if (obfsType == HysteriaBean.OBFS_TYPE_GECKO) {
+                                        if (geckoMinPacketSize > 0) put(
+                                            "minPacketSize",
+                                            geckoMinPacketSize,
+                                        )
+                                        if (geckoMaxPacketSize > 0) put(
+                                            "maxPacketSize",
+                                            geckoMaxPacketSize,
+                                        )
+                                    }
                                 },
                             )
-                        }
+                        },
+                    )
+                }
+                if (shouldProtect) {
+                    put(
+                        "quic",
+                        buildMap {
+                            put(
+                                "sockopts",
+                                buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
+                            )
+                        },
+                    )
+                }
+                put("socks5", buildMap { put("listen", "$LOCALHOST4:$port") })
+                put(
+                    "tls",
+                    buildMap<String, Any?> {
+                        put("sni", sni)
+                        put("insecure", allowInsecure)
+                        caPath?.let { put("ca", it) }
+                        certPath?.let { put("clientCertificate", it) }
+                        keyPath?.let { put("clientKey", it) }
+                    },
+                )
+                put(
+                    "transport",
+                    buildMap<String, Any?> {
+                        put("type", "udp")
+                        put(
+                            "udp",
+                            buildMap<String, Any?> {
+                                hopInterval.blankAsNull()?.let {
+                                    when (val splitResult = SplitResult.splitDash(it)) {
+                                        is SplitResult.Single -> put(
+                                            "hopInterval",
+                                            splitResult.value,
+                                        )
 
-                        else -> {}
-                    }
-                },
-            ).toJsonStringKxs()
+                                        is SplitResult.Range -> {
+                                            put("minHopInterval", splitResult.start)
+                                            put("maxHopInterval", splitResult.end)
+                                        }
+                                    }
+                                }
+                            },
+                        )
+                    },
+                )
+                if (uploadSpeed > 0 || downloadSpeed > 0) {
+                    put(
+                        "bandwidth",
+                        buildMap<String, Any?> {
+                            if (uploadSpeed > 0) put("up", "$uploadSpeed mbps")
+                            if (downloadSpeed > 0) put("down", "$downloadSpeed mbps")
+                        },
+                    )
+                }
+                put(
+                    "congestion",
+                    buildMap<String, Any?> {
+                        put(
+                            "type",
+                            congestionControl.emptyAsNull() ?: HysteriaBean.CONGESTION_CONTROL_BBR,
+                        )
+                        when (congestionControl) {
+                            "", HysteriaBean.CONGESTION_CONTROL_BBR -> {
+                                put(
+                                    "bbrProfile",
+                                    when (bbrProfile) {
+                                        HysteriaBean.BBR_PROFILE_CONSERVATIVE -> "conservative"
+                                        HysteriaBean.BBR_PROFILE_STANDARD -> "standard"
+                                        HysteriaBean.BBR_PROFILE_AGGRESSIVE -> "aggressive"
+                                        else -> error("unreachable")
+                                    },
+                                )
+                            }
+
+                            else -> {}
+                        }
+                    },
+                )
+            }.toJsonStringKxs()
         }
 
         else -> throw error("unknown protocol version $protocolVersion")
@@ -340,9 +382,16 @@ fun HysteriaBean.buildHysteriaConfig(
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (DataStore.providerHysteria2 != ProtocolProvider.CORE) return false // Force plugin
-    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
-        if (protocol != HysteriaBean.PROTOCOL_UDP) return false // special mode
+    when (protocolVersion) {
+        HysteriaBean.PROTOCOL_VERSION_1 -> {
+            if (protocol != HysteriaBean.PROTOCOL_UDP) return false // special mode
+        }
+
+        HysteriaBean.PROTOCOL_VERSION_2 -> {
+            if (obfsType == HysteriaBean.OBFS_TYPE_GECKO) return false // sing-box not support now
+        }
     }
+
     return true
 }
 
@@ -357,7 +406,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             }
             up_mbps = generateUploadSpeed()
             down_mbps = generateDownloadSpeed()
-            obfs = bean.obfuscation
+            obfs = bean.obfsPassword
             if (bean.disableMtuDiscovery) disable_path_mtu_discovery = true
             when (bean.authPayloadType) {
                 HysteriaBean.TYPE_BASE64 -> auth = bean.authPayload
@@ -420,10 +469,14 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             }
             up_mbps = DataStore.uploadSpeed
             down_mbps = DataStore.downloadSpeed
-            if (bean.obfuscation.isNotBlank()) {
+            bean.obfsType.blankAsNull()?.let { obfsType ->
                 obfs = SingBoxOptions.Hysteria2Obfs().apply {
-                    type = "salamander"
-                    password = bean.obfuscation
+                    type = obfsType.ifBlank { HysteriaBean.OBFS_TYPE_SALAMANDER }.also {
+                        if (it == HysteriaBean.OBFS_TYPE_GECKO) {
+                            error("sing-box does not support gecko now")
+                        }
+                    }
+                    password = bean.obfsPassword
                 }
             }
             password = bean.authPayload
@@ -559,7 +612,7 @@ fun parseHysteria1Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
             }
 
             "hop_interval" -> hopInterval = value.toString()
-            "obfs" -> obfuscation = value.toString()
+            "obfs" -> obfsPassword = value.toString()
 
             "auth" -> {
                 authPayloadType = HysteriaBean.TYPE_BASE64
@@ -598,9 +651,8 @@ fun parseHysteria2Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
             "hop_interval" -> hopInterval = value.toString()
             "obfs" -> {
                 val obfsField = value as? JSONMap ?: continue
-                obfsField.getStr("password")?.let {
-                    obfuscation = it
-                }
+                obfsField.getStr("type")?.let { obfsType = it }
+                obfsField.getStr("password")?.let { obfsPassword = it }
             }
 
             "password" -> authPayload = value.toString()

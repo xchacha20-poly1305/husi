@@ -1,11 +1,11 @@
 package fr.husi.fmt.hysteria
 
-import kotlinx.serialization.Serializable as KxsSerializable
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
 import fr.husi.ktx.wrapIPV6Host
+import kotlinx.serialization.Serializable as KxsSerializable
 
 @KxsSerializable
 class HysteriaBean : AbstractBean() {
@@ -28,6 +28,10 @@ class HysteriaBean : AbstractBean() {
         const val BBR_PROFILE_STANDARD = 1
         const val BBR_PROFILE_AGGRESSIVE = 2
 
+        const val OBFS_TYPE_NONE = ""
+        const val OBFS_TYPE_SALAMANDER = "salamander"
+        const val OBFS_TYPE_GECKO = "gecko"
+
         @JvmField
         val CREATOR = object : CREATOR<HysteriaBean>() {
             override fun newInstance(): HysteriaBean {
@@ -48,7 +52,6 @@ class HysteriaBean : AbstractBean() {
     var echConfig: String = ""
     var echQueryServerName: String = ""
     var authPayload: String = ""
-    var obfuscation: String = ""
     var sni: String = ""
     var certificates: String = ""
     var certPublicKeySha256: String = ""
@@ -72,6 +75,12 @@ class HysteriaBean : AbstractBean() {
     var congestionControl: String = CONGESTION_CONTROL_BBR
     var bbrProfile: Int = BBR_PROFILE_STANDARD
 
+    // Hy2 obfuscation
+    var obfsType: String = OBFS_TYPE_NONE
+    var obfsPassword: String = ""
+    var geckoMinPacketSize: Int = 0
+    var geckoMaxPacketSize: Int = 0
+
     // QUIC
     var idleTimeout: String = ""
     var keepAlivePeriod: String = ""
@@ -87,7 +96,7 @@ class HysteriaBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(7)
+        output.writeInt(8)
         super.serialize(output)
 
         output.writeInt(protocolVersion)
@@ -95,7 +104,7 @@ class HysteriaBean : AbstractBean() {
         output.writeInt(authPayloadType)
         output.writeString(authPayload)
         output.writeInt(protocol)
-        output.writeString(obfuscation)
+        output.writeString(obfsPassword)
         output.writeString(sni)
         output.writeString(alpn)
 
@@ -132,6 +141,11 @@ class HysteriaBean : AbstractBean() {
         output.writeString(keepAlivePeriod)
         output.writeInt(maxConcurrentStreams)
         output.writeInt(initialPacketSize)
+
+        // version 8
+        output.writeString(obfsType)
+        output.writeInt(geckoMinPacketSize)
+        output.writeInt(geckoMaxPacketSize)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -142,7 +156,7 @@ class HysteriaBean : AbstractBean() {
         authPayloadType = input.readInt()
         authPayload = input.readString()
         protocol = input.readInt()
-        obfuscation = input.readString()
+        obfsPassword = input.readString()
         sni = input.readString()
         alpn = input.readString()
         allowInsecure = input.readBoolean()
@@ -188,6 +202,16 @@ class HysteriaBean : AbstractBean() {
             maxConcurrentStreams = input.readInt()
             initialPacketSize = input.readInt()
         }
+
+        if (version >= 8) {
+            obfsType = input.readString()
+            geckoMinPacketSize = input.readInt()
+            geckoMaxPacketSize = input.readInt()
+        } else {
+            if (obfsPassword.isNotEmpty()) {
+                obfsType = OBFS_TYPE_SALAMANDER
+            }
+        }
     }
 
     override fun applyFeatureSettings(other: AbstractBean) {
@@ -204,6 +228,8 @@ class HysteriaBean : AbstractBean() {
         other.keepAlivePeriod = keepAlivePeriod
         other.maxConcurrentStreams = maxConcurrentStreams
         other.initialPacketSize = initialPacketSize
+        other.geckoMinPacketSize = geckoMinPacketSize
+        other.geckoMaxPacketSize = geckoMaxPacketSize
     }
 
     override val defaultPort get() = 443

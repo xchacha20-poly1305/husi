@@ -193,7 +193,7 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertEquals("example.com", bean.serverAddress)
         assertEquals("9443", bean.serverPorts)
         assertEquals("secret", bean.authPayload)
-        assertEquals("obfs-secret", bean.obfuscation)
+        assertEquals("obfs-secret", bean.obfsPassword)
         assertEquals("sni.example.com", bean.sni)
         assertTrue(bean.allowInsecure)
     }
@@ -316,5 +316,91 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertEquals("15s", target.keepAlivePeriod)
         assertEquals(128, target.maxConcurrentStreams)
         assertEquals(1200, target.initialPacketSize)
+    }
+
+    @Test
+    fun `parseHysteria2 should read obfs type from query`() {
+        val bean = parseHysteria2(
+            "hysteria2://secret@example.com:9443/?sni=sni.example.com&obfs=gecko&obfs-password=pwd",
+        )
+
+        assertEquals(HysteriaBean.OBFS_TYPE_GECKO, bean.obfsType)
+        assertEquals("pwd", bean.obfsPassword)
+    }
+
+    @Test
+    fun `toUri should emit obfs type for hy2`() {
+        val source = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            obfsType = HysteriaBean.OBFS_TYPE_GECKO
+            obfsPassword = "pwd"
+        }
+
+        val parsed = parseHysteria2(source.toUri())
+
+        assertEquals(HysteriaBean.OBFS_TYPE_GECKO, parsed.obfsType)
+        assertEquals("pwd", parsed.obfsPassword)
+    }
+
+    @Test
+    fun `parseHysteria2Outbound should capture obfs type`() {
+        val json: JSONMap = mutableMapOf(
+            "server" to "example.com",
+            "server_port" to 9443L,
+            "obfs" to mutableMapOf<String, Any?>(
+                "type" to "gecko",
+                "password" to "obfs-secret",
+            ),
+        )
+
+        val bean = parseHysteria2Outbound(json)
+
+        assertEquals(HysteriaBean.OBFS_TYPE_GECKO, bean.obfsType)
+        assertEquals("obfs-secret", bean.obfsPassword)
+    }
+
+    @Test
+    fun `canUseSingBox should be false when hy2 obfs is gecko`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            obfsType = HysteriaBean.OBFS_TYPE_GECKO
+            obfsPassword = "pwd"
+        }
+
+        assertEquals(false, bean.canUseSingBox())
+    }
+
+    @Test
+    fun `canUseSingBox should be true when hy2 obfs is salamander`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            obfsType = HysteriaBean.OBFS_TYPE_SALAMANDER
+            obfsPassword = "pwd"
+        }
+
+        assertTrue(bean.canUseSingBox())
+    }
+
+    @Test
+    fun `HysteriaBean serialize round-trip should preserve obfs fields`() {
+        val source = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            obfsType = HysteriaBean.OBFS_TYPE_GECKO
+            obfsPassword = "pwd"
+            geckoMinPacketSize = 600
+            geckoMaxPacketSize = 1400
+        }
+
+        val restored = source.clone()
+
+        assertEquals(HysteriaBean.OBFS_TYPE_GECKO, restored.obfsType)
+        assertEquals("pwd", restored.obfsPassword)
+        assertEquals(600, restored.geckoMinPacketSize)
+        assertEquals(1400, restored.geckoMaxPacketSize)
     }
 }

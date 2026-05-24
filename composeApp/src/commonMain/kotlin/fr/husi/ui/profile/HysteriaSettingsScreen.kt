@@ -2,11 +2,14 @@ package fr.husi.ui.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -40,6 +43,9 @@ import fr.husi.resources.emoji_symbols
 import fr.husi.resources.enable
 import fr.husi.resources.enhanced_encryption
 import fr.husi.resources.hop_interval
+import fr.husi.resources.hysteria2_gecko_max_packet_size
+import fr.husi.resources.hysteria2_gecko_min_packet_size
+import fr.husi.resources.hysteria2_obfs_type
 import fr.husi.resources.hysteria_auth_payload
 import fr.husi.resources.hysteria_auth_type
 import fr.husi.resources.hysteria_bbr_profile
@@ -82,6 +88,7 @@ import fr.husi.resources.toc
 import fr.husi.resources.transform
 import fr.husi.resources.tuic_congestion_controller
 import fr.husi.resources.tuic_disable_sni
+import fr.husi.resources.type_specimen
 import fr.husi.resources.update
 import fr.husi.resources.vpn_key
 import fr.husi.resources.wb_sunny
@@ -194,11 +201,67 @@ private fun LazyListScope.hysteriaSettings(
             },
         )
     }
+    if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {
+        item("obfs_type") {
+            fun obfsTypeName(type: String): StringOrRes = when (type) {
+                HysteriaBean.OBFS_TYPE_NONE -> StringOrRes.Res(Res.string.plugin_disabled)
+                HysteriaBean.OBFS_TYPE_SALAMANDER -> StringOrRes.Direct("Salamander")
+                HysteriaBean.OBFS_TYPE_GECKO -> StringOrRes.Direct("Gecko")
+                else -> StringOrRes.Direct(type)
+            }
+            ListPreference(
+                value = uiState.obfsType,
+                values = listOf(
+                    HysteriaBean.OBFS_TYPE_NONE,
+                    HysteriaBean.OBFS_TYPE_SALAMANDER,
+                    HysteriaBean.OBFS_TYPE_GECKO,
+                ),
+                onValueChange = { viewModel.setObfsType(it) },
+                title = { Text(stringResource(Res.string.hysteria2_obfs_type)) },
+                icon = { Icon(vectorResource(Res.drawable.type_specimen), null) },
+                summary = { Text(stringOrRes(obfsTypeName(uiState.obfsType))) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(stringOrRes(obfsTypeName(it))) },
+            )
+        }
+        if (uiState.obfsType == HysteriaBean.OBFS_TYPE_GECKO) {
+            item("gecko_min_packet_size") {
+                TextFieldPreference(
+                    value = uiState.geckoMinPacketSize,
+                    onValueChange = { viewModel.setGeckoMinPacketSize(it) },
+                    title = { Text(stringResource(Res.string.hysteria2_gecko_min_packet_size)) },
+                    textToValue = { it.toIntOrNull() ?: 0 },
+                    icon = { Icon(vectorResource(Res.drawable.texture), null) },
+                    summary = { Text(contentOrUnset(uiState.geckoMinPacketSize)) },
+                    valueToText = { it.toString() },
+                    textField = { value, onValueChange, onOk ->
+                        UIntegerTextField(value, onValueChange, onOk)
+                    },
+                )
+            }
+            item("gecko_max_packet_size") {
+                TextFieldPreference(
+                    value = uiState.geckoMaxPacketSize,
+                    onValueChange = { viewModel.setGeckoMaxPacketSize(it) },
+                    title = { Text(stringResource(Res.string.hysteria2_gecko_max_packet_size)) },
+                    textToValue = { it.toIntOrNull() ?: 0 },
+                    icon = { Spacer(Modifier.size(24.dp)) },
+                    summary = { Text(contentOrUnset(uiState.geckoMaxPacketSize)) },
+                    valueToText = { it.toString() },
+                    textField = { value, onValueChange, onOk ->
+                        UIntegerTextField(value, onValueChange, onOk)
+                    },
+                )
+            }
+        }
+    }
     item("obfuscation") {
         PasswordPreference(
-            value = uiState.obfuscation,
-            onValueChange = { viewModel.setObfuscation(it) },
+            value = uiState.obfsPassword,
+            onValueChange = { viewModel.setObfsPassword(it) },
             title = { Text(stringResource(Res.string.hysteria_obfs)) },
+            enabled = uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1
+                    || uiState.obfsType != HysteriaBean.OBFS_TYPE_NONE,
             icon = { Icon(vectorResource(Res.drawable.texture), null) },
         )
     }
