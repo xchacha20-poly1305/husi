@@ -61,8 +61,8 @@ fun AbstractBean.isInsecure(): ValidateResult {
         is VLESSBean -> {
             if (encryption in arrayOf("", "none")) {
                 if (!isTLS) return ValidateResult.Insecure(Res.string.warn_not_encrypted)
+                if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
             }
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
         }
 
         is TrojanBean -> {
