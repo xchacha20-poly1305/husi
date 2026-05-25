@@ -36,11 +36,23 @@ object DataStore {
 
     init {
         // Migration
-        val oldPackages = configurationStore.getString("individual")?.split("\n")
+        val keyIndividual = "individual"
+        val oldPackages = configurationStore.getString(keyIndividual)?.split("\n")
         if (oldPackages?.isNotEmpty() == true && configurationStore.getStringSet(Key.PACKAGES) == null) {
             configurationStore.putStringSet(Key.PACKAGES, oldPackages.toMutableSet())
             // remove old key
-            configurationStore.remove("individual")
+            configurationStore.remove(keyIndividual)
+        }
+
+        val keyTCPKeepAliveInterval = "tcpKeepAliveInterval"
+        configurationStore.getString(keyTCPKeepAliveInterval)?.let { oldTCPKeepAlive ->
+            if (oldTCPKeepAlive.lastOrNull()?.isLetter() == true) {
+                configurationStore.putString(Key.TCP_KEEP_ALIVE_INTERVAL_0, oldTCPKeepAlive)
+            } else {
+                val seconds = oldTCPKeepAlive.toIntOrNull() ?: 75
+                configurationStore.putString(Key.TCP_KEEP_ALIVE_INTERVAL_0, "${seconds}s")
+            }
+            configurationStore.remove(keyTCPKeepAliveInterval)
         }
     }
 
@@ -102,7 +114,7 @@ object DataStore {
 
     var disableTcpKeepAlive by configurationStore.boolean(Key.DISABLE_TCP_KEEP_ALIVE) { PlatformInfo.isAndroid }
     var tcpKeepAliveIdle by configurationStore.string(Key.TCP_KEEP_ALIVE_IDLE) { "5m" }
-    var tcpKeepAliveInterval by configurationStore.string(Key.TCP_KEEP_ALIVE_INTERVAL) { "75s" }
+    var tcpKeepAliveInterval by configurationStore.string(Key.TCP_KEEP_ALIVE_INTERVAL_0) { "75s" }
     var mtu by configurationStore.int(Key.MTU) { 9000 }
     var vpnSessionName by configurationStore.string(Key.VPN_SESSION_NAME) { "" }
     var tunInterfaceName by configurationStore.string(Key.TUN_INTERFACE_NAME) { "" }
