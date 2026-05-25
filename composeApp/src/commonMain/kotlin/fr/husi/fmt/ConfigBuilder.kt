@@ -568,6 +568,7 @@ fun buildConfig(
                         if (!forTest && bean !is ProxySetBean) {
                             if (disableTcpKeepAlive) {
                                 this["disable_tcp_keep_alive"] = true
+                            } else {
                                 tcpKeepAliveIdle?.let {
                                     this["tcp_keep_alive"] = it
                                 }
@@ -1061,7 +1062,8 @@ fun buildConfig(
 
                 if (!forTest) {
                     if (disableTcpKeepAlive) {
-                        disable_tcp_keep_alive = true
+                        disable_tcp_keep_alive = false
+                    } else {
                         tcp_keep_alive = tcpKeepAliveIdle
                         tcp_keep_alive_interval = tcpKeepAliveInterval
                     }

@@ -868,9 +868,9 @@ fun SettingsScreen(
                             DurationTextField(value, onValueChange, onOk)
                         }
                     }
-                    item(Key.TCP_KEEP_ALIVE_INTERVAL, PreferenceType.TEXT_FIELD) {
+                    item(Key.TCP_KEEP_ALIVE_INTERVAL_0, PreferenceType.TEXT_FIELD) {
                         val value by DataStore.configurationStore
-                            .stringFlow(Key.TCP_KEEP_ALIVE_INTERVAL, "")
+                            .stringFlow(Key.TCP_KEEP_ALIVE_INTERVAL_0, "")
                             .collectAsStateWithLifecycle("")
                         TextFieldPreference(
                             value = value,

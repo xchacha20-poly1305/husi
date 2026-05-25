@@ -79,7 +79,7 @@ object Key {
     const val SECURITY_ADVISORY = "securityAdvisory"
     const val DISABLE_TCP_KEEP_ALIVE = "disableTcpKeepAlive"
     const val TCP_KEEP_ALIVE_IDLE = "tcpKeepAliveIdle"
-    const val TCP_KEEP_ALIVE_INTERVAL = "tcpKeepAliveInterval"
+    const val TCP_KEEP_ALIVE_INTERVAL_0 = "tcpKeepAliveInterval0"
     const val LOG_LEVEL = "logLevel"
     const val LOG_MAX_LINE = "logMaxLine"
     const val MTU = "mtu"
