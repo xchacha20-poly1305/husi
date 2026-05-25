@@ -1,8 +1,15 @@
 #!/bin/bash
 
 source "buildScript/init/env.sh"
-source "buildScript/plugin/juicity/build.sh"
+source "buildScript/plugin/juicity/init.sh"
 
 DIR="$ROOT/x86_64"
 mkdir -p $DIR
-env CC="$ANDROID_X86_64_CC" GOARCH=amd64 go build -v -o $DIR/$LIB_OUTPUT -buildvcs=false -trimpath -ldflags "-s -w -buildid=" ./cmd/client
+
+export CC=$ANDROID_X86_64_CC
+export CXX=$ANDROID_X86_64_CXX
+export RUST_ANDROID_GRADLE_CC=$ANDROID_X86_64_CC
+export CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=$SRC_ROOT/buildScript/rust-linker/linker-wrapper.sh
+
+cargo build --release -p juicity-client --target x86_64-linux-android
+cp target/x86_64-linux-android/release/juicity-client $DIR/$LIB_OUTPUT

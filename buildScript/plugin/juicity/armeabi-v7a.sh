@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# set -x
-
 source "buildScript/init/env.sh"
-source "buildScript/plugin/juicity/build.sh"
+source "buildScript/plugin/juicity/init.sh"
 
 DIR="$ROOT/armeabi-v7a"
 mkdir -p $DIR
-env CC="$ANDROID_ARM_CC" GOARCH=arm GOARM=7 go build -v -o $DIR/$LIB_OUTPUT -buildvcs=false -trimpath -ldflags "-s -w -buildid=" ./cmd/client
+
+export CC=$ANDROID_ARM_CC
+export CXX=$ANDROID_ARM_CXX
+export RUST_ANDROID_GRADLE_CC=$ANDROID_ARM_CC
+export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$SRC_ROOT/buildScript/rust-linker/linker-wrapper.sh
+
+cargo build --release -p juicity-client --target armv7-linux-androideabi
+cp target/armv7-linux-androideabi/release/juicity-client $DIR/$LIB_OUTPUT

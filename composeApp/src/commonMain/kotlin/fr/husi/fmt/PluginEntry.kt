@@ -50,8 +50,8 @@ enum class PluginEntry(
         "juicity-plugin",
         Res.string.action_juicity,
         DownloadSource(
-            apk = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-juicity",
-            binary = "https://github.com/juicity/juicity/releases",
+            apk = "https://codeberg.org/xchacha20-poly1305/husi/releases?q=plugin-juicity-rs",
+            binary = "https://github.com/juicity/juicity-rs/releases",
         ),
     ),
     ShadowQuic(

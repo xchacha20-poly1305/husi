@@ -2,12 +2,24 @@
 
 source "buildScript/init/env.sh"
 
-export CGO_ENABLED=1
-export GOOS=android
+export AR=$ANDROID_AR
+export LD=$ANDROID_LD
+
+ndkVer=$(grep Pkg.Revision $ANDROID_NDK_HOME/source.properties)
+ndkVer=${ndkVer#*= }
+ndkVer=${ndkVer%%.*}
+
+export CARGO_NDK_MAJOR_VERSION=$ndkVer
+export RUST_ANDROID_GRADLE_PYTHON_COMMAND=python3
+export RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY=$SRC_ROOT/buildScript/rust-linker/linker-wrapper.py
+export RUST_ANDROID_GRADLE_CC_LINK_ARG=""
+export BINDGEN_EXTRA_CLANG_ARGS=--sysroot=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/
 
 CURR="plugin/juicity"
 CURR_PATH="$SRC_ROOT/$CURR"
 
-#git submodule update --init "$CURR/*"
-cd $CURR_PATH/src/main/go/juicity
-go mod download -x
+ROOT="$CURR_PATH/src/main/jniLibs"
+OUTPUT="juicity"
+LIB_OUTPUT="lib$OUTPUT.so"
+
+cd $CURR_PATH/src/main/rust/juicity-rs
