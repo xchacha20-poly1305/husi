@@ -3,14 +3,13 @@ module libcore
 go 1.26
 
 require (
-	codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0
-	github.com/dyhkwong/sing-juicity v0.1.2
+	github.com/exclavenetwork/sing-juicity v0.2.0-beta.2
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.5
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/sing v0.8.11-0.20260514110501-905ad103a4df
-	github.com/sagernet/sing-box v1.14.0-alpha.25
+	github.com/sagernet/sing-box v1.14.0-alpha.26
 	github.com/sagernet/sing-tun v0.8.10-0.20260520101551-ce2b05a9b67f
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
@@ -35,6 +34,7 @@ replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vme
 
 // cmd
 require (
+	codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/v2fly/v2ray-core/v5 v5.51.2
@@ -115,7 +115,7 @@ require (
 	github.com/sagernet/nftables v0.3.0-mod.2 // indirect
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.5 // indirect
 	github.com/sagernet/sing-mux v0.3.4 // indirect
-	github.com/sagernet/sing-quic v0.6.2-0.20260520073201-c8655743eb6e // indirect
+	github.com/sagernet/sing-quic v0.6.2-0.20260525051024-9467ede27fb7 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1 // indirect
