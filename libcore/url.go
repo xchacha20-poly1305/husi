@@ -182,6 +182,7 @@ func (u *netURL) SetPorts(port string) {
 	host, _, err := net.SplitHostPort(u.Host)
 	if err != nil {
 		u.Host = net.JoinHostPort(u.Host, port)
+		return
 	}
 
 	u.Host = net.JoinHostPort(host, port)
