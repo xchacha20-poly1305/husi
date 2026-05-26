@@ -169,6 +169,14 @@ var endpointList = []any{
 	option.WireGuardEndpointOptions{},
 }
 
+// inlineExtensions lists struct types whose JSON fields are flattened into another class via
+// custom Marshal/Unmarshal (e.g., sing-box uses badjson.MarshallObjects to inline
+// Hysteria2ObfsGecko fields into Hysteria2Obfs based on the obfs type).
+// Key: class name as it appears in the generated Kotlin output.
+var inlineExtensions = map[string][]any{
+	"Hysteria2Obfs": {option.Hysteria2ObfsGecko{}},
+}
+
 var newDNSServerList = []any{
 	option.HostsDNSServerOptions{},
 	option.LocalDNSServerOptions{},

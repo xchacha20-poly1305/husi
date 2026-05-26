@@ -58,16 +58,23 @@ func buildClass(opt any, belongs string) []byte {
 	// var xxx: String? = null
 	// var xxx: Boolean? = null
 	// var xxx: Int? = null
-	mainBuilder.Write(buildContent(valueType))
+	seen := map[string]struct{}{}
+	mainBuilder.Write(buildContentWithSeen(valueType, seen))
+
+	// Inline extension types whose JSON fields are flattened into this class via custom
+	// Marshal/Unmarshal (see inlineExtensions in main.go).
+	if extensions, loaded := inlineExtensions[fieldName]; loaded {
+		for _, extension := range extensions {
+			extType := reflect.Indirect(reflect.ValueOf(extension)).Type()
+			mainBuilder.WriteString(F.ToString(fieldSpace, "// Generate note: inlined from ", extType.Name(), "\n"))
+			mainBuilder.Write(buildContentWithSeen(extType, seen))
+		}
+	}
 
 	// }
 	mainBuilder.WriteString(F.ToString(classSpace, "}\n"))
 
 	return mainBuilder.Bytes()
-}
-
-func buildContent(valueType reflect.Type) []byte {
-	return buildContentWithSeen(valueType, map[string]struct{}{})
 }
 
 func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []byte {

@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +427
+    // Generate on line +426
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
@@ -255,7 +255,6 @@ object SingBoxOptions {
     }
 
     // Classes have optional field
-    // Generated in line + 163
 
     @KxsSerializable
     open class Inbound : SingBoxOption() {
@@ -1184,6 +1183,13 @@ object SingBoxOptions {
 
         @JvmField
         var password: String? = null
+
+        // Generate note: inlined from Hysteria2ObfsGecko
+        @JvmField
+        var min_packet_size: Int? = null
+
+        @JvmField
+        var max_packet_size: Int? = null
 
     }
 

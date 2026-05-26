@@ -8,6 +8,7 @@ import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -353,6 +354,8 @@ class HysteriaFmtTest : HusiKoinTest() {
             "obfs" to mutableMapOf<String, Any?>(
                 "type" to "gecko",
                 "password" to "obfs-secret",
+                "min_packet_size" to 600L,
+                "max_packet_size" to 1400L,
             ),
         )
 
@@ -360,17 +363,19 @@ class HysteriaFmtTest : HusiKoinTest() {
 
         assertEquals(HysteriaBean.OBFS_TYPE_GECKO, bean.obfsType)
         assertEquals("obfs-secret", bean.obfsPassword)
+        assertEquals(600, bean.geckoMinPacketSize)
+        assertEquals(1400, bean.geckoMaxPacketSize)
     }
 
     @Test
-    fun `canUseSingBox should be false when hy2 obfs is gecko`() {
+    fun `canUseSingBox should be true when hy2 obfs is gecko`() {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             obfsType = HysteriaBean.OBFS_TYPE_GECKO
             obfsPassword = "pwd"
         }
 
-        assertEquals(false, bean.canUseSingBox())
+        assertTrue(bean.canUseSingBox())
     }
 
     @Test
@@ -382,6 +387,56 @@ class HysteriaFmtTest : HusiKoinTest() {
         }
 
         assertTrue(bean.canUseSingBox())
+    }
+
+    @Test
+    fun `buildSingBoxOutboundHysteriaBean hy2 should emit gecko obfs with packet sizes`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            obfsType = HysteriaBean.OBFS_TYPE_GECKO
+            obfsPassword = "pwd"
+            geckoMinPacketSize = 600
+            geckoMaxPacketSize = 1400
+        }
+
+        val outbound = assertIs<SingBoxOptions.Outbound_Hysteria2Options>(
+            buildSingBoxOutboundHysteriaBean(bean),
+        )
+
+        val obfs = outbound.obfs
+        assertNotNull(obfs)
+        assertEquals(HysteriaBean.OBFS_TYPE_GECKO, obfs.type)
+        assertEquals("pwd", obfs.password)
+        assertEquals(600, obfs.min_packet_size)
+        assertEquals(1400, obfs.max_packet_size)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundHysteriaBean hy2 should leave gecko sizes null for salamander`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            obfsType = HysteriaBean.OBFS_TYPE_SALAMANDER
+            obfsPassword = "pwd"
+            geckoMinPacketSize = 600
+            geckoMaxPacketSize = 1400
+        }
+
+        val outbound = assertIs<SingBoxOptions.Outbound_Hysteria2Options>(
+            buildSingBoxOutboundHysteriaBean(bean),
+        )
+
+        val obfs = outbound.obfs
+        assertNotNull(obfs)
+        assertEquals(HysteriaBean.OBFS_TYPE_SALAMANDER, obfs.type)
+        assertEquals("pwd", obfs.password)
+        assertNull(obfs.min_packet_size)
+        assertNull(obfs.max_packet_size)
     }
 
     @Test

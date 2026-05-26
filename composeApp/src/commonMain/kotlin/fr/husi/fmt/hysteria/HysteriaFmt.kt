@@ -382,16 +382,11 @@ fun HysteriaBean.buildHysteriaConfig(
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (DataStore.providerHysteria2 != ProtocolProvider.CORE) return false // Force plugin
-    when (protocolVersion) {
-        HysteriaBean.PROTOCOL_VERSION_1 -> {
-            if (protocol != HysteriaBean.PROTOCOL_UDP) return false // special mode
-        }
-
-        HysteriaBean.PROTOCOL_VERSION_2 -> {
-            if (obfsType == HysteriaBean.OBFS_TYPE_GECKO) return false // sing-box not support now
-        }
+    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1
+        && protocol != HysteriaBean.PROTOCOL_UDP
+    ) {
+        return false // special mode
     }
-
     return true
 }
 
@@ -471,12 +466,12 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             down_mbps = DataStore.downloadSpeed
             bean.obfsType.blankAsNull()?.let { obfsType ->
                 obfs = SingBoxOptions.Hysteria2Obfs().apply {
-                    type = obfsType.ifBlank { HysteriaBean.OBFS_TYPE_SALAMANDER }.also {
-                        if (it == HysteriaBean.OBFS_TYPE_GECKO) {
-                            error("sing-box does not support gecko now")
-                        }
-                    }
+                    type = obfsType
                     password = bean.obfsPassword
+                    if (obfsType == HysteriaBean.OBFS_TYPE_GECKO) {
+                        if (bean.geckoMinPacketSize > 0) min_packet_size = bean.geckoMinPacketSize
+                        if (bean.geckoMaxPacketSize > 0) max_packet_size = bean.geckoMaxPacketSize
+                    }
                 }
             }
             password = bean.authPayload
@@ -653,6 +648,8 @@ fun parseHysteria2Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
                 val obfsField = value as? JSONMap ?: continue
                 obfsField.getStr("type")?.let { obfsType = it }
                 obfsField.getStr("password")?.let { obfsPassword = it }
+                obfsField.getIntOrNull("min_packet_size")?.let { geckoMinPacketSize = it }
+                obfsField.getIntOrNull("max_packet_size")?.let { geckoMaxPacketSize = it }
             }
 
             "password" -> authPayload = value.toString()
