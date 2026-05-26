@@ -911,6 +911,89 @@ object SingBoxOptions {
         @JvmField
         var type: String? = null
 
+        // Generate note: inlined from DefaultHeadlessRule
+        @JvmField
+        var query_type: MutableList<String>? = null
+
+        @JvmField
+        var network: MutableList<String>? = null
+
+        @JvmField
+        var domain: MutableList<String>? = null
+
+        @JvmField
+        var domain_suffix: MutableList<String>? = null
+
+        @JvmField
+        var domain_keyword: MutableList<String>? = null
+
+        @JvmField
+        var domain_regex: MutableList<String>? = null
+
+        @JvmField
+        var source_ip_cidr: MutableList<String>? = null
+
+        @JvmField
+        var ip_cidr: MutableList<String>? = null
+
+        @JvmField
+        var source_port: MutableList<Int>? = null
+
+        @JvmField
+        var source_port_range: MutableList<String>? = null
+
+        @JvmField
+        var port: MutableList<Int>? = null
+
+        @JvmField
+        var port_range: MutableList<String>? = null
+
+        @JvmField
+        var process_name: MutableList<String>? = null
+
+        @JvmField
+        var process_path: MutableList<String>? = null
+
+        @JvmField
+        var process_path_regex: MutableList<String>? = null
+
+        @JvmField
+        var package_name: MutableList<String>? = null
+
+        @JvmField
+        var package_name_regex: MutableList<String>? = null
+
+        @JvmField
+        var network_type: MutableList<String>? = null
+
+        @JvmField
+        var network_is_expensive: Boolean? = null
+
+        @JvmField
+        var network_is_constrained: Boolean? = null
+
+        @JvmField
+        var wifi_ssid: MutableList<String>? = null
+
+        @JvmField
+        var wifi_bssid: MutableList<String>? = null
+
+        @JvmField
+        var network_interface_address: MutableMap<String, MutableList<String>>? = null
+
+        @JvmField
+        var default_interface_address: MutableList<String>? = null
+
+        @JvmField
+        var invert: Boolean? = null
+
+        // Generate note: inlined from LogicalHeadlessRule
+        @JvmField
+        var mode: String? = null
+
+        @JvmField
+        var rules: MutableList<HeadlessRule>? = null
+
     }
 
     @KxsSerializable
@@ -1194,6 +1277,26 @@ object SingBoxOptions {
     }
 
     @KxsSerializable
+    open class Hysteria2Realm : SingBoxOption() {
+
+        @JvmField
+        var server_url: String? = null
+
+        @JvmField
+        var token: String? = null
+
+        @JvmField
+        var realm_id: String? = null
+
+        @JvmField
+        var stun_servers: MutableList<String>? = null
+
+        @JvmField
+        var http_client: HTTPClientOptions? = null
+
+    }
+
+    @KxsSerializable
     open class WireGuardPeer : SingBoxOption() {
 
         @JvmField
@@ -1350,6 +1453,29 @@ object SingBoxOptions {
         @JvmField
         var domain_strategy: String? = null
 
+        // Generate note: inlined from QUICOptions
+        // Generate note: nested type HTTP2Options
+        @JvmField
+        var idle_timeout: String? = null
+
+        @JvmField
+        var keep_alive_period: String? = null
+
+        @JvmField
+        var stream_receive_window: Int? = null
+
+        @JvmField
+        var connection_receive_window: Int? = null
+
+        @JvmField
+        var max_concurrent_streams: Int? = null
+
+        @JvmField
+        var initial_packet_size: Int? = null
+
+        @JvmField
+        var disable_path_mtu_discovery: Boolean? = null
+
     }
 
     @KxsSerializable
@@ -1440,6 +1566,29 @@ object SingBoxOptions {
 
         @JvmField
         var domain_strategy: String? = null
+
+        // Generate note: inlined from QUICOptions
+        // Generate note: nested type HTTP2Options
+        @JvmField
+        var idle_timeout: String? = null
+
+        @JvmField
+        var keep_alive_period: String? = null
+
+        @JvmField
+        var stream_receive_window: Int? = null
+
+        @JvmField
+        var connection_receive_window: Int? = null
+
+        @JvmField
+        var max_concurrent_streams: Int? = null
+
+        @JvmField
+        var initial_packet_size: Int? = null
+
+        @JvmField
+        var disable_path_mtu_discovery: Boolean? = null
 
     }
 
@@ -2128,7 +2277,7 @@ object SingBoxOptions {
     open class RuleSet_Plain : RuleSet() {
 
         @JvmField
-        var rules: MutableList<JsonElement>? = null
+        var rules: MutableList<HeadlessRule>? = null
 
     }
 
@@ -3560,6 +3709,9 @@ object SingBoxOptions {
 
         @JvmField
         var brutal_debug: Boolean? = null
+
+        @JvmField
+        var realm: Hysteria2Realm? = null
 
     }
 

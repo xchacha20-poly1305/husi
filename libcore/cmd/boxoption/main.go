@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"reflect"
 
 	"libcore/plugin/pluginoption"
 
@@ -93,6 +94,7 @@ var boxList = []any{
 	option.OutboundECHOptions{},
 	option.InboundTLSOptions{},
 	option.Hysteria2Obfs{},
+	option.Hysteria2Realm{},
 	option.WireGuardPeer{},
 	// option.V2RayTransportOptions{},
 	option.DomainResolveOptions{},
@@ -172,9 +174,13 @@ var endpointList = []any{
 // inlineExtensions lists struct types whose JSON fields are flattened into another class via
 // custom Marshal/Unmarshal (e.g., sing-box uses badjson.MarshallObjects to inline
 // Hysteria2ObfsGecko fields into Hysteria2Obfs based on the obfs type).
-// Key: class name as it appears in the generated Kotlin output.
+// Key: class name as it appears in the generated Kotlin output, derived from the parent type
+// via reflection so renames stay in sync.
 var inlineExtensions = map[string][]any{
-	"Hysteria2Obfs": {option.Hysteria2ObfsGecko{}},
+	reflect.TypeFor[option.Hysteria2Obfs]().Name():     {option.Hysteria2ObfsGecko{}},
+	reflect.TypeFor[option.HeadlessRule]().Name():      {option.DefaultHeadlessRule{}, option.LogicalHeadlessRule{}},
+	reflect.TypeFor[option.HTTPClient]().Name():        {option.QUICOptions{}},
+	reflect.TypeFor[option.HTTPClientOptions]().Name(): {option.QUICOptions{}},
 }
 
 var newDNSServerList = []any{

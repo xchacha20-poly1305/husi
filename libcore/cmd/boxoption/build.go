@@ -192,7 +192,7 @@ func className(valueType reflect.Type) string {
 		case "Addr", "Prefix", "Prefixable",
 			"Regexp", "DNSRecordOptions", "NetworkBytesCompat":
 			return kotlinString
-		case "Rule", "DNSRule", "HeadlessRule", "V2RayTransportOptions",
+		case "Rule", "DNSRule", "V2RayTransportOptions",
 			"GeoIPOptions", "GeositeOptions", "InboundACMEOptions", "InboundECHOptions", "InboundRealityOptions":
 			return kotlinJsonElement
 		case "DNSServerOptions":
