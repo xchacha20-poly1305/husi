@@ -23,8 +23,8 @@ func TestResolveLibraryFallbacksToLatestModuleForUnindexedVersion(t *testing.T) 
 	var requests []string
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		requests = append(requests, request.URL.String())
-		if request.URL.Path != "/v1/module/"+modulePath {
-			t.Fatalf("path = %q, want /v1/module/%s", request.URL.Path, modulePath)
+		if request.URL.Path != "/v1beta/module/"+modulePath {
+			t.Fatalf("path = %q, want /v1beta/module/%s", request.URL.Path, modulePath)
 		}
 		if request.URL.Query().Get("licenses") != "true" {
 			t.Fatalf("licenses = %q, want true", request.URL.Query().Get("licenses"))
@@ -32,7 +32,7 @@ func TestResolveLibraryFallbacksToLatestModuleForUnindexedVersion(t *testing.T) 
 		switch request.URL.Query().Get("version") {
 		case version:
 			writer.WriteHeader(http.StatusNotFound)
-			_ = json.NewEncoder(writer).Encode(pkgsite.APIError{
+			_ = json.NewEncoder(writer).Encode(pkgsite.Error{
 				Code:    http.StatusNotFound,
 				Message: "not found",
 			})
