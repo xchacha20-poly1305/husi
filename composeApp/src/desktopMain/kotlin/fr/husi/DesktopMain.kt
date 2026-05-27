@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -64,6 +65,8 @@ import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
 import java.io.File
 import javax.swing.JOptionPane
+import javax.swing.JTextArea
+import javax.swing.UIManager
 import kotlin.system.exitProcess
 
 private const val APP_NAME = "fr.husi"
@@ -283,8 +286,13 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         val filesDir = repository.filesDir.invariantDirectoryPathString()
 
         if (!many) {
-            when (checkExistingInstance(filesDir, deepLinks)) {
+            when (val result = checkExistingInstance(filesDir, deepLinks)) {
                 ExistingInstanceCheckResult.NotFound -> Unit
+
+                is ExistingInstanceCheckResult.LibcoreJNIBroken -> {
+                    warnLibcoreLoadFailureAndExit(result.e)
+                }
+
                 ExistingInstanceCheckResult.ExistsNoDeepLink
                     if (autoStart) -> exitApplication()
 
@@ -373,6 +381,28 @@ private class DesktopMain : CliktCommand(APP_NAME) {
     }
 }
 
+private fun warnLibcoreLoadFailureAndExit(error: LinkageError): Nothing {
+    val title = "Failed to load libcore"
+    val message = buildString {
+        appendLine("Husi could not load the libcore JNI library.")
+        appendLine()
+        appendLine("This usually means the desktop libcore package does not match this system,")
+        appendLine("or developer made mistakes.")
+        appendLine()
+        appendLine("System: ${System.getProperty("os.name")} ${System.getProperty("os.arch")}")
+        appendLine("Java: ${System.getProperty("java.version")}")
+        appendLine("Error: ${error.message ?: error::class.simpleName}")
+    }.trimEnd()
+    System.err.println("$title: $message")
+    System.err.println(error.stackTraceToString())
+    try {
+        showSelectableMessageDialog(message, title, JOptionPane.ERROR_MESSAGE)
+    } catch (dialogError: Exception) {
+        System.err.println(dialogError.message)
+    }
+    exitProcess(1)
+}
+
 private fun registerMacOSOpenUriHandler() {
     if (!PlatformInfo.isMacOs) return
     try {
@@ -386,11 +416,12 @@ private fun registerMacOSOpenUriHandler() {
     }
 }
 
-private enum class ExistingInstanceCheckResult {
-    NotFound,
-    ExistsNoDeepLink,
-    ExistsForwarded,
-    ExistsForwardFailed,
+private sealed interface ExistingInstanceCheckResult {
+    object NotFound : ExistingInstanceCheckResult
+    class LibcoreJNIBroken(val e: LinkageError) : ExistingInstanceCheckResult
+    object ExistsNoDeepLink : ExistingInstanceCheckResult
+    object ExistsForwarded : ExistingInstanceCheckResult
+    object ExistsForwardFailed : ExistingInstanceCheckResult
 }
 
 private enum class ExistingTaskDispatchResult {
@@ -403,7 +434,13 @@ private fun checkExistingInstance(
     socketBasePath: String,
     deepLinks: List<String>,
 ): ExistingInstanceCheckResult {
-    val client = connectExistingClient(socketBasePath) ?: return ExistingInstanceCheckResult.NotFound
+    val client = try {
+        connectExistingClient(socketBasePath)
+    } catch (e: LinkageError) {
+        return ExistingInstanceCheckResult.LibcoreJNIBroken(e)
+    } catch (_: Exception) {
+        null
+    } ?: return ExistingInstanceCheckResult.NotFound
     return try {
         if (deepLinks.isEmpty()) {
             ExistingInstanceCheckResult.ExistsNoDeepLink
@@ -418,19 +455,17 @@ private fun checkExistingInstance(
 }
 
 private fun connectExistingClient(socketBasePath: String): Client? {
-    val client = runCatching {
-        Libcore.newClient(socketBasePath)
-    }.getOrNull() ?: return null
-    val helloSucceed = runCatching {
+    val client = Libcore.newClient(socketBasePath)
+    runCatching {
         client.hello()
     }.onFailure {
         Logs.w("probe existing desktop instance", it)
-    }.isSuccess
-    if (helloSucceed) return client
-    runCatching {
-        client.close()
+        runCatching {
+            client.close()
+        }
+        return null
     }
-    return null
+    return client
 }
 
 private fun forwardDeepLinks(client: Client, deepLinks: List<String>): Boolean {
@@ -472,15 +507,37 @@ private fun warnForExistInstanceAndExit(repository: DesktopRepository, socketBas
         repository.getString(Res.string.instance_already_running, socketPath)
     }
     try {
-        JOptionPane.showMessageDialog(
-            null,
-            message,
-            title,
-            JOptionPane.WARNING_MESSAGE,
-        )
+        showSelectableMessageDialog(message, title, JOptionPane.WARNING_MESSAGE)
     } catch (e: Exception) {
         System.err.println("$title: $message")
         System.err.println(e.message)
     }
     exitProcess(1)
+}
+
+private fun showSelectableMessageDialog(
+    message: String,
+    title: String,
+    messageType: Int,
+) {
+    val columns = message.lineSequence().maxOfOrNull { it.length }
+        ?.fastCoerceIn(20, 80)
+        ?: 20
+    val rows = message.lineSequence().count().fastCoerceIn(1, 16)
+    val textArea = JTextArea(message, rows, columns).apply {
+        isEditable = false
+        isOpaque = false
+        lineWrap = true
+        wrapStyleWord = true
+        border = null
+        font = UIManager.getFont("OptionPane.messageFont")
+        foreground = UIManager.getColor("OptionPane.messageForeground")
+        caretPosition = 0
+    }
+    JOptionPane.showMessageDialog(
+        null,
+        textArea,
+        title,
+        messageType,
+    )
 }
