@@ -5,8 +5,10 @@ import (
 	"bytes"
 	"flag"
 	"io"
+	"net"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/sagernet/sing-box/common/geosite"
 	"github.com/sagernet/sing-box/common/srs"
@@ -14,12 +16,13 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
+	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/klauspost/compress/zstd"
 )
 
 var (
-	geositeDate = flag.String("geosite", "", "geosite date")
+	geositeDate = flag.String("geosite", "", "domain-list-community ref")
 	geoipDate   = flag.String("geoip", "", "geoip date")
 
 	geositeOutput = flag.String("so", "geosite.tar.zst", "geosite tar.zst output")
@@ -30,8 +33,7 @@ const (
 	geositeRepo = "v2fly/domain-list-community"
 	geoipRepo   = "Dreamacro/maxmind-geoip"
 
-	siteName = "dlc.dat"
-	ipName   = "Country.mmdb"
+	ipName = "Country.mmdb"
 
 	finalBufCap = 524288
 
@@ -57,128 +59,146 @@ const (
 	windowSize = 128 << 10 // 128KB
 )
 
-func init() {
-	flag.Parse()
-}
-
 func main() {
-	buf := bytes.NewBuffer(nil) // Shared buf.
-	buf.Grow(finalBufCap)
+	flag.Parse()
+
+	buffer := bytes.NewBuffer(nil) // Shared buf.
+	buffer.Grow(finalBufCap)
 
 	if *geositeDate != "" {
-		siteFile, err := os.Create(*geositeOutput)
-		if err != nil {
+		if err := generateGeositeArchive(buffer); err != nil {
 			log.Fatal(err)
-		}
-		defer siteFile.Close()
-		zWriter := common.Must1(newZstdWriter(siteFile))
-		defer zWriter.Close()
-		tWriter := tar.NewWriter(zWriter)
-		defer tWriter.Close()
-
-		geositeData, err := fetch(geositeRepo, *geositeDate, siteName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		geosites, err := generateGeosite(geositeData)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, geositeItem := range geosites.Entries() {
-			var headlessRule option.DefaultHeadlessRule
-			defaultRule := geosite.Compile(geositeItem.Value)
-			headlessRule.Domain = defaultRule.Domain
-			headlessRule.DomainSuffix = defaultRule.DomainSuffix
-			headlessRule.DomainKeyword = defaultRule.DomainKeyword
-			headlessRule.DomainRegex = defaultRule.DomainRegex
-			var plainRuleSet option.PlainRuleSet
-			plainRuleSet.Rules = []option.HeadlessRule{
-				{
-					Type:           C.RuleTypeDefault,
-					DefaultOptions: headlessRule,
-				},
-			}
-			buf.Reset()
-			err = srs.Write(buf, plainRuleSet, C.RuleSetVersionCurrent)
-			if err != nil {
-				log.Fatal(err)
-			}
-			srsName := "geosite-" + geositeItem.Key + ".srs"
-			// Reproducible builds should not set time.
-			err = tWriter.WriteHeader(&tar.Header{
-				Name: srsName,
-				Size: int64(buf.Len()),
-				Mode: int64(os.ModePerm),
-			})
-			if err != nil {
-				log.Fatal(err)
-			}
-			_, err = tWriter.Write(buf.Bytes())
-			if err != nil {
-				log.Fatal(err)
-			}
 		}
 	}
 
-	log.Trace("Buf length: ", buf.Len(), " cap: ", buf.Cap())
+	log.Trace("Buf length: ", buffer.Len(), " cap: ", buffer.Cap())
 
 	if *geoipDate != "" {
-		ipFile, err := os.Create(*geoipOutput)
-		if err != nil {
+		if err := generateGeoipArchive(buffer); err != nil {
 			log.Fatal(err)
-		}
-		defer ipFile.Close()
-		zWriter := common.Must1(newZstdWriter(ipFile))
-		defer zWriter.Close()
-		tWriter := tar.NewWriter(zWriter)
-		defer tWriter.Close()
-
-		geoipData, err := fetch(geoipRepo, *geoipDate, ipName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		ips, err := parseGeoip(geoipData)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, ip := range ips.Entries() {
-			var headlessRule option.DefaultHeadlessRule
-			headlessRule.IPCIDR = make([]string, 0, len(ip.Value))
-			for _, cidr := range ip.Value {
-				headlessRule.IPCIDR = append(headlessRule.IPCIDR, cidr.String())
-			}
-			var plainRuleSet option.PlainRuleSet
-			plainRuleSet.Rules = []option.HeadlessRule{
-				{
-					Type:           C.RuleTypeDefault,
-					DefaultOptions: headlessRule,
-				},
-			}
-			buf.Reset()
-			err = srs.Write(buf, plainRuleSet, C.RuleSetVersionCurrent)
-			if err != nil {
-				log.Fatal(err)
-			}
-			srsName := "geoip-" + ip.Key + ".srs"
-			err = tWriter.WriteHeader(&tar.Header{
-				Name: srsName,
-				Size: int64(buf.Len()),
-				Mode: int64(os.ModePerm),
-			})
-			if err != nil {
-				log.Fatal(err)
-			}
-			_, err = tWriter.Write(buf.Bytes())
-			if err != nil {
-				log.Fatal(err)
-			}
 		}
 	}
 
-	log.Trace("Buf length: ", buf.Len(), " cap: ", buf.Cap())
+	log.Trace("Buf length: ", buffer.Len(), " cap: ", buffer.Cap())
 }
 
-func fetch(repo, tag, name string) ([]byte, error) {
+func generateGeositeArchive(buffer *bytes.Buffer) error {
+	siteFile, err := os.Create(*geositeOutput)
+	if err != nil {
+		return err
+	}
+	defer siteFile.Close()
+	zWriter, err := newZstdWriter(siteFile)
+	if err != nil {
+		return err
+	}
+	defer zWriter.Close()
+	tWriter := tar.NewWriter(zWriter)
+	defer tWriter.Close()
+
+	geositeArchive, err := fetchGitHubArchive(geositeRepo, *geositeDate)
+	if err != nil {
+		return err
+	}
+	defer geositeArchive.Close()
+	geosites, err := generateGeosite(geositeArchive)
+	if err != nil {
+		return err
+	}
+	for _, geositeItem := range geosites.Entries() {
+		var headlessRule option.DefaultHeadlessRule
+		defaultRule := geosite.Compile(geositeItem.Value)
+		headlessRule.Domain = defaultRule.Domain
+		headlessRule.DomainSuffix = defaultRule.DomainSuffix
+		headlessRule.DomainKeyword = defaultRule.DomainKeyword
+		headlessRule.DomainRegex = defaultRule.DomainRegex
+		var plainRuleSet option.PlainRuleSet
+		plainRuleSet.Rules = []option.HeadlessRule{
+			{
+				Type:           C.RuleTypeDefault,
+				DefaultOptions: headlessRule,
+			},
+		}
+		buffer.Reset()
+		err = srs.Write(buffer, plainRuleSet, C.RuleSetVersionCurrent)
+		if err != nil {
+			return err
+		}
+		srsName := "geosite-" + geositeItem.Key + ".srs"
+		// Reproducible builds should not set time.
+		err = tWriter.WriteHeader(&tar.Header{
+			Name: srsName,
+			Size: int64(buffer.Len()),
+			Mode: int64(os.ModePerm),
+		})
+		if err != nil {
+			return err
+		}
+		_, err = tWriter.Write(buffer.Bytes())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func generateGeoipArchive(buf *bytes.Buffer) error {
+	ipFile, err := os.Create(*geoipOutput)
+	if err != nil {
+		return err
+	}
+	defer ipFile.Close()
+	zWriter, err := newZstdWriter(ipFile)
+	if err != nil {
+		return err
+	}
+	defer zWriter.Close()
+	tWriter := tar.NewWriter(zWriter)
+	defer tWriter.Close()
+
+	geoipData, err := fetchRelease(geoipRepo, *geoipDate, ipName)
+	if err != nil {
+		return err
+	}
+	ips, err := parseGeoip(geoipData)
+	if err != nil {
+		return err
+	}
+	for _, ip := range ips.Entries() {
+		var headlessRule option.DefaultHeadlessRule
+		headlessRule.IPCIDR = common.Map(ip.Value, func(it *net.IPNet) string {
+			return it.String()
+		})
+		var plainRuleSet option.PlainRuleSet
+		plainRuleSet.Rules = []option.HeadlessRule{
+			{
+				Type:           C.RuleTypeDefault,
+				DefaultOptions: headlessRule,
+			},
+		}
+		buf.Reset()
+		err = srs.Write(buf, plainRuleSet, C.RuleSetVersionCurrent)
+		if err != nil {
+			return err
+		}
+		srsName := "geoip-" + ip.Key + ".srs"
+		err = tWriter.WriteHeader(&tar.Header{
+			Name: srsName,
+			Size: int64(buf.Len()),
+			Mode: int64(os.ModePerm),
+		})
+		if err != nil {
+			return err
+		}
+		_, err = tWriter.Write(buf.Bytes())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func fetchRelease(repo, tag, name string) ([]byte, error) {
 	link := "https://github.com/" + repo + "/releases/download/" + tag + "/" + name
 
 	resp, err := http.Get(link)
@@ -186,8 +206,29 @@ func fetch(repo, tag, name string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, E.New("fetch ", link, ": ", resp.Status)
+	}
 
 	return io.ReadAll(resp.Body)
+}
+
+func fetchGitHubArchive(repo, ref string) (io.ReadCloser, error) {
+	if !strings.HasPrefix(ref, "refs/") {
+		ref = "refs/tags/" + ref
+	}
+	link := "https://codeload.github.com/" + repo + "/tar.gz/" + ref
+
+	resp, err := http.Get(link)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		return nil, E.New("fetch ", link, ": ", resp.Status)
+	}
+
+	return resp.Body, nil
 }
 
 func newZstdWriter(writer io.Writer) (*zstd.Encoder, error) {

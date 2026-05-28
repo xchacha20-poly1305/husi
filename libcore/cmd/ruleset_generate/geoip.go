@@ -4,19 +4,18 @@ import (
 	"net"
 	"strings"
 
-	"github.com/sagernet/sing/common/x/linkedhashmap"
-
 	"github.com/oschwald/geoip2-golang"
 	"github.com/oschwald/maxminddb-golang"
 )
 
-func parseGeoip(binary []byte) (countryMap *linkedhashmap.Map[string, []*net.IPNet], err error) {
+func parseGeoip(binary []byte) (countryMap sortedStringMap[[]*net.IPNet], err error) {
 	database, err := maxminddb.FromBytes(binary)
 	if err != nil {
 		return
 	}
+	defer database.Close()
 	networks := database.Networks(maxminddb.SkipAliasedNetworks)
-	countryMap = new(linkedhashmap.Map[string, []*net.IPNet])
+	countryMap = make(sortedStringMap[[]*net.IPNet])
 	var country geoip2.Enterprise
 	var ipNet *net.IPNet
 	for networks.Next() {

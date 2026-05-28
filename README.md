@@ -427,6 +427,18 @@ URLs to import.
 
 [GPL-3.0 or later](./LICENSE)
 
+## 🌐 GeoIP data
+
+Husi can generate and use GeoIP rule-set assets derived from MaxMind GeoLite2 data. GeoLite2 data is
+created by MaxMind and is subject to the
+[GeoLite2 End User License Agreement](https://www.maxmind.com/en/geolite/eula) and related attribution
+and update requirements.
+
+Third-party mirrors or re-published GeoLite2 database files do not grant additional rights beyond
+MaxMind's terms. If you build, redistribute, or use Husi with generated GeoIP assets, you are
+responsible for ensuring that your use and redistribution of those assets complies with the
+applicable MaxMind license terms.
+
 ## 🤝 Acknowledgements
 
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)

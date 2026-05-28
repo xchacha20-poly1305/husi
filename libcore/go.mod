@@ -37,11 +37,9 @@ require (
 	codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.51.2
 )
 
 require (
-	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/anytls/sing-anytls v0.0.11 // indirect
@@ -59,7 +57,6 @@ require (
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect

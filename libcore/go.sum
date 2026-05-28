@@ -2,8 +2,6 @@ code.pfad.fr/check v1.1.0 h1:GWvjdzhSEgHvEHe2uJujDcpmZoySKuHQNrZMfzfO0bE=
 code.pfad.fr/check v1.1.0/go.mod h1:NiUH13DtYsb7xp5wll0U4SXx7KhXQVCtRgdC96IPfoM=
 codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0 h1:Q2Cea0NryerbwA/iRkQej0fZn1B8M5bg354hoMLJCsg=
 codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0/go.mod h1:KX6NZEij3zmprTQJh08m3tSQfewN0BTU+4RgzRo4lmw=
-github.com/adrg/xdg v0.5.3 h1:xRnxJXne7+oWDatRhR1JLnvuccuIeCoBu2rtuLqQB78=
-github.com/adrg/xdg v0.5.3/go.mod h1:nlTsY+NNiCBGCK2tpm09vRqfVzrc2fLmXGpBLF0zlTQ=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -204,8 +202,6 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 h1:pyC9PaHYZFgEKFdlp3G8RaCKgVpHZnecvArXvPXcFkM=
 github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701/go.mod h1:P3a5rG4X7tI17Nn3aOIAYr5HbIMukwXG0urG0WuL8OA=
-github.com/v2fly/v2ray-core/v5 v5.51.2 h1:YRDJlMhlCutNv6sHakrpP1LMY/FZZmexT4FK10QSVYw=
-github.com/v2fly/v2ray-core/v5 v5.51.2/go.mod h1:XTyuhOhTO6JNykGfWnB8c37oLaSYB4N0xl90x6aSd8s=
 github.com/vishvananda/netns v0.0.5 h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zdEY=
 github.com/vishvananda/netns v0.0.5/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/xchacha20-poly1305/TLS-scribe v0.12.1 h1:9KHvZ/ie7gHl787L2S/s0RzqvAPAvyZc0f+UUcnwMeE=
