@@ -5,6 +5,9 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
+import fr.husi.resources.Res
+import fr.husi.resources.warn_insecure
 
 @KxsSerializable
 class AnyTLSBean : AbstractBean() {
@@ -49,6 +52,14 @@ class AnyTLSBean : AbstractBean() {
         if (idleSessionCheckInterval.isEmpty()) idleSessionCheckInterval = "30s"
         if (idleSessionTimeout.isEmpty()) idleSessionTimeout = "30s"
         if (tlsFragmentFallbackDelay.isEmpty()) tlsFragmentFallbackDelay = "500ms"
+    }
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
+        return ValidateResult.Secure.Continue
     }
 
     override fun serialize(output: ByteBufferOutput) {

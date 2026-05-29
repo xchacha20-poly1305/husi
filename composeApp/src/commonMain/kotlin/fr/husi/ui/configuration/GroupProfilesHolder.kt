@@ -71,12 +71,11 @@ import fr.husi.compose.setPlainText
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
+import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.config.ConfigBean
 import fr.husi.fmt.toUniversalLink
 import fr.husi.ktx.Logs
-import fr.husi.ktx.ValidateResult
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.isInsecure
 import fr.husi.ktx.onMainDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.readableUrlTestError
@@ -407,7 +406,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     val validateResult = if (showActions && securityAdvice) {
         bean.isInsecure()
     } else {
-        ValidateResult.Secure
+        ValidateResult.Secure.Continue
     }
 
     OutlinedCard(

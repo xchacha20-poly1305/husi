@@ -5,6 +5,10 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
+import fr.husi.resources.Res
+import fr.husi.resources.warn_insecure
+import fr.husi.resources.warn_quic_0_rtt
 
 @KxsSerializable
 class TuicBean : AbstractBean() {
@@ -59,6 +63,15 @@ class TuicBean : AbstractBean() {
         super.initializeDefaultValues()
         if (udpRelayMode.isEmpty()) udpRelayMode = "native"
         if (congestionController.isEmpty()) congestionController = "bbr"
+    }
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
+        if (zeroRTT) return ValidateResult.Insecure(Res.string.warn_quic_0_rtt)
+        return ValidateResult.Secure.Continue
     }
 
     override fun serialize(output: ByteBufferOutput) {

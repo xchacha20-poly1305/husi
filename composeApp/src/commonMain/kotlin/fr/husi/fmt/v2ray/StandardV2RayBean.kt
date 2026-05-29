@@ -4,6 +4,10 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
+import fr.husi.fmt.ValidateResult
+import fr.husi.resources.Res
+import fr.husi.resources.warn_insecure
+import fr.husi.resources.warn_not_encrypted
 
 @KxsSerializable
 abstract class StandardV2RayBean : AbstractBean() {
@@ -246,6 +250,15 @@ abstract class StandardV2RayBean : AbstractBean() {
         other.fragment = fragment
         other.fragmentFallbackDelay = fragmentFallbackDelay
         other.recordFragment = recordFragment
+    }
+
+    protected fun validateTLSSettings(
+        requireTLS: Boolean,
+        warnAllowInsecure: Boolean,
+    ): ValidateResult {
+        if (requireTLS && !isTLS) return ValidateResult.Insecure(Res.string.warn_not_encrypted)
+        if (warnAllowInsecure && allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
+        return ValidateResult.Secure.Continue
     }
 
     override val canTCPing get() = v2rayTransport != "quic"

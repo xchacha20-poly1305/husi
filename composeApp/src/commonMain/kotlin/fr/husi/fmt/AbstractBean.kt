@@ -3,6 +3,7 @@ package fr.husi.fmt
 import kotlinx.serialization.Serializable as KxsSerializable
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
+import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.unwrapIPV6Host
 import fr.husi.ktx.wrapIPV6Host
 
@@ -44,6 +45,19 @@ abstract class AbstractBean : Serializable() {
     open val canTCPing get() = true
     open val needUDPOverTCP get() = false
     open val canMapping get() = true
+
+    open fun isInsecure(): ValidateResult {
+        if (serverAddress.isIpAddress()) {
+            if (serverAddress.startsWith("127.") || serverAddress.startsWith("::")) {
+                return ValidateResult.Secure.Stop
+            }
+        }
+        return ValidateResult.Secure.Continue
+    }
+
+    protected fun shouldReturnFromInsecureCheck(result: ValidateResult): Boolean {
+        return result !is ValidateResult.Secure || !result.continueChecking
+    }
 
     override fun initializeDefaultValues() {
         if (serverAddress.isEmpty()) {

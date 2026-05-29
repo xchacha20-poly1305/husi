@@ -5,6 +5,9 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
+import fr.husi.resources.Res
+import fr.husi.resources.warn_not_encrypted
 
 @KxsSerializable
 class SOCKSBean : AbstractBean() {
@@ -60,6 +63,13 @@ class SOCKSBean : AbstractBean() {
     override fun network(): String {
         if (protocol < PROTOCOL_SOCKS5) return "tcp"
         return super.network()
+    }
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        return ValidateResult.Insecure(Res.string.warn_not_encrypted)
     }
 
     override fun serialize(output: ByteBufferOutput) {

@@ -5,6 +5,9 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
+import fr.husi.resources.Res
+import fr.husi.resources.warn_quic_0_rtt
 
 @KxsSerializable
 class ShadowQUICBean : AbstractBean() {
@@ -46,6 +49,14 @@ class ShadowQUICBean : AbstractBean() {
     var extraPaths: String = ""
     var maxPaths: Int = 0
     var certificates: String = ""
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        if (zeroRTT) return ValidateResult.Insecure(Res.string.warn_quic_0_rtt)
+        return ValidateResult.Secure.Continue
+    }
 
     override fun serialize(output: ByteBufferOutput) {
         output.writeInt(4)

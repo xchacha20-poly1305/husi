@@ -5,7 +5,10 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.tuic.TuicBean
+import fr.husi.resources.Res
+import fr.husi.resources.warn_insecure
 
 @KxsSerializable
 class JuicityBean : AbstractBean() {
@@ -32,6 +35,14 @@ class JuicityBean : AbstractBean() {
     // https://github.com/daeuniverse/softwind/blob/6daa40f6b7a5cb9a0c44ea252e86fcb3440a7a0e/protocol/tuic/common/congestion.go#L15
     // public String congestionControl;
     var pinSHA256: String = ""
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
+        return ValidateResult.Secure.Continue
+    }
 
     override fun serialize(output: ByteBufferOutput) {
         output.writeInt(0)

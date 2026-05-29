@@ -4,7 +4,11 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
 import fr.husi.ktx.wrapIPV6Host
+import fr.husi.resources.Res
+import fr.husi.resources.warn_hysteria_legacy
+import fr.husi.resources.warn_insecure
 import kotlinx.serialization.Serializable as KxsSerializable
 
 @KxsSerializable
@@ -93,6 +97,17 @@ class HysteriaBean : AbstractBean() {
         super.initializeDefaultValues()
         if (hopInterval.isEmpty()) hopInterval = "10s"
         if (serverPorts.isEmpty()) serverPorts = "443"
+    }
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
+        if (protocolVersion < PROTOCOL_VERSION_2) {
+            return ValidateResult.Deprecated(Res.string.warn_hysteria_legacy)
+        }
+        return ValidateResult.Secure.Continue
     }
 
     override fun serialize(output: ByteBufferOutput) {

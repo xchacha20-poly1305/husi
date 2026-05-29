@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.v2ray.StandardV2RayBean
 
 @KxsSerializable
@@ -23,6 +24,13 @@ class TrojanBean : StandardV2RayBean() {
     }
 
     var password: String = ""
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        return validateTLSSettings(requireTLS = true, warnAllowInsecure = true)
+    }
 
     override fun serialize(output: ByteBufferOutput) {
         output.writeInt(0)

@@ -2,6 +2,7 @@ package fr.husi.fmt.v2ray
 
 import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
 
 @KxsSerializable
 class VLESSBean : StandardV2RayBean() {
@@ -20,6 +21,16 @@ class VLESSBean : StandardV2RayBean() {
     }
 
     var flow: String = ""
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        if (encryption.isEmpty() || encryption == "none") {
+            return validateTLSSettings(requireTLS = true, warnAllowInsecure = true)
+        }
+        return ValidateResult.Secure.Continue
+    }
 
     override fun clone(): VLESSBean {
         return KryoConverters.deserialize(VLESSBean(), KryoConverters.serialize(this))

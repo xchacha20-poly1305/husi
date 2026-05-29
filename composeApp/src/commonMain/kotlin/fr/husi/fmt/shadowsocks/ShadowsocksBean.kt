@@ -5,6 +5,9 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.ValidateResult
+import fr.husi.resources.Res
+import fr.husi.resources.warn_shadowsocks_stream_cipher
 
 @KxsSerializable
 class ShadowsocksBean : AbstractBean() {
@@ -20,6 +23,9 @@ class ShadowsocksBean : AbstractBean() {
                 return arrayOfNulls(size)
             }
         }
+
+        private val secureMethodPattern = "(gcm|poly1305)".toRegex()
+
     }
 
     var method: String = "aes-256-gcm"
@@ -30,6 +36,18 @@ class ShadowsocksBean : AbstractBean() {
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
         if (method.isBlank()) method = "aes-256-gcm"
+    }
+
+    override fun isInsecure(): ValidateResult {
+        val result = super.isInsecure()
+        if (shouldReturnFromInsecureCheck(result)) return result
+
+        if (plugin.isBlank() || plugin.startsWith("obfs-local;")) {
+            if (!method.contains(secureMethodPattern)) {
+                return ValidateResult.Insecure(Res.string.warn_shadowsocks_stream_cipher)
+            }
+        }
+        return ValidateResult.Secure.Continue
     }
 
     override fun serialize(output: ByteBufferOutput) {
