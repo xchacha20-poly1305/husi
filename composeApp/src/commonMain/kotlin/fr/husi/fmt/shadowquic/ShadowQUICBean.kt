@@ -39,6 +39,7 @@ class ShadowQUICBean : AbstractBean() {
     var gso: Boolean = false
     var keepAliveInterval: Int = 0
     var mtuDiscovery: Boolean = false
+    var blackholeDetection: Boolean = false
     var subProtocol: Int = SUB_PROTOCOL_SHADOW_QUIC
 
     // Sunny QUIC
@@ -47,7 +48,7 @@ class ShadowQUICBean : AbstractBean() {
     var certificates: String = ""
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(3)
+        output.writeInt(4)
         super.serialize(output)
         output.writeString(password)
         output.writeString(username)
@@ -71,6 +72,9 @@ class ShadowQUICBean : AbstractBean() {
 
         // version 3
         output.writeString(certificates)
+
+        // version 4
+        output.writeBoolean(blackholeDetection)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -101,6 +105,10 @@ class ShadowQUICBean : AbstractBean() {
         if (version >= 3) {
             certificates = input.readString()
         }
+
+        if (version >= 4) {
+            blackholeDetection = input.readBoolean()
+        }
     }
 
     override fun applyFeatureSettings(other: AbstractBean) {
@@ -113,6 +121,7 @@ class ShadowQUICBean : AbstractBean() {
         other.gso = gso
         other.keepAliveInterval = keepAliveInterval
         other.mtuDiscovery = mtuDiscovery
+        other.blackholeDetection = blackholeDetection
         other.subProtocol = subProtocol
         other.extraPaths = extraPaths
         other.maxPaths = maxPaths

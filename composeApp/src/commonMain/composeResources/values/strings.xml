@@ -760,6 +760,7 @@
     <string name="health_check">Health Check</string>
     <string name="gso" translatable="false">GSO</string>
     <string name="mtu_discovery">Path Maxium MTU Discovery</string>
+    <string name="blackhole_detection">Blackhole Detection</string>
     <string name="extra_paths">Extra Paths</string>
     <string name="extra_paths_max">Max Extra Paths Count</string>
     <string name="ok">OK</string>

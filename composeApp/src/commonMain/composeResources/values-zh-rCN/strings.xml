@@ -697,6 +697,7 @@
     <string name="quic">QUIC</string>
     <string name="health_check">健康检查</string>
     <string name="mtu_discovery">路径最大传输单元发现</string>
+    <string name="blackhole_detection">黑洞检测</string>
     <string name="extra_paths">额外传输路径</string>
     <string name="extra_paths_max">最大额外传输路径数量</string>
     <string name="ok">好</string>

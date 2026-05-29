@@ -27,6 +27,7 @@ internal data class ShadowQUICUiState(
     val gso: Boolean = false,
     val keepAliveInterval: Int = 0,
     val mtuDiscovery: Boolean = false,
+    val blackholeDetection: Boolean = false,
     val subProtocol: Int = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC,
 
     val extraPaths: String = "",
@@ -61,6 +62,7 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
                 gso = gso,
                 keepAliveInterval = keepAliveInterval,
                 mtuDiscovery = mtuDiscovery,
+                blackholeDetection = blackholeDetection,
                 subProtocol = subProtocol,
 
                 extraPaths = extraPaths,
@@ -89,6 +91,7 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
         gso = state.gso
         keepAliveInterval = state.keepAliveInterval
         mtuDiscovery = state.mtuDiscovery
+        blackholeDetection = state.blackholeDetection
         subProtocol = state.subProtocol
 
         extraPaths = state.extraPaths
@@ -166,6 +169,10 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
 
     fun setMtuDiscovery(enabled: Boolean) {
         _uiState.update { it.copy(mtuDiscovery = enabled) }
+    }
+
+    fun setBlackholeDetection(enabled: Boolean) {
+        _uiState.update { it.copy(blackholeDetection = enabled) }
     }
 
     fun setSubProtocol(protocol: Int) {

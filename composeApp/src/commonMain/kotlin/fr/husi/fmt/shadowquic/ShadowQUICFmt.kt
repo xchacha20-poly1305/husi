@@ -48,7 +48,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(
         )
         put(
             "outbound",
-            buildMap<String, Any?> {
+            buildMap {
                 put(
                     "type",
                     if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) "shadowquic" else "sunnyquic",
@@ -67,7 +67,10 @@ fun ShadowQUICBean.buildShadowQUICConfig(
                 put("cert-path", certPath)
                 put("zero-rtt", zeroRTT.takeIf { it })
                 put("over-stream", udpOverStream.takeIf { it })
-                put("mtu-discovery", this@buildShadowQUICConfig.mtuDiscovery.takeIf { it })
+                if (mtuDiscovery) {
+                    put("mtu-discovery", true)
+                    put("blackhole-detection", blackholeDetection.takeIf { it })
+                }
                 put("gso", gso)
                 put("protect-path", if (shouldProtect) Libcore.ProtectPath else null)
             },

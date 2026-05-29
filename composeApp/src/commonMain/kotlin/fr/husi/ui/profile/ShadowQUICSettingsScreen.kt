@@ -21,7 +21,9 @@ import fr.husi.resources.Res
 import fr.husi.resources.action_shadowquic
 import fr.husi.resources.action_sunnyquic
 import fr.husi.resources.alpn
+import fr.husi.resources.blackhole_detection
 import fr.husi.resources.brightness_4
+import fr.husi.resources.bug_report
 import fr.husi.resources.certificates
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.copyright
@@ -298,6 +300,15 @@ private fun LazyListScope.shadowQuicSettings(
             onValueChange = { viewModel.setMtuDiscovery(it) },
             title = { Text(stringResource(Res.string.mtu_discovery)) },
             icon = { Icon(vectorResource(Res.drawable.search), null) },
+        )
+    }
+    item("blackhole_detection") {
+        SwitchPreference(
+            value = uiState.blackholeDetection,
+            onValueChange = { viewModel.setBlackholeDetection(it) },
+            title = { Text(stringResource(Res.string.blackhole_detection)) },
+            enabled = uiState.mtuDiscovery,
+            icon = { Icon(vectorResource(Res.drawable.bug_report), null) },
         )
     }
 

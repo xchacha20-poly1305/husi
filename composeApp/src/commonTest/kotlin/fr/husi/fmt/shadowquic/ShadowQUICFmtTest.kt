@@ -25,6 +25,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
             password = "pass"
             sni = "sni.example.com"
             congestionControl = "bbr"
+            blackholeDetection = true
             subProtocol = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
         }
         bean.initializeDefaultValues()
@@ -42,6 +43,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
         assertEquals("pass", outbound["password"])
         assertEquals("sni.example.com", outbound["server-name"])
         assertEquals("bbr", outbound["congestion-control"])
+        assertEquals(true, outbound["blackhole-detection"])
         assertEquals("error", root["log-level"])
     }
 
@@ -101,6 +103,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
             certificates = "cert-1\ncert-2"
             keepAliveInterval = 15
             mtuDiscovery = true
+            blackholeDetection = true
             gso = true
         }
 
@@ -114,6 +117,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
         assertEquals(source.certificates, restored.certificates)
         assertEquals(source.keepAliveInterval, restored.keepAliveInterval)
         assertEquals(source.mtuDiscovery, restored.mtuDiscovery)
+        assertEquals(source.blackholeDetection, restored.blackholeDetection)
         assertEquals(source.gso, restored.gso)
     }
 
