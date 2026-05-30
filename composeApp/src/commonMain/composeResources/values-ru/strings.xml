@@ -735,4 +735,5 @@
     <string name="sip003_editor">Редактор плагинов SIP003</string>
     <string name="sip003_pick_plugin_first">Сначала выберите плагин</string>
     <string name="sip003_obfs_mode">Режим обфускации</string>
+    <string name="blackhole_detection">Обнаружение сетевых черных дыр</string>
 </resources>
