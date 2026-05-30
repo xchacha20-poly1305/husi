@@ -33,7 +33,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
+import fr.husi.compose.SwipeableSnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -122,7 +122,7 @@ internal fun GetCertScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         GetCertContent(
             contentPadding = innerPadding.withNavigation(),

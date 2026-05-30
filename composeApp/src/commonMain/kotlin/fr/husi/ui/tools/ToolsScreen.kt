@@ -13,7 +13,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
+import fr.husi.compose.SwipeableSnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
@@ -149,7 +149,7 @@ fun ToolsScreen(
                 }
             }
         },
-        snackbarHost = { SnackbarHost(snackbarState) },
+        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
         floatingActionButton = {
             SagerFab(
                 visible = bottomVisible,

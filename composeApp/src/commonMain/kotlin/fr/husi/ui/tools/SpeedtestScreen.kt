@@ -28,7 +28,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
+import fr.husi.compose.SwipeableSnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -112,7 +112,7 @@ internal fun SpeedtestScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
