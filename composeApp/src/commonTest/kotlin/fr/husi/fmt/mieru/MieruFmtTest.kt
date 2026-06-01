@@ -14,6 +14,9 @@ class MieruFmtTest {
 
     private fun Any?.asJsonList(): List<Any?> = assertIs(this)
 
+    private fun Map<String, Any?>.firstProfile(): Map<String, Any?> =
+        this["profiles"].asJsonList().first().asJsonMap()
+
     @Test
     fun `parseMieru should parse url with all fields`() {
         val bean = parseMieru(FmtTestConstant.MIERU_URL)
@@ -160,7 +163,7 @@ class MieruFmtTest {
         bean.initializeDefaultValues()
 
         val config = bean.buildMieruConfig(port = 2080, logLevel = 0).toJsonMapKxs()
-        val trafficPattern = config["trafficPattern"].asJsonMap()
+        val trafficPattern = config.firstProfile()["trafficPattern"].asJsonMap()
 
         assertEquals("default", config["activeProfile"])
         assertEquals(false, trafficPattern["unlockAll"])
@@ -189,7 +192,7 @@ class MieruFmtTest {
         bean.initializeDefaultValues()
 
         val config = bean.buildMieruConfig(port = 2080, logLevel = 0).toJsonMapKxs()
-        val trafficPattern = config["trafficPattern"].asJsonMap()
+        val trafficPattern = config.firstProfile()["trafficPattern"].asJsonMap()
 
         assertEquals(42, assertIs<Number>(trafficPattern["seed"]).toInt())
         assertEquals(true, trafficPattern["unlockAll"])
@@ -243,7 +246,7 @@ class MieruFmtTest {
         bean.initializeDefaultValues()
 
         val config = bean.buildMieruConfig(port = 2080, logLevel = 0).toJsonMapKxs()
-        val trafficPattern = config["trafficPattern"].asJsonMap()
+        val trafficPattern = config.firstProfile()["trafficPattern"].asJsonMap()
 
         assertEquals(42, assertIs<Number>(trafficPattern["seed"]).toInt())
         assertEquals(true, trafficPattern["unlockAll"])

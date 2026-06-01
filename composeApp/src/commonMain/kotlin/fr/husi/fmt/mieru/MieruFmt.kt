@@ -26,39 +26,31 @@ import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 
 fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
-    val basic = mutableMapOf(
-        "activeProfile" to "default",
-        "socks5Port" to port,
-        "loggingLevel" to logLevel.takeIf { it > 0 }?.let { logLevelString(it).uppercase() },
-        "advancedSettings" to mapOf("noCheckUpdate" to true),
-        "profiles" to listOf(
-            mutableMapOf(
-                "profileName" to "default",
-                "user" to mapOf(
-                    "name" to username,
-                    "password" to password.also {
-                        if (it.isEmpty()) error("mieru password is empty")
-                    },
-                ),
-                "servers" to listOf(
+    val profile = mutableMapOf(
+        "profileName" to "default",
+        "user" to mapOf(
+            "name" to username,
+            "password" to password.also {
+                if (it.isEmpty()) error("mieru password is empty")
+            },
+        ),
+        "servers" to listOf(
+            mapOf(
+                "ipAddress" to finalAddress,
+                "portBindings" to listOf(
                     mapOf(
-                        "ipAddress" to finalAddress,
-                        "portBindings" to listOf(
-                            mapOf(
-                                "port" to finalPort,
-                                "protocol" to protocol.uppercase(),
-                            ),
-                        ),
+                        "port" to finalPort,
+                        "protocol" to protocol.uppercase(),
                     ),
                 ),
-                "mtu" to mtu,
-                "multiplexing" to mieruMuxToString(serverMuxNumber)?.let { mapOf("level" to it) },
-                "handshakeMode" to "HANDSHAKE_NO_WAIT",
             ),
         ),
+        "mtu" to mtu,
+        "multiplexing" to mieruMuxToString(serverMuxNumber)?.let { mapOf("level" to it) },
+        "handshakeMode" to "HANDSHAKE_NO_WAIT",
     )
     trafficPattern.blankAsNull()?.let { trafficPattern ->
-        basic["trafficPattern"] = runCatching {
+        profile["trafficPattern"] = runCatching {
             trafficPattern.toJsonMapKxs().let {
                 it["trafficPattern"] ?: it
             }
@@ -68,6 +60,13 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
             }
         }
     }
+    val basic = mutableMapOf(
+        "activeProfile" to "default",
+        "socks5Port" to port,
+        "loggingLevel" to logLevel.takeIf { it > 0 }?.let { logLevelString(it).uppercase() },
+        "advancedSettings" to mapOf("noCheckUpdate" to true),
+        "profiles" to listOf(profile),
+    )
     return basic.toJsonStringKxs()
 }
 
