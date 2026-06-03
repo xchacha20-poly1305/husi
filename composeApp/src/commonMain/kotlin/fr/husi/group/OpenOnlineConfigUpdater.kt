@@ -30,11 +30,13 @@ import fr.husi.ktx.addPathSegments
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
-import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
+import fr.husi.libcore.resolveHttpClientFactory
 import fr.husi.repository.resolveRepository
+import fr.husi.resources.Res
+import fr.husi.resources.ooc_missing_protocol
+import fr.husi.resources.ooc_subscription_token_invalid
 import kotlinx.serialization.Serializable
-import fr.husi.resources.*
 
 /** https://github.com/Shadowsocks-NET/OpenOnlineConfig */
 object OpenOnlineConfigUpdater : GroupUpdater() {
@@ -82,6 +84,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         val token: OOCSubscriptionToken
         val baseLink: URL
         val certSha256: String?
+        val httpClientFactory = resolveHttpClientFactory()
         try {
             token = kxs.decodeFromString(subscription.token)
             val version = token.version
@@ -102,7 +105,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
                     error("Protocol scheme must be https")
                 }
 
-                else -> baseLink = Libcore.parseURL(baseUrl)
+                else -> baseLink = httpClientFactory.parseURL(baseUrl)
             }
             val secret = token.secret
             if (secret.isBlank()) error("Missing field: secret")
@@ -117,7 +120,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             error(repository.getString(Res.string.ooc_subscription_token_invalid))
         }
 
-        val response = Libcore.newHttpClient().apply {
+        val response = httpClientFactory.newHttpClient().apply {
             if (DataStore.serviceState.connected) {
                 useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
             }

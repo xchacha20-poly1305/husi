@@ -29,11 +29,12 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
-import fr.husi.libcore.Libcore
+import fr.husi.libcore.resolveHttpClientFactory
 import fr.husi.repository.resolveRepository
+import fr.husi.resources.Res
+import fr.husi.resources.no_proxies_found_in_subscription
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import fr.husi.resources.*
 
 /** https://shadowsocks.org/doc/sip008.html */
 object SIP008Updater : GroupUpdater() {
@@ -91,7 +92,7 @@ object SIP008Updater : GroupUpdater() {
                 ?: error(repository.getString(Res.string.no_proxies_found_in_subscription))
         } else {
 
-            val response = Libcore.newHttpClient().apply {
+            val response = resolveHttpClientFactory().newHttpClient().apply {
                 if (DataStore.serviceState.connected) {
                     useSocks5(
                         DataStore.mixedPort,

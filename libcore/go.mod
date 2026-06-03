@@ -3,6 +3,7 @@ module libcore
 go 1.26
 
 require (
+	filippo.io/age v1.3.1
 	github.com/exclavenetwork/sing-juicity v0.2.0-beta.2
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.5
@@ -40,6 +41,7 @@ require (
 )
 
 require (
+	filippo.io/hpke v0.4.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/anytls/sing-anytls v0.0.11 // indirect

@@ -29,6 +29,12 @@ class FakeHttpClientFactory : HttpClientFactory {
     /** When non-null, the next [HTTPRequest.execute] throws this instead of returning a response. */
     var nextThrowable: Throwable? = null
 
+    /** Response body returned by the next [HTTPRequest.execute]. */
+    var nextResponseContent: ByteArray = ByteArray(0)
+
+    /** Response headers returned by the next [HTTPRequest.execute]. */
+    val nextResponseHeaders = mutableMapOf<String, String>()
+
     override val userAgent: String = "husi-test/0"
 
     override fun newHttpClient(): HTTPClient =
@@ -39,6 +45,8 @@ class FakeHttpClientFactory : HttpClientFactory {
 
 class FakeHTTPClient(private val factory: FakeHttpClientFactory) : HTTPClient {
     var socks5: Socks5Config? = null
+        private set
+    var ageKey: AgeKey? = null
         private set
     var closed: Int = 0
         private set
@@ -53,6 +61,10 @@ class FakeHTTPClient(private val factory: FakeHttpClientFactory) : HTTPClient {
     override fun pinnedSHA256(sha256: String?) {}
     override fun restrictedTLS() {}
 
+    override fun setAgeKey(identities: String) {
+        ageKey = AgeKey(identities)
+    }
+
     override fun useSocks5(port: Int, username: String?, password: String?) {
         socks5 = Socks5Config(port, username.orEmpty(), password.orEmpty())
     }
@@ -61,6 +73,7 @@ class FakeHTTPClient(private val factory: FakeHttpClientFactory) : HTTPClient {
         FakeHTTPRequest(factory).also { requests.add(it) }
 
     data class Socks5Config(val port: Int, val username: String, val password: String)
+    data class AgeKey(val identities: String)
 }
 
 class FakeHTTPRequest(private val factory: FakeHttpClientFactory) : HTTPRequest {
@@ -125,8 +138,8 @@ class FakeHTTPResponse(private val factory: FakeHttpClientFactory) : HTTPRespons
         closed++
     }
 
-    override fun getContentString(): String = ""
-    override fun getHeader(key: String?): String = ""
+    override fun getContentString(): String = factory.nextResponseContent.decodeToString()
+    override fun getHeader(key: String?): String = factory.nextResponseHeaders[key].orEmpty()
 
     override fun writeTo(target: String, callback: CopyCallback) {
         writeToTarget = target

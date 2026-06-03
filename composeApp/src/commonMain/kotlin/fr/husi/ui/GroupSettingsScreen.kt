@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,6 +40,7 @@ import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -48,7 +50,10 @@ import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
+import fr.husi.ktx.readableMessage
+import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
+import fr.husi.resources.age_identity
 import fr.husi.resources.apply
 import fr.husi.resources.auto_update
 import fr.husi.resources.auto_update_delay
@@ -421,6 +426,23 @@ private fun LazyListScope.groupSettings(
                 },
             )
         }
+        val supportsAge = uiState.subscriptionType == SubscriptionType.RAW
+        if (supportsAge) {
+            item("subscription_age_identity", PreferenceType.TEXT_FIELD) {
+                TextFieldPreference(
+                    value = uiState.subscriptionAgeIdentity,
+                    onValueChange = { viewModel.setSubscriptionAgeIdentity(it) },
+                    title = { Text(stringResource(Res.string.age_identity)) },
+                    textToValue = { it },
+                    icon = { Icon(vectorResource(Res.drawable.security), null) },
+                    summary = { Text(contentOrUnset(uiState.subscriptionAgeIdentity)) },
+                    valueToText = { it },
+                    textField = { value, onValueChange, onOk ->
+                        ValidatedAgeIdentityTextField(value, onValueChange, onOk)
+                    },
+                )
+            }
+        }
         val isOOCv1 = uiState.subscriptionType == SubscriptionType.OOCv1
         if (isOOCv1) {
             item("subscription_token", PreferenceType.TEXT_FIELD) {
@@ -518,6 +540,29 @@ private fun LazyListScope.groupSettings(
                     UIntegerTextField(value, onValueChange, onOk)
                 },
             )
+        }
+    }
+}
+
+@Composable
+fun ValidatedAgeIdentityTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onOk: () -> Unit,
+) {
+    ValidatedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        onOk = onOk,
+        singleLine = true,
+    ) { text ->
+        if (text.isBlank()) {
+            null
+        } else try {
+            Libcore.validateAgeIdentities(text)
+            null
+        } catch (e: Exception) {
+            e.readableMessage
         }
     }
 }

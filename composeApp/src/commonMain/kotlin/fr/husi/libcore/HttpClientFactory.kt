@@ -1,6 +1,7 @@
 package fr.husi.libcore
 
 import fr.husi.ktx.USER_AGENT
+import org.koin.core.context.GlobalContext
 
 interface HttpClientFactory {
     fun newHttpClient(): HTTPClient
@@ -12,4 +13,8 @@ internal object LibcoreHttpClientFactory : HttpClientFactory {
     override fun newHttpClient(): HTTPClient = Libcore.newHttpClient()
     override fun parseURL(urlString: String): URL = Libcore.parseURL(urlString)
     override val userAgent: String get() = USER_AGENT
+}
+
+internal fun resolveHttpClientFactory(): HttpClientFactory {
+    return GlobalContext.getOrNull()?.get() ?: LibcoreHttpClientFactory
 }

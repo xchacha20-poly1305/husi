@@ -19,7 +19,7 @@ import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.kxs
 import fr.husi.ktx.parseProxies
 import fr.husi.ktx.toJsonMapKxs
-import fr.husi.libcore.Libcore
+import fr.husi.libcore.resolveHttpClientFactory
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.no_proxies_found
@@ -41,15 +41,12 @@ object RawUpdater : GroupUpdater() {
         warnings: MutableList<GroupUpdateWarning>,
     ): GroupUpdateResult.Success {
 
-        var proxies: List<AbstractBean>
+        val contentText: String
+        var userInfo = ""
         if (subscription.link.startsWith("content://")) {
-            val contentText = readContentUri(subscription.link)
-
-            proxies = contentText?.let { parseRaw(contentText) }
-                ?: errNotFound()
+            contentText = readContentUri(subscription.link) ?: errNotFound()
         } else {
-
-            val response = Libcore.newHttpClient().apply {
+            val response = resolveHttpClientFactory().newHttpClient().apply {
                 if (DataStore.serviceState.connected) {
                     useSocks5(
                         DataStore.mixedPort,
@@ -57,16 +54,23 @@ object RawUpdater : GroupUpdater() {
                         DataStore.inboundPassword,
                     )
                 }
+                if (subscription.ageIdentity.isNotBlank()) {
+                    setAgeKey(subscription.ageIdentity)
+                }
             }.newRequest().apply {
                 setURL(subscription.link)
                 setUserAgent(generateUserAgent(subscription.customUserAgent))
             }.execute()
-            proxies = parseRaw(response.contentString) ?: errNotFound()
+            contentText = response.contentString
+            userInfo = response.getHeader("Subscription-Userinfo")
+        }
 
+        val proxies = parseRaw(contentText) ?: errNotFound()
+
+        if (!subscription.link.startsWith("content://")) {
             // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
             // Subscription-Userinfo: upload=2375927198; download=12983696043; total=1099511627776; expire=1862111613
             // Be careful that some value may be empty.
-            val userInfo = response.getHeader("Subscription-Userinfo")
             if (userInfo.isNotBlank()) {
                 var used = 0L
                 var total = 0L
@@ -93,7 +97,6 @@ object RawUpdater : GroupUpdater() {
 
         return tidyProxies(proxies, subscription, proxyGroup, byUser, warnings)
     }
-
     @Suppress("UNCHECKED_CAST")
     suspend fun parseRaw(text: String, fileName: String = ""): List<AbstractBean>? {
 

@@ -10,6 +10,7 @@ import fr.husi.libcore.CopyCallback
 import fr.husi.libcore.HTTPClient
 import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.Libcore
+import fr.husi.libcore.resolveHttpClientFactory
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
@@ -111,7 +112,7 @@ internal suspend fun updateSingleRouteAsset(
 ): String {
     val targetFile = routeGeoDir(externalAssetsDir).resolve(asset.name)
 
-    Libcore.newHttpClient().apply {
+    resolveHttpClientFactory().newHttpClient().apply {
         keepAlive()
         if (DataStore.serviceState.connected) {
             useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
@@ -253,7 +254,7 @@ internal abstract class AssetsUpdater(
     remoteSource: RemoteSource? = null,
 ) {
     private val httpClient: HTTPClient? = if (remoteSource == null) {
-        Libcore.newHttpClient().apply {
+        resolveHttpClientFactory().newHttpClient().apply {
             keepAlive()
             if (DataStore.serviceState.connected) {
                 useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)

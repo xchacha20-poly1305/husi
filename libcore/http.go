@@ -25,6 +25,9 @@ import (
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
 	"github.com/sagernet/sing/protocol/socks/socks5"
+
+	"filippo.io/age"
+	"filippo.io/age/armor"
 )
 
 // HTTPClient is an adapt client of http.
@@ -43,6 +46,9 @@ type HTTPClient interface {
 
 	// KeepAlive force use HTTP/2 and enable keep alive.
 	KeepAlive()
+
+	// SetAgeKey decrypts response bodies with age identities.
+	SetAgeKey(identities string) error
 
 	// NewRequest creates a new HTTPRequest base settings.
 	NewRequest() HTTPRequest
@@ -101,9 +107,10 @@ var (
 )
 
 type httpClient struct {
-	tls       tls.Config
-	client    http.Client
-	transport http.Transport
+	tls           tls.Config
+	client        http.Client
+	transport     http.Transport
+	ageIdentities []age.Identity
 }
 
 func (c *httpClient) setTimeout(timeout time.Duration) {
@@ -187,6 +194,11 @@ func (c *httpClient) KeepAlive() {
 	c.transport.DisableKeepAlives = false
 }
 
+func (c *httpClient) SetAgeKey(identities string) (err error) {
+	c.ageIdentities, err = parseAgeIdentities(identities)
+	return
+}
+
 func (c *httpClient) NewRequest() HTTPRequest {
 	req := &httpRequest{httpClient: c}
 	req.request = http.Request{
@@ -260,7 +272,7 @@ func (r *httpRequest) Execute() (HTTPResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpResp := &httpResponse{Response: response}
+	httpResp := &httpResponse{Response: response, ageIdentities: r.ageIdentities}
 	if response.StatusCode != http.StatusOK {
 		return nil, E.New(httpResp.errorString())
 	}
@@ -269,6 +281,7 @@ func (r *httpRequest) Execute() (HTTPResponse, error) {
 
 type httpResponse struct {
 	*http.Response
+	ageIdentities []age.Identity
 
 	getContentOnce sync.Once
 	content        []byte
@@ -290,15 +303,35 @@ func (h *httpResponse) GetHeader(key string) string {
 	return h.Response.Header.Get(key)
 }
 
-func (h *httpResponse) GetContentString() (string, error) {
+func (h *httpResponse) getContentBytes() ([]byte, error) {
 	h.getContentOnce.Do(func() {
 		defer h.Body.Close()
-		h.content, h.contentError = io.ReadAll(h.Body)
+		reader, err := h.contentReader()
+		if err != nil {
+			h.contentError = err
+			return
+		}
+		h.content, h.contentError = io.ReadAll(reader)
 	})
 	if h.contentError != nil {
-		return "", h.contentError
+		return nil, h.contentError
 	}
-	return string(h.content), nil
+	return h.content, nil
+}
+
+func (h *httpResponse) contentReader() (io.Reader, error) {
+	if len(h.ageIdentities) == 0 {
+		return h.Body, nil
+	}
+	return age.Decrypt(armor.NewReader(h.Body), h.ageIdentities...)
+}
+
+func (h *httpResponse) GetContentString() (string, error) {
+	content, err := h.getContentBytes()
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
 }
 
 func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {

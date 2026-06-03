@@ -17,9 +17,9 @@ import fr.husi.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,6 +42,7 @@ internal data class GroupSettingsUiState(
     val subscriptionUserAgent: String = "",
     val subscriptionAutoUpdate: Boolean = false,
     val subscriptionUpdateDelay: Int = 1440,
+    val subscriptionAgeIdentity: String = "",
 )
 
 @Stable
@@ -97,6 +98,7 @@ internal class GroupSettingsViewModel(
                 subscriptionUserAgent = subscription.customUserAgent,
                 subscriptionAutoUpdate = subscription.autoUpdate,
                 subscriptionUpdateDelay = subscription.autoUpdateDelay,
+                subscriptionAgeIdentity = subscription.ageIdentity,
             ).also {
                 initialState.value = it
             }
@@ -119,6 +121,7 @@ internal class GroupSettingsViewModel(
         val keepUserInfo = entity.type == GroupType.SUBSCRIPTION
                 && initialState.value?.type == GroupType.SUBSCRIPTION
                 && entity.subscription?.link == state.subscriptionLink
+                && entity.subscription?.ageIdentity == state.subscriptionAgeIdentity
         if (!keepUserInfo) entity.subscription?.apply {
             bytesUsed = -1L
             bytesRemaining = -1L
@@ -147,6 +150,11 @@ internal class GroupSettingsViewModel(
                 customUserAgent = state.subscriptionUserAgent
                 autoUpdate = state.subscriptionAutoUpdate
                 autoUpdateDelay = state.subscriptionUpdateDelay
+                ageIdentity = if (type == SubscriptionType.RAW) {
+                    state.subscriptionAgeIdentity
+                } else {
+                    ""
+                }
             }
         }
     }
@@ -239,6 +247,12 @@ internal class GroupSettingsViewModel(
     fun setSubscriptionUpdateDelay(subscriptionUpdateDelay: Int) = viewModelScope.launch {
         _uiState.update {
             it.copy(subscriptionUpdateDelay = subscriptionUpdateDelay)
+        }
+    }
+
+    fun setSubscriptionAgeIdentity(subscriptionAgeIdentity: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionAgeIdentity = subscriptionAgeIdentity)
         }
     }
 

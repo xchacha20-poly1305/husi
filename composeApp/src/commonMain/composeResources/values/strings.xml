@@ -368,6 +368,7 @@
     <string name="subscription_settings">Subscription Settings</string>
     <string name="group_type">Group Type</string>
     <string name="subscription_type">Subscription Type</string>
+    <string name="age_identity">age identity</string>
     <string name="delete_group_prompt">Are you sure you want to remove this group?</string>
     <string name="force_resolve">Force Resolve</string>
     <string name="force_resolve_sum">Resolve all domain names to IP addresses when updating. Host and SNI will be automatically appended if possible</string>

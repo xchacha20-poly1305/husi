@@ -316,6 +316,7 @@
     <string name="subscription_settings">订阅设置</string>
     <string name="group_type">分组类型</string>
     <string name="subscription_type">订阅类型</string>
+    <string name="age_identity">age 身份</string>
     <string name="delete_group_prompt">您确定要删除该分组吗 ?</string>
     <string name="force_resolve">强制解析</string>
     <string name="force_resolve_sum">更新时解析所有域名到 IP 地址. 如果可能, 主机与服务器名称指示值将被自动覆盖</string>
