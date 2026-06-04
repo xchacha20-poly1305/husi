@@ -726,7 +726,7 @@
     <string name="mdns_network_interfaces">Сетевые интерфейсы mDNS</string>
     <string name="naive_idle_timeout">Тайм-аут при простое (сек.)</string>
     <string name="access_local_network_denied">Для подключения к прокси и устройствам в локальной сети требуется разрешение на доступ к локальной сети.</string>
-    <string name="naive_tunnel_timeout">Тайм-аут туннеля (сек.)</string>
+    <string name="naive_tunnel_timeout">Тайм-аут туннеля (сек)</string>
     <string name="build_environment">Среда сборки</string>
     <string name="select_file">Выбрать файл</string>
     <string name="hysteria2_obfs_type">Тип обфускации</string>
