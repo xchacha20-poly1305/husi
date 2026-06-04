@@ -243,9 +243,7 @@ func (r *httpRequest) SetUserAgent(userAgent string) {
 }
 
 func (r *httpRequest) SetContent(content []byte) {
-	buffer := bytes.Buffer{}
-	buffer.Write(content)
-	r.request.Body = io.NopCloser(bytes.NewReader(buffer.Bytes()))
+	r.request.Body = io.NopCloser(bytes.NewReader(content))
 	r.request.ContentLength = int64(len(content))
 }
 
