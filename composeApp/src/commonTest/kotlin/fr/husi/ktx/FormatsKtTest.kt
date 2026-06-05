@@ -1,9 +1,12 @@
 package fr.husi.ktx
 
+import fr.husi.fmt.shadowquic.ShadowQUICBean
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 
 class FormatsKtTest {
 
@@ -81,5 +84,18 @@ class FormatsKtTest {
         }
 
         assertEquals(error.message?.startsWith("decode base64: "), true)
+    }
+
+    @Test
+    fun `parseProxies should parse shadowquic share link`() = runTest {
+        val proxies = parseProxies("sq://user:pass@example.com?sni=cdn.com#node-01")
+        val bean = assertIs<ShadowQUICBean>(proxies.single())
+
+        assertEquals("example.com", bean.serverAddress)
+        assertEquals(443, bean.serverPort)
+        assertEquals("user", bean.username)
+        assertEquals("pass", bean.password)
+        assertEquals("cdn.com", bean.sni)
+        assertEquals("node-01", bean.name)
     }
 }

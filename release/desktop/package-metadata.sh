@@ -26,6 +26,8 @@ DESKTOP_URL_SCHEMES=(
     hy2
     tuic
     juicity
+    sq
+    shadowquic
     mieru
     anytls
     tt

@@ -164,6 +164,8 @@
                 <data android:scheme="hy2" />
                 <data android:scheme="tuic" />
                 <data android:scheme="juicity" />
+                <data android:scheme="sq" />
+                <data android:scheme="shadowquic" />
                 <data android:scheme="mieru" />
                 <data android:scheme="anytls" />
                 <data android:scheme="tt" />

@@ -1,12 +1,15 @@
 package fr.husi.fmt.shadowquic
 
 import fr.husi.database.DataStore
+import fr.husi.database.ProxyEntity
 import fr.husi.fmt.KryoConverters
 import fr.husi.ktx.getObject
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -14,6 +17,118 @@ class ShadowQUICFmtTest : HusiKoinTest() {
 
     override suspend fun postStartKoin() {
         DataStore.configurationStore.reset()
+    }
+
+    @Test
+    fun `parseShadowQUIC should parse sq share link fields`() {
+        val bean = parseShadowQUIC(
+            "sq://myuser:mypass@example.com:8443?sni=cdn.com&udp_mode=datagram" +
+                "&zero_rtt=true&mtu=1400&alpn=h3,h2,http%2F1.1#my%20tag%20with%20spaces",
+        )
+
+        assertEquals(ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC, bean.subProtocol)
+        assertEquals("myuser", bean.username)
+        assertEquals("mypass", bean.password)
+        assertEquals("example.com", bean.serverAddress)
+        assertEquals(8443, bean.serverPort)
+        assertEquals("cdn.com", bean.sni)
+        assertFalse(bean.udpOverStream)
+        assertTrue(bean.zeroRTT)
+        assertEquals(1400, bean.initialMTU)
+        assertEquals(1400, bean.minimumMTU)
+        assertEquals("h3,h2,http/1.1", bean.alpn)
+        assertEquals("my tag with spaces", bean.name)
+    }
+
+    @Test
+    fun `parseShadowQUIC should accept shadowquic scheme and default port mtu udp mode`() {
+        val bean = parseShadowQUIC("shadowquic://user:pass@example.com?sni=cdn.com#node-02")
+
+        assertEquals("example.com", bean.serverAddress)
+        assertEquals(443, bean.serverPort)
+        assertEquals(1280, bean.initialMTU)
+        assertEquals(1280, bean.minimumMTU)
+        assertTrue(bean.udpOverStream)
+        assertFalse(bean.zeroRTT)
+        assertEquals("node-02", bean.name)
+    }
+
+    @Test
+    fun `parseShadowQUIC should enable zero rtt only for non blank query value`() {
+        val emptyValue = parseShadowQUIC("sq://user:pass@example.com?sni=cdn.com&zero_rtt=")
+        val flagOnly = parseShadowQUIC("sq://user:pass@example.com?sni=cdn.com&zero_rtt")
+        val nonBlankValue = parseShadowQUIC("sq://user:pass@example.com?sni=cdn.com&zero_rtt=false")
+
+        assertFalse(emptyValue.zeroRTT)
+        assertFalse(flagOnly.zeroRTT)
+        assertTrue(nonBlankValue.zeroRTT)
+    }
+
+    @Test
+    fun `parseShadowQUIC should reject missing required fields`() {
+        assertFailsWith<IllegalStateException> {
+            parseShadowQUIC("sq://user:pass@example.com")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            parseShadowQUIC("sq://:pass@example.com?sni=cdn.com")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            parseShadowQUIC("sq://user:@example.com?sni=cdn.com")
+        }
+    }
+
+    @Test
+    fun `toUri should export sq share link and preserve parsed fields`() {
+        val source = ShadowQUICBean().apply {
+            subProtocol = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
+            serverAddress = "example.com"
+            serverPort = 8443
+            username = "myuser"
+            password = "mypass"
+            sni = "cdn.com"
+            udpOverStream = false
+            zeroRTT = true
+            initialMTU = 1400
+            minimumMTU = 1400
+            alpn = "h3,h2,http/1.1"
+            name = "my tag with spaces"
+        }
+
+        val uri = source.toUri()
+        val parsed = parseShadowQUIC(uri)
+
+        assertTrue(uri.startsWith("sq://"))
+        assertEquals(source.serverAddress, parsed.serverAddress)
+        assertEquals(source.serverPort, parsed.serverPort)
+        assertEquals(source.username, parsed.username)
+        assertEquals(source.password, parsed.password)
+        assertEquals(source.sni, parsed.sni)
+        assertEquals(source.udpOverStream, parsed.udpOverStream)
+        assertEquals(source.zeroRTT, parsed.zeroRTT)
+        assertEquals(source.initialMTU, parsed.initialMTU)
+        assertEquals(source.minimumMTU, parsed.minimumMTU)
+        assertEquals(source.alpn, parsed.alpn)
+        assertEquals(source.name, parsed.name)
+    }
+
+    @Test
+    fun `standard share link should be unavailable for sunnyquic`() {
+        val shadowQUIC = ProxyEntity().putBean(
+            ShadowQUICBean().apply {
+                subProtocol = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
+            },
+        )
+        val sunnyQUIC = ProxyEntity().putBean(
+            ShadowQUICBean().apply {
+                subProtocol = ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC
+            },
+        )
+
+        assertTrue(shadowQUIC.haveStandardLink())
+        assertFalse(sunnyQUIC.haveStandardLink())
+        assertFailsWith<IllegalStateException> {
+            sunnyQUIC.toStdLink()
+        }
     }
 
     @Test
@@ -25,6 +140,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
             password = "pass"
             sni = "sni.example.com"
             congestionControl = "bbr"
+            mtuDiscovery = true
             blackholeDetection = true
             subProtocol = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
         }

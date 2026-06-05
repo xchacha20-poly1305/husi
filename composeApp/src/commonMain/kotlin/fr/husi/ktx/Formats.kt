@@ -10,6 +10,7 @@ import fr.husi.fmt.juicity.parseJuicity
 import fr.husi.fmt.mieru.parseMieru
 import fr.husi.fmt.naive.parseNaive
 import fr.husi.fmt.parseUniversal
+import fr.husi.fmt.shadowquic.parseShadowQUIC
 import fr.husi.fmt.shadowsocks.parseShadowsocks
 import fr.husi.fmt.socks.parseSOCKS
 import fr.husi.fmt.trojan.parseTrojan
@@ -208,6 +209,15 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 Logs.d("Try parse Juicity link: $this")
                 runCatching {
                     entities.add(parseJuicity(this))
+                }.onFailure {
+                    Logs.w(it)
+                }
+            }
+
+            "sq", "shadowquic" -> {
+                Logs.d("Try parse ShadowQUIC link: $this")
+                runCatching {
+                    entities.add(parseShadowQUIC(this))
                 }.onFailure {
                     Logs.w(it)
                 }

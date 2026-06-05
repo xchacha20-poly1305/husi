@@ -40,6 +40,7 @@ import fr.husi.fmt.naive.buildNaiveConfig
 import fr.husi.fmt.naive.toUri
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
+import fr.husi.fmt.shadowquic.toUri
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.toUri
 import fr.husi.fmt.shadowtls.ShadowTLSBean
@@ -271,11 +272,11 @@ data class ProxyEntity(
     fun haveStandardLink(): Boolean = when (type) {
         TYPE_SSH -> false
         TYPE_WG -> false
-        TYPE_SHADOWQUIC -> false
         TYPE_SHADOWTLS -> false
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
+        TYPE_SHADOWQUIC -> shadowQUICBean!!.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
         else -> true
     }
 
@@ -294,6 +295,13 @@ data class ProxyEntity(
             is MieruBean -> toUri()
             is AnyTLSBean -> toUri()
             is TrustTunnelBean -> toUri()
+
+            is ShadowQUICBean -> if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
+                toUri()
+            } else {
+                toUniversalLink()
+            }
+
             else -> toUniversalLink()
         }
     }
@@ -597,7 +605,7 @@ data class ProxyEntity(
         suspend fun syncProxies(
             toInsert: List<ProxyEntity>,
             toUpdate: List<ProxyEntity>,
-            toDelete: List<ProxyEntity>
+            toDelete: List<ProxyEntity>,
         ) {
             if (toInsert.isNotEmpty()) {
                 insert(toInsert)
