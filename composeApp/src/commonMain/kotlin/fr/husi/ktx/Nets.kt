@@ -4,8 +4,11 @@ import fr.husi.BuildConfig
 import fr.husi.database.DataStore
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.LOCALHOST4
+import fr.husi.fmt.SingBoxOptions
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
+import java.net.Inet4Address
+import java.net.InetAddress
 import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
@@ -54,6 +57,33 @@ fun currentSocks5(): URL? = if (!DataStore.serviceState.connected) {
 
 fun String.isIpAddress(): Boolean {
     return isIPv4() || isIPv6()
+}
+
+fun serverAddressDomainStrategy(): String? {
+    return defaultOr(
+        DataStore.domainStrategyForServer.replace("auto", "").blankAsNull(),
+        { DataStore.networkStrategy.blankAsNull() },
+    )
+}
+
+fun List<InetAddress>.selectByNetworkStrategy(networkStrategy: String): InetAddress? {
+    val candidates = when (networkStrategy) {
+        SingBoxOptions.STRATEGY_IPV4_ONLY -> filterIsInstance<Inet4Address>()
+        SingBoxOptions.STRATEGY_IPV6_ONLY -> filterIsInstance<Inet6Address>()
+        else -> this
+    }
+
+    return when (networkStrategy) {
+        SingBoxOptions.STRATEGY_PREFER_IPV4 -> {
+            candidates.firstOrNull { it is Inet4Address } ?: candidates.firstOrNull()
+        }
+
+        SingBoxOptions.STRATEGY_PREFER_IPV6 -> {
+            candidates.firstOrNull { it is Inet6Address } ?: candidates.firstOrNull()
+        }
+
+        else -> candidates.firstOrNull()
+    }
 }
 
 fun String.isIPv4(): Boolean {

@@ -108,6 +108,32 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig for URL test applies server domain strategy`() = runBlocking {
+        DataStore.networkStrategy = SingBoxOptions.STRATEGY_PREFER_IPV6
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "server-domain",
+            host = "server.example.com",
+            port = 1080,
+        )
+
+        val outbounds = parseOutbounds(buildConfig(proxy, forTest = true))
+        val outbound = assertNotNull(outbounds["server-domain"])
+        val domainResolver = assertNotNull(outbound["domain_resolver"]).jsonObject
+
+        assertEquals(TAG_DNS_LOCAL, domainResolver["server"]?.jsonPrimitive?.content)
+        assertEquals(
+            SingBoxOptions.STRATEGY_PREFER_IPV6,
+            domainResolver["strategy"]?.jsonPrimitive?.content,
+        )
+    }
+
+    @Test
     fun `buildConfig should expand group chain front and landing for regular profile`() = runBlocking {
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)

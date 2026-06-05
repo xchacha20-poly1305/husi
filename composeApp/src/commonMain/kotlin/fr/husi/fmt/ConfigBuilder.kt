@@ -77,6 +77,7 @@ import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.mergeJson
 import fr.husi.ktx.mkPort
 import fr.husi.ktx.reverse
+import fr.husi.ktx.serverAddressDomainStrategy
 import fr.husi.ktx.showToast
 import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonMapKxs
@@ -251,6 +252,7 @@ fun buildConfig(
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     val defaultStrategy = DataStore.networkStrategy.blankAsNull()
+    val serverDomainStrategy = serverAddressDomainStrategy()
     val disableTcpKeepAlive = DataStore.disableTcpKeepAlive
     val tcpKeepAliveIdle = DataStore.tcpKeepAliveIdle.blankAsNull()
     val tcpKeepAliveInterval = DataStore.tcpKeepAliveInterval.blankAsNull()
@@ -610,13 +612,14 @@ fun buildConfig(
                         this["udp_over_tcp"] = true
                     }
 
-                    if (!forTest && bean !is ProxySetBean) {
+                    if (bean !is ProxySetBean && (!forTest || serverDomainStrategy != null)) {
                         this["domain_resolver"] = DomainResolveOptions().apply {
-                            server = TAG_DNS_DIRECT
-                            strategy = defaultOr(
-                                DataStore.domainStrategyForServer.replace("auto", "").blankAsNull(),
-                                { defaultStrategy },
-                            )
+                            server = if (forTest) {
+                                TAG_DNS_LOCAL
+                            } else {
+                                TAG_DNS_DIRECT
+                            }
+                            strategy = serverDomainStrategy
                         }.asKxsMap()
                     }
 

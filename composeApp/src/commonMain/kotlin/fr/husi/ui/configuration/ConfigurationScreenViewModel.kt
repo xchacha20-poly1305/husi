@@ -31,6 +31,8 @@ import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.removeFirstMatched
 import fr.husi.ktx.runOnIoDispatcher
+import fr.husi.ktx.selectByNetworkStrategy
+import fr.husi.ktx.serverAddressDomainStrategy
 import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
 import fr.husi.plugin.PluginNotFoundException
@@ -302,16 +304,8 @@ class ConfigurationScreenViewModel : ViewModel() {
         val bean = profile.requireBean()
         if (!bean.canICMPing) return TestResult.Failure(FailureReason.IcmpUnavailable)
 
-        var address = bean.serverAddress
-        if (!address.isIpAddress()) try {
-            InetAddress.getAllByName(address)[0]?.let {
-                address = it.hostAddress!!
-            }
-        } catch (_: UnknownHostException) {
-        }
-        if (!address.isIpAddress()) {
-            return TestResult.Failure(FailureReason.DomainNotFound)
-        }
+        val address = resolvePingAddress(bean.serverAddress)
+            ?: return TestResult.Failure(FailureReason.DomainNotFound)
 
         return try {
             val result = Libcore.icmpPing(address, 5000)
@@ -326,16 +320,8 @@ class ConfigurationScreenViewModel : ViewModel() {
         val bean = profile.requireBean()
         if (!bean.canTCPing) return TestResult.Failure(FailureReason.TcpUnavailable)
 
-        var address = bean.serverAddress
-        if (!address.isIpAddress()) try {
-            InetAddress.getAllByName(address)[0]?.let {
-                address = it.hostAddress!!
-            }
-        } catch (_: UnknownHostException) {
-        }
-        if (!address.isIpAddress()) {
-            return TestResult.Failure(FailureReason.DomainNotFound)
-        }
+        val address = resolvePingAddress(bean.serverAddress)
+            ?: return TestResult.Failure(FailureReason.DomainNotFound)
 
         return try {
             val result = Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
@@ -358,6 +344,19 @@ class ConfigurationScreenViewModel : ViewModel() {
 
                 else -> TestResult.Failure(FailureReason.Generic(e.readableMessage))
             }
+        }
+    }
+
+    private fun resolvePingAddress(serverAddress: String): String? {
+        if (serverAddress.isIpAddress()) return serverAddress
+
+        return try {
+            InetAddress.getAllByName(serverAddress)
+                .filterNotNull()
+                .selectByNetworkStrategy(serverAddressDomainStrategy().orEmpty())
+                ?.hostAddress
+        } catch (_: UnknownHostException) {
+            null
         }
     }
 

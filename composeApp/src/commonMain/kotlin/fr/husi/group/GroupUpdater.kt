@@ -10,7 +10,6 @@ import fr.husi.database.SagerDatabase
 import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.Deduplication
-import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.http.HttpBean
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.v2ray.StandardV2RayBean
@@ -18,6 +17,8 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
+import fr.husi.ktx.selectByNetworkStrategy
+import fr.husi.ktx.serverAddressDomainStrategy
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.force_resolve_error
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.net.Inet4Address
 import java.net.InetAddress
 
 data class GroupUpdateWarning(
@@ -83,11 +83,7 @@ abstract class GroupUpdater {
     ): GroupUpdateResult.Success
 
     private suspend fun forceResolve(profiles: List<AbstractBean>) = coroutineScope {
-        val networkStrategy = DataStore.networkStrategy
-        val ipv6First = when (networkStrategy) {
-            SingBoxOptions.STRATEGY_IPV6_ONLY, SingBoxOptions.STRATEGY_PREFER_IPV6 -> true
-            else -> false
-        }
+        val networkStrategy = serverAddressDomainStrategy().orEmpty()
         val shouldResolveByDefaultNetwork = DataStore.enableFakeDns
                 && DataStore.serviceState.started
                 && DataStore.serviceMode == Key.MODE_VPN
@@ -105,7 +101,7 @@ abstract class GroupUpdater {
                         InetAddress.getAllByName(profile.serverAddress).filterNotNull()
                     }
                     if (results.isEmpty()) error("empty response")
-                    this@GroupUpdater.rewriteAddress(profile, results, ipv6First)
+                    this@GroupUpdater.rewriteAddress(profile, results, networkStrategy)
                 } catch (e: Exception) {
                     Logs.d("Lookup ${profile.serverAddress}", e)
                 }
@@ -114,9 +110,10 @@ abstract class GroupUpdater {
     }
 
     private fun rewriteAddress(
-        bean: AbstractBean, addresses: List<InetAddress>, ipv6First: Boolean,
+        bean: AbstractBean, addresses: List<InetAddress>, networkStrategy: String,
     ) {
-        val address = addresses.sortedBy { (it is Inet4Address) xor ipv6First }[0].hostAddress!!
+        val address = addresses.selectByNetworkStrategy(networkStrategy)?.hostAddress
+            ?: error("empty response")
 
         with(bean) {
             when (this) {
