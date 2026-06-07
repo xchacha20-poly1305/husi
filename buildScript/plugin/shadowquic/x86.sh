@@ -11,6 +11,5 @@ export CXX=$ANDROID_X86_CXX
 export RUST_ANDROID_GRADLE_CC=$ANDROID_X86_CC
 export CARGO_TARGET_I686_LINUX_ANDROID_LINKER=$SRC_ROOT/buildScript/rust-linker/linker-wrapper.sh
 
-cargo build --release -p shadowquic --target i686-linux-android
+cargo build --release -p shadowquic --target i686-linux-android --no-default-features --features shadowquic-quinn,sunnyquic-noq,ring
 cp target/i686-linux-android/release/shadowquic $DIR/$LIB_OUTPUT
-
