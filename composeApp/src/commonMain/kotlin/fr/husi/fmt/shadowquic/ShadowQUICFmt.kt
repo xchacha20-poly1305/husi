@@ -25,43 +25,51 @@ is desired, be aware of these differences:
 1. `sni` field:
 - Official: REQUIRED field.
 - APK: OPTIONAL. When missing or empty, defaults to `host` as SNI.
+- We: REQUIRED, because the sni is fake.
 
 2. `zero_rtt` semantics:
 - Official: "any value means true" (presence-based).
 - APK: parses as boolean string (true/false/1/0/yes/no). Invalid values error.
+- We: Respect official.
 
 3. `mtu` default value:
 - Official: 1280 (used for both min-mtu and initial-mtu).
 - APK: 1380 (written to both min_mtu and initial_mtu in core config).
+- We: Respect official.
 
 4. `udp_mode` validation:
 - Official: enum must be "stream" or "datagram".
-- APK: no enum check. Invalid values are saved as-is; kernel may fail later.
+- APK: no enum check. Invalid values are saved as-is; core may fail later.
 
 5. `udp_mod` vs `udp_mode`:
 - Official: field name is `udp_mode`.
 - APK: reads `udp_mode` first, falls back to non-standard `udp_mod`. Exports as `udp_mod`.
+- We: Export to `udp_mode`. Import fallback to `udp_mod`.
 
 6. `alpn` validation:
 - Official: valid values are "h3", "h2", "http/1.1".
 - APK: splits by comma, trims items, but does NOT validate enum. Unknown values accepted.
+- We: Don't care.
 
 7. fragment / tag:
 - Official: examples show fragment, no strict requirement mentioned.
 - APK: REQUIRED. Errors if missing. Also accepts `tag` query param as fallback.
+- We: fragment -> `tag`
  */
 fun parseShadowQUIC(link: String): ShadowQUICBean {
     val url = Libcore.parseURL(link)
     return ShadowQUICBean().apply {
         subProtocol = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
-        name = url.fragment
+        name = url.fragment ?: url.queryParameter("tag")
         username = url.username
         password = url.password
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
         sni = url.queryParameterNotBlank("sni") ?: error("shadowquic sni is empty")
-        udpOverStream = when (url.queryParameterNotBlank("udp_mode")) {
-            "stream", null -> true
+        val udpMode = url.queryParameterNotBlank("udp_mode")
+            ?: url.queryParameterNotBlank("udp_mod")
+        udpOverStream = when (udpMode) {
+            "stream" -> true
             "datagram" -> false
             else -> true // ?
         }
@@ -103,8 +111,8 @@ fun ShadowQUICBean.toUri(): String {
         if (initialMTU > 0 && initialMTU == minimumMTU) {
             addQueryParameter("mtu", initialMTU.toString())
         }
-        alpn.blankAsNull()?.let {
-            addQueryParameter("alpn", it)
+        alpn.blankAsNull()?.listByLineOrComma()?.let { alpns ->
+            addQueryParameter("alpn", alpns.joinToString(",") { it.trim() })
         }
         fragment = name.blankAsNull()
     }.string
