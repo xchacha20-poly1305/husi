@@ -229,7 +229,6 @@ val generateDesktopPlatformInfo by tasks.registering {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
-        freeCompilerArgs.add("-Xexplicit-backing-fields")
         optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
         optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
     }

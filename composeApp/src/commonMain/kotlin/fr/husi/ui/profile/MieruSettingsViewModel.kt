@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -27,11 +27,11 @@ internal data class MieruUiState(
 internal class MieruSettingsViewModel : ProfileEditorViewModel<MieruBean>() {
     override fun createBean() = MieruBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(MieruUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<MieruUiState>
+        field = MutableStateFlow(MieruUiState())
 
     override suspend fun MieruBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -49,7 +49,7 @@ internal class MieruSettingsViewModel : ProfileEditorViewModel<MieruBean>() {
     }
 
     override fun MieruBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
         name = state.name
@@ -64,51 +64,51 @@ internal class MieruSettingsViewModel : ProfileEditorViewModel<MieruBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update {
+        uiState.update {
             it.copy(customConfig = config)
         }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update {
+        uiState.update {
             it.copy(customOutbound = outbound)
         }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setProtocol(protocol: String) {
-        _uiState.update { it.copy(protocol = protocol) }
+        uiState.update { it.copy(protocol = protocol) }
     }
 
     fun setUsername(username: String) {
-        _uiState.update { it.copy(username = username) }
+        uiState.update { it.copy(username = username) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setMtu(mtu: Int) {
-        _uiState.update { it.copy(mtu = mtu) }
+        uiState.update { it.copy(mtu = mtu) }
     }
 
     fun setMuxNumber(number: Int) {
-        _uiState.update { it.copy(muxNumber = number) }
+        uiState.update { it.copy(muxNumber = number) }
     }
 
     fun setTrafficPattern(trafficPattern: String) {
-        _uiState.update { it.copy(trafficPattern = trafficPattern) }
+        uiState.update { it.copy(trafficPattern = trafficPattern) }
     }
 
 }

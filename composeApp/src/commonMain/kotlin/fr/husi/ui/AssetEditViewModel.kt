@@ -10,15 +10,15 @@ import fr.husi.database.SagerDatabase
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.repository.resolveRepository
+import fr.husi.resources.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import fr.husi.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 @Immutable
@@ -33,8 +33,8 @@ internal class AssetEditViewModel(
     assetName: String,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AssetEditUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<AssetEditUiState>
+        field = MutableStateFlow(AssetEditUiState())
 
     private val initialState = MutableStateFlow<AssetEditUiState?>(null)
     val isDirty = combine(uiState, initialState) { currentState, initialState ->
@@ -64,7 +64,7 @@ internal class AssetEditViewModel(
             isNew = true
         }
         editingName = name
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 name = asset.name,
                 link = asset.url,
@@ -80,11 +80,11 @@ internal class AssetEditViewModel(
     fun save() = runOnIoDispatcher {
         if (isNew) {
             val entity = AssetEntity()
-            entity.loadFromUiState(_uiState.value)
+            entity.loadFromUiState(uiState.value)
             SagerDatabase.assetDao.create(entity)
         } else if (isDirty.value) {
             val entity = SagerDatabase.assetDao.get(editingName) ?: return@runOnIoDispatcher
-            entity.loadFromUiState(_uiState.value)
+            entity.loadFromUiState(uiState.value)
             SagerDatabase.assetDao.update(entity)
         }
         RouteAssetUpdater.reconfigureUpdater()
@@ -97,13 +97,13 @@ internal class AssetEditViewModel(
     }
 
     fun setName(name: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(name = name)
         }
     }
 
     fun setLink(link: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             val name = it.name.blankAsNull() ?: link.substringAfterLast("/")
             it.copy(
                 name = name,
@@ -114,7 +114,7 @@ internal class AssetEditViewModel(
     }
 
     fun setAutoUpdateDelay(autoUpdateDelay: Int) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(autoUpdateDelay = autoUpdateDelay)
         }
     }

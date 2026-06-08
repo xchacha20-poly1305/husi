@@ -7,15 +7,15 @@ import androidx.lifecycle.viewModelScope
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
+import fr.husi.resources.*
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
 
 @Immutable
 internal data class RuleSetMatchUiState(
@@ -31,15 +31,15 @@ internal sealed interface RuleSetMatchUiEvent {
 
 @Stable
 internal class RuleSetMatchScreenViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(RuleSetMatchUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<RuleSetMatchUiState>
+        field = MutableStateFlow(RuleSetMatchUiState())
 
-    private val _uiEvent = MutableSharedFlow<RuleSetMatchUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val uiEvent: SharedFlow<RuleSetMatchUiEvent>
+        field = MutableSharedFlow<RuleSetMatchUiEvent>()
 
     fun scan() {
         viewModelScope.launch(Dispatchers.IO) {
-            val state = _uiState.value
+            val state = uiState.value
             scan0(state.keyword)
         }
     }
@@ -47,27 +47,27 @@ internal class RuleSetMatchScreenViewModel : ViewModel() {
     private val matched = mutableListOf<String>() // reuse
 
     private suspend fun scan0(keyword: String) {
-        _uiState.update { it.copy(isDoing = true) }
+        uiState.update { it.copy(isDoing = true) }
         matched.clear()
         try {
             Libcore.scanRuleSet(keyword) {
                 matched.add(it)
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(matched = matched)
                 }
             }
             if (matched.isEmpty()) {
-                _uiEvent.emit(RuleSetMatchUiEvent.Alert(StringOrRes.Res(Res.string.not_found)))
+                uiEvent.emit(RuleSetMatchUiEvent.Alert(StringOrRes.Res(Res.string.not_found)))
             }
         } catch (e: Exception) {
             Logs.e(e)
-            _uiEvent.emit(RuleSetMatchUiEvent.Alert(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(RuleSetMatchUiEvent.Alert(StringOrRes.Direct(e.readableMessage)))
         } finally {
-            _uiState.update { it.copy(isDoing = false) }
+            uiState.update { it.copy(isDoing = false) }
         }
     }
 
     fun setKeyword(keyword: String) {
-        _uiState.update { it.copy(keyword = keyword) }
+        uiState.update { it.copy(keyword = keyword) }
     }
 }

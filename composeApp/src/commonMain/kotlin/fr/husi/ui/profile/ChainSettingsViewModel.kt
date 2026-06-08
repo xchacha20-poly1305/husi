@@ -8,12 +8,12 @@ import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.ktx.onDefaultDispatcher
+import fr.husi.resources.*
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
 
 @Immutable
 internal data class ChainUiState(
@@ -26,13 +26,13 @@ internal data class ChainUiState(
 
 @Stable
 internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
-    private val _uiState = MutableStateFlow(ChainUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<ChainUiState>
+        field = MutableStateFlow(ChainUiState())
 
     override fun createBean() = ChainBean()
 
     override suspend fun ChainBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 name = name,
                 customConfig = customConfigJson,
@@ -43,7 +43,7 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
     }
 
     override fun ChainBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         name = state.name
         customConfigJson = state.customConfig
@@ -60,28 +60,28 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
                 proxyList.add(profiles[id] ?: continue)
             }
         }
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = proxyList)
         }
     }
 
     fun submitReorder(changes: List<OrderedItem<ProxyEntity>>) {
-        val currentProfiles = _uiState.value.profiles
+        val currentProfiles = uiState.value.profiles
         val changesMap = changes.associate { it.value.id to it.newIndex }
 
         val reordered = currentProfiles.sortedBy { profile ->
             changesMap[profile.id] ?: currentProfiles.indexOf(profile)
         }
 
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = reordered)
         }
     }
 
     fun remove(index: Int) = viewModelScope.launch {
-        val profiles = _uiState.value.profiles.toMutableList()
+        val profiles = uiState.value.profiles.toMutableList()
         profiles.removeAt(index)
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = profiles)
         }
     }
@@ -98,7 +98,7 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
             )
             return@launch
         }
-        val profiles = _uiState.value.profiles.toMutableList()
+        val profiles = uiState.value.profiles.toMutableList()
         if (replacing < 0) {
             if (profiles.any { it.id == profile.id }) {
                 emitAlert(
@@ -121,7 +121,7 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
             profiles[replacing] = profile
             replacing = -1
         }
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = profiles)
         }
     }
@@ -129,7 +129,7 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
     private fun ProxyEntity.canAdd(): Boolean {
         if (id == editingId) return false
 
-        for (entity in _uiState.value.profiles) {
+        for (entity in uiState.value.profiles) {
             if (testProfileContains(entity, this)) return false
         }
 
@@ -152,14 +152,14 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 }

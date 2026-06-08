@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.ssh.SSHBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -27,11 +27,11 @@ internal data class SshUiState(
 internal class SSHSettingsViewModel : ProfileEditorViewModel<SSHBean>() {
     override fun createBean() = SSHBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(SshUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<SshUiState>
+        field = MutableStateFlow(SshUiState())
 
     override suspend fun SSHBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -49,7 +49,7 @@ internal class SSHSettingsViewModel : ProfileEditorViewModel<SSHBean>() {
     }
 
     override fun SSHBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -65,46 +65,46 @@ internal class SSHSettingsViewModel : ProfileEditorViewModel<SSHBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setUsername(username: String) {
-        _uiState.update { it.copy(username = username) }
+        uiState.update { it.copy(username = username) }
     }
 
     fun setAuthType(type: Int) {
-        _uiState.update { it.copy(authType = type) }
+        uiState.update { it.copy(authType = type) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setPrivateKey(key: String) {
-        _uiState.update { it.copy(privateKey = key) }
+        uiState.update { it.copy(privateKey = key) }
     }
 
     fun setPrivateKeyPassphrase(passphrase: String) {
-        _uiState.update { it.copy(privateKeyPassphrase = passphrase) }
+        uiState.update { it.copy(privateKeyPassphrase = passphrase) }
     }
 
     fun setPublicKey(key: String) {
-        _uiState.update { it.copy(publicKey = key) }
+        uiState.update { it.copy(publicKey = key) }
     }
 }

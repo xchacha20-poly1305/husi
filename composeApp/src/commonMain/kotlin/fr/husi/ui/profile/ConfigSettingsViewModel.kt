@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import fr.husi.fmt.config.ConfigBean
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -20,12 +20,12 @@ internal class ConfigSettingsViewModel : ProfileEditorViewModel<ConfigBean>() {
 
     override fun createBean() = ConfigBean()
 
-    private val _uiState = MutableStateFlow(ConfigUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<ConfigUiState>
+        field = MutableStateFlow(ConfigUiState())
 
 
     override suspend fun ConfigBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 name = name,
                 type = type,
@@ -44,7 +44,7 @@ internal class ConfigSettingsViewModel : ProfileEditorViewModel<ConfigBean>() {
     }
 
     override fun ConfigBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
         name = state.name
         type = state.type
         config = when (type) {
@@ -55,23 +55,23 @@ internal class ConfigSettingsViewModel : ProfileEditorViewModel<ConfigBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setType(type: Int) {
-        _uiState.update { it.copy(type = type) }
+        uiState.update { it.copy(type = type) }
     }
 
     fun setConfigForResult(config: String) {
-        _uiState.update {
+        uiState.update {
             when (it.type) {
                 ConfigBean.TYPE_CONFIG -> it.copy(customConfig = config)
                 ConfigBean.TYPE_OUTBOUND -> it.copy(customOutbound = config)

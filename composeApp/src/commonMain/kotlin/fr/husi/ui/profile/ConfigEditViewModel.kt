@@ -8,21 +8,20 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.husi.ktx.kxs
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
 import fr.husi.ktx.Logs
+import fr.husi.ktx.kxs
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
+import fr.husi.resources.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.StringResource
 
 @Immutable
@@ -43,11 +42,11 @@ class ConfigEditViewModel(
     initialText: String,
 ) : ViewModel() {
 
-    private val _uiEvent = MutableSharedFlow<ConfigEditUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val uiEvent: SharedFlow<ConfigEditUiEvent>
+        field = MutableSharedFlow<ConfigEditUiEvent>()
 
-    private val _uiState = MutableStateFlow(ConfigEditUiState())
-    val uiState: StateFlow<ConfigEditUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<ConfigEditUiState>
+        field = MutableStateFlow(ConfigEditUiState())
 
     val textFieldState = TextFieldState("")
 
@@ -144,7 +143,7 @@ class ConfigEditViewModel(
     }
 
     private fun updateUndoRedoState() {
-        _uiState.value = _uiState.value.copy(
+        uiState.value = uiState.value.copy(
             canUndo = historyPointer > 0,
             canRedo = historyPointer < historyStack.size - 1,
         )
@@ -158,7 +157,7 @@ class ConfigEditViewModel(
             addToHistory(formatted)
         } catch (e: Exception) {
             viewModelScope.launch {
-                _uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
+                uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
             }
         }
     }
@@ -188,10 +187,10 @@ class ConfigEditViewModel(
             Libcore.checkConfig(jsonContent)
         } catch (e: Exception) {
             Logs.i("failed to check config", e)
-            _uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
+            uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
             return
         }
-        _uiEvent.emit(ConfigEditUiEvent.SnackBar(Res.string.ok))
+        uiEvent.emit(ConfigEditUiEvent.SnackBar(Res.string.ok))
     }
 
     fun saveAndExit() = viewModelScope.launch {
@@ -199,9 +198,9 @@ class ConfigEditViewModel(
             formatJson(textFieldState.text.toString())
         } catch (e: Exception) {
             Logs.w(e)
-            _uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
+            uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
             return@launch
         }
-        _uiEvent.emit(ConfigEditUiEvent.Finish(formatted))
+        uiEvent.emit(ConfigEditUiEvent.Finish(formatted))
     }
 }

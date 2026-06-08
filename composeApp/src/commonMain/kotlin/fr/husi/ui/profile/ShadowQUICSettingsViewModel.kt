@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -39,11 +39,11 @@ internal data class ShadowQUICUiState(
 internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBean>() {
     override fun createBean() = ShadowQUICBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(ShadowQUICUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<ShadowQUICUiState>
+        field = MutableStateFlow(ShadowQUICUiState())
 
     override suspend fun ShadowQUICBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -73,7 +73,7 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
     }
 
     override fun ShadowQUICBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
         name = state.name
@@ -100,87 +100,87 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update {
+        uiState.update {
             it.copy(customConfig = config)
         }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update {
+        uiState.update {
             it.copy(customOutbound = outbound)
         }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setUsername(username: String) {
-        _uiState.update { it.copy(username = username) }
+        uiState.update { it.copy(username = username) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setSni(sni: String) {
-        _uiState.update { it.copy(sni = sni) }
+        uiState.update { it.copy(sni = sni) }
     }
 
     fun setAlpn(alpn: String) {
-        _uiState.update { it.copy(alpn = alpn) }
+        uiState.update { it.copy(alpn = alpn) }
     }
 
     fun setInitialMtu(mtu: Int) {
-        _uiState.update { it.copy(initialMtu = mtu) }
+        uiState.update { it.copy(initialMtu = mtu) }
     }
 
     fun setMinMtu(mtu: Int) {
-        _uiState.update { it.copy(minMtu = mtu) }
+        uiState.update { it.copy(minMtu = mtu) }
     }
 
     fun setCongestionControl(control: String) {
-        _uiState.update { it.copy(congestionControl = control) }
+        uiState.update { it.copy(congestionControl = control) }
     }
 
     fun setZeroRTT(enabled: Boolean) {
-        _uiState.update { it.copy(zeroRTT = enabled) }
+        uiState.update { it.copy(zeroRTT = enabled) }
     }
 
     fun setUdpOverStream(enabled: Boolean) {
-        _uiState.update { it.copy(udpOverStream = enabled) }
+        uiState.update { it.copy(udpOverStream = enabled) }
     }
 
     fun setGso(enabled: Boolean) {
-        _uiState.update { it.copy(gso = enabled) }
+        uiState.update { it.copy(gso = enabled) }
     }
 
     fun setKeepAliveInterval(interval: Int) {
-        _uiState.update { it.copy(keepAliveInterval = interval) }
+        uiState.update { it.copy(keepAliveInterval = interval) }
     }
 
     fun setMtuDiscovery(enabled: Boolean) {
-        _uiState.update { it.copy(mtuDiscovery = enabled) }
+        uiState.update { it.copy(mtuDiscovery = enabled) }
     }
 
     fun setBlackholeDetection(enabled: Boolean) {
-        _uiState.update { it.copy(blackholeDetection = enabled) }
+        uiState.update { it.copy(blackholeDetection = enabled) }
     }
 
     fun setSubProtocol(protocol: Int) {
-        _uiState.update { it.copy(subProtocol = protocol) }
+        uiState.update { it.copy(subProtocol = protocol) }
     }
 
     fun setExtraPaths(extraPaths: String) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 extraPaths = extraPaths,
                 maxPaths = state.maxPaths.coerceIn(0, extraPaths.lines().count { path -> path.isNotBlank() }),
@@ -189,7 +189,7 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
     }
 
     fun setMaxPaths(maxPaths: Int) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 maxPaths = maxPaths.coerceIn(
                     0,
@@ -200,6 +200,6 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
     }
 
     fun setCertificates(certificates: String) {
-        _uiState.update { it.copy(certificates = certificates) }
+        uiState.update { it.copy(certificates = certificates) }
     }
 }

@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.direct.DirectBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -19,11 +19,11 @@ internal data class DirectUiState(
 internal class DirectSettingsViewModel : ProfileEditorViewModel<DirectBean>() {
     override fun createBean() = DirectBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(DirectUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<DirectUiState>
+        field = MutableStateFlow(DirectUiState())
 
     override suspend fun DirectBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -33,7 +33,7 @@ internal class DirectSettingsViewModel : ProfileEditorViewModel<DirectBean>() {
     }
 
     override fun DirectBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -41,14 +41,14 @@ internal class DirectSettingsViewModel : ProfileEditorViewModel<DirectBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 }

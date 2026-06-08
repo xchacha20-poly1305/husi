@@ -23,11 +23,14 @@ import fr.husi.libcore.GroupItemIterator
 import fr.husi.libcore.Libcore
 import fr.husi.utils.LibcoreClientManager
 import fr.husi.utils.PackageResolver
+import kotlin.experimental.and
+import kotlin.experimental.inv
+import kotlin.experimental.or
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -38,9 +41,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.experimental.and
-import kotlin.experimental.inv
-import kotlin.experimental.or
 
 @Immutable
 data class DashboardState(
@@ -135,8 +135,8 @@ fun GroupItemIterator.toList(): List<ProxySetItem> {
 class DashboardViewModel(
     private val loadPlatformNetworkInfo: suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(DashboardState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<DashboardState>
+        field = MutableStateFlow(DashboardState())
 
     val searchTextFieldState = TextFieldState()
 
@@ -155,7 +155,7 @@ class DashboardViewModel(
                 mode to isDescending
             }.collectLatest { (mode, isDescending) ->
                 comparator = buildComparator(mode, isDescending)
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(
                         sortMode = mode,
                         isDescending = isDescending,
@@ -169,7 +169,7 @@ class DashboardViewModel(
                 Key.TRAFFIC_CONNECTION_QUERY,
                 DashboardState.SHOW_TRACKER_ACTIVELY.toInt(),
             ).collectLatest {
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(
                         queryOptions = it.toByte(),
                     )
@@ -208,7 +208,7 @@ class DashboardViewModel(
         client.close()
         urlTestClient.close()
         connections.clear()
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 connections = emptyList(),
                 filteredConnections = emptyList(),
@@ -238,7 +238,7 @@ class DashboardViewModel(
         }
         clashModeSubscriptionJob = client.subscribeClashMode(viewModelScope) { mode ->
             viewModelScope.launch {
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(selectedClashMode = mode)
                 }
             }
@@ -247,7 +247,7 @@ class DashboardViewModel(
             val clashModes = client.withClient { client ->
                 client.queryClashModes()?.toList() ?: emptyList()
             }
-            _uiState.update { state ->
+            uiState.update { state ->
                 state.copy(clashModes = clashModes)
             }
         } catch (e: Exception) {
@@ -285,7 +285,7 @@ class DashboardViewModel(
     }
 
     fun togglePause() {
-        _uiState.update { state ->
+        uiState.update { state ->
             val newPause = !state.isPause
             if (newPause) {
                 state.copy(isPause = true)
@@ -353,7 +353,7 @@ class DashboardViewModel(
     }
 
     private fun setTesting(group: String, isTesting: Boolean) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 proxySets = state.proxySets.map {
                     if (it.tag == group) {
@@ -370,7 +370,7 @@ class DashboardViewModel(
 
     private suspend fun refreshNetworkInterfaces() {
         val (interfaces, ipv4, ipv6) = loadPlatformNetworkInfo()
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 networkInterfaces = interfaces,
                 ipv4 = ipv4,
@@ -385,7 +385,7 @@ class DashboardViewModel(
     private suspend fun refreshStatus(): Boolean {
         return try {
             client.withClient { client ->
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(
                         memory = client.queryMemory(),
                         goroutines = client.queryGoroutines(),
@@ -425,7 +425,7 @@ class DashboardViewModel(
     }
 
     private fun updateConnectionsSnapshot() {
-        _uiState.update { state ->
+        uiState.update { state ->
             if (state.isPause) return
             val all = buildConnections(state)
             val query = searchTextFieldState.text.toString()
@@ -502,7 +502,7 @@ class DashboardViewModel(
     }
 
     private fun updateConnectionSnapshot(updated: ConnectionDetailState) {
-        _uiState.update { state ->
+        uiState.update { state ->
             if (state.isPause) return
             val show = if (updated.isClosed) {
                 state.showClosed

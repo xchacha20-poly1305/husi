@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -21,8 +21,8 @@ internal data class TaskerActivityUiState(
 @Stable
 internal class TaskerActivityViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(TaskerActivityUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<TaskerActivityUiState>
+        field = MutableStateFlow(TaskerActivityUiState())
 
     private val initialState = MutableStateFlow<TaskerActivityUiState?>(null)
     val isDirty = combine(uiState, initialState) { currentState, initialState ->
@@ -36,7 +36,7 @@ internal class TaskerActivityViewModel : ViewModel() {
     )
 
     fun loadFromSetting(action: Int, profileID: Long) {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 action = action,
                 profileID = profileID,
@@ -47,13 +47,13 @@ internal class TaskerActivityViewModel : ViewModel() {
     }
 
     fun setAction(action: Int) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(action = action)
         }
     }
 
     fun setProfileID(profileID: Long) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(profileID = profileID)
         }
     }

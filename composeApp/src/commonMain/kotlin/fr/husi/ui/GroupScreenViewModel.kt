@@ -14,10 +14,11 @@ import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
+import fr.husi.resources.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import fr.husi.resources.*
 
 @Immutable
 data class GroupUiState(
@@ -51,14 +51,14 @@ data class GroupUpdateProgress(
 @Stable
 class GroupScreenViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(GroupUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<GroupUiState>
+        field = MutableStateFlow(GroupUiState())
 
     init {
         viewModelScope.launch {
             SagerDatabase.groupDao.allGroups().collectLatest { groups ->
                 if (groups.isEmpty()) {
-                    _uiState.update { it.copy(groups = emptyList()) }
+                    uiState.update { it.copy(groups = emptyList()) }
                     return@collectLatest
                 }
                 combine(
@@ -73,7 +73,7 @@ class GroupScreenViewModel : ViewModel() {
         }
         viewModelScope.launch {
             GroupUpdater.updatingGroups.collect { updatingGroupIds ->
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(
                         groups = state.groups.map { item ->
                             item.copy(isUpdating = item.group.id in updatingGroupIds)
@@ -90,7 +90,7 @@ class GroupScreenViewModel : ViewModel() {
 
     private suspend fun reloadGroups(groupsWithCounts: List<Pair<ProxyGroup, Long>>) =
         hiddenGroupAccess.withLock {
-            _uiState.update { state ->
+            uiState.update { state ->
                 state.copy(
                     groups = groupsWithCounts.mapNotNull { (group, counts) ->
                         if (group.ungrouped && counts == 0L) {
@@ -122,7 +122,7 @@ class GroupScreenViewModel : ViewModel() {
 
     fun undoableRemove(id: Long) = viewModelScope.launch {
         hiddenGroupAccess.withLock {
-            _uiState.update { state ->
+            uiState.update { state ->
                 val groups = state.groups.toMutableList()
                 val groupIndex = groups.indexOfFirst { it.group.id == id }
                 if (groupIndex >= 0) {

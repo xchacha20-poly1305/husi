@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.trusttunnel.TrustTunnelBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -42,11 +42,11 @@ internal data class TrustTunnelUiState(
 internal class TrustTunnelSettingsViewModel : ProfileEditorViewModel<TrustTunnelBean>() {
     override fun createBean() = TrustTunnelBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(TrustTunnelUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<TrustTunnelUiState>
+        field = MutableStateFlow(TrustTunnelUiState())
 
     override suspend fun TrustTunnelBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -79,7 +79,7 @@ internal class TrustTunnelSettingsViewModel : ProfileEditorViewModel<TrustTunnel
     }
 
     override fun TrustTunnelBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -110,106 +110,106 @@ internal class TrustTunnelSettingsViewModel : ProfileEditorViewModel<TrustTunnel
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setUsername(username: String) {
-        _uiState.update { it.copy(username = username) }
+        uiState.update { it.copy(username = username) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setHealthCheck(enabled: Boolean) {
-        _uiState.update { it.copy(healthCheck = enabled) }
+        uiState.update { it.copy(healthCheck = enabled) }
     }
 
     fun setQuic(enabled: Boolean) {
-        _uiState.update { it.copy(quic = enabled) }
+        uiState.update { it.copy(quic = enabled) }
     }
 
     fun setQuicCongestionControl(control: String) {
-        _uiState.update { it.copy(quicCongestionControl = control) }
+        uiState.update { it.copy(quicCongestionControl = control) }
     }
 
     fun setSni(sni: String) {
-        _uiState.update { it.copy(sni = sni) }
+        uiState.update { it.copy(sni = sni) }
     }
 
     fun setAlpn(alpn: String) {
-        _uiState.update { it.copy(alpn = alpn) }
+        uiState.update { it.copy(alpn = alpn) }
     }
 
     fun setCertificates(certs: String) {
-        _uiState.update { it.copy(certificates = certs) }
+        uiState.update { it.copy(certificates = certs) }
     }
 
     fun setCertPublicKeySha256(sha: String) {
-        _uiState.update { it.copy(certPublicKeySha256 = sha) }
+        uiState.update { it.copy(certPublicKeySha256 = sha) }
     }
 
     fun setUtlsFingerprint(fingerprint: String) {
-        _uiState.update { it.copy(utlsFingerprint = fingerprint) }
+        uiState.update { it.copy(utlsFingerprint = fingerprint) }
     }
 
     fun setAllowInsecure(allow: Boolean) {
-        _uiState.update { it.copy(allowInsecure = allow) }
+        uiState.update { it.copy(allowInsecure = allow) }
     }
 
     fun setTlsFragment(enabled: Boolean) {
-        _uiState.update { it.copy(tlsFragment = enabled) }
+        uiState.update { it.copy(tlsFragment = enabled) }
     }
 
     fun setTlsFragmentFallbackDelay(delay: String) {
-        _uiState.update { it.copy(tlsFragmentFallbackDelay = delay) }
+        uiState.update { it.copy(tlsFragmentFallbackDelay = delay) }
     }
 
     fun setTlsRecordFragment(enabled: Boolean) {
-        _uiState.update { it.copy(tlsRecordFragment = enabled) }
+        uiState.update { it.copy(tlsRecordFragment = enabled) }
     }
 
     fun setTlsSpoof(value: String) {
-        _uiState.update { it.copy(tlsSpoof = value) }
+        uiState.update { it.copy(tlsSpoof = value) }
     }
 
     fun setTlsSpoofMethod(value: String) {
-        _uiState.update { it.copy(tlsSpoofMethod = value) }
+        uiState.update { it.copy(tlsSpoofMethod = value) }
     }
 
     fun setEch(enabled: Boolean) {
-        _uiState.update { it.copy(ech = enabled) }
+        uiState.update { it.copy(ech = enabled) }
     }
 
     fun setEchConfig(config: String) {
-        _uiState.update { it.copy(echConfig = config) }
+        uiState.update { it.copy(echConfig = config) }
     }
 
     fun setEchQueryServerName(name: String) {
-        _uiState.update { it.copy(echQueryServerName = name) }
+        uiState.update { it.copy(echQueryServerName = name) }
     }
 
     fun setClientCert(cert: String) {
-        _uiState.update { it.copy(clientCert = cert) }
+        uiState.update { it.copy(clientCert = cert) }
     }
 
     fun setClientKey(key: String) {
-        _uiState.update { it.copy(clientKey = key) }
+        uiState.update { it.copy(clientKey = key) }
     }
 }

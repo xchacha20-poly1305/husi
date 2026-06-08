@@ -38,13 +38,21 @@ import fr.husi.libcore.Libcore
 import fr.husi.plugin.PluginNotFoundException
 import fr.husi.repository.resolveRepository
 import fr.husi.utils.closeQuietly
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
+import java.io.File
+import java.net.InetAddress
+import java.net.UnknownHostException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -59,14 +67,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.io.File
-import java.net.InetAddress
-import java.net.UnknownHostException
-import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.readBytes
-import java.util.concurrent.ConcurrentHashMap
-import java.util.zip.ZipInputStream
 
 @Immutable
 data class ConfigurationUiState(
@@ -125,8 +125,8 @@ enum class TestType {
 class ConfigurationScreenViewModel : ViewModel() {
 
 
-    private val _uiState = MutableStateFlow(ConfigurationUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<ConfigurationUiState>
+        field = MutableStateFlow(ConfigurationUiState())
 
     val selectedGroup = DataStore.configurationStore.longFlow(Key.PROFILE_GROUP)
 
@@ -193,11 +193,11 @@ class ConfigurationScreenViewModel : ViewModel() {
             val concurrent = DataStore.connectionTestConcurrent
 
             if (proxies.isEmpty()) {
-                _uiState.update { state -> state.copy(testState = null) }
+                uiState.update { state -> state.copy(testState = null) }
                 return@launch
             }
 
-            _uiState.update { state ->
+            uiState.update { state ->
                 state.copy(
                     testState = ConfigurationTestUiState(
                         total = proxies.size,
@@ -218,7 +218,7 @@ class ConfigurationScreenViewModel : ViewModel() {
                     .collect { profileResult ->
                         results.add(profileResult)
                         processedCount++
-                        _uiState.update { state ->
+                        uiState.update { state ->
                             state.copy(
                                 testState = ConfigurationTestUiState(
                                     latestResult = profileResult,
@@ -287,7 +287,7 @@ class ConfigurationScreenViewModel : ViewModel() {
             }
 
             onDefaultDispatcher {
-                _uiState.update { state -> state.copy(testState = null) }
+                uiState.update { state -> state.copy(testState = null) }
             }
             testErrorMessages.clear()
         }
@@ -295,7 +295,7 @@ class ConfigurationScreenViewModel : ViewModel() {
 
     fun cancelTest() {
         testJob?.cancel()
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(testState = null)
         }
     }
@@ -450,15 +450,15 @@ class ConfigurationScreenViewModel : ViewModel() {
                 DataStore.selectedGroup = groups[0].id
             }
         }
-        _uiState.emit(
-            _uiState.value.copy(
+        uiState.emit(
+            uiState.value.copy(
                 groups = groups,
             ),
         )
     }
 
     fun updateOrder(groupId: Long, order: Int) = viewModelScope.launch {
-        val group = _uiState.value.groups.find { it.id == groupId } ?: return@launch
+        val group = uiState.value.groups.find { it.id == groupId } ?: return@launch
         if (group.order == order) return@launch
         runOnIoDispatcher {
             GroupManager.updateGroup(
@@ -514,7 +514,7 @@ class ConfigurationScreenViewModel : ViewModel() {
         if (toDelete.isEmpty()) return@launch
 
         val ids = toDelete.map { it.id }
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 alertForDelete = AlertForDelete(
                     size = toDelete.size,
@@ -547,7 +547,7 @@ class ConfigurationScreenViewModel : ViewModel() {
         if (toDelete.isEmpty()) return@launch
 
         val ids = toDelete.map { it.id }
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 alertForDelete = AlertForDelete(
                     size = toDelete.size,
@@ -564,7 +564,7 @@ class ConfigurationScreenViewModel : ViewModel() {
     }
 
     fun dismissAlert() {
-        _uiState.update { it.copy(alertForDelete = null) }
+        uiState.update { it.copy(alertForDelete = null) }
     }
 
     private fun nameSummary(profiles: List<ProxyEntity>): String {

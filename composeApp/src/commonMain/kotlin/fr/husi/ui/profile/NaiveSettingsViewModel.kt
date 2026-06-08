@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -35,11 +35,11 @@ internal data class NaiveUiState(
 internal class NaiveSettingsViewModel : ProfileEditorViewModel<NaiveBean>() {
     override fun createBean() = NaiveBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(NaiveUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<NaiveUiState>
+        field = MutableStateFlow(NaiveUiState())
 
     override suspend fun NaiveBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 name = name,
                 address = serverAddress,
@@ -66,7 +66,7 @@ internal class NaiveSettingsViewModel : ProfileEditorViewModel<NaiveBean>() {
     }
 
     override fun NaiveBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         name = state.name
         serverAddress = state.address
@@ -91,79 +91,79 @@ internal class NaiveSettingsViewModel : ProfileEditorViewModel<NaiveBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setUsername(username: String) {
-        _uiState.update { it.copy(username = username) }
+        uiState.update { it.copy(username = username) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setProto(proto: String) {
-        _uiState.update { it.copy(proto = proto) }
+        uiState.update { it.copy(proto = proto) }
     }
 
     fun setQuicCongestionControl(quicCongestionControl: String) {
-        _uiState.update { it.copy(quicCongestionControl = quicCongestionControl) }
+        uiState.update { it.copy(quicCongestionControl = quicCongestionControl) }
     }
 
     fun setSni(sni: String) {
-        _uiState.update { it.copy(sni = sni) }
+        uiState.update { it.copy(sni = sni) }
     }
 
     fun setExtraHeaders(extraHeaders: String) {
-        _uiState.update { it.copy(extraHeaders = extraHeaders) }
+        uiState.update { it.copy(extraHeaders = extraHeaders) }
     }
 
     fun setInsecureConcurrency(concurrency: Int) {
-        _uiState.update { it.copy(insecureConcurrency = concurrency) }
+        uiState.update { it.copy(insecureConcurrency = concurrency) }
     }
 
     fun setTunnelTimeout(timeout: Int) {
-        _uiState.update { it.copy(tunnelTimeout = timeout) }
+        uiState.update { it.copy(tunnelTimeout = timeout) }
     }
 
     fun setIdleTimeout(timeout: Int) {
-        _uiState.update { it.copy(idleTimeout = timeout) }
+        uiState.update { it.copy(idleTimeout = timeout) }
     }
 
     fun setUdpOverTcp(uot: Boolean) {
-        _uiState.update { it.copy(udpOverTcp = uot) }
+        uiState.update { it.copy(udpOverTcp = uot) }
     }
 
     fun setNoPostQuantum(noPostQuantum: Boolean) {
-        _uiState.update { it.copy(noPostQuantum = noPostQuantum) }
+        uiState.update { it.copy(noPostQuantum = noPostQuantum) }
     }
 
     fun setEnableEch(enableEch: Boolean) {
-        _uiState.update { it.copy(enableEch = enableEch) }
+        uiState.update { it.copy(enableEch = enableEch) }
     }
 
     fun setEchConfig(echConfig: String) {
-        _uiState.update { it.copy(echConfig = echConfig) }
+        uiState.update { it.copy(echConfig = echConfig) }
     }
 
     fun setEchQueryServerName(echQueryServerName: String) {
-        _uiState.update { it.copy(echQueryServerName = echQueryServerName) }
+        uiState.update { it.copy(echQueryServerName = echQueryServerName) }
     }
 
 }

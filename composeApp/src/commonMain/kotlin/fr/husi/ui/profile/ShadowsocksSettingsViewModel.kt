@@ -7,7 +7,7 @@ import fr.husi.MuxType
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -37,11 +37,11 @@ internal data class ShadowsocksUiState(
 internal class ShadowsocksSettingsViewModel : ProfileEditorViewModel<ShadowsocksBean>() {
     override fun createBean() = ShadowsocksBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(ShadowsocksUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<ShadowsocksUiState>
+        field = MutableStateFlow(ShadowsocksUiState())
 
     override suspend fun ShadowsocksBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -64,7 +64,7 @@ internal class ShadowsocksSettingsViewModel : ProfileEditorViewModel<Shadowsocks
     }
 
     override fun ShadowsocksBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
         name = state.name
@@ -88,66 +88,66 @@ internal class ShadowsocksSettingsViewModel : ProfileEditorViewModel<Shadowsocks
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setMethod(method: String) {
-        _uiState.update { it.copy(method = method) }
+        uiState.update { it.copy(method = method) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setEnableMux(enabled: Boolean) {
-        _uiState.update { it.copy(enableMux = enabled) }
+        uiState.update { it.copy(enableMux = enabled) }
     }
 
     fun setBrutal(enabled: Boolean) {
-        _uiState.update { it.copy(brutal = enabled) }
+        uiState.update { it.copy(brutal = enabled) }
     }
 
     fun setMuxType(type: Int) {
-        _uiState.update { it.copy(muxType = type) }
+        uiState.update { it.copy(muxType = type) }
     }
 
     fun setMuxNumber(number: Int) {
-        _uiState.update { it.copy(muxNumber = number) }
+        uiState.update { it.copy(muxNumber = number) }
     }
 
     fun setMuxStrategy(strategy: Int) {
-        _uiState.update { it.copy(muxStrategy = strategy) }
+        uiState.update { it.copy(muxStrategy = strategy) }
     }
 
     fun setMuxPadding(enabled: Boolean) {
-        _uiState.update { it.copy(muxPadding = enabled) }
+        uiState.update { it.copy(muxPadding = enabled) }
     }
 
     fun setPluginName(name: String) {
-        _uiState.update { it.copy(pluginName = name) }
+        uiState.update { it.copy(pluginName = name) }
     }
 
     fun setPluginConfig(config: String) {
-        _uiState.update { it.copy(pluginConfig = config) }
+        uiState.update { it.copy(pluginConfig = config) }
     }
 
     fun setUdpOverTcp(enabled: Boolean) {
-        _uiState.update { it.copy(udpOverTcp = enabled) }
+        uiState.update { it.copy(udpOverTcp = enabled) }
     }
 }

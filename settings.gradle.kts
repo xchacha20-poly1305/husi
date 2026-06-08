@@ -6,7 +6,7 @@ pluginManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
     plugins {
-        id("org.jetbrains.kotlin.plugin.compose") version "2.3.21"
+        id("org.jetbrains.kotlin.plugin.compose") version "2.4.0"
         id("org.jetbrains.compose") version "1.10.3"
     }
 }

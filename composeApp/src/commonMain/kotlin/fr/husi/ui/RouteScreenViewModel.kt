@@ -15,7 +15,7 @@ import fr.husi.ktx.runOnIoDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -33,8 +33,8 @@ data class RouteFragmentUiState(
 @Stable
 class RouteScreenViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(RouteFragmentUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<RouteFragmentUiState>
+        field = MutableStateFlow(RouteFragmentUiState())
 
     private var deleteTimer: Job? = null
 
@@ -52,7 +52,7 @@ class RouteScreenViewModel : ViewModel() {
             ProfileManager.getRules().first()
         }
         hiddenRulesAccess.withLock {
-            _uiState.update { state ->
+            uiState.update { state ->
                 state.copy(
                     rules = rules.filterNot { hiddenRules.contains(it.id) },
                     pendingDeleteCount = hiddenRules.size,
@@ -93,7 +93,7 @@ class RouteScreenViewModel : ViewModel() {
 
     fun undoableRemove(id: Long) = viewModelScope.launch {
         hiddenRulesAccess.withLock {
-            _uiState.update { state ->
+            uiState.update { state ->
                 val rules = state.rules.toMutableList()
                 val ruleIndex = rules.indexOfFirst { it.id == id }
                 if (ruleIndex >= 0) {

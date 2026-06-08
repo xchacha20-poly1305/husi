@@ -9,7 +9,7 @@ import fr.husi.ktx.currentSocks5
 import fr.husi.libcore.Libcore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -41,19 +41,19 @@ internal enum class Format(val display: String) {
 @Stable
 internal class GetCertScreenViewModel() : ViewModel() {
 
-    private val _uiState = MutableStateFlow(GetCertUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<GetCertUiState>
+        field = MutableStateFlow(GetCertUiState())
 
     init {
         initialize()
     }
 
     fun initialize() {
-        _uiState.update { it.copy(proxy = currentSocks5()?.string ?: "") }
+        uiState.update { it.copy(proxy = currentSocks5()?.string ?: "") }
     }
 
     fun launch() = viewModelScope.launch(Dispatchers.IO) {
-        val state = _uiState.value
+        val state = uiState.value
         getCert(state.server, state.serverName, state.protocol, state.format, state.proxy)
     }
 
@@ -64,12 +64,12 @@ internal class GetCertScreenViewModel() : ViewModel() {
         format: Format,
         proxy: String,
     ) {
-        _uiState.update {
+        uiState.update {
             it.copy(isDoing = true, cert = "", formatted = "")
         }
         try {
             val cert = Libcore.getCert(server, serverName, protocol, proxy)
-            _uiState.update {
+            uiState.update {
                 it.copy(
                     cert = cert,
                     formatted = formatCert(cert, format),
@@ -77,28 +77,28 @@ internal class GetCertScreenViewModel() : ViewModel() {
             }
         } catch (e: Exception) {
             Logs.e(e)
-            _uiState.update { state ->
+            uiState.update { state ->
                 state.copy(alert = e)
             }
         } finally {
-            _uiState.update { it.copy(isDoing = false) }
+            uiState.update { it.copy(isDoing = false) }
         }
     }
 
     fun setServer(server: String) {
-        _uiState.update { it.copy(server = server) }
+        uiState.update { it.copy(server = server) }
     }
 
     fun setServerName(serverName: String) {
-        _uiState.update { it.copy(serverName = serverName) }
+        uiState.update { it.copy(serverName = serverName) }
     }
 
     fun setProtocol(protocol: String) {
-        _uiState.update { it.copy(protocol = protocol) }
+        uiState.update { it.copy(protocol = protocol) }
     }
 
     fun setFormat(format: Format) = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 format = format,
                 formatted = formatCert(state.cert, format),
@@ -107,7 +107,7 @@ internal class GetCertScreenViewModel() : ViewModel() {
     }
 
     fun setProxy(proxy: String) {
-        _uiState.update { it.copy(proxy = proxy) }
+        uiState.update { it.copy(proxy = proxy) }
     }
 
     private fun formatCert(cert: String, format: Format): String {

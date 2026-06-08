@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.tuic.TuicBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -44,11 +44,11 @@ internal data class TuicUiState(
 internal class TuicSettingsViewModel : ProfileEditorViewModel<TuicBean>() {
     override fun createBean() = TuicBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(TuicUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<TuicUiState>
+        field = MutableStateFlow(TuicUiState())
 
     override suspend fun TuicBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -83,7 +83,7 @@ internal class TuicSettingsViewModel : ProfileEditorViewModel<TuicBean>() {
     }
 
     override fun TuicBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -116,114 +116,114 @@ internal class TuicSettingsViewModel : ProfileEditorViewModel<TuicBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setUuid(uuid: String) {
-        _uiState.update { it.copy(uuid = uuid) }
+        uiState.update { it.copy(uuid = uuid) }
     }
 
     fun setToken(token: String) {
-        _uiState.update { it.copy(token = token) }
+        uiState.update { it.copy(token = token) }
     }
 
     fun setAlpn(alpn: String) {
-        _uiState.update { it.copy(alpn = alpn) }
+        uiState.update { it.copy(alpn = alpn) }
     }
 
     fun setCertificates(certs: String) {
-        _uiState.update { it.copy(certificates = certs) }
+        uiState.update { it.copy(certificates = certs) }
     }
 
     fun setCertPublicKeySha256(sha: String) {
-        _uiState.update { it.copy(certPublicKeySha256 = sha) }
+        uiState.update { it.copy(certPublicKeySha256 = sha) }
     }
 
     fun setUdpRelayMode(mode: String) {
-        _uiState.update { it.copy(udpRelayMode = mode) }
+        uiState.update { it.copy(udpRelayMode = mode) }
     }
 
     fun setCongestionController(controller: String) {
-        _uiState.update { it.copy(congestionController = controller) }
+        uiState.update { it.copy(congestionController = controller) }
     }
 
     fun setDisableSNI(disable: Boolean) {
-        _uiState.update { it.copy(disableSNI = disable) }
+        uiState.update { it.copy(disableSNI = disable) }
     }
 
     fun setSni(sni: String) {
-        _uiState.update { it.copy(sni = sni) }
+        uiState.update { it.copy(sni = sni) }
     }
 
     fun setZeroRTT(enabled: Boolean) {
-        _uiState.update { it.copy(zeroRTT = enabled) }
+        uiState.update { it.copy(zeroRTT = enabled) }
     }
 
     fun setAllowInsecure(allow: Boolean) {
-        _uiState.update { it.copy(allowInsecure = allow) }
+        uiState.update { it.copy(allowInsecure = allow) }
     }
 
     fun setEch(enabled: Boolean) {
-        _uiState.update { it.copy(ech = enabled) }
+        uiState.update { it.copy(ech = enabled) }
     }
 
     fun setEchConfig(config: String) {
-        _uiState.update { it.copy(echConfig = config) }
+        uiState.update { it.copy(echConfig = config) }
     }
 
     fun setEchQueryServerName(name: String) {
-        _uiState.update { it.copy(echQueryServerName = name) }
+        uiState.update { it.copy(echQueryServerName = name) }
     }
 
     fun setClientCert(cert: String) {
-        _uiState.update { it.copy(clientCert = cert) }
+        uiState.update { it.copy(clientCert = cert) }
     }
 
     fun setClientKey(key: String) {
-        _uiState.update { it.copy(clientKey = key) }
+        uiState.update { it.copy(clientKey = key) }
     }
 
     fun setIdleTimeout(value: String) {
-        _uiState.update { it.copy(idleTimeout = value) }
+        uiState.update { it.copy(idleTimeout = value) }
     }
 
     fun setKeepAlivePeriod(value: String) {
-        _uiState.update { it.copy(keepAlivePeriod = value) }
+        uiState.update { it.copy(keepAlivePeriod = value) }
     }
 
     fun setStreamReceiveWindow(value: Int) {
-        _uiState.update { it.copy(streamReceiveWindow = value) }
+        uiState.update { it.copy(streamReceiveWindow = value) }
     }
 
     fun setConnectionReceiveWindow(value: Int) {
-        _uiState.update { it.copy(connectionReceiveWindow = value) }
+        uiState.update { it.copy(connectionReceiveWindow = value) }
     }
 
     fun setMaxConcurrentStreams(value: Int) {
-        _uiState.update { it.copy(maxConcurrentStreams = value) }
+        uiState.update { it.copy(maxConcurrentStreams = value) }
     }
 
     fun setInitialPacketSize(value: Int) {
-        _uiState.update { it.copy(initialPacketSize = value) }
+        uiState.update { it.copy(initialPacketSize = value) }
     }
 
     fun setDisablePathMtuDiscovery(value: Boolean) {
-        _uiState.update { it.copy(disablePathMtuDiscovery = value) }
+        uiState.update { it.copy(disablePathMtuDiscovery = value) }
     }
 }

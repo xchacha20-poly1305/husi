@@ -13,7 +13,7 @@ import fr.husi.utils.PackageResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -23,8 +23,8 @@ class ConnectionDetailViewModel(
 ) : ViewModel() {
 
     private val clientManager = LibcoreClientManager()
-    private val connectionState = MutableStateFlow(ConnectionDetailState())
-    val connection = connectionState.asStateFlow()
+    val connection: StateFlow<ConnectionDetailState>
+        field = MutableStateFlow(ConnectionDetailState())
 
     private var job: Job? = null
 
@@ -45,7 +45,7 @@ class ConnectionDetailViewModel(
 
     suspend fun initialize(uuid: String) {
         job?.cancel()
-        connectionState.value = queryConnection(uuid)
+        connection.value = queryConnection(uuid)
         job = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
             handleConnectionEvent(event)
         }
@@ -69,7 +69,7 @@ class ConnectionDetailViewModel(
     }
 
     private fun handleConnectionEvent(event: ConnectionEvent) {
-        if (event.id != connectionState.value.uuid) return
+        if (event.id != connection.value.uuid) return
         when (event.type) {
             Libcore.ConnectionEventUpdate -> {
                 updateTraffic(event.uplinkDelta, event.downlinkDelta)
@@ -77,7 +77,7 @@ class ConnectionDetailViewModel(
 
             Libcore.ConnectionEventNew -> {
                 val trackerInfo = event.trackerInfo ?: return
-                connectionState.value = trackerInfo.toDetailState()
+                connection.value = trackerInfo.toDetailState()
             }
 
             Libcore.ConnectionEventClosed -> {
@@ -89,17 +89,17 @@ class ConnectionDetailViewModel(
 
     private fun updateTraffic(uplinkDelta: Long, downlinkDelta: Long) {
         if (uplinkDelta == 0L && downlinkDelta == 0L) return
-        val current = connectionState.value
-        connectionState.value = current.copy(
+        val current = connection.value
+        connection.value = current.copy(
             uploadTotal = current.uploadTotal + uplinkDelta,
             downloadTotal = current.downloadTotal + downlinkDelta,
         )
     }
 
     private fun updateClosedAt(closedAt: String) {
-        val current = connectionState.value
+        val current = connection.value
         if (current.closedAt == closedAt) return
-        connectionState.value = current.copy(closedAt = closedAt)
+        connection.value = current.copy(closedAt = closedAt)
     }
 
     internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {

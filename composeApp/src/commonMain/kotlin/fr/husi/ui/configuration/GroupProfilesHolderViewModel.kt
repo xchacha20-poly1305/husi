@@ -20,7 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -52,8 +52,8 @@ class GroupProfilesHolderViewModel(
     var group: ProxyGroup = initialGroup
         private set
 
-    private val _uiState = MutableStateFlow(GroupProfilesHolderUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<GroupProfilesHolderUiState>
+        field = MutableStateFlow(GroupProfilesHolderUiState())
 
     val alwaysShowAddress = DataStore.configurationStore.booleanFlow(Key.ALWAYS_SHOW_ADDRESS, false)
     val blurredAddress = DataStore.configurationStore.booleanFlow(Key.BLURRED_ADDRESS, false)
@@ -179,7 +179,7 @@ class GroupProfilesHolderViewModel(
                 )
             }
 
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 profiles = profiles,
                 hiddenProfiles = hiddenProfileIds.size,
@@ -189,27 +189,27 @@ class GroupProfilesHolderViewModel(
     }
 
     fun consumeScrollIndex() {
-        _uiState.update { it.copy(scrollIndex = null) }
+        uiState.update { it.copy(scrollIndex = null) }
     }
 
     fun scrollToProxy(proxyId: Long, fallbackToTop: Boolean) {
         viewModelScope.launch {
-            val profiles = _uiState.value.profiles
+            val profiles = uiState.value.profiles
             val index = profiles.indexOfFirst { it.profile.id == proxyId }
             if (index >= 0) {
-                _uiState.update { it.copy(scrollIndex = index) }
+                uiState.update { it.copy(scrollIndex = index) }
             } else if (fallbackToTop) {
-                _uiState.update { it.copy(scrollIndex = 0) }
+                uiState.update { it.copy(scrollIndex = 0) }
             }
         }
     }
 
     fun requestFocusIfNotHave() {
-        _uiState.update { it.copy(shouldRequestFocus = true) }
+        uiState.update { it.copy(shouldRequestFocus = true) }
     }
 
     fun consumeFocusRequest() {
-        _uiState.update { it.copy(shouldRequestFocus = false) }
+        uiState.update { it.copy(shouldRequestFocus = false) }
     }
 
     fun onProfileSelected(profileId: Long) {
@@ -220,7 +220,7 @@ class GroupProfilesHolderViewModel(
 
     fun undoableRemove(id: Long) = viewModelScope.launch {
         hiddenProfileAccess.withLock {
-            _uiState.update { state ->
+            uiState.update { state ->
                 val profiles = state.profiles.toMutableList()
                 val index = profiles.indexOfFirst { it.profile.id == id }
                 if (index >= 0) {

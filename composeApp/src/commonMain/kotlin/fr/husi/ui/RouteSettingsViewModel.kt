@@ -11,7 +11,7 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -97,8 +97,8 @@ internal class RouteSettingsViewModel(
     state: RouteSettingsUiState?,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(RouteSettingsUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<RouteSettingsUiState>
+        field = MutableStateFlow(RouteSettingsUiState())
 
     private var editingId = -1L
     val isNew get() = editingId < 0L
@@ -126,7 +126,7 @@ internal class RouteSettingsViewModel(
         if (state != null) {
             editingId = -1L
             initialState.value = RouteSettingsUiState()
-            _uiState.value = state
+            uiState.value = state
         } else {
             loadRule(routeId)
         }
@@ -139,7 +139,7 @@ internal class RouteSettingsViewModel(
         } else {
             runBlocking { SagerDatabase.rulesDao.getById(id) }!!
         }
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 name = entity.name,
                 invert = entity.invert,
@@ -241,14 +241,14 @@ internal class RouteSettingsViewModel(
             ProfileManager.createRule(
                 RuleEntity().apply {
                     enabled = true
-                    loadFromUiState(_uiState.value)
+                    loadFromUiState(uiState.value)
                 },
             )
         } else {
             val entity = SagerDatabase.rulesDao.getById(editingId) ?: return@runOnIoDispatcher
             ProfileManager.updateRule(
                 entity.apply {
-                    loadFromUiState(_uiState.value)
+                    loadFromUiState(uiState.value)
                 },
             )
         }
@@ -261,148 +261,148 @@ internal class RouteSettingsViewModel(
     }
 
     fun setName(name: String) = viewModelScope.launch {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setInvert(invert: Boolean) = viewModelScope.launch {
-        _uiState.update { it.copy(invert = invert) }
+        uiState.update { it.copy(invert = invert) }
     }
 
     fun setAction(action: String) = viewModelScope.launch {
-        _uiState.update { it.copy(action = action) }
+        uiState.update { it.copy(action = action) }
     }
 
     fun setDomains(domains: String) = viewModelScope.launch {
-        _uiState.update { it.copy(domains = domains) }
+        uiState.update { it.copy(domains = domains) }
     }
 
     fun setIp(ip: String) = viewModelScope.launch {
-        _uiState.update { it.copy(ip = ip) }
+        uiState.update { it.copy(ip = ip) }
     }
 
     fun setPort(port: String) = viewModelScope.launch {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setSourcePort(sourcePort: String) = viewModelScope.launch {
-        _uiState.update { it.copy(sourcePort = sourcePort) }
+        uiState.update { it.copy(sourcePort = sourcePort) }
     }
 
     fun setNetwork(network: Set<String>) = viewModelScope.launch {
-        _uiState.update { it.copy(network = network) }
+        uiState.update { it.copy(network = network) }
     }
 
     fun setSource(source: String) = viewModelScope.launch {
-        _uiState.update { it.copy(source = source) }
+        uiState.update { it.copy(source = source) }
     }
 
     fun setProtocol(protocol: Set<String>) = viewModelScope.launch {
-        _uiState.update { it.copy(protocol = protocol) }
+        uiState.update { it.copy(protocol = protocol) }
     }
 
     fun setSsid(ssid: String) = viewModelScope.launch {
-        _uiState.update { it.copy(ssid = ssid) }
+        uiState.update { it.copy(ssid = ssid) }
     }
 
     fun setBssid(bssid: String) = viewModelScope.launch {
-        _uiState.update { it.copy(bssid = bssid) }
+        uiState.update { it.copy(bssid = bssid) }
     }
 
     fun setClient(client: String) = viewModelScope.launch {
-        _uiState.update { it.copy(client = client) }
+        uiState.update { it.copy(client = client) }
     }
 
     fun setClashMode(clashMode: String) = viewModelScope.launch {
-        _uiState.update { it.copy(clashMode = clashMode) }
+        uiState.update { it.copy(clashMode = clashMode) }
     }
 
     fun setNetworkType(networkType: Set<String>) = viewModelScope.launch {
-        _uiState.update { it.copy(networkType = networkType) }
+        uiState.update { it.copy(networkType = networkType) }
     }
 
     fun setNetworkIsExpensive(networkIsExpensive: Boolean) = viewModelScope.launch {
-        _uiState.update { it.copy(networkIsExpensive = networkIsExpensive) }
+        uiState.update { it.copy(networkIsExpensive = networkIsExpensive) }
     }
 
     fun setNetworkInterfaceAddress(networkInterfaceAddress: LinkedHashMap<String, String>) {
         viewModelScope.launch {
-            _uiState.update { it.copy(networkInterfaceAddress = networkInterfaceAddress) }
+            uiState.update { it.copy(networkInterfaceAddress = networkInterfaceAddress) }
         }
     }
 
     fun setDnsOnly(dnsOnly: Boolean) = viewModelScope.launch {
-        _uiState.update { it.copy(dnsOnly = dnsOnly) }
+        uiState.update { it.copy(dnsOnly = dnsOnly) }
     }
 
     fun setOverrideAddress(overrideAddress: String) = viewModelScope.launch {
-        _uiState.update { it.copy(overrideAddress = overrideAddress) }
+        uiState.update { it.copy(overrideAddress = overrideAddress) }
     }
 
     fun setOverridePort(overridePort: Int) = viewModelScope.launch {
-        _uiState.update { it.copy(overridePort = overridePort) }
+        uiState.update { it.copy(overridePort = overridePort) }
     }
 
     fun setTlsFragment(tlsFragment: Boolean) = viewModelScope.launch {
-        _uiState.update { it.copy(tlsFragment = tlsFragment) }
+        uiState.update { it.copy(tlsFragment = tlsFragment) }
     }
 
     fun setTlsRecordFragment(tlsRecordFragment: Boolean) = viewModelScope.launch {
-        _uiState.update { it.copy(tlsRecordFragment = tlsRecordFragment) }
+        uiState.update { it.copy(tlsRecordFragment = tlsRecordFragment) }
     }
 
     fun setTlsFragmentFallbackDelay(tlsFragmentFallbackDelay: String) = viewModelScope.launch {
-        _uiState.update { it.copy(tlsFragmentFallbackDelay = tlsFragmentFallbackDelay) }
+        uiState.update { it.copy(tlsFragmentFallbackDelay = tlsFragmentFallbackDelay) }
     }
 
     fun setTlsSpoof(tlsSpoof: String) = viewModelScope.launch {
-        _uiState.update { it.copy(tlsSpoof = tlsSpoof) }
+        uiState.update { it.copy(tlsSpoof = tlsSpoof) }
     }
 
     fun setTlsSpoofMethod(tlsSpoofMethod: String) = viewModelScope.launch {
-        _uiState.update { it.copy(tlsSpoofMethod = tlsSpoofMethod) }
+        uiState.update { it.copy(tlsSpoofMethod = tlsSpoofMethod) }
     }
 
     fun setResolveStrategy(resolveStrategy: String) = viewModelScope.launch {
-        _uiState.update { it.copy(resolveStrategy = resolveStrategy) }
+        uiState.update { it.copy(resolveStrategy = resolveStrategy) }
     }
 
     fun setResolveDisableCache(resolveDisableCache: Boolean) = viewModelScope.launch {
-        _uiState.update { it.copy(resolveDisableCache = resolveDisableCache) }
+        uiState.update { it.copy(resolveDisableCache = resolveDisableCache) }
     }
 
     fun setResolveRewriteTTL(resolveRewriteTTL: Int) = viewModelScope.launch {
-        _uiState.update { it.copy(resolveRewriteTTL = resolveRewriteTTL) }
+        uiState.update { it.copy(resolveRewriteTTL = resolveRewriteTTL) }
     }
 
     fun setResolveClientSubnet(resolveClientSubnet: String) = viewModelScope.launch {
-        _uiState.update { it.copy(resolveClientSubnet = resolveClientSubnet) }
+        uiState.update { it.copy(resolveClientSubnet = resolveClientSubnet) }
     }
 
     fun setSniffTimeout(sniffTimeout: String) = viewModelScope.launch {
-        _uiState.update { it.copy(sniffTimeout = sniffTimeout) }
+        uiState.update { it.copy(sniffTimeout = sniffTimeout) }
     }
 
     fun setSniffers(sniffers: Set<String>) = viewModelScope.launch {
-        _uiState.update { it.copy(sniffers = sniffers) }
+        uiState.update { it.copy(sniffers = sniffers) }
     }
 
     fun setOutbound(outbound: Long) = viewModelScope.launch {
-        _uiState.update { it.copy(outbound = outbound) }
+        uiState.update { it.copy(outbound = outbound) }
     }
 
     fun setPackages(packages: Set<String>) = viewModelScope.launch {
-        _uiState.update { it.copy(packages = packages) }
+        uiState.update { it.copy(packages = packages) }
     }
 
     fun setPackageNameRegex(packageNameRegex: String) = viewModelScope.launch {
-        _uiState.update { it.copy(packageNameRegex = packageNameRegex) }
+        uiState.update { it.copy(packageNameRegex = packageNameRegex) }
     }
 
     fun setCustomConfig(config: String) = viewModelScope.launch {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     fun setCustomDnsConfig(dnsConfig: String) = viewModelScope.launch {
-        _uiState.update { it.copy(customDnsConfig = dnsConfig) }
+        uiState.update { it.copy(customDnsConfig = dnsConfig) }
     }
 }

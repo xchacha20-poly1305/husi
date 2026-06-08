@@ -131,6 +131,25 @@ val density = LocalDensity.current
 DisposableEffect(view) { /* ... */ }
 ```
 
+#### Explicit backing fields for flows
+
+* Prefer explicit backing fields for public read-only `StateFlow` or `SharedFlow` properties backed by mutable flows.
+* This keeps the public type read-only while avoiding extra `_uiState` / `_uiEvent` properties.
+
+**Good:**
+
+```kotlin
+val uiState: StateFlow<ScreenUiState>
+    field = MutableStateFlow(ScreenUiState())
+
+val uiEvent: SharedFlow<ScreenUiEvent>
+    field = MutableSharedFlow<ScreenUiEvent>()
+
+fun updateName(name: String) {
+    uiState.update { it.copy(name = name) }
+}
+```
+
 #### `forEach` vs `for` loops
 
 * `forEach` is fluent, especially at the end of a chain:

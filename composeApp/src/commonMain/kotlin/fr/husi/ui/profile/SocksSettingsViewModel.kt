@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -25,11 +25,11 @@ internal data class SocksUiState(
 internal class SocksSettingsViewModel : ProfileEditorViewModel<SOCKSBean>() {
     override fun createBean() = SOCKSBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(SocksUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<SocksUiState>
+        field = MutableStateFlow(SocksUiState())
 
     override suspend fun SOCKSBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -45,7 +45,7 @@ internal class SocksSettingsViewModel : ProfileEditorViewModel<SOCKSBean>() {
     }
 
     override fun SOCKSBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -59,38 +59,38 @@ internal class SocksSettingsViewModel : ProfileEditorViewModel<SOCKSBean>() {
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setProtocol(protocol: Int) {
-        _uiState.update { it.copy(protocol = protocol) }
+        uiState.update { it.copy(protocol = protocol) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setUsername(username: String) {
-        _uiState.update { it.copy(username = username) }
+        uiState.update { it.copy(username = username) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setUdpOverTcp(enabled: Boolean) {
-        _uiState.update { it.copy(udpOverTcp = enabled) }
+        uiState.update { it.copy(udpOverTcp = enabled) }
     }
 }

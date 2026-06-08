@@ -11,13 +11,13 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.onDefaultDispatcher
+import fr.husi.resources.*
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
 
 @Immutable
 internal data class ProxySetUiState(
@@ -43,13 +43,13 @@ internal data class ProxySetUiState(
 @Stable
 internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>() {
 
-    private val _uiState = MutableStateFlow(ProxySetUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<ProxySetUiState>
+        field = MutableStateFlow(ProxySetUiState())
 
     override fun createBean() = ProxySetBean().applyDefaultValues()
 
     override suspend fun ProxySetBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 name = name,
                 customConfig = customConfigJson,
@@ -69,7 +69,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
     }
 
     override fun ProxySetBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -90,7 +90,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         val groups = SagerDatabase.groupDao.allGroups().first()
         val groupMap = LinkedHashMap<Long, ProxyGroup>(groups.size)
         groups.associateByTo(groupMap) { it.id }
-        _uiState.update {
+        uiState.update {
             it.copy(groups = groupMap)
         }
         val proxyList = ArrayList<ProxyEntity>(ids.size)
@@ -100,28 +100,28 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
                 proxyList.add(profiles[id] ?: continue)
             }
         }
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = proxyList)
         }
     }
 
     fun submitReorder(changes: List<OrderedItem<ProxyEntity>>) {
-        val currentProfiles = _uiState.value.profiles
+        val currentProfiles = uiState.value.profiles
         val changesMap = changes.associate { it.value.id to it.newIndex }
 
         val reordered = currentProfiles.sortedBy { profile ->
             changesMap[profile.id] ?: currentProfiles.indexOf(profile)
         }
 
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = reordered)
         }
     }
 
     fun remove(index: Int) = viewModelScope.launch {
-        val profiles = _uiState.value.profiles.toMutableList()
+        val profiles = uiState.value.profiles.toMutableList()
         profiles.removeAt(index)
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = profiles)
         }
     }
@@ -138,7 +138,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
             )
             return@launch
         }
-        val profiles = _uiState.value.profiles.toMutableList()
+        val profiles = uiState.value.profiles.toMutableList()
         if (replacing < 0) {
             if (profiles.any { it.id == profile.id }) {
                 emitAlert(
@@ -161,7 +161,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
             profiles[replacing] = profile
             replacing = -1
         }
-        _uiState.update {
+        uiState.update {
             it.copy(profiles = profiles)
         }
     }
@@ -169,7 +169,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
     private fun ProxyEntity.canAdd(): Boolean {
         if (id == editingId) return false
 
-        for (entity in _uiState.value.profiles) {
+        for (entity in uiState.value.profiles) {
             if (testProfileContains(entity, this)) return false
         }
 
@@ -192,50 +192,50 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setManagement(management: Int) {
-        _uiState.update { it.copy(management = management) }
+        uiState.update { it.copy(management = management) }
     }
 
     fun setInterruptExistConnections(interrupt: Boolean) {
-        _uiState.update { it.copy(interruptExistConnections = interrupt) }
+        uiState.update { it.copy(interruptExistConnections = interrupt) }
     }
 
     fun setTestURL(url: String) {
-        _uiState.update { it.copy(testURL = url) }
+        uiState.update { it.copy(testURL = url) }
     }
 
     fun setTestInterval(interval: String) {
-        _uiState.update { it.copy(testInterval = interval) }
+        uiState.update { it.copy(testInterval = interval) }
     }
 
     fun setTestIdleTimeout(timeout: String) {
-        _uiState.update { it.copy(testIdleTimeout = timeout) }
+        uiState.update { it.copy(testIdleTimeout = timeout) }
     }
 
     fun setTestTolerance(tolerance: Int) {
-        _uiState.update { it.copy(testTolerance = tolerance) }
+        uiState.update { it.copy(testTolerance = tolerance) }
     }
 
     fun setCollectType(type: Int) {
-        _uiState.update { it.copy(collectType = type) }
+        uiState.update { it.copy(collectType = type) }
     }
 
     fun setGroupID(id: Long) {
-        _uiState.update { it.copy(groupID = id) }
+        uiState.update { it.copy(groupID = id) }
     }
 
     fun setFilterNotRegex(regex: String) {
-        _uiState.update { it.copy(filterNotRegex = regex) }
+        uiState.update { it.copy(filterNotRegex = regex) }
     }
 }

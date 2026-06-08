@@ -24,20 +24,20 @@ import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.Repository
 import fr.husi.repository.resolveRepository
-import fr.husi.utils.LibcoreClientManager
 import fr.husi.resources.*
+import fr.husi.utils.LibcoreClientManager
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @Immutable
 sealed interface URLTestStatus {
@@ -77,11 +77,11 @@ class MainViewModel(
     private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
 ) : ViewModel() {
 
-    private val _urlTestStatus = MutableStateFlow<URLTestStatus>(URLTestStatus.Initial)
-    val urlTestStatus = _urlTestStatus.asStateFlow()
+    val urlTestStatus: StateFlow<URLTestStatus>
+        field = MutableStateFlow<URLTestStatus>(URLTestStatus.Initial)
 
-    private val _uiEvent = MutableSharedFlow<MainViewModelUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val uiEvent: SharedFlow<MainViewModelUiEvent>
+        field = MutableSharedFlow<MainViewModelUiEvent>()
 
     private fun alertDialog(
         message: StringOrRes,
@@ -106,7 +106,7 @@ class MainViewModel(
                 Key.PACKAGES,
             ).collectLatest {
                 if (DataStore.serviceState.canStop) {
-                    _uiEvent.emit(
+                    uiEvent.emit(
                         MainViewModelUiEvent.SnackbarWithAction(
                             message = StringOrRes.Res(Res.string.need_reload),
                             actionLabel = StringOrRes.Res(Res.string.apply),
@@ -130,24 +130,24 @@ class MainViewModel(
     }
 
     fun showSnackbar(message: StringOrRes) = viewModelScope.launch {
-        _uiEvent.emit(MainViewModelUiEvent.Snackbar(message))
+        uiEvent.emit(MainViewModelUiEvent.Snackbar(message))
     }
 
     fun resetUrlTestStatus() {
-        _urlTestStatus.value = URLTestStatus.Initial
+        urlTestStatus.value = URLTestStatus.Initial
     }
 
     private val urlTestClient = LibcoreClientManager()
 
     fun urlTest() = viewModelScope.launch(Dispatchers.IO) {
-        _urlTestStatus.update { status ->
+        urlTestStatus.update { status ->
             if (status == URLTestStatus.Testing) {
                 return@launch
             }
             URLTestStatus.Testing
         }
         if (!DataStore.serviceState.connected) {
-            _urlTestStatus.update { URLTestStatus.Exception("not started") }
+            urlTestStatus.update { URLTestStatus.Exception("not started") }
             return@launch
         }
         try {
@@ -159,9 +159,9 @@ class MainViewModel(
                     DataStore.connectionTestTimeout,
                 )
             }
-            _urlTestStatus.update { URLTestStatus.Success(result) }
+            urlTestStatus.update { URLTestStatus.Success(result) }
         } catch (e: Exception) {
-            _urlTestStatus.update { URLTestStatus.Exception(e.readableMessage) }
+            urlTestStatus.update { URLTestStatus.Exception(e.readableMessage) }
         }
     }
 
@@ -169,7 +169,7 @@ class MainViewModel(
         val preview = try {
             importLinkInteractor.parseUri(uri)
         } catch (e: Exception) {
-            _uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
             return@launch
         }
         when (preview) {
@@ -183,7 +183,7 @@ class MainViewModel(
         val group = try {
             importLinkInteractor.parseSubscription(uri)
         } catch (e: Exception) {
-            _uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
             return@launch
         } ?: return@launch
         showImportSubscriptionDialog(group)
@@ -191,7 +191,7 @@ class MainViewModel(
 
     private suspend fun showImportSubscriptionDialog(group: ProxyGroup) {
         val detail = group.name + "\n" + group.subscription?.link + "\n" + group.subscription?.token
-        _uiEvent.emit(
+        uiEvent.emit(
             MainViewModelUiEvent.AlertDialog(
                 title = StringOrRes.Res(Res.string.subscription_import),
                 message = StringOrRes.ResWithParams(Res.string.subscription_import_message, detail),
@@ -210,10 +210,10 @@ class MainViewModel(
 
     private suspend fun showImportProfileDialog(profiles: List<AbstractBean>) {
         if (profiles.isEmpty()) {
-            _uiEvent.emit(alertDialog(StringOrRes.Res(Res.string.no_proxies_found)))
+            uiEvent.emit(alertDialog(StringOrRes.Res(Res.string.no_proxies_found)))
             return
         }
-        _uiEvent.emit(
+        uiEvent.emit(
             MainViewModelUiEvent.AlertDialog(
                 title = StringOrRes.Res(Res.string.profile_import),
                 message = StringOrRes.ResWithParams(
@@ -232,11 +232,11 @@ class MainViewModel(
 
     fun parseProxy(text: String?) = viewModelScope.launch {
         if (text.isNullOrBlank()) {
-            _uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Res(Res.string.clipboard_empty)))
+            uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Res(Res.string.clipboard_empty)))
             return@launch
         }
         when (text.substringBefore("://", "").lowercase()) {
-            "http", "https" -> _uiEvent.emit(
+            "http", "https" -> uiEvent.emit(
                 MainViewModelUiEvent.AlertDialog(
                     title = StringOrRes.Res(Res.string.import_url),
                     message = StringOrRes.Res(Res.string.import_http_url),
@@ -259,7 +259,7 @@ class MainViewModel(
         try {
             val proxies = RawUpdater.parseRaw(text)
             if (proxies.isNullOrEmpty()) {
-                _uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Res(Res.string.no_proxies_found_in_clipboard)))
+                uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Res(Res.string.no_proxies_found_in_clipboard)))
             } else {
                 importProfile(proxies)
             }
@@ -267,13 +267,13 @@ class MainViewModel(
             importSubscription(e.link)
         } catch (e: Exception) {
             Logs.w(e)
-            _uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
         }
     }
 
     suspend fun importProfile(proxies: List<AbstractBean>) {
         val importedCount = importLinkInteractor.importProfiles(proxies)
-        _uiEvent.emit(
+        uiEvent.emit(
             MainViewModelUiEvent.Snackbar(
                 StringOrRes.PluralsRes(
                     Res.plurals.added,
@@ -300,7 +300,7 @@ class MainViewModel(
 
     suspend fun confirm(message: String): Boolean {
         val deferred = CompletableDeferred<Boolean>()
-        _uiEvent.emit(
+        uiEvent.emit(
             MainViewModelUiEvent.AlertDialog(
                 title = StringOrRes.Res(Res.string.confirm),
                 message = StringOrRes.Direct(message),
@@ -342,7 +342,7 @@ class MainViewModel(
         when (result) {
             is GroupUpdateResult.Success -> presentGroupUpdateSuccess(result)
             is GroupUpdateResult.Failure -> {
-                _uiEvent.emit(alertDialog(StringOrRes.Direct("${result.group.name}: ${result.message}")))
+                uiEvent.emit(alertDialog(StringOrRes.Direct("${result.group.name}: ${result.message}")))
             }
 
             else -> Unit
@@ -352,7 +352,7 @@ class MainViewModel(
     private suspend fun presentGroupUpdateSuccess(result: GroupUpdateResult.Success) {
         val changed = result.diff.changed
         if (changed == 0) {
-            _uiEvent.emit(
+            uiEvent.emit(
                 MainViewModelUiEvent.Snackbar(
                     StringOrRes.ResWithParams(Res.string.group_no_difference, result.group.displayName()),
                 ),
@@ -360,7 +360,7 @@ class MainViewModel(
             return
         }
         if (!result.byUser) {
-            _uiEvent.emit(
+            uiEvent.emit(
                 MainViewModelUiEvent.Snackbar(
                     StringOrRes.PluralsRes(
                         Res.plurals.group_updated,
@@ -410,7 +410,7 @@ class MainViewModel(
                 )
             }
         }
-        _uiEvent.emit(
+        uiEvent.emit(
             alertDialog(
                 message = StringOrRes.Compound(parts),
                 title = StringOrRes.ResWithParams(Res.string.group_diff, result.group.displayName()),
@@ -420,7 +420,7 @@ class MainViewModel(
 
     private suspend fun presentGroupUpdateWarnings(warnings: List<GroupUpdateWarning>) {
         for (warning in warnings) {
-            _uiEvent.emit(
+            uiEvent.emit(
                 MainViewModelUiEvent.Snackbar(
                     StringOrRes.Compound(
                         parts = listOf(

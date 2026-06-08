@@ -23,15 +23,15 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.force_resolve_error
 import fr.husi.resources.update_subscription_warning
+import java.net.InetAddress
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.net.InetAddress
 
 data class GroupUpdateWarning(
     val group: String,
@@ -305,8 +305,8 @@ abstract class GroupUpdater {
 
     companion object {
 
-        private val _updatingGroups = MutableStateFlow<Set<Long>>(emptySet())
-        val updatingGroups = _updatingGroups.asStateFlow()
+        val updatingGroups: StateFlow<Set<Long>>
+            field = MutableStateFlow<Set<Long>>(emptySet())
 
         suspend fun executeUpdate(
             proxyGroup: ProxyGroup,
@@ -314,7 +314,7 @@ abstract class GroupUpdater {
             allowDisconnectedUpdate: Boolean = false,
         ): GroupUpdateResult {
             var added = false
-            _updatingGroups.update { current ->
+            updatingGroups.update { current ->
                 if (proxyGroup.id !in current) {
                     added = true
                     current + proxyGroup.id
@@ -365,7 +365,7 @@ abstract class GroupUpdater {
         }
 
         suspend fun finishUpdate(proxyGroup: ProxyGroup) {
-            _updatingGroups.update { it - proxyGroup.id }
+            updatingGroups.update { it - proxyGroup.id }
         }
 
     }

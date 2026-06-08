@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.wireguard.WireGuardBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -29,11 +29,11 @@ internal data class WireGuardUiState(
 internal class WireGuardSettingsViewModel : ProfileEditorViewModel<WireGuardBean>() {
     override fun createBean() = WireGuardBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(WireGuardUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<WireGuardUiState>
+        field = MutableStateFlow(WireGuardUiState())
 
     override suspend fun WireGuardBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -53,7 +53,7 @@ internal class WireGuardSettingsViewModel : ProfileEditorViewModel<WireGuardBean
     }
 
     override fun WireGuardBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -71,54 +71,54 @@ internal class WireGuardSettingsViewModel : ProfileEditorViewModel<WireGuardBean
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setLocalAddress(address: String) {
-        _uiState.update { it.copy(localAddress = address) }
+        uiState.update { it.copy(localAddress = address) }
     }
 
     fun setPrivateKey(key: String) {
-        _uiState.update { it.copy(privateKey = key) }
+        uiState.update { it.copy(privateKey = key) }
     }
 
     fun setPublicKey(key: String) {
-        _uiState.update { it.copy(publicKey = key) }
+        uiState.update { it.copy(publicKey = key) }
     }
 
     fun setPreSharedKey(key: String) {
-        _uiState.update { it.copy(preSharedKey = key) }
+        uiState.update { it.copy(preSharedKey = key) }
     }
 
     fun setMtu(mtu: Int) {
-        _uiState.update { it.copy(mtu = mtu) }
+        uiState.update { it.copy(mtu = mtu) }
     }
 
     fun setReserved(reserved: String) {
-        _uiState.update { it.copy(reserved = reserved) }
+        uiState.update { it.copy(reserved = reserved) }
     }
 
     fun setListenPort(port: Int) {
-        _uiState.update { it.copy(listenPort = port) }
+        uiState.update { it.copy(listenPort = port) }
     }
 
     fun setPersistentKeepaliveInterval(interval: Int) {
-        _uiState.update { it.copy(persistentKeepaliveInterval = interval) }
+        uiState.update { it.copy(persistentKeepaliveInterval = interval) }
     }
 }

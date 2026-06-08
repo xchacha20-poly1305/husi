@@ -26,16 +26,16 @@ import fr.husi.resources.mux_max_connections
 import fr.husi.resources.mux_max_streams
 import fr.husi.resources.mux_min_streams
 import fr.husi.ui.StringOrRes
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlin.reflect.KClass
 
 @Immutable
 internal sealed interface ProfileEditorUiEvent {
@@ -53,16 +53,16 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
 
     abstract val uiState: StateFlow<ProfileEditorUiState>
 
-    private val _uiEvent = MutableSharedFlow<ProfileEditorUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val uiEvent: SharedFlow<ProfileEditorUiEvent>
+        field = MutableSharedFlow<ProfileEditorUiEvent>()
 
     protected suspend fun emitAlert(title: StringOrRes, message: StringOrRes) {
-        _uiEvent.emit(ProfileEditorUiEvent.Alert(title, message))
+        uiEvent.emit(ProfileEditorUiEvent.Alert(title, message))
     }
 
-    private val _initialState = MutableStateFlow<ProfileEditorUiState?>(null)
+    private val initialState = MutableStateFlow<ProfileEditorUiState?>(null)
     val isDirty by lazy(LazyThreadSafetyMode.NONE) {
-        combine(uiState, _initialState) { currentState, initialState ->
+        combine(uiState, initialState) { currentState, initialState ->
             initialState?.let {
                 it != currentState
             } ?: false
@@ -88,7 +88,7 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
         this@ProfileEditorViewModel.editingId = editingId
         this@ProfileEditorViewModel.isSubscription = isSubscription
         viewModelScope.launch {
-            _initialState.value = null
+            initialState.value = null
             bean = if (isNew) {
                 createBean().applyDefaultValues()
             } else {
@@ -96,7 +96,7 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
                 (proxyEntity.requireBean() as T)
             }
             bean.writeToUiState()
-            _initialState.value = uiState.value
+            initialState.value = uiState.value
         }
     }
 

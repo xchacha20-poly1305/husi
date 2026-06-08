@@ -7,7 +7,7 @@ import fr.husi.MuxType
 import fr.husi.fmt.v2ray.VLESSBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -65,11 +65,11 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
 
     override fun createBean() = VLESSBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(VLESSUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<VLESSUiState>
+        field = MutableStateFlow(VLESSUiState())
 
     override suspend fun VLESSBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 name = name,
                 address = serverAddress,
@@ -122,7 +122,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
     }
 
     override fun VLESSBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         name = state.name
         serverAddress = state.address
@@ -173,167 +173,167 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     override fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     override fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     override fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     override fun setTransport(transport: String) {
-        _uiState.update { it.copy(v2rayTransport = transport) }
+        uiState.update { it.copy(v2rayTransport = transport) }
     }
 
     override fun setHost(host: String) {
-        _uiState.update { it.copy(host = host) }
+        uiState.update { it.copy(host = host) }
     }
 
     override fun setPath(path: String) {
-        _uiState.update { it.copy(path = path) }
+        uiState.update { it.copy(path = path) }
     }
 
     override fun setHeaders(headers: String) {
-        _uiState.update { it.copy(headers = headers) }
+        uiState.update { it.copy(headers = headers) }
     }
 
     override fun setWsMaxEarlyData(maxEarlyData: Int) {
-        _uiState.update { it.copy(wsMaxEarlyData = maxEarlyData) }
+        uiState.update { it.copy(wsMaxEarlyData = maxEarlyData) }
     }
 
     override fun setWsEarlyDataHeaderName(headerName: String) {
-        _uiState.update { it.copy(wsEarlyDataHeaderName = headerName) }
+        uiState.update { it.copy(wsEarlyDataHeaderName = headerName) }
     }
 
     override fun setSecurity(security: String) {
-        _uiState.update { it.copy(security = security) }
+        uiState.update { it.copy(security = security) }
     }
 
     override fun setSni(sni: String) {
-        _uiState.update { it.copy(sni = sni) }
+        uiState.update { it.copy(sni = sni) }
     }
 
     override fun setAlpn(alpn: String) {
-        _uiState.update { it.copy(alpn = alpn) }
+        uiState.update { it.copy(alpn = alpn) }
     }
 
     override fun setCertificate(certificate: String) {
-        _uiState.update { it.copy(certificate = certificate) }
+        uiState.update { it.copy(certificate = certificate) }
     }
 
     override fun setCertPublicKeySha256(sha256: String) {
-        _uiState.update { it.copy(certPublicKeySha256 = sha256) }
+        uiState.update { it.copy(certPublicKeySha256 = sha256) }
     }
 
     override fun setAllowInsecure(allow: Boolean) {
-        _uiState.update { it.copy(allowInsecure = allow) }
+        uiState.update { it.copy(allowInsecure = allow) }
     }
 
     override fun setDisableSNI(disable: Boolean) {
-        _uiState.update { it.copy(disableSNI = disable) }
+        uiState.update { it.copy(disableSNI = disable) }
     }
 
     override fun setTlsFragment(enable: Boolean) {
-        _uiState.update { it.copy(tlsFragment = enable) }
+        uiState.update { it.copy(tlsFragment = enable) }
     }
 
     override fun setTlsFragmentFallbackDelay(delay: String) {
-        _uiState.update { it.copy(tlsFragmentFallbackDelay = delay) }
+        uiState.update { it.copy(tlsFragmentFallbackDelay = delay) }
     }
 
     override fun setTlsRecordFragment(enable: Boolean) {
-        _uiState.update { it.copy(tlsRecordFragment = enable) }
+        uiState.update { it.copy(tlsRecordFragment = enable) }
     }
 
     override fun setTlsSpoof(value: String) {
-        _uiState.update { it.copy(tlsSpoof = value) }
+        uiState.update { it.copy(tlsSpoof = value) }
     }
 
     override fun setTlsSpoofMethod(value: String) {
-        _uiState.update { it.copy(tlsSpoofMethod = value) }
+        uiState.update { it.copy(tlsSpoofMethod = value) }
     }
 
     override fun setUtlsFingerprint(fingerprint: String) {
-        _uiState.update { it.copy(utlsFingerprint = fingerprint) }
+        uiState.update { it.copy(utlsFingerprint = fingerprint) }
     }
 
     override fun setRealityPublicKey(publicKey: String) {
-        _uiState.update { it.copy(realityPublicKey = publicKey) }
+        uiState.update { it.copy(realityPublicKey = publicKey) }
     }
 
     override fun setRealityShortID(shortID: String) {
-        _uiState.update { it.copy(realityShortID = shortID) }
+        uiState.update { it.copy(realityShortID = shortID) }
     }
 
     override fun setEch(enable: Boolean) {
-        _uiState.update { it.copy(ech = enable) }
+        uiState.update { it.copy(ech = enable) }
     }
 
     override fun setEchConfig(config: String) {
-        _uiState.update { it.copy(echConfig = config) }
+        uiState.update { it.copy(echConfig = config) }
     }
 
     override fun setEchQueryServerName(queryServerName: String) {
-        _uiState.update { it.copy(echQueryServerName = queryServerName) }
+        uiState.update { it.copy(echQueryServerName = queryServerName) }
     }
 
     override fun setClientCert(cert: String) {
-        _uiState.update { it.copy(clientCert = cert) }
+        uiState.update { it.copy(clientCert = cert) }
     }
 
     override fun setClientKey(key: String) {
-        _uiState.update { it.copy(clientKey = key) }
+        uiState.update { it.copy(clientKey = key) }
     }
 
     override fun setEnableMux(enable: Boolean) {
-        _uiState.update { it.copy(enableMux = enable) }
+        uiState.update { it.copy(enableMux = enable) }
     }
 
     override fun setBrutal(enable: Boolean) {
-        _uiState.update { it.copy(brutal = enable) }
+        uiState.update { it.copy(brutal = enable) }
     }
 
     override fun setMuxType(type: Int) {
-        _uiState.update { it.copy(muxType = type) }
+        uiState.update { it.copy(muxType = type) }
     }
 
     override fun setMuxStrategy(strategy: Int) {
-        _uiState.update { it.copy(muxStrategy = strategy) }
+        uiState.update { it.copy(muxStrategy = strategy) }
     }
 
     override fun setMuxNumber(number: Int) {
-        _uiState.update { it.copy(muxNumber = number) }
+        uiState.update { it.copy(muxNumber = number) }
     }
 
     override fun setMuxPadding(enable: Boolean) {
-        _uiState.update { it.copy(muxPadding = enable) }
+        uiState.update { it.copy(muxPadding = enable) }
     }
 
     fun setUUID(uuid: String) {
-        _uiState.update { it.copy(uuid = uuid) }
+        uiState.update { it.copy(uuid = uuid) }
     }
 
     fun setFlow(flow: String) {
-        _uiState.update { it.copy(flow = flow) }
+        uiState.update { it.copy(flow = flow) }
     }
 
     fun setEncryption(encryption: String) {
-        _uiState.update { it.copy(encryption = encryption) }
+        uiState.update { it.copy(encryption = encryption) }
     }
 
     fun setPacketEncoding(packetEncoding: Int) {
-        _uiState.update { it.copy(packetEncoding = packetEncoding) }
+        uiState.update { it.copy(packetEncoding = packetEncoding) }
     }
 
 }

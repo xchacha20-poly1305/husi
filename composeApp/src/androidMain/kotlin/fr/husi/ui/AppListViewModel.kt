@@ -5,7 +5,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -23,8 +23,8 @@ internal class AppListViewModel(
     appPackageName: String,
     packages: Set<String>,
 ) : BaseAppListViewModel() {
-    private val _uiState = MutableStateFlow(AppListUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<AppListUiState>
+        field = MutableStateFlow(AppListUiState())
 
     init {
         packageManager = pm
@@ -35,7 +35,7 @@ internal class AppListViewModel(
 
     private fun initialize(packages: Set<String>) {
         viewModelScope.launch(singleThreadContext) {
-            _uiState.update { it.copy(isLoading = true, apps = emptyList()) }
+            uiState.update { it.copy(isLoading = true, apps = emptyList()) }
             proxiedUids.clear()
             val cachedApps = cachedApps
             for ((packageName, packageInfo) in cachedApps) {
@@ -48,11 +48,11 @@ internal class AppListViewModel(
     }
 
     override fun updateApps(apps: List<ProxiedApp>, filteredApps: List<ProxiedApp>, isLoading: Boolean) {
-        _uiState.update { it.copy(isLoading = isLoading, apps = apps, filteredApps = filteredApps) }
+        uiState.update { it.copy(isLoading = isLoading, apps = apps, filteredApps = filteredApps) }
     }
 
     override fun updateSnackbar(message: StringOrRes?) {
-        _uiState.update { it.copy(snackbarMessage = message) }
+        uiState.update { it.copy(snackbarMessage = message) }
     }
 
     override suspend fun afterMutation() = reload()
@@ -63,7 +63,7 @@ internal class AppListViewModel(
                 if (it.uid == app.uid) it.copy(isProxied = newIsProxied) else it
             }
         }
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 apps = state.apps.updateProxiedState(),
                 filteredApps = state.filteredApps.updateProxiedState(),

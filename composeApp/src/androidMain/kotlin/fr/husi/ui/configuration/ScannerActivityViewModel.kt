@@ -20,15 +20,15 @@ import fr.husi.group.RawUpdater
 import fr.husi.ktx.SubscriptionFoundException
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.resources.*
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
 
 @Immutable
 internal data class ScannerUiState(
@@ -49,11 +49,11 @@ internal class ScannerActivityViewModel(
     private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ScannerUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<ScannerUiState>
+        field = MutableStateFlow(ScannerUiState())
 
-    private val _uiEvent = MutableSharedFlow<ScannerUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val uiEvent: SharedFlow<ScannerUiEvent>
+        field = MutableSharedFlow<ScannerUiEvent>()
 
     @Volatile
     private var isProcessing = false
@@ -118,7 +118,7 @@ internal class ScannerActivityViewModel(
 
         when (uri?.scheme) {
             "http", "https" -> viewModelScope.launch {
-                _uiEvent.emit(ScannerUiEvent.AskSubscriptionOrProfile(value))
+                uiEvent.emit(ScannerUiEvent.AskSubscriptionOrProfile(value))
             }
 
             "sing-box" -> importSubscription(value)
@@ -134,14 +134,14 @@ internal class ScannerActivityViewModel(
                 isProcessing = false
                 onFailure(null)
             } else {
-                _uiEvent.emit(ScannerUiEvent.Finish)
+                uiEvent.emit(ScannerUiEvent.Finish)
                 onIoDispatcher {
                     importLinkInteractor.importProfiles(results)
                 }
             }
         } catch (e: SubscriptionFoundException) {
-            _uiEvent.emit(ScannerUiEvent.ImportSubscription(e.link.toUri()))
-            _uiEvent.emit(ScannerUiEvent.Finish)
+            uiEvent.emit(ScannerUiEvent.ImportSubscription(e.link.toUri()))
+            uiEvent.emit(ScannerUiEvent.Finish)
         } catch (e: Exception) {
             isProcessing = false
             onFailure(e)
@@ -154,12 +154,12 @@ internal class ScannerActivityViewModel(
             if (group == null) {
                 isProcessing = false
                 viewModelScope.launch {
-                    _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(Res.string.action_import_err)))
+                    uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(Res.string.action_import_err)))
                 }
                 return@runOnDefaultDispatcher
             }
 
-            _uiEvent.emit(ScannerUiEvent.Finish)
+            uiEvent.emit(ScannerUiEvent.Finish)
             onIoDispatcher {
                 importLinkInteractor.importSubscription(group)
             }
@@ -178,15 +178,15 @@ internal class ScannerActivityViewModel(
         /*viewModelScope.launch {
             if (e != null) {
                 Logs.w(e)
-                _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Direct(e.readableMessage)))
+                uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Direct(e.readableMessage)))
             } else {
-                _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(Res.string.action_import_err)))
+                uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(Res.string.action_import_err)))
             }
         }*/
     }
 
     fun toggleFlashlight() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 isFlashlightOn = !it.isFlashlightOn,
             )
@@ -195,7 +195,7 @@ internal class ScannerActivityViewModel(
 
 
     fun setHasFlashUnit(hasFlash: Boolean) {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 hasFlashUnit = hasFlash,
                 isFlashlightOn = if (!hasFlash) false else it.isFlashlightOn,

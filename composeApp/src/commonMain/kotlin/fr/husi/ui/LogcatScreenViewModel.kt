@@ -17,7 +17,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
@@ -61,10 +61,10 @@ fun LogItem.toLogEntry(): LogEntry {
 class LogcatScreenViewModel : ViewModel() {
 
     private var allLogs: PersistentList<LogEntry> = persistentListOf()
-    private val _uiState = MutableStateFlow(
-        LogcatUiState(logLevel = LogLevel.entries.getOrNull(DataStore.logLevel) ?: LogLevel.WARN),
-    )
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<LogcatUiState>
+        field = MutableStateFlow(
+            LogcatUiState(logLevel = LogLevel.entries.getOrNull(DataStore.logLevel) ?: LogLevel.WARN),
+        )
     val searchTextFieldState = TextFieldState()
 
     private var job: Job? = null
@@ -92,7 +92,7 @@ class LogcatScreenViewModel : ViewModel() {
 
     private fun appendLogs(item: LogEntry) {
         allLogs = allLogs.add(item)
-        _uiState.update { state ->
+        uiState.update { state ->
             if (state.pause) return
             if (item.level.ordinal > state.logLevel.ordinal) return
             state.copy(logs = state.logs.add(item))
@@ -104,7 +104,7 @@ class LogcatScreenViewModel : ViewModel() {
         clientManager.close()
         allLogs = persistentListOf()
         lastLogCount = 0
-        _uiState.update { it.copy(logs = persistentListOf()) }
+        uiState.update { it.copy(logs = persistentListOf()) }
 
         job = clientManager.subscribeLogs(viewModelScope) { item ->
             appendLogs(item.toLogEntry())
@@ -120,7 +120,7 @@ class LogcatScreenViewModel : ViewModel() {
     }
 
     fun togglePause() {
-        _uiState.update { state ->
+        uiState.update { state ->
             val newPause = !state.pause
             state.copy(
                 pause = newPause,
@@ -143,11 +143,11 @@ class LogcatScreenViewModel : ViewModel() {
         }
         allLogs = persistentListOf()
         lastLogCount = 0
-        _uiState.update { it.copy(logs = persistentListOf()) }
+        uiState.update { it.copy(logs = persistentListOf()) }
     }
 
     fun setLogLevel(level: LogLevel) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 logLevel = level,
                 logs = if (state.pause) {
@@ -160,7 +160,7 @@ class LogcatScreenViewModel : ViewModel() {
     }
 
     fun setSearchQuery(query: String?) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 searchQuery = query,
                 logs = if (state.pause) {

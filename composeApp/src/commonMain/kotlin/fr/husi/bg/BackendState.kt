@@ -5,8 +5,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 enum class ServiceState(
     val canStop: Boolean = false,
@@ -45,36 +43,36 @@ data class Alert(
 )
 
 object BackendState {
-    private val _status = MutableStateFlow(ServiceStatus())
-    val status: StateFlow<ServiceStatus> = _status.asStateFlow()
+    val status: StateFlow<ServiceStatus>
+        field = MutableStateFlow(ServiceStatus())
 
-    private val _connected = MutableStateFlow(false)
-    val connected: StateFlow<Boolean> = _connected.asStateFlow()
+    val connected: StateFlow<Boolean>
+        field = MutableStateFlow(false)
 
-    private val _alerts = MutableSharedFlow<Alert>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-    val alerts: SharedFlow<Alert> = _alerts.asSharedFlow()
+    val alerts: SharedFlow<Alert>
+        field = MutableSharedFlow<Alert>(
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     fun updateState(state: ServiceState, profileName: String? = null) {
-        _status.value = ServiceStatus(state, profileName, _status.value.speed)
+        status.value = ServiceStatus(state, profileName, status.value.speed)
     }
 
     fun updateSpeed(speed: SpeedStats?) {
-        _status.value = _status.value.copy(speed = speed)
+        status.value = status.value.copy(speed = speed)
     }
 
     fun emitAlert(type: Int, message: String) {
-        _alerts.tryEmit(Alert(type, message))
+        alerts.tryEmit(Alert(type, message))
     }
 
     fun setConnected(value: Boolean) {
-        _connected.value = value
+        connected.value = value
     }
 
     fun reset() {
-        _connected.value = false
-        _status.value = ServiceStatus()
+        connected.value = false
+        status.value = ServiceStatus()
     }
 }

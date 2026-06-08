@@ -26,8 +26,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -57,18 +57,18 @@ internal class SpeedTestScreenViewModel(
     private val httpClientFactory: HttpClientFactory = LibcoreHttpClientFactory,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(SpeedTestScreenUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<SpeedTestScreenUiState>
+        field = MutableStateFlow(SpeedTestScreenUiState())
 
-    private val _uiEvent = MutableSharedFlow<SpeedTestScreenUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val uiEvent: SharedFlow<SpeedTestScreenUiEvent>
+        field = MutableSharedFlow<SpeedTestScreenUiEvent>()
 
     init {
         initialize()
     }
 
     fun initialize() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 downloadURL = DataStore.speedTestUrl.blankAsNull() ?: SPEED_TEST_URL,
                 uploadURL = DataStore.speedTestUploadURL.blankAsNull() ?: SPEED_TEST_UPLOAD_URL,
@@ -84,10 +84,10 @@ internal class SpeedTestScreenViewModel(
     fun doSpeedTest() {
         cancel()
         job = viewModelScope.launch(ioDispatcher) {
-            _uiState.update {
+            uiState.update {
                 it.copy(canTest = false)
             }
-            val state = _uiState.value
+            val state = uiState.value
             when (state.mode) {
                 SpeedTestMode.Download -> downloadTest(
                     state.downloadURL,
@@ -100,8 +100,8 @@ internal class SpeedTestScreenViewModel(
                     state.uploadLength,
                 )
             }
-            _uiEvent.emit(SpeedTestScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.done)))
-            _uiState.update {
+            uiEvent.emit(SpeedTestScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.done)))
+            uiState.update {
                 it.copy(canTest = true, progress = null)
             }
         }
@@ -113,7 +113,7 @@ internal class SpeedTestScreenViewModel(
     }
 
     override fun onCleared() {
-        val state = _uiState.value
+        val state = uiState.value
         DataStore.speedTestUrl = state.downloadURL
         DataStore.speedTestUploadURL = state.uploadURL
         DataStore.speedTestUploadLength = state.uploadLength
@@ -148,7 +148,7 @@ internal class SpeedTestScreenViewModel(
                 .writeTo(
                     Libcore.DevNull,
                     SpeedTestCopyCallback { speed, progress ->
-                        _uiState.update { state ->
+                        uiState.update { state ->
                             state.copy(speed = speed, progress = progress)
                         }
                     },
@@ -156,7 +156,7 @@ internal class SpeedTestScreenViewModel(
         } catch (_: CancellationException) {
         } catch (e: Exception) {
             Logs.e(e)
-            _uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
         } finally {
             currentResponse?.closeQuietly()
         }
@@ -183,7 +183,7 @@ internal class SpeedTestScreenViewModel(
                     setContentZero(
                         length,
                         SpeedTestCopyCallback { speed, progress ->
-                            _uiState.update { state ->
+                            uiState.update { state ->
                                 state.copy(speed = speed, progress = progress)
                             }
                         },
@@ -196,7 +196,7 @@ internal class SpeedTestScreenViewModel(
         } catch (_: CancellationException) {
         } catch (e: Exception) {
             Logs.e(e)
-            _uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
         } finally {
             currentResponse?.closeQuietly()
         }
@@ -222,11 +222,11 @@ internal class SpeedTestScreenViewModel(
     }
 
     fun setMode(mode: SpeedTestMode) = viewModelScope.launch {
-        _uiState.emit(_uiState.value.copy(mode = mode))
+        uiState.emit(uiState.value.copy(mode = mode))
     }
 
     fun setServer(server: String?) = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             if (server?.blankAsNull() == null) {
                 state.copy(urlError = StringOrRes.Res(Res.string.can_not_be_empty))
             } else when (state.mode) {
@@ -242,7 +242,7 @@ internal class SpeedTestScreenViewModel(
     }
 
     fun setTimeout(raw: String?) = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             val timeout = raw?.blankAsNull()?.toIntOrNull()
             if (timeout == null) {
                 state.copy(timeoutError = StringOrRes.Res(Res.string.can_not_be_empty))
@@ -253,7 +253,7 @@ internal class SpeedTestScreenViewModel(
     }
 
     fun setUploadSize(raw: String?) = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             val size = raw?.blankAsNull()?.toLongOrNull()
             if (size == null) {
                 state.copy(uploadLengthError = StringOrRes.Res(Res.string.can_not_be_empty))

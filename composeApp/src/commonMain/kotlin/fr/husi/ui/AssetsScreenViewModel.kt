@@ -29,8 +29,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -69,11 +69,11 @@ internal class AssetsScreenViewModel(
         fun isBuiltIn(index: Int): Boolean = index < 2
     }
 
-    private val _uiState = MutableStateFlow(AssetsUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<AssetsUiState>
+        field = MutableStateFlow(AssetsUiState())
 
-    private val _uiEvent = MutableSharedFlow<AssetsScreenUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val uiEvent: SharedFlow<AssetsScreenUiEvent>
+        field = MutableSharedFlow<AssetsScreenUiEvent>()
 
     private lateinit var assetsDir: File
     private lateinit var geoDir: File
@@ -127,7 +127,7 @@ internal class AssetsScreenViewModel(
         }
 
         hiddenAssetsAccess.withLock {
-            _uiState.update { state ->
+            uiState.update { state ->
                 state.copy(
                     assets = files.mapIndexed { index, file ->
                         buildAssetItem(index, file, assetsByName[file.name])
@@ -179,10 +179,10 @@ internal class AssetsScreenViewModel(
             try {
                 updateAsset0(cacheDir)
             } catch (_: NoUpdateException) {
-                _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.route_asset_no_update)))
+                uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.route_asset_no_update)))
             } catch (e: Exception) {
                 Logs.e(e)
-                _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
+                uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
             }
             RouteAssetUpdater.reconfigureUpdater()
             val assets = SagerDatabase.assetDao.getAll().first()
@@ -191,7 +191,7 @@ internal class AssetsScreenViewModel(
     }
 
     private suspend fun updateAsset0(cacheDir: File) {
-        _uiState.update { it.copy(process = 0f) }
+        uiState.update { it.copy(process = 0f) }
 
         var process = 0f
         updateManagedRouteAssets(
@@ -199,13 +199,13 @@ internal class AssetsScreenViewModel(
             cacheDir = cacheDir,
         ) { progressDelta ->
             process += progressDelta
-            _uiState.update { it.copy(process = process) }
+            uiState.update { it.copy(process = process) }
         }
     }
 
     fun resetRuleSet() = viewModelScope.launch(Dispatchers.IO) {
         if (DataStore.rulesProvider != RuleProvider.OFFICIAL) return@launch
-        _uiState.update { it.copy(process = 0f) }
+        uiState.update { it.copy(process = 0f) }
         try {
             copyBundledRuleSetAssetsIfNeeded()
             assetsDir.resolve("geoip.version.txt").delete()
@@ -215,7 +215,7 @@ internal class AssetsScreenViewModel(
             RouteAssetUpdater.reconfigureUpdater()
         } catch (e: Exception) {
             Logs.e(e)
-            _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
         }
         val assets = SagerDatabase.assetDao.getAll().first()
         refreshAssets0(assets)
@@ -226,7 +226,7 @@ internal class AssetsScreenViewModel(
             updateSingleAsset0(asset)
         } catch (e: Exception) {
             Logs.e(e)
-            _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
+            uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
         }
         RouteAssetUpdater.reconfigureUpdater()
         val assets = SagerDatabase.assetDao.getAll().first()
@@ -236,7 +236,7 @@ internal class AssetsScreenViewModel(
     private suspend fun updateSingleAsset0(asset: File) {
         val entity = SagerDatabase.assetDao.get(asset.name) ?: return
 
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 assets = state.assets.map {
                     if (it.file == asset) {
@@ -249,7 +249,7 @@ internal class AssetsScreenViewModel(
         }
 
         entity.version = updateSingleRouteAsset(entity, assetsDir) { progress ->
-            _uiState.update { state ->
+            uiState.update { state ->
                 state.copy(
                     assets = state.assets.map {
                         if (it.file == asset) {
@@ -267,7 +267,7 @@ internal class AssetsScreenViewModel(
 
     fun undoableRemove(fileName: String) = viewModelScope.launch {
         hiddenAssetsAccess.withLock {
-            _uiState.update { state ->
+            uiState.update { state ->
                 val assets = state.assets.toMutableList()
                 val assetIndex = assets.indexOfFirst { it.file.name == fileName }
                 if (assetIndex >= 0) {

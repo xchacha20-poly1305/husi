@@ -20,9 +20,10 @@ import fr.husi.ktx.onDefaultDispatcher
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,7 +33,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import java.io.File
 
 @Serializable
 internal data class BackupPayload(
@@ -69,11 +69,11 @@ internal class BackupViewModel : ViewModel() {
         const val BACKUP_VERSION = 3
     }
 
-    private val _uiState = MutableStateFlow(BackupUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<BackupUiState>
+        field = MutableStateFlow(BackupUiState())
 
     fun setBackupGroupsAndConfig(enable: Boolean) = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             val options = if (enable) {
                 state.options or BackupUiState.OPTIONS_GROUPS_AND_CONFIGURATION
             } else {
@@ -84,7 +84,7 @@ internal class BackupViewModel : ViewModel() {
     }
 
     fun setBackupRules(enable: Boolean) = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             val options = if (enable) {
                 state.options or BackupUiState.OPTIONS_RULES
             } else {
@@ -95,7 +95,7 @@ internal class BackupViewModel : ViewModel() {
     }
 
     fun setBackupSettings(enable: Boolean) = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             val options = if (enable) {
                 state.options or BackupUiState.OPTIONS_SETTINGS
             } else {
@@ -110,7 +110,7 @@ internal class BackupViewModel : ViewModel() {
         val content = onIoDispatcher {
             createBackup(state.backupGroupsAndConfig, state.backupRules, state.backupSettings)
         }
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(exported = content)
         }
     }
@@ -153,7 +153,7 @@ internal class BackupViewModel : ViewModel() {
             val version = backup.version
             if (version != BACKUP_VERSION) error("Unsupported backup version $version (expected $BACKUP_VERSION)")
             onDefaultDispatcher {
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(
                         inputResult = backup,
                     )
@@ -166,7 +166,7 @@ internal class BackupViewModel : ViewModel() {
     }
 
     fun clearInputResult() = viewModelScope.launch {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(inputResult = null)
         }
     }
@@ -177,7 +177,7 @@ internal class BackupViewModel : ViewModel() {
         rule: Boolean,
         setting: Boolean,
     ) = runOnDefaultDispatcher {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 inputResult = null,
                 isImporting = true,
@@ -234,13 +234,13 @@ internal class BackupViewModel : ViewModel() {
                 }
             }
         }
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(isImporting = false)
         }
     }
 
     fun postExport() {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(exported = null)
         }
     }

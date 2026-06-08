@@ -14,12 +14,12 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.toStringIterator
 import fr.husi.libcore.Libcore
 import fr.husi.utils.PackageCache
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import java.io.File
 import java.util.zip.ZipFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 @Immutable
 internal data class VPNScannerUiState(
@@ -80,8 +80,8 @@ internal class VPNScannerScreenViewModel : ViewModel() {
         )
     }
 
-    private val _uiState = MutableStateFlow(VPNScannerUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<VPNScannerUiState>
+        field = MutableStateFlow(VPNScannerUiState())
 
     fun scanVPN(packageManager: PackageManager) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -100,7 +100,7 @@ internal class VPNScannerScreenViewModel : ViewModel() {
     }
 
     private suspend fun scanVPN0(packageManager: PackageManager) {
-        _uiState.emit(_uiState.value.copy(appInfos = emptyList(), progress = 0f))
+        uiState.emit(uiState.value.copy(appInfos = emptyList(), progress = 0f))
         val flag =
             PackageManager.GET_SERVICES or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 PackageManager.MATCH_UNINSTALLED_PACKAGES
@@ -136,12 +136,12 @@ internal class VPNScannerScreenViewModel : ViewModel() {
             )
             foundApps.add(appInfo)
             val progress = ((i + 1).toDouble() / vpnAppList.size.toDouble()).toFloat()
-            _uiState.emit(_uiState.value.copy(appInfos = foundApps.toList(), progress = progress))
+            uiState.emit(uiState.value.copy(appInfos = foundApps.toList(), progress = progress))
 
             System.gc()
         }
 
-        _uiState.emit(_uiState.value.copy(progress = null))
+        uiState.emit(uiState.value.copy(progress = null))
     }
 
     private fun getVPNAppType(packageInfo: PackageInfo): String? {

@@ -16,7 +16,7 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -50,8 +50,8 @@ internal class GroupSettingsViewModel(
     groupId: Long,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(GroupSettingsUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<GroupSettingsUiState>
+        field = MutableStateFlow(GroupSettingsUiState())
 
     private var editingID: Long = 0L
     val isNew get() = editingID == 0L
@@ -79,7 +79,7 @@ internal class GroupSettingsViewModel(
         } else {
             SagerDatabase.groupDao.getById(id).first()!!
         }
-        _uiState.update { state ->
+        uiState.update { state ->
             val subscription = group.subscription ?: SubscriptionBean().applyDefaultValues()
             state.copy(
                 name = group.name ?: "",
@@ -117,7 +117,7 @@ internal class GroupSettingsViewModel(
         if (!isDirty.value) return@runOnIoDispatcher
         val entity =
             SagerDatabase.groupDao.getById(editingID).firstOrNull() ?: return@runOnIoDispatcher
-        val state = _uiState.value
+        val state = uiState.value
         val keepUserInfo = entity.type == GroupType.SUBSCRIPTION
                 && initialState.value?.type == GroupType.SUBSCRIPTION
                 && entity.subscription?.link == state.subscriptionLink
@@ -160,98 +160,98 @@ internal class GroupSettingsViewModel(
     }
 
     fun setName(name: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(name = name)
         }
     }
 
     fun setType(type: Int) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(type = type)
         }
     }
 
     fun setOrder(order: Int) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(order = order)
         }
     }
 
     fun setFrontProxy(frontProxy: Long) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(frontProxy = frontProxy)
         }
     }
 
     fun setLandingProxy(landingProxy: Long) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(landingProxy = landingProxy)
         }
     }
 
     fun setSubscriptionType(subscriptionType: Int) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionType = subscriptionType)
         }
     }
 
     fun setSubscriptionToken(subscriptionToken: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionToken = subscriptionToken)
         }
     }
 
     fun setSubscriptionLink(subscriptionLink: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionLink = subscriptionLink)
         }
     }
 
     fun setSubscriptionForceResolve(subscriptionForceResolve: Boolean) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionForceResolve = subscriptionForceResolve)
         }
     }
 
     fun setSubscriptionDeduplication(subscriptionDeduplication: Boolean) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionDeduplication = subscriptionDeduplication)
         }
     }
 
     fun setSubscriptionFilterNotRegex(subscriptionFilterNotRegex: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionFilterNotRegex = subscriptionFilterNotRegex)
         }
     }
 
     fun setSubscriptionUpdateWhenConnectedOnly(subscriptionUpdateWhenConnectedOnly: Boolean) =
         viewModelScope.launch {
-            _uiState.update {
+            uiState.update {
                 it.copy(subscriptionUpdateWhenConnectedOnly = subscriptionUpdateWhenConnectedOnly)
             }
         }
 
     fun setSubscriptionUserAgent(subscriptionUserAgent: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionUserAgent = subscriptionUserAgent)
         }
     }
 
     fun setSubscriptionAutoUpdate(subscriptionAutoUpdate: Boolean) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionAutoUpdate = subscriptionAutoUpdate)
         }
     }
 
     fun setSubscriptionUpdateDelay(subscriptionUpdateDelay: Int) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionUpdateDelay = subscriptionUpdateDelay)
         }
     }
 
     fun setSubscriptionAgeIdentity(subscriptionAgeIdentity: String) = viewModelScope.launch {
-        _uiState.update {
+        uiState.update {
             it.copy(subscriptionAgeIdentity = subscriptionAgeIdentity)
         }
     }

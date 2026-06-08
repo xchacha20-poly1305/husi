@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -26,11 +26,11 @@ internal data class JuicityUiState(
 internal class JuicitySettingsViewModel : ProfileEditorViewModel<JuicityBean>() {
     override fun createBean() = JuicityBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(JuicityUiState())
-    override val uiState = _uiState.asStateFlow()
+    override val uiState: StateFlow<JuicityUiState>
+        field = MutableStateFlow(JuicityUiState())
 
     override suspend fun JuicityBean.writeToUiState() {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -47,7 +47,7 @@ internal class JuicitySettingsViewModel : ProfileEditorViewModel<JuicityBean>() 
     }
 
     override fun JuicityBean.loadFromUiState() {
-        val state = _uiState.value
+        val state = uiState.value
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -62,43 +62,43 @@ internal class JuicitySettingsViewModel : ProfileEditorViewModel<JuicityBean>() 
     }
 
     override fun setCustomConfig(config: String) {
-        _uiState.update { it.copy(customConfig = config) }
+        uiState.update { it.copy(customConfig = config) }
     }
 
     override fun setCustomOutbound(outbound: String) {
-        _uiState.update { it.copy(customOutbound = outbound) }
+        uiState.update { it.copy(customOutbound = outbound) }
     }
 
     fun setName(name: String) {
-        _uiState.update { it.copy(name = name) }
+        uiState.update { it.copy(name = name) }
     }
 
     fun setAddress(address: String) {
-        _uiState.update { it.copy(address = address) }
+        uiState.update { it.copy(address = address) }
     }
 
     fun setPort(port: Int) {
-        _uiState.update { it.copy(port = port) }
+        uiState.update { it.copy(port = port) }
     }
 
     fun setUuid(uuid: String) {
-        _uiState.update { it.copy(uuid = uuid) }
+        uiState.update { it.copy(uuid = uuid) }
     }
 
     fun setPassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+        uiState.update { it.copy(password = password) }
     }
 
     fun setSni(sni: String) {
-        _uiState.update { it.copy(sni = sni) }
+        uiState.update { it.copy(sni = sni) }
     }
 
     fun setAllowInsecure(allow: Boolean) {
-        _uiState.update { it.copy(allowInsecure = allow) }
+        uiState.update { it.copy(allowInsecure = allow) }
     }
 
     fun setPinSha256(sha256: String) {
-        _uiState.update { it.copy(pinSha256 = sha256) }
+        uiState.update { it.copy(pinSha256 = sha256) }
     }
 
 }
