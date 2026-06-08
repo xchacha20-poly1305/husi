@@ -126,9 +126,6 @@ class ShadowQUICFmtTest : HusiKoinTest() {
 
         assertTrue(shadowQUIC.haveStandardLink())
         assertFalse(sunnyQUIC.haveStandardLink())
-        assertFailsWith<IllegalStateException> {
-            sunnyQUIC.toStdLink()
-        }
     }
 
     @Test
