@@ -1,6 +1,5 @@
 package fr.husi.fmt.v2ray
 
-import kotlinx.serialization.Serializable as KxsSerializable
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
@@ -8,6 +7,7 @@ import fr.husi.fmt.ValidateResult
 import fr.husi.resources.Res
 import fr.husi.resources.warn_insecure
 import fr.husi.resources.warn_not_encrypted
+import kotlinx.serialization.Serializable as KxsSerializable
 
 @KxsSerializable
 abstract class StandardV2RayBean : AbstractBean() {
@@ -151,9 +151,7 @@ abstract class StandardV2RayBean : AbstractBean() {
             "", "tcp" -> v2rayTransport = ""
         }
         when (v2rayTransport) {
-            "", "quic" -> {
-                Unit
-            }
+            "", "quic" -> {}
 
             "ws" -> {
                 host = input.readString()

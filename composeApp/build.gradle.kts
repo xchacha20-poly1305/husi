@@ -301,18 +301,12 @@ kotlin {
 
                 implementation(libs.kotlinx.coroutines.android)
 
-                implementation(libs.androidx.core.ktx)
                 implementation(libs.androidx.appcompat)
-                implementation(libs.androidx.activity.ktx)
-
-
-                implementation(libs.androidx.work.runtime.ktx)
                 implementation(libs.androidx.work.multiprocess)
-
                 implementation(libs.androidx.datastore)
-
                 implementation(libs.androidx.compose.ui.viewbinding)
                 implementation(libs.androidx.activity.compose)
+
                 implementation(libs.koin.android)
 
                 implementation(libs.accompanist.drawablepainter)

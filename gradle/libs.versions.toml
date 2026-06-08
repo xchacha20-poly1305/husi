@@ -2,14 +2,13 @@
 ksp = "2.3.6"
 kotlinComposePlugin = "2.4.0"
 clikt = "5.1.0"
-composeMultiplatform = "1.11.0"
+composeMultiplatform = "1.11.1"
 composeMaterial3 = "1.11.0-alpha07"
 koin = "4.2.1"
 kotlinCoroutines = "1.11.0"
 kotlinxSerialization = "1.11.0"
 kotlinxDatetime = "0.8.0"
 kotlinxImmutable = "0.4.0"
-androidxCoreKtx = "1.18.0"
 androidxAppcompat = "1.7.1"
 androidxActivity = "1.13.0"
 jetbrainsLifecycle = "2.10.0"
@@ -31,8 +30,8 @@ fileKit = "0.14.1"
 kryo = "5.6.2"
 ini4j = "0.5.4"
 junitBom = "6.1.0"
-mockk = "1.14.9"
-aboutlibraries = "14.2.0"
+mockk = "1.14.11"
+aboutlibraries = "14.2.1"
 androidxTv = "1.1.0"
 agp = "9.2.1"
 kotlinGradlePlugin = "2.4.0"
@@ -45,10 +44,7 @@ kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collec
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
-androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
-androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWork" }
 androidx-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "androidxWork" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidxDatastore" }
 androidx-tv-material = { module = "androidx.tv:tv-material", version.ref = "androidxTv" }

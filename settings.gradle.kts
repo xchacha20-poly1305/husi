@@ -7,7 +7,7 @@ pluginManagement {
     }
     plugins {
         id("org.jetbrains.kotlin.plugin.compose") version "2.4.0"
-        id("org.jetbrains.compose") version "1.10.3"
+        id("org.jetbrains.compose") version "1.11.1"
     }
 }
 
