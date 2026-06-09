@@ -47,22 +47,22 @@ type NetworkInterfaceIterator interface {
 
 type interfaceMonitor struct {
 	*boxPlatformInterfaceWrapper
-	element     *list.Element[tun.NetworkUpdateCallback]
-	callbacks   list.List[tun.DefaultInterfaceUpdateCallback]
-	logger      logger.Logger
-	myInterface string
+	element      *list.Element[tun.NetworkUpdateCallback]
+	callbacks    list.List[tun.DefaultInterfaceUpdateCallback]
+	logger       logger.Logger
+	myInterfaces []string
 }
 
 func (m *interfaceMonitor) RegisterMyInterface(interfaceName string) {
 	m.defaultInterfaceAccess.Lock()
 	defer m.defaultInterfaceAccess.Unlock()
-	m.myInterface = interfaceName
+	m.myInterfaces = append(m.myInterfaces, interfaceName)
 }
 
-func (m *interfaceMonitor) MyInterface() string {
+func (m *interfaceMonitor) MyInterfaces() []string {
 	m.defaultInterfaceAccess.Lock()
 	defer m.defaultInterfaceAccess.Unlock()
-	return m.myInterface
+	return m.myInterfaces
 }
 
 func (m *interfaceMonitor) Start() error {

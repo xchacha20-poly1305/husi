@@ -99,6 +99,34 @@ func (p platformInterfaceStub) MyInterfaceAddress() []netip.Addr {
 	return nil
 }
 
+func (p platformInterfaceStub) UsePlatformShell() bool {
+	return false
+}
+
+func (p platformInterfaceStub) CheckPlatformShell() error {
+	return os.ErrInvalid
+}
+
+func (p platformInterfaceStub) OpenShellSession(user *adapter.PlatformUser, command string, env []string, term string, rows int32, cols int32) (adapter.ShellSession, error) {
+	return nil, os.ErrInvalid
+}
+
+func (p platformInterfaceStub) LookupUser(username string) (*adapter.PlatformUser, error) {
+	return nil, os.ErrInvalid
+}
+
+func (p platformInterfaceStub) LookupSFTPServer() (string, error) {
+	return "", os.ErrInvalid
+}
+
+func (p platformInterfaceStub) ReadSystemSSHHostKey() ([]byte, error) {
+	return nil, os.ErrInvalid
+}
+
+func (p platformInterfaceStub) TailscaleHostname() string {
+	return ""
+}
+
 var _ tun.DefaultInterfaceMonitor = interfaceMonitorStub{}
 
 type interfaceMonitorStub struct{}
@@ -106,8 +134,8 @@ type interfaceMonitorStub struct{}
 func (i interfaceMonitorStub) RegisterMyInterface(_ string) {
 }
 
-func (i interfaceMonitorStub) MyInterface() string {
-	return ""
+func (i interfaceMonitorStub) MyInterfaces() []string {
+	return nil
 }
 
 func (i interfaceMonitorStub) Start() error {

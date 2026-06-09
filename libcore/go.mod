@@ -6,12 +6,12 @@ require (
 	filippo.io/age v1.3.1
 	github.com/exclavenetwork/sing-juicity v0.2.0-beta.2
 	github.com/gofrs/uuid/v5 v5.4.0
-	github.com/klauspost/compress v1.18.5
+	github.com/klauspost/compress v1.18.6
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/sing v0.8.11-0.20260514110501-905ad103a4df
-	github.com/sagernet/sing-box v1.14.0-alpha.26
-	github.com/sagernet/sing-tun v0.8.10-0.20260520101551-ce2b05a9b67f
+	github.com/sagernet/sing-box v1.14.0-alpha.29
+	github.com/sagernet/sing-tun v0.8.11-0.20260603045801-6e76db79f94a
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -36,7 +36,7 @@ replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vme
 // cmd
 require (
 	codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0
-	github.com/oschwald/geoip2-golang v1.11.0
+	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/oschwald/maxminddb-golang v1.13.1
 )
 
