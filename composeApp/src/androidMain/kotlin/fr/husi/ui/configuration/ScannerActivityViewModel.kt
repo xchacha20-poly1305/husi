@@ -16,11 +16,14 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.qrcode.QRCodeReader
+import fr.husi.database.ProxyGroup
+import fr.husi.fmt.AbstractBean
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.SubscriptionFoundException
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.resources.*
+import fr.husi.ui.ImportLinkPreview
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -121,9 +124,26 @@ internal class ScannerActivityViewModel(
                 uiEvent.emit(ScannerUiEvent.AskSubscriptionOrProfile(value))
             }
 
-            "sing-box" -> importSubscription(value)
-            "husi" -> importSubscription(value)
-            else -> parseAndImportProfile(value)
+            else -> parseAndImport(value)
+        }
+    }
+
+    private fun parseAndImport(value: String) = runOnDefaultDispatcher {
+        try {
+            when (val preview = importLinkInteractor.parseUri(value)) {
+                ImportLinkPreview.Ignore -> {
+                    isProcessing = false
+                    viewModelScope.launch {
+                        uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(Res.string.action_import_err)))
+                    }
+                }
+
+                is ImportLinkPreview.Subscription -> importSubscription(preview.group)
+                is ImportLinkPreview.Profiles -> importProfiles(preview.proxies)
+            }
+        } catch (e: Exception) {
+            isProcessing = false
+            onFailure(e)
         }
     }
 
@@ -134,10 +154,7 @@ internal class ScannerActivityViewModel(
                 isProcessing = false
                 onFailure(null)
             } else {
-                uiEvent.emit(ScannerUiEvent.Finish)
-                onIoDispatcher {
-                    importLinkInteractor.importProfiles(results)
-                }
+                importProfiles(results)
             }
         } catch (e: SubscriptionFoundException) {
             uiEvent.emit(ScannerUiEvent.ImportSubscription(e.link.toUri()))
@@ -145,6 +162,20 @@ internal class ScannerActivityViewModel(
         } catch (e: Exception) {
             isProcessing = false
             onFailure(e)
+        }
+    }
+
+    private suspend fun importProfiles(profiles: List<AbstractBean>) {
+        if (profiles.isEmpty()) {
+            isProcessing = false
+            viewModelScope.launch {
+                uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(Res.string.action_import_err)))
+            }
+            return
+        }
+        uiEvent.emit(ScannerUiEvent.Finish)
+        onIoDispatcher {
+            importLinkInteractor.importProfiles(profiles)
         }
     }
 
@@ -159,13 +190,17 @@ internal class ScannerActivityViewModel(
                 return@runOnDefaultDispatcher
             }
 
-            uiEvent.emit(ScannerUiEvent.Finish)
-            onIoDispatcher {
-                importLinkInteractor.importSubscription(group)
-            }
+            importSubscription(group)
         } catch (e: Exception) {
             isProcessing = false
             onFailure(e)
+        }
+    }
+
+    private suspend fun importSubscription(group: ProxyGroup) {
+        uiEvent.emit(ScannerUiEvent.Finish)
+        onIoDispatcher {
+            importLinkInteractor.importSubscription(group)
         }
     }
 

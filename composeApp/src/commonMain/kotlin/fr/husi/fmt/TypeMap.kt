@@ -9,6 +9,7 @@ object TypeMap : HashMap<String, Int>() {
         this["http"] = ProxyEntity.TYPE_HTTP
         this["ss"] = ProxyEntity.TYPE_SS
         this["vmess"] = ProxyEntity.TYPE_VMESS
+        this["vless"] = ProxyEntity.TYPE_VLESS
         this["trojan"] = ProxyEntity.TYPE_TROJAN
         this["mieru"] = ProxyEntity.TYPE_MIERU
         this["naive"] = ProxyEntity.TYPE_NAIVE
@@ -20,6 +21,7 @@ object TypeMap : HashMap<String, Int>() {
         this["direct"] = ProxyEntity.TYPE_DIRECT
         this["anytls"] = ProxyEntity.TYPE_ANYTLS
         this["shadowquic"] = ProxyEntity.TYPE_SHADOWQUIC
+        this["shadowtls"] = ProxyEntity.TYPE_SHADOWTLS
         this["trusttunnel"] = ProxyEntity.TYPE_TRUST_TUNNEL
         this["config"] = ProxyEntity.TYPE_CONFIG
     }

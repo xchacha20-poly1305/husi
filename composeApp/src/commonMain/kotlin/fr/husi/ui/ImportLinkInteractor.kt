@@ -23,10 +23,15 @@ sealed interface ImportLinkPreview {
     class Profiles(val proxies: List<AbstractBean>) : ImportLinkPreview
 }
 
+fun isSubscriptionUri(uri: String): Boolean {
+    return uri.startsWith("sing-box://import-remote-profile?") ||
+            uri.startsWith("husi://subscription?")
+}
+
 class ImportLinkInteractor {
 
     suspend fun parseUri(uri: String): ImportLinkPreview {
-        return if (uri.startsWith("sing-box://") || uri.startsWith("husi://subscription")) {
+        return if (isSubscriptionUri(uri)) {
             val group = parseSubscription(uri)
             if (group == null) ImportLinkPreview.Ignore else ImportLinkPreview.Subscription(group)
         } else {
@@ -35,6 +40,13 @@ class ImportLinkInteractor {
     }
 
     fun parseSubscription(uri: String): ProxyGroup? {
+        if (
+            uri.startsWith("husi://") && !uri.startsWith("husi://subscription?") ||
+            uri.startsWith("sing-box://") && !uri.startsWith("sing-box://import-remote-profile?")
+        ) {
+            return null
+        }
+
         val urlForQuery = Libcore.parseURL(uri)
         val group: ProxyGroup
         val url = defaultOr(

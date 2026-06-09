@@ -846,7 +846,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                         }
                                     }
 
-                                    else -> error("impossible")
+                                    else -> stringResource(Res.string.group_status_empty)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
