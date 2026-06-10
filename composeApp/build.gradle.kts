@@ -279,6 +279,8 @@ kotlin {
                 implementation(libs.filekit.dialogs.compose)
                 implementation(libs.aboutlibraries.compose.m3)
                 implementation(libs.zxing.core)
+                implementation(libs.haze.blur)
+                implementation(libs.haze.liquidglass)
                 implementation(project(":library:compose-code-editor:codeeditor"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
 

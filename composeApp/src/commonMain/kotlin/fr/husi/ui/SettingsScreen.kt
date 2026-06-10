@@ -82,6 +82,8 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Surface
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.rememberStatsBarHazeState
+import fr.husi.compose.statsBarHazeSource
 import fr.husi.compose.theme.DEFAULT
 import fr.husi.compose.theme.themeString
 import fr.husi.compose.theme.themes
@@ -330,6 +332,7 @@ fun SettingsScreen(
         .collectAsStateWithLifecycle(defaultDisableTcpKeepAlive)
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    val statsBarHazeState = rememberStatsBarHazeState()
 
     Scaffold(
         modifier = modifier
@@ -369,13 +372,18 @@ fun SettingsScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
+                    hazeState = statsBarHazeState,
                 )
             }
         },
     ) { innerPadding ->
         ProvidePreferenceLocals {
             val contentPadding = innerPadding.withNavigation()
-            Row(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statsBarHazeSource(statsBarHazeState),
+            ) {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier

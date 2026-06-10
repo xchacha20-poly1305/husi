@@ -97,6 +97,8 @@ import fr.husi.compose.material3.PrimaryScrollableTabRow
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
+import fr.husi.compose.rememberStatsBarHazeState
+import fr.husi.compose.statsBarHazeSource
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
@@ -311,6 +313,7 @@ fun ConfigurationScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    val statsBarHazeState = rememberStatsBarHazeState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topAppBarColors = TopAppBarDefaults.topAppBarColors()
     val appBarContainerColor by animateColorAsState(
@@ -613,6 +616,7 @@ fun ConfigurationScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
+                    hazeState = statsBarHazeState,
                 )
             }
         },
@@ -623,6 +627,7 @@ fun ConfigurationScreen(
         ConfigurationContent(
             modifier = Modifier
                 .fillMaxSize()
+                .statsBarHazeSource(statsBarHazeState)
                 .paddingExceptBottom(innerPadding),
             vm = vm,
             snackbarState = snackbarState,

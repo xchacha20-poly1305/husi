@@ -40,6 +40,8 @@ import fr.husi.compose.material3.PrimaryTabRow
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
+import fr.husi.compose.rememberStatsBarHazeState
+import fr.husi.compose.statsBarHazeSource
 import fr.husi.database.DataStore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -96,6 +98,7 @@ fun ToolsScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    val statsBarHazeState = rememberStatsBarHazeState()
 
     Scaffold(
         modifier = modifier
@@ -171,6 +174,7 @@ fun ToolsScreen(
                     status = serviceStatus,
                     visible = bottomVisible,
                     mainViewModel = mainViewModel,
+                    hazeState = statsBarHazeState,
                 )
             }
         },
@@ -179,6 +183,7 @@ fun ToolsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statsBarHazeSource(statsBarHazeState)
                 .paddingExceptBottom(innerPadding),
         ) {
             HorizontalPager(

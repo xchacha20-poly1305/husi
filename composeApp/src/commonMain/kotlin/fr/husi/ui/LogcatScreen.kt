@@ -85,7 +85,9 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.ansiEscape
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.rememberStatsBarHazeState
 import fr.husi.compose.setPlainText
+import fr.husi.compose.statsBarHazeSource
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.repository.resolveRepository
@@ -111,6 +113,7 @@ fun LogcatScreen(
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    val statsBarHazeState = rememberStatsBarHazeState()
     val canScroll by remember {
         derivedStateOf {
             listState.canScrollForward || listState.canScrollBackward
@@ -293,6 +296,7 @@ fun LogcatScreen(
                     status = serviceStatus,
                     visible = true,
                     mainViewModel = mainViewModel,
+                    hazeState = statsBarHazeState,
                 )
             }
         },
@@ -319,6 +323,7 @@ fun LogcatScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .statsBarHazeSource(statsBarHazeState)
                 .onSizeChanged { scaffoldHeightPx = it.height },
         ) {
             Row(modifier = Modifier.fillMaxSize()) {

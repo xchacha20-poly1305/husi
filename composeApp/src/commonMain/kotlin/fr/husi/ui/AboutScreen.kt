@@ -56,7 +56,9 @@ import fr.husi.compose.StatsBar
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.rememberStatsBarHazeState
 import fr.husi.compose.setPlainText
+import fr.husi.compose.statsBarHazeSource
 import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
@@ -126,6 +128,7 @@ fun AboutScreen(
     val requestIgnoreBatteryOptimizations = rememberRequestIgnoreBatteryOptimizations()
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    val statsBarHazeState = rememberStatsBarHazeState()
 
     fun putToClipboard(text: String) {
         scope.launch {
@@ -175,6 +178,7 @@ fun AboutScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
+                    hazeState = statsBarHazeState,
                 )
             }
         },
@@ -182,7 +186,11 @@ fun AboutScreen(
         val uriHandler = LocalUriHandler.current
         val contentPadding = innerPadding.withNavigation()
 
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .statsBarHazeSource(statsBarHazeState),
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier

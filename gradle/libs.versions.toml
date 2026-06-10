@@ -4,6 +4,7 @@ kotlinComposePlugin = "2.4.0"
 clikt = "5.1.0"
 composeMultiplatform = "1.11.1"
 composeMaterial3 = "1.11.0-alpha07"
+haze = "2.0.1-SNAPSHOT"
 koin = "4.2.1"
 kotlinCoroutines = "1.11.0"
 kotlinxSerialization = "1.11.0"
@@ -91,6 +92,8 @@ jetbrains-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifec
 jetbrains-lifecycle-viewmodel-navigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "jetbrainsLifecycle" }
 jetbrains-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrainsLifecycle" }
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "jetbrainsNavigation3Ui" }
+haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
+haze-liquidglass = { module = "dev.chrisbanes.haze:haze-liquidglass", version.ref = "haze" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-core-viewmodel = { module = "io.insert-koin:koin-core-viewmodel" }

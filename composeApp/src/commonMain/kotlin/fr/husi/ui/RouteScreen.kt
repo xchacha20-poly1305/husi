@@ -80,6 +80,8 @@ import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.rememberStatsBarHazeState
+import fr.husi.compose.statsBarHazeSource
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -188,6 +190,7 @@ fun RouteScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    val statsBarHazeState = rememberStatsBarHazeState()
 
     Scaffold(
         modifier = modifier
@@ -274,6 +277,7 @@ fun RouteScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
+                    hazeState = statsBarHazeState,
                 )
             }
         },
@@ -283,7 +287,9 @@ fun RouteScreen(
         var introHeightPx by remember { mutableIntStateOf(0) }
         val introHeightDp = with(density) { introHeightPx.toDp() }
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .statsBarHazeSource(statsBarHazeState),
         ) {
             Box(
                 modifier = Modifier

@@ -79,6 +79,8 @@ import fr.husi.compose.material3.PrimaryTabRow
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
+import fr.husi.compose.rememberStatsBarHazeState
+import fr.husi.compose.statsBarHazeSource
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.ascending
@@ -188,6 +190,7 @@ fun DashboardScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    val statsBarHazeState = rememberStatsBarHazeState()
     LaunchedEffect(serviceStatus.state.connected) {
         dashboardViewModel.initialize(serviceStatus.state.connected)
     }
@@ -453,6 +456,7 @@ fun DashboardScreen(
                     status = serviceStatus,
                     visible = bottomVisible,
                     mainViewModel = mainViewModel,
+                    hazeState = statsBarHazeState,
                 )
             }
         },
@@ -482,6 +486,7 @@ fun DashboardScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statsBarHazeSource(statsBarHazeState)
                 .onSizeChanged { scaffoldHeightPx = it.height }
                 .paddingExceptBottom(innerPadding),
         ) {

@@ -15,6 +15,15 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+includeBuild("library/haze") {
+    dependencySubstitution {
+        substitute(module("dev.chrisbanes.haze:haze-blur"))
+            .using(project(":haze-blur"))
+        substitute(module("dev.chrisbanes.haze:haze-liquidglass"))
+            .using(project(":haze-liquidglass"))
+    }
+}
+
 include(":plugin:api")
 
 val buildPlugin = System.getenv("BUILD_PLUGIN")
