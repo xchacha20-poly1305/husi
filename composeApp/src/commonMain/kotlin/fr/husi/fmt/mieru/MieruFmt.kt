@@ -19,6 +19,7 @@
 package fr.husi.fmt.mieru
 
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.ktx.toJsonStringKxs
@@ -35,15 +36,21 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
             },
         ),
         "servers" to listOf(
-            mapOf(
-                "ipAddress" to finalAddress,
+            mutableMapOf<String, Any>(
                 "portBindings" to listOf(
                     mapOf(
                         "port" to finalPort,
                         "protocol" to protocol.uppercase(),
                     ),
                 ),
-            ),
+            ).also {
+                // mieru refuses to parse a domain name in the ipAddress field.
+                if (finalAddress.isIpAddress()) {
+                    it["ipAddress"] = finalAddress
+                } else {
+                    it["domainName"] = finalAddress
+                }
+            },
         ),
         "mtu" to mtu,
         "multiplexing" to mieruMuxToString(serverMuxNumber)?.let { mapOf("level" to it) },

@@ -122,7 +122,8 @@ class MieruFmtTest {
 
         val servers = profile["servers"].asJsonList()
         val firstServer = servers.first().asJsonMap()
-        assertEquals("example.com", firstServer["ipAddress"])
+        assertEquals("example.com", firstServer["domainName"])
+        assertNull(firstServer["ipAddress"])
 
         val bindings = firstServer["portBindings"].asJsonList()
         val firstBinding = bindings.first().asJsonMap()
@@ -131,6 +132,24 @@ class MieruFmtTest {
 
         val multiplexing = profile["multiplexing"].asJsonMap()
         assertEquals("MULTIPLEXING_HIGH", multiplexing["level"])
+    }
+
+    @Test
+    fun `buildMieruConfig should put IP server address into ipAddress`() {
+        val bean = MieruBean().apply {
+            serverAddress = "12.34.56.78"
+            serverPort = 8080
+            username = "user"
+            password = "secret"
+            protocol = MieruBean.PROTOCOL_TCP
+        }
+        bean.initializeDefaultValues()
+
+        val config = bean.buildMieruConfig(port = 2080, logLevel = 0).toJsonMapKxs()
+        val firstServer = config.firstProfile()["servers"].asJsonList().first().asJsonMap()
+
+        assertEquals("12.34.56.78", firstServer["ipAddress"])
+        assertNull(firstServer["domainName"])
     }
 
     @Test
