@@ -47,6 +47,7 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.internal.buildSingBoxOutboundProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.juicity.buildSingBoxOutboundJuicityBean
+import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
@@ -642,38 +643,48 @@ fun buildConfig(
                 bean.finalPort = bean.serverPort
                 var currentInboundTag: String? = null
                 if (bean.canMapping && proxyEntity.needExternal()) {
-                    val mappingPort = mkPort()
-                    bean.finalAddress = LOCALHOST4
-                    bean.finalPort = mappingPort
+                    // no chain rule and not outbound, so need to set to direct
+                    val needDirectRoute = if (isProxySet) {
+                        index == profileList.lastIndex
+                    } else {
+                        !isChainNode || index == lastChainIndex
+                    }
+                    // mieru protects all its dialers via MIERU_PROTECT_PATH since v3.21.0
+                    // (enfein/mieru@666beec), so when it is the first hop it can connect to
+                    // the server by itself. Desktop TUN has no protect mechanism and the test
+                    // instance relies on the mapping for isolation, keep the mapping there.
+                    val canDialDirect = bean is MieruBean &&
+                        needDirectRoute &&
+                        !forTest &&
+                        (PlatformInfo.isAndroid || !isVPN)
+                    if (!canDialDirect) {
+                        val mappingPort = mkPort()
+                        bean.finalAddress = LOCALHOST4
+                        bean.finalPort = mappingPort
 
-                    inbounds!!.add(
-                        Inbound_DirectOptions().apply {
-                            type = SingBoxOptions.TYPE_DIRECT
-                            listen = LOCALHOST4
-                            listen_port = mappingPort
-                            tag = "$chainTag-mapping-${proxyEntity.id}"
+                        inbounds!!.add(
+                            Inbound_DirectOptions().apply {
+                                type = SingBoxOptions.TYPE_DIRECT
+                                listen = LOCALHOST4
+                                listen_port = mappingPort
+                                tag = "$chainTag-mapping-${proxyEntity.id}"
 
-                            val pair = Pair(bean.serverAddress, bean.serverPort)
-                            mappingOverride.getOrPut(pair) { mutableListOf() }.add(tag!!)
+                                val pair = Pair(bean.serverAddress, bean.serverPort)
+                                mappingOverride.getOrPut(pair) { mutableListOf() }.add(tag!!)
 
-                            currentInboundTag = tag
+                                currentInboundTag = tag
 
-                            // no chain rule and not outbound, so need to set to direct
-                            val needDirectRoute = if (isProxySet) {
-                                index == profileList.lastIndex
-                            } else {
-                                !isChainNode || index == lastChainIndex
-                            }
-                            if (needDirectRoute) {
-                                route!!.rules!!.add(
-                                    Rule_Default().apply {
-                                        inbound = mutableListOf(tag!!)
-                                        outbound = TAG_DIRECT
-                                    }.asKxsMap(),
-                                )
-                            }
-                        },
-                    )
+                                if (needDirectRoute) {
+                                    route!!.rules!!.add(
+                                        Rule_Default().apply {
+                                            inbound = mutableListOf(tag!!)
+                                            outbound = TAG_DIRECT
+                                        }.asKxsMap(),
+                                    )
+                                }
+                            },
+                        )
+                    }
                 }
 
                 outbounds!!.add(currentOutbound)
