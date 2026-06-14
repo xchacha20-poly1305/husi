@@ -347,6 +347,7 @@ kotlin {
                 }
                 implementation(libs.clikt)
                 implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.com.kdroid.composetray)
                 implementation(libcoreDesktopJarRequired)
             }
         }

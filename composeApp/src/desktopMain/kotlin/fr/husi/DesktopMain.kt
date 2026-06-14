@@ -9,11 +9,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
-import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import androidx.compose.ui.window.isTraySupported
-import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
@@ -24,6 +21,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
+import com.kdroid.composetray.menu.api.KeyShortcut
+import com.kdroid.composetray.tray.api.Tray
 import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.DesktopTaskRegistry
@@ -64,10 +63,12 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import javax.swing.UIManager
 import kotlin.system.exitProcess
+import com.kdroid.composetray.menu.api.Key as TrayKey
 
 private const val APP_NAME = "fr.husi"
 
@@ -150,12 +151,11 @@ private class DesktopMain : CliktCommand(APP_NAME) {
 
         application {
             val repository = resolveDesktopRepository()
-            val supportTray = remember { isTraySupported }
+            val supportTray = remember { isNativeTrayLikelySupported() }
             var windowVisible by remember {
                 mutableStateOf(!background || !supportTray)
             }
 
-            val trayState = rememberTrayState()
             val windowState = rememberWindowState(size = DpSize(1200.dp, 800.dp))
 
             fun openWindow() {
@@ -178,99 +178,134 @@ private class DesktopMain : CliktCommand(APP_NAME) {
                         repository.startService()
                     }
                 }
+
+                val appName = stringResource(Res.string.app_name)
+                val iconServiceActive = painterResource(Res.drawable.ic_service_active)
+
                 if (supportTray) {
-                    // In fact, whether on macOS, Windows, or Linux, the advanced tray consistently throws "java.lang.UnsupportedOperationException: java.awt.Menu doesn't support mnemonic."
-                    val supportAdvancedTray = false
+                    val serviceStatus by BackendState.status.collectAsState()
+                    val switchText = stringResource(
+                        if (serviceStatus.state == ServiceState.Connected) {
+                            Res.string.stop
+                        } else {
+                            Res.string.start
+                        },
+                    )
+
+                    val textServiceMode = stringResource(Res.string.service_mode)
+                    val textServiceModeProxy = stringResource(Res.string.service_mode_proxy)
+                    val textServiceModeVpn = stringResource(Res.string.service_mode_vpn)
+                    val serviceMode by DataStore.configurationStore
+                        .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                        .collectAsState(Key.MODE_VPN)
+
+                    val textExit = stringResource(Res.string.exit)
+                    val iconClose = painterResource(Res.drawable.close)
                     Tray(
-                        icon = painterResource(Res.drawable.ic_service_active),
-                        state = trayState,
-                        tooltip = stringResource(Res.string.app_name),
-                        onAction = ::openWindow,
-                    ) {
-                        val serviceStatus by BackendState.status.collectAsState()
-                        Item(
-                            text = serviceStatus.profileName ?: stringResource(Res.string.app_name),
-                            mnemonic = if (supportAdvancedTray) {
-                                'O'
-                            } else {
-                                null
-                            },
-                        ) {
-                            openWindow()
-                        }
-                        Item(
-                            text = stringResource(
-                                if (serviceStatus.state == ServiceState.Connected) {
-                                    Res.string.stop
-                                } else {
-                                    Res.string.start
+                        icon = iconServiceActive,
+                        tooltip = appName,
+                        primaryAction = ::openWindow,
+                        menuContent = {
+                            Item(
+                                label = serviceStatus.profileName ?: appName,
+                                shortcut = KeyShortcut(TrayKey.O),
+                            ) {
+                                openWindow()
+                            }
+                            CheckableItem(
+                                label = switchText,
+                                checked = serviceStatus.state == ServiceState.Connected
+                                        || serviceStatus.state == ServiceState.Stopped
+                                        || serviceStatus.state == ServiceState.Idle,
+                                onCheckedChange = {
+                                    when (serviceStatus.state) {
+                                        ServiceState.Stopped -> repository.startService()
+                                        ServiceState.Idle, ServiceState.Connected -> repository.stopService()
+                                        else -> {}
+                                    }
                                 },
-                            ),
-                            enabled = serviceStatus.state == ServiceState.Connected
-                                    || serviceStatus.state == ServiceState.Stopped
-                                    || serviceStatus.state == ServiceState.Idle,
-                        ) {
-                            when (serviceStatus.state) {
-                                ServiceState.Stopped -> repository.startService()
-                                ServiceState.Idle, ServiceState.Connected -> repository.stopService()
-                                else -> {}
-                            }
-                        }
-                        Menu(
-                            text = stringResource(Res.string.service_mode),
-                        ) {
-                            val serviceMode by DataStore.configurationStore
-                                .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
-                                .collectAsState(Key.MODE_VPN)
-                            CheckboxItem(
-                                text = stringResource(Res.string.service_mode_proxy),
-                                checked = serviceMode == Key.MODE_PROXY,
+                                shortcut = KeyShortcut(TrayKey.Return, ctrl = true),
+                            )
+                            SubMenu(
+                                label = textServiceMode,
                             ) {
-                                if (serviceMode != Key.MODE_PROXY) {
-                                    DataStore.serviceMode = Key.MODE_PROXY
-                                    repository.reloadService()
-                                }
+                                CheckableItem(
+                                    label = textServiceModeProxy,
+                                    checked = serviceMode == Key.MODE_PROXY,
+                                    onCheckedChange = {
+                                        if (serviceMode != Key.MODE_PROXY) {
+                                            DataStore.serviceMode = Key.MODE_PROXY
+                                            repository.reloadService()
+                                        }
+                                    },
+                                )
+                                CheckableItem(
+                                    label = textServiceModeVpn,
+                                    checked = serviceMode == Key.MODE_VPN,
+                                    onCheckedChange = {
+                                        if (serviceMode != Key.MODE_VPN) {
+                                            DataStore.serviceMode = Key.MODE_VPN
+                                            repository.reloadService()
+                                        }
+                                    },
+                                )
                             }
-                            CheckboxItem(
-                                text = stringResource(Res.string.service_mode_vpn),
-                                checked = serviceMode == Key.MODE_VPN,
-                            ) {
-                                if (serviceMode != Key.MODE_VPN) {
-                                    DataStore.serviceMode = Key.MODE_VPN
-                                    repository.reloadService()
-                                }
-                            }
-                        }
-                        Item(
-                            text = stringResource(Res.string.exit),
-                            icon = if (supportAdvancedTray) {
-                                painterResource(Res.drawable.close)
-                            } else {
-                                null
-                            },
-                            mnemonic = if (supportAdvancedTray) {
-                                'E'
-                            } else {
-                                null
-                            },
-                            onClick = ::exitGracefully,
-                        )
-                    }
+                            Item(
+                                label = textExit,
+                                icon = iconClose,
+                                shortcut = KeyShortcut(TrayKey.Q),
+                                onClick = ::exitGracefully,
+                            )
+                        },
+                    )
                 }
 
                 Window(
-                    onCloseRequest = { windowVisible = false },
+                    onCloseRequest = {
+                        if (supportTray) {
+                            windowVisible = false
+                        } else {
+                            exitGracefully()
+                        }
+                    },
                     state = windowState,
                     visible = windowVisible,
-                    title = stringResource(Res.string.app_name),
-                    icon = painterResource(Res.drawable.ic_service_active),
+                    title = appName,
+                    icon = iconServiceActive,
                 ) {
                     AppTheme {
-                        MainScreen(moveToBackground = {})
+                        MainScreen(
+                            moveToBackground = {
+                                if (supportTray) {
+                                    windowVisible = false
+                                }
+                            },
+                        )
                     }
                 }
             }
         }
+    }
+
+    private fun isNativeTrayLikelySupported(): Boolean {
+        if (!PlatformInfo.isLinux) {
+            return true
+        }
+        return isStatusNotifierWatcherAvailable()
+    }
+
+    private fun isStatusNotifierWatcherAvailable(): Boolean {
+        return runCatching {
+            val process = ProcessBuilder("busctl", "--user", "--no-pager", "--no-legend", "list")
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start()
+            val output = process.inputStream.bufferedReader().use { it.readText() }
+            val exited = process.waitFor(500, TimeUnit.MILLISECONDS)
+            if (!exited) {
+                process.destroyForcibly()
+            }
+            exited && process.exitValue() == 0 && output.contains("org.kde.StatusNotifierWatcher")
+        }.getOrDefault(false)
     }
 
     private fun shouldAutoConnectOnLaunch(): Boolean {
