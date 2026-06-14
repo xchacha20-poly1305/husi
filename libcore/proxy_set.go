@@ -8,6 +8,7 @@ import (
 	"libcore/vario"
 
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -72,18 +73,21 @@ func (b *boxInstance) InitializeProxySet() {
 
 // watchGroupChange monitors changes in the selected outbound for URLTest groups.
 func (b *boxInstance) watchGroupChange(urlTests []*group.URLTest) {
+	historyStorage := b.urlTestHistory
+	if historyStorage == nil {
+		return
+	}
+
 	tagCache := make(map[string]string, len(urlTests)) // group:current_tag
 	for _, urlTest := range urlTests {
 		tagCache[urlTest.Tag()] = urlTest.Now()
 	}
 
 	hook := observable.NewSubscriber[struct{}](1) // Prevent not receive notification when checking
-	historyStorage := b.api.HistoryStorage()
-	historyStorage.SetHook(hook)
+	historyStorage.AddUpdateHook(hook)
 	subscription, done := hook.Subscription()
 	go func() {
 		defer hook.Close()
-		defer historyStorage.SetHook(nil)
 		for {
 			select {
 			case <-b.ctx.Done():
@@ -148,7 +152,7 @@ func (c *Client) QueryProxySets() (ProxySetIterator, error) {
 
 func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance) error {
 	outboundManager := instance.Outbound()
-	historyStorage := instance.api.HistoryStorage()
+	historyStorage := instance.urlTestHistory
 	var proxySets []*ProxySet
 	for _, outbound := range outboundManager.Outbounds() {
 		outboundGroup, isGroup := outbound.(adapter.OutboundGroup)
@@ -165,7 +169,7 @@ func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance
 	return writer.Flush()
 }
 
-func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapter.OutboundGroup, historyStorage adapter.URLTestHistoryStorage) *ProxySet {
+func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapter.OutboundGroup, historyStorage *urltest.HistoryStorage) *ProxySet {
 	_, isSelector := outboundGroup.(*group.Selector)
 	return &ProxySet{
 		Tag:        outboundGroup.Tag(),
@@ -191,7 +195,7 @@ type GroupItemIterator interface {
 	Length() int32
 }
 
-func buildGroupItem(outbound adapter.Outbound, historyStorage adapter.URLTestHistoryStorage) *GroupItem {
+func buildGroupItem(outbound adapter.Outbound, historyStorage *urltest.HistoryStorage) *GroupItem {
 	var delay int32
 	if historyStorage != nil {
 		if history := historyStorage.LoadURLTestHistory(outbound.Tag()); history != nil {
@@ -201,7 +205,7 @@ func buildGroupItem(outbound adapter.Outbound, historyStorage adapter.URLTestHis
 	return &GroupItem{
 		Tag:   outbound.Tag(),
 		Type:  pluginoption.ProxyDisplayName(outbound.Type()),
-		Delay: int32(delay),
+		Delay: delay,
 	}
 }
 

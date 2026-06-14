@@ -10,13 +10,13 @@ require (
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/sing v0.8.11-0.20260514110501-905ad103a4df
-	github.com/sagernet/sing-box v1.14.0-alpha.29
+	github.com/sagernet/sing-box v1.14.0-alpha.31
 	github.com/sagernet/sing-tun v0.8.11-0.20260603045801-6e76db79f94a
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.8.0
-	github.com/xchacha20-poly1305/anja v0.22.12
+	github.com/xchacha20-poly1305/anja v0.22.13
 	github.com/xchacha20-poly1305/libping v0.10.1
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.3-0.20260517033030-f604faf14c23
 	golang.org/x/sync v0.20.0

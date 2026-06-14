@@ -1,6 +1,7 @@
 package distro
 
 import (
+	_ "libcore/combinedapi"
 	"libcore/plugin/http"
 	"libcore/plugin/juicity"
 	"libcore/plugin/plugindns"

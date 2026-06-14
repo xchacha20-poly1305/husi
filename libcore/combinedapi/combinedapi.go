@@ -1,22 +1,17 @@
-// Package combinedapi combines V2Ray API and Clash API,
-// but not provides public gRPC or HTTP service.
+// Package combinedapi provides Husi's in-process Clash API shim.
 package combinedapi
 
 import (
 	"context"
-	"net"
 	"strings"
 
-	"libcore/combinedapi/trafficcontrol"
-
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/common/urltest"
+	"github.com/sagernet/sing-box/common/compatible"
 	"github.com/sagernet/sing-box/experimental"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
-	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/common/observable"
 	"github.com/sagernet/sing/service"
 )
@@ -28,32 +23,20 @@ func init() {
 }
 
 type CombinedAPI struct {
-	ctx            context.Context
-	outbound       adapter.OutboundManager
-	logger         log.Logger
-	trafficManager *trafficcontrol.Manager
-	mode           string
-	modeList       []string
-	modeUpdateHook *observable.Subscriber[struct{}]
-	urlTestHistory adapter.URLTestHistoryStorage
+	ctx             context.Context
+	logger          log.Logger
+	dnsRouter       adapter.DNSRouter
+	mode            string
+	modeList        []string
+	modeUpdateHooks compatible.Map[*observable.Subscriber[struct{}], struct{}]
 }
 
 func New(ctx context.Context, logFactory log.ObservableFactory, options option.ClashAPIOptions) (adapter.ClashServer, error) {
-	//goland:noinspection GoDeprecation
-	//nolint:staticcheck
-	if options.StoreMode || options.StoreSelected || options.StoreFakeIP || options.CacheFile != "" || options.CacheID != "" {
-		return nil, E.New("cache_file and related fields in Clash API is deprecated in sing-box 1.8.0, use experimental.cache_file instead.")
-	}
 	c := &CombinedAPI{
-		ctx:            ctx,
-		outbound:       service.FromContext[adapter.OutboundManager](ctx),
-		logger:         logFactory.NewLogger(Name),
-		trafficManager: trafficcontrol.NewManager(),
-		modeList:       options.ModeList,
-	}
-	c.urlTestHistory = service.FromContext[adapter.URLTestHistoryStorage](ctx)
-	if c.urlTestHistory == nil {
-		c.urlTestHistory = urltest.NewHistoryStorage()
+		ctx:       ctx,
+		logger:    logFactory.NewLogger(Name),
+		dnsRouter: service.FromContext[adapter.DNSRouter](ctx),
+		modeList:  options.ModeList,
 	}
 	var defaultMode string
 	if options.DefaultMode == "" {
@@ -96,15 +79,7 @@ func (c *CombinedAPI) Start(stage adapter.StartStage) error {
 }
 
 func (c *CombinedAPI) Close() error {
-	return common.Close(c.trafficManager, c.urlTestHistory)
-}
-
-func (c *CombinedAPI) RoutedConnection(ctx context.Context, conn net.Conn, metadata adapter.InboundContext, matchedRule adapter.Rule, matchOutbound adapter.Outbound) net.Conn {
-	return trafficcontrol.NewTCPTracker(conn, c.trafficManager, metadata, c.outbound, matchedRule, matchOutbound)
-}
-
-func (c *CombinedAPI) RoutedPacketConnection(ctx context.Context, conn N.PacketConn, metadata adapter.InboundContext, matchedRule adapter.Rule, matchOutbound adapter.Outbound) N.PacketConn {
-	return trafficcontrol.NewUDPTracker(conn, c.trafficManager, metadata, c.outbound, matchedRule, matchOutbound)
+	return nil
 }
 
 func (c *CombinedAPI) Mode() string {
@@ -124,8 +99,12 @@ func (c *CombinedAPI) SetMode(newMode string) {
 		return
 	}
 	c.mode = newMode
-	if c.modeUpdateHook != nil {
-		c.modeUpdateHook.Emit(struct{}{})
+	c.modeUpdateHooks.Range(func(hook *observable.Subscriber[struct{}], _ struct{}) bool {
+		hook.Emit(struct{}{})
+		return true
+	})
+	if c.dnsRouter != nil {
+		c.dnsRouter.ClearCache()
 	}
 	cacheFile := service.FromContext[adapter.CacheFile](c.ctx)
 	if cacheFile != nil {
@@ -137,22 +116,14 @@ func (c *CombinedAPI) SetMode(newMode string) {
 	c.logger.Info("updated mode: ", newMode)
 }
 
-func (c *CombinedAPI) SetModeUpdateHook(hook *observable.Subscriber[struct{}]) {
-	c.modeUpdateHook = hook
+func (c *CombinedAPI) AddModeUpdateHook(hook *observable.Subscriber[struct{}]) {
+	c.modeUpdateHooks.Store(hook, struct{}{})
+}
+
+func (c *CombinedAPI) DeleteModeUpdateHook(hook *observable.Subscriber[struct{}]) {
+	c.modeUpdateHooks.Delete(hook)
 }
 
 func (c *CombinedAPI) ModeList() []string {
 	return c.modeList
-}
-
-func (c *CombinedAPI) TrafficManager() *trafficcontrol.Manager {
-	return c.trafficManager
-}
-
-func (c *CombinedAPI) HistoryStorage() adapter.URLTestHistoryStorage {
-	return c.urlTestHistory
-}
-
-func (c *CombinedAPI) QueryStats(name string, isUpload bool) int64 {
-	return c.trafficManager.QueryStats(name, isUpload)
 }

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"libcore/combinedapi/trafficcontrol"
 	"libcore/vario"
 
+	"github.com/sagernet/sing-box/common/trafficcontrol"
 	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -35,15 +35,20 @@ func (c *Client) QueryConnections() (TrackerInfoIterator, error) {
 }
 
 func (s *Service) handleQueryConnections(conn io.ReadWriter, instance *boxInstance) error {
-	metadatas := instance.api.TrafficManager().ClosedConnections()
-	trackerInfos := make([]*TrackerInfo, 0, len(metadatas))
-	for _, metadata := range metadatas {
+	trafficManager := instance.trafficManager
+	var trackerInfos []*TrackerInfo
+	if trafficManager == nil {
+		return vario.WriteSlices(conn, trackerInfos)
+	}
+	activeConnections := trafficManager.Connections()
+	closedConnections := trafficManager.ClosedConnections()
+	trackerInfos = make([]*TrackerInfo, 0, len(activeConnections)+len(closedConnections))
+	for _, metadata := range activeConnections {
 		trackerInfos = append(trackerInfos, buildTrackerInfo(metadata))
 	}
-	instance.api.TrafficManager().Range(func(_ uuid.UUID, tracker trafficcontrol.Tracker) bool {
-		trackerInfos = append(trackerInfos, buildTrackerInfo(tracker.Metadata()))
-		return true
-	})
+	for _, metadata := range closedConnections {
+		trackerInfos = append(trackerInfos, buildTrackerInfo(metadata))
+	}
 	writer := bufio.NewWriter(conn)
 	err := vario.WriteSlices(writer, trackerInfos)
 	if err != nil {
@@ -52,7 +57,7 @@ func (s *Service) handleQueryConnections(conn io.ReadWriter, instance *boxInstan
 	return writer.Flush()
 }
 
-func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata) *TrackerInfo {
+func buildTrackerInfo(metadata *trafficcontrol.TrackerMetadata) *TrackerInfo {
 	var rule string
 	if metadata.Rule == nil {
 		rule = "final"
@@ -302,9 +307,9 @@ func readTrackerInfo(reader io.Reader) (*TrackerInfo, error) {
 }
 
 const (
-	ConnectionEventNew    = int16(trafficcontrol.ConnectionEventNew)
-	ConnectionEventUpdate = int16(trafficcontrol.ConnectionEventUpdate)
-	ConnectionEventClosed = int16(trafficcontrol.ConnectionEventClosed)
+	ConnectionEventNew int16 = iota
+	ConnectionEventUpdate
+	ConnectionEventClosed
 )
 
 type ConnectionEvent struct {
@@ -321,23 +326,6 @@ func unixSeconds(value time.Time) int64 {
 		return 0
 	}
 	return value.Unix()
-}
-
-func toConnectionEvent(event trafficcontrol.ConnectionEvent) ConnectionEvent {
-	converted := ConnectionEvent{
-		Type: int16(event.Type),
-		ID:   event.ID.String(),
-	}
-	switch event.Type {
-	case trafficcontrol.ConnectionEventNew:
-		converted.TrackerInfo = buildTrackerInfo(event.Metadata)
-	case trafficcontrol.ConnectionEventUpdate:
-		converted.UplinkDelta = event.UplinkDelta
-		converted.DownlinkDelta = event.DownlinkDelta
-	case trafficcontrol.ConnectionEventClosed:
-		converted.ClosedAt = event.ClosedAt.Format(time.DateTime)
-	}
-	return converted
 }
 
 type ConnectionEventCallback interface {
@@ -359,36 +347,201 @@ func (c *Client) SubscribeConnectionEvent(callback ConnectionEventCallback) erro
 }
 
 func (s *Service) handleSubscribeConnections(conn io.ReadWriter, instance *boxInstance) error {
-	subscriber := observable.NewSubscriber[trafficcontrol.ConnectionEvent](256)
-	defer subscriber.Close()
-	trafficManager := instance.api.TrafficManager()
-	trafficManager.SetEventHook(subscriber)
-	defer trafficManager.SetEventHook(nil)
+	trafficManager := instance.trafficManager
+	if trafficManager == nil {
+		return nil
+	}
+	subscription, done, err := trafficManager.SubscribeEvents()
+	if err != nil {
+		return err
+	}
+	defer trafficManager.UnSubscribeEvents(subscription)
 	writer := bufio.NewWriter(conn)
-	subscription, done := subscriber.Subscription()
+	snapshots := make(map[uuid.UUID]connectionSnapshot, 16)
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case event := <-subscription:
-			err := writeConnectionEvent(writer, toConnectionEvent(event))
-			if err != nil {
-				if E.IsClosed(err) {
-					return nil
-				}
-				return E.Cause(err, "write connection event")
+			var events []ConnectionEvent
+			if converted := applyConnectionEvent(event, snapshots); converted != nil {
+				events = append(events, *converted)
 			}
-			err = writer.Flush()
+		drain:
+			for {
+				select {
+				case event = <-subscription:
+					if converted := applyConnectionEvent(event, snapshots); converted != nil {
+						events = append(events, *converted)
+					}
+				default:
+					break drain
+				}
+			}
+			err := writeConnectionEvents(writer, events)
 			if err != nil {
 				if E.IsClosed(err) {
 					return nil
 				}
-				return E.Cause(err, "flush connection event")
+				return err
 			}
 		case <-done:
 			return nil
+		case <-ticker.C:
+			err := writeConnectionEvents(writer, buildTrafficUpdates(trafficManager, snapshots))
+			if err != nil {
+				if E.IsClosed(err) {
+					return nil
+				}
+				return err
+			}
 		case <-instance.ctx.Done():
 			return nil
 		}
 	}
+}
+
+type connectionSnapshot struct {
+	uplink     int64
+	downlink   int64
+	hadTraffic bool
+}
+
+func applyConnectionEvent(event trafficcontrol.ConnectionEvent, snapshots map[uuid.UUID]connectionSnapshot) *ConnectionEvent {
+	switch event.Type {
+	case trafficcontrol.ConnectionEventNew:
+		if event.Metadata == nil {
+			return nil
+		}
+		if _, exists := snapshots[event.ID]; exists {
+			return nil
+		}
+		snapshots[event.ID] = connectionSnapshot{
+			uplink:   event.Metadata.Upload.Load(),
+			downlink: event.Metadata.Download.Load(),
+		}
+		return &ConnectionEvent{
+			Type:        ConnectionEventNew,
+			ID:          event.ID.String(),
+			TrackerInfo: buildTrackerInfo(event.Metadata),
+		}
+	case trafficcontrol.ConnectionEventClosed:
+		delete(snapshots, event.ID)
+		closedAt := event.ClosedAt
+		if closedAt.IsZero() && event.Metadata != nil && !event.Metadata.ClosedAt.IsZero() {
+			closedAt = event.Metadata.ClosedAt
+		}
+		if closedAt.IsZero() {
+			closedAt = time.Now()
+		}
+		return &ConnectionEvent{
+			Type:     ConnectionEventClosed,
+			ID:       event.ID.String(),
+			ClosedAt: closedAt.Format(time.DateTime),
+		}
+	default:
+		return nil
+	}
+}
+
+func buildTrafficUpdates(manager *trafficcontrol.Manager, snapshots map[uuid.UUID]connectionSnapshot) []ConnectionEvent {
+	activeConnections := manager.Connections()
+	activeIndex := make(map[uuid.UUID]*trafficcontrol.TrackerMetadata, len(activeConnections))
+	var events []ConnectionEvent
+	for _, metadata := range activeConnections {
+		activeIndex[metadata.ID] = metadata
+		currentUpload := metadata.Upload.Load()
+		currentDownload := metadata.Download.Load()
+		snapshot, exists := snapshots[metadata.ID]
+		if !exists {
+			snapshots[metadata.ID] = connectionSnapshot{
+				uplink:   currentUpload,
+				downlink: currentDownload,
+			}
+			events = append(events, ConnectionEvent{
+				Type:        ConnectionEventNew,
+				ID:          metadata.ID.String(),
+				TrackerInfo: buildTrackerInfo(metadata),
+			})
+			continue
+		}
+		uplinkDelta := currentUpload - snapshot.uplink
+		downlinkDelta := currentDownload - snapshot.downlink
+		if uplinkDelta < 0 || downlinkDelta < 0 {
+			if snapshot.hadTraffic {
+				events = append(events, ConnectionEvent{
+					Type: ConnectionEventUpdate,
+					ID:   metadata.ID.String(),
+				})
+			}
+			snapshot.uplink = currentUpload
+			snapshot.downlink = currentDownload
+			snapshot.hadTraffic = false
+			snapshots[metadata.ID] = snapshot
+			continue
+		}
+		if uplinkDelta > 0 || downlinkDelta > 0 {
+			snapshot.uplink = currentUpload
+			snapshot.downlink = currentDownload
+			snapshot.hadTraffic = true
+			snapshots[metadata.ID] = snapshot
+			events = append(events, ConnectionEvent{
+				Type:          ConnectionEventUpdate,
+				ID:            metadata.ID.String(),
+				UplinkDelta:   uplinkDelta,
+				DownlinkDelta: downlinkDelta,
+			})
+			continue
+		}
+		if snapshot.hadTraffic {
+			snapshot.hadTraffic = false
+			snapshots[metadata.ID] = snapshot
+			events = append(events, ConnectionEvent{
+				Type: ConnectionEventUpdate,
+				ID:   metadata.ID.String(),
+			})
+		}
+	}
+	var closedIndex map[uuid.UUID]*trafficcontrol.TrackerMetadata
+	for id := range snapshots {
+		if _, exists := activeIndex[id]; exists {
+			continue
+		}
+		if closedIndex == nil {
+			closedIndex = make(map[uuid.UUID]*trafficcontrol.TrackerMetadata)
+			for _, metadata := range manager.ClosedConnections() {
+				closedIndex[metadata.ID] = metadata
+			}
+		}
+		closedAt := time.Now()
+		if metadata, loaded := closedIndex[id]; loaded && !metadata.ClosedAt.IsZero() {
+			closedAt = metadata.ClosedAt
+		}
+		events = append(events, ConnectionEvent{
+			Type:     ConnectionEventClosed,
+			ID:       id.String(),
+			ClosedAt: closedAt.Format(time.DateTime),
+		})
+		delete(snapshots, id)
+	}
+	return events
+}
+
+func writeConnectionEvents(writer *bufio.Writer, events []ConnectionEvent) error {
+	if len(events) == 0 {
+		return nil
+	}
+	for _, event := range events {
+		err := writeConnectionEvent(writer, event)
+		if err != nil {
+			return E.Cause(err, "write connection event")
+		}
+	}
+	err := writer.Flush()
+	if err != nil {
+		return E.Cause(err, "flush connection event")
+	}
+	return nil
 }
 
 func (c *Client) CloseConnection(uuidString string) error {
@@ -413,7 +566,10 @@ func (s *Service) handleCloseConnection(conn io.ReadWriter, instance *boxInstanc
 	if err != nil {
 		return E.Cause(err, "read uuid")
 	}
-	tracker := instance.api.TrafficManager().Connection(uuidInstance)
+	if instance.trafficManager == nil {
+		return nil
+	}
+	tracker := instance.trafficManager.Connection(uuidInstance)
 	if tracker == nil {
 		return nil
 	}
@@ -499,8 +655,8 @@ func (s *Service) handleSubscribeClashMode(conn io.ReadWriter, instance *boxInst
 	subscriber := observable.NewSubscriber[struct{}](1)
 	defer subscriber.Close()
 	api := instance.api
-	api.SetModeUpdateHook(subscriber)
-	defer api.SetModeUpdateHook(nil)
+	api.AddModeUpdateHook(subscriber)
+	defer api.DeleteModeUpdateHook(subscriber)
 	err := vario.WriteString(conn, api.Mode())
 	if err != nil {
 		return E.Cause(err, "write first mode")

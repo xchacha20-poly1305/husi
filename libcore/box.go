@@ -7,9 +7,12 @@ import (
 
 	"libcore/combinedapi"
 	"libcore/protect"
+	"libcore/trafficstats"
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/common/trafficcontrol"
+	"github.com/sagernet/sing-box/common/urltest"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/deprecated"
 	"github.com/sagernet/sing-box/log"
@@ -31,6 +34,9 @@ type boxInstance struct {
 	platformInterface PlatformInterface
 	protect           *protect.Service
 	api               *combinedapi.CombinedAPI
+	trafficManager    *trafficcontrol.Manager
+	urlTestHistory    *urltest.HistoryStorage
+	trafficStats      *trafficstats.Tracker
 	anchor            *anchorservice.Anchor
 
 	pauseManager pause.Manager
@@ -84,7 +90,11 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 		buildProtectService(b, ctx, platformInterface)
 
 		// API
-		b.api = service.FromContext[adapter.ClashServer](b.ctx).(*combinedapi.CombinedAPI)
+		b.api = service.FromContext[adapter.ClashServer](ctx).(*combinedapi.CombinedAPI)
+		b.trafficManager = service.PtrFromContext[trafficcontrol.Manager](ctx)
+		b.urlTestHistory = service.PtrFromContext[urltest.HistoryStorage](ctx)
+		b.trafficStats = trafficstats.NewTracker(instance.Outbound())
+		instance.Router().AppendTracker(b.trafficStats)
 
 		// Anchor
 		socksPort, dnsPort := sharedPublicPort(options.Inbounds)
@@ -160,14 +170,10 @@ func (b *boxInstance) NeedWIFIState() bool {
 }
 
 func (b *boxInstance) QueryStats(tag string, isUpload bool) int64 {
-	return b.api.QueryStats(tag, isUpload)
-}
-
-func (b *boxInstance) historyStorage() adapter.URLTestHistoryStorage {
-	if b.api == nil {
-		return nil
+	if b.trafficStats == nil {
+		return 0
 	}
-	return b.api.HistoryStorage()
+	return b.trafficStats.QueryStats(tag, isUpload)
 }
 
 func (b *boxInstance) resetNetwork() {

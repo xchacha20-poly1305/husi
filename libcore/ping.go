@@ -90,7 +90,7 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 		}
 		chLatency <- t
 
-		historyStorage := b.historyStorage()
+		historyStorage := b.urlTestHistory
 		if historyStorage == nil {
 			return
 		}
@@ -183,7 +183,7 @@ func (s *Service) handleGroupTest(conn io.ReadWriter, instance *boxInstance) err
 			return err
 		}
 	} else {
-		historyStorage := instance.api.HistoryStorage()
+		historyStorage := instance.urlTestHistory
 		if historyStorage == nil {
 			return nil
 		}
