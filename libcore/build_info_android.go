@@ -92,14 +92,15 @@ func readAndroidVPNTypeEntry(zipFile *zip.File) (*AndroidVPNType, error) {
 	if err != nil {
 		return nil, err
 	}
-	var vpnType AndroidVPNType
-	vpnType.GoVersion = buildInfo.GoVersion
+	vpnType := AndroidVPNType{
+		GoVersion: buildInfo.GoVersion,
+		CoreType:  androidVPNCoreTypeUnknown,
+	}
 	if !strings.HasPrefix(vpnType.GoVersion, "go") {
 		vpnType.GoVersion = "obfuscated"
 	} else {
 		vpnType.GoVersion = vpnType.GoVersion[2:]
 	}
-	vpnType.CoreType = androidVPNCoreTypeUnknown
 	if len(buildInfo.Deps) == 0 {
 		vpnType.CoreType = "obfuscated"
 		return &vpnType, nil
@@ -132,7 +133,7 @@ func readAndroidVPNTypeEntry(zipFile *zip.File) (*AndroidVPNType, error) {
 		vpnType.CorePath, _ = determineCorePath(buildInfo, vpnType.CoreType)
 		return &vpnType, nil
 	}
-	// Yes your ray love protobuf
+	// *ray love protobuf
 	if dependencies["github.com/golang/protobuf"] && dependencies["github.com/v2fly/ss-bloomring"] {
 		vpnType.CoreType = androidVPNCoreTypeV2Ray
 		return &vpnType, nil
@@ -146,7 +147,7 @@ func determinePkgType(pkgName string) (string, bool) {
 	if strings.Contains(pkgNameLower, "sing-box") {
 		return androidVPNCoreTypeSingBox, true
 	}
-	// SagerNet use clash, too.
+	// SagerNet use clash, too. So determines V2Ray prior to Clash.
 	if strings.Contains(pkgNameLower, "v2ray") || strings.Contains(pkgNameLower, "xray") {
 		return androidVPNCoreTypeV2Ray, true
 	}
@@ -177,6 +178,8 @@ func determineCorePath(pkgInfo *buildinfo.BuildInfo, pkgType string) (string, bo
 			"github.com/v2fly/v2ray-core",
 			"github.com/v2fly/v2ray-core/v4",
 			"github.com/v2fly/v2ray-core/v5",
+			"github.com/exclavenetwork/exclave-core",
+			"github.com/exclavenetwork/exclave-core/v5",
 		}, []string{
 			"v2ray",
 		}); loaded {
@@ -208,11 +211,10 @@ func determineCorePathForPkgs(pkgInfo *buildinfo.BuildInfo, pkgs []string, names
 			return module.Path == pkg
 		})
 		if strictDependency != nil {
-			if isValidVersion(strictDependency.Version) {
-				return strictDependency.Path + " " + strictDependency.Version, true
-			} else {
+			if !isValidVersion(strictDependency.Version) {
 				return strictDependency.Path, true
 			}
+			return strictDependency.Path + " " + strictDependency.Version, true
 		}
 	}
 	for _, name := range names {
