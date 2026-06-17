@@ -28,6 +28,16 @@ class TrojanFmtTest {
     }
 
     @Test
+    fun `parseTrojan should parse TLS query params without explicit security param`() {
+        val bean = parseTrojan(FmtTestConstant.TROJAN_DEFAULT_TLS_WITH_QUERY_URL)
+
+        assertTrue(bean.isTLS)
+        assertEquals("sni.example.com", bean.sni)
+        assertEquals("h2,http/1.1", bean.alpn)
+        assertTrue(bean.allowInsecure)
+    }
+
+    @Test
     fun `parseTrojan should read peer param as sni`() {
         val bean = parseTrojan(FmtTestConstant.TROJAN_PEER_URL)
 

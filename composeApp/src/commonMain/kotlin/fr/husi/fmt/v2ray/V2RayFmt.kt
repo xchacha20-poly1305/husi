@@ -106,6 +106,26 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
 const val BEGIN_ECH = "-----BEGIN ECH CONFIG-----"
 const val END_ECH = "-----END ECH CONFIG-----"
 
+private fun StandardV2RayBean.parseDuckSoftTlsQueries(url: URL) {
+    sni = url.queryParameterNotBlank("sni") ?: url.queryParameterNotBlank("host") ?: ""
+    alpn = url.queryParameter("alpn")
+    certificates = url.queryParameter("cert")
+    realityPublicKey = url.queryParameter("pbk")
+    realityShortID = url.queryParameter("sid")
+
+    url.queryParameterUnescapeNotBlank("ech")?.let {
+        ech = true
+
+        if (it.contains("://")) {
+            echQueryServerName = it.substringBefore("+", "")
+        } else runCatching {
+            if (it.b64Decode().isNotEmpty()) {
+                echConfig = "$BEGIN_ECH\n$it\n$END_ECH"
+            }
+        }
+    }
+}
+
 // https://github.com/XTLS/Xray-core/discussions/716
 fun StandardV2RayBean.parseDuckSoft(url: URL) {
     serverAddress = url.host
@@ -127,26 +147,7 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     when (security) {
         "tls", "reality" -> {
             security = "tls"
-            sni = url.queryParameterNotBlank("sni") ?: url.queryParameterNotBlank("host") ?: ""
-            alpn = url.queryParameter("alpn")
-            certificates = url.queryParameter("cert")
-            realityPublicKey = url.queryParameter("pbk")
-            realityShortID = url.queryParameter("sid")
-
-            // Is DNS address: enable ECH and get config from DNS
-            // Is base64: use it directly
-            url.queryParameterUnescapeNotBlank("ech")?.let {
-                ech = true
-
-                if (it.contains("://")) {
-                    // example.com+https://1.1.1.1/dns-query
-                    echQueryServerName = it.substringBefore("+", "")
-                } else runCatching {
-                    if (it.b64Decode().isNotEmpty()) {
-                        echConfig = "$BEGIN_ECH\n$it\n$END_ECH"
-                    }
-                }
-            }
+            parseDuckSoftTlsQueries(url)
         }
 
         "" -> if (this is TrojanBean) {
@@ -155,6 +156,7 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
             // And this standard force trojan's link to use TLS.
             // https://github.com/p4gefau1t/trojan-go/issues/132
             security = "tls"
+            parseDuckSoftTlsQueries(url)
         }
     }
 

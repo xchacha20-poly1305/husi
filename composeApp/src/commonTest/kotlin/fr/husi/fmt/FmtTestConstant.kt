@@ -48,6 +48,8 @@ object FmtTestConstant {
     const val TROJAN_URL =
         "trojan://password@example.com:443?security=tls&sni=sni.example.com&type=ws&path=/ws#test-node"
     const val TROJAN_DEFAULT_TLS_URL = "trojan://password@example.com:443"
+    const val TROJAN_DEFAULT_TLS_WITH_QUERY_URL =
+        "trojan://password@example.com:443?sni=sni.example.com&alpn=h2,http/1.1&allowInsecure=1"
     const val TROJAN_PEER_URL =
         "trojan://password@example.com:443?security=tls&peer=peer.example.com"
 
