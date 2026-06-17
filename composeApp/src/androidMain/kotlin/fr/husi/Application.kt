@@ -97,13 +97,10 @@ class Application : Application(),
             )
         }
 
-        if (isMainProcess) {
-            runOnDefaultDispatcher {
+        if (isBgProcess) {
+            runBlocking {
                 DefaultNetworkMonitor.start()
             }
-        }
-
-        if (isBgProcess) {
             repository.boxService?.start()
         }
 
