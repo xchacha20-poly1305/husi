@@ -36,12 +36,12 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.b64Decode
 import fr.husi.ktx.b64DecodeToString
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.toJsonObjectKxs
+import fr.husi.ktx.kxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.queryParameterUnescapeNotBlank
 import fr.husi.ktx.readableMessage
-import fr.husi.ktx.kxs
+import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
 import kotlinx.serialization.Serializable
@@ -138,14 +138,13 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
             url.queryParameterUnescapeNotBlank("ech")?.let {
                 ech = true
 
-                val isEchConfig = try {
-                    it.b64Decode().isNotEmpty()
-                } catch (_: Exception) {
-                    // Invalid or DNS address
-                    false
-                }
-                if (isEchConfig) {
-                    echConfig = "$BEGIN_ECH\n$it\n$END_ECH"
+                if (it.contains("://")) {
+                    // example.com+https://1.1.1.1/dns-query
+                    echQueryServerName = it.substringBefore("+", "")
+                } else runCatching {
+                    if (it.b64Decode().isNotEmpty()) {
+                        echConfig = "$BEGIN_ECH\n$it\n$END_ECH"
+                    }
                 }
             }
         }
