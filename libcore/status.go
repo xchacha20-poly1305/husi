@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"libcore/vario"
@@ -81,24 +82,29 @@ func buildTrackerInfo(metadata *trafficcontrol.TrackerMetadata) *TrackerInfo {
 	if dest := metadata.Metadata.Destination; dest.IsValid() {
 		destination = dest.String()
 	}
+	matchedOutbound := metadata.Outbound
+	if len(metadata.Chain) > 0 {
+		matchedOutbound = metadata.Chain[len(metadata.Chain)-1]
+	}
 	return &TrackerInfo{
-		UUID:          metadata.ID,
-		Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
-		IPVersion:     int16(metadata.Metadata.IPVersion),
-		Network:       metadata.Metadata.Network,
-		Src:           metadata.Metadata.Source.String(),
-		Dst:           destination,
-		Host:          cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
-		MatchedRule:   rule,
-		UploadTotal:   metadata.Upload.Load(),
-		DownloadTotal: metadata.Download.Load(),
-		StartedAtUnix: unixSeconds(metadata.CreatedAt),
-		ClosedAtUnix:  unixSeconds(metadata.ClosedAt),
-		Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
-		Chain:         strings.Join(metadata.Chain, " => "),
-		Protocol:      metadata.Metadata.Protocol,
-		processes:     processes,
-		UID:           uid,
+		UUID:            metadata.ID,
+		Inbound:         generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
+		IPVersion:       int16(metadata.Metadata.IPVersion),
+		Network:         metadata.Metadata.Network,
+		Src:             metadata.Metadata.Source.String(),
+		Dst:             destination,
+		Host:            cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
+		MatchedRule:     rule,
+		UploadTotal:     metadata.Upload.Load(),
+		DownloadTotal:   metadata.Download.Load(),
+		StartedAtUnix:   unixSeconds(metadata.CreatedAt),
+		ClosedAtUnix:    unixSeconds(metadata.ClosedAt),
+		Outbound:        generateBound(metadata.Outbound, metadata.OutboundType),
+		MatchedOutbound: matchedOutbound,
+		Chain:           strings.Join(metadata.Chain, " => "),
+		Protocol:        metadata.Metadata.Protocol,
+		processes:       processes,
+		UID:             uid,
 	}
 }
 
@@ -112,23 +118,24 @@ type TrackerInfoIterator interface {
 
 // TrackerInfo recodes a connection's information.
 type TrackerInfo struct {
-	UUID          uuid.UUID
-	Inbound       string
-	IPVersion     int16
-	Network       string
-	Src           string
-	Dst           string
-	Host          string
-	MatchedRule   string
-	UploadTotal   int64
-	DownloadTotal int64
-	StartedAtUnix int64
-	ClosedAtUnix  int64
-	Outbound      string
-	Chain         string
-	Protocol      string
-	processes     []string
-	UID           int32
+	UUID            uuid.UUID
+	Inbound         string
+	IPVersion       int16
+	Network         string
+	Src             string
+	Dst             string
+	Host            string
+	MatchedRule     string
+	UploadTotal     int64
+	DownloadTotal   int64
+	StartedAtUnix   int64
+	ClosedAtUnix    int64
+	Outbound        string
+	MatchedOutbound string
+	Chain           string
+	Protocol        string
+	processes       []string
+	UID             int32
 }
 
 func (t *TrackerInfo) GetUUID() string {
@@ -310,6 +317,7 @@ const (
 	ConnectionEventNew int16 = iota
 	ConnectionEventUpdate
 	ConnectionEventClosed
+	ConnectionEventTick
 )
 
 type ConnectionEvent struct {
@@ -347,184 +355,39 @@ func (c *Client) SubscribeConnectionEvent(callback ConnectionEventCallback) erro
 }
 
 func (s *Service) handleSubscribeConnections(conn io.ReadWriter, instance *boxInstance) error {
-	trafficManager := instance.trafficManager
-	if trafficManager == nil {
+	observer := instance.connectionObserver
+	if observer == nil {
 		return nil
 	}
-	subscription, done, err := trafficManager.SubscribeEvents()
-	if err != nil {
-		return err
-	}
-	defer trafficManager.UnSubscribeEvents(subscription)
 	writer := bufio.NewWriter(conn)
-	snapshots := make(map[uuid.UUID]connectionSnapshot, 16)
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
+	events := make(chan []ConnectionEvent, 64)
+	overflow := make(chan struct{})
+	var overflowOnce sync.Once
+	sink := func(batch []ConnectionEvent) {
+		select {
+		case events <- batch:
+		default:
+			overflowOnce.Do(func() { close(overflow) })
+		}
+	}
+	id := observer.register(sink, time.Second)
+	defer observer.unregister(id)
 	for {
 		select {
-		case event := <-subscription:
-			var events []ConnectionEvent
-			if converted := applyConnectionEvent(event, snapshots); converted != nil {
-				events = append(events, *converted)
-			}
-		drain:
-			for {
-				select {
-				case event = <-subscription:
-					if converted := applyConnectionEvent(event, snapshots); converted != nil {
-						events = append(events, *converted)
-					}
-				default:
-					break drain
-				}
-			}
-			err := writeConnectionEvents(writer, events)
+		case batch := <-events:
+			err := writeConnectionEvents(writer, batch)
 			if err != nil {
 				if E.IsClosed(err) {
 					return nil
 				}
 				return err
 			}
-		case <-done:
+		case <-overflow:
 			return nil
-		case <-ticker.C:
-			err := writeConnectionEvents(writer, buildTrafficUpdates(trafficManager, snapshots))
-			if err != nil {
-				if E.IsClosed(err) {
-					return nil
-				}
-				return err
-			}
 		case <-instance.ctx.Done():
 			return nil
 		}
 	}
-}
-
-type connectionSnapshot struct {
-	uplink     int64
-	downlink   int64
-	hadTraffic bool
-}
-
-func applyConnectionEvent(event trafficcontrol.ConnectionEvent, snapshots map[uuid.UUID]connectionSnapshot) *ConnectionEvent {
-	switch event.Type {
-	case trafficcontrol.ConnectionEventNew:
-		if event.Metadata == nil {
-			return nil
-		}
-		if _, exists := snapshots[event.ID]; exists {
-			return nil
-		}
-		snapshots[event.ID] = connectionSnapshot{
-			uplink:   event.Metadata.Upload.Load(),
-			downlink: event.Metadata.Download.Load(),
-		}
-		return &ConnectionEvent{
-			Type:        ConnectionEventNew,
-			ID:          event.ID.String(),
-			TrackerInfo: buildTrackerInfo(event.Metadata),
-		}
-	case trafficcontrol.ConnectionEventClosed:
-		delete(snapshots, event.ID)
-		closedAt := event.ClosedAt
-		if closedAt.IsZero() && event.Metadata != nil && !event.Metadata.ClosedAt.IsZero() {
-			closedAt = event.Metadata.ClosedAt
-		}
-		if closedAt.IsZero() {
-			closedAt = time.Now()
-		}
-		return &ConnectionEvent{
-			Type:     ConnectionEventClosed,
-			ID:       event.ID.String(),
-			ClosedAt: closedAt.Format(time.DateTime),
-		}
-	default:
-		return nil
-	}
-}
-
-func buildTrafficUpdates(manager *trafficcontrol.Manager, snapshots map[uuid.UUID]connectionSnapshot) []ConnectionEvent {
-	activeConnections := manager.Connections()
-	activeIndex := make(map[uuid.UUID]*trafficcontrol.TrackerMetadata, len(activeConnections))
-	var events []ConnectionEvent
-	for _, metadata := range activeConnections {
-		activeIndex[metadata.ID] = metadata
-		currentUpload := metadata.Upload.Load()
-		currentDownload := metadata.Download.Load()
-		snapshot, exists := snapshots[metadata.ID]
-		if !exists {
-			snapshots[metadata.ID] = connectionSnapshot{
-				uplink:   currentUpload,
-				downlink: currentDownload,
-			}
-			events = append(events, ConnectionEvent{
-				Type:        ConnectionEventNew,
-				ID:          metadata.ID.String(),
-				TrackerInfo: buildTrackerInfo(metadata),
-			})
-			continue
-		}
-		uplinkDelta := currentUpload - snapshot.uplink
-		downlinkDelta := currentDownload - snapshot.downlink
-		if uplinkDelta < 0 || downlinkDelta < 0 {
-			if snapshot.hadTraffic {
-				events = append(events, ConnectionEvent{
-					Type: ConnectionEventUpdate,
-					ID:   metadata.ID.String(),
-				})
-			}
-			snapshot.uplink = currentUpload
-			snapshot.downlink = currentDownload
-			snapshot.hadTraffic = false
-			snapshots[metadata.ID] = snapshot
-			continue
-		}
-		if uplinkDelta > 0 || downlinkDelta > 0 {
-			snapshot.uplink = currentUpload
-			snapshot.downlink = currentDownload
-			snapshot.hadTraffic = true
-			snapshots[metadata.ID] = snapshot
-			events = append(events, ConnectionEvent{
-				Type:          ConnectionEventUpdate,
-				ID:            metadata.ID.String(),
-				UplinkDelta:   uplinkDelta,
-				DownlinkDelta: downlinkDelta,
-			})
-			continue
-		}
-		if snapshot.hadTraffic {
-			snapshot.hadTraffic = false
-			snapshots[metadata.ID] = snapshot
-			events = append(events, ConnectionEvent{
-				Type: ConnectionEventUpdate,
-				ID:   metadata.ID.String(),
-			})
-		}
-	}
-	var closedIndex map[uuid.UUID]*trafficcontrol.TrackerMetadata
-	for id := range snapshots {
-		if _, exists := activeIndex[id]; exists {
-			continue
-		}
-		if closedIndex == nil {
-			closedIndex = make(map[uuid.UUID]*trafficcontrol.TrackerMetadata)
-			for _, metadata := range manager.ClosedConnections() {
-				closedIndex[metadata.ID] = metadata
-			}
-		}
-		closedAt := time.Now()
-		if metadata, loaded := closedIndex[id]; loaded && !metadata.ClosedAt.IsZero() {
-			closedAt = metadata.ClosedAt
-		}
-		events = append(events, ConnectionEvent{
-			Type:     ConnectionEventClosed,
-			ID:       id.String(),
-			ClosedAt: closedAt.Format(time.DateTime),
-		})
-		delete(snapshots, id)
-	}
-	return events
 }
 
 func writeConnectionEvents(writer *bufio.Writer, events []ConnectionEvent) error {
@@ -707,6 +570,10 @@ func (c *Client) ResetNetwork() error {
 }
 
 func writeConnectionEvent(writer io.Writer, event ConnectionEvent) error {
+	if event.Type == ConnectionEventTick {
+		// Heartbeat is in-process only; it never crosses the socket.
+		return nil
+	}
 	err := vario.WriteInt16(writer, event.Type)
 	if err != nil {
 		return E.Cause(err, "write type")

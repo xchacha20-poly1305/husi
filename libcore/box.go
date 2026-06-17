@@ -7,7 +7,6 @@ import (
 
 	"libcore/combinedapi"
 	"libcore/protect"
-	"libcore/trafficstats"
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
@@ -31,13 +30,13 @@ type boxInstance struct {
 	*box.Box
 	forTest bool
 
-	platformInterface PlatformInterface
-	protect           *protect.Service
-	api               *combinedapi.CombinedAPI
-	trafficManager    *trafficcontrol.Manager
-	urlTestHistory    *urltest.HistoryStorage
-	trafficStats      *trafficstats.Tracker
-	anchor            *anchorservice.Anchor
+	platformInterface  PlatformInterface
+	protect            *protect.Service
+	api                *combinedapi.CombinedAPI
+	trafficManager     *trafficcontrol.Manager
+	urlTestHistory     *urltest.HistoryStorage
+	connectionObserver *connectionObserver
+	anchor             *anchorservice.Anchor
 
 	pauseManager pause.Manager
 }
@@ -93,8 +92,9 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 		b.api = service.FromContext[adapter.ClashServer](ctx).(*combinedapi.CombinedAPI)
 		b.trafficManager = service.PtrFromContext[trafficcontrol.Manager](ctx)
 		b.urlTestHistory = service.PtrFromContext[urltest.HistoryStorage](ctx)
-		b.trafficStats = trafficstats.NewTracker(instance.Outbound())
-		instance.Router().AppendTracker(b.trafficStats)
+		if b.trafficManager != nil {
+			b.connectionObserver = newConnectionObserver(b.trafficManager)
+		}
 
 		// Anchor
 		socksPort, dnsPort := sharedPublicPort(options.Inbounds)
@@ -126,6 +126,10 @@ func (b *boxInstance) Start() (err error) {
 		if err != nil {
 			return E.Cause(err, "start anchor service")
 		}
+	}
+
+	if b.connectionObserver != nil {
+		go b.connectionObserver.run(b.ctx)
 	}
 
 	if !b.forTest {
@@ -167,13 +171,6 @@ func (b *boxInstance) CloseTimeout(timeout time.Duration) (err error) {
 
 func (b *boxInstance) NeedWIFIState() bool {
 	return b.anchor != nil || b.Network().NeedWIFIState()
-}
-
-func (b *boxInstance) QueryStats(tag string, isUpload bool) int64 {
-	if b.trafficStats == nil {
-		return 0
-	}
-	return b.trafficStats.QueryStats(tag, isUpload)
 }
 
 func (b *boxInstance) resetNetwork() {

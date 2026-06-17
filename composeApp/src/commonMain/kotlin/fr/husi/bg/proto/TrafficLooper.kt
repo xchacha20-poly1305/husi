@@ -10,16 +10,16 @@ import fr.husi.database.ProxyEntity
 import fr.husi.fmt.ConfigBuildResult
 import fr.husi.fmt.TAG_DIRECT
 import fr.husi.ktx.Logs
+import fr.husi.libcore.ConnectionEvent
+import fr.husi.libcore.ConnectionSubscription
+import fr.husi.libcore.Libcore
 import fr.husi.libcore.Service
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class TrafficLooper(
@@ -30,11 +30,17 @@ class TrafficLooper(
 ) {
 
     private var job: Job? = null
+    private var subscription: ConnectionSubscription? = null
+    private val aggregator = OutboundTrafficAggregator()
     private val idMap = mutableMapOf<Long, TrafficUpdater.TrafficLooperData>() // id to 1 data
     private val tagMap = mutableMapOf<String, TrafficUpdater.TrafficLooperData>() // tag to 1 data
 
+    private val ticks = Channel<Unit>(Channel.CONFLATED)
+
     suspend fun stop() {
         job?.cancel()
+        subscription?.let { sub -> runCatching { sub.close() } }
+        subscription = null
         if (!DataStore.profileTrafficStatistics) return
         updateDb()
         Logs.d("finally traffic post done")
@@ -61,11 +67,18 @@ class TrafficLooper(
         }
     }
 
-    private suspend fun loop() {
+    private fun onConnectionEvent(event: ConnectionEvent) {
+        if (event.type == Libcore.ConnectionEventTick) {
+            ticks.trySend(Unit)
+        } else {
+            aggregator.onEvent(event)
+        }
+    }
+
+    private suspend fun loop() = coroutineScope {
         val speedInterval = DataStore.configurationStore
             .intFlow(Key.SPEED_INTERVAL, 1000)
-            .map { it.toLong() }
-            .stateIn(scope, SharingStarted.Eagerly, 1000L)
+            .stateIn(scope, SharingStarted.Eagerly, 1000)
         val showDirectSpeed = DataStore.configurationStore
             .booleanFlow(Key.SHOW_DIRECT_SPEED, true)
             .stateIn(scope, SharingStarted.Eagerly, true)
@@ -74,16 +87,6 @@ class TrafficLooper(
             .stateIn(scope, SharingStarted.Eagerly, true)
         // update database / 10s
         val persistEveryMs = 10_000L
-
-        // Calculate loop times (ticks) based on delay ms.
-        fun persistTicksForDelay(delay: Long): Long {
-            val effectiveDelay = delay.coerceAtLeast(1L)
-            return ((persistEveryMs + effectiveDelay - 1) / effectiveDelay).coerceAtLeast(1L)
-        }
-
-        var delayMs = speedInterval.value
-        var persistTicks = if (delayMs > 0) persistTicksForDelay(delayMs) else 1L
-        var ticks = 0L
 
         // for display
         val itemBypass = TrafficUpdater.TrafficLooperData(tag = TAG_DIRECT)
@@ -109,26 +112,24 @@ class TrafficLooper(
             }
         }
         val trafficUpdater = TrafficUpdater(
-            box = box, items = idMap.values.toList(),
+            aggregator = aggregator, items = idMap.values.toList(),
         )
         box.initializeProxySet()
+        subscription = runCatching { box.subscribeConnections(::onConnectionEvent, speedInterval.value) }
+            .onFailure { Logs.w("subscribe connections", it) }
+            .getOrNull()
 
-        while (scope.isActive) {
-            var currentDelayMs = speedInterval.value
-            if (currentDelayMs <= 0L) {
-                delayMs = 0L
-                ticks = 0
-                // Wait until valid value
-                currentDelayMs = speedInterval.filter { it > 0L }.first()
+        launch {
+            speedInterval.collect { interval ->
+                subscription?.updateInterval(interval)
             }
-            if (currentDelayMs != delayMs) {
-                delayMs = currentDelayMs
-                persistTicks = persistTicksForDelay(delayMs)
-                ticks = 0
-            }
+        }
+
+        var lastPersist = System.currentTimeMillis()
+        for (tick in ticks) {
+            if (speedInterval.value <= 0) continue
 
             trafficUpdater.updateAll()
-            if (!scope.isActive) return
 
             // add all non-bypass to "main"
             var mainTxRate = 0L
@@ -161,15 +162,12 @@ class TrafficLooper(
             }
 
             if (profileTrafficStatistics.value) {
-                if (++ticks >= persistTicks) {
+                val now = System.currentTimeMillis()
+                if (now - lastPersist >= persistEveryMs) {
                     updateDb()
-                    ticks = 0
+                    lastPersist = now
                 }
-            } else {
-                ticks = 0
             }
-
-            delay(delayMs)
         }
     }
 

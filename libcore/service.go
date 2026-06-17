@@ -64,13 +64,65 @@ func (s *Service) HasInstance() bool {
 	return s.instance != nil
 }
 
-func (s *Service) QueryStats(tag string, isUpload bool) int64 {
-	s.access.RLock()
-	defer s.access.RUnlock()
-	if s.instance == nil {
-		return 0
+type ConnectionSubscription struct {
+	once     sync.Once
+	close    func()
+	observer *connectionObserver
+	id       int
+}
+
+func (c *ConnectionSubscription) Close() error {
+	c.once.Do(c.close)
+	return nil
+}
+
+func (c *ConnectionSubscription) UpdateInterval(intervalMs int32) {
+	if c.observer == nil {
+		return
 	}
-	return s.instance.QueryStats(tag, isUpload)
+	c.observer.updateInterval(c.id, time.Duration(intervalMs)*time.Millisecond)
+}
+
+func (s *Service) SubscribeConnections(callback ConnectionEventCallback, intervalMs int32) (*ConnectionSubscription, error) {
+	s.access.RLock()
+	instance := s.instance
+	s.access.RUnlock()
+	if instance == nil || instance.connectionObserver == nil {
+		return nil, os.ErrNotExist
+	}
+	observer := instance.connectionObserver
+	events := make(chan []ConnectionEvent, 256)
+	done := make(chan struct{})
+	sink := func(batch []ConnectionEvent) {
+		select {
+		case events <- batch:
+		case <-done:
+		default:
+		}
+	}
+	id := observer.register(sink, time.Duration(intervalMs)*time.Millisecond)
+	go func() {
+		for {
+			select {
+			case batch := <-events:
+				for i := range batch {
+					callback.OnConnectionEvent(&batch[i])
+				}
+			case <-done:
+				return
+			case <-instance.ctx.Done():
+				return
+			}
+		}
+	}()
+	return &ConnectionSubscription{
+		close: func() {
+			observer.unregister(id)
+			close(done)
+		},
+		observer: observer,
+		id:       id,
+	}, nil
 }
 
 func (s *Service) InitializeProxySet() {
@@ -369,23 +421,6 @@ func (s *Service) handleHello(conn io.ReadWriter) error {
 	err := vario.WriteUint8(conn, resultNoError)
 	if err != nil {
 		return E.Cause(err, "write result")
-	}
-	return nil
-}
-
-func (s *Service) handleQueryStats(conn io.ReadWriter, instance *boxInstance) error {
-	tag, err := vario.ReadString(conn)
-	if err != nil {
-		return E.Cause(err, "read tag")
-	}
-	isUpload, err := vario.ReadBool(conn)
-	if err != nil {
-		return E.Cause(err, "read isUpload")
-	}
-	stats := instance.QueryStats(tag, isUpload)
-	err = vario.WriteInt64(conn, stats)
-	if err != nil {
-		return E.Cause(err, "write stats")
 	}
 	return nil
 }
