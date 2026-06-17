@@ -91,11 +91,11 @@ class LogcatScreenViewModel : ViewModel() {
     }
 
     private fun appendLogs(item: LogEntry) {
-        allLogs = allLogs.add(item)
+        allLogs = allLogs.adding(item)
         uiState.update { state ->
             if (state.pause) return
             if (item.level.ordinal > state.logLevel.ordinal) return
-            state.copy(logs = state.logs.add(item))
+            state.copy(logs = state.logs.adding(item))
         }
     }
 
