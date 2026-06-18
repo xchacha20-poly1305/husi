@@ -1,6 +1,8 @@
 // Package mieruproto implements minimum protobuf encoding/decoding for Mieru traffic pattern.
 package mieruproto
 
+//go:generate protoc --go_out=. --go_opt=paths=source_relative --proto_path=. traffic_pattern.proto
+
 import (
 	"encoding/base64"
 	"encoding/json"
