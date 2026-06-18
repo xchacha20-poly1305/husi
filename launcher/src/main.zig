@@ -47,20 +47,21 @@ const PlatformPrivilege = switch (native_os) {
             inheritable: u32,
         };
 
-        fn capget(header: *CapHeader, data: *[2]CapData) !void {
-            const result = linux.syscall2(.capget, @intFromPtr(header), @intFromPtr(data));
+        fn parseResult(result: u64) !void {
             switch (posix.errno(result)) {
                 .SUCCESS => {},
                 else => |err| return posix.unexpectedErrno(err),
             }
         }
 
+        fn capget(header: *CapHeader, data: *[2]CapData) !void {
+            const result = linux.syscall2(.capget, @intFromPtr(header), @intFromPtr(data));
+            try parseResult(result);
+        }
+
         fn capset(header: *const CapHeader, data: *const [2]CapData) !void {
             const result = linux.syscall2(.capset, @intFromPtr(header), @intFromPtr(data));
-            switch (posix.errno(result)) {
-                .SUCCESS => {},
-                else => |err| return posix.unexpectedErrno(err),
-            }
+            try parseResult(result);
         }
 
         fn setInheritableCaps(caps: []const c_int) !void {
@@ -96,10 +97,7 @@ const PlatformPrivilege = switch (native_os) {
         fn raiseAmbientCaps(caps: []const c_int) !void {
             for (caps) |cap| {
                 const result = linux.prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, @intCast(cap), 0, 0);
-                switch (posix.errno(result)) {
-                    .SUCCESS => {},
-                    else => |err| return posix.unexpectedErrno(err),
-                }
+                try parseResult(result);
             }
         }
 
