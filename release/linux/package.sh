@@ -20,16 +20,6 @@ STARTUP_WM_CLASS_PLACEHOLDER="__HUSI_STARTUP_WM_CLASS__"
 APP_URL_PLACEHOLDER="__HUSI_APP_URL__"
 MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
 URL_SCHEME_MIME_TYPES_PLACEHOLDER="__HUSI_URL_SCHEME_MIME_TYPES__"
-DEB_ARCH_PLACEHOLDER="__HUSI_DEB_ARCH__"
-RPM_VERSION_PLACEHOLDER="__HUSI_RPM_VERSION__"
-RPM_ARCH_PLACEHOLDER="__HUSI_RPM_ARCH__"
-PKGREL_PLACEHOLDER="__HUSI_PKGREL__"
-CHANGELOG_DATE_PLACEHOLDER="__HUSI_CHANGELOG_DATE__"
-PIXMAP_FILE_ENTRY_PLACEHOLDER="__HUSI_PIXMAP_FILE_ENTRY__"
-PACMAN_VERSION_FULL_PLACEHOLDER="__HUSI_PACMAN_VERSION_FULL__"
-PACMAN_ARCH_PLACEHOLDER="__HUSI_PACMAN_ARCH__"
-BUILD_DATE_PLACEHOLDER="__HUSI_BUILD_DATE__"
-SIZE_BYTES_PLACEHOLDER="__HUSI_SIZE_BYTES__"
 LAUNCHER_PATH_PLACEHOLDER="__HUSI_LAUNCHER_PATH__"
 LAUNCHER_CAPS_PLACEHOLDER="__HUSI_LAUNCHER_CAPS__"
 LAUNCHER_SETCAPS="cap_setpcap,cap_net_admin,cap_net_raw,cap_net_bind_service,cap_sys_ptrace,cap_dac_read_search=ep"
@@ -51,7 +41,7 @@ Usage:
   $(basename "$0") --check-tools [--formats deb,rpm,pacman]
 
 Description:
-  Build Linux native packages for system Java runtime from desktop uber jar.
+  Build Linux native packages for system Java runtime from desktop uber jar via nfpm.
 
 Defaults:
   --formats    deb,rpm,pacman
@@ -276,14 +266,7 @@ resolve_formats() {
 }
 
 require_tools_for_formats() {
-    local -a tools=(awk sed find cp mkdir mktemp date du bsdtar zstd xargs git)
-    if [[ -n "${ENABLED_FORMATS[deb]:-}" ]]; then
-        tools+=(dpkg-deb gzip)
-    fi
-    if [[ -n "${ENABLED_FORMATS[rpm]:-}" ]]; then
-        tools+=(rpmbuild)
-    fi
-
+    local -a tools=(awk sed find cp mkdir mktemp date xargs git nfpm)
     local -a missing=()
     local tool
     for tool in "${tools[@]}"; do
@@ -296,22 +279,6 @@ require_tools_for_formats() {
         error "Missing required tools: ${missing[*]}"
         exit 2
     fi
-}
-
-validate_rpm_target() {
-    if [[ -z "${ENABLED_FORMATS[rpm]:-}" ]]; then
-        return
-    fi
-
-    local detected_target_cpu
-    detected_target_cpu="$(rpmbuild --target "$RPM_ARCH" -E '%{_target_cpu}' 2>/dev/null | tr -d '\r\n' || true)"
-    if [[ "$detected_target_cpu" == "$RPM_ARCH" ]]; then
-        return
-    fi
-
-    error "rpmbuild on this host does not support target RPM arch '$RPM_ARCH' (resolved target cpu: '${detected_target_cpu:-unknown}')."
-    error "Build rpm on a matching host/toolchain, or exclude rpm via: --formats deb,pacman"
-    exit 1
 }
 
 resolve_input_jar() {
@@ -375,7 +342,6 @@ prepare_rootfs() {
     local app_args_template="$ROOT_DIR/release/linux/desktop/desktop-app-args.conf"
     local desktop_entry_template="$ROOT_DIR/release/linux/desktop/husi.desktop"
     local main_launcher="$bin_dir/$PACKAGE_NAME"
-    local system_launcher="$rootfs/usr/bin/$PACKAGE_NAME"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
     local startup_wm_class="${PACKAGE_NAME//./-}-DesktopMainKt"
 
@@ -384,14 +350,13 @@ prepare_rootfs() {
         exit 1
     fi
 
-    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/bin" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps"
+    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps"
     cp "$INPUT_JAR" "$app_dir/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$main_launcher"
     chmod 755 "$main_launcher"
 
     cp "$java_opts_template" "$bin_dir/desktop-java-opts.conf.template"
     cp "$app_args_template" "$bin_dir/desktop-app-args.conf.template"
-    ln -s "../lib/$PACKAGE_NAME/bin/$PACKAGE_NAME" "$system_launcher"
 
     render_template \
         "$desktop_entry_template" \
@@ -412,153 +377,232 @@ prepare_rootfs() {
     fi
 }
 
-build_deb() {
-    local rootfs="$1"
-    local output_dir="$2"
-    local work_dir="$3"
-    local deb_root="$work_dir/deb-rootfs"
-    local control_dir="$deb_root/DEBIAN"
-    local control_template="$ROOT_DIR/release/linux/desktop/deb.control"
-    local postinst_template="$ROOT_DIR/release/linux/desktop/deb.postinst"
-    local postrm_template="$ROOT_DIR/release/linux/desktop/deb.postrm"
-    local control_file="$control_dir/control"
-    local postinst_file="$control_dir/postinst"
-    local postrm_file="$control_dir/postrm"
-    local output_path="$output_dir/${PACKAGE_NAME}_${VERSION_NAME}_${DEB_ARCH}.deb"
+prepare_script_templates() {
+    local work_dir="$1"
     local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
-    local deb_changelog_date
-    deb_changelog_date="$(LC_ALL=C date -u -d "@$TAG_EPOCH" "+%a, %d %b %Y %H:%M:%S +0000")"
-    local doc_dir="$deb_root/usr/share/doc/$PACKAGE_NAME"
-    local changelog_plain="$doc_dir/changelog.Debian"
 
-    rm -rf "$deb_root"
-    mkdir -p "$deb_root"
-    cp -a "$rootfs/." "$deb_root/"
-    mkdir -p "$control_dir"
     render_template \
-        "$control_template" \
-        "$control_file" \
-        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
-        "$VERSION_NAME_PLACEHOLDER" "$VERSION_NAME" \
-        "$DEB_ARCH_PLACEHOLDER" "$DEB_ARCH" \
-        "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
-        "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION"
-    render_template \
-        "$postinst_template" \
-        "$postinst_file" \
+        "$ROOT_DIR/release/linux/desktop/postinstall.sh" \
+        "$work_dir/deb-postinstall.sh" \
         "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
         "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
+
     render_template \
-        "$postrm_template" \
-        "$postrm_file" \
+        "$ROOT_DIR/release/linux/desktop/postremove.sh" \
+        "$work_dir/deb-postremove.sh" \
         "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path"
-    chmod 755 "$postinst_file" "$postrm_file"
 
-    mkdir -p "$doc_dir"
-    cat >"$changelog_plain" <<EOF
-$PACKAGE_NAME ($VERSION_NAME-$PKGREL) unstable; urgency=medium
+    render_template \
+        "$ROOT_DIR/release/linux/desktop/posttrans.sh" \
+        "$work_dir/rpm-posttrans.sh" \
+        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
+        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
 
-  * Package desktop app with system Java runtime dependency
+    render_template \
+        "$ROOT_DIR/release/linux/desktop/postinstall.arch.sh" \
+        "$work_dir/arch-postinstall.sh" \
+        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
+        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
 
- -- $MAINTAINER  $deb_changelog_date
+    render_template \
+        "$ROOT_DIR/release/linux/desktop/postupgrade.arch.sh" \
+        "$work_dir/arch-postupgrade.sh" \
+        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
+        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
+
+    chmod 755 \
+        "$work_dir/deb-postinstall.sh" \
+        "$work_dir/deb-postremove.sh" \
+        "$work_dir/rpm-posttrans.sh" \
+        "$work_dir/arch-postinstall.sh" \
+        "$work_dir/arch-postupgrade.sh"
+}
+
+write_content_entry() {
+    local config_file="$1"
+    local src="$2"
+    local dst="$3"
+    local type="$4"
+
+    cat >>"$config_file" <<EOF
+  - src: $src
+    dst: $dst
 EOF
-    gzip -n -f "$changelog_plain"
 
-    dpkg-deb --root-owner-group --build "$deb_root" "$output_path"
-    log "Built deb: $output_path"
+    if [[ -n "$type" ]]; then
+        cat >>"$config_file" <<EOF
+    type: $type
+EOF
+    fi
 }
 
-build_rpm() {
-    local rootfs="$1"
-    local output_dir="$2"
-    local work_dir="$3"
-    local rpm_top="$work_dir/rpmbuild"
-    local spec_template="$ROOT_DIR/release/linux/desktop/husi.spec"
-    local rpm_version
-    rpm_version="$(normalize_rpm_version "$VERSION_NAME")"
-    local changelog_date
-    changelog_date="$(LC_ALL=C date -u -d "@$TAG_EPOCH" "+%a %b %d %Y")"
-    local spec_file="$rpm_top/SPECS/${PACKAGE_NAME}.spec"
-    local icon_target="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
-    local icon_entry=""
-    local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
+write_common_nfpm_config() {
+    local config_file="$1"
+    local rootfs="$2"
+    local package_version="$3"
+    local package_arch="$4"
+    local output_time
+    output_time="$(date -u -d "@$TAG_EPOCH" "+%Y-%m-%dT%H:%M:%SZ")"
 
-    mkdir -p "$rpm_top"/BUILD "$rpm_top"/BUILDROOT "$rpm_top"/RPMS "$rpm_top"/SOURCES "$rpm_top"/SPECS "$rpm_top"/SRPMS
+    cat >"$config_file" <<EOF
+name: $PACKAGE_NAME
+arch: $package_arch
+platform: linux
+version: $package_version
+version_schema: none
+release: "$PKGREL"
+section: net
+priority: optional
+maintainer: $MAINTAINER
+description: $APP_DESCRIPTION
+homepage: $APP_URL
+license: GPL-3.0-or-later
+mtime: $output_time
+contents:
+EOF
 
-    if [[ -f "$icon_target" ]]; then
-        icon_entry="/usr/share/pixmaps/$PACKAGE_NAME.png"
+    write_content_entry "$config_file" "$rootfs/usr/lib/$PACKAGE_NAME" "/usr/lib/$PACKAGE_NAME" "tree"
+    write_content_entry "$config_file" "../lib/$PACKAGE_NAME/bin/$PACKAGE_NAME" "/usr/bin/$PACKAGE_NAME" "symlink"
+    write_content_entry "$config_file" "$rootfs/usr/share/applications/$PACKAGE_NAME.desktop" "/usr/share/applications/$PACKAGE_NAME.desktop" ""
+
+    local icon_path="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
+    if [[ -f "$icon_path" ]]; then
+        write_content_entry "$config_file" "$icon_path" "/usr/share/pixmaps/$PACKAGE_NAME.png" ""
     fi
 
-    render_template \
-        "$spec_template" \
-        "$spec_file" \
-        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
-        "$RPM_VERSION_PLACEHOLDER" "$rpm_version" \
-        "$PKGREL_PLACEHOLDER" "$PKGREL" \
-        "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION" \
-        "$APP_URL_PLACEHOLDER" "$APP_URL" \
-        "$RPM_ARCH_PLACEHOLDER" "$RPM_ARCH" \
-        "$PIXMAP_FILE_ENTRY_PLACEHOLDER" "$icon_entry" \
-        "$CHANGELOG_DATE_PLACEHOLDER" "$changelog_date" \
-        "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
-        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
-        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
-
-    rpmbuild \
-        --target "$RPM_ARCH" \
-        --define "_topdir $rpm_top" \
-        --define "husi_root $rootfs" \
-        -bb "$spec_file"
-
-    local rpm_output
-    rpm_output="$(find "$rpm_top/RPMS" -type f -name '*.rpm' | head -n 1)"
-    if [[ -z "$rpm_output" ]]; then
-        error "Failed to locate built rpm package."
-        exit 1
-    fi
-    cp "$rpm_output" "$output_dir/"
-    log "Built rpm: $output_dir/$(basename "$rpm_output")"
 }
 
-build_pacman() {
+append_deb_nfpm_config() {
+    local config_file="$1"
+    local work_dir="$2"
+
+    cat >>"$config_file" <<EOF
+depends:
+  - java21-runtime | openjdk-21-jre | openjdk-21-jre-headless
+  - libcap2-bin
+  - ca-certificates
+  - nftables
+scripts:
+  postinstall: $work_dir/deb-postinstall.sh
+  postremove: $work_dir/deb-postremove.sh
+deb:
+  arch: $DEB_ARCH
+EOF
+}
+
+append_rpm_nfpm_config() {
+    local config_file="$1"
+    local work_dir="$2"
+
+    cat >>"$config_file" <<EOF
+depends:
+  - java >= 21
+  - libcap
+  - ca-certificates
+  - nftables
+rpm:
+  arch: $RPM_ARCH
+  summary: $APP_DESCRIPTION
+  packager: $MAINTAINER
+  scripts:
+    posttrans: $work_dir/rpm-posttrans.sh
+EOF
+}
+
+append_pacman_nfpm_config() {
+    local config_file="$1"
+    local work_dir="$2"
+
+    cat >>"$config_file" <<EOF
+depends:
+  - java-runtime>=21
+  - libcap
+  - ca-certificates
+  - nftables
+scripts:
+  postinstall: $work_dir/arch-postinstall.sh
+archlinux:
+  arch: $PACMAN_ARCH
+  pkgbase: $PACKAGE_NAME
+  packager: $MAINTAINER
+  scripts:
+    postupgrade: $work_dir/arch-postupgrade.sh
+EOF
+}
+
+normalize_file_mtimes() {
     local rootfs="$1"
-    local output_dir="$2"
-    local work_dir="$3"
-    local pacman_root="$work_dir/pacman-rootfs"
-    local pkginfo_template="$ROOT_DIR/release/linux/desktop/.PKGINFO"
-    local install_template="$ROOT_DIR/release/linux/desktop/pacman.install"
-    local pacman_pkgver
-    pacman_pkgver="$(normalize_pacman_version "$VERSION_NAME")"
-    local pkgver_full="${pacman_pkgver}-${PKGREL}"
-    local output_pkg="$output_dir/${PACKAGE_NAME}-${pacman_pkgver}-${PKGREL}-${PACMAN_ARCH}.pkg.tar.zst"
-    local size_bytes
-    size_bytes="$(du -sb "$rootfs" | awk '{print $1}')"
-    local build_date="$TAG_EPOCH"
-    local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
+    local work_dir="$2"
 
-    rm -rf "$pacman_root"
-    mkdir -p "$pacman_root"
-    cp -a "$rootfs/." "$pacman_root/"
+    find "$rootfs" -exec touch -d "@$TAG_EPOCH" {} +
+    find "$work_dir" -maxdepth 1 -type f -exec touch -d "@$TAG_EPOCH" {} +
+}
 
-    render_template \
-        "$pkginfo_template" \
-        "$pacman_root/.PKGINFO" \
-        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
-        "$PACMAN_VERSION_FULL_PLACEHOLDER" "$pkgver_full" \
-        "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION" \
-        "$APP_URL_PLACEHOLDER" "$APP_URL" \
-        "$BUILD_DATE_PLACEHOLDER" "$build_date" \
-        "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
-        "$SIZE_BYTES_PLACEHOLDER" "$size_bytes" \
-        "$PACMAN_ARCH_PLACEHOLDER" "$PACMAN_ARCH"
-    render_template \
-        "$install_template" \
-        "$pacman_root/.INSTALL" \
-        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
-        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
+output_filename() {
+    local format="$1"
+    local package_version="$2"
+    case "$format" in
+        deb)
+            echo "${PACKAGE_NAME}_${package_version}_${DEB_ARCH}.deb"
+            ;;
+        rpm)
+            echo "${PACKAGE_NAME}-${package_version}-${PKGREL}.${RPM_ARCH}.rpm"
+            ;;
+        pacman)
+            echo "${PACKAGE_NAME}-${package_version}-${PKGREL}-${PACMAN_ARCH}.pkg.tar.zst"
+            ;;
+        *)
+            error "Unknown output format '$format'."
+            exit 1
+            ;;
+    esac
+}
 
-    bsdtar --numeric-owner --uid 0 --gid 0 -C "$pacman_root" -cf - .PKGINFO .INSTALL usr | zstd -q -19 -T0 >"$output_pkg"
-    log "Built pacman: $output_pkg"
+build_with_nfpm() {
+    local rootfs="$1"
+    local work_dir="$2"
+    local format="$3"
+    local packager
+    local package_version
+    local package_arch="$TARGET_ARCH"
+
+    case "$format" in
+        deb)
+            packager="deb"
+            package_version="$VERSION_NAME"
+            ;;
+        rpm)
+            packager="rpm"
+            package_version="$(normalize_rpm_version "$VERSION_NAME")"
+            ;;
+        pacman)
+            packager="archlinux"
+            package_version="$(normalize_pacman_version "$VERSION_NAME")"
+            ;;
+        *)
+            error "Unsupported format '$format'."
+            exit 1
+            ;;
+    esac
+
+    local config_file="$work_dir/nfpm-$format.yaml"
+    write_common_nfpm_config "$config_file" "$rootfs" "$package_version" "$package_arch"
+
+    case "$format" in
+        deb)
+            append_deb_nfpm_config "$config_file" "$work_dir"
+            ;;
+        rpm)
+            append_rpm_nfpm_config "$config_file" "$work_dir"
+            ;;
+        pacman)
+            append_pacman_nfpm_config "$config_file" "$work_dir"
+            ;;
+    esac
+
+    local output_path="$OUTPUT_DIR/$(output_filename "$format" "$package_version")"
+    nfpm package --config "$config_file" --packager "$packager" --target "$output_path"
+    log "Built $format: $output_path"
 }
 
 FORMATS="deb,rpm,pacman"
@@ -626,7 +670,6 @@ resolve_target
 resolve_arch
 resolve_formats "$FORMATS"
 require_tools_for_formats
-validate_rpm_target
 
 if [[ "$CHECK_TOOLS" -eq 1 ]]; then
     log "All required tools are available for formats: $FORMATS"
@@ -646,17 +689,19 @@ trap cleanup EXIT
 rootfs="$work_dir/rootfs"
 mkdir -p "$rootfs"
 prepare_rootfs "$rootfs"
+prepare_script_templates "$work_dir"
+normalize_file_mtimes "$rootfs" "$work_dir"
 
 if [[ -n "${ENABLED_FORMATS[deb]:-}" ]]; then
-    build_deb "$rootfs" "$OUTPUT_DIR" "$work_dir"
+    build_with_nfpm "$rootfs" "$work_dir" "deb"
 fi
 
 if [[ -n "${ENABLED_FORMATS[rpm]:-}" ]]; then
-    build_rpm "$rootfs" "$OUTPUT_DIR" "$work_dir"
+    build_with_nfpm "$rootfs" "$work_dir" "rpm"
 fi
 
 if [[ -n "${ENABLED_FORMATS[pacman]:-}" ]]; then
-    build_pacman "$rootfs" "$OUTPUT_DIR" "$work_dir"
+    build_with_nfpm "$rootfs" "$work_dir" "pacman"
 fi
 
 log "Done. Output directory: $OUTPUT_DIR"

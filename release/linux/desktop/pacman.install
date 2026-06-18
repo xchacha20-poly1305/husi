@@ -1,7 +1,0 @@
-post_install() {
-  /usr/bin/setcap '__HUSI_LAUNCHER_CAPS__' '__HUSI_LAUNCHER_PATH__'
-}
-
-post_upgrade() {
-  post_install
-}

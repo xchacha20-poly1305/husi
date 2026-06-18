@@ -265,9 +265,8 @@ Build Linux native packages (`deb/rpm/pacman`) with Java 21 dependency metadata:
 make desktop_package_linux
 ```
 
-This command still builds the uber jar first, then packages it with native Linux tooling.
-Required host tools: `zig`, `git`, `dpkg-deb`, `rpmbuild`, `bsdtar`, `zstd`.
-If building `deb`, `gzip` is also required.
+This command still builds the uber jar first, then packages it with `nfpm`.
+Required host tools: `zig`, `git`, `nfpm`.
 
 Package timestamps are derived from git tag `v<VERSION_NAME>` from `husi.properties`,
 not from local build time.

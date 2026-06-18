@@ -97,7 +97,7 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
   `plugin/<name>.sh`, `init/{env,env_ndk,version}.sh`, plus `rename.sh` for forking under a new
   package name.
 - `release/{linux,macos,windows}/package.sh` — invoked by `make desktop_package_*` after the uber
-  jar exists.
+  jar exists. Linux packaging uses `nfpm`.
 
 ## Compose UI (composeApp)
 
