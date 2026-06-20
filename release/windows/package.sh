@@ -399,7 +399,7 @@ nsis_url_scheme_install_entries() {
     WriteRegStr HKCU "Software\\Classes\\$scheme" "" "URL:$scheme Protocol"
     WriteRegStr HKCU "Software\\Classes\\$scheme" "URL Protocol" ""
     WriteRegStr HKCU "Software\\Classes\\$scheme\\DefaultIcon" "" "\$INSTDIR\\\${APP_NAME}.exe,0"
-    WriteRegStr HKCU "Software\\Classes\\$scheme\\shell\\open\\command" "" '"\$INSTDIR\\\${APP_NAME}.exe" "%1"'
+    WriteRegStr HKCU "Software\\Classes\\$scheme\\shell\\open\\command" "" '"\$INSTDIR\\\${APP_NAME}.exe" open "%1"'
 EOF
     done
 }
