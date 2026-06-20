@@ -143,11 +143,17 @@ class GroupProfilesHolderViewModel(
 
         val comparator: Comparator<ProxyEntity> = when (group.order) {
             GroupOrder.BY_NAME -> compareBy { it.displayName() }
-            GroupOrder.BY_DELAY -> compareBy {
+            GroupOrder.BY_DELAY -> compareBy<ProxyEntity> {
+                when {
+                    it.status == ProxyEntity.STATUS_AVAILABLE -> 0
+                    !it.error.isNullOrBlank() -> 1
+                    else -> 2
+                }
+            }.thenBy {
                 if (it.status == ProxyEntity.STATUS_AVAILABLE) {
                     it.ping
                 } else {
-                    Int.MAX_VALUE
+                    0
                 }
             }
 
