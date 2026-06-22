@@ -54,7 +54,10 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
         ),
         "mtu" to mtu,
         "multiplexing" to mieruMuxToString(serverMuxNumber)?.let { mapOf("level" to it) },
-        "handshakeMode" to "HANDSHAKE_NO_WAIT",
+        // "handshakeMode" to "HANDSHAKE_NO_WAIT",
+        // https://github.com/enfein/mieru/issues/254
+        // Mieru TCP mux long-time mutex holding + no wait = bug.
+        "handshakeMode" to "HANDSHAKE_STANDARD",
     )
     trafficPattern.blankAsNull()?.let { trafficPattern ->
         profile["trafficPattern"] = runCatching {
