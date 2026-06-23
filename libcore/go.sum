@@ -2,8 +2,8 @@ c2sp.org/CCTV/age v0.0.0-20251208015420-e9274a7bdbfd h1:ZLsPO6WdZ5zatV4UfVpr7oAw
 c2sp.org/CCTV/age v0.0.0-20251208015420-e9274a7bdbfd/go.mod h1:SrHC2C7r5GkDk8R+NFVzYy/sdj0Ypg9htaPXQq5Cqeo=
 code.pfad.fr/check v1.1.0 h1:GWvjdzhSEgHvEHe2uJujDcpmZoySKuHQNrZMfzfO0bE=
 code.pfad.fr/check v1.1.0/go.mod h1:NiUH13DtYsb7xp5wll0U4SXx7KhXQVCtRgdC96IPfoM=
-codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0 h1:Q2Cea0NryerbwA/iRkQej0fZn1B8M5bg354hoMLJCsg=
-codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0/go.mod h1:KX6NZEij3zmprTQJh08m3tSQfewN0BTU+4RgzRo4lmw=
+codeberg.org/xchacha20-poly1305/pkgsite-go v0.5.0 h1:jDOMVaOnKEAJhclrzQgfAJ5ElNl64zXeEiMD8D9BNMU=
+codeberg.org/xchacha20-poly1305/pkgsite-go v0.5.0/go.mod h1:KX6NZEij3zmprTQJh08m3tSQfewN0BTU+4RgzRo4lmw=
 filippo.io/age v1.3.1 h1:hbzdQOJkuaMEpRCLSN1/C5DX74RPcNCk6oqhKMXmZi0=
 filippo.io/age v1.3.1/go.mod h1:EZorDTYUxt836i3zdori5IJX/v2Lj6kWFU0cfh6C0D4=
 filippo.io/hpke v0.4.0 h1:p575VVQ6ted4pL+it6M00V/f2qTZITO0zgmdKCkd5+A=

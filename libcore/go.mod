@@ -35,7 +35,7 @@ replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vme
 
 // cmd
 require (
-	codeberg.org/xchacha20-poly1305/pkgsite-go v0.4.0
+	codeberg.org/xchacha20-poly1305/pkgsite-go v0.5.0
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/oschwald/maxminddb-golang v1.13.1
 )

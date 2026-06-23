@@ -167,13 +167,13 @@ func resolveLibrary(ctx context.Context, client *pkgsite.Client, module *debug.M
 			Licenses: true,
 		})
 		// For the pseudo versions that unrecorded
-		if err != nil && module.Version != "" && isNotFound(err) {
+		if err != nil && module.Version != "" && isHTTPErrorCode(err, http.StatusNotFound) {
 			pkgModule, err = resolveModule(ctx, client, module.Path, &pkgsite.ModuleOptions{
 				Licenses: true,
 			})
 		}
 		if err != nil {
-			return Library{}, E.Cause(err, "resolve ", module.Path)
+			return common.DefaultValue[Library](), E.Cause(err, "resolve ", module.Path)
 		}
 		library.Website = pkgModule.RepoURL
 		licenses := common.FlatMap(pkgModule.Licenses, func(it pkgsite.License) []string {
@@ -206,9 +206,24 @@ func inGPLv3OrLaterWhiteList(modulePath string) bool {
 }
 
 func resolveModule(ctx context.Context, client *pkgsite.Client, modulePath string, options *pkgsite.ModuleOptions) (*pkgsite.Module, error) {
+	pkgModule, err := requestModuleWithRetry(ctx, client, modulePath, options)
+	// The module may not be recorded by pkgsite yet, ask it to fetch and retry once.
+	if isHTTPErrorCode(err, http.StatusNotFound) {
+		log.InfoContext(ctx, "not found, try to fetch ", modulePath)
+		if fetchError := fetchModule(ctx, client, modulePath, options.Version); fetchError != nil {
+			log.ErrorContext(ctx, "also failed to fetch: ", fetchError)
+			return nil, err
+		}
+		return requestModuleWithRetry(ctx, client, modulePath, options)
+	}
+	return pkgModule, err
+}
+
+// requestModuleWithRetry requests a module, retrying only while pkgsite rate limits us.
+func requestModuleWithRetry(ctx context.Context, client *pkgsite.Client, modulePath string, options *pkgsite.ModuleOptions) (*pkgsite.Module, error) {
 	for {
 		pkgModule, err := requestModule(ctx, client, modulePath, options)
-		if !isTooManyRequests(err) {
+		if !isHTTPErrorCode(err, http.StatusTooManyRequests) {
 			return pkgModule, err
 		}
 		log.WarnContext(ctx, "pkgsite rate limited while resolving ", modulePath, ", retrying in ", DefaultRateLimitRetryDelay)
@@ -220,18 +235,14 @@ func resolveModule(ctx context.Context, client *pkgsite.Client, modulePath strin
 	}
 }
 
+func contextWithDefaultTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(ctx, DefaultTimeout)
+}
+
 func requestModule(ctx context.Context, client *pkgsite.Client, modulePath string, options *pkgsite.ModuleOptions) (*pkgsite.Module, error) {
-	ctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
+	ctx, cancel := contextWithDefaultTimeout(ctx)
 	defer cancel()
 	return client.Module(ctx, modulePath, options)
-}
-
-func isNotFound(err error) bool {
-	return isHTTPErrorCode(err, http.StatusNotFound)
-}
-
-func isTooManyRequests(err error) bool {
-	return isHTTPErrorCode(err, http.StatusServiceUnavailable)
 }
 
 func isHTTPErrorCode(err error, target int) bool {
@@ -239,4 +250,18 @@ func isHTTPErrorCode(err error, target int) bool {
 		return target == code
 	}
 	return false
+}
+
+// fetchModule is a workaround for https://pkg.go.dev/github.com/sagernet/ws,
+// I don't know why pkg.go.dev clean it frequently. Before this I require a fetch on web manually.
+func fetchModule(ctx context.Context, client *pkgsite.Client, modulePath, version string) error {
+	ctx, cancel := contextWithDefaultTimeout(ctx)
+	defer cancel()
+	// resolveLibrary already retries resolveModule with and without a version,
+	// so fetch only the variant matching the current options to avoid redundant fetches.
+	fetchPath := modulePath
+	if version != "" {
+		fetchPath += "@" + version
+	}
+	return client.FetchModule(ctx, fetchPath)
 }
