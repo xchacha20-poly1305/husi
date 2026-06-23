@@ -36,7 +36,7 @@ func chromeIncludedPEM() string
 func mozillaIncludedPEM() string
 
 const (
-	CertGoOrigin int32 = iota
+	CertSystem int32 = iota
 	CertWithUserTrust
 	CertMozilla
 	CertChrome
@@ -45,10 +45,9 @@ const (
 const customCaFile = "ca.pem"
 
 // UpdateRootCACerts updates Go trusted certs.
-// Set certFromJava to get cert with user trusted. ( workaround for: https://github.com/golang/go/issues/71258 )
 //
 // On Android, this appends externalAssetsPath/ca.pem to root CA.
-func UpdateRootCACerts(certOption int32, certFromJava StringIterator) {
+func UpdateRootCACerts(certOption int32) {
 	// https://github.com/golang/go/blob/30b6fd60a63c738c2736e83b6a6886a032e6f269/src/crypto/x509/root.go#L31
 	// Make sure initialize system cert pool.
 	// If system cert has not been initialized,
@@ -58,16 +57,19 @@ func UpdateRootCACerts(certOption int32, certFromJava StringIterator) {
 
 	var roots *x509.CertPool
 	switch certOption {
-	case CertGoOrigin:
-		roots = sysRoots
+	case CertSystem:
+		var err error
+		roots, err = loadSystemCertWithUserTrust(sysRoots, false)
+		if err != nil {
+			log.Error("load system root: ", err)
+			roots = sysRoots
+		}
 	case CertWithUserTrust:
-		roots = x509.NewCertPool()
-		for certFromJava.HasNext() {
-			cert := certFromJava.Next()
-			// Unsupported: CatCert(SHA1WithRSA) since Go 1.24
-			if !tryAddCert(roots, []byte(cert)) {
-				log.Warn("failed to load java cert: ", cert)
-			}
+		var err error
+		roots, err = loadSystemCertWithUserTrust(sysRoots, true)
+		if err != nil {
+			log.Error("load system root with user trust: ", err)
+			roots = sysRoots
 		}
 	case CertMozilla:
 		roots = x509.NewCertPool()

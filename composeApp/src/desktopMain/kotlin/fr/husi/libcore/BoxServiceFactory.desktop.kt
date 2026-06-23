@@ -10,10 +10,10 @@ actual fun createBoxService(isBgProcess: Boolean): Service? {
 
 actual fun loadCA(provider: Int) {
     val provider = when (DataStore.certProvider) {
-        CertProvider.SYSTEM -> Libcore.CertGoOrigin
+        CertProvider.SYSTEM -> Libcore.CertSystem
         CertProvider.MOZILLA -> Libcore.CertMozilla
         CertProvider.CHROME -> Libcore.CertChrome
-        else -> Libcore.CertGoOrigin
+        else -> Libcore.CertSystem
     }
-    Libcore.updateRootCACerts(provider, null)
+    Libcore.updateRootCACerts(provider)
 }
