@@ -114,7 +114,7 @@ class MieruFmtTest {
         val profile = profiles.first().asJsonMap()
         assertEquals("default", profile["profileName"])
         assertEquals(1400, assertIs<Number>(profile["mtu"]).toInt())
-        assertEquals("HANDSHAKE_NO_WAIT", profile["handshakeMode"])
+        assertEquals("HANDSHAKE_STANDARD", profile["handshakeMode"])
 
         val user = profile["user"].asJsonMap()
         assertEquals("user", user["name"])
