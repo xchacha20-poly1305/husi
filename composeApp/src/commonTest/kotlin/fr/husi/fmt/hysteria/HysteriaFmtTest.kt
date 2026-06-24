@@ -4,6 +4,9 @@ import fr.husi.database.DataStore
 import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.getObject
+import fr.husi.ktx.getStr
+import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -457,5 +460,74 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertEquals("pwd", restored.obfsPassword)
         assertEquals(600, restored.geckoMinPacketSize)
         assertEquals(1400, restored.geckoMaxPacketSize)
+    }
+
+    @Test
+    fun `buildHysteriaConfig hy1 should serialize without throwing`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
+            serverAddress = "example.com"
+            serverPorts = "9080"
+            authPayloadType = HysteriaBean.TYPE_STRING
+            authPayload = "secret"
+            sni = "sni.example.com"
+        }
+
+        val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
+        val map = json.toJsonMapKxs()
+
+        assertEquals("example.com:9080", map.getStr("server"))
+        assertEquals("secret", map.getStr("auth_str"))
+        assertEquals("sni.example.com", map.getStr("server_name"))
+        assertEquals("127.0.0.1:1080", map.getObject("socks5")?.getStr("listen"))
+    }
+
+    @Test
+    fun `buildHysteriaConfig hy2 should serialize without throwing`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            sni = "sni.example.com"
+            allowInsecure = true
+        }
+
+        val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
+        val map = json.toJsonMapKxs()
+
+        assertEquals("example.com:9443", map.getStr("server"))
+        assertEquals("secret", map.getStr("auth"))
+        assertEquals("127.0.0.1:1080", map.getObject("socks5")?.getStr("listen"))
+        val tls = map.getObject("tls")
+        assertNotNull(tls)
+        assertEquals("sni.example.com", tls.getStr("sni"))
+        val congestion = map.getObject("congestion")
+        assertNotNull(congestion)
+        assertEquals("bbr", congestion.getStr("type"))
+    }
+
+    @Test
+    fun `buildHysteriaConfig hy2 should serialize gecko obfs without throwing`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            obfsType = HysteriaBean.OBFS_TYPE_GECKO
+            obfsPassword = "pwd"
+            geckoMinPacketSize = 600
+            geckoMaxPacketSize = 1400
+        }
+
+        val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
+        val map = json.toJsonMapKxs()
+
+        val obfs = map.getObject("obfs")
+        assertNotNull(obfs)
+        assertEquals(HysteriaBean.OBFS_TYPE_GECKO, obfs.getStr("type"))
+        val gecko = obfs.getObject(HysteriaBean.OBFS_TYPE_GECKO)
+        assertNotNull(gecko)
+        assertEquals("pwd", gecko.getStr("password"))
     }
 }

@@ -2,7 +2,6 @@ package fr.husi.fmt.shadowquic
 
 import fr.husi.database.DataStore
 import fr.husi.fmt.LOCALHOST4
-import fr.husi.ktx.JSONMap
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
@@ -144,7 +143,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(
     } else {
         null
     }
-    val config: JSONMap = buildMap<String, Any?> {
+    val config = buildMap<String, Any?> {
         put(
             "inbound",
             buildMap<String, Any?> {
@@ -188,7 +187,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(
                 else -> logLevelString(logLevel)
             },
         )
-    }.toMutableMap()
+    }
     return config.toJsonStringKxs()
 }
 

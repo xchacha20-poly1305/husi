@@ -37,9 +37,9 @@ fun JsonElement.toJsonMapKxs(): JSONMap {
     return map
 }
 
-fun JSONMap.toJsonElementKxs(): JsonElement = anyToJsonElementKxs(this)
+fun Map<String, Any?>.toJsonElementKxs(): JsonElement = anyToJsonElementKxs(this)
 
-fun JSONMap.toJsonObjectKxs(): JsonObject = toJsonElementKxs() as JsonObject
+fun Map<String, Any?>.toJsonObjectKxs(): JsonObject = toJsonElementKxs() as JsonObject
 
 fun Any.asKxsMap(): JSONMap {
     @Suppress("UNCHECKED_CAST")
@@ -91,17 +91,17 @@ fun JSONMap.getObject(name: String): JSONMap? {
 }
 fun JSONMap.getArray(name: String): List<*>? = this[name] as? List<*>
 
-fun JSONMap.toJsonStringKxs(): String =
+fun Map<String, Any?>.toJsonStringKxs(): String =
     kxs.encodeToString(JsonElement.serializer(), filterNulls().toJsonElementKxs())
 
-private fun JSONMap.filterNulls(): JSONMap {
+private fun Map<String, Any?>.filterNulls(): JSONMap {
     val result: JSONMap = mutableMapOf()
     for ((key, value) in this) {
         if (value == null) continue
         @Suppress("UNCHECKED_CAST")
         result[key] = when (value) {
-            is Map<*, *> -> (value as JSONMap).filterNulls()
-            is List<*> -> value.map { if (it is Map<*, *>) (it as JSONMap).filterNulls() else it }
+            is Map<*, *> -> (value as Map<String, Any?>).filterNulls()
+            is List<*> -> value.map { if (it is Map<*, *>) (it as Map<String, Any?>).filterNulls() else it }
             else -> value
         }
     }
