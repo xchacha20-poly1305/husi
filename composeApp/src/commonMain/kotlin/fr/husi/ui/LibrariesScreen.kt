@@ -101,6 +101,7 @@ fun LibrariesScreen(
                             runCatching { uriHandler.openUri(url) }
                         }
                     }
+                    true
                 },
             )
             BoxedVerticalScrollbar(
