@@ -124,14 +124,19 @@ fun LogcatScreen(
             !listState.canScrollForward
         }
     }
-    val searchBarVisible =
-        scrollHideVisible && (canScroll || viewModel.searchTextFieldState.text.isNotEmpty())
+    val searchBarVisible by remember {
+        derivedStateOf {
+            scrollHideVisible && (canScroll || viewModel.searchTextFieldState.text.isNotEmpty())
+        }
+    }
 
     var expandMenu by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val queryLowerCase = uiState.searchQuery?.lowercase()
+    val queryLowerCase by remember {
+        derivedStateOf { uiState.searchQuery?.lowercase() }
+    }
     LaunchedEffect(listState) {
         var wasScrolling = false
         snapshotFlow { listState.isScrollInProgress }
@@ -144,14 +149,17 @@ fun LogcatScreen(
                 }
             }
     }
-    LaunchedEffect(uiState.logs.size) {
-        if (uiState.logs.isEmpty()) {
-            autoScroll = true
-            return@LaunchedEffect
-        }
-        if (!uiState.pause && autoScroll) {
-            listState.scrollToItem(uiState.logs.lastIndex)
-        }
+    LaunchedEffect(Unit) {
+        snapshotFlow { uiState.logs.size }
+            .collect { size ->
+                if (size == 0) {
+                    autoScroll = true
+                    return@collect
+                }
+                if (!uiState.pause && autoScroll) {
+                    listState.scrollToItem(size - 1)
+                }
+            }
     }
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->

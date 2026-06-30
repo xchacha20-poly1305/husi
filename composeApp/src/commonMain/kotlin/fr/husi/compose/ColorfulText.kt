@@ -2,7 +2,7 @@ package fr.husi.compose
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -18,58 +18,18 @@ private val ansiRegex = Regex("\u001B\\[[;\\d]*m")
 
 @Composable
 fun String.ansiEscape(highlightQuery: String? = null): AnnotatedString {
-    val plainText = replace(ansiRegex, "")
+    val ansiParsed = remember(this) { parseAnsi() }
 
-    return buildAnnotatedString {
-        append(plainText)
+    if (highlightQuery.isNullOrEmpty()) return ansiParsed
 
-        val spans = mutableListOf<AnsiSpan>()
-        val stack = mutableListOf<AnsiSpan>()
-        val matches = ansiRegex.findAll(this@ansiEscape)
-        var offset = 0
+    val highlightColor = MaterialTheme.colorScheme.onTertiaryContainer
+    val highlightBg = MaterialTheme.colorScheme.tertiaryContainer
 
-        matches.forEach { result ->
-            val stringCode = result.value
-            val start = result.range.last
-            val end = result.range.last + 1
-            val ansiInstruction = parseAnsiInstruction(stringCode)
-            offset += stringCode.length
-
-            if (ansiInstruction.decorationCode == "0" && stack.isNotEmpty()) {
-                spans.add(stack.removeAt(stack.size - 1).copy(end = end - offset))
-            } else {
-                val span = AnsiSpan(
-                    instruction = ansiInstruction,
-                    start = start - if (offset > start) start else offset - 1,
-                    end = 0,
-                )
-                stack.add(span)
-            }
-        }
-
-        while (stack.isNotEmpty()) {
-            spans.add(stack.removeAt(stack.size - 1).copy(end = plainText.length))
-        }
-
-        spans.forEach { ansiSpan ->
-            listOfNotNull(
-                getStyleForCode(ansiSpan.instruction.colorCode),
-                getStyleForCode(ansiSpan.instruction.decorationCode),
-            ).forEach { style ->
-                addStyle(
-                    style = style,
-                    start = ansiSpan.start,
-                    end = ansiSpan.end,
-                )
-            }
-        }
-
-        if (!highlightQuery.isNullOrEmpty()) {
-            val highlightStyle = SpanStyle(
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                background = MaterialTheme.colorScheme.tertiaryContainer,
-            )
-            val lowerText = plainText.lowercase()
+    return remember(ansiParsed, highlightQuery, highlightColor, highlightBg) {
+        buildAnnotatedString {
+            append(ansiParsed)
+            val highlightStyle = SpanStyle(color = highlightColor, background = highlightBg)
+            val lowerText = ansiParsed.text.lowercase()
             var searchStart = 0
             while (true) {
                 val index = lowerText.indexOf(highlightQuery, searchStart)
@@ -81,72 +41,96 @@ fun String.ansiEscape(highlightQuery: String? = null): AnnotatedString {
     }
 }
 
-@Stable
-private data class AnsiSpan(
-    val instruction: AnsiInstruction,
-    val start: Int,
-    val end: Int,
-)
+private fun String.parseAnsi(): AnnotatedString {
+    val plainText = replace(ansiRegex, "")
+    val matches = ansiRegex.findAll(this).toList()
 
-@Stable
-private data class AnsiInstruction(
-    val colorCode: String?,
-    val decorationCode: String?,
-)
+    if (matches.isEmpty()) {
+        return AnnotatedString(plainText)
+    }
 
-private fun parseAnsiInstruction(code: String): AnsiInstruction {
-    val colorCodes = code.substringAfter('[').substringBefore('m').split(';')
+    return buildAnnotatedString {
+        append(plainText)
 
-    return when (colorCodes.size) {
-        3 -> AnsiInstruction(
-            colorCode = colorCodes[1],
-            decorationCode = colorCodes[2],
-        )
+        var currentStyle: SpanStyle? = null
+        var currentStart = 0
+        var offset = 0
 
-        2 -> AnsiInstruction(
-            colorCode = colorCodes[0],
-            decorationCode = colorCodes[1],
-        )
+        matches.forEach { match ->
+            val code = match.value
+            val codeStart = match.range.first - offset
+            val style = parseAnsiCode(code)
 
-        1 -> AnsiInstruction(
-            colorCode = null,
-            decorationCode = colorCodes[0],
-        )
+            if (style == null) {
+                if (currentStyle != null && currentStart < codeStart) {
+                    addStyle(currentStyle, currentStart, codeStart)
+                }
+                currentStyle = null
+                currentStart = codeStart
+            } else {
+                if (currentStyle != null && currentStart < codeStart) {
+                    addStyle(currentStyle, currentStart, codeStart)
+                }
+                currentStyle = style
+                currentStart = codeStart
+            }
 
-        else -> AnsiInstruction(null, null)
+            offset += code.length
+        }
+
+        if (currentStyle != null && currentStart < plainText.length) {
+            addStyle(currentStyle, currentStart, plainText.length)
+        }
     }
 }
 
-@Composable
-private fun getStyleForCode(code: String?): SpanStyle? = when (code) {
-    "0", null -> null
-    "1" -> SpanStyle(fontWeight = FontWeight.Bold)
-    "3" -> SpanStyle(fontStyle = FontStyle.Italic)
-    "4" -> SpanStyle(textDecoration = TextDecoration.Underline)
-    "30" -> SpanStyle(color = Color.Gray)
-    "31" -> SpanStyle(color = LogColors.red)
-    "32" -> SpanStyle(color = LogColors.green)
-    "33" -> SpanStyle(color = LogColors.yellow)
-    "34" -> SpanStyle(color = LogColors.blue)
-    "35" -> SpanStyle(color = LogColors.purple)
-    "36" -> SpanStyle(color = LogColors.blueLight)
-    "37" -> SpanStyle(color = LogColors.white)
-    else -> {
-        val codeInt = code.toIntOrNull()
-        if (codeInt != null) {
-            val normalizedCode = codeInt % 125
-            val row = normalizedCode / 36
-            val column = normalizedCode % 36
-            SpanStyle(
-                color = Color(
-                    red = row * 51,
-                    green = column / 6 * 51,
-                    blue = column % 6 * 51,
-                ),
-            )
-        } else {
-            null
+private fun parseAnsiCode(code: String): SpanStyle? {
+    val codes = code.substringAfter('[').substringBefore('m').split(';')
+
+    var color: Color? = null
+    var fontWeight: FontWeight? = null
+    var fontStyle: FontStyle? = null
+    var textDecoration: TextDecoration? = null
+
+    codes.forEach { codeStr ->
+        when (codeStr) {
+            "0" -> return null // Reset
+            "1" -> fontWeight = FontWeight.Bold
+            "3" -> fontStyle = FontStyle.Italic
+            "4" -> textDecoration = TextDecoration.Underline
+            "30" -> color = Color.Gray
+            "31" -> color = LogColors.red
+            "32" -> color = LogColors.green
+            "33" -> color = LogColors.yellow
+            "34" -> color = LogColors.blue
+            "35" -> color = LogColors.purple
+            "36" -> color = LogColors.blueLight
+            "37" -> color = LogColors.white
+            else -> {
+                val codeInt = codeStr.toIntOrNull()
+                if (codeInt != null && codeInt in 38..125) {
+                    val adjustedCode = codeInt % 125
+                    val row = adjustedCode / 36
+                    val column = adjustedCode % 36
+                    color = Color(
+                        red = row * 51,
+                        green = (column / 6) * 51,
+                        blue = (column % 6) * 51,
+                    )
+                }
+            }
         }
+    }
+
+    return if (color != null || fontWeight != null || fontStyle != null || textDecoration != null) {
+        SpanStyle(
+            color = color ?: Color.Unspecified,
+            fontWeight = fontWeight,
+            fontStyle = fontStyle,
+            textDecoration = textDecoration,
+        )
+    } else {
+        null
     }
 }
 
