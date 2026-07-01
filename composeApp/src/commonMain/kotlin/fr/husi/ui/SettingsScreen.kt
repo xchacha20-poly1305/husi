@@ -166,6 +166,7 @@ import fr.husi.resources.juicity_provider
 import fr.husi.resources.keep_default
 import fr.husi.resources.language
 import fr.husi.resources.language_system_default
+import fr.husi.resources.local_bar
 import fr.husi.resources.lock
 import fr.husi.resources.log_level
 import fr.husi.resources.long_click_to_see_name
@@ -1111,6 +1112,28 @@ fun SettingsScreen(
                             summary = { Text(stringOrRes(pluginProviderText(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
                             valueToText = { AnnotatedString(stringOrRes(pluginProviderText(it))) },
+                        )
+                    }
+                    if (isExpertState) item(Key.ANYTLS_CUSTOM_VERSION, PreferenceType.TEXT_FIELD) {
+                        val value by DataStore.configurationStore
+                            .stringFlow(Key.ANYTLS_CUSTOM_VERSION, "")
+                            .collectAsStateWithLifecycle("")
+                        TextFieldPreference(
+                            value = value,
+                            onValueChange = {
+                                DataStore.anytlsCustomVersion = it
+                                needRestart()
+                            },
+                            title = { Text("AnyTLS version") },
+                            textToValue = { it },
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.local_bar),
+                                    null,
+                                )
+                            },
+                            summary = { Text(contentOrUnset(value)) },
+                            valueToText = { it },
                         )
                     }
 

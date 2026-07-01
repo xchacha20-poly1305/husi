@@ -39,6 +39,7 @@ import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.exitApplication
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.toList
@@ -382,6 +383,9 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         }
 
         bootstrapDesktopRuntime(repository, startCommandServer = true)
+        DataStore.anytlsCustomVersion.blankAsNull()?.let {
+            Libcore.setAnyTLSVersion(it)
+        }
     }
 
     /**

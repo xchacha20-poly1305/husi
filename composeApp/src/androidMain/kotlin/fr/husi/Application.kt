@@ -14,8 +14,9 @@ import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
-import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.invariantDirectoryPathString
+import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.repository.AndroidRepository
@@ -82,6 +83,9 @@ class Application : Application(),
             DataStore.isExpert,
         )
         loadCA(DataStore.certProvider)
+        DataStore.anytlsCustomVersion.blankAsNull()?.let {
+            Libcore.setAnyTLSVersion(it)
+        }
 
         if (isMainProcess) runOnDefaultDispatcher {
             runCatching {
