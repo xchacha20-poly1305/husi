@@ -49,6 +49,7 @@ import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
@@ -390,17 +391,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                                     MenuDefaults.groupShapes()
                                 },
                             ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        MenuDefaults.Label {
-                                            Text(
-                                                text = stringResource(Res.string.custom_config),
-                                                style = MaterialTheme.typography.titleSmall,
-                                            )
-                                        }
-                                    },
-                                    onClick = {},
-                                )
+                                DropdownMenuSectionHeader(stringResource(Res.string.custom_config))
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.outbound)) },
                                     onClick = {
@@ -412,6 +403,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                                             ),
                                         )
                                     },
+                                    shape = MenuDefaults.itemShape(0, 2).shape,
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.full)) },
@@ -424,6 +416,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                                             ),
                                         )
                                     },
+                                    shape = MenuDefaults.itemShape(1, 2).shape,
                                 )
                             }
                         }

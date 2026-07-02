@@ -28,7 +28,6 @@ import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarValue
@@ -68,6 +67,7 @@ import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
@@ -252,17 +252,7 @@ fun DashboardScreen(
                                             DropdownMenuGroup(
                                                 shapes = MenuDefaults.groupShape(0, 3),
                                             ) {
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        MenuDefaults.Label {
-                                                            Text(
-                                                                text = stringResource(Res.string.sort),
-                                                                style = MaterialTheme.typography.titleSmall,
-                                                            )
-                                                        }
-                                                    },
-                                                    onClick = {},
-                                                )
+                                                DropdownMenuSectionHeader(stringResource(Res.string.sort))
                                                 DropdownMenuItem(
                                                     selected = !uiState.isDescending,
                                                     onClick = {
@@ -288,17 +278,7 @@ fun DashboardScreen(
                                             DropdownMenuGroup(
                                                 shapes = MenuDefaults.groupShape(1, 3),
                                             ) {
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        MenuDefaults.Label {
-                                                            Text(
-                                                                text = stringResource(Res.string.sort_mode),
-                                                                style = MaterialTheme.typography.titleSmall,
-                                                            )
-                                                        }
-                                                    },
-                                                    onClick = {},
-                                                )
+                                                DropdownMenuSectionHeader(stringResource(Res.string.sort_mode))
                                                 val sortModes = TrafficSortMode.values
                                                 for ((i, sortMode) in sortModes.withIndex()) {
                                                     val text = when (sortMode) {
@@ -332,17 +312,7 @@ fun DashboardScreen(
                                             DropdownMenuGroup(
                                                 shapes = MenuDefaults.groupShape(2, 3),
                                             ) {
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        MenuDefaults.Label {
-                                                            Text(
-                                                                text = stringResource(Res.string.connection_status),
-                                                                style = MaterialTheme.typography.titleSmall,
-                                                            )
-                                                        }
-                                                    },
-                                                    onClick = {},
-                                                )
+                                                DropdownMenuSectionHeader(stringResource(Res.string.connection_status))
                                                 DropdownMenuItem(
                                                     text = { Text(stringResource(Res.string.connection_status_active)) },
                                                     onClick = {
@@ -354,6 +324,7 @@ fun DashboardScreen(
                                                             onCheckedChange = null,
                                                         )
                                                     },
+                                                    shape = MenuDefaults.itemShape(0, 2).shape,
                                                 )
                                                 DropdownMenuItem(
                                                     text = { Text(stringResource(Res.string.connection_status_closed)) },
@@ -366,6 +337,7 @@ fun DashboardScreen(
                                                             onCheckedChange = null,
                                                         )
                                                     },
+                                                    shape = MenuDefaults.itemShape(1, 2).shape,
                                                 )
                                             }
                                         }

@@ -22,7 +22,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,6 +47,7 @@ import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.MapPreference
 import fr.husi.compose.MultilineTextField
@@ -286,17 +286,7 @@ internal fun RouteSettingsScreen(
                             DropdownMenuGroup(
                                 shapes = MenuDefaults.groupShape(1, 3),
                             ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        MenuDefaults.Label {
-                                            Text(
-                                                text = stringResource(Res.string.custom_config),
-                                                style = MaterialTheme.typography.titleSmall,
-                                            )
-                                        }
-                                    },
-                                    onClick = {},
-                                )
+                                DropdownMenuSectionHeader(stringResource(Res.string.custom_config))
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.menu_route)) },
                                     onClick = {
@@ -308,6 +298,7 @@ internal fun RouteSettingsScreen(
                                             ),
                                         )
                                     },
+                                    shape = MenuDefaults.itemShape(0, 2).shape,
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.cag_dns)) },
@@ -320,6 +311,7 @@ internal fun RouteSettingsScreen(
                                             ),
                                         )
                                     },
+                                    shape = MenuDefaults.itemShape(1, 2).shape,
                                 )
                             }
                             Spacer(Modifier.height(MenuDefaults.GroupSpacing))
