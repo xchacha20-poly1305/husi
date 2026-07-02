@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -88,6 +89,7 @@ fun StatsBar(
                     color = MaterialTheme.colorScheme.outlineVariant,
                     shape = FloatingToolbarDefaults.ContainerShape,
                 )
+                .clip(FloatingToolbarDefaults.ContainerShape)
                 .then(
                     if (visible) {
                         Modifier.clickable { mainViewModel.urlTest() }
