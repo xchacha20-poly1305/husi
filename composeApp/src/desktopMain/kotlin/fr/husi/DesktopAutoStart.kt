@@ -1,7 +1,6 @@
 package fr.husi
 
 import fr.husi.ktx.Logs
-import fr.husi.ktx.blankAsNull
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import java.io.File
@@ -59,11 +58,8 @@ private class DesktopAutoStartManager(
     }
 
     private fun linuxDesktopEntryFile(): File {
-        val xdgConfigHome = System.getenv("XDG_CONFIG_HOME")
-            ?.blankAsNull()
-            ?.let(::File)
-            ?: File(System.getProperty("user.home"), ".config")
-        return File(File(xdgConfigHome, "autostart"), DESKTOP_ENTRY_NAME)
+        return DesktopPaths.linuxAutostartDir
+            .resolve(DESKTOP_ENTRY_NAME)
     }
 
     private fun writeLinuxDesktopEntry() {
@@ -86,10 +82,8 @@ private class DesktopAutoStartManager(
     }
 
     private fun macLaunchAgentFile(): File {
-        return File(
-            File(System.getProperty("user.home"), "Library/LaunchAgents"),
-            "$LAUNCHER_AGENT_NAME.plist",
-        )
+        return DesktopPaths.macLaunchAgentsDir
+            .resolve("$LAUNCHER_AGENT_NAME.plist")
     }
 
     private fun writeMacLaunchAgent() {

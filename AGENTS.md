@@ -136,9 +136,9 @@ should respect this split.
 `DesktopMain.kt` is a Clikt CLI: `-d/--dir`, `-l/--log-level`, `-m/--many` (allow multiple
 instances), `-b/--background`, plus deep-link arguments. Uses Compose
 `application { Window(...) Tray(...) }`. Single-instance enforcement and tray live here. Data dir
-defaults to `~/.config/husi` on every platform — the code uses `user.home/.config/husi` without
-OS-specific branching, so override with `-d` if you want XDG/`Library/Application Support`/
-`%APPDATA%` semantics.
+defaults to the platform config directory: Linux uses `$XDG_CONFIG_HOME/husi` when set, otherwise
+`$HOME/.config/husi`; macOS uses `$HOME/Library/Application Support/husi`; Windows uses
+`%APPDATA%\husi` or `%USERPROFILE%\AppData\Roaming\husi`. Override with `-d` for a custom data dir.
 
 # Coding conventions
 

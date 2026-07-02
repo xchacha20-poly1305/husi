@@ -321,6 +321,26 @@ const UserConfigPaths = struct {
     app_args_path: []u8,
 };
 
+fn resolveUserHome(allocator: mem.Allocator, env_map: *process.Environ.Map) ![]u8 {
+    switch (native_os) {
+        .linux, .macos => {
+            if (env_map.get("HOME")) |home| {
+                if (home.len > 0) return allocator.dupe(u8, home);
+            }
+        },
+        .windows => {
+            if (env_map.get("USERPROFILE")) |user_profile| {
+                if (user_profile.len > 0) return allocator.dupe(u8, user_profile);
+            }
+            if (env_map.get("HOME")) |home| {
+                if (home.len > 0) return allocator.dupe(u8, home);
+            }
+        },
+        else => unreachable,
+    }
+    return error.MissingHome;
+}
+
 fn resolveConfigBase(allocator: mem.Allocator, env_map: *process.Environ.Map) ![]u8 {
     switch (native_os) {
         .linux => {
@@ -329,27 +349,25 @@ fn resolveConfigBase(allocator: mem.Allocator, env_map: *process.Environ.Map) ![
                     return allocator.dupe(u8, xdg);
                 }
             }
-            if (env_map.get("HOME")) |home| {
-                if (home.len > 0) {
-                    return std.fmt.allocPrint(allocator, "{s}/.config", .{home});
-                }
-            }
+            const home = try resolveUserHome(allocator, env_map);
+            defer allocator.free(home);
+            return std.fmt.allocPrint(allocator, "{s}/.config", .{home});
         },
         .macos => {
-            if (env_map.get("HOME")) |home| {
-                if (home.len > 0) {
-                    return std.fmt.allocPrint(allocator, "{s}/Library/Application Support", .{home});
-                }
-            }
+            const home = try resolveUserHome(allocator, env_map);
+            defer allocator.free(home);
+            return std.fmt.allocPrint(allocator, "{s}/Library/Application Support", .{home});
         },
         .windows => {
             if (env_map.get("APPDATA")) |app_data| {
                 if (app_data.len > 0) return allocator.dupe(u8, app_data);
             }
+            const home = try resolveUserHome(allocator, env_map);
+            defer allocator.free(home);
+            return std.fmt.allocPrint(allocator, "{s}/AppData/Roaming", .{home});
         },
         else => unreachable,
     }
-    return error.MissingHome;
 }
 
 fn resolveUserConfigPaths(allocator: mem.Allocator, env_map: *process.Environ.Map) !UserConfigPaths {

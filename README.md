@@ -282,12 +282,13 @@ You can select target formats:
 make desktop_package_linux LINUX_PACKAGE_FORMATS=deb,pacman
 ```
 
-Desktop data directory is `~/.config/husi/` (`$XDG_CONFIG_HOME/husi` if set).
+Linux desktop data directory is `$XDG_CONFIG_HOME/husi/` if set, otherwise
+`$HOME/.config/husi/`.
 
-Installed launcher supports user config files:
+Installed launcher supports user config files in the same Linux config directory:
 
-* `~/.config/husi/desktop-java-opts.conf` for JVM options
-* `~/.config/husi/desktop-app-args.conf` for application startup arguments
+* `<config-dir>/husi/desktop-java-opts.conf` for JVM options
+* `<config-dir>/husi/desktop-app-args.conf` for application startup arguments
 
 Linux native packages include a native launcher built with Zig from `launcher/`.
 

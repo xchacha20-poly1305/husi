@@ -21,8 +21,16 @@ Each subcommand below (except [`open`](#open)) connects to the running instance 
 socket and issues a one-shot request:
 
 ```
-<data-dir>/files/api.sock        # default: ~/.config/husi/files/api.sock
+<data-dir>/files/api.sock
 ```
+
+Default data directory:
+
+| Platform | Default                                                                 |
+|----------|-------------------------------------------------------------------------|
+| Linux    | `$XDG_CONFIG_HOME/husi` if set, otherwise `$HOME/.config/husi`          |
+| macOS    | `$HOME/Library/Application Support/husi`                                |
+| Windows  | `%APPDATA%\husi` if set, otherwise `%USERPROFILE%\AppData\Roaming\husi` |
 
 If no instance is reachable on that socket, the command prints an error to **stderr** and exits with
 status `1`. The data directory is resolved from the global [`--dir`](#global-options) option, so to
@@ -36,12 +44,12 @@ fr.husi -d /custom/data/dir status
 
 These belong to the root command and must appear **before** the subcommand.
 
-| Option                  | Description                                                                                                                                                |
-|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-d, --dir <dir>`       | Data directory. Default `~/.config/husi` (all platforms). Must exist and be readable/writable. Determines which instance's socket the subcommands talk to. |
-| `-l, --log-level <0-6>` | Log level override for a freshly launched instance (see [log levels](#log-levels)).                                                                        |
-| `-m, --many`            | Allow multiple instances (skip the single-instance check). Only affects launching.                                                                         |
-| `-b, --background`      | Launch without opening the main window (requires a working tray).                                                                                          |
+| Option                  | Description                                                                                                                                                       |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-d, --dir <dir>`       | Data directory. Defaults to the platform config directory above. Must exist and be readable/writable. Determines which instance's socket the subcommands talk to. |
+| `-l, --log-level <0-6>` | Log level override for a freshly launched instance (see [log levels](#log-levels)).                                                                               |
+| `-m, --many`            | Allow multiple instances (skip the single-instance check). Only affects launching.                                                                                |
+| `-b, --background`      | Launch without opening the main window (requires a working tray).                                                                                                 |
 
 > Internal options `--autostart` and `--task` exist but are added by the program itself, not by
 > users.

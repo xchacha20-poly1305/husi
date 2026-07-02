@@ -419,7 +419,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
     }
 
     private fun createDesktopRepository(): DesktopRepository {
-        val baseDir = baseDir ?: File(System.getProperty("user.home"), ".config").resolve("husi")
+        val baseDir = baseDir ?: DesktopPaths.dataDir
         baseDir.mkdirs()
         return DesktopRepository(baseDir)
     }

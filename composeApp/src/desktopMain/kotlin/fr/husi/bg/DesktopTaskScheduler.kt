@@ -1,8 +1,8 @@
 package fr.husi.bg
 
+import fr.husi.DesktopPaths
 import fr.husi.buildLauncherCommand
 import fr.husi.ktx.Logs
-import fr.husi.ktx.blankAsNull
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.quoteSystemdArgument
@@ -139,11 +139,7 @@ private class DesktopTaskSchedulerManager {
     }
 
     private fun linuxUnitFile(taskId: String, suffix: String): File {
-        val xdgConfigHome = System.getenv("XDG_CONFIG_HOME")
-            ?.blankAsNull()
-            ?.let(::File)
-            ?: File(System.getProperty("user.home"), ".config")
-        return xdgConfigHome.resolve("systemd").resolve("user")
+        return DesktopPaths.linuxSystemdUserDir
             .resolve("$LINUX_UNIT_PREFIX.$taskId.$suffix")
     }
 
@@ -206,8 +202,7 @@ private class DesktopTaskSchedulerManager {
     }
 
     private fun macLaunchAgentFile(taskId: String): File {
-        return File(System.getProperty("user.home"), "Library")
-            .resolve("LaunchAgents")
+        return DesktopPaths.macLaunchAgentsDir
             .resolve("${macLabel(taskId)}.plist")
     }
 
