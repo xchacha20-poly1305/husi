@@ -604,6 +604,7 @@
     <string name="inbound">Inbound</string>
     <string name="ip_version">IP Version</string>
     <string name="outbound">Outbound</string>
+    <string name="fallback_outbound">Fallback outbound</string>
     <string name="chain">Chain</string>
     <string name="close">Close</string>
     <string name="edns_client_subnet" translatable="false">EDNS Client Subnet</string>

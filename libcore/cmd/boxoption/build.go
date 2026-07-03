@@ -292,6 +292,10 @@ func init() {
 			Value: option.DirectActionOptions{},
 		},
 		{
+			Key:   "BypassOptions",
+			Value: option.RouteActionOptions{},
+		},
+		{
 			Key:   "RejectActionOptions",
 			Value: option.RejectActionOptions{},
 		},

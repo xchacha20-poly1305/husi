@@ -964,6 +964,20 @@ fun buildConfig(
                         }
                     }
 
+                    SingBoxOptions.ACTION_BYPASS -> {
+                        action = ruleAction
+                        outbound = when (val outID = rule.outbound) {
+                            RuleEntity.OUTBOUND_PROXY -> mainTag
+                            RuleEntity.OUTBOUND_DIRECT -> TAG_DIRECT
+                            RuleEntity.OUTBOUND_BLOCK -> TAG_BLOCK
+                            else -> if (outID == proxy.id) {
+                                mainTag
+                            } else {
+                                tagMap[outID] ?: ""
+                            }
+                        }
+                    }
+
                     SingBoxOptions.ACTION_ROUTE_OPTIONS -> {
                         action = ruleAction
 

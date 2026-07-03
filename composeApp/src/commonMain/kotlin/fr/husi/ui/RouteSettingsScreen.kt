@@ -71,6 +71,7 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.add_road
 import fr.husi.resources.apply
+import fr.husi.resources.action_direct
 import fr.husi.resources.auto
 import fr.husi.resources.cached
 import fr.husi.resources.cag_dns
@@ -93,6 +94,7 @@ import fr.husi.resources.emoji_symbols
 import fr.husi.resources.empty_route
 import fr.husi.resources.empty_route_notice
 import fr.husi.resources.fiber_smart_record
+import fr.husi.resources.fallback_outbound
 import fr.husi.resources.fingerprint
 import fr.husi.resources.home
 import fr.husi.resources.hourglass_top
@@ -162,6 +164,7 @@ import java.io.File
 import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
+private const val CUSTOM_OUTBOUND_OPTION = -4L
 
 // If too big, the performance is low and no one will check it patiently.
 private const val RULE_SET_SUGGESTION_LIMIT = 64
@@ -500,14 +503,17 @@ private fun RouteSettings(
                 ListPreference(
                     value = uiState.action,
                     onValueChange = { viewModel.setAction(it) },
-                    values = listOf(
-                        SingBoxOptions.ACTION_ROUTE,
-                        SingBoxOptions.ACTION_ROUTE_OPTIONS,
-                        SingBoxOptions.ACTION_SNIFF,
-                        SingBoxOptions.ACTION_RESOLVE,
-                        SingBoxOptions.ACTION_HIJACK_DNS,
-                        SingBoxOptions.ACTION_REJECT,
-                    ),
+                    values = buildList {
+                        add(SingBoxOptions.ACTION_ROUTE)
+                        if (PlatformInfo.isLinux) {
+                            add(SingBoxOptions.ACTION_BYPASS)
+                        }
+                        add(SingBoxOptions.ACTION_ROUTE_OPTIONS)
+                        add(SingBoxOptions.ACTION_SNIFF)
+                        add(SingBoxOptions.ACTION_RESOLVE)
+                        add(SingBoxOptions.ACTION_HIJACK_DNS)
+                        add(SingBoxOptions.ACTION_REJECT)
+                    },
                     title = { Text(stringResource(Res.string.route_action)) },
                     icon = { Icon(vectorResource(Res.drawable.shuffle), null) },
                     summary = { Text(contentOrUnset(uiState.action)) },
@@ -745,7 +751,7 @@ private fun RouteSettings(
                                 RuleEntity.OUTBOUND_PROXY,
                                 RuleEntity.OUTBOUND_DIRECT,
                                 RuleEntity.OUTBOUND_BLOCK,
-                                -4L, // Custom
+                                CUSTOM_OUTBOUND_OPTION,
                             ),
                             title = { Text(stringResource(Res.string.outbound)) },
                             icon = { Icon(vectorResource(Res.drawable.router), null) },
@@ -765,6 +771,56 @@ private fun RouteSettings(
                                 val id = when (it) {
                                     RuleEntity.OUTBOUND_PROXY -> Res.string.route_proxy
                                     RuleEntity.OUTBOUND_DIRECT -> Res.string.route_bypass
+                                    RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
+                                    else -> Res.string.select_profile
+                                }
+                                AnnotatedString(stringResource(id))
+                            },
+                        )
+                    }
+                }
+
+                SingBoxOptions.ACTION_BYPASS -> {
+                    item(KEY_ACTION_OPTIONS) {
+                        PreferenceCategory(text = { Text(SingBoxOptions.ACTION_BYPASS) })
+                    }
+                    item("fallback_outbound") {
+                        ListPreference(
+                            value = uiState.outbound,
+                            onValueChange = {
+                                when (it) {
+                                    RuleEntity.OUTBOUND_PROXY,
+                                    RuleEntity.OUTBOUND_DIRECT,
+                                    RuleEntity.OUTBOUND_BLOCK,
+                                        -> viewModel.setOutbound(it)
+
+                                    else -> onSelectOutboundProfile(uiState.outbound)
+                                }
+                            },
+                            values = listOf(
+                                RuleEntity.OUTBOUND_PROXY,
+                                RuleEntity.OUTBOUND_DIRECT,
+                                RuleEntity.OUTBOUND_BLOCK,
+                                CUSTOM_OUTBOUND_OPTION,
+                            ),
+                            title = { Text(stringResource(Res.string.fallback_outbound)) },
+                            icon = { Icon(vectorResource(Res.drawable.router), null) },
+                            summary = {
+                                val text = when (uiState.outbound) {
+                                    RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
+                                    RuleEntity.OUTBOUND_DIRECT -> stringResource(Res.string.action_direct)
+                                    RuleEntity.OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
+                                    else -> runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }
+                                        ?.displayName()
+                                        ?: stringResource(Res.string.not_set)
+                                }
+                                Text(text)
+                            },
+                            type = ListPreferenceType.DROPDOWN_MENU,
+                            valueToText = {
+                                val id = when (it) {
+                                    RuleEntity.OUTBOUND_PROXY -> Res.string.route_proxy
+                                    RuleEntity.OUTBOUND_DIRECT -> Res.string.action_direct
                                     RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
                                     else -> Res.string.select_profile
                                 }
@@ -990,7 +1046,6 @@ private fun RouteSettings(
         )
     }
 }
-
 
 private val networkTypes = listOf(
     SingBoxOptions.NETWORK_TYPE_WIFI,

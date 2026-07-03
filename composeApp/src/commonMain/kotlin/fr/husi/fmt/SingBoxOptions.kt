@@ -54,6 +54,7 @@ object SingBoxOptions {
     const val ACTION_ROUTE = "route"
     const val ACTION_EVALUATE = "evaluate"
     const val ACTION_RESPOND = "respond"
+    const val ACTION_BYPASS = "bypass"
     const val ACTION_ROUTE_OPTIONS = "route-options"
     const val ACTION_REJECT = "reject"
     const val ACTION_HIJACK_DNS = "hijack-dns"

@@ -619,6 +619,96 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig should emit bypass action with proxy fallback and without dns bypass action`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "bypass-kernel",
+                domains = "full:bypass.example",
+                action = SingBoxOptions.ACTION_BYPASS,
+            ),
+        )
+
+        val result = buildConfig(proxy)
+        val bypassRule = parseRouteRules(result).first {
+            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
+        }
+
+        assertEquals("main", bypassRule["outbound"]?.jsonPrimitive?.content)
+        assertEquals(
+            listOf("bypass.example"),
+            bypassRule["domain"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+        assertEquals(
+            -1,
+            parseDnsRules(result).indexOfFirst {
+                it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
+            },
+        )
+    }
+
+    @Test
+    fun `buildConfig should emit bypass fallback outbound when set`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        val fallback = createSocksProxy(
+            groupId = group.id,
+            order = 2,
+            name = "fallback",
+            host = "2.2.2.2",
+            port = 2080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "bypass-custom-fallback",
+                domains = "full:custom-fallback.example",
+                action = SingBoxOptions.ACTION_BYPASS,
+                outbound = fallback.id,
+            ),
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "bypass-proxy-fallback",
+                domains = "full:proxy-fallback.example",
+                action = SingBoxOptions.ACTION_BYPASS,
+                outbound = RuleEntity.OUTBOUND_PROXY,
+            ),
+        )
+
+        val routeRules = parseRouteRules(buildConfig(proxy))
+        fun ruleFor(domain: String) = routeRules.first {
+            it["domain"]?.jsonArray?.map { item -> item.jsonPrimitive.content } == listOf(domain)
+        }
+
+        assertEquals(
+            "fallback",
+            ruleFor("custom-fallback.example")["outbound"]?.jsonPrimitive?.content,
+        )
+        assertEquals(
+            "main",
+            ruleFor("proxy-fallback.example")["outbound"]?.jsonPrimitive?.content,
+        )
+    }
+
+    @Test
     fun `buildConfig should preserve request dns rule set when ip dns rule set needs response matching`() = runBlocking {
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -669,6 +759,12 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     private fun parseDnsRules(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["dns"]!!
+            .jsonObject["rules"]!!
+            .jsonArray
+            .map { it.jsonObject }
+
+    private fun parseRouteRules(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.config).jsonObject["route"]!!
             .jsonObject["rules"]!!
             .jsonArray
             .map { it.jsonObject }
