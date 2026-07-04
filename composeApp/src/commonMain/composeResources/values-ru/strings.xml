@@ -737,4 +737,5 @@
     <string name="obfs_mode">Режим обфускации</string>
     <string name="blackhole_detection">Обнаружение сетевых черных дыр</string>
     <string name="age_identity">identity утилиты age</string>
+    <string name="fallback_outbound">Запасное исходящее подключение</string>
 </resources>
