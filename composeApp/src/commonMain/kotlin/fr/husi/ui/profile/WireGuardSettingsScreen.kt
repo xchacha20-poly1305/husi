@@ -32,7 +32,7 @@ import fr.husi.resources.ssh_private_key
 import fr.husi.resources.stream
 import fr.husi.resources.vpn_key
 import fr.husi.resources.wireguard_local_address
-import fr.husi.resources.wireguard_psk
+import fr.husi.resources.pre_shared_key
 import fr.husi.resources.wireguard_public_key
 import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -145,7 +145,7 @@ private fun LazyListScope.wireGuardSettings(
         PasswordPreference(
             value = uiState.preSharedKey,
             onValueChange = { viewModel.setPreSharedKey(it) },
-            title = { Text(stringResource(Res.string.wireguard_psk)) },
+            title = { Text(stringResource(Res.string.pre_shared_key)) },
         )
     }
     item("mtu") {

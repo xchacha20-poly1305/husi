@@ -163,7 +163,7 @@
     <!-- SIP003 graphical editor -->
     <string name="sip003_editor">SIP003 插件编辑器</string>
     <string name="sip003_pick_plugin_first">请先选择插件</string>
-    <string name="sip003_obfs_mode">混淆方式</string>
+    <string name="obfs_mode">混淆方式</string>
     <string name="proxy_cat">服务器设置</string>
     <string name="unsaved_changes_prompt">是否要保存修改？</string>
     <string name="no">否</string>
@@ -416,7 +416,7 @@
     <string name="translate_platform">翻译平台</string>
     <string name="wireguard_local_address">本地地址</string>
     <string name="wireguard_public_key">节点公钥</string>
-    <string name="wireguard_psk">节点预共享密钥</string>
+    <string name="pre_shared_key">预共享密钥</string>
     <string name="resolve_destination_summary">如果目标地址是一个域, 则根据 IPv6 策略传出（与 FakeDNS 冲突）</string>
     <string name="resolve_destination">解析目标地址</string>
     <string name="tun_implementation">TUN 实现</string>
@@ -487,6 +487,9 @@
     <string name="front_proxy">前置代理</string>
     <string name="landing_proxy">落地代理</string>
     <string name="protocol_version">协议版本</string>
+    <string name="snell_user_key">用户密钥</string>
+    <string name="snell_reuse">复用连接</string>
+    <string name="snell_mode">模式</string>
     <string name="share_subscription">分享订阅</string>
     <string name="show_group_in_notification">在通知中显示组名</string>
     <string name="reset_connections">重置连接</string>

@@ -17,6 +17,7 @@ import fr.husi.fmt.SingBoxOptions.TYPE_HYSTERIA
 import fr.husi.fmt.SingBoxOptions.TYPE_HYSTERIA2
 import fr.husi.fmt.SingBoxOptions.TYPE_NAIVE
 import fr.husi.fmt.SingBoxOptions.TYPE_SHADOWSOCKS
+import fr.husi.fmt.SingBoxOptions.TYPE_SNELL
 import fr.husi.fmt.SingBoxOptions.TYPE_SOCKS
 import fr.husi.fmt.SingBoxOptions.TYPE_SSH
 import fr.husi.fmt.SingBoxOptions.TYPE_TROJAN
@@ -48,6 +49,9 @@ import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
 import fr.husi.fmt.shadowsocks.parseShadowsocksOutbound
 import fr.husi.fmt.shadowtls.ShadowTLSBean
+import fr.husi.fmt.snell.SnellBean
+import fr.husi.fmt.snell.buildSingBoxOutboundSnellBean
+import fr.husi.fmt.snell.parseSnellOutbound
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.fmt.socks.buildSingBoxOutboundSocksBean
 import fr.husi.fmt.socks.parseSocksOutbound
@@ -90,6 +94,7 @@ fun AbstractBean.toJsonStringKxs(): String = when (this) {
     is ShadowQUICBean -> kxs.encodeToString(this)
     is ShadowsocksBean -> kxs.encodeToString(this)
     is ShadowTLSBean -> kxs.encodeToString(this)
+    is SnellBean -> kxs.encodeToString(this)
     is SOCKSBean -> kxs.encodeToString(this)
     is SSHBean -> kxs.encodeToString(this)
     is TrojanBean -> kxs.encodeToString(this)
@@ -110,6 +115,8 @@ fun buildSingBoxOutbound(bean: AbstractBean): String = when (bean) {
         buildSingBoxOutboundHysteriaBean(bean).apply { tag = bean.name }.toJsonStringKxs()
     is ShadowsocksBean ->
         kxs.encodeToString(buildSingBoxOutboundShadowsocksBean(bean).apply { tag = bean.name })
+    is SnellBean ->
+        kxs.encodeToString(buildSingBoxOutboundSnellBean(bean).apply { tag = bean.name })
     is SOCKSBean -> kxs.encodeToString(buildSingBoxOutboundSocksBean(bean).apply { tag = bean.name })
     is SSHBean -> kxs.encodeToString(buildSingBoxOutboundSSHBean(bean).apply { tag = bean.name })
     is TuicBean -> kxs.encodeToString(buildSingBoxOutboundTuicBean(bean).apply { tag = bean.name })
@@ -170,6 +177,8 @@ fun parseOutbound(json: JSONMap): AbstractBean? = when (json["type"].toString())
     TYPE_HTTP -> parseHttpOutbound(json)
 
     TYPE_SHADOWSOCKS -> parseShadowsocksOutbound(json)
+
+    TYPE_SNELL -> parseSnellOutbound(json)
 
     TYPE_VMESS, TYPE_VLESS, TYPE_TROJAN -> parseStandardV2RayOutbound(json)
 

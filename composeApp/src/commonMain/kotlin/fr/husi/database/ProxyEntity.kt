@@ -44,6 +44,7 @@ import fr.husi.fmt.shadowquic.toUri
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.toUri
 import fr.husi.fmt.shadowtls.ShadowTLSBean
+import fr.husi.fmt.snell.SnellBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.fmt.socks.toUri
 import fr.husi.fmt.ssh.SSHBean
@@ -92,6 +93,7 @@ data class ProxyEntity(
     var anyTLSBean: AnyTLSBean? = null,
     var shadowQUICBean: ShadowQUICBean? = null,
     var trustTunnelBean: TrustTunnelBean? = null,
+    var snellBean: SnellBean? = null,
     var proxySetBean: ProxySetBean? = null,
     var chainBean: ChainBean? = null,
     var configBean: ConfigBean? = null,
@@ -119,6 +121,7 @@ data class ProxyEntity(
         const val TYPE_SHADOWQUIC = 25
         const val TYPE_PROXY_SET = 26
         const val TYPE_TRUST_TUNNEL = 27
+        const val TYPE_SNELL = 28
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -200,6 +203,7 @@ data class ProxyEntity(
             TYPE_SOCKS -> socksBean = KryoConverters.socksDeserialize(byteArray)
             TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
             TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
+            TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
             TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
             TYPE_VLESS -> vlessBean = KryoConverters.vlessDeserialize(byteArray)
             TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
@@ -238,6 +242,7 @@ data class ProxyEntity(
             TYPE_SOCKS -> socksBean
             TYPE_HTTP -> httpBean
             TYPE_SS -> ssBean
+            TYPE_SNELL -> snellBean
             TYPE_VMESS -> vmessBean
             TYPE_VLESS -> vlessBean
             TYPE_TROJAN -> trojanBean
@@ -276,6 +281,7 @@ data class ProxyEntity(
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
+        TYPE_SNELL -> false
         TYPE_SHADOWQUIC -> shadowQUICBean!!.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
         else -> true
     }
@@ -411,6 +417,7 @@ data class ProxyEntity(
         anyTLSBean = null
         shadowQUICBean = null
         trustTunnelBean = null
+        snellBean = null
         proxySetBean = null
         chainBean = null
         configBean = null
@@ -429,6 +436,11 @@ data class ProxyEntity(
             is ShadowsocksBean -> {
                 type = TYPE_SS
                 ssBean = bean
+            }
+
+            is SnellBean -> {
+                type = TYPE_SNELL
+                snellBean = bean
             }
 
             is VMessBean -> {

@@ -117,6 +117,7 @@ import fr.husi.resources.action_naive
 import fr.husi.resources.action_shadowquic
 import fr.husi.resources.action_shadowsocks
 import fr.husi.resources.action_shadowtls
+import fr.husi.resources.action_snell
 import fr.husi.resources.action_socks
 import fr.husi.resources.action_ssh
 import fr.husi.resources.action_trojan
@@ -347,6 +348,7 @@ fun ConfigurationScreen(
             Res.string.action_anytls to ProxyEntity.TYPE_ANYTLS,
             Res.string.action_shadowquic to ProxyEntity.TYPE_SHADOWQUIC,
             Res.string.action_trusttunnel to ProxyEntity.TYPE_TRUST_TUNNEL,
+            Res.string.action_snell to ProxyEntity.TYPE_SNELL,
             Res.string.proxy_set to ProxyEntity.TYPE_PROXY_SET,
             Res.string.custom_config to ProxyEntity.TYPE_CONFIG,
             Res.string.proxy_chain to ProxyEntity.TYPE_CHAIN,

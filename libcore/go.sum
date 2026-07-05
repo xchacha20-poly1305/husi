@@ -182,10 +182,10 @@ github.com/sagernet/nftables v0.3.0-mod.2 h1:ck2KMU02OxL1eDFgGaWYglMDpoOZ7OHzxje
 github.com/sagernet/nftables v0.3.0-mod.2/go.mod h1:8kslHG4VvYNihcco+i6uxIX7qbT8A56T0y5q7U44ZaQ=
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.5 h1:73oI/46ckKWtPYtke10oR2T0xqdPhqJzKxMwUjyTG30=
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.5/go.mod h1:OqILvS182CyOol5zNNo6bguvOGgXzV459+chpRaUC+4=
-github.com/sagernet/sing v0.8.11-0.20260514110501-905ad103a4df h1:zSDw1g1JhIEqE/XPC3hW1wMdFPzbVgVJZiV86FAJoNQ=
-github.com/sagernet/sing v0.8.11-0.20260514110501-905ad103a4df/go.mod h1:olXxWQNqRW/l2Q6JI3b2Qmz8iQnIFlOeeH8bx6JhgUA=
-github.com/sagernet/sing-box v1.14.0-alpha.34 h1:EZLpjRnjdzlsdP8nwZ96w72CzYe1dDZvWwl/ub2Z/0M=
-github.com/sagernet/sing-box v1.14.0-alpha.34/go.mod h1:bB+kBZzhbHKfT8/QVnwZBQB67gej4SNqFUT8bCP2lHQ=
+github.com/sagernet/sing v0.8.12-0.20260702081104-2ded2af32d3d h1:BhsQU0Iug1tU4xR52cjm8Sc+LBo+KwdyLTRn3ie9moo=
+github.com/sagernet/sing v0.8.12-0.20260702081104-2ded2af32d3d/go.mod h1:olXxWQNqRW/l2Q6JI3b2Qmz8iQnIFlOeeH8bx6JhgUA=
+github.com/sagernet/sing-box v1.14.0-alpha.38 h1:Qq8Fk9e+f/gkNtny5PrRgqNSJVCPsvQjLs3wbCHn04g=
+github.com/sagernet/sing-box v1.14.0-alpha.38/go.mod h1:PJsiq0B8zIIA6WCeBiYwlv9BF9km+F0avi6GVW49fa0=
 github.com/sagernet/sing-mux v0.3.5 h1:RHnhVEc+SFqkrK4xMygYjDwwLhzp2Bj3lztSukONfhI=
 github.com/sagernet/sing-mux v0.3.5/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-quic v0.6.2-0.20260525051024-9467ede27fb7 h1:hFLPJ21uNZSbRnzhOKz4Zv0b4F93mpDorWyN93BeRcM=
@@ -196,8 +196,10 @@ github.com/sagernet/sing-shadowsocks2 v0.2.1 h1:dWV9OXCeFPuYGHb6IRqlSptVnSzOelnq
 github.com/sagernet/sing-shadowsocks2 v0.2.1/go.mod h1:RnXS0lExcDAovvDeniJ4IKa2IuChrdipolPYWBv9hWQ=
 github.com/sagernet/sing-shadowtls v0.2.1 h1:ZiHZdnEnP+YS73NMsxiZmIFCwNd0M4k7PkGCKNXhbaM=
 github.com/sagernet/sing-shadowtls v0.2.1/go.mod h1:sWqKnGlMipCHaGsw1sTTlimyUpgzP4WP3pjhCsYt9oA=
-github.com/sagernet/sing-tun v0.8.12-0.20260620141852-d8bba3691575 h1:0K8un73LZ6xOkeX6OQjH9HcKilwMJyZ9sURnsp8tn5U=
-github.com/sagernet/sing-tun v0.8.12-0.20260620141852-d8bba3691575/go.mod h1:QvarqUtHfj1ULaRR+6kZOS/OoCE+pYGq67A5tyIy+dQ=
+github.com/sagernet/sing-snell v0.0.0-20260705044717-4e9e73be7814 h1:xfnkRpjVRVeJhVvDZA8PzTLlKGTb1o2kdI4uv1YymXo=
+github.com/sagernet/sing-snell v0.0.0-20260705044717-4e9e73be7814/go.mod h1:PcwzX/Xvqky0EP3kGt8OCjYb3R1pydenPHNQZcPZmXY=
+github.com/sagernet/sing-tun v0.8.12-0.20260629021427-b3c6babbd353 h1:HA0TGrBQSFfvcoVXL1DxzF+i8pmaGOGb33jdReB7L4s=
+github.com/sagernet/sing-tun v0.8.12-0.20260629021427-b3c6babbd353/go.mod h1:QvarqUtHfj1ULaRR+6kZOS/OoCE+pYGq67A5tyIy+dQ=
 github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb h1:KEMbfexD4DvrQGYWwx6r+AwH9Veh8z6cnBZmtCS2G+0=
 github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb/go.mod h1:D4CnJX3MNAAANhbQUxfIRgBdnvlTEaV7h6ojedcs+pw=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1 h1:XkJcivBC9V4wBjiGXIXZ229aZCU1hzcbp6kSkkyQ478=

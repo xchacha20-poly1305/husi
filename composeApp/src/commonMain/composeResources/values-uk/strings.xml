@@ -398,7 +398,7 @@
     <string name="clear_logcat">Очистити Logcat</string>
     <string name="app_statistics_disabled">Статистика трафіку застосунків вимкнена у налаштуваннях</string>
     <string name="wireguard_public_key">Відкритий ключ сервера</string>
-    <string name="wireguard_psk">Пароль сервера</string>
+    <string name="pre_shared_key">Попередньо спільний ключ</string>
     <string name="resolve_destination">Вирішити адресу призначення</string>
     <string name="pcap_notice">Pcap файли будуть збережені в %1$s</string>
     <string name="naive_insecure_concurrency">Небезпечний паралелізм</string>

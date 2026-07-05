@@ -30,6 +30,7 @@ object SingBoxOptions {
     const val TYPE_HYSTERIA = "hysteria"
     const val TYPE_HYSTERIA2 = "hysteria2"
     const val TYPE_SHADOWSOCKS = "shadowsocks"
+    const val TYPE_SNELL = "snell"
     const val TYPE_SOCKS = "socks"
     const val TYPE_SSH = "ssh"
     const val TYPE_TROJAN = "trojan"
@@ -2902,6 +2903,111 @@ object SingBoxOptions {
 
         @JvmField
         var multiplex: OutboundMultiplexOptions? = null
+
+    }
+
+    @KxsSerializable
+    open class Outbound_SnellOptions : Outbound() {
+
+        // Generate note: nested type DialerOptions
+        @JvmField
+        var detour: String? = null
+
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var inet4_bind_address: String? = null
+
+        @JvmField
+        var inet6_bind_address: String? = null
+
+        @JvmField
+        var bind_address_no_port: Boolean? = null
+
+        @JvmField
+        var protect_path: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var connect_timeout: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var domain_resolver: DomainResolveOptions? = null
+
+        @JvmField
+        var network_strategy: String? = null
+
+        @JvmField
+        var network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_delay: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
+
+        // Generate note: nested type ServerOptions
+        @JvmField
+        var server: String? = null
+
+        @JvmField
+        var server_port: Int? = null
+
+        @JvmField
+        var version: Int? = null
+
+        @JvmField
+        var psk: String? = null
+
+        @JvmField
+        var userkey: String? = null
+
+        @JvmField
+        var reuse: Boolean? = null
+
+        @JvmField
+        var network: String? = null
+
+        // Generate note: inlined from SnellObfsClientOptions
+        @JvmField
+        var obfs_mode: String? = null
+
+        @JvmField
+        var obfs_host: String? = null
+
+        // Generate note: inlined from SnellV6Options
+        @JvmField
+        var mode: String? = null
 
     }
 

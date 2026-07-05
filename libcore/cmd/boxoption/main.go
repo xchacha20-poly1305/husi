@@ -147,6 +147,7 @@ var inboundList = []any{
 var outboundList = []any{
 	option.DirectOutboundOptions{},
 	option.ShadowsocksOutboundOptions{},
+	option.SnellOutboundOptions{},
 	option.ShadowTLSOutboundOptions{},
 	option.SelectorOutboundOptions{},
 	option.URLTestOutboundOptions{},
@@ -177,10 +178,11 @@ var endpointList = []any{
 // Key: class name as it appears in the generated Kotlin output, derived from the parent type
 // via reflection so renames stay in sync.
 var inlineExtensions = map[string][]any{
-	reflect.TypeFor[option.Hysteria2Obfs]().Name():     {option.Hysteria2ObfsGecko{}},
-	reflect.TypeFor[option.HeadlessRule]().Name():      {option.DefaultHeadlessRule{}, option.LogicalHeadlessRule{}},
-	reflect.TypeFor[option.HTTPClient]().Name():        {option.QUICOptions{}},
-	reflect.TypeFor[option.HTTPClientOptions]().Name(): {option.QUICOptions{}},
+	reflect.TypeFor[option.Hysteria2Obfs]().Name():        {option.Hysteria2ObfsGecko{}},
+	reflect.TypeFor[option.HeadlessRule]().Name():         {option.DefaultHeadlessRule{}, option.LogicalHeadlessRule{}},
+	reflect.TypeFor[option.HTTPClient]().Name():           {option.QUICOptions{}},
+	reflect.TypeFor[option.HTTPClientOptions]().Name():    {option.QUICOptions{}},
+	reflect.TypeFor[option.SnellOutboundOptions]().Name(): {option.SnellObfsClientOptions{}, option.SnellV6Options{}},
 }
 
 var newDNSServerList = []any{

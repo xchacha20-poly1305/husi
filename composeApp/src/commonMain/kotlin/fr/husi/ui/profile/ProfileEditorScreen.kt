@@ -183,6 +183,13 @@ fun ProfileEditorScreen(
             onOpenSIP003Editor = onOpenSIP003Editor,
         )
 
+        ProxyEntity.TYPE_SNELL -> SnellSettingsScreen(
+            profileId = profileId,
+            isSubscription = isSubscription,
+            onResult = onResult,
+            onOpenConfigEditor = onOpenConfigEditor,
+        )
+
         ProxyEntity.TYPE_NAIVE -> NaiveSettingsScreen(
             profileId = profileId,
             isSubscription = isSubscription,

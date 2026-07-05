@@ -384,7 +384,7 @@
     <string name="route_play_store">Правило Play Store для %1$s</string>
     <string name="route_opt_block_analysis">Блокировать аналитику</string>
     <string name="wireguard_public_key">Открытый ключ сервера</string>
-    <string name="wireguard_psk">Пароль сервера</string>
+    <string name="pre_shared_key">Предварительный ключ</string>
     <string name="naive_insecure_concurrency">Небезопасный параллелизм</string>
     <string name="naive_insecure_concurrency_summary">Использовать N параллельных соединений для повышения отказоустойчивости в условиях ненадёжной сети. Большее число соединений увеличивает риск обнаружения туннелей и снижает безопасность. Этот проект стремится к максимальной защите от анализа трафика, следовательно, использование его небезопасным образом противоречит данной цели.\n\nЕсли придётся использовать данную функциональность, попробуйте N=2, чтобы проверить, решит ли это проблему. Настоятельно не рекомендуется использовать более 4 соединений.</string>
     <string name="resolve_destination">Резолвить адрес назначения</string>
@@ -734,7 +734,7 @@
     <string name="hysteria2_gecko_max_packet_size">Gecko - Максимальный размер пакета</string>
     <string name="sip003_editor">Редактор плагинов SIP003</string>
     <string name="sip003_pick_plugin_first">Сначала выберите плагин</string>
-    <string name="sip003_obfs_mode">Режим обфускации</string>
+    <string name="obfs_mode">Режим обфускации</string>
     <string name="blackhole_detection">Обнаружение сетевых черных дыр</string>
     <string name="age_identity">identity утилиты age</string>
 </resources>

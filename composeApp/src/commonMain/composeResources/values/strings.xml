@@ -229,6 +229,7 @@
     <string name="action_socks" translatable="false">SOCKS</string>
     <string name="action_http" translatable="false">HTTP</string>
     <string name="action_shadowsocks" translatable="false">Shadowsocks</string>
+    <string name="action_snell" translatable="false">Snell</string>
     <string name="action_vmess" translatable="false">VMess</string>
     <string name="action_vless" translatable="false">VLESS</string>
     <string name="action_trojan" translatable="false">Trojan</string>
@@ -317,7 +318,7 @@
     <!-- SIP003 graphical editor -->
     <string name="sip003_editor">SIP003 plugin editor</string>
     <string name="sip003_pick_plugin_first">Choose a plugin first</string>
-    <string name="sip003_obfs_mode">Obfuscation Mode</string>
+    <string name="obfs_mode">Obfuscation Mode</string>
     <string name="proxy_cat">Server Settings</string>
     <string name="ss_cat">Shadowsocks Settings</string>
     <string name="unsaved_changes_prompt">Changes not saved. Do you want to save?</string>
@@ -472,7 +473,7 @@
     <string name="clear_logcat">Clear Logcat</string>
     <string name="wireguard_local_address">Local Address</string>
     <string name="wireguard_public_key">Peer Public Key</string>
-    <string name="wireguard_psk">Peer Pre-Shared Key</string>
+    <string name="pre_shared_key">Pre-Shared Key</string>
     <string name="tun_implementation">TUN Implementation</string>
     <string name="resolve_destination">Resolve Destination</string>
     <string name="resolve_destination_summary">If the destination address is a domain, it is then passed out based on the IPv6 strategy (conflicts with FakeDNS)</string>
@@ -535,6 +536,9 @@
     <string name="front_proxy">Front proxy</string>
     <string name="landing_proxy">Landing Proxy</string>
     <string name="protocol_version">Protocol Version</string>
+    <string name="snell_user_key">User Key</string>
+    <string name="snell_reuse">Reuse connection</string>
+    <string name="snell_mode">Mode</string>
     <string name="share_subscription">Share Subscription</string>
     <string name="show_group_in_notification">Show group name in notification</string>
     <string name="reset_connections">Reset Connections</string>

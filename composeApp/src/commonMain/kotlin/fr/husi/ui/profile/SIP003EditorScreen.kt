@@ -56,7 +56,7 @@ import fr.husi.resources.question_mark
 import fr.husi.resources.router
 import fr.husi.resources.security
 import fr.husi.resources.sip003_editor
-import fr.husi.resources.sip003_obfs_mode
+import fr.husi.resources.obfs_mode
 import fr.husi.resources.sip003_pick_plugin_first
 import fr.husi.resources.tls
 import fr.husi.resources.unsaved_changes_prompt
@@ -181,7 +181,7 @@ private fun ObfsLocalForm(
                 value = uiState.obfs,
                 values = ObfsMode.entries,
                 onValueChange = viewModel::setObfs,
-                title = { Text(stringResource(Res.string.sip003_obfs_mode)) },
+                title = { Text(stringResource(Res.string.obfs_mode)) },
                 icon = { Icon(vectorResource(Res.drawable.enhanced_encryption), null) },
                 summary = { Text(uiState.obfs.value) },
                 type = ListPreferenceType.DROPDOWN_MENU,

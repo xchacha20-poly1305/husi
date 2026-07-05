@@ -392,7 +392,7 @@
     <string name="clear_logcat">Borrar Logcat</string>
     <string name="wireguard_local_address">Dirección local</string>
     <string name="wireguard_public_key">Clave pública de pares</string>
-    <string name="wireguard_psk">Clave precompartida de pares</string>
+    <string name="pre_shared_key">Clave precompartida</string>
     <string name="tun_implementation">Implementación TUN</string>
     <string name="resolve_destination">Resolver destino</string>
     <string name="resolve_destination_summary">Si la dirección de destino es un dominio, entonces se transmite en función de la estrategia IPv6 (conflictos con FakeDNS)</string>

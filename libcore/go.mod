@@ -4,14 +4,15 @@ go 1.26
 
 require (
 	filippo.io/age v1.3.1
+	github.com/anytls/sing-anytls v0.0.11
 	github.com/exclavenetwork/sing-juicity v0.2.0-beta.2
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.6
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
-	github.com/sagernet/sing v0.8.11-0.20260514110501-905ad103a4df
-	github.com/sagernet/sing-box v1.14.0-alpha.34
-	github.com/sagernet/sing-tun v0.8.12-0.20260620141852-d8bba3691575
+	github.com/sagernet/sing v0.8.12-0.20260702081104-2ded2af32d3d
+	github.com/sagernet/sing-box v1.14.0-alpha.38
+	github.com/sagernet/sing-tun v0.8.12-0.20260629021427-b3c6babbd353
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -44,7 +45,6 @@ require (
 	filippo.io/hpke v0.4.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
-	github.com/anytls/sing-anytls v0.0.11 // indirect
 	github.com/caddyserver/certmagic v0.25.3-0.20260421143802-60d9d8b415d6 // indirect
 	github.com/caddyserver/zerossl v0.1.5 // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
@@ -118,6 +118,7 @@ require (
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1 // indirect
+	github.com/sagernet/sing-snell v0.0.0-20260705044717-4e9e73be7814 // indirect
 	github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
 	github.com/sagernet/wireguard-go v0.0.3 // indirect
