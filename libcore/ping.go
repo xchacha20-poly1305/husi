@@ -1,9 +1,14 @@
 package libcore
 
 import (
+	"cmp"
 	"context"
 	"crypto/rand"
+	"crypto/tls"
 	"io"
+	"net"
+	"net/http"
+	"net/url"
 	"syscall"
 	"time"
 
@@ -11,13 +16,15 @@ import (
 	"libcore/vario"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/common/urltest"
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
+	"github.com/sagernet/sing/common/ntp"
 
 	"github.com/xchacha20-poly1305/libping"
 	"golang.org/x/sync/errgroup"
@@ -83,7 +90,7 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 	chLatency := make(chan uint16, 1)
 	go func() {
 		var t uint16
-		t, err = urltest.URLTest(ctx, link, detour)
+		t, err = urlTest(ctx, link, detour)
 		if err != nil {
 			close(chLatency)
 			return
@@ -206,7 +213,7 @@ func (s *Service) handleGroupTest(conn io.ReadWriter, instance *boxInstance) err
 				continue
 			}
 			errGroup.Go(func() error {
-				t, err := urltest.URLTest(ctx, link, p)
+				t, err := urlTest(ctx, link, p)
 				if err != nil {
 					log.DebugContext(ctx, "outbound ", tag, " unavailable: ", err)
 				} else {
@@ -380,4 +387,57 @@ func (s *Service) handleUrlTest(conn io.ReadWriter, instance *boxInstance) error
 		return E.Cause(err, "write latency")
 	}
 	return nil
+}
+
+// Different from urltest.URLTest: never ignore handshake delay.
+func urlTest(ctx context.Context, link string, detour N.Dialer) (t uint16, err error) {
+	link = cmp.Or(link, "https://www.gstatic.com/generate_204")
+	linkURL, err := url.Parse(link)
+	if err != nil {
+		return
+	}
+	hostname := linkURL.Hostname()
+	port := linkURL.Port()
+	if port == "" {
+		switch linkURL.Scheme {
+		case "http":
+			port = "80"
+		case "https":
+			port = "443"
+		}
+	}
+
+	start := time.Now()
+	instance, err := detour.DialContext(ctx, N.NetworkTCP, M.ParseSocksaddrHostPortStr(hostname, port))
+	if err != nil {
+		return
+	}
+	defer instance.Close()
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, link, nil)
+	if err != nil {
+		return
+	}
+	client := http.Client{
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return instance, nil
+			},
+			TLSClientConfig: &tls.Config{
+				Time:    ntp.TimeFuncFromContext(ctx),
+				RootCAs: adapter.RootPoolFromContext(ctx),
+			},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Timeout: C.TCPTimeout,
+	}
+	defer client.CloseIdleConnections()
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	t = uint16(time.Since(start) / time.Millisecond)
+	return
 }
