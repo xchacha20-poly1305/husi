@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearWavyProgressIndicator
 import fr.husi.compose.material3.Card
 import fr.husi.compose.material3.CardDefaults
 import fr.husi.compose.material3.Icon
@@ -124,135 +125,161 @@ private fun ProxySetCard(
     var expanded by rememberSaveable { mutableStateOf(false) }
     val selectedProxy = proxySet.items.find { it.tag == proxySet.selected }
     val selectedDelay = selectedProxy?.urlTestDelay ?: 0
+    val urlTestProgress = proxySet.urlTestProgress
 
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 8.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column {
-                    Text(
-                        text = proxySet.type,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                    )
-                    Text(
-                        text = proxySet.tag,
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
+        Column {
+            urlTestProgress?.let { progress ->
+                val progressFraction = if (progress.total > 0) {
+                    (progress.current.toFloat() / progress.total.toFloat()).coerceIn(0f, 1f)
+                } else {
+                    0f
                 }
-
-                Row {
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.bolt),
-                        contentDescription = stringResource(Res.string.connection_test),
-                        modifier = Modifier.then(
-                            if (proxySet.isTesting) {
-                                val transition = rememberInfiniteTransition(label = "testing")
-                                val alpha = transition.animateFloat(
-                                    initialValue = 1f,
-                                    targetValue = 0.2f,
-                                    animationSpec = infiniteRepeatable(
-                                        animation = tween(500),
-                                        repeatMode = RepeatMode.Reverse,
-                                    ),
-                                    label = "alpha",
-                                ).value
-                                Modifier.alpha(alpha)
-                            } else {
-                                Modifier
-                            },
-                        ),
-                        enabled = !proxySet.isTesting,
-                        onClick = { urlTestForGroup(proxySet.tag) },
-                    )
-                    SimpleIconButton(
-                        imageVector = vectorResource(
-                            if (expanded) {
-                                Res.drawable.expand_less
-                            } else {
-                                Res.drawable.expand_more
-                            },
-                        ),
-                        contentDescription = stringResource(Res.string.expand),
-                        onClick = { expanded = !expanded },
-                    )
-                }
+                LinearWavyProgressIndicator(
+                    progress = { progressFraction },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
-            if (expanded) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    proxySet.items.chunked(2).forEach { rowItems ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            rowItems.forEach { proxy ->
-                                val selected = proxySet.selected == proxy.tag
-                                ProxyCard(
-                                    modifier = Modifier.weight(1f),
-                                    proxy = proxy,
-                                    selected = selected,
-                                    selectable = proxySet.selectable,
-                                    select = { selectProxy(proxySet.tag, proxy.tag) },
-                                    urlTest = { urlTestSingle(proxy.tag) },
-                                )
-                            }
-                            // Fill remaining space if odd number of items
-                            if (rowItems.size == 1) {
-                                Spacer(modifier = Modifier.weight(1f))
+                    Column(
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            text = proxySet.type,
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleMediumEmphasized,
+                        )
+                        Text(
+                            text = proxySet.tag,
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        urlTestProgress?.let { progress ->
+                            Text(
+                                text = "${progress.current} / ${progress.total}",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                        }
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.bolt),
+                            contentDescription = stringResource(Res.string.connection_test),
+                            modifier = Modifier.then(
+                                if (proxySet.isTesting) {
+                                    val transition = rememberInfiniteTransition(label = "testing")
+                                    val alpha = transition.animateFloat(
+                                        initialValue = 1f,
+                                        targetValue = 0.2f,
+                                        animationSpec = infiniteRepeatable(
+                                            animation = tween(500),
+                                            repeatMode = RepeatMode.Reverse,
+                                        ),
+                                        label = "alpha",
+                                    ).value
+                                    Modifier.alpha(alpha)
+                                } else {
+                                    Modifier
+                                },
+                            ),
+                            enabled = !proxySet.isTesting,
+                            onClick = { urlTestForGroup(proxySet.tag) },
+                        )
+                        SimpleIconButton(
+                            imageVector = vectorResource(
+                                if (expanded) {
+                                    Res.drawable.expand_less
+                                } else {
+                                    Res.drawable.expand_more
+                                },
+                            ),
+                            contentDescription = stringResource(Res.string.expand),
+                            onClick = { expanded = !expanded },
+                        )
+                    }
+                }
+
+                if (expanded) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        proxySet.items.chunked(2).forEach { rowItems ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                rowItems.forEach { proxy ->
+                                    val selected = proxySet.selected == proxy.tag
+                                    ProxyCard(
+                                        modifier = Modifier.weight(1f),
+                                        proxy = proxy,
+                                        selected = selected,
+                                        selectable = proxySet.selectable,
+                                        select = { selectProxy(proxySet.tag, proxy.tag) },
+                                        urlTest = { urlTestSingle(proxy.tag) },
+                                    )
+                                }
+                                // Fill remaining space if odd number of items
+                                if (rowItems.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
                             }
                         }
                     }
-                }
-            } else {
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                } else {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        shape = RoundedCornerShape(12.dp),
                     ) {
-                        Box(
+                        Row(
                             modifier = Modifier
-                                .size(8.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape),
-                        )
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = stringResource(Res.string.selected),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.labelSmall,
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape),
                             )
-                            Text(
-                                text = proxySet.selected,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                style = MaterialTheme.typography.titleSmallEmphasized,
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                            ) {
+                                Text(
+                                    text = stringResource(Res.string.selected),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                                Text(
+                                    text = proxySet.selected,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.titleSmallEmphasized,
+                                )
+                            }
+                            ItemURLTestButton(
+                                delay = selectedDelay,
+                                onClick = { urlTestSingle(proxySet.selected) },
                             )
                         }
-                        ItemURLTestButton(
-                            delay = selectedDelay,
-                            onClick = { urlTestSingle(proxySet.selected) },
-                        )
                     }
                 }
             }

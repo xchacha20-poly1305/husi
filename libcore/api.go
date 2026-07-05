@@ -18,7 +18,6 @@ const (
 	commandSetClashMode
 	commandUrlTest
 	commandNewInstanceURLTest
-	commandGroupURLTest
 	commandSelectOutbound
 	commandQueryProxySets
 	commandResetNetwork

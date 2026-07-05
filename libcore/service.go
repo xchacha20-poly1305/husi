@@ -312,18 +312,6 @@ func (s *Service) handleRequest(conn net.Conn) error {
 		err := s.handleNewInstanceURLTest(conn)
 		// No need to wrap
 		return err
-	case commandGroupURLTest:
-		s.access.RLock()
-		instance, err := s.requireInstance()
-		s.access.RUnlock()
-		if err != nil {
-			return err
-		}
-		err = s.handleGroupTest(conn, instance)
-		if err != nil {
-			return E.Cause(err, "handle group test")
-		}
-		return nil
 	case commandSelectOutbound:
 		s.access.RLock()
 		instance, err := s.requireInstance()

@@ -85,7 +85,7 @@ data class ProxySet(
     val selectable: Boolean = false,
     var selected: String = "",
     var items: List<ProxySetItem> = emptyList(),
-    val isTesting: Boolean = false,
+    val urlTestProgress: GroupUrlTestProgress? = null,
 ) {
     constructor(set: fr.husi.libcore.ProxySet) : this(
         tag = set.tag,
@@ -94,6 +94,9 @@ data class ProxySet(
         selected = set.selected,
         items = set.items.toList(),
     )
+
+    val isTesting: Boolean
+        get() = urlTestProgress != null
 }
 
 fun fr.husi.libcore.ProxySetIterator.toList(): List<ProxySet> {
@@ -103,6 +106,12 @@ fun fr.husi.libcore.ProxySetIterator.toList(): List<ProxySet> {
         }
     }
 }
+
+@Immutable
+data class GroupUrlTestProgress(
+    val current: Int,
+    val total: Int,
+)
 
 @Immutable
 data class ProxySetItem(
@@ -352,12 +361,12 @@ class DashboardViewModel(
         }.toInt()
     }
 
-    private fun setTesting(group: String, isTesting: Boolean) {
+    private fun setUrlTestProgress(group: String, progress: GroupUrlTestProgress?) {
         uiState.update { state ->
             state.copy(
                 proxySets = state.proxySets.map {
                     if (it.tag == group) {
-                        val updated = it.copy(isTesting = isTesting)
+                        val updated = it.copy(urlTestProgress = progress)
                         proxySetsByTag[group] = updated
                         updated
                     } else {
@@ -576,7 +585,7 @@ class DashboardViewModel(
                 val merged = if (old == null) {
                     item
                 } else {
-                    item.copy(isTesting = old.isTesting)
+                    item.copy(urlTestProgress = old.urlTestProgress)
                 }
                 val reused = if (old != null && merged == old) {
                     old
@@ -622,19 +631,33 @@ class DashboardViewModel(
     }
 
     fun urlTestForGroup(tag: String) = viewModelScope.launch(Dispatchers.IO) {
-        setTesting(tag, true)
+        val proxySet = uiState.value.proxySets.firstOrNull { it.tag == tag } ?: return@launch
+        if (proxySet.isTesting) return@launch
+        val items = proxySet.items.toList()
+        if (items.isEmpty()) return@launch
+        val testURL = DataStore.connectionTestURL
+        val testTimeout = DataStore.connectionTestTimeout
         try {
             urlTestClient.withClient { client ->
-                client.groupTest(
-                    tag,
-                    DataStore.connectionTestURL,
-                    DataStore.connectionTestTimeout,
-                )
+                for ((index, item) in items.withIndex()) {
+                    setUrlTestProgress(
+                        tag,
+                        GroupUrlTestProgress(
+                            current = index + 1,
+                            total = items.size,
+                        ),
+                    )
+                    try {
+                        client.urlTest(item.tag, testURL, testTimeout)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                    }
+                }
             }
         } catch (e: Exception) {
             Logs.w(e)
         } finally {
-            setTesting(tag, false)
+            setUrlTestProgress(tag, null)
         }
     }
 

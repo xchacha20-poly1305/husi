@@ -17,9 +17,7 @@ import (
 
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
-	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
@@ -27,7 +25,6 @@ import (
 	"github.com/sagernet/sing/common/ntp"
 
 	"github.com/xchacha20-poly1305/libping"
-	"golang.org/x/sync/errgroup"
 )
 
 func ignoreProtectError() control.Func {
@@ -116,124 +113,6 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 		}
 		return int32(t), nil
 	}
-}
-
-func (c *Client) GroupTest(tag, link string, timeout int32) error {
-	err := vario.WriteUint8(c.conn, commandGroupURLTest)
-	if err != nil {
-		return E.Cause(err, "write command")
-	}
-	err = vario.WriteString(c.conn, tag)
-	if err != nil {
-		return E.Cause(err, "write tag")
-	}
-	err = vario.WriteString(c.conn, link)
-	if err != nil {
-		return E.Cause(err, "write link")
-	}
-	err = vario.WriteInt32(c.conn, timeout)
-	if err != nil {
-		return E.Cause(err, "write timeout")
-	}
-	resultCode, err := vario.ReadUint8(c.conn)
-	if err != nil {
-		return E.Cause(err, "read result code")
-	}
-	if resultCode != resultNoError {
-		message, err := vario.ReadString(c.conn)
-		if err != nil {
-			return E.Cause(err, "read error message")
-		}
-		return E.New(message)
-	}
-	return nil
-}
-
-func (s *Service) handleGroupTest(conn io.ReadWriter, instance *boxInstance) error {
-	tag, err := vario.ReadString(conn)
-	if err != nil {
-		return E.Cause(err, "read tag")
-	}
-	link, err := vario.ReadString(conn)
-	if err != nil {
-		return E.Cause(err, "read link")
-	}
-	timeout, err := vario.ReadInt32(conn)
-	if err != nil {
-		return E.Cause(err, "read timeout")
-	}
-
-	outboundManager := instance.Outbound()
-	outbound, loaded := outboundManager.Outbound(tag)
-	if !loaded {
-		err = E.New("group [", tag, "] is not found")
-		_ = vario.WriteUint8(conn, resultCommonError)
-		_ = vario.WriteString(conn, err.Error())
-		return err
-	}
-	outboundGroup, isOutboundGroup := outbound.(adapter.OutboundGroup)
-	if !isOutboundGroup {
-		err = E.New("[", tag, "] is not a group")
-		_ = vario.WriteUint8(conn, resultCommonError)
-		_ = vario.WriteString(conn, err.Error())
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(instance.ctx, time.Duration(timeout)*time.Millisecond)
-	defer cancel()
-
-	if urlTestGroup, isURLTestGroup := outboundGroup.(adapter.URLTestGroup); isURLTestGroup {
-		_, err = urlTestGroup.URLTest(ctx)
-		if err != nil {
-			_ = vario.WriteUint8(conn, resultCommonError)
-			_ = vario.WriteString(conn, err.Error())
-			return err
-		}
-	} else {
-		historyStorage := instance.urlTestHistory
-		if historyStorage == nil {
-			return nil
-		}
-		outbounds := common.FilterNotNil(common.Map(outboundGroup.All(), func(it string) adapter.Outbound {
-			itOutbound, _ := outboundManager.Outbound(it)
-			return itOutbound
-		}))
-		errGroup, _ := errgroup.WithContext(ctx)
-		errGroup.SetLimit(10)
-		checked := make(map[string]bool)
-		for _, detour := range outbounds {
-			tag := detour.Tag()
-			realTag := group.RealTag(detour)
-			if checked[realTag] {
-				continue
-			}
-			checked[realTag] = true
-			p, loaded := outboundManager.Outbound(realTag)
-			if !loaded {
-				continue
-			}
-			errGroup.Go(func() error {
-				t, err := urlTest(ctx, link, p)
-				if err != nil {
-					log.DebugContext(ctx, "outbound ", tag, " unavailable: ", err)
-				} else {
-					log.DebugContext(ctx, "outbound ", tag, " available: ", t, "ms")
-				}
-				historyStorage.StoreURLTestHistory(realTag, &adapter.URLTestHistory{
-					Time:  time.Now(),
-					Delay: t,
-				})
-				return nil
-			})
-		}
-		_ = errGroup.Wait()
-	}
-
-	err = vario.WriteUint8(conn, resultNoError)
-	if err != nil {
-		return E.Cause(err, "write result code")
-	}
-	return nil
 }
 
 func (c *Client) NewInstanceURLTest(config, tag, link string, timeout int32) (int32, error) {
