@@ -70,8 +70,8 @@ github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91 h1:u9i04mGE3iliB
 github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91/go.mod h1:qfvBmyDNp+/liLEYWRvqny/PEz9hGe2Dz833eXILSmo=
 github.com/jsimonetti/rtnetlink v1.4.0 h1:Z1BF0fRgcETPEa0Kt0MRk3yV5+kF1FWTni6KUFKrq2I=
 github.com/jsimonetti/rtnetlink v1.4.0/go.mod h1:5W1jDvWdnthFJ7fxYX1GMK07BUpI4oskfOqvPteYS6E=
-github.com/klauspost/compress v1.18.6 h1:2jupLlAwFm95+YDR+NwD2MEfFO9d4z4Prjl1XXDjuao=
-github.com/klauspost/compress v1.18.6/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
+github.com/klauspost/compress v1.19.0 h1:sXLILfc9jV2QYWkzFOPWStmcUVH2RHEB1JCdY2oVvCQ=
+github.com/klauspost/compress v1.19.0/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
 github.com/klauspost/cpuid/v2 v2.3.0 h1:S4CRMLnYUhGeDFDqkGriYKdfoFlDnMtqTiI/sFzhA9Y=
 github.com/klauspost/cpuid/v2 v2.3.0/go.mod h1:hqwkgyIinND0mEev00jJYCxPNVRVXFQeu1XKlok6oO0=
 github.com/letsencrypt/challtestsrv v1.4.2 h1:0ON3ldMhZyWlfVNYYpFuWRTmZNnyfiL9Hh5YzC3JVwU=
@@ -222,10 +222,10 @@ github.com/xchacha20-poly1305/anja v0.22.13 h1:ZPVG6PA9iPWYqv3PVJ9A85a4VSthHNT/g
 github.com/xchacha20-poly1305/anja v0.22.13/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
 github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.2.3 h1:lEV5wf8b/7LSq/zGldXBCkbYAGSme5vpmQQwSh3t994=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.2.3/go.mod h1:ekbygU19X0rL8AYsCSzo9gnfT4dSt/bgvtv/hwbmfBY=
-github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260305142916-7ad18fe0e78b h1:RBFFg3By0J7lLYhhuc38nLUnRfEblYmvypp9Tyup+eU=
-github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260305142916-7ad18fe0e78b/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.2.4-0.20260705061516-038d20c84f6d h1:zNjLWfyAv2f7qtVgQf5ZTAEKGZQYLMiWPm30fX/CFJI=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.2.4-0.20260705061516-038d20c84f6d/go.mod h1:HcTvP86SynpTtBBbFzrj1nHF4dF8SlB8ZnLIAApn7Lg=
+github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260702085737-e1afc329811d h1:7balOJxKW+MBR7JCI/KXzAbBF6cSUj7MIxMadekBxjM=
+github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260702085737-e1afc329811d/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
 github.com/zeebo/assert v1.1.0/go.mod h1:Pq9JiuJQpG8JLJdtkwrJESF0Foym2/D9XMU5ciN/wJ0=
 github.com/zeebo/blake3 v0.2.4 h1:KYQPkhpRtcqh0ssGYcKLG1JYvddkEA8QwCM/yBqhaZI=

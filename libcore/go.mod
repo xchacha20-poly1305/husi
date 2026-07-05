@@ -7,7 +7,7 @@ require (
 	github.com/anytls/sing-anytls v0.0.11
 	github.com/exclavenetwork/sing-juicity v0.2.0-beta.2
 	github.com/gofrs/uuid/v5 v5.4.0
-	github.com/klauspost/compress v1.18.6
+	github.com/klauspost/compress v1.19.0
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/sing v0.8.12-0.20260702081104-2ded2af32d3d
@@ -19,7 +19,7 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.13
 	github.com/xchacha20-poly1305/libping v0.10.1
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.3
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.4-0.20260705061516-038d20c84f6d
 	golang.org/x/sync v0.20.0
 	golang.org/x/sys v0.44.0
 	google.golang.org/protobuf v1.36.11
@@ -32,7 +32,7 @@ tool (
 
 // replace github.com/sagernet/sing-box => ../../sing-box
 
-replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260305142916-7ad18fe0e78b
+replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260702085737-e1afc329811d
 
 // cmd
 require (
