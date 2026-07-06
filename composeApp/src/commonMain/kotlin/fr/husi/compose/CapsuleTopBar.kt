@@ -147,6 +147,7 @@ private fun PillCapsule(
         ),
     ) {
         Surface(
+            onClick = {},
             shape = RoundedCornerShape(22.dp),
             color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
         ) {

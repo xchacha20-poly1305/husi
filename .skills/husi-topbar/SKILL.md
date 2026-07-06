@@ -37,6 +37,11 @@ on each side via the shared `Modifier.fadingEdge(...)` from
 `composeApp/src/commonMain/kotlin/fr/husi/compose/Fading.kt`. Short titles render at intrinsic
 width with no marquee and no fade; actions stay right-pinned in both cases.
 
+The title pill itself provides a bounded ripple via the internal `PillCapsule` surface, even though
+the click has no business action. Keep that empty click handler in the component so all topbar
+titles give consistent press feedback, and do not wrap caller-provided title content in another
+clickable/ripple modifier.
+
 Caller-side rule: just pass `title = { Text(stringResource(...)) }`. **Do not** add `maxLines = 1`,
 `softWrap = false`, your own `Modifier.basicMarquee()`, or any width constraint on the title — the
 component already does all of that, and stacking marquees / constraints breaks the layout.
