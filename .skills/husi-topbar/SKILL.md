@@ -212,6 +212,16 @@ val searchInputField: @Composable () -> Unit = {
 }
 ```
 
+Search capsule gestures:
+
+- `CapsuleSearchTopBar` supports `onSearchPillLongPress` for a secondary action on the search
+  capsule shell. Use it when migrating an old title-bar long-press behavior, such as
+  Configuration's "jump to selected proxy" action.
+- Do **not** repurpose the search capsule's normal tap for navigation or scrolling. A tap belongs
+  to the search field and should keep expanding/focusing search.
+- If a screen needs a "tap the current section again to jump within the list" behavior, attach it
+  to the selected tab's `onClick` branch instead of the search field.
+
 ### Material 3 SearchBar special case (`AbstractAppList`)
 
 `AbstractAppList` (the per-app selection screen) places Material 3's `SearchBar` under the topbar —

@@ -43,6 +43,11 @@ data class ProfileItem(
     val started: Boolean,
 )
 
+private data class PendingScrollToProxy(
+    val proxyId: Long,
+    val fallbackToTop: Boolean,
+)
+
 @Stable
 class GroupProfilesHolderViewModel(
     initialGroup: ProxyGroup,
@@ -66,6 +71,8 @@ class GroupProfilesHolderViewModel(
     private var observeJob: Job? = null
     private var loadJob: Job? = null
     private var deleteTimer: Job? = null
+    private var hasLoadedProfiles = false
+    private var pendingScrollToProxy: PendingScrollToProxy? = null
     private val hiddenProfileAccess = Mutex()
     private val hiddenProfileIds = mutableSetOf<Long>()
 
@@ -184,12 +191,23 @@ class GroupProfilesHolderViewModel(
                     started = isSelected && started && entity.id == current,
                 )
             }
+        hasLoadedProfiles = true
+        var scrollIndex = selectedIndex.takeIf { shouldScroll && selectedIndex >= 0 }
+        pendingScrollToProxy?.let { pending ->
+            val pendingIndex = profiles.indexOfFirst { it.profile.id == pending.proxyId }
+            scrollIndex = when {
+                pendingIndex >= 0 -> pendingIndex
+                pending.fallbackToTop && profiles.isNotEmpty() -> 0
+                else -> scrollIndex
+            }
+            pendingScrollToProxy = null
+        }
 
         uiState.update { state ->
             state.copy(
                 profiles = profiles,
                 hiddenProfiles = hiddenProfileIds.size,
-                scrollIndex = selectedIndex.takeIf { shouldScroll && selectedIndex >= 0 },
+                scrollIndex = scrollIndex,
             )
         }
     }
@@ -205,7 +223,11 @@ class GroupProfilesHolderViewModel(
             if (index >= 0) {
                 uiState.update { it.copy(scrollIndex = index) }
             } else if (fallbackToTop) {
-                uiState.update { it.copy(scrollIndex = 0) }
+                if (profiles.isNotEmpty()) {
+                    uiState.update { it.copy(scrollIndex = 0) }
+                } else if (!hasLoadedProfiles) {
+                    pendingScrollToProxy = PendingScrollToProxy(proxyId, fallbackToTop)
+                }
             }
         }
     }

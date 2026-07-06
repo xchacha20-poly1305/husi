@@ -373,6 +373,19 @@ fun ConfigurationScreen(
         }
     }
 
+    fun scrollToSelectedProxyAcrossGroups() {
+        scope.launch {
+            val proxyId = DataStore.selectedProxy
+            val groupId = vm.proxyGroupId(proxyId) ?: return@launch
+            val page = uiState.groups.indexOfFirst { it.id == groupId }
+            if (page < 0) return@launch
+            if (pagerState.currentPage != page) {
+                pagerState.animateScrollToPage(page)
+            }
+            vm.scrollToProxy(groupId, proxyId, fallbackToTop = true)
+        }
+    }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -397,6 +410,7 @@ fun ConfigurationScreen(
                             contentDescription = stringResource(Res.string.menu),
                             onClick = onNavigationClick,
                         ),
+                        onSearchPillLongPress = ::scrollToSelectedProxyAcrossGroups,
                         actions = {
                         CapsuleActionButton {
                             Box {
@@ -583,7 +597,15 @@ fun ConfigurationScreen(
                             selected = pagerState.currentPage == index,
                             onClick = {
                                 scope.launch {
-                                    pagerState.animateScrollToPage(index)
+                                    if (pagerState.currentPage == index) {
+                                        vm.scrollToProxy(
+                                            group.id,
+                                            DataStore.selectedProxy,
+                                            fallbackToTop = true,
+                                        )
+                                    } else {
+                                        pagerState.animateScrollToPage(index)
+                                    }
                                 }
                             },
                         )

@@ -5,6 +5,9 @@ package fr.husi.compose
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -42,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -195,6 +199,7 @@ fun CapsuleSearchTopBar(
     inputField: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     navigationIcon: (@Composable () -> Unit)? = null,
+    onSearchPillLongPress: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior? = null,
@@ -219,7 +224,17 @@ fun CapsuleSearchTopBar(
                 }
             }
 
-            CapsuleSearchPill(modifier = Modifier.weight(1f)) {
+            CapsuleSearchPill(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(
+                        if (onSearchPillLongPress != null) {
+                            Modifier.consumeOnlyLongPress(onSearchPillLongPress)
+                        } else {
+                            Modifier
+                        },
+                    ),
+            ) {
                 inputField()
             }
 
@@ -355,6 +370,19 @@ private fun SetHeightOffsetLimit(scrollBehavior: TopAppBarScrollBehavior?) {
         if (scrollBehavior.state.heightOffsetLimit != heightOffsetLimit) {
             scrollBehavior.state.heightOffsetLimit = heightOffsetLimit
         }
+    }
+}
+
+private fun Modifier.consumeOnlyLongPress(onLongPress: () -> Unit) = pointerInput(onLongPress) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val longPress = awaitLongPressOrCancellation(down.id) ?: return@awaitEachGesture
+        longPress.consume()
+        onLongPress()
+        do {
+            val event = awaitPointerEvent()
+            event.changes.forEach { it.consume() }
+        } while (event.changes.any { it.pressed })
     }
 }
 

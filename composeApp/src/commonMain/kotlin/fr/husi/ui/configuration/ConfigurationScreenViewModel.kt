@@ -142,9 +142,12 @@ class ConfigurationScreenViewModel : ViewModel() {
         childViewModels.remove(groupId)
     }
 
-    // TODO add back scroll to current
     fun scrollToProxy(groupId: Long, proxyId: Long, fallbackToTop: Boolean = false) {
         childViewModels[groupId]?.scrollToProxy(proxyId, fallbackToTop)
+    }
+
+    suspend fun proxyGroupId(proxyId: Long): Long? = onIoDispatcher {
+        ProfileManager.getProfile(proxyId)?.groupId
     }
 
     fun scrollToProxy(proxyId: Long) = viewModelScope.launch {
