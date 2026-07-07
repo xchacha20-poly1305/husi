@@ -12,6 +12,7 @@ import fr.husi.libcore.Libcore
 fun parseAnyTLS(link: String): AnyTLSBean = AnyTLSBean().apply {
     val url = Libcore.parseURL(link)
 
+    name = url.fragment
     serverAddress = url.host
     serverPort = url.ports.toIntOrNull() ?: 443
     password = url.username
@@ -34,6 +35,7 @@ fun AnyTLSBean.toUri(): String {
         url.addQueryParameter("insecure", "1")
     }
 
+    name.blankAsNull()?.let { url.fragment = it }
     return url.string
 }
 
