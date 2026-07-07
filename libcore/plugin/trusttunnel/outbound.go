@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 	"net/netip"
+	"os"
+	"slices"
 
 	"libcore/plugin/pluginoption"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/sagernet/sing-box/common/tls"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/auth"
 	"github.com/sagernet/sing/common/bufio"
@@ -32,12 +35,15 @@ func RegisterOutbound(registry *outbound.Registry) {
 	outbound.Register[pluginoption.TrustTunnelOutboundOptions](registry, pluginoption.TypeTrustTunnel, NewOutbound)
 }
 
+var _ adapter.FlowOutbound = (*Outbound)(nil)
+
 type Outbound struct {
 	outbound.Adapter
 	ctx       context.Context
 	logger    log.ContextLogger
 	dnsRouter adapter.DNSRouter
 	client    *trusttunnel.Client
+	icmpPort  *icmpPort
 }
 
 func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options pluginoption.TrustTunnelOutboundOptions) (adapter.Outbound, error) {
@@ -80,9 +86,10 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 	if err != nil {
 		return nil, err
 	}
-	networks := []string{N.NetworkTCP, N.NetworkUDP}
-	if withGvisor {
-		networks = append(networks, N.NetworkICMP)
+	networks := options.Network.Build()
+	var port *icmpPort
+	if slices.Contains(networks, N.NetworkICMP) {
+		port = newICMPPort(ctx, logger, client, 0)
 	}
 	return &Outbound{
 		Adapter:   outbound.NewAdapterWithDialerOptions(pluginoption.TypeTrustTunnel, tag, networks, options.DialerOptions),
@@ -90,6 +97,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		logger:    logger,
 		dnsRouter: dnsRouter,
 		client:    client,
+		icmpPort:  port,
 	}, nil
 }
 
@@ -141,8 +149,48 @@ func (h *Outbound) InterfaceUpdated() {
 	h.client.ResetConnections()
 }
 
+func (h *Outbound) SupportsFlow(network string) bool {
+	return network == N.NetworkICMP && h.icmpPort != nil
+}
+
+func (h *Outbound) PortAddresses() (netip.Addr, netip.Addr) {
+	if h.icmpPort == nil {
+		return netip.Addr{}, netip.Addr{}
+	}
+	return h.icmpPort.PortAddresses()
+}
+
+func (h *Outbound) PortMTU() uint32 {
+	if h.icmpPort == nil {
+		return 0
+	}
+	return h.icmpPort.PortMTU()
+}
+
+func (h *Outbound) AttachReturn(returnPath tun.Return) error {
+	if h.icmpPort == nil {
+		return os.ErrInvalid
+	}
+	return h.icmpPort.AttachReturn(returnPath)
+}
+
+func (h *Outbound) DetachReturn(returnPath tun.Return) error {
+	if h.icmpPort == nil {
+		return os.ErrInvalid
+	}
+	return h.icmpPort.DetachReturn(returnPath)
+}
+
+func (h *Outbound) WritePackets(packets [][]byte) error {
+	if h.icmpPort == nil {
+		return os.ErrNotExist
+	}
+	return h.icmpPort.WritePackets(packets)
+}
+
 func (h *Outbound) Close() error {
 	return common.Close(
+		common.PtrOrNil(h.icmpPort),
 		common.PtrOrNil(h.client),
 	)
 }

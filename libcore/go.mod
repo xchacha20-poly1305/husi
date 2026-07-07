@@ -9,10 +9,9 @@ require (
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.19.0
 	github.com/miekg/dns v1.1.72
-	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/sing v0.8.12-0.20260702081104-2ded2af32d3d
-	github.com/sagernet/sing-box v1.14.0-alpha.38
-	github.com/sagernet/sing-tun v0.8.12-0.20260629021427-b3c6babbd353
+	github.com/sagernet/sing-box v1.14.0-alpha.39.0.20260706155547-f08082a0a855
+	github.com/sagernet/sing-tun v0.8.12-0.20260706153816-c4a2d2afd8b5
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -20,7 +19,6 @@ require (
 	github.com/xchacha20-poly1305/anja v0.22.13
 	github.com/xchacha20-poly1305/libping v0.10.1
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.4-0.20260705061516-038d20c84f6d
-	golang.org/x/sync v0.20.0
 	golang.org/x/sys v0.44.0
 	google.golang.org/protobuf v1.36.11
 )
@@ -110,6 +108,7 @@ require (
 	github.com/sagernet/cronet-go/lib/windows_amd64 v0.0.0-20260620135226-def9ff0fb992 // indirect
 	github.com/sagernet/cronet-go/lib/windows_arm64 v0.0.0-20260620135226-def9ff0fb992 // indirect
 	github.com/sagernet/fswatch v0.1.2 // indirect
+	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-mod.2 // indirect
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.5 // indirect
@@ -121,7 +120,7 @@ require (
 	github.com/sagernet/sing-snell v0.0.0-20260705044717-4e9e73be7814 // indirect
 	github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
-	github.com/sagernet/wireguard-go v0.0.3 // indirect
+	github.com/sagernet/wireguard-go v0.0.5-0.20260706153856-2c27bbf4f97f // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
@@ -134,6 +133,7 @@ require (
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
