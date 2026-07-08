@@ -171,6 +171,8 @@
     <string name="route_proxy">代理</string>
     <string name="route_bypass">绕过</string>
     <string name="route_block">屏蔽</string>
+    <!-- TODO add better translation for "bridge" -->
+    <string name="route_bridge">Bridge</string>
     <string name="route_opt_bypass_lan">绕过局域网地址</string>
     <string name="route_opt_block_ads">屏蔽广告</string>
     <string name="route_opt_block_quic">屏蔽 QUIC</string>

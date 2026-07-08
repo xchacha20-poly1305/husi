@@ -163,6 +163,7 @@
     <string name="route_proxy">Proxy</string>
     <string name="route_bypass">Bypass</string>
     <string name="route_block">Block</string>
+    <string name="route_bridge">Bridge</string>
     <string name="route_profile">Select Profile…</string>
     <string name="empty_route">Empty Route</string>
     <string name="empty_route_notice">Set some rules before saving</string>

@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"os"
-	"reflect"
 
 	"libcore/plugin/pluginoption"
 
@@ -147,7 +146,6 @@ var inboundList = []any{
 var outboundList = []any{
 	option.DirectOutboundOptions{},
 	option.ShadowsocksOutboundOptions{},
-	option.SnellOutboundOptions{},
 	option.ShadowTLSOutboundOptions{},
 	option.SelectorOutboundOptions{},
 	option.URLTestOutboundOptions{},
@@ -166,23 +164,61 @@ var outboundList = []any{
 	pluginoption.JuicityOutboundOptions{},
 	option.NaiveOutboundOptions{},
 	pluginoption.TrustTunnelOutboundOptions{},
+	option.SnellOutboundOptions{},
+	option.BridgeOutboundOptions{},
 }
 
 var endpointList = []any{
 	option.WireGuardEndpointOptions{},
 }
 
+type inlineExtensionSpec struct {
+	target     any
+	belongs    string
+	extensions []any
+}
+
 // inlineExtensions lists struct types whose JSON fields are flattened into another class via
 // custom Marshal/Unmarshal (e.g., sing-box uses badjson.MarshallObjects to inline
 // Hysteria2ObfsGecko fields into Hysteria2Obfs based on the obfs type).
-// Key: class name as it appears in the generated Kotlin output, derived from the parent type
-// via reflection so renames stay in sync.
-var inlineExtensions = map[string][]any{
-	reflect.TypeFor[option.Hysteria2Obfs]().Name():        {option.Hysteria2ObfsGecko{}},
-	reflect.TypeFor[option.HeadlessRule]().Name():         {option.DefaultHeadlessRule{}, option.LogicalHeadlessRule{}},
-	reflect.TypeFor[option.HTTPClient]().Name():           {option.QUICOptions{}},
-	reflect.TypeFor[option.HTTPClientOptions]().Name():    {option.QUICOptions{}},
-	reflect.TypeFor[option.SnellOutboundOptions]().Name(): {option.SnellObfsClientOptions{}, option.SnellV6Options{}},
+var inlineExtensions = buildInlineExtensions([]inlineExtensionSpec{
+	{
+		target:     option.Hysteria2Obfs{},
+		belongs:    extendsBox,
+		extensions: []any{option.Hysteria2ObfsGecko{}},
+	},
+	{
+		target:     option.HeadlessRule{},
+		belongs:    extendsBox,
+		extensions: []any{option.DefaultHeadlessRule{}, option.LogicalHeadlessRule{}},
+	},
+	{
+		target:     option.HTTPClient{},
+		belongs:    extendsBox,
+		extensions: []any{option.QUICOptions{}},
+	},
+	{
+		target:     option.HTTPClientOptions{},
+		belongs:    extendsBox,
+		extensions: []any{option.QUICOptions{}},
+	},
+	{
+		target:     option.SnellOutboundOptions{},
+		belongs:    "Outbound",
+		extensions: []any{option.SnellObfsClientOptions{}, option.SnellV6Options{}},
+	},
+})
+
+func buildInlineExtensions(specs []inlineExtensionSpec) map[string][]any {
+	extensions := make(map[string][]any, len(specs))
+	for _, spec := range specs {
+		key := generatedClassNameOf(spec.target, spec.belongs)
+		if _, exists := extensions[key]; exists {
+			panic("duplicate inline extension target: " + key)
+		}
+		extensions[key] = spec.extensions
+	}
+	return extensions
 }
 
 var newDNSServerList = []any{

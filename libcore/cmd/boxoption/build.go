@@ -37,12 +37,7 @@ func buildClass(opt any, belongs string) []byte {
 
 	mainBuilder.Reset()
 
-	var fieldName string
-	if belongs != extendsBox {
-		fieldName = belongs + "_" + strings.ReplaceAll(valueType.Name(), belongs, "")
-	} else {
-		fieldName = valueType.Name()
-	}
+	fieldName := generatedClassName(valueType, belongs)
 	// open class ClashAPIOptions : SingBoxOption {
 	mainBuilder.WriteString(
 		F.ToString(
@@ -75,6 +70,17 @@ func buildClass(opt any, belongs string) []byte {
 	mainBuilder.WriteString(F.ToString(classSpace, "}\n"))
 
 	return mainBuilder.Bytes()
+}
+
+func generatedClassNameOf(opt any, belongs string) string {
+	return generatedClassName(reflect.Indirect(reflect.ValueOf(opt)).Type(), belongs)
+}
+
+func generatedClassName(valueType reflect.Type, belongs string) string {
+	if belongs != extendsBox {
+		return belongs + "_" + strings.ReplaceAll(valueType.Name(), belongs, "")
+	}
+	return valueType.Name()
 }
 
 func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []byte {
@@ -203,7 +209,7 @@ func className(valueType reflect.Type) string {
 			return "Inbound_HTTPProxyOptions"
 		case "MemoryBytes":
 			return kotlinInteger
-		case "NetworkList":
+		case "NetworkList", "NetworkListWithICMP":
 			return kotlinList + kotlinString + ">"
 		case "SurgeURLRewriteLine", "SurgeHeaderRewriteLine",
 			"SurgeBodyRewriteLine", "SurgeMapLocalLine":

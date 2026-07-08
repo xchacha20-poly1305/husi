@@ -85,6 +85,7 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.RuleEntity
 import fr.husi.database.RuleEntity.Companion.OUTBOUND_BLOCK
+import fr.husi.database.RuleEntity.Companion.OUTBOUND_BRIDGE
 import fr.husi.database.RuleEntity.Companion.OUTBOUND_DIRECT
 import fr.husi.database.RuleEntity.Companion.OUTBOUND_PROXY
 import fr.husi.fmt.SingBoxOptions
@@ -116,6 +117,7 @@ import fr.husi.resources.removed
 import fr.husi.resources.replay
 import fr.husi.resources.route_add
 import fr.husi.resources.route_block
+import fr.husi.resources.route_bridge
 import fr.husi.resources.route_bypass
 import fr.husi.resources.route_manage_assets
 import fr.husi.resources.route_proxy
@@ -631,6 +633,7 @@ private fun RuleEntity.displayOutbound(): String {
         OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
         OUTBOUND_DIRECT -> stringResource(Res.string.route_bypass)
         OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
+        OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
         else -> ProfileManager.getProfile(outbound)?.displayName()
             ?: stringResource(Res.string.error_title)
     }

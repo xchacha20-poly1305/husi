@@ -100,6 +100,7 @@ const val TAG_DNS_IN = "dns-in" // strategic
 // Outbound
 const val TAG_DIRECT = "direct"
 const val TAG_BLOCK = "block"
+const val TAG_BRIDGE = "bridge"
 
 // DNS
 const val TAG_DNS_REMOTE = "dns-remote"
@@ -658,9 +659,9 @@ fun buildConfig(
                     // the server by itself. Desktop TUN has no protect mechanism and the test
                     // instance relies on the mapping for isolation, keep the mapping there.
                     val canDialDirect = bean is MieruBean &&
-                        needDirectRoute &&
-                        !forTest &&
-                        (PlatformInfo.isAndroid || !isVPN)
+                            needDirectRoute &&
+                            !forTest &&
+                            (PlatformInfo.isAndroid || !isVPN)
                     if (!canDialDirect) {
                         val mappingPort = mkPort()
                         bean.finalAddress = LOCALHOST4
@@ -960,6 +961,10 @@ fun buildConfig(
                                 outbound = TAG_BLOCK
                             }
 
+                            RuleEntity.OUTBOUND_BRIDGE -> {
+                                outbound = TAG_BRIDGE
+                            }
+
                             else -> outbound = if (outID == proxy.id) {
                                 mainTag
                             } else {
@@ -974,6 +979,7 @@ fun buildConfig(
                             RuleEntity.OUTBOUND_PROXY -> mainTag
                             RuleEntity.OUTBOUND_DIRECT -> TAG_DIRECT
                             RuleEntity.OUTBOUND_BLOCK -> TAG_BLOCK
+                            RuleEntity.OUTBOUND_BRIDGE -> TAG_BRIDGE
                             else -> if (outID == proxy.id) {
                                 mainTag
                             } else {
@@ -1110,6 +1116,12 @@ fun buildConfig(
             Outbound().apply {
                 tag = TAG_BLOCK
                 type = SingBoxOptions.TYPE_BLOCK
+            }.asKxsMap(),
+        )
+        if (!PlatformInfo.isAndroid) outbounds!!.add(
+            Outbound().apply {
+                tag = TAG_BRIDGE
+                type = SingBoxOptions.TYPE_BRIDGE
             }.asKxsMap(),
         )
 

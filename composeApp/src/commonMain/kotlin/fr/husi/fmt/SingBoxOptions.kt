@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +426
+    // Generate on line +427
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
@@ -43,6 +43,7 @@ object SingBoxOptions {
     const val TYPE_ANYTLS = "anytls"
     const val TYPE_NAIVE = "naive"
     const val TYPE_TRUST_TUNNEL = "trusttunnel"
+    const val TYPE_BRIDGE = "bridge"
 
     const val TRANSPORT_WS = "ws"
     const val TRANSPORT_HTTPUPGRADE = "httpupgrade"
@@ -1831,6 +1832,7 @@ object SingBoxOptions {
         @JvmField
         var domain_strategy: String? = null
 
+        // Generate note: nested type RawRouteOptionsActionOptions
         @JvmField
         var method: String? = null
 
@@ -1980,6 +1982,7 @@ object SingBoxOptions {
         @JvmField
         var domain_strategy: String? = null
 
+        // Generate note: nested type RawRouteOptionsActionOptions
         @JvmField
         var method: String? = null
 
@@ -2903,111 +2906,6 @@ object SingBoxOptions {
 
         @JvmField
         var multiplex: OutboundMultiplexOptions? = null
-
-    }
-
-    @KxsSerializable
-    open class Outbound_SnellOptions : Outbound() {
-
-        // Generate note: nested type DialerOptions
-        @JvmField
-        var detour: String? = null
-
-        @JvmField
-        var bind_interface: String? = null
-
-        @JvmField
-        var inet4_bind_address: String? = null
-
-        @JvmField
-        var inet6_bind_address: String? = null
-
-        @JvmField
-        var bind_address_no_port: Boolean? = null
-
-        @JvmField
-        var protect_path: String? = null
-
-        @JvmField
-        var routing_mark: Int? = null
-
-        @JvmField
-        var reuse_addr: Boolean? = null
-
-        @JvmField
-        var netns: String? = null
-
-        @JvmField
-        var connect_timeout: String? = null
-
-        @JvmField
-        var tcp_fast_open: Boolean? = null
-
-        @JvmField
-        var tcp_multi_path: Boolean? = null
-
-        @JvmField
-        var disable_tcp_keep_alive: Boolean? = null
-
-        @JvmField
-        var tcp_keep_alive: String? = null
-
-        @JvmField
-        var tcp_keep_alive_interval: String? = null
-
-        @JvmField
-        var udp_fragment: Boolean? = null
-
-        @JvmField
-        var domain_resolver: DomainResolveOptions? = null
-
-        @JvmField
-        var network_strategy: String? = null
-
-        @JvmField
-        var network_type: MutableList<String>? = null
-
-        @JvmField
-        var fallback_network_type: MutableList<String>? = null
-
-        @JvmField
-        var fallback_delay: String? = null
-
-        @JvmField
-        var domain_strategy: String? = null
-
-        // Generate note: nested type ServerOptions
-        @JvmField
-        var server: String? = null
-
-        @JvmField
-        var server_port: Int? = null
-
-        @JvmField
-        var version: Int? = null
-
-        @JvmField
-        var psk: String? = null
-
-        @JvmField
-        var userkey: String? = null
-
-        @JvmField
-        var reuse: Boolean? = null
-
-        @JvmField
-        var network: String? = null
-
-        // Generate note: inlined from SnellObfsClientOptions
-        @JvmField
-        var obfs_mode: String? = null
-
-        @JvmField
-        var obfs_host: String? = null
-
-        // Generate note: inlined from SnellV6Options
-        @JvmField
-        var mode: String? = null
 
     }
 
@@ -4542,6 +4440,9 @@ object SingBoxOptions {
         var server_port: Int? = null
 
         @JvmField
+        var network: String? = null
+
+        @JvmField
         var username: String? = null
 
         @JvmField
@@ -4559,6 +4460,128 @@ object SingBoxOptions {
         // Generate note: nested type OutboundTLSOptionsContainer
         @JvmField
         var tls: OutboundTLSOptions? = null
+
+    }
+
+    @KxsSerializable
+    open class Outbound_SnellOptions : Outbound() {
+
+        // Generate note: nested type DialerOptions
+        @JvmField
+        var detour: String? = null
+
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var inet4_bind_address: String? = null
+
+        @JvmField
+        var inet6_bind_address: String? = null
+
+        @JvmField
+        var bind_address_no_port: Boolean? = null
+
+        @JvmField
+        var protect_path: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var connect_timeout: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var domain_resolver: DomainResolveOptions? = null
+
+        @JvmField
+        var network_strategy: String? = null
+
+        @JvmField
+        var network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_delay: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
+
+        // Generate note: nested type ServerOptions
+        @JvmField
+        var server: String? = null
+
+        @JvmField
+        var server_port: Int? = null
+
+        @JvmField
+        var version: Int? = null
+
+        @JvmField
+        var psk: String? = null
+
+        @JvmField
+        var userkey: String? = null
+
+        @JvmField
+        var reuse: Boolean? = null
+
+        @JvmField
+        var network: String? = null
+
+        // Generate note: inlined from SnellObfsClientOptions
+        @JvmField
+        var obfs_mode: String? = null
+
+        @JvmField
+        var obfs_host: String? = null
+
+        // Generate note: inlined from SnellV6Options
+        @JvmField
+        var mode: String? = null
+
+    }
+
+    @KxsSerializable
+    open class Outbound_BridgeOptions : Outbound() {
+
+        @JvmField
+        var `interface`: String? = null
+
+        @JvmField
+        var bridge_name: String? = null
+
+        @JvmField
+        var iproute2_table_index: Int? = null
+
+        @JvmField
+        var iproute2_rule_index: Int? = null
 
     }
 

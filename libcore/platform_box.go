@@ -274,6 +274,14 @@ func (w *boxPlatformInterfaceWrapper) CloseNeighborMonitor(listener adapter.Neig
 	return os.ErrInvalid
 }
 
+func (w *boxPlatformInterfaceWrapper) UsePlatformBridge() bool {
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) CreateBridge(options adapter.BridgeOptions) (adapter.BridgeSession, error) {
+	return nil, os.ErrInvalid
+}
+
 // Unused Tailscale
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformShell() bool {

@@ -176,3 +176,11 @@ func (p platformInterfaceStub) StartNeighborMonitor(_ adapter.NeighborUpdateList
 func (p platformInterfaceStub) CloseNeighborMonitor(_ adapter.NeighborUpdateListener) error {
 	return os.ErrInvalid
 }
+
+func (p platformInterfaceStub) UsePlatformBridge() bool {
+	return false
+}
+
+func (p platformInterfaceStub) CreateBridge(_ adapter.BridgeOptions) (adapter.BridgeSession, error) {
+	return nil, os.ErrInvalid
+}

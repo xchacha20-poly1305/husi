@@ -149,8 +149,11 @@ func (h *Outbound) InterfaceUpdated() {
 	h.client.ResetConnections()
 }
 
-func (h *Outbound) SupportsFlow(network string) bool {
-	return network == N.NetworkICMP && h.icmpPort != nil
+func (h *Outbound) PreMatchFlow(network string, destination netip.Addr) adapter.PreMatchAction {
+	if network == N.NetworkICMP && h.icmpPort != nil {
+		return adapter.PreMatchFlow
+	}
+	return adapter.PreMatchContinue
 }
 
 func (h *Outbound) PortAddresses() (netip.Addr, netip.Addr) {
@@ -183,7 +186,7 @@ func (h *Outbound) DetachReturn(returnPath tun.Return) error {
 
 func (h *Outbound) WritePackets(packets [][]byte) error {
 	if h.icmpPort == nil {
-		return os.ErrNotExist
+		return os.ErrInvalid
 	}
 	return h.icmpPort.WritePackets(packets)
 }

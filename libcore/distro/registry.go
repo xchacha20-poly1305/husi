@@ -15,6 +15,7 @@ import (
 	"github.com/sagernet/sing-box/dns/transport/quic"
 	"github.com/sagernet/sing-box/protocol/anytls"
 	"github.com/sagernet/sing-box/protocol/block"
+	"github.com/sagernet/sing-box/protocol/bridge"
 	"github.com/sagernet/sing-box/protocol/direct"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing-box/protocol/http"
@@ -75,6 +76,7 @@ func OutboundRegistry() *outbound.Registry {
 	// vless.RegisterOutbound(registry) // Move to plugin
 	anytls.RegisterOutbound(registry)
 	snell.RegisterOutbound(registry)
+	bridge.RegisterOutbound(registry)
 
 	registerQUICOutbounds(registry)
 	registerNaiveOutbound(registry)

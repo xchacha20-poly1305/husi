@@ -69,9 +69,9 @@ import fr.husi.ktx.onIoDispatcher
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
+import fr.husi.resources.action_direct
 import fr.husi.resources.add_road
 import fr.husi.resources.apply
-import fr.husi.resources.action_direct
 import fr.husi.resources.auto
 import fr.husi.resources.cached
 import fr.husi.resources.cag_dns
@@ -93,8 +93,8 @@ import fr.husi.resources.done
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.empty_route
 import fr.husi.resources.empty_route_notice
-import fr.husi.resources.fiber_smart_record
 import fr.husi.resources.fallback_outbound
+import fr.husi.resources.fiber_smart_record
 import fr.husi.resources.fingerprint
 import fr.husi.resources.home
 import fr.husi.resources.hourglass_top
@@ -123,6 +123,7 @@ import fr.husi.resources.push_pin
 import fr.husi.resources.question_mark
 import fr.husi.resources.route_action
 import fr.husi.resources.route_block
+import fr.husi.resources.route_bridge
 import fr.husi.resources.route_bypass
 import fr.husi.resources.route_invert
 import fr.husi.resources.route_name
@@ -164,7 +165,7 @@ import java.io.File
 import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
-private const val CUSTOM_OUTBOUND_OPTION = -4L
+private const val CUSTOM_OUTBOUND_OPTION = -5L // Placeholder
 
 // If too big, the performance is low and no one will check it patiently.
 private const val RULE_SET_SUGGESTION_LIMIT = 64
@@ -456,6 +457,16 @@ private fun RouteSettings(
                 ),
             contentPadding = contentPadding,
         ) {
+            val outbounds = buildList {
+                add(RuleEntity.OUTBOUND_PROXY)
+                add(RuleEntity.OUTBOUND_DIRECT)
+                add(RuleEntity.OUTBOUND_BLOCK)
+                if (!PlatformInfo.isAndroid) {
+                    add(RuleEntity.OUTBOUND_BRIDGE)
+                }
+                add(CUSTOM_OUTBOUND_OPTION)
+            }
+
             item("name") {
                 TextFieldPreference(
                     value = uiState.name,
@@ -742,17 +753,13 @@ private fun RouteSettings(
                                     RuleEntity.OUTBOUND_PROXY,
                                     RuleEntity.OUTBOUND_DIRECT,
                                     RuleEntity.OUTBOUND_BLOCK,
+                                    RuleEntity.OUTBOUND_BRIDGE,
                                         -> viewModel.setOutbound(it)
 
                                     else -> onSelectOutboundProfile(uiState.outbound)
                                 }
                             },
-                            values = listOf(
-                                RuleEntity.OUTBOUND_PROXY,
-                                RuleEntity.OUTBOUND_DIRECT,
-                                RuleEntity.OUTBOUND_BLOCK,
-                                CUSTOM_OUTBOUND_OPTION,
-                            ),
+                            values = outbounds,
                             title = { Text(stringResource(Res.string.outbound)) },
                             icon = { Icon(vectorResource(Res.drawable.router), null) },
                             summary = {
@@ -760,6 +767,7 @@ private fun RouteSettings(
                                     RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
                                     RuleEntity.OUTBOUND_DIRECT -> stringResource(Res.string.route_bypass)
                                     RuleEntity.OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
+                                    RuleEntity.OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
                                     else -> runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }
                                         ?.displayName()
                                         ?: stringResource(Res.string.not_set)
@@ -772,6 +780,7 @@ private fun RouteSettings(
                                     RuleEntity.OUTBOUND_PROXY -> Res.string.route_proxy
                                     RuleEntity.OUTBOUND_DIRECT -> Res.string.route_bypass
                                     RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
+                                    RuleEntity.OUTBOUND_BRIDGE -> Res.string.route_bridge
                                     else -> Res.string.select_profile
                                 }
                                 AnnotatedString(stringResource(id))
@@ -792,17 +801,13 @@ private fun RouteSettings(
                                     RuleEntity.OUTBOUND_PROXY,
                                     RuleEntity.OUTBOUND_DIRECT,
                                     RuleEntity.OUTBOUND_BLOCK,
+                                    RuleEntity.OUTBOUND_BRIDGE,
                                         -> viewModel.setOutbound(it)
 
                                     else -> onSelectOutboundProfile(uiState.outbound)
                                 }
                             },
-                            values = listOf(
-                                RuleEntity.OUTBOUND_PROXY,
-                                RuleEntity.OUTBOUND_DIRECT,
-                                RuleEntity.OUTBOUND_BLOCK,
-                                CUSTOM_OUTBOUND_OPTION,
-                            ),
+                            values = outbounds,
                             title = { Text(stringResource(Res.string.fallback_outbound)) },
                             icon = { Icon(vectorResource(Res.drawable.router), null) },
                             summary = {
@@ -810,6 +815,7 @@ private fun RouteSettings(
                                     RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
                                     RuleEntity.OUTBOUND_DIRECT -> stringResource(Res.string.action_direct)
                                     RuleEntity.OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
+                                    RuleEntity.OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
                                     else -> runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }
                                         ?.displayName()
                                         ?: stringResource(Res.string.not_set)
@@ -822,6 +828,7 @@ private fun RouteSettings(
                                     RuleEntity.OUTBOUND_PROXY -> Res.string.route_proxy
                                     RuleEntity.OUTBOUND_DIRECT -> Res.string.action_direct
                                     RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
+                                    RuleEntity.OUTBOUND_BRIDGE -> Res.string.route_bridge
                                     else -> Res.string.select_profile
                                 }
                                 AnnotatedString(stringResource(id))

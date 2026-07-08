@@ -75,6 +75,7 @@ data class RuleEntity(
         const val OUTBOUND_PROXY = 0L
         const val OUTBOUND_DIRECT = -1L
         const val OUTBOUND_BLOCK = -2L
+        const val OUTBOUND_BRIDGE = -3L
 
         // Clash Modes
         // Use lower case to adapt with clash dashboard
