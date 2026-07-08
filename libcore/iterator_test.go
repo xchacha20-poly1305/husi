@@ -1,16 +1,18 @@
 package libcore
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func Test_Iterator(t *testing.T) {
 	tests := []uint8{9, 5, 2, 7}
 	factory := newIterator(tests)
 	index := 0
 	for factory.HasNext() {
-		if factory.Next() != tests[index] {
-			t.Error("failed to test iterator")
-			return
-		}
+		assert.Equal(t, tests[index], factory.Next())
 		index++
 	}
+	assert.Len(t, tests, index)
 }

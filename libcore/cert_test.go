@@ -9,8 +9,10 @@ import (
 
 	aTLS "github.com/sagernet/sing-box/common/tls"
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing/common"
 	N "github.com/sagernet/sing/common/network"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_UpdateRootCACerts(t *testing.T) {
@@ -20,17 +22,20 @@ func Test_UpdateRootCACerts(t *testing.T) {
 
 		husi = "husi.fr"
 	)
-	listener := common.Must1(net.Listen(N.NetworkTCP, "127.0.0.1:0"))
+	listener, err := net.Listen(N.NetworkTCP, "127.0.0.1:0")
+	require.NoError(t, err)
 	defer listener.Close()
 	listen := listener.Addr().String()
 
-	privateKey, publicKey := common.Must2(aTLS.GenerateCertificate(nil, nil, time.Now, husi, time.Now().Add(5*time.Minute)))
-	common.Must(os.WriteFile(customCaFile, publicKey, os.ModePerm))
+	privateKey, publicKey, err := aTLS.GenerateCertificate(nil, nil, time.Now, husi, time.Now().Add(5*time.Minute))
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(customCaFile, publicKey, os.ModePerm))
 	defer os.Remove(customCaFile)
+	cert, err := tls.X509KeyPair(publicKey, privateKey)
+	require.NoError(t, err)
 
 	done := make(chan struct{})
 	go func(listener net.Listener, done chan struct{}) {
-		cert := common.Must1(tls.X509KeyPair(publicKey, privateKey))
 		config := &tls.Config{
 			Certificates: []tls.Certificate{cert},
 			ServerName:   husi,
@@ -73,13 +78,11 @@ func Test_UpdateRootCACerts(t *testing.T) {
 		conn, err := tls.Dial(N.NetworkTCP, address, config)
 		if err == nil {
 			_ = conn.Close()
-			if wantErr {
-				t.Errorf("[%s] wants error but not", testName)
-			}
+		}
+		if wantErr {
+			assert.Error(t, err, testName)
 		} else {
-			if !wantErr {
-				t.Errorf("[%s] got unexpected error: %v", testName, err)
-			}
+			assert.NoError(t, err, testName)
 		}
 	}
 

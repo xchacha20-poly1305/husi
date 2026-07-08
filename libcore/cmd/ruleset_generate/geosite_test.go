@@ -7,6 +7,9 @@ import (
 	"testing"
 
 	"github.com/sagernet/sing-box/common/geosite"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateGeositeDomainMapFromSourceArchive(t *testing.T) {
@@ -25,13 +28,9 @@ child.com
 	})
 
 	processor, err := parseGeositeSource(bytes.NewReader(archiveData))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	domainMap, err := processor.generateDomainMap()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	base, _ := domainMap.Get("base")
 	assertHasGeositeItem(t, base, geosite.RuleTypeDomain, "example.com")
@@ -66,17 +65,17 @@ func makeGeositeArchive(t *testing.T, files map[string]string) []byte {
 			Mode: 0o644,
 			Size: int64(len(content)),
 		}); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 		if _, err := tarWriter.Write([]byte(content)); err != nil {
-			t.Fatal(err)
+			require.NoError(t, err)
 		}
 	}
 	if err := tarWriter.Close(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	if err := gzipWriter.Close(); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	return buffer.Bytes()
 }
@@ -89,15 +88,13 @@ func assertHasGeositeItem(t *testing.T, items []geosite.Item, itemType uint8, va
 			return
 		}
 	}
-	t.Fatalf("missing geosite item type=%d value=%q in %#v", itemType, value, items)
+	require.Failf(t, "missing geosite item", "type=%d value=%q in %#v", itemType, value, items)
 }
 
 func assertNoGeositeItem(t *testing.T, items []geosite.Item, itemType uint8, value string) {
 	t.Helper()
 
 	for _, item := range items {
-		if item.Type == itemType && item.Value == value {
-			t.Fatalf("unexpected geosite item type=%d value=%q in %#v", itemType, value, items)
-		}
+		assert.Falsef(t, item.Type == itemType && item.Value == value, "unexpected geosite item type=%d value=%q in %#v", itemType, value, items)
 	}
 }

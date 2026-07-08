@@ -3,6 +3,8 @@ package libcore
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_FormatConfig(t *testing.T) {
@@ -67,20 +69,16 @@ func Test_FormatConfig(t *testing.T) {
 	}
 
 	for _, test := range tt {
-		formated, err := FormatConfig(test.config)
-		if test.wantErr {
-			if err != nil {
-				t.Logf("[%s] Successed to get error: %v", test.name, err)
-			} else {
-				t.Errorf("[%s] Want error but got: %s", test.name, formated)
+		t.Run(test.name, func(t *testing.T) {
+			formatted, err := FormatConfig(test.config)
+			if test.wantErr {
+				assert.Error(t, err)
+				return
 			}
-		} else {
-			if err != nil {
-				t.Errorf("Failed to format [%s]: %v", test.name, err)
-			} else {
-				t.Logf("[%s]: %s", test.name, formated)
+			if assert.NoError(t, err) {
+				assert.NotEmpty(t, formatted)
 			}
-		}
+		})
 	}
 }
 
@@ -118,20 +116,14 @@ func Test_CheckConfig(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		err := CheckConfig(tt.config)
-		if err != nil {
+		t.Run(tt.name, func(t *testing.T) {
+			err := CheckConfig(tt.config)
 			if tt.wantErr {
-				t.Logf("TestCheckConfig [%s] passed", tt.name)
-				continue
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
 			}
-			t.Errorf("TestCheckConfig [%s] wants error but not", tt.name)
-			continue
-		}
-		if tt.wantErr {
-			t.Errorf("TestCheckConfig [%s] wants error but not", tt.name)
-			continue
-		}
-		t.Logf("TestCheckConfig [%s] passed", tt.name)
+		})
 	}
 }
 
@@ -216,13 +208,12 @@ func Test_ParseDuration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseDuration(tt.raw)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseDuration() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				assert.Error(t, err)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("ParseDuration() = %v, want %v", got, tt.want)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

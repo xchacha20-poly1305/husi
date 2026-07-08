@@ -12,6 +12,9 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Protect(t *testing.T) {
@@ -28,15 +31,9 @@ func Test_Protect(t *testing.T) {
 		}
 		return nil
 	})
-	if err != nil {
-		t.Errorf("create protect service: %v", err)
-		return
-	}
+	require.NoError(t, err)
 	err = service.Start()
-	if err != nil {
-		t.Errorf("start protect server: %v", err)
-		return
-	}
+	require.NoError(t, err)
 	defer service.Close()
 
 	type clientArg struct {
@@ -74,12 +71,15 @@ func Test_Protect(t *testing.T) {
 		},
 	}
 	for _, test := range tt {
-		do := control.ProtectPath(test.arg.path)
-		err := do(netUnix, "", fdProvider(test.arg.fd))
-		if (err != nil) != test.wantErr {
-			t.Errorf("protect failed for [%s]: %v", test.name, err)
-			return
-		}
+		t.Run(test.name, func(t *testing.T) {
+			do := control.ProtectPath(test.arg.path)
+			err := do(netUnix, "", fdProvider(test.arg.fd))
+			if test.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
 	}
 }
 

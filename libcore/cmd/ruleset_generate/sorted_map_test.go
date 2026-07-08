@@ -1,8 +1,9 @@
 package main
 
 import (
-	"slices"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSortedStringMapEntriesSortKeys(t *testing.T) {
@@ -17,7 +18,5 @@ func TestSortedStringMapEntriesSortKeys(t *testing.T) {
 		keys = append(keys, entry.Key)
 	}
 
-	if !slices.Equal(keys, []string{"alpha", "beta", "gamma"}) {
-		t.Fatalf("unexpected sorted keys: %v", keys)
-	}
+	assert.Equal(t, []string{"alpha", "beta", "gamma"}, keys)
 }

@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"codeberg.org/xchacha20-poly1305/pkgsite-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResolveLibraryFallbacksToLatestModuleForUnindexedVersion(t *testing.T) {
@@ -23,11 +25,18 @@ func TestResolveLibraryFallbacksToLatestModuleForUnindexedVersion(t *testing.T) 
 	var requests []string
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		requests = append(requests, request.URL.String())
-		if request.URL.Path != "/v1beta/module/"+modulePath {
-			t.Fatalf("path = %q, want /v1beta/module/%s", request.URL.Path, modulePath)
+		if request.URL.Path == "/fetch/"+modulePath+"@"+version {
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
 		}
-		if request.URL.Query().Get("licenses") != "true" {
-			t.Fatalf("licenses = %q, want true", request.URL.Query().Get("licenses"))
+		if request.URL.Path != "/v1beta/module/"+modulePath {
+			assert.Equal(t, "/v1beta/module/"+modulePath, request.URL.Path)
+			writer.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if !assert.Equal(t, "true", request.URL.Query().Get("licenses")) {
+			writer.WriteHeader(http.StatusBadRequest)
+			return
 		}
 		switch request.URL.Query().Get("version") {
 		case version:
@@ -45,7 +54,8 @@ func TestResolveLibraryFallbacksToLatestModuleForUnindexedVersion(t *testing.T) 
 				}},
 			})
 		default:
-			t.Fatalf("version = %q, want %q or empty", request.URL.Query().Get("version"), version)
+			assert.Failf(t, "unexpected version", "version = %q, want %q or empty", request.URL.Query().Get("version"), version)
+			writer.WriteHeader(http.StatusBadRequest)
 		}
 	}))
 	defer server.Close()
@@ -54,39 +64,25 @@ func TestResolveLibraryFallbacksToLatestModuleForUnindexedVersion(t *testing.T) 
 		Path:    modulePath,
 		Version: version,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if library.UniqueID != modulePath {
-		t.Errorf("UniqueID = %q, want %q", library.UniqueID, modulePath)
-	}
-	if library.ArtifactVersion != version {
-		t.Errorf("ArtifactVersion = %q, want %q", library.ArtifactVersion, version)
-	}
-	if library.Name != modulePath {
-		t.Errorf("Name = %q, want %q", library.Name, modulePath)
-	}
-	if library.Website != repoURL {
-		t.Errorf("Website = %q, want %q", library.Website, repoURL)
-	}
-	if len(library.Licenses) != 1 || library.Licenses[0] != "Apache-2.0" {
-		t.Errorf("Licenses = %v, want [Apache-2.0]", library.Licenses)
-	}
-	if len(requests) != 2 {
-		t.Fatalf("len(requests) = %d, want 2: %v", len(requests), requests)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, modulePath, library.UniqueID)
+	assert.Equal(t, version, library.ArtifactVersion)
+	assert.Equal(t, modulePath, library.Name)
+	assert.Equal(t, repoURL, library.Website)
+	assert.Equal(t, []string{"Apache-2.0"}, library.Licenses)
+	assert.Equal(t, []string{
+		"/v1beta/module/github.com/sagernet/netlink?licenses=true&version=v0.0.0-20240612041022-b9a21c07ac6a",
+		"/fetch/github.com/sagernet/netlink@v0.0.0-20240612041022-b9a21c07ac6a",
+		"/v1beta/module/github.com/sagernet/netlink?licenses=true",
+	}, requests)
 }
 
 func TestWriteLibrariesCleansGeneratedFilesOnly(t *testing.T) {
 	dir := t.TempDir()
 	err := os.WriteFile(filepath.Join(dir, "go_old.json"), []byte("{}"), 0o644)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	err = os.WriteFile(filepath.Join(dir, "husi.json"), []byte("{}"), 0o644)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	err = writeToDir(dir, []Library{{
 		UniqueID:        "github.com/example/module",
@@ -94,29 +90,21 @@ func TestWriteLibrariesCleansGeneratedFilesOnly(t *testing.T) {
 		Name:            "github.com/example/module",
 		Licenses:        []string{"MIT"},
 	}}, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	if _, err = os.Stat(filepath.Join(dir, "go_old.json")); !os.IsNotExist(err) {
-		t.Fatalf("go_old.json still exists")
+		require.NoFileExists(t, filepath.Join(dir, "go_old.json"))
 	}
 	if _, err = os.Stat(filepath.Join(dir, "husi.json")); err != nil {
-		t.Fatal(err)
+		require.NoError(t, err)
 	}
 	outputFile := filepath.Join(dir, "go_github.com_example_module.json")
 	content, err := os.ReadFile(outputFile)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	var library Library
 	err = json.Unmarshal(content, &library)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if library.UniqueID != "github.com/example/module" {
-		t.Errorf("UniqueID = %q, want github.com/example/module", library.UniqueID)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, "github.com/example/module", library.UniqueID)
 }
 
 func Test_isSingModule(t *testing.T) {
@@ -137,8 +125,6 @@ func Test_isSingModule(t *testing.T) {
 		{"github.com/xchacha20-poly1305/anchor", true},
 	}
 	for _, tt := range tests {
-		if got := inGPLv3OrLaterWhiteList(tt.path); got != tt.want {
-			t.Errorf("isSingModule(%q) = %v, want %v", tt.path, got, tt.want)
-		}
+		assert.Equal(t, tt.want, inGPLv3OrLaterWhiteList(tt.path), tt.path)
 	}
 }

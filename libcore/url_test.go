@@ -1,6 +1,11 @@
 package libcore
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
 
 func Test_ParseUrl(t *testing.T) {
 	type args struct {
@@ -136,13 +141,13 @@ func Test_ParseUrl(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseURL(tt.args.rawURL)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				assert.Error(t, err)
 				return
 			}
-			if !tt.isWant(got) {
-				t.Errorf("Failed to parse, got: %s", got.GetString())
-			}
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			assert.True(t, tt.isWant(got), got.GetString())
 		})
 	}
 }

@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	"github.com/sagernet/sing-box/option"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_BuildClass(t *testing.T) {
@@ -34,18 +37,14 @@ func TestGeneratedClassNameOf(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			got := generatedClassNameOf(test.option, test.belongs)
-			if got != test.want {
-				t.Fatalf("generatedClassNameOf() = %q, want %q", got, test.want)
-			}
+			assert.Equal(t, test.want, got)
 		})
 	}
 }
 
 func TestInlineExtensionsUseGeneratedClassName(t *testing.T) {
 	if _, exists := inlineExtensions["SnellOutboundOptions"]; exists {
-		t.Fatal("inlineExtensions contains raw Go type name key for Snell")
+		require.NotContains(t, inlineExtensions, "SnellOutboundOptions")
 	}
-	if _, exists := inlineExtensions["Outbound_SnellOptions"]; !exists {
-		t.Fatal("inlineExtensions does not contain generated Kotlin class name key for Snell")
-	}
+	require.Contains(t, inlineExtensions, "Outbound_SnellOptions")
 }

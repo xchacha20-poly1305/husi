@@ -1,6 +1,10 @@
 package libcore
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func Test_IsPreRelease(t *testing.T) {
 	tests := []struct {
@@ -18,10 +22,7 @@ func Test_IsPreRelease(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := IsPreRelease(tt.input)
-			if result != tt.expected {
-				t.Errorf("input: %q, expected %v, got %v", tt.input, tt.expected, result)
-			}
+			assert.Equal(t, tt.expected, IsPreRelease(tt.input))
 		})
 	}
 }
