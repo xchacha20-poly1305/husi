@@ -2,11 +2,14 @@ package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.MultilineTextField
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.resources.Res
@@ -27,7 +30,6 @@ import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,44 +63,53 @@ private fun LazyListScope.vlessSettings(
     scrollTo: (String) -> Unit,
 ) {
     headSettings(uiState, viewModel)
-    item("uuid") {
+    preferenceGroup {
         TextFieldPreference(
             value = uiState.uuid,
             onValueChange = { viewModel.setUUID(it) },
             title = { Text(stringResource(Res.string.uuid)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.person), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.uuid)) },
             valueToText = { it },
         )
-    }
-    item("flow") {
+        PreferenceDivider()
         ListPreference(
             value = uiState.flow,
             onValueChange = { viewModel.setFlow(it) },
             values = listOf("", "xtls-rprx-vision"),
             title = { Text(stringResource(Res.string.xtls_flow)) },
-            icon = { Icon(vectorResource(Res.drawable.stream), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.stream,
+                    color = PreferenceMaskColors.IconLightBlue,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.flow)) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-    }
-    item("encryption") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.encryption,
             onValueChange = { viewModel.setEncryption(it) },
             title = { Text(stringResource(Res.string.encryption)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.encrypted), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.encrypted,
+                    color = PreferenceMaskColors.IconLightOrange,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.encryption)) },
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("packet_encoding") {
+        PreferenceDivider()
         fun packetEncodingName(packetEncoding: Int): StringOrRes = when (packetEncoding) {
             0 -> StringOrRes.Res(Res.string.not_set)
             1 -> StringOrRes.Direct("packetaddr")
@@ -110,7 +121,12 @@ private fun LazyListScope.vlessSettings(
             onValueChange = { viewModel.setPacketEncoding(it) },
             values = intListN(3),
             title = { Text(stringResource(Res.string.packet_encoding)) },
-            icon = { Icon(vectorResource(Res.drawable.outbox), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.outbox,
+                    color = PreferenceMaskColors.IconLavender,
+                )
+            },
             summary = { Text(stringOrRes(packetEncodingName(uiState.packetEncoding))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringOrRes(packetEncodingName(it))) },

@@ -1,17 +1,22 @@
 package fr.husi.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -29,7 +34,9 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.LinkOrContentTextField
-import fr.husi.compose.PreferenceType
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
@@ -207,10 +214,72 @@ internal fun AssetEditScreen(
                         ),
                     contentPadding = contentPadding,
                 ) {
-                    assetEditSettings(
-                        uiState = uiState,
-                        viewModel = viewModel,
-                    )
+                    item("settings") {
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                        ) {
+                            Column {
+                                TextFieldPreference(
+                                    value = uiState.name,
+                                    onValueChange = { viewModel.setName(it) },
+                                    title = { Text(stringResource(Res.string.route_asset_name)) },
+                                    textToValue = { it },
+                                    icon = {
+                                        ProfilePreferenceIcon(
+                                            Res.drawable.emoji_symbols,
+                                            color = PreferenceMaskColors.IconCyan,
+                                        )
+                                    },
+                                    summary = { Text(contentOrUnset(uiState.name)) },
+                                    valueToText = { it },
+                                )
+                                PreferenceDivider()
+                                TextFieldPreference(
+                                    value = uiState.link,
+                                    onValueChange = { viewModel.setLink(it) },
+                                    title = { Text(stringResource(Res.string.url)) },
+                                    textToValue = { it },
+                                    icon = {
+                                        ProfilePreferenceIcon(
+                                            Res.drawable.link,
+                                            color = PreferenceMaskColors.IconLightBlue,
+                                        )
+                                    },
+                                    summary = { Text(contentOrUnset(uiState.link)) },
+                                    valueToText = { it },
+                                    textField = { value, onValueChange, onOk ->
+                                        LinkOrContentTextField(value, onValueChange, onOk)
+                                    },
+                                )
+                                PreferenceDivider()
+                                TextFieldPreference(
+                                    value = uiState.autoUpdateDelay,
+                                    onValueChange = { viewModel.setAutoUpdateDelay(it) },
+                                    title = {
+                                        Text(stringResource(Res.string.route_asset_auto_update_delay))
+                                    },
+                                    textToValue = { it.toIntOrNull() ?: 0 },
+                                    icon = {
+                                        ProfilePreferenceIcon(
+                                            Res.drawable.timer,
+                                            color = PreferenceMaskColors.IconLightOrange,
+                                        )
+                                    },
+                                    summary = { Text(uiState.autoUpdateDelay.toString()) },
+                                    valueToText = { it.toString() },
+                                    textField = { value, onValueChange, onOk ->
+                                        UIntegerTextField(value, onValueChange, onOk)
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    item("bottom_padding") {
+                        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    }
                 }
 
                 BoxedVerticalScrollbar(
@@ -284,51 +353,6 @@ internal fun AssetEditScreen(
             icon = { Icon(vectorResource(Res.drawable.warning_amber), null) },
             title = { Text(stringResource(Res.string.error_title)) },
             text = { Text(stringResource(id)) },
-        )
-    }
-}
-
-private fun LazyListScope.assetEditSettings(
-    uiState: AssetEditUiState,
-    viewModel: AssetEditViewModel,
-) {
-    item("name", PreferenceType.TEXT_FIELD) {
-        TextFieldPreference(
-            value = uiState.name,
-            onValueChange = { viewModel.setName(it) },
-            title = { Text(stringResource(Res.string.route_asset_name)) },
-            textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
-            summary = { Text(contentOrUnset(uiState.name)) },
-            valueToText = { it },
-        )
-    }
-    item("link", PreferenceType.TEXT_FIELD) {
-        TextFieldPreference(
-            value = uiState.link,
-            onValueChange = { viewModel.setLink(it) },
-            title = { Text(stringResource(Res.string.url)) },
-            textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.link), null) },
-            summary = { Text(contentOrUnset(uiState.link)) },
-            valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                LinkOrContentTextField(value, onValueChange, onOk)
-            },
-        )
-    }
-    item("auto_update_delay", PreferenceType.TEXT_FIELD) {
-        TextFieldPreference(
-            value = uiState.autoUpdateDelay,
-            onValueChange = { viewModel.setAutoUpdateDelay(it) },
-            title = { Text(stringResource(Res.string.route_asset_auto_update_delay)) },
-            textToValue = { it.toIntOrNull() ?: 0 },
-            icon = { Icon(vectorResource(Res.drawable.timer), null) },
-            summary = { Text(uiState.autoUpdateDelay.toString()) },
-            valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
-            },
         )
     }
 }

@@ -1,12 +1,16 @@
 package fr.husi.ui
 
-import androidx.compose.foundation.lazy.LazyListScope
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
-import fr.husi.compose.PreferenceType
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.resources.Res
 import fr.husi.resources.copyright
@@ -14,16 +18,19 @@ import fr.husi.resources.custom_plugin_prefix
 import fr.husi.resources.custom_plugin_prefix_summary
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 
-internal actual fun LazyListScope.platformPluginPreferences(
+@Composable
+internal actual fun PlatformPluginPreferences(
     isExpert: Boolean,
     needRestart: () -> Unit,
 ) {
-    if (isExpert) item(Key.CUSTOM_PLUGIN_PREFIX, PreferenceType.TEXT_FIELD) {
-        val value by DataStore.configurationStore
-            .stringFlow(Key.CUSTOM_PLUGIN_PREFIX, "")
-            .collectAsStateWithLifecycle("")
+    if (!isExpert) return
+    val value by DataStore.configurationStore
+        .stringFlow(Key.CUSTOM_PLUGIN_PREFIX, "")
+        .collectAsStateWithLifecycle("")
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+    ) {
         TextFieldPreference(
             value = value,
             onValueChange = {
@@ -33,9 +40,9 @@ internal actual fun LazyListScope.platformPluginPreferences(
             title = { Text(stringResource(Res.string.custom_plugin_prefix)) },
             textToValue = { it },
             icon = {
-                Icon(
-                    vectorResource(Res.drawable.copyright),
-                    null,
+                ProfilePreferenceIcon(
+                    Res.drawable.copyright,
+                    color = PreferenceMaskColors.IconCoral,
                 )
             },
             summary = { Text(stringResource(Res.string.custom_plugin_prefix_summary)) },

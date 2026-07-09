@@ -4,6 +4,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import fr.husi.compose.PasswordPreference
+import fr.husi.compose.preferenceGroup
 import fr.husi.resources.Res
 import fr.husi.resources.profile_config
 import fr.husi.ui.NavRoutes
@@ -40,7 +41,7 @@ private fun LazyListScope.trojanSettings(
     scrollTo: (String) -> Unit,
 ) {
     headSettings(uiState, viewModel)
-    item("password") {
+    preferenceGroup(key = "password") {
         PasswordPreference(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },

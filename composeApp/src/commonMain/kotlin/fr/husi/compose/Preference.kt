@@ -1,6 +1,9 @@
 package fr.husi.compose
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,36 +12,57 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import fr.husi.compose.material3.Icon
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.OutlinedTextField
-import fr.husi.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
+import fr.husi.compose.theme.LocalAppDarkMode
+import fr.husi.resources.Res
+import fr.husi.resources.cancel
+import fr.husi.resources.not_set
+import fr.husi.resources.ok
+import fr.husi.resources.password
+import fr.husi.resources.settings
+import fr.husi.resources.wifi
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.PreferenceCategory
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 object PreferenceType {
     const val CATEGORY = 0
@@ -78,9 +102,9 @@ fun PasswordPreference(
     title: @Composable () -> Unit = { Text(stringResource(Res.string.password)) },
     enabled: Boolean = true,
     icon: @Composable (() -> Unit) = {
-        Icon(
-            vectorResource(Res.drawable.password),
-            null,
+        ProfilePreferenceIcon(
+            Res.drawable.password,
+            color = PreferenceMaskColors.IconCoral,
         )
     },
 ) {
@@ -206,6 +230,120 @@ fun <K, V> MapPreference(
     LaunchedEffect(focusRequester) {
         if (firstKey != null) focusRequester.requestFocus()
     }
+}
+
+@Composable
+fun PreferenceDivider() {
+    HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+}
+
+fun LazyListScope.preferenceGroup(
+    key: Any? = null,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    item(key = key) {
+        ElevatedCard(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+        ) {
+            Column(content = content)
+        }
+    }
+}
+
+/** Inspired by Android system preference. */
+object PreferenceMaskColors {
+    // network
+    val IconLightBlue = Color(0xFFD6E3FF)
+
+    // notification
+    val IconLightPink = Color(0xFFFFD9E2)
+
+    // theme/style
+    val IconLightOrange = Color(0xFFFADEBC)
+
+    // storage
+    val IconLightYellow = Color(0xFFFAE2A6)
+
+    // battery or ???
+    val IconLightGreen = Color(0xFFC2EFB3)
+
+    // not important
+    val IconWarmGray = Color(0xFFEAE2D5)
+
+    // misc
+    val IconCyan = Color(0xFFC4EBF2)
+
+    // security / alert
+    val IconCoral = Color(0xFFFFDAD6)
+
+    // misc
+    val IconLavender = Color(0xFFEADDFF)
+}
+
+@Composable
+private fun ColoredIconContainer(
+    color: Color,
+    shape: Shape = CircleShape,
+    content: @Composable () -> Unit,
+) {
+    val darkTheme = LocalAppDarkMode.current
+    val containerColor = if (darkTheme) color.copy(alpha = 0.33f) else color.blend(Color.White, 0.5f)
+    val contentColor = if (darkTheme) color else color.blend(Color.Black, 0.45f)
+    Box(
+        modifier = Modifier
+            .padding(end = 8.dp)
+            .size(42.dp)
+            .background(color = containerColor, shape = shape),
+        contentAlignment = Alignment.Center,
+    ) {
+        CompositionLocalProvider(LocalContentColor provides contentColor) {
+            content()
+        }
+    }
+}
+
+private fun Color.blend(other: Color, fraction: Float): Color {
+    val inverse = 1f - fraction
+    return Color(
+        red = red * inverse + other.red * fraction,
+        green = green * inverse + other.green * fraction,
+        blue = blue * inverse + other.blue * fraction,
+        alpha = alpha,
+    )
+}
+
+@Composable
+fun ProfilePreferenceIcon(
+    resource: DrawableResource,
+    color: Color = PreferenceMaskColors.IconCyan,
+    shape: Shape = CircleShape,
+) {
+    ColoredIconContainer(
+        color = color,
+        shape = shape,
+    ) {
+        Icon(
+            imageVector = vectorResource(resource),
+            contentDescription = null,
+            modifier = Modifier.size(22.dp),
+        )
+    }
+}
+
+object PreferenceShapes {
+    @Composable
+    fun risk(): Shape = MaterialShapes.SoftBurst.toShape()
+
+    @Composable
+    fun credential(): Shape = MaterialShapes.Slanted.toShape()
+
+    @Composable
+    fun route(): Shape = MaterialShapes.Triangle.toShape()
 }
 
 @Suppress("MutableCollectionMutableState")

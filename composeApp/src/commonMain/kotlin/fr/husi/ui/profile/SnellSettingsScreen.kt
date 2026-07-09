@@ -6,9 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.UIntegerTextField
-import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.fmt.snell.SnellBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
@@ -38,7 +41,6 @@ import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,13 +81,18 @@ private fun LazyListScope.snellSettings(
     val snellModes = listOf("default", "unshaped", "unsafe-raw")
     fun snellModeText(mode: String) = mode.ifBlank { "default" }
 
-    item("name") {
+    preferenceGroup {
         TextFieldPreference(
             value = uiState.name,
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.emoji_symbols,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
@@ -94,93 +101,128 @@ private fun LazyListScope.snellSettings(
     item("category_proxy") {
         PreferenceCategory(text = { Text(stringResource(Res.string.proxy_cat)) })
     }
-    item("address") {
+    preferenceGroup {
         TextFieldPreference(
             value = uiState.address,
             onValueChange = { viewModel.setAddress(it) },
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.router), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.router,
+                    color = PreferenceMaskColors.IconLightBlue,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
         )
-    }
-    item("port") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.port,
             onValueChange = { viewModel.setPort(it) },
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
-            icon = { Icon(vectorResource(Res.drawable.directions_boat), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.directions_boat,
+                    color = PreferenceMaskColors.IconLightOrange,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
             textField = { value, onValueChange, onOk ->
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("version") {
+        PreferenceDivider()
         ListPreference(
             value = uiState.version,
             values = versions,
             onValueChange = { viewModel.setVersion(it) },
             title = { Text(stringResource(Res.string.protocol_version)) },
-            icon = { Icon(vectorResource(Res.drawable.security), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.security,
+                    color = PreferenceMaskColors.IconLavender,
+                )
+            },
             summary = { Text(versionText(uiState.version)) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(versionText(it)) },
         )
-    }
-    item("psk") {
+        PreferenceDivider()
         PasswordPreference(
             value = uiState.psk,
             onValueChange = { viewModel.setPsk(it) },
             title = { Text(stringResource(Res.string.pre_shared_key)) },
-            icon = { Icon(vectorResource(Res.drawable.password), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.password,
+                    color = PreferenceMaskColors.IconWarmGray,
+                )
+            },
         )
-    }
-    item("user_key") {
+        PreferenceDivider()
         PasswordPreference(
             value = uiState.userKey,
             onValueChange = { viewModel.setUserKey(it) },
             title = { Text(stringResource(Res.string.snell_user_key)) },
-            icon = { Icon(vectorResource(Res.drawable.enhanced_encryption), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.enhanced_encryption,
+                    color = PreferenceMaskColors.IconCoral,
+                )
+            },
         )
     }
 
     item("category_options") {
         PreferenceCategory(text = { Text(stringResource(Res.string.settings)) })
     }
-    item("reuse") {
+    preferenceGroup {
         SwitchPreference(
             value = uiState.reuse,
             onValueChange = { viewModel.setReuse(it) },
             title = { Text(stringResource(Res.string.snell_reuse)) },
-            icon = { Icon(vectorResource(Res.drawable.grid_3x3), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.grid_3x3,
+                    color = PreferenceMaskColors.IconLightBlue,
+                )
+            },
         )
     }
 
     when (uiState.version) {
         SnellBean.VERSION_4 -> {
-            item("obfs_mode") {
+            preferenceGroup {
                 ListPreference(
                     value = uiState.obfsMode,
                     values = obfsModes,
                     onValueChange = { viewModel.setObfsMode(it) },
                     title = { Text(stringResource(Res.string.obfs_mode)) },
-                    icon = { Icon(vectorResource(Res.drawable.settings), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.settings,
+                            color = PreferenceMaskColors.IconLightGreen,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.obfsMode)) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(contentOrUnset(it)) },
                 )
-            }
-            item("obfs_host") {
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.obfsHost,
                     onValueChange = { viewModel.setObfsHost(it) },
                     title = { Text(stringResource(Res.string.http_host)) },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.router), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.router,
+                            color = PreferenceMaskColors.IconLightOrange,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.obfsHost)) },
                     valueToText = { it },
                 )
@@ -188,13 +230,18 @@ private fun LazyListScope.snellSettings(
         }
 
         SnellBean.VERSION_6 -> {
-            item("mode") {
+            preferenceGroup {
                 ListPreference(
                     value = snellModeText(uiState.mode),
                     values = snellModes,
                     onValueChange = { viewModel.setMode(it) },
                     title = { Text(stringResource(Res.string.snell_mode)) },
-                    icon = { Icon(vectorResource(Res.drawable.settings), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.settings,
+                            color = PreferenceMaskColors.IconLightGreen,
+                        )
+                    },
                     summary = { Text(snellModeText(uiState.mode)) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(it) },

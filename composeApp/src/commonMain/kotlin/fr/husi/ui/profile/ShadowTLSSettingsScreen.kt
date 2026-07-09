@@ -2,14 +2,18 @@ package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.PreferenceShapes
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
 import fr.husi.resources.allow_insecure
@@ -41,7 +45,6 @@ import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,13 +75,18 @@ private fun LazyListScope.shadowTlsSettings(
     uiState: ShadowTLSUiState,
     viewModel: ShadowTLSSettingsViewModel,
 ) {
-    item("name") {
+    preferenceGroup(key = "name") {
         TextFieldPreference(
             value = uiState.name,
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.emoji_symbols,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
@@ -87,43 +95,49 @@ private fun LazyListScope.shadowTlsSettings(
     item("category_proxy") {
         PreferenceCategory(text = { Text(stringResource(Res.string.proxy_cat)) })
     }
-    item("address") {
+    preferenceGroup(key = "address") {
         TextFieldPreference(
             value = uiState.address,
             onValueChange = { viewModel.setAddress(it) },
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.router), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
         )
-    }
-    item("port") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.port,
             onValueChange = { viewModel.setPort(it) },
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
-            icon = { Icon(vectorResource(Res.drawable.directions_boat), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.directions_boat,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
             textField = { value, onValueChange, onOk ->
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("protocol_version") {
+        PreferenceDivider()
         ListPreference(
             value = uiState.protocolVersion,
             values = listOf(2, 3),
             onValueChange = { viewModel.setProtocolVersion(it) },
             title = { Text(stringResource(Res.string.protocol_version)) },
-            icon = { Icon(vectorResource(Res.drawable.update), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.update, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(uiState.protocolVersion.toString()) },
             type = ListPreferenceType.DROPDOWN_MENU,
         )
-    }
-    item("password") {
+        PreferenceDivider()
         PasswordPreference(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },
@@ -133,71 +147,89 @@ private fun LazyListScope.shadowTlsSettings(
     item("category_tls") {
         PreferenceCategory(text = { Text(stringResource(Res.string.security_settings)) })
     }
-    item("server_name") {
+    preferenceGroup(key = "server_name") {
         TextFieldPreference(
             value = uiState.sni,
             onValueChange = { viewModel.setSni(it) },
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.copyright), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
         )
-    }
-    item("alpn") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.alpn,
             onValueChange = { viewModel.setAlpn(it) },
             title = { Text(stringResource(Res.string.alpn)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.toc), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.toc, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.alpn)) },
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("certificates") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.certificates,
             onValueChange = { viewModel.setCertificates(it) },
             title = { Text(stringResource(Res.string.certificates)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.vpn_key), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.vpn_key,
+                    color = PreferenceMaskColors.IconCyan,
+                    shape = PreferenceShapes.credential(),
+                )
+            },
             summary = { Text(contentOrUnset(uiState.certificates)) },
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("cert_public_key_sha256") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.certPublicKeySha256,
             onValueChange = { viewModel.setCertPublicKeySha256(it) },
             title = { Text(stringResource(Res.string.cert_public_key_sha256)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.wb_sunny), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.certPublicKeySha256)) },
             valueToText = { it },
         )
-    }
-    item("allow_insecure") {
+        PreferenceDivider()
         SwitchPreference(
             value = uiState.allowInsecure,
             onValueChange = { viewModel.setAllowInsecure(it) },
             title = { Text(stringResource(Res.string.allow_insecure)) },
-            icon = { Icon(vectorResource(Res.drawable.lock_open), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.lock_open,
+                    color = PreferenceMaskColors.IconCyan,
+                    shape = PreferenceShapes.risk(),
+                )
+            },
         )
-    }
-    item("utls_fingerprint") {
+        PreferenceDivider()
         ListPreference(
             value = uiState.utlsFingerprint,
             values = fingerprints,
             onValueChange = { viewModel.setUtlsFingerprint(it) },
             title = { Text(stringResource(Res.string.utls_fingerprint)) },
-            icon = { Icon(vectorResource(Res.drawable.fingerprint), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.fingerprint,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.utlsFingerprint)) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },

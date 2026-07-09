@@ -15,10 +15,13 @@ import androidx.compose.ui.unit.dp
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.UIntegerTextField
-import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.resources.Res
@@ -134,13 +137,18 @@ private fun LazyListScope.shadowsocksSettings(
     )
     val keyEnableMux = "enable_mux"
 
-    item("name") {
+    preferenceGroup(key = "name") {
         TextFieldPreference(
             value = uiState.name,
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.emoji_symbols,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
@@ -149,44 +157,53 @@ private fun LazyListScope.shadowsocksSettings(
     item("category_proxy") {
         PreferenceCategory(text = { Text(stringResource(Res.string.proxy_cat)) })
     }
-    item("address") {
+    preferenceGroup(key = "address") {
         TextFieldPreference(
             value = uiState.address,
             onValueChange = { viewModel.setAddress(it) },
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.router), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
         )
-    }
-    item("port") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.port,
             onValueChange = { viewModel.setPort(it) },
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 8388 },
-            icon = { Icon(vectorResource(Res.drawable.directions_boat), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.directions_boat,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
             textField = { value, onValueChange, onOk ->
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("method") {
+        PreferenceDivider()
         ListPreference(
             value = uiState.method,
             values = encryptionMethods,
             onValueChange = { viewModel.setMethod(it) },
             title = { Text(stringResource(Res.string.enc_method)) },
-            icon = { Icon(vectorResource(Res.drawable.enhanced_encryption), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.enhanced_encryption,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.method)) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-    }
-    item("password") {
+        PreferenceDivider()
         PasswordPreference(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },
@@ -196,7 +213,7 @@ private fun LazyListScope.shadowsocksSettings(
     item("category_mux") {
         PreferenceCategory(text = { Text(stringResource(Res.string.mux_preference)) })
     }
-    item(keyEnableMux) {
+    preferenceGroup(key = keyEnableMux) {
         SwitchPreference(
             value = uiState.enableMux,
             onValueChange = {
@@ -207,46 +224,73 @@ private fun LazyListScope.shadowsocksSettings(
             },
             title = { Text(stringResource(Res.string.enable_mux)) },
             summary = { Text(stringResource(Res.string.mux_sum)) },
-            icon = { Icon(vectorResource(Res.drawable.multiple_stop), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.multiple_stop,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
         )
-    }
-    item("mux") {
         androidx.compose.animation.AnimatedVisibility(visible = uiState.enableMux) {
             Column {
+                PreferenceDivider()
                 SwitchPreference(
                     value = uiState.brutal,
                     onValueChange = { viewModel.setBrutal(it) },
                     title = { Text(stringResource(Res.string.enable_brutal)) },
-                    icon = { Icon(vectorResource(Res.drawable.bolt), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.bolt,
+                            color = PreferenceMaskColors.IconCyan,
+                        )
+                    },
                     enabled = uiState.enableMux,
                 )
+                PreferenceDivider()
                 ListPreference(
                     value = uiState.muxType,
                     values = intListN(3),
                     onValueChange = { viewModel.setMuxType(it) },
                     title = { Text(stringResource(Res.string.mux_type)) },
-                    icon = { Icon(vectorResource(Res.drawable.type_specimen), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.type_specimen,
+                            color = PreferenceMaskColors.IconCyan,
+                        )
+                    },
                     summary = { Text(muxTypes[uiState.muxType]) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(muxTypes[it]) },
                 )
+                PreferenceDivider()
                 ListPreference(
                     value = uiState.muxStrategy,
                     values = intListN(3),
                     onValueChange = { viewModel.setMuxStrategy(it) },
                     title = { Text(stringResource(Res.string.mux_strategy)) },
-                    icon = { Icon(vectorResource(Res.drawable.view_in_ar), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.view_in_ar,
+                            color = PreferenceMaskColors.IconCyan,
+                        )
+                    },
                     summary = { Text(stringResource(muxStrategies[uiState.muxStrategy])) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(stringResource(muxStrategies[it])) },
                     enabled = !uiState.brutal,
                 )
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.muxNumber,
                     onValueChange = { viewModel.setMuxNumber(it) },
                     title = { Text(stringResource(Res.string.mux_number)) },
                     textToValue = { it.toIntOrNull() ?: 8 },
-                    icon = { Icon(vectorResource(Res.drawable.numbers), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.numbers,
+                            color = PreferenceMaskColors.IconCyan,
+                        )
+                    },
                     summary = { Text(uiState.muxNumber.toString()) },
                     valueToText = { it.toString() },
                     textField = { value, onValueChange, onOk ->
@@ -254,11 +298,17 @@ private fun LazyListScope.shadowsocksSettings(
                     },
                     enabled = !uiState.brutal,
                 )
+                PreferenceDivider()
                 SwitchPreference(
                     value = uiState.muxPadding,
                     onValueChange = { viewModel.setMuxPadding(it) },
                     title = { Text(stringResource(Res.string.padding)) },
-                    icon = { Icon(vectorResource(Res.drawable.border_inner), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.border_inner,
+                            color = PreferenceMaskColors.IconCyan,
+                        )
+                    },
                 )
             }
         }
@@ -267,26 +317,29 @@ private fun LazyListScope.shadowsocksSettings(
     item("category_plugin") {
         PreferenceCategory(text = { Text(stringResource(Res.string.plugin)) })
     }
-    item("plugin_name") {
+    preferenceGroup(key = "plugin_name") {
         ListPreference(
             value = uiState.pluginName,
             values = listOf("", "obfs-local", "v2ray-plugin"),
             onValueChange = { viewModel.setPluginName(it) },
             title = { Text(stringResource(Res.string.plugin)) },
-            icon = { Icon(vectorResource(Res.drawable.build), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.build, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.pluginName)) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-    }
-    item("plugin_config") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.pluginConfig,
             onValueChange = { viewModel.setPluginConfig(it) },
             title = { Text(stringResource(Res.string.plugin_configure)) },
             textToValue = { it },
             enabled = uiState.pluginName.isNotBlank(),
-            icon = { Icon(vectorResource(Res.drawable.settings), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.settings, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.pluginConfig)) },
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
@@ -319,11 +372,13 @@ private fun LazyListScope.shadowsocksSettings(
 
     item("category_experimental") {
         PreferenceCategory(
-            icon = { Icon(vectorResource(Res.drawable.grid_3x3), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.grid_3x3, color = PreferenceMaskColors.IconCyan)
+            },
             text = { Text(stringResource(Res.string.experimental_settings)) },
         )
     }
-    item("udp_over_tcp") {
+    preferenceGroup(key = "udp_over_tcp") {
         SwitchPreference(
             value = uiState.udpOverTcp,
             onValueChange = { viewModel.setUdpOverTcp(it) },

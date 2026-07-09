@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
@@ -16,7 +14,12 @@ import fr.husi.compose.HostTextField
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
 import fr.husi.resources.code
@@ -64,7 +67,6 @@ import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,13 +106,18 @@ private fun LazyListScope.naiveSettings(
         "reno",
     )
 
-    item("name") {
+    preferenceGroup(key = "name") {
         TextFieldPreference(
             value = uiState.name,
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.emoji_symbols,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
@@ -119,107 +126,120 @@ private fun LazyListScope.naiveSettings(
     item("category_proxy") {
         PreferenceCategory(text = { Text(stringResource(Res.string.proxy_cat)) })
     }
-    item("address") {
+    preferenceGroup(key = "address") {
         TextFieldPreference(
             value = uiState.address,
             onValueChange = { viewModel.setAddress(it) },
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.router), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
         )
-    }
-    item("port") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.port,
             onValueChange = { viewModel.setPort(it) },
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
-            icon = { Icon(vectorResource(Res.drawable.directions_boat), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.directions_boat,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
             textField = { value, onValueChange, onOk ->
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("username") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.username,
             onValueChange = { viewModel.setUsername(it) },
             title = { Text(stringResource(Res.string.username_opt)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.person), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
         )
-    }
-    item("password") {
+        PreferenceDivider()
         PasswordPreference(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },
             title = { Text(stringResource(Res.string.password_opt)) },
-            icon = { Icon(vectorResource(Res.drawable.password), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.password, color = PreferenceMaskColors.IconCyan)
+            },
         )
-    }
-    item("proto") {
+        PreferenceDivider()
         ListPreference(
             value = uiState.proto,
             values = protos,
             onValueChange = { viewModel.setProto(it) },
             title = { Text(stringResource(Res.string.protocol)) },
-            icon = { Icon(vectorResource(Res.drawable.https), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.https, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.proto)) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-    }
-    item("quic_congestion_control") {
+        PreferenceDivider()
         ListPreference(
             value = uiState.quicCongestionControl,
             values = quicCongestionControls,
             onValueChange = { viewModel.setQuicCongestionControl(it) },
             title = { Text(stringResource(Res.string.tuic_congestion_controller)) },
             enabled = uiState.proto == "quic",
-            icon = { Icon(vectorResource(Res.drawable.traffic), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.traffic, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.quicCongestionControl)) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-    }
-    item("sni") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.sni,
             onValueChange = { viewModel.setSni(it) },
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.copyright), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
         )
-    }
-    item("extra_headers") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.extraHeaders,
             onValueChange = { viewModel.setExtraHeaders(it) },
             title = { Text(stringResource(Res.string.extra_headers)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.code), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.code, color = PreferenceMaskColors.IconCyan)
+            },
             summary = { Text(contentOrUnset(uiState.extraHeaders)) },
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
                 HostTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("insecure_concurrency") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.insecureConcurrency,
             onValueChange = { viewModel.setInsecureConcurrency(it) },
             title = { Text(stringResource(Res.string.naive_insecure_concurrency)) },
             textToValue = { it.toIntOrNull() ?: 0 },
-            icon = { Icon(vectorResource(Res.drawable.speed), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.speed, color = PreferenceMaskColors.IconCyan)
+            },
             summary = {
                 val text = if (uiState.insecureConcurrency == 0) {
                     stringResource(Res.string.not_set)
@@ -239,14 +259,15 @@ private fun LazyListScope.naiveSettings(
                 }
             },
         )
-    }
-    item("tunnel_timeout") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.tunnelTimeout,
             onValueChange = { viewModel.setTunnelTimeout(it) },
             title = { Text(stringResource(Res.string.naive_tunnel_timeout)) },
             textToValue = { it.toIntOrNull() ?: 0 },
-            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
+            },
             summary = {
                 val text = if (uiState.tunnelTimeout == 0) {
                     stringResource(Res.string.not_set)
@@ -260,14 +281,15 @@ private fun LazyListScope.naiveSettings(
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("idle_timeout") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.idleTimeout,
             onValueChange = { viewModel.setIdleTimeout(it) },
             title = { Text(stringResource(Res.string.naive_idle_timeout)) },
             textToValue = { it.toIntOrNull() ?: 0 },
-            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
+            },
             summary = {
                 val text = if (uiState.idleTimeout == 0) {
                     stringResource(Res.string.not_set)
@@ -285,45 +307,51 @@ private fun LazyListScope.naiveSettings(
 
     item("category_experimental") {
         PreferenceCategory(
-            icon = { Icon(vectorResource(Res.drawable.grid_3x3), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.grid_3x3, color = PreferenceMaskColors.IconCyan)
+            },
             text = { Text(stringResource(Res.string.experimental_settings)) },
         )
     }
-    item("udp_over_tcp") {
+    preferenceGroup(key = "udp_over_tcp") {
         SwitchPreference(
             value = uiState.udpOverTcp,
             onValueChange = { viewModel.setUdpOverTcp(it) },
             title = { Text(stringResource(Res.string.udp_over_tcp)) },
             icon = { Spacer(Modifier.size(24.dp)) },
         )
-    }
-    item("no_post_quantum") {
+        PreferenceDivider()
         SwitchPreference(
             value = uiState.noPostQuantum,
             onValueChange = { viewModel.setNoPostQuantum(it) },
             title = { Text(stringResource(Res.string.disable_post_quantum)) },
-            icon = { Icon(vectorResource(Res.drawable.grain), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.grain, color = PreferenceMaskColors.IconCyan)
+            },
         )
     }
 
     item("category_ech") {
         PreferenceCategory(text = { Text(stringResource(Res.string.ech)) })
     }
-    item("ech") {
+    preferenceGroup(key = "ech") {
         SwitchPreference(
             value = uiState.enableEch,
             onValueChange = { viewModel.setEnableEch(it) },
             title = { Text(stringResource(Res.string.enable)) },
-            icon = { Icon(vectorResource(Res.drawable.security), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.security, color = PreferenceMaskColors.IconCyan)
+            },
         )
-    }
-    item("ech_config") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.echConfig,
             onValueChange = { viewModel.setEchConfig(it) },
             title = { Text(stringResource(Res.string.ech_config)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.nfc), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconCyan)
+            },
             enabled = uiState.enableEch,
             summary = { Text(contentOrUnset(uiState.echConfig)) },
             valueToText = { it },
@@ -331,14 +359,15 @@ private fun LazyListScope.naiveSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-    }
-    item("ech_query_server_name") {
+        PreferenceDivider()
         TextFieldPreference(
             value = uiState.echQueryServerName,
             onValueChange = { viewModel.setEchQueryServerName(it) },
             title = { Text(stringResource(Res.string.ech_query_server_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.search), null) },
+            icon = {
+                ProfilePreferenceIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
+            },
             enabled = uiState.enableEch,
             summary = { Text(contentOrUnset(uiState.echQueryServerName)) },
             valueToText = { it },

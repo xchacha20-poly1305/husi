@@ -1,8 +1,9 @@
 package fr.husi.ui
 
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.runtime.Composable
 
-internal expect fun LazyListScope.platformPluginPreferences(
+@Composable
+internal expect fun PlatformPluginPreferences(
     isExpert: Boolean,
     needRestart: () -> Unit
 )

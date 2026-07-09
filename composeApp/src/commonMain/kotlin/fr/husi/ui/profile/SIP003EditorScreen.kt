@@ -30,12 +30,17 @@ import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.PreferenceShapes
 import fr.husi.compose.PreferenceType
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
 import fr.husi.resources.apply
@@ -50,13 +55,13 @@ import fr.husi.resources.multiple_stop
 import fr.husi.resources.mux_number
 import fr.husi.resources.no
 import fr.husi.resources.numbers
+import fr.husi.resources.obfs_mode
 import fr.husi.resources.ok
 import fr.husi.resources.plugin
 import fr.husi.resources.question_mark
 import fr.husi.resources.router
 import fr.husi.resources.security
 import fr.husi.resources.sip003_editor
-import fr.husi.resources.obfs_mode
 import fr.husi.resources.sip003_pick_plugin_first
 import fr.husi.resources.tls
 import fr.husi.resources.unsaved_changes_prompt
@@ -176,25 +181,34 @@ private fun ObfsLocalForm(
         item("category", PreferenceType.CATEGORY) {
             PreferenceCategory(text = { Text(stringResource(Res.string.plugin)) })
         }
-        item(SIP003Keys.OBFS, PreferenceType.LIST) {
+        preferenceGroup {
             ListPreference(
                 value = uiState.obfs,
                 values = ObfsMode.entries,
                 onValueChange = viewModel::setObfs,
                 title = { Text(stringResource(Res.string.obfs_mode)) },
-                icon = { Icon(vectorResource(Res.drawable.enhanced_encryption), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.enhanced_encryption,
+                        color = PreferenceMaskColors.IconLightOrange,
+                    )
+                },
                 summary = { Text(uiState.obfs.value) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it.value) },
             )
-        }
-        item(SIP003Keys.OBFS_HOST, PreferenceType.TEXT_FIELD) {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.obfsHost,
                 onValueChange = viewModel::setObfsHost,
                 title = { Text(stringResource(Res.string.http_host)) },
                 textToValue = { it },
-                icon = { Icon(vectorResource(Res.drawable.router), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.router,
+                        color = PreferenceMaskColors.IconLightBlue,
+                    )
+                },
                 summary = { Text(contentOrUnset(uiState.obfsHost)) },
                 valueToText = { it },
             )
@@ -219,69 +233,95 @@ private fun V2RayPluginForm(
         item("category", PreferenceType.CATEGORY) {
             PreferenceCategory(text = { Text(stringResource(Res.string.plugin)) })
         }
-        item(SIP003Keys.TLS, PreferenceType.SWITCH) {
+        preferenceGroup {
             SwitchPreference(
                 value = uiState.tls,
                 onValueChange = viewModel::setTls,
                 title = { Text(stringResource(Res.string.tls)) },
-                icon = { Icon(vectorResource(Res.drawable.security), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.security,
+                        color = PreferenceMaskColors.IconCoral,
+                    )
+                },
             )
-        }
-        item(SIP003Keys.MODE, PreferenceType.LIST) {
+            PreferenceDivider()
             ListPreference(
                 value = uiState.mode,
                 values = V2RayMode.entries,
                 onValueChange = viewModel::setMode,
                 title = { Text(stringResource(Res.string.v2ray_transport)) },
-                icon = { Icon(vectorResource(Res.drawable.multiple_stop), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.multiple_stop,
+                        color = PreferenceMaskColors.IconLightGreen,
+                    )
+                },
                 summary = { Text(uiState.mode.value) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it.value) },
             )
-        }
-        item(SIP003Keys.HOST, PreferenceType.TEXT_FIELD) {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.host,
                 onValueChange = viewModel::setHost,
                 title = { Text(stringResource(Res.string.http_host)) },
                 textToValue = { it },
-                icon = { Icon(vectorResource(Res.drawable.router), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.router,
+                        color = PreferenceMaskColors.IconLightBlue,
+                    )
+                },
                 summary = { Text(contentOrUnset(uiState.host)) },
                 valueToText = { it },
             )
-        }
-        item(SIP003Keys.PATH, PreferenceType.TEXT_FIELD) {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.path,
                 onValueChange = viewModel::setPath,
                 title = { Text(stringResource(Res.string.http_path)) },
                 textToValue = { it },
-                icon = { Icon(vectorResource(Res.drawable.assistant_direction), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.assistant_direction,
+                        color = PreferenceMaskColors.IconLightOrange,
+                    )
+                },
                 summary = { Text(contentOrUnset(uiState.path)) },
                 valueToText = { it },
             )
-        }
-        item(SIP003Keys.MUX, PreferenceType.TEXT_FIELD) {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.mux,
                 onValueChange = viewModel::setMux,
                 title = { Text(stringResource(Res.string.mux_number)) },
                 textToValue = { it.toIntOrNull() ?: DEFAULT_V2RAY_MUX },
-                icon = { Icon(vectorResource(Res.drawable.numbers), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.numbers,
+                        color = PreferenceMaskColors.IconLavender,
+                    )
+                },
                 summary = { Text(uiState.mux.toString()) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
                 },
             )
-        }
-        item(SIP003Keys.CERT_RAW, PreferenceType.TEXT_FIELD) {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.certRaw,
                 onValueChange = viewModel::setCertRaw,
                 title = { Text(stringResource(Res.string.certificates)) },
                 textToValue = { it },
-                icon = { Icon(vectorResource(Res.drawable.vpn_key), null) },
+                icon = {
+                    ProfilePreferenceIcon(
+                        Res.drawable.vpn_key,
+                        color = PreferenceMaskColors.IconWarmGray,
+                        shape = PreferenceShapes.credential(),
+                    )
+                },
                 summary = { Text(contentOrUnset(uiState.certRaw)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->

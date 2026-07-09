@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -42,10 +41,13 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import fr.husi.compose.DurationTextField
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.fmt.internal.ProxySetBean
@@ -100,12 +102,10 @@ fun ProxySetSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: ProxySetSettingsViewModel = profileEditorViewModel(
-        profileId = profileId,
-        isSubscription = isSubscription,
-    ) {
-        ProxySetSettingsViewModel()
-    }
+    val viewModel: ProxySetSettingsViewModel =
+        profileEditorViewModel(profileId = profileId, isSubscription = isSubscription) {
+            ProxySetSettingsViewModel()
+        }
 
     ProfileSettingsScreenScaffold(
         title = Res.string.group_settings,
@@ -140,94 +140,84 @@ private fun LazyListScope.proxySetSettings(
     onAdd: () -> Unit,
     onReplace: (index: Int, profileId: Long) -> Unit,
 ) {
-    item("name") {
+    preferenceGroup {
         TextFieldPreference(
             value = uiState.name,
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+            icon = { ProfilePreferenceIcon(Res.drawable.emoji_symbols) },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
-    }
-    item("management") {
-        fun managementName(management: Int) = when (management) {
-            ProxySetBean.MANAGEMENT_SELECTOR -> Res.string.action_selector
-            ProxySetBean.MANAGEMENT_URLTEST -> Res.string.action_urltest
-            else -> error("impossible")
-        }
+        PreferenceDivider()
+        fun managementName(management: Int) =
+            when (management) {
+                ProxySetBean.MANAGEMENT_SELECTOR -> Res.string.action_selector
+                ProxySetBean.MANAGEMENT_URLTEST -> Res.string.action_urltest
+                else -> error("impossible")
+            }
         ListPreference(
             value = uiState.management,
             onValueChange = { viewModel.setManagement(it) },
             values = intListN(2),
             title = { Text(stringResource(Res.string.management)) },
-            icon = { Icon(vectorResource(Res.drawable.widgets), null) },
+            icon = { ProfilePreferenceIcon(Res.drawable.widgets) },
             summary = { Text(stringResource(managementName(uiState.management))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(managementName(it))) },
         )
-    }
-    item("interrupt_exist_connections") {
+        PreferenceDivider()
         SwitchPreference(
             value = uiState.interruptExistConnections,
             onValueChange = { viewModel.setInterruptExistConnections(it) },
             title = { Text(stringResource(Res.string.interrupt_exist_connections)) },
-            icon = { Icon(vectorResource(Res.drawable.stop), null) },
+            icon = { ProfilePreferenceIcon(Res.drawable.stop) },
         )
-    }
-    if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
-        item("test_url") {
+        if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testURL,
                 onValueChange = { viewModel.setTestURL(it) },
                 title = { Text(stringResource(Res.string.connection_test_url)) },
                 textToValue = { it },
-                icon = { Icon(vectorResource(Res.drawable.cast_connected), null) },
+                icon = { ProfilePreferenceIcon(Res.drawable.cast_connected) },
                 summary = { Text(contentOrUnset(uiState.testURL)) },
                 valueToText = { it },
             )
-        }
-        item("test_interval") {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testInterval,
                 onValueChange = { viewModel.setTestInterval(it) },
                 title = { Text(stringResource(Res.string.urltest_interval)) },
                 textToValue = { it },
-                icon = {
-                    Icon(
-                        vectorResource(Res.drawable.flip_camera_android),
-                        null,
-                    )
-                },
+                icon = { ProfilePreferenceIcon(Res.drawable.flip_camera_android) },
                 summary = { Text(contentOrUnset(uiState.testInterval)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     DurationTextField(value, onValueChange, onOk)
                 },
             )
-        }
-        item("idle_timeout") {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testIdleTimeout,
                 onValueChange = { viewModel.setTestIdleTimeout(it) },
                 title = { Text(stringResource(Res.string.idle_timeout)) },
                 textToValue = { it },
-                icon = { Icon(vectorResource(Res.drawable.photo_camera), null) },
+                icon = { ProfilePreferenceIcon(Res.drawable.photo_camera) },
                 summary = { Text(contentOrUnset(uiState.testIdleTimeout)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     DurationTextField(value, onValueChange, onOk)
                 },
             )
-        }
-        item("tolerance") {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testTolerance,
                 onValueChange = { viewModel.setTestTolerance(it) },
                 title = { Text(stringResource(Res.string.urltest_tolerance)) },
                 textToValue = { it.toIntOrNull() ?: 50 },
-                icon = { Icon(vectorResource(Res.drawable.emoji_emotions), null) },
+                icon = { ProfilePreferenceIcon(Res.drawable.emoji_emotions) },
                 summary = { Text(uiState.testTolerance.toString()) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -235,35 +225,35 @@ private fun LazyListScope.proxySetSettings(
                 },
             )
         }
-    }
-    item("type") {
-        fun typeName(type: Int) = when (type) {
-            ProxySetBean.TYPE_LIST -> Res.string.list
-            ProxySetBean.TYPE_GROUP -> Res.string.menu_group
-            else -> error("impossible")
-        }
+        PreferenceDivider()
+        fun typeName(type: Int) =
+            when (type) {
+                ProxySetBean.TYPE_LIST -> Res.string.list
+                ProxySetBean.TYPE_GROUP -> Res.string.menu_group
+                else -> error("impossible")
+            }
         ListPreference(
             value = uiState.collectType,
             onValueChange = { viewModel.setCollectType(it) },
             values = intListN(2),
             title = { Text(stringResource(Res.string.group_type)) },
-            icon = { Icon(vectorResource(Res.drawable.nfc), null) },
+            icon = { ProfilePreferenceIcon(Res.drawable.nfc) },
             summary = { Text(stringResource(typeName(uiState.collectType))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(typeName(it))) },
         )
-    }
-    if (uiState.collectType == ProxySetBean.TYPE_GROUP) {
-        item("group") {
+        if (uiState.collectType == ProxySetBean.TYPE_GROUP) {
+            PreferenceDivider()
             ListPreference(
                 value = uiState.groupID,
                 onValueChange = { viewModel.setGroupID(it) },
                 values = uiState.groups.keys.toList(),
                 title = { Text(stringResource(Res.string.menu_group)) },
-                icon = { Icon(vectorResource(Res.drawable.view_list), null) },
+                icon = { ProfilePreferenceIcon(Res.drawable.view_list) },
                 summary = {
-                    val text = uiState.groups[uiState.groupID]?.displayName()
-                        ?: stringResource(Res.string.not_set)
+                    val text =
+                        uiState.groups[uiState.groupID]?.displayName()
+                            ?: stringResource(Res.string.not_set)
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
@@ -273,115 +263,103 @@ private fun LazyListScope.proxySetSettings(
                     AnnotatedString(text)
                 },
             )
-        }
-        item("filter_not_regex") {
+            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.filterNotRegex,
                 onValueChange = { viewModel.setFilterNotRegex(it) },
                 title = { Text(stringResource(Res.string.filter_regex)) },
                 textToValue = { it },
-                icon = { Icon(vectorResource(Res.drawable.delete_sweep), null) },
+                icon = { ProfilePreferenceIcon(Res.drawable.delete_sweep) },
                 summary = { Text(contentOrUnset(uiState.filterNotRegex)) },
                 valueToText = { it },
             )
         }
-        return
     }
 
-    item("divider", 1) {
-        HorizontalDivider()
-    }
-
-    item("add_profile", 2) {
-        ElevatedCard(
-            onClick = onAdd,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            ),
-        ) {
-            Text(
-                text = stringResource(Res.string.add_profile),
-                modifier = Modifier.padding(16.dp),
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = FontWeight.Bold,
-                ),
-            )
-        }
-    }
-
-    item("list", 3) {
-        val density = LocalDensity.current
-        val windowInfo = LocalWindowInfo.current
-        val maxHeight =
-            with(density) { windowInfo.containerSize.height.toDp() }.takeIf { it > 0.dp }
-                ?: 480.dp
-        DragDropSwipeLazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeight),
-            items = uiState.profiles.toImmutableList(),
-            key = { it.id },
-            contentType = { 0 },
-            userScrollEnabled = false,
-            onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
-        ) { i, profile ->
-            val swipeState = rememberSwipeToDismissBoxState()
-            var visible by remember { mutableStateOf(true) }
-            DraggableSwipeableItem(
-                modifier = Modifier.animateDraggableSwipeableItem(),
-                colors = DraggableSwipeableItemColors.createRemembered(
-                    containerBackgroundColor = Color.Transparent,
-                    containerBackgroundColorWhileDragged = Color.Transparent,
-                ),
+    if (uiState.collectType != ProxySetBean.TYPE_GROUP) {
+        item("add_profile") {
+            ElevatedCard(
+                onClick = onAdd,
+                modifier = Modifier.fillMaxWidth().padding(4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ),
             ) {
-                AnimatedVisibility(
-                    visible = visible,
-                    exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(),
-                ) {
-                    SwipeToDismissBox(
-                        state = swipeState,
-                        enableDismissFromStartToEnd = true,
-                        enableDismissFromEndToStart = true,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.CenterEnd,
-                            ) {
-                                Icon(vectorResource(Res.drawable.delete), null)
-                            }
-                        },
-                        onDismiss = { value ->
-                            when (value) {
-                                SwipeToDismissBoxValue.StartToEnd,
-                                SwipeToDismissBoxValue.EndToStart,
-                                    -> visible = false
+                Text(
+                    text = stringResource(Res.string.add_profile),
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                )
+            }
+        }
 
-                                else -> {}
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .dragDropModifier(),
+        item("list") {
+            val density = LocalDensity.current
+            val windowInfo = LocalWindowInfo.current
+            val maxHeight =
+                with(density) { windowInfo.containerSize.height.toDp() }.takeIf { it > 0.dp }
+                    ?: 480.dp
+            DragDropSwipeLazyColumn(
+                modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight),
+                items = uiState.profiles.toImmutableList(),
+                key = { it.id },
+                contentType = { 0 },
+                userScrollEnabled = false,
+                onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
+            ) { i, profile ->
+                val swipeState = rememberSwipeToDismissBoxState()
+                var visible by remember { mutableStateOf(true) }
+                DraggableSwipeableItem(
+                    modifier = Modifier.animateDraggableSwipeableItem(),
+                    colors =
+                        DraggableSwipeableItemColors.createRemembered(
+                            containerBackgroundColor = Color.Transparent,
+                            containerBackgroundColorWhileDragged = Color.Transparent,
+                        ),
+                ) {
+                    AnimatedVisibility(
+                        visible = visible,
+                        exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(),
                     ) {
-                        ProxySetProfileCard(
-                            profile = profile,
-                            onReplace = { onReplace(i, profile.id) },
-                            onRemove = { viewModel.remove(i) },
-                        )
+                        SwipeToDismissBox(
+                            state = swipeState,
+                            enableDismissFromStartToEnd = true,
+                            enableDismissFromEndToStart = true,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                                    contentAlignment = Alignment.CenterEnd,
+                                ) {
+                                    Icon(vectorResource(Res.drawable.delete), null)
+                                }
+                            },
+                            onDismiss = { value ->
+                                when (value) {
+                                    SwipeToDismissBoxValue.StartToEnd,
+                                    SwipeToDismissBoxValue.EndToStart,
+                                        -> visible = false
+
+                                    else -> {}
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().dragDropModifier(),
+                        ) {
+                            ProxySetProfileCard(
+                                profile = profile,
+                                onReplace = { onReplace(i, profile.id) },
+                                onRemove = { viewModel.remove(i) },
+                            )
+                        }
                     }
                 }
-            }
-            LaunchedEffect(visible) {
-                if (!visible) {
-                    delay(220)
-                    viewModel.remove(i)
+                LaunchedEffect(visible) {
+                    if (!visible) {
+                        delay(220)
+                        viewModel.remove(i)
+                    }
                 }
             }
         }
@@ -389,29 +367,15 @@ private fun LazyListScope.proxySetSettings(
 }
 
 @Composable
-private fun ProxySetProfileCard(
-    profile: ProxyEntity,
-    onReplace: () -> Unit,
-    onRemove: () -> Unit,
-) {
+private fun ProxySetProfileCard(profile: ProxyEntity, onReplace: () -> Unit, onRemove: () -> Unit) {
     ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 4.dp),
-            ) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f).padding(vertical = 4.dp)) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -426,17 +390,19 @@ private fun ProxySetProfileCard(
                         onClick = onReplace,
                         icon = vectorResource(Res.drawable.edit),
                         contentDescription = stringResource(Res.string.edit),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     )
                     TooltipIconButton(
                         onClick = onRemove,
                         icon = vectorResource(Res.drawable.delete),
                         contentDescription = stringResource(Res.string.delete),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     )
                 }
 
@@ -444,13 +410,10 @@ private fun ProxySetProfileCard(
 
                 Text(
                     text = profile.displayType(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.outline,
                 )
-
             }
         }
     }

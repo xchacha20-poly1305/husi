@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -40,9 +39,11 @@ import androidx.compose.ui.unit.dp
 import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.ktx.contentOrUnset
@@ -70,12 +71,10 @@ fun ChainSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: ChainSettingsViewModel = profileEditorViewModel(
-        profileId = profileId,
-        isSubscription = isSubscription,
-    ) {
-        ChainSettingsViewModel()
-    }
+    val viewModel: ChainSettingsViewModel =
+        profileEditorViewModel(profileId = profileId, isSubscription = isSubscription) {
+            ChainSettingsViewModel()
+        }
 
     ProfileSettingsScreenScaffold(
         title = Res.string.chain_settings,
@@ -110,54 +109,42 @@ private fun LazyListScope.chainSettings(
     onAdd: () -> Unit,
     onReplace: (index: Int, profileId: Long) -> Unit,
 ) {
-    item("name", 0) {
+    preferenceGroup(key = "name") {
         TextFieldPreference(
             value = uiState.name,
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+            icon = { ProfilePreferenceIcon(Res.drawable.emoji_symbols) },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
     }
 
-    item("divider", 1) {
-        HorizontalDivider()
-    }
-
-    item("add_profile", 2) {
+    item("add_profile") {
         ElevatedCard(
             onClick = onAdd,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
+            modifier = Modifier.fillMaxWidth().padding(4.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            ),
+            colors =
+                CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         ) {
             Text(
                 text = stringResource(Res.string.add_profile),
                 modifier = Modifier.padding(16.dp),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = FontWeight.Bold,
-                ),
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
             )
         }
     }
 
-    item("list", 3) {
+    item("list") {
         val density = LocalDensity.current
         val windowInfo = LocalWindowInfo.current
         val maxHeight =
-            with(density) { windowInfo.containerSize.height.toDp() }.takeIf { it > 0.dp }
-                ?: 480.dp
+            with(density) { windowInfo.containerSize.height.toDp() }.takeIf { it > 0.dp } ?: 480.dp
         DragDropSwipeLazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeight),
+            modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight),
             items = uiState.profiles.toImmutableList(),
             key = { it.id },
             contentType = { 0 },
@@ -168,10 +155,11 @@ private fun LazyListScope.chainSettings(
             var visible by remember { mutableStateOf(true) }
             DraggableSwipeableItem(
                 modifier = Modifier.animateDraggableSwipeableItem(),
-                colors = DraggableSwipeableItemColors.createRemembered(
-                    containerBackgroundColor = Color.Transparent,
-                    containerBackgroundColorWhileDragged = Color.Transparent,
-                ),
+                colors =
+                    DraggableSwipeableItemColors.createRemembered(
+                        containerBackgroundColor = Color.Transparent,
+                        containerBackgroundColorWhileDragged = Color.Transparent,
+                    ),
             ) {
                 AnimatedVisibility(
                     visible = visible,
@@ -183,9 +171,7 @@ private fun LazyListScope.chainSettings(
                         enableDismissFromEndToStart = true,
                         backgroundContent = {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp),
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                                 contentAlignment = Alignment.CenterEnd,
                             ) {
                                 Icon(vectorResource(Res.drawable.delete), null)
@@ -200,9 +186,7 @@ private fun LazyListScope.chainSettings(
                                 else -> {}
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .dragDropModifier(),
+                        modifier = Modifier.fillMaxWidth().dragDropModifier(),
                     ) {
                         ChainProfileCard(
                             profile = profile,
@@ -223,29 +207,15 @@ private fun LazyListScope.chainSettings(
 }
 
 @Composable
-private fun ChainProfileCard(
-    profile: ProxyEntity,
-    onReplace: () -> Unit,
-    onRemove: () -> Unit,
-) {
+private fun ChainProfileCard(profile: ProxyEntity, onReplace: () -> Unit, onRemove: () -> Unit) {
     ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 4.dp),
-            ) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f).padding(vertical = 4.dp)) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -260,17 +230,19 @@ private fun ChainProfileCard(
                         onClick = onReplace,
                         icon = vectorResource(Res.drawable.edit),
                         contentDescription = stringResource(Res.string.edit),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     )
                     TooltipIconButton(
                         onClick = onRemove,
                         icon = vectorResource(Res.drawable.delete),
                         contentDescription = stringResource(Res.string.delete),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     )
                 }
 
@@ -278,13 +250,10 @@ private fun ChainProfileCard(
 
                 Text(
                     text = profile.displayType(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.outline,
                 )
-
             }
         }
     }

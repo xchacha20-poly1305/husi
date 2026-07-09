@@ -8,7 +8,10 @@ import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.ktx.onDefaultDispatcher
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.circular_reference
+import fr.husi.resources.circular_reference_sum
+import fr.husi.resources.duplicate_name
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

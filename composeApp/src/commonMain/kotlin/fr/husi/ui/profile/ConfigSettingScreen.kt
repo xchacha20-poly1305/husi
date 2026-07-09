@@ -29,10 +29,14 @@ import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.fmt.config.ConfigBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
@@ -76,21 +80,17 @@ fun ConfigSettingScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: ConfigSettingsViewModel = profileEditorViewModel(
-        profileId = profileId,
-        isSubscription = isSubscription,
-    ) {
-        ConfigSettingsViewModel()
-    }
+    val viewModel: ConfigSettingsViewModel =
+        profileEditorViewModel(profileId = profileId, isSubscription = isSubscription) {
+            ConfigSettingsViewModel()
+        }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
 
     var showBackAlert by remember { mutableStateOf(false) }
     var showDeleteAlert by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = isDirty) {
-        showBackAlert = true
-    }
+    BackHandler(enabled = isDirty) { showBackAlert = true }
 
     val resultKeyNumber = rememberSaveable {
         viewModel.editingId.takeIf { it >= 0L } ?: Random.nextLong()
@@ -101,11 +101,12 @@ fun ConfigSettingScreen(
         viewModel.setConfigForResult(result)
     }
 
-    val config = when (uiState.type) {
-        ConfigBean.TYPE_CONFIG -> uiState.customConfig
-        ConfigBean.TYPE_OUTBOUND -> uiState.customOutbound
-        else -> error("impossible")
-    }
+    val config =
+        when (uiState.type) {
+            ConfigBean.TYPE_CONFIG -> uiState.customConfig
+            ConfigBean.TYPE_OUTBOUND -> uiState.customOutbound
+            else -> error("impossible")
+        }
 
     val windowInsets = WindowInsets.safeDrawing
     Scaffold(
@@ -145,7 +146,8 @@ fun ConfigSettingScreen(
                         }
                     }
                 },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                windowInsets =
+                    windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
             )
         },
     ) { innerPadding ->
@@ -154,23 +156,24 @@ fun ConfigSettingScreen(
             Row(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(innerPadding),
+                    modifier = Modifier.weight(1f).fillMaxHeight().padding(innerPadding),
                 ) {
-                    item("name") {
+                    preferenceGroup(key = "settings") {
                         TextFieldPreference(
                             value = uiState.name,
                             onValueChange = { viewModel.setName(it) },
                             title = { Text(stringResource(Res.string.profile_name)) },
                             textToValue = { it },
-                            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.emoji_symbols,
+                                    color = PreferenceMaskColors.IconCyan,
+                                )
+                            },
                             summary = { Text(contentOrUnset(uiState.name)) },
                             valueToText = { it },
                         )
-                    }
-                    item("outbound_only") {
+                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.type == ConfigBean.TYPE_OUTBOUND,
                             onValueChange = {
@@ -183,20 +186,30 @@ fun ConfigSettingScreen(
                                 )
                             },
                             title = { Text(stringResource(Res.string.is_outbound_only)) },
-                            icon = { Icon(vectorResource(Res.drawable.outbond), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.outbond,
+                                    color = PreferenceMaskColors.IconLightYellow,
+                                )
+                            },
                         )
-                    }
-                    item("config") {
+                        PreferenceDivider()
                         Preference(
                             title = { Text(stringResource(Res.string.custom_config)) },
-                            icon = { Icon(vectorResource(Res.drawable.layers), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.layers,
+                                    color = PreferenceMaskColors.IconLavender,
+                                )
+                            },
                             summary = {
-                                val text = if (config.isBlank()) {
-                                    stringResource(Res.string.not_set)
-                                } else {
-                                    val count = config.count { it == '\n' } + 1
-                                    pluralStringResource(Res.plurals.lines, count, count)
-                                }
+                                val text =
+                                    if (config.isBlank()) {
+                                        stringResource(Res.string.not_set)
+                                    } else {
+                                        val count = config.count { it == '\n' } + 1
+                                        pluralStringResource(Res.plurals.lines, count, count)
+                                    }
                                 Text(text)
                             },
                             onClick = {
@@ -210,16 +223,17 @@ fun ConfigSettingScreen(
                         )
                     }
                     item("bottom_padding") {
-                        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                        Spacer(
+                            modifier =
+                                Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars),
+                        )
                     }
                 }
 
                 BoxedVerticalScrollbar(
                     modifier = Modifier.fillMaxHeight(),
                     adapter = rememberScrollbarAdapter(scrollState = listState),
-                    style = defaultMaterialScrollbarStyle().copy(
-                        thickness = 12.dp,
-                    ),
+                    style = defaultMaterialScrollbarStyle().copy(thickness = 12.dp),
                 )
             }
         }
@@ -234,11 +248,7 @@ fun ConfigSettingScreen(
                     onResult(true)
                 }
             },
-            dismissButton = {
-                TextButton(stringResource(Res.string.no)) {
-                    onResult(false)
-                }
-            },
+            dismissButton = { TextButton(stringResource(Res.string.no)) { onResult(false) } },
             icon = { Icon(vectorResource(Res.drawable.question_mark), null) },
             title = { Text(stringResource(Res.string.unsaved_changes_prompt)) },
         )
@@ -254,9 +264,7 @@ fun ConfigSettingScreen(
                 }
             },
             dismissButton = {
-                TextButton(stringResource(Res.string.cancel)) {
-                    showDeleteAlert = false
-                }
+                TextButton(stringResource(Res.string.cancel)) { showDeleteAlert = false }
             },
             icon = { Icon(vectorResource(Res.drawable.warning), null) },
             title = { Text(stringResource(Res.string.delete_confirm_prompt)) },

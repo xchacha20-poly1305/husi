@@ -2,9 +2,11 @@ package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
 import fr.husi.resources.emoji_symbols
@@ -13,7 +15,6 @@ import fr.husi.resources.profile_name
 import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,12 +24,10 @@ fun DirectSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: DirectSettingsViewModel = profileEditorViewModel(
-        profileId = profileId,
-        isSubscription = isSubscription,
-    ) {
-        DirectSettingsViewModel()
-    }
+    val viewModel: DirectSettingsViewModel =
+        profileEditorViewModel(profileId = profileId, isSubscription = isSubscription) {
+            DirectSettingsViewModel()
+        }
 
     ProfileSettingsScreenScaffold(
         title = Res.string.profile_config,
@@ -44,13 +43,18 @@ private fun LazyListScope.directSettings(
     uiState: DirectUiState,
     viewModel: DirectSettingsViewModel,
 ) {
-    item("name") {
+    preferenceGroup {
         TextFieldPreference(
             value = uiState.name,
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+            icon = {
+                ProfilePreferenceIcon(
+                    Res.drawable.emoji_symbols,
+                    color = PreferenceMaskColors.IconCyan,
+                )
+            },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )

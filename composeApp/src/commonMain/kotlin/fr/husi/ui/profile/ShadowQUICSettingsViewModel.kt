@@ -66,7 +66,10 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
                 subProtocol = subProtocol,
 
                 extraPaths = extraPaths,
-                maxPaths = maxPaths.coerceIn(0, extraPaths.lines().count { path -> path.isNotBlank() }),
+                maxPaths = maxPaths.coerceIn(
+                    0,
+                    extraPaths.lines().count { path -> path.isNotBlank() },
+                ),
                 certificates = certificates,
             )
         }
@@ -183,7 +186,10 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
         uiState.update { state ->
             state.copy(
                 extraPaths = extraPaths,
-                maxPaths = state.maxPaths.coerceIn(0, extraPaths.lines().count { path -> path.isNotBlank() }),
+                maxPaths = state.maxPaths.coerceIn(
+                    0,
+                    extraPaths.lines().count { path -> path.isNotBlank() },
+                ),
             )
         }
     }

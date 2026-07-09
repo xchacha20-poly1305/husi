@@ -12,7 +12,8 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.kxs
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.ok
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow

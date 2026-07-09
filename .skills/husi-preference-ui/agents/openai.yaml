@@ -1,0 +1,4 @@
+interface:
+  display_name: "Husi Preference UI"
+  short_description: "Preference cards, masks, and settings UI rules"
+  default_prompt: "Use $husi-preference-ui when editing Husi settings preferences or preference icon masks."

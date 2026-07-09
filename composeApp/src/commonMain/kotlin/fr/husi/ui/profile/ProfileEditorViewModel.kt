@@ -26,7 +26,6 @@ import fr.husi.resources.mux_max_connections
 import fr.husi.resources.mux_max_streams
 import fr.husi.resources.mux_min_streams
 import fr.husi.ui.StringOrRes
-import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -36,6 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 @Immutable
 internal sealed interface ProfileEditorUiEvent {

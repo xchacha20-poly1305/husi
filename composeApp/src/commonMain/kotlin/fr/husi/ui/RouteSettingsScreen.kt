@@ -52,12 +52,16 @@ import fr.husi.compose.DurationTextField
 import fr.husi.compose.MapPreference
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.compose.withNavigation
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
@@ -536,13 +540,18 @@ private fun RouteSettings(
             item("category_settings") {
                 PreferenceCategory(text = { Text(stringResource(Res.string.settings)) })
             }
-            item("domains") {
+            preferenceGroup {
                 TextFieldPreference(
                     value = uiState.domains,
                     onValueChange = { viewModel.setDomains(it) },
                     title = { Text("domain") },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.domain), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.domain,
+                            color = PreferenceMaskColors.IconCyan,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.domains)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -554,14 +563,18 @@ private fun RouteSettings(
                         )
                     },
                 )
-            }
-            item("ip") {
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.ip,
                     onValueChange = { viewModel.setIp(it) },
                     title = { Text("ip") },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.add_road), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.add_road,
+                            color = PreferenceMaskColors.IconLightBlue,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.ip)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -573,36 +586,43 @@ private fun RouteSettings(
                         )
                     },
                 )
-            }
-            item("port") {
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.port,
                     onValueChange = { viewModel.setPort(it) },
                     title = { Text("port") },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.directions_boat), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.directions_boat,
+                            color = PreferenceMaskColors.IconLightOrange,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.port)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-            }
-            item("source_port") {
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.sourcePort,
                     onValueChange = { viewModel.setSourcePort(it) },
                     title = { Text("sourcePort") },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.home), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.home,
+                            color = PreferenceMaskColors.IconLavender,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.sourcePort)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-            }
-            item("network") {
+                PreferenceDivider()
                 MultiSelectListPreference(
                     value = uiState.network,
                     onValueChange = { viewModel.setNetwork(it) },
@@ -612,7 +632,12 @@ private fun RouteSettings(
                         SingBoxOptions.NetworkICMP,
                     ),
                     title = { Text("network") },
-                    icon = { Icon(vectorResource(Res.drawable.compare_arrows), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.compare_arrows,
+                            color = PreferenceMaskColors.IconLightGreen,
+                        )
+                    },
                     summary = {
                         val text = if (uiState.network.isEmpty()) {
                             stringResource(Res.string.not_set)
@@ -623,28 +648,36 @@ private fun RouteSettings(
                     },
                     valueToText = { AnnotatedString(it) },
                 )
-            }
-            item("source") {
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.source,
                     onValueChange = { viewModel.setSource(it) },
                     title = { Text("source") },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.local_bar), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.local_bar,
+                            color = PreferenceMaskColors.IconCoral,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.source)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-            }
-            item("sniff_protocol") {
+                PreferenceDivider()
                 MultiSelectListPreference(
                     value = uiState.protocol,
                     onValueChange = { viewModel.setProtocol(it) },
                     values = sniffers,
                     title = { Text("protocol") },
-                    icon = { Icon(vectorResource(Res.drawable.layers), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.layers,
+                            color = PreferenceMaskColors.IconWarmGray,
+                        )
+                    },
                     summary = {
                         val text = if (uiState.protocol.isEmpty()) {
                             stringResource(Res.string.not_set)
@@ -655,46 +688,56 @@ private fun RouteSettings(
                     },
                     valueToText = { AnnotatedString(it) },
                 )
-            }
-            item("client") {
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.client,
                     onValueChange = { viewModel.setClient(it) },
                     title = { Text("client") },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.fingerprint), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.fingerprint,
+                            color = PreferenceMaskColors.IconLightPink,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.client)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-            }
-
-            val showWifi =
-                uiState.networkType.contains(SingBoxOptions.NETWORK_TYPE_WIFI)
-            if (showWifi) {
-                item("ssid") {
+                val showWifi = uiState.networkType.contains(SingBoxOptions.NETWORK_TYPE_WIFI)
+                if (showWifi) {
+                    PreferenceDivider()
                     TextFieldPreference(
                         value = uiState.ssid,
                         onValueChange = { viewModel.setSsid(it) },
                         title = { Text("SSID") },
                         textToValue = { it },
-                        icon = { Icon(vectorResource(Res.drawable.wifi), null) },
+                        icon = {
+                            ProfilePreferenceIcon(
+                                Res.drawable.wifi,
+                                color = PreferenceMaskColors.IconLightBlue,
+                            )
+                        },
                         summary = { Text(contentOrUnset(uiState.ssid)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
                             MultilineTextField(value, onValueChange, onOk)
                         },
                     )
-                }
-                item("bssid") {
+                    PreferenceDivider()
                     TextFieldPreference(
                         value = uiState.bssid,
                         onValueChange = { viewModel.setBssid(it) },
                         title = { Text("BSSID") },
                         textToValue = { it },
-                        icon = { Icon(vectorResource(Res.drawable.wifi_find), null) },
+                        icon = {
+                            ProfilePreferenceIcon(
+                                Res.drawable.wifi_find,
+                                color = PreferenceMaskColors.IconCyan,
+                            )
+                        },
                         summary = { Text(contentOrUnset(uiState.bssid)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -702,31 +745,37 @@ private fun RouteSettings(
                         },
                     )
                 }
-            }
-
-            item("clash_mode") {
+                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.clashMode,
                     onValueChange = { viewModel.setClashMode(it) },
                     title = { Text(stringResource(Res.string.clash_mode)) },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.category), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.category,
+                            color = PreferenceMaskColors.IconLightYellow,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.clashMode)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-            }
-            item("network_is_expensive") {
+                PreferenceDivider()
                 SwitchPreference(
                     value = uiState.networkIsExpensive,
                     onValueChange = { viewModel.setNetworkIsExpensive(it) },
                     title = { Text(stringResource(Res.string.network_expensive)) },
-                    icon = { Icon(vectorResource(Res.drawable.monetization_on), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.monetization_on,
+                            color = PreferenceMaskColors.IconCoral,
+                        )
+                    },
                 )
-            }
-            item("network_interface_address") {
+                PreferenceDivider()
                 MapPreference(
                     value = uiState.networkInterfaceAddress,
                     keys = LinkedHashSet(networkTypes),
@@ -735,7 +784,12 @@ private fun RouteSettings(
                     valueToText = { it },
                     textToValue = { it },
                     title = { Text("networkInterfaceAddress") },
-                    icon = { Icon(vectorResource(Res.drawable.local_airport), null) },
+                    icon = {
+                        ProfilePreferenceIcon(
+                            Res.drawable.local_airport,
+                            color = PreferenceMaskColors.IconLightGreen,
+                        )
+                    },
                     summary = { Text(uiState.networkInterfaceAddress.toString()) },
                 )
             }
@@ -745,7 +799,7 @@ private fun RouteSettings(
                     item(KEY_ACTION_OPTIONS) {
                         PreferenceCategory(text = { Text(stringResource(Res.string.menu_route)) })
                     }
-                    item("outbound") {
+                    preferenceGroup {
                         ListPreference(
                             value = uiState.outbound,
                             onValueChange = {
@@ -761,7 +815,12 @@ private fun RouteSettings(
                             },
                             values = outbounds,
                             title = { Text(stringResource(Res.string.outbound)) },
-                            icon = { Icon(vectorResource(Res.drawable.router), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.router,
+                                    color = PreferenceMaskColors.IconLightBlue,
+                                )
+                            },
                             summary = {
                                 val text = when (uiState.outbound) {
                                     RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
@@ -793,7 +852,7 @@ private fun RouteSettings(
                     item(KEY_ACTION_OPTIONS) {
                         PreferenceCategory(text = { Text(SingBoxOptions.ACTION_BYPASS) })
                     }
-                    item("fallback_outbound") {
+                    preferenceGroup {
                         ListPreference(
                             value = uiState.outbound,
                             onValueChange = {
@@ -809,7 +868,12 @@ private fun RouteSettings(
                             },
                             values = outbounds,
                             title = { Text(stringResource(Res.string.fallback_outbound)) },
-                            icon = { Icon(vectorResource(Res.drawable.router), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.router,
+                                    color = PreferenceMaskColors.IconLightBlue,
+                                )
+                            },
                             summary = {
                                 val text = when (uiState.outbound) {
                                     RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
@@ -841,44 +905,51 @@ private fun RouteSettings(
                     item(KEY_ACTION_OPTIONS) {
                         PreferenceCategory(text = { Text(stringResource(Res.string.route_options)) })
                     }
-                    item("override_address") {
+                    preferenceGroup {
                         TextFieldPreference(
                             value = uiState.overrideAddress,
                             onValueChange = { viewModel.setOverrideAddress(it) },
                             title = { Text(stringResource(Res.string.override_address)) },
                             textToValue = { it },
                             icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.location_on),
-                                    null,
+                                ProfilePreferenceIcon(
+                                    Res.drawable.location_on,
+                                    color = PreferenceMaskColors.IconCoral,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.overrideAddress)) },
                             valueToText = { it },
                         )
-                    }
-                    item("override_port") {
+                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.overridePort,
                             onValueChange = { viewModel.setOverridePort(it) },
                             title = { Text(stringResource(Res.string.override_port)) },
                             textToValue = { it.toIntOrNull() ?: 0 },
-                            icon = { Icon(vectorResource(Res.drawable.pin_drop), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.pin_drop,
+                                    color = PreferenceMaskColors.IconLightOrange,
+                                )
+                            },
                             summary = { Text(contentOrUnset(uiState.overridePort)) },
                             textField = { value, onValueChange, onOk ->
                                 UIntegerTextField(value, onValueChange, onOk)
                             },
                         )
-                    }
-                    item("tls_fragment") {
+                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.tlsFragment,
                             onValueChange = { viewModel.setTlsFragment(it) },
                             title = { Text(stringResource(Res.string.tls_fragment)) },
-                            icon = { Icon(vectorResource(Res.drawable.segment), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.segment,
+                                    color = PreferenceMaskColors.IconLightYellow,
+                                )
+                            },
                         )
-                    }
-                    item("tls_fragment_fallback_delay") {
+                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.tlsFragmentFallbackDelay,
                             onValueChange = { viewModel.setTlsFragmentFallbackDelay(it) },
@@ -886,9 +957,9 @@ private fun RouteSettings(
                             textToValue = { it },
                             enabled = uiState.tlsFragment,
                             icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.hourglass_top),
-                                    null,
+                                ProfilePreferenceIcon(
+                                    Res.drawable.hourglass_top,
+                                    color = PreferenceMaskColors.IconLightBlue,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
@@ -896,40 +967,47 @@ private fun RouteSettings(
                                 DurationTextField(value, onValueChange, onOk)
                             },
                         )
-                    }
-                    item("tls_record_fragment") {
+                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.tlsRecordFragment,
                             onValueChange = { viewModel.setTlsRecordFragment(it) },
                             title = { Text(stringResource(Res.string.tls_record_fragment)) },
                             icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.fiber_smart_record),
-                                    null,
+                                ProfilePreferenceIcon(
+                                    Res.drawable.fiber_smart_record,
+                                    color = PreferenceMaskColors.IconLavender,
                                 )
                             },
                         )
-                    }
-                    if (!PlatformInfo.isAndroid) {
-                        item("tls_spoof") {
+                        if (!PlatformInfo.isAndroid) {
+                            PreferenceDivider()
                             TextFieldPreference(
                                 value = uiState.tlsSpoof,
                                 onValueChange = { viewModel.setTlsSpoof(it) },
                                 title = { Text(stringResource(Res.string.tls_spoof)) },
                                 textToValue = { it },
-                                icon = { Icon(vectorResource(Res.drawable.domino_mask), null) },
+                                icon = {
+                                    ProfilePreferenceIcon(
+                                        Res.drawable.domino_mask,
+                                        color = PreferenceMaskColors.IconWarmGray,
+                                    )
+                                },
                                 summary = { Text(contentOrUnset(uiState.tlsSpoof)) },
                                 valueToText = { it },
                             )
-                        }
-                        item("tls_spoof_method") {
+                            PreferenceDivider()
                             ListPreference(
                                 value = uiState.tlsSpoofMethod,
                                 values = tlsSpoofMethod,
                                 onValueChange = { viewModel.setTlsSpoofMethod(it) },
                                 title = { Text(stringResource(Res.string.tls_spoof_method)) },
                                 enabled = uiState.tlsSpoof.isNotBlank(),
-                                icon = { Icon(vectorResource(Res.drawable.computer_cancel), null) },
+                                icon = {
+                                    ProfilePreferenceIcon(
+                                        Res.drawable.computer_cancel,
+                                        color = PreferenceMaskColors.IconCyan,
+                                    )
+                                },
                                 summary = { Text(contentOrUnset(uiState.tlsSpoofMethod)) },
                                 type = ListPreferenceType.DROPDOWN_MENU,
                                 valueToText = { AnnotatedString(it) },
@@ -942,7 +1020,7 @@ private fun RouteSettings(
                     item(KEY_ACTION_OPTIONS) {
                         PreferenceCategory(text = { Text("Resolve") })
                     }
-                    item("resolve_strategy") {
+                    preferenceGroup {
                         ListPreference(
                             value = uiState.resolveStrategy,
                             onValueChange = { viewModel.setResolveStrategy(it) },
@@ -954,7 +1032,12 @@ private fun RouteSettings(
                                 SingBoxOptions.STRATEGY_IPV6_ONLY,
                             ),
                             title = { Text("Resolve Strategy") },
-                            icon = { Icon(vectorResource(Res.drawable.dns), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.dns,
+                                    color = PreferenceMaskColors.IconLightBlue,
+                                )
+                            },
                             summary = {
                                 val text = uiState.resolveStrategy.blankAsNull()
                                     ?: stringResource(Res.string.auto)
@@ -963,22 +1046,30 @@ private fun RouteSettings(
                             type = ListPreferenceType.DROPDOWN_MENU,
                             valueToText = { AnnotatedString(it) },
                         )
-                    }
-                    item("disable_cache") {
+                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.resolveDisableCache,
                             onValueChange = { viewModel.setResolveDisableCache(it) },
                             title = { Text("Disable Cache") },
-                            icon = { Icon(vectorResource(Res.drawable.cached), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.cached,
+                                    color = PreferenceMaskColors.IconWarmGray,
+                                )
+                            },
                         )
-                    }
-                    item("rewrite_ttl") {
+                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.resolveRewriteTTL,
                             onValueChange = { viewModel.setResolveRewriteTTL(it) },
                             title = { Text("Rewrite TTL") },
                             textToValue = { it.toIntOrNull() ?: 0 },
-                            icon = { Icon(vectorResource(Res.drawable.timer), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.timer,
+                                    color = PreferenceMaskColors.IconLightOrange,
+                                )
+                            },
                             summary = {
                                 val text =
                                     uiState.resolveRewriteTTL.takeIf { it > 0 }?.toString()
@@ -989,14 +1080,18 @@ private fun RouteSettings(
                                 UIntegerTextField(value, onValueChange, onOk)
                             },
                         )
-                    }
-                    item("client_subnet") {
+                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.resolveClientSubnet,
                             onValueChange = { viewModel.setResolveClientSubnet(it) },
                             title = { Text("Client Subnet") },
                             textToValue = { it },
-                            icon = { Icon(vectorResource(Res.drawable.push_pin), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.push_pin,
+                                    color = PreferenceMaskColors.IconCoral,
+                                )
+                            },
                             summary = { Text(contentOrUnset(uiState.resolveClientSubnet)) },
                             valueToText = { it },
                         )
@@ -1007,26 +1102,35 @@ private fun RouteSettings(
                     item(KEY_ACTION_OPTIONS) {
                         PreferenceCategory(text = { Text(stringResource(Res.string.sniff)) })
                     }
-                    item("sniff_timeout") {
+                    preferenceGroup {
                         TextFieldPreference(
                             value = uiState.sniffTimeout,
                             onValueChange = { viewModel.setSniffTimeout(it) },
                             title = { Text(stringResource(Res.string.sniff_timeout)) },
                             textToValue = { it },
-                            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.timelapse,
+                                    color = PreferenceMaskColors.IconLightBlue,
+                                )
+                            },
                             summary = { Text(contentOrUnset(uiState.sniffTimeout)) },
                             textField = { value, onValueChange, onOk ->
                                 DurationTextField(value, onValueChange, onOk)
                             },
                         )
-                    }
-                    item("sniffers") {
+                        PreferenceDivider()
                         MultiSelectListPreference(
                             value = uiState.sniffers,
                             onValueChange = { viewModel.setSniffers(it) },
                             values = sniffers,
                             title = { Text("Sniffers") },
-                            icon = { Icon(vectorResource(Res.drawable.layers), null) },
+                            icon = {
+                                ProfilePreferenceIcon(
+                                    Res.drawable.layers,
+                                    color = PreferenceMaskColors.IconLavender,
+                                )
+                            },
                             summary = {
                                 val text = if (uiState.sniffers.isEmpty()) {
                                     stringResource(Res.string.not_set)

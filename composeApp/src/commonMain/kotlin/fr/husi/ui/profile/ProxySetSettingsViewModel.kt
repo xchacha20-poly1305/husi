@@ -11,7 +11,10 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.onDefaultDispatcher
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.circular_reference
+import fr.husi.resources.circular_reference_sum
+import fr.husi.resources.duplicate_name
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

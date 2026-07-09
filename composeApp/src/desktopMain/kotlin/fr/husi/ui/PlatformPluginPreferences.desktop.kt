@@ -8,10 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
@@ -37,10 +34,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceType
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Text
@@ -55,6 +52,7 @@ import fr.husi.resources.desktop_plugins
 import fr.husi.resources.folder_open
 import fr.husi.resources.ok
 import fr.husi.resources.select_file
+import fr.husi.resources.settings
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -66,17 +64,16 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.awt.datatransfer.DataFlavor
 import java.io.File
+import kotlin.enums.enumEntries
 
-internal actual fun LazyListScope.platformPluginPreferences(
+@Composable
+internal actual fun PlatformPluginPreferences(
     isExpert: Boolean,
     needRestart: () -> Unit,
 ) {
-    item("desktop_plugins_category", PreferenceType.CATEGORY) {
-        PreferenceCategory(text = { Text(stringResource(Res.string.desktop_plugins)) })
-    }
-    item("desktop_plugins_list") {
-        DesktopPluginPreferences()
-    }
+    if (!isExpert) return
+    PreferenceCategory(text = { Text(stringResource(Res.string.desktop_plugins)) })
+    DesktopPluginPreferences()
 }
 
 @Composable
@@ -84,7 +81,7 @@ private fun DesktopPluginPreferences() {
     val scope = rememberCoroutineScope()
     val plugins by SagerDatabase.pluginDao.getAll().collectAsStateWithLifecycle(emptyList())
     val pluginMap = remember(plugins) { plugins.associateBy { it.pluginId } }
-    val knownEntries = remember { enumValues<PluginEntry>().toList() }
+    val knownEntries = remember { enumEntries<PluginEntry>() }
 
     Column {
         for (entry in knownEntries) {
@@ -167,7 +164,9 @@ private fun PluginPathPreference(
                 shouldStartDragAndDrop = { it.hasFileList() },
                 target = rowDropTarget,
             ),
-        icon = { Spacer(Modifier.size(24.dp)) },
+        icon = {
+            ProfilePreferenceIcon(Res.drawable.settings, color = PreferenceMaskColors.IconWarmGray)
+        },
         summary = { Text(contentOrUnset(path)) },
         onClick = { openDialog = true },
     )

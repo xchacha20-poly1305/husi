@@ -44,7 +44,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -94,6 +93,7 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.TextButton
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.fadingEdge

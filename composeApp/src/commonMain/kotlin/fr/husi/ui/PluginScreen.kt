@@ -46,6 +46,7 @@ import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.SagerFab
@@ -73,6 +74,7 @@ import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import fr.husi.compose.preferenceGroup
 
 @Composable
 fun PluginScreen(
@@ -163,7 +165,12 @@ fun PluginScreen(
                     contentPadding = contentPadding,
                 ) {
                     installedPlugins(plugins, openPluginCard, uriHandler::openUri)
-                    platformPluginPreferences(isExpert, ::needRestart)
+                    item("plugin_category") {
+                        PreferenceCategory(text = { Text(stringResource(Res.string.plugin)) })
+                    }
+                    preferenceGroup {
+                        PlatformPluginPreferences(isExpert, ::needRestart)
+                    }
                 }
 
                 BoxedVerticalScrollbar(

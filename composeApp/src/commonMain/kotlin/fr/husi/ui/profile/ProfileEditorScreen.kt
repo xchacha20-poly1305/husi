@@ -297,7 +297,8 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
         showBackAlert = true
     }
 
-    val resultNumber = rememberSaveable { viewModel.editingId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val resultNumber =
+        rememberSaveable { viewModel.editingId.takeIf { it >= 0 } ?: Random.nextLong() }
     val configResultKey = remember { "config-edit-${resultNumber}" }
     val outboundConfigResultKey = remember { "outbound-config-edit-${resultNumber}" }
     ResultEffect<String?>(resultKey = configResultKey) { result ->
