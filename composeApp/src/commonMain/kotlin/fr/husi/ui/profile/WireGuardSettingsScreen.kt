@@ -9,7 +9,7 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
 import fr.husi.compose.PreferenceShapes
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -78,7 +78,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -98,7 +98,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.router,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -113,7 +113,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 51820 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconLightOrange,
                 )
@@ -131,7 +131,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.wireguard_local_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.domain,
                     color = PreferenceMaskColors.IconLavender,
                 )
@@ -148,7 +148,7 @@ private fun LazyListScope.wireGuardSettings(
             onValueChange = { viewModel.setPrivateKey(it) },
             title = { Text(stringResource(Res.string.ssh_private_key)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.vpn_key,
                     color = PreferenceMaskColors.IconLightGreen,
                     shape = PreferenceShapes.credential(),
@@ -162,7 +162,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.wireguard_public_key)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.publicKey)) },
             valueToText = { it },
@@ -173,7 +173,7 @@ private fun LazyListScope.wireGuardSettings(
             onValueChange = { viewModel.setPreSharedKey(it) },
             title = { Text(stringResource(Res.string.pre_shared_key)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.vpn_key,
                     color = PreferenceMaskColors.IconWarmGray,
                 )
@@ -186,7 +186,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.mtu)) },
             textToValue = { it.toIntOrNull() ?: 1420 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.public_icon,
                     color = PreferenceMaskColors.IconLightYellow,
                 )
@@ -204,7 +204,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.reserved)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.fingerprint,
                     color = PreferenceMaskColors.IconCoral,
                 )
@@ -222,7 +222,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.listen_port)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.stream,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -240,7 +240,7 @@ private fun LazyListScope.wireGuardSettings(
             title = { Text(stringResource(Res.string.persistent_keepalive_interval)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.replay,
                     color = PreferenceMaskColors.IconLightOrange,
                 )

@@ -54,7 +54,7 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
@@ -547,7 +547,7 @@ private fun RouteSettings(
                     title = { Text("domain") },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.domain,
                             color = PreferenceMaskColors.IconCyan,
                         )
@@ -570,7 +570,7 @@ private fun RouteSettings(
                     title = { Text("ip") },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.add_road,
                             color = PreferenceMaskColors.IconLightBlue,
                         )
@@ -593,7 +593,7 @@ private fun RouteSettings(
                     title = { Text("port") },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.directions_boat,
                             color = PreferenceMaskColors.IconLightOrange,
                         )
@@ -611,7 +611,7 @@ private fun RouteSettings(
                     title = { Text("sourcePort") },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.home,
                             color = PreferenceMaskColors.IconLavender,
                         )
@@ -633,7 +633,7 @@ private fun RouteSettings(
                     ),
                     title = { Text("network") },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.compare_arrows,
                             color = PreferenceMaskColors.IconLightGreen,
                         )
@@ -655,7 +655,7 @@ private fun RouteSettings(
                     title = { Text("source") },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.local_bar,
                             color = PreferenceMaskColors.IconCoral,
                         )
@@ -673,7 +673,7 @@ private fun RouteSettings(
                     values = sniffers,
                     title = { Text("protocol") },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.layers,
                             color = PreferenceMaskColors.IconWarmGray,
                         )
@@ -695,7 +695,7 @@ private fun RouteSettings(
                     title = { Text("client") },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.fingerprint,
                             color = PreferenceMaskColors.IconLightPink,
                         )
@@ -715,7 +715,7 @@ private fun RouteSettings(
                         title = { Text("SSID") },
                         textToValue = { it },
                         icon = {
-                            ProfilePreferenceIcon(
+                            MaskedIcon(
                                 Res.drawable.wifi,
                                 color = PreferenceMaskColors.IconLightBlue,
                             )
@@ -733,7 +733,7 @@ private fun RouteSettings(
                         title = { Text("BSSID") },
                         textToValue = { it },
                         icon = {
-                            ProfilePreferenceIcon(
+                            MaskedIcon(
                                 Res.drawable.wifi_find,
                                 color = PreferenceMaskColors.IconCyan,
                             )
@@ -752,7 +752,7 @@ private fun RouteSettings(
                     title = { Text(stringResource(Res.string.clash_mode)) },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.category,
                             color = PreferenceMaskColors.IconLightYellow,
                         )
@@ -769,7 +769,7 @@ private fun RouteSettings(
                     onValueChange = { viewModel.setNetworkIsExpensive(it) },
                     title = { Text(stringResource(Res.string.network_expensive)) },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.monetization_on,
                             color = PreferenceMaskColors.IconCoral,
                         )
@@ -785,7 +785,7 @@ private fun RouteSettings(
                     textToValue = { it },
                     title = { Text("networkInterfaceAddress") },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.local_airport,
                             color = PreferenceMaskColors.IconLightGreen,
                         )
@@ -816,7 +816,7 @@ private fun RouteSettings(
                             values = outbounds,
                             title = { Text(stringResource(Res.string.outbound)) },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.router,
                                     color = PreferenceMaskColors.IconLightBlue,
                                 )
@@ -869,7 +869,7 @@ private fun RouteSettings(
                             values = outbounds,
                             title = { Text(stringResource(Res.string.fallback_outbound)) },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.router,
                                     color = PreferenceMaskColors.IconLightBlue,
                                 )
@@ -912,7 +912,7 @@ private fun RouteSettings(
                             title = { Text(stringResource(Res.string.override_address)) },
                             textToValue = { it },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.location_on,
                                     color = PreferenceMaskColors.IconCoral,
                                 )
@@ -927,7 +927,7 @@ private fun RouteSettings(
                             title = { Text(stringResource(Res.string.override_port)) },
                             textToValue = { it.toIntOrNull() ?: 0 },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.pin_drop,
                                     color = PreferenceMaskColors.IconLightOrange,
                                 )
@@ -943,7 +943,7 @@ private fun RouteSettings(
                             onValueChange = { viewModel.setTlsFragment(it) },
                             title = { Text(stringResource(Res.string.tls_fragment)) },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.segment,
                                     color = PreferenceMaskColors.IconLightYellow,
                                 )
@@ -957,7 +957,7 @@ private fun RouteSettings(
                             textToValue = { it },
                             enabled = uiState.tlsFragment,
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.hourglass_top,
                                     color = PreferenceMaskColors.IconLightBlue,
                                 )
@@ -973,7 +973,7 @@ private fun RouteSettings(
                             onValueChange = { viewModel.setTlsRecordFragment(it) },
                             title = { Text(stringResource(Res.string.tls_record_fragment)) },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.fiber_smart_record,
                                     color = PreferenceMaskColors.IconLavender,
                                 )
@@ -987,7 +987,7 @@ private fun RouteSettings(
                                 title = { Text(stringResource(Res.string.tls_spoof)) },
                                 textToValue = { it },
                                 icon = {
-                                    ProfilePreferenceIcon(
+                                    MaskedIcon(
                                         Res.drawable.domino_mask,
                                         color = PreferenceMaskColors.IconWarmGray,
                                     )
@@ -1003,7 +1003,7 @@ private fun RouteSettings(
                                 title = { Text(stringResource(Res.string.tls_spoof_method)) },
                                 enabled = uiState.tlsSpoof.isNotBlank(),
                                 icon = {
-                                    ProfilePreferenceIcon(
+                                    MaskedIcon(
                                         Res.drawable.computer_cancel,
                                         color = PreferenceMaskColors.IconCyan,
                                     )
@@ -1033,7 +1033,7 @@ private fun RouteSettings(
                             ),
                             title = { Text("Resolve Strategy") },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.dns,
                                     color = PreferenceMaskColors.IconLightBlue,
                                 )
@@ -1052,7 +1052,7 @@ private fun RouteSettings(
                             onValueChange = { viewModel.setResolveDisableCache(it) },
                             title = { Text("Disable Cache") },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.cached,
                                     color = PreferenceMaskColors.IconWarmGray,
                                 )
@@ -1065,7 +1065,7 @@ private fun RouteSettings(
                             title = { Text("Rewrite TTL") },
                             textToValue = { it.toIntOrNull() ?: 0 },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.timer,
                                     color = PreferenceMaskColors.IconLightOrange,
                                 )
@@ -1087,7 +1087,7 @@ private fun RouteSettings(
                             title = { Text("Client Subnet") },
                             textToValue = { it },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.push_pin,
                                     color = PreferenceMaskColors.IconCoral,
                                 )
@@ -1109,7 +1109,7 @@ private fun RouteSettings(
                             title = { Text(stringResource(Res.string.sniff_timeout)) },
                             textToValue = { it },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.timelapse,
                                     color = PreferenceMaskColors.IconLightBlue,
                                 )
@@ -1126,7 +1126,7 @@ private fun RouteSettings(
                             values = sniffers,
                             title = { Text("Sniffers") },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.layers,
                                     color = PreferenceMaskColors.IconLavender,
                                 )

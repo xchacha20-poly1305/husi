@@ -8,7 +8,7 @@ import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -76,7 +76,7 @@ private fun LazyListScope.socksSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -101,7 +101,7 @@ private fun LazyListScope.socksSettings(
             onValueChange = { viewModel.setProtocol(it) },
             title = { Text(stringResource(Res.string.protocol_version)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconLightBlue)
+                MaskedIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconLightBlue)
             },
             summary = {
                 val text = when (uiState.protocol) {
@@ -129,7 +129,7 @@ private fun LazyListScope.socksSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.router,
                     color = PreferenceMaskColors.IconLightOrange,
                 )
@@ -144,7 +144,7 @@ private fun LazyListScope.socksSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 1080 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconLavender,
                 )
@@ -163,7 +163,7 @@ private fun LazyListScope.socksSettings(
                 title = { Text(stringResource(Res.string.username_opt)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.person,
                         color = PreferenceMaskColors.IconCyan,
                     )
@@ -177,7 +177,7 @@ private fun LazyListScope.socksSettings(
                 onValueChange = { viewModel.setPassword(it) },
                 title = { Text(stringResource(Res.string.password_opt)) },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.password,
                         color = PreferenceMaskColors.IconWarmGray,
                     )
@@ -189,7 +189,7 @@ private fun LazyListScope.socksSettings(
     item("category_experimental") {
         PreferenceCategory(
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.grid_3x3,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -203,7 +203,7 @@ private fun LazyListScope.socksSettings(
             onValueChange = { viewModel.setUdpOverTcp(it) },
             title = { Text(stringResource(Res.string.udp_over_tcp)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.grid_on, color = PreferenceMaskColors.IconCoral)
+                MaskedIcon(Res.drawable.grid_on, color = PreferenceMaskColors.IconCoral)
             },
         )
     }

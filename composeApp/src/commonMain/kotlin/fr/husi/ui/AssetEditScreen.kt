@@ -36,7 +36,7 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
@@ -227,7 +227,7 @@ internal fun AssetEditScreen(
                                     title = { Text(stringResource(Res.string.route_asset_name)) },
                                     textToValue = { it },
                                     icon = {
-                                        ProfilePreferenceIcon(
+                                        MaskedIcon(
                                             Res.drawable.emoji_symbols,
                                             color = PreferenceMaskColors.IconCyan,
                                         )
@@ -242,7 +242,7 @@ internal fun AssetEditScreen(
                                     title = { Text(stringResource(Res.string.url)) },
                                     textToValue = { it },
                                     icon = {
-                                        ProfilePreferenceIcon(
+                                        MaskedIcon(
                                             Res.drawable.link,
                                             color = PreferenceMaskColors.IconLightBlue,
                                         )
@@ -262,7 +262,7 @@ internal fun AssetEditScreen(
                                     },
                                     textToValue = { it.toIntOrNull() ?: 0 },
                                     icon = {
-                                        ProfilePreferenceIcon(
+                                        MaskedIcon(
                                             Res.drawable.timer,
                                             color = PreferenceMaskColors.IconLightOrange,
                                         )

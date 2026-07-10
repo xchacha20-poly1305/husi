@@ -8,7 +8,7 @@ import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -88,7 +88,7 @@ private fun LazyListScope.snellSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -108,7 +108,7 @@ private fun LazyListScope.snellSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.router,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -123,7 +123,7 @@ private fun LazyListScope.snellSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconLightOrange,
                 )
@@ -141,7 +141,7 @@ private fun LazyListScope.snellSettings(
             onValueChange = { viewModel.setVersion(it) },
             title = { Text(stringResource(Res.string.protocol_version)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.security,
                     color = PreferenceMaskColors.IconLavender,
                 )
@@ -156,7 +156,7 @@ private fun LazyListScope.snellSettings(
             onValueChange = { viewModel.setPsk(it) },
             title = { Text(stringResource(Res.string.pre_shared_key)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.password,
                     color = PreferenceMaskColors.IconWarmGray,
                 )
@@ -168,7 +168,7 @@ private fun LazyListScope.snellSettings(
             onValueChange = { viewModel.setUserKey(it) },
             title = { Text(stringResource(Res.string.snell_user_key)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.enhanced_encryption,
                     color = PreferenceMaskColors.IconCoral,
                 )
@@ -185,7 +185,7 @@ private fun LazyListScope.snellSettings(
             onValueChange = { viewModel.setReuse(it) },
             title = { Text(stringResource(Res.string.snell_reuse)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.grid_3x3,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -202,7 +202,7 @@ private fun LazyListScope.snellSettings(
                     onValueChange = { viewModel.setObfsMode(it) },
                     title = { Text(stringResource(Res.string.obfs_mode)) },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.settings,
                             color = PreferenceMaskColors.IconLightGreen,
                         )
@@ -218,7 +218,7 @@ private fun LazyListScope.snellSettings(
                     title = { Text(stringResource(Res.string.http_host)) },
                     textToValue = { it },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.router,
                             color = PreferenceMaskColors.IconLightOrange,
                         )
@@ -237,7 +237,7 @@ private fun LazyListScope.snellSettings(
                     onValueChange = { viewModel.setMode(it) },
                     title = { Text(stringResource(Res.string.snell_mode)) },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.settings,
                             color = PreferenceMaskColors.IconLightGreen,
                         )

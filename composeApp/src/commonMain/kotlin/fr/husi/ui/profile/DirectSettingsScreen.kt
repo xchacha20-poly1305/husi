@@ -4,7 +4,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
@@ -50,7 +50,7 @@ private fun LazyListScope.directSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )

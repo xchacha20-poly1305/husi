@@ -11,7 +11,7 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
 import fr.husi.compose.PreferenceShapes
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -108,7 +108,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -128,7 +128,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
@@ -140,7 +140,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -163,7 +163,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.idle_session_check_interval)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.idleSessionCheckInterval)) },
             valueToText = { it },
@@ -178,7 +178,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.idle_session_timeout)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.timer, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.timer, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.idleSessionTimeout)) },
             valueToText = { it },
@@ -193,7 +193,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.min_idle_session)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.gesture, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.gesture, color = PreferenceMaskColors.IconCyan)
             },
             summary = {
                 val text = if (uiState.minIdleSession == 0) {
@@ -219,7 +219,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
@@ -230,7 +230,7 @@ private fun LazyListScope.anyTlsSettings(
             onValueChange = { viewModel.setAllowInsecure(it) },
             title = { Text(stringResource(Res.string.allow_insecure)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.lock_open,
                     color = PreferenceMaskColors.IconCyan,
                     shape = PreferenceShapes.risk(),
@@ -244,7 +244,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.alpn)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.toc, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.toc, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.alpn)) },
             valueToText = { it },
@@ -259,7 +259,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.certificates)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.vpn_key,
                     color = PreferenceMaskColors.IconCyan,
                     shape = PreferenceShapes.credential(),
@@ -278,7 +278,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.cert_public_key_sha256)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.certPublicKeySha256)) },
             valueToText = { it },
@@ -293,7 +293,7 @@ private fun LazyListScope.anyTlsSettings(
             onValueChange = { viewModel.setUtlsFingerprint(it) },
             title = { Text(stringResource(Res.string.utls_fingerprint)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.fingerprint,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -311,7 +311,7 @@ private fun LazyListScope.anyTlsSettings(
                 title = { Text(stringResource(Res.string.tls_spoof)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.domino_mask,
                         color = PreferenceMaskColors.IconCyan,
                     )
@@ -327,7 +327,7 @@ private fun LazyListScope.anyTlsSettings(
                 title = { Text(stringResource(Res.string.tls_spoof_method)) },
                 enabled = uiState.tlsSpoof.isNotBlank(),
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.computer_cancel,
                         color = PreferenceMaskColors.IconCyan,
                     )
@@ -344,7 +344,7 @@ private fun LazyListScope.anyTlsSettings(
             onValueChange = { viewModel.setDisableSNI(it) },
             title = { Text(stringResource(Res.string.tuic_disable_sni)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.block, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.block, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -354,7 +354,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.tls_fragment)) },
             enabled = !uiState.tlsRecordFragment,
             icon = {
-                ProfilePreferenceIcon(Res.drawable.texture, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.texture, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -364,7 +364,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.tls_fragment_fallback_delay)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
             },
             enabled = uiState.tlsFragment,
             summary = { Text(contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
@@ -380,7 +380,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.tls_record_fragment)) },
             enabled = !uiState.tlsFragment,
             icon = {
-                ProfilePreferenceIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
             },
         )
     }
@@ -394,7 +394,7 @@ private fun LazyListScope.anyTlsSettings(
             onValueChange = { viewModel.setEch(it) },
             title = { Text(stringResource(Res.string.ech)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.security, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.security, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -404,7 +404,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.ech_config)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconCyan)
             },
             enabled = uiState.ech,
             summary = { Text(contentOrUnset(uiState.echConfig)) },
@@ -420,7 +420,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.ech_query_server_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
             },
             enabled = uiState.ech,
             summary = { Text(contentOrUnset(uiState.echQueryServerName)) },
@@ -438,7 +438,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.certificates)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.lock,
                     color = PreferenceMaskColors.IconCyan,
                     shape = PreferenceShapes.credential(),
@@ -457,7 +457,7 @@ private fun LazyListScope.anyTlsSettings(
             title = { Text(stringResource(Res.string.ssh_private_key)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.vpn_key,
                     color = PreferenceMaskColors.IconCyan,
                     shape = PreferenceShapes.credential(),

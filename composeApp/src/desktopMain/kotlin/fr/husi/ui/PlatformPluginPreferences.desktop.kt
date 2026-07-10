@@ -6,9 +6,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
@@ -35,12 +35,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.database.PluginEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
@@ -66,14 +67,15 @@ import java.awt.datatransfer.DataFlavor
 import java.io.File
 import kotlin.enums.enumEntries
 
-@Composable
-internal actual fun PlatformPluginPreferences(
-    isExpert: Boolean,
+internal actual fun LazyListScope.platformPluginPreferences(
     needRestart: () -> Unit,
 ) {
-    if (!isExpert) return
-    PreferenceCategory(text = { Text(stringResource(Res.string.desktop_plugins)) })
-    DesktopPluginPreferences()
+    item("desktop_plugins_category") {
+        PreferenceCategory(text = { Text(stringResource(Res.string.desktop_plugins)) })
+    }
+    preferenceGroup("desktop_plugins") {
+        DesktopPluginPreferences()
+    }
 }
 
 @Composable
@@ -83,20 +85,18 @@ private fun DesktopPluginPreferences() {
     val pluginMap = remember(plugins) { plugins.associateBy { it.pluginId } }
     val knownEntries = remember { enumEntries<PluginEntry>() }
 
-    Column {
-        for (entry in knownEntries) {
-            val current = pluginMap[entry.pluginId]
-            PluginPathPreference(
-                pluginId = entry.pluginId,
-                displayName = stringResource(entry.displayName),
-                current = current,
-                onUpdate = { pluginId, plugin ->
-                    scope.launch(Dispatchers.IO) {
-                        upsertPlugin(pluginId, plugin)
-                    }
-                },
-            )
-        }
+    for (entry in knownEntries) {
+        val current = pluginMap[entry.pluginId]
+        PluginPathPreference(
+            pluginId = entry.pluginId,
+            displayName = stringResource(entry.displayName),
+            current = current,
+            onUpdate = { pluginId, plugin ->
+                scope.launch(Dispatchers.IO) {
+                    upsertPlugin(pluginId, plugin)
+                }
+            },
+        )
     }
 }
 
@@ -165,7 +165,7 @@ private fun PluginPathPreference(
                 target = rowDropTarget,
             ),
         icon = {
-            ProfilePreferenceIcon(Res.drawable.settings, color = PreferenceMaskColors.IconWarmGray)
+            MaskedIcon(Res.drawable.settings, color = PreferenceMaskColors.IconWarmGray)
         },
         summary = { Text(contentOrUnset(path)) },
         onClick = { openDialog = true },

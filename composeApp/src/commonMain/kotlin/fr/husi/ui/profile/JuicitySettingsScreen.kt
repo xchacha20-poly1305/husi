@@ -8,7 +8,7 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
 import fr.husi.compose.PreferenceShapes
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -73,7 +73,7 @@ private fun LazyListScope.juicitySettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -93,7 +93,7 @@ private fun LazyListScope.juicitySettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.router,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -108,7 +108,7 @@ private fun LazyListScope.juicitySettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconLightOrange,
                 )
@@ -126,7 +126,7 @@ private fun LazyListScope.juicitySettings(
             title = { Text(stringResource(Res.string.uuid)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.person,
                     color = PreferenceMaskColors.IconLavender,
                 )
@@ -139,7 +139,7 @@ private fun LazyListScope.juicitySettings(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.password,
                     color = PreferenceMaskColors.IconWarmGray,
                 )
@@ -157,7 +157,7 @@ private fun LazyListScope.juicitySettings(
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
@@ -168,7 +168,7 @@ private fun LazyListScope.juicitySettings(
             onValueChange = { viewModel.setAllowInsecure(it) },
             title = { Text(stringResource(Res.string.allow_insecure)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.lock_open,
                     color = PreferenceMaskColors.IconLightBlue,
                     shape = PreferenceShapes.risk(),
@@ -182,7 +182,7 @@ private fun LazyListScope.juicitySettings(
             title = { Text(stringResource(Res.string.pinned_peer_certificate_chain_sha256)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.push_pin,
                     color = PreferenceMaskColors.IconLightOrange,
                 )

@@ -42,7 +42,7 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
@@ -146,7 +146,7 @@ private fun LazyListScope.proxySetSettings(
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { ProfilePreferenceIcon(Res.drawable.emoji_symbols) },
+            icon = { MaskedIcon(Res.drawable.emoji_symbols) },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
@@ -162,7 +162,7 @@ private fun LazyListScope.proxySetSettings(
             onValueChange = { viewModel.setManagement(it) },
             values = intListN(2),
             title = { Text(stringResource(Res.string.management)) },
-            icon = { ProfilePreferenceIcon(Res.drawable.widgets) },
+            icon = { MaskedIcon(Res.drawable.widgets) },
             summary = { Text(stringResource(managementName(uiState.management))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(managementName(it))) },
@@ -172,7 +172,7 @@ private fun LazyListScope.proxySetSettings(
             value = uiState.interruptExistConnections,
             onValueChange = { viewModel.setInterruptExistConnections(it) },
             title = { Text(stringResource(Res.string.interrupt_exist_connections)) },
-            icon = { ProfilePreferenceIcon(Res.drawable.stop) },
+            icon = { MaskedIcon(Res.drawable.stop) },
         )
         if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
             PreferenceDivider()
@@ -181,7 +181,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestURL(it) },
                 title = { Text(stringResource(Res.string.connection_test_url)) },
                 textToValue = { it },
-                icon = { ProfilePreferenceIcon(Res.drawable.cast_connected) },
+                icon = { MaskedIcon(Res.drawable.cast_connected) },
                 summary = { Text(contentOrUnset(uiState.testURL)) },
                 valueToText = { it },
             )
@@ -191,7 +191,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestInterval(it) },
                 title = { Text(stringResource(Res.string.urltest_interval)) },
                 textToValue = { it },
-                icon = { ProfilePreferenceIcon(Res.drawable.flip_camera_android) },
+                icon = { MaskedIcon(Res.drawable.flip_camera_android) },
                 summary = { Text(contentOrUnset(uiState.testInterval)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -204,7 +204,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestIdleTimeout(it) },
                 title = { Text(stringResource(Res.string.idle_timeout)) },
                 textToValue = { it },
-                icon = { ProfilePreferenceIcon(Res.drawable.photo_camera) },
+                icon = { MaskedIcon(Res.drawable.photo_camera) },
                 summary = { Text(contentOrUnset(uiState.testIdleTimeout)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -217,7 +217,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestTolerance(it) },
                 title = { Text(stringResource(Res.string.urltest_tolerance)) },
                 textToValue = { it.toIntOrNull() ?: 50 },
-                icon = { ProfilePreferenceIcon(Res.drawable.emoji_emotions) },
+                icon = { MaskedIcon(Res.drawable.emoji_emotions) },
                 summary = { Text(uiState.testTolerance.toString()) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -237,7 +237,7 @@ private fun LazyListScope.proxySetSettings(
             onValueChange = { viewModel.setCollectType(it) },
             values = intListN(2),
             title = { Text(stringResource(Res.string.group_type)) },
-            icon = { ProfilePreferenceIcon(Res.drawable.nfc) },
+            icon = { MaskedIcon(Res.drawable.nfc) },
             summary = { Text(stringResource(typeName(uiState.collectType))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(typeName(it))) },
@@ -249,7 +249,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setGroupID(it) },
                 values = uiState.groups.keys.toList(),
                 title = { Text(stringResource(Res.string.menu_group)) },
-                icon = { ProfilePreferenceIcon(Res.drawable.view_list) },
+                icon = { MaskedIcon(Res.drawable.view_list) },
                 summary = {
                     val text =
                         uiState.groups[uiState.groupID]?.displayName()
@@ -269,7 +269,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setFilterNotRegex(it) },
                 title = { Text(stringResource(Res.string.filter_regex)) },
                 textToValue = { it },
-                icon = { ProfilePreferenceIcon(Res.drawable.delete_sweep) },
+                icon = { MaskedIcon(Res.drawable.delete_sweep) },
                 summary = { Text(contentOrUnset(uiState.filterNotRegex)) },
                 valueToText = { it },
             )

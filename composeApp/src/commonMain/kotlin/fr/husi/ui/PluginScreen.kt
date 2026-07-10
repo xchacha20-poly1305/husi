@@ -46,13 +46,13 @@ import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
-import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.withNavigation
@@ -74,7 +74,6 @@ import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import fr.husi.compose.preferenceGroup
 
 @Composable
 fun PluginScreen(
@@ -165,12 +164,7 @@ fun PluginScreen(
                     contentPadding = contentPadding,
                 ) {
                     installedPlugins(plugins, openPluginCard, uriHandler::openUri)
-                    item("plugin_category") {
-                        PreferenceCategory(text = { Text(stringResource(Res.string.plugin)) })
-                    }
-                    preferenceGroup {
-                        PlatformPluginPreferences(isExpert, ::needRestart)
-                    }
+                    platformPluginPreferences(::needRestart)
                 }
 
                 BoxedVerticalScrollbar(
@@ -238,7 +232,12 @@ private fun LazyListScope.installedPlugins(
                 ) {
                     for (plugin in plugins) {
                         PluginCardItem(
-                            icon = { Icon(vectorResource(Res.drawable.nfc), null) },
+                            icon = {
+                                MaskedIcon(
+                                    Res.drawable.nfc,
+                                    color = PreferenceMaskColors.IconCyan,
+                                )
+                            },
                             title = stringResource(
                                 Res.string.version_x,
                                 plugin.id,
@@ -298,10 +297,7 @@ private fun PluginCardItem(
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier.size(24.dp),
-            contentAlignment = Alignment.Center,
-        ) {
+        Box(contentAlignment = Alignment.Center) {
             icon()
         }
         Spacer(Modifier.size(16.dp))

@@ -14,7 +14,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
@@ -49,7 +49,7 @@ internal actual fun AutoConnectPreference() {
         onValueChange = { DataStore.persistAcrossReboot = it },
         title = { Text(stringResource(Res.string.auto_connect)) },
         icon = {
-            ProfilePreferenceIcon(
+            MaskedIcon(
                 Res.drawable.phonelink_ring,
                 color = PreferenceMaskColors.IconLightPink,
             )
@@ -90,7 +90,7 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
         title = { Text(stringResource(Res.string.vpn_session_name)) },
         textToValue = { it },
         icon = {
-            ProfilePreferenceIcon(Res.drawable.label, color = PreferenceMaskColors.IconLightBlue)
+            MaskedIcon(Res.drawable.label, color = PreferenceMaskColors.IconLightBlue)
         },
         summary = {
             val text = value.ifBlank { stringResource(Res.string.vpn_session_name_summary) }
@@ -123,7 +123,7 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
         },
         title = { Text(stringResource(Res.string.allow_apps_bypass_vpn)) },
         icon = {
-            ProfilePreferenceIcon(Res.drawable.transform, color = PreferenceMaskColors.IconCyan)
+            MaskedIcon(Res.drawable.transform, color = PreferenceMaskColors.IconCyan)
         },
     )
 
@@ -138,7 +138,7 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
         },
         title = { Text(stringResource(Res.string.show_group_in_notification)) },
         icon = {
-            ProfilePreferenceIcon(Res.drawable.label, color = PreferenceMaskColors.IconLightPink)
+            MaskedIcon(Res.drawable.label, color = PreferenceMaskColors.IconLightPink)
         },
     )
 }
@@ -156,7 +156,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         },
         title = { Text(stringResource(Res.string.route_opt_bypass_lan)) },
         icon = {
-            ProfilePreferenceIcon(
+            MaskedIcon(
                 Res.drawable.legend_toggle,
                 color = PreferenceMaskColors.IconLightGreen,
             )
@@ -220,7 +220,7 @@ internal actual fun DisableProcessTextPreference() {
         },
         title = { Text(stringResource(Res.string.disable_process_text)) },
         icon = {
-            ProfilePreferenceIcon(
+            MaskedIcon(
                 Res.drawable.format_align_left,
                 color = PreferenceMaskColors.IconWarmGray,
             )

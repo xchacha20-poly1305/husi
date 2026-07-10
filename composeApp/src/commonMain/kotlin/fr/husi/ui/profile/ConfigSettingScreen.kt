@@ -31,7 +31,7 @@ import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Icon
@@ -165,7 +165,7 @@ fun ConfigSettingScreen(
                             title = { Text(stringResource(Res.string.profile_name)) },
                             textToValue = { it },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.emoji_symbols,
                                     color = PreferenceMaskColors.IconCyan,
                                 )
@@ -187,7 +187,7 @@ fun ConfigSettingScreen(
                             },
                             title = { Text(stringResource(Res.string.is_outbound_only)) },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.outbond,
                                     color = PreferenceMaskColors.IconLightYellow,
                                 )
@@ -197,7 +197,7 @@ fun ConfigSettingScreen(
                         Preference(
                             title = { Text(stringResource(Res.string.custom_config)) },
                             icon = {
-                                ProfilePreferenceIcon(
+                                MaskedIcon(
                                     Res.drawable.layers,
                                     color = PreferenceMaskColors.IconLavender,
                                 )

@@ -16,7 +16,7 @@ import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -113,7 +113,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -133,7 +133,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
@@ -145,7 +145,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -163,7 +163,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.username_opt)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
@@ -174,7 +174,7 @@ private fun LazyListScope.naiveSettings(
             onValueChange = { viewModel.setPassword(it) },
             title = { Text(stringResource(Res.string.password_opt)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.password, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.password, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -184,7 +184,7 @@ private fun LazyListScope.naiveSettings(
             onValueChange = { viewModel.setProto(it) },
             title = { Text(stringResource(Res.string.protocol)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.https, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.https, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.proto)) },
             type = ListPreferenceType.DROPDOWN_MENU,
@@ -198,7 +198,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.tuic_congestion_controller)) },
             enabled = uiState.proto == "quic",
             icon = {
-                ProfilePreferenceIcon(Res.drawable.traffic, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.traffic, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.quicCongestionControl)) },
             type = ListPreferenceType.DROPDOWN_MENU,
@@ -211,7 +211,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
@@ -223,7 +223,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.extra_headers)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.code, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.code, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.extraHeaders)) },
             valueToText = { it },
@@ -238,7 +238,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.naive_insecure_concurrency)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.speed, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.speed, color = PreferenceMaskColors.IconCyan)
             },
             summary = {
                 val text = if (uiState.insecureConcurrency == 0) {
@@ -266,7 +266,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.naive_tunnel_timeout)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
             },
             summary = {
                 val text = if (uiState.tunnelTimeout == 0) {
@@ -288,7 +288,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.naive_idle_timeout)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
             },
             summary = {
                 val text = if (uiState.idleTimeout == 0) {
@@ -308,7 +308,7 @@ private fun LazyListScope.naiveSettings(
     item("category_experimental") {
         PreferenceCategory(
             icon = {
-                ProfilePreferenceIcon(Res.drawable.grid_3x3, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.grid_3x3, color = PreferenceMaskColors.IconCyan)
             },
             text = { Text(stringResource(Res.string.experimental_settings)) },
         )
@@ -326,7 +326,7 @@ private fun LazyListScope.naiveSettings(
             onValueChange = { viewModel.setNoPostQuantum(it) },
             title = { Text(stringResource(Res.string.disable_post_quantum)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.grain, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.grain, color = PreferenceMaskColors.IconCyan)
             },
         )
     }
@@ -340,7 +340,7 @@ private fun LazyListScope.naiveSettings(
             onValueChange = { viewModel.setEnableEch(it) },
             title = { Text(stringResource(Res.string.enable)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.security, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.security, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -350,7 +350,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.ech_config)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconCyan)
             },
             enabled = uiState.enableEch,
             summary = { Text(contentOrUnset(uiState.echConfig)) },
@@ -366,7 +366,7 @@ private fun LazyListScope.naiveSettings(
             title = { Text(stringResource(Res.string.ech_query_server_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
             },
             enabled = uiState.enableEch,
             summary = { Text(contentOrUnset(uiState.echQueryServerName)) },

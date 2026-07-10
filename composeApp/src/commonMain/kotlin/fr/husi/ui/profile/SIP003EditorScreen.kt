@@ -34,7 +34,7 @@ import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
 import fr.husi.compose.PreferenceShapes
 import fr.husi.compose.PreferenceType
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
@@ -188,7 +188,7 @@ private fun ObfsLocalForm(
                 onValueChange = viewModel::setObfs,
                 title = { Text(stringResource(Res.string.obfs_mode)) },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.enhanced_encryption,
                         color = PreferenceMaskColors.IconLightOrange,
                     )
@@ -204,7 +204,7 @@ private fun ObfsLocalForm(
                 title = { Text(stringResource(Res.string.http_host)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.router,
                         color = PreferenceMaskColors.IconLightBlue,
                     )
@@ -239,7 +239,7 @@ private fun V2RayPluginForm(
                 onValueChange = viewModel::setTls,
                 title = { Text(stringResource(Res.string.tls)) },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.security,
                         color = PreferenceMaskColors.IconCoral,
                     )
@@ -252,7 +252,7 @@ private fun V2RayPluginForm(
                 onValueChange = viewModel::setMode,
                 title = { Text(stringResource(Res.string.v2ray_transport)) },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.multiple_stop,
                         color = PreferenceMaskColors.IconLightGreen,
                     )
@@ -268,7 +268,7 @@ private fun V2RayPluginForm(
                 title = { Text(stringResource(Res.string.http_host)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.router,
                         color = PreferenceMaskColors.IconLightBlue,
                     )
@@ -283,7 +283,7 @@ private fun V2RayPluginForm(
                 title = { Text(stringResource(Res.string.http_path)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.assistant_direction,
                         color = PreferenceMaskColors.IconLightOrange,
                     )
@@ -298,7 +298,7 @@ private fun V2RayPluginForm(
                 title = { Text(stringResource(Res.string.mux_number)) },
                 textToValue = { it.toIntOrNull() ?: DEFAULT_V2RAY_MUX },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.numbers,
                         color = PreferenceMaskColors.IconLavender,
                     )
@@ -316,7 +316,7 @@ private fun V2RayPluginForm(
                 title = { Text(stringResource(Res.string.certificates)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.vpn_key,
                         color = PreferenceMaskColors.IconWarmGray,
                         shape = PreferenceShapes.credential(),

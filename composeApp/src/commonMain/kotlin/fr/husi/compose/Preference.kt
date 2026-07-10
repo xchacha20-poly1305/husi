@@ -102,7 +102,7 @@ fun PasswordPreference(
     title: @Composable () -> Unit = { Text(stringResource(Res.string.password)) },
     enabled: Boolean = true,
     icon: @Composable (() -> Unit) = {
-        ProfilePreferenceIcon(
+        MaskedIcon(
             Res.drawable.password,
             color = PreferenceMaskColors.IconCoral,
         )
@@ -286,7 +286,7 @@ object PreferenceMaskColors {
 }
 
 @Composable
-private fun ColoredIconContainer(
+private fun IconMask(
     color: Color,
     shape: Shape = CircleShape,
     content: @Composable () -> Unit,
@@ -318,12 +318,12 @@ private fun Color.blend(other: Color, fraction: Float): Color {
 }
 
 @Composable
-fun ProfilePreferenceIcon(
+fun MaskedIcon(
     resource: DrawableResource,
     color: Color = PreferenceMaskColors.IconCyan,
     shape: Shape = CircleShape,
 ) {
-    ColoredIconContainer(
+    IconMask(
         color = color,
         shape = shape,
     ) {

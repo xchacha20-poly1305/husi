@@ -7,7 +7,7 @@ import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
@@ -70,7 +70,7 @@ private fun LazyListScope.vlessSettings(
             title = { Text(stringResource(Res.string.uuid)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.uuid)) },
             valueToText = { it },
@@ -82,7 +82,7 @@ private fun LazyListScope.vlessSettings(
             values = listOf("", "xtls-rprx-vision"),
             title = { Text(stringResource(Res.string.xtls_flow)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.stream,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -98,7 +98,7 @@ private fun LazyListScope.vlessSettings(
             title = { Text(stringResource(Res.string.encryption)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.encrypted,
                     color = PreferenceMaskColors.IconLightOrange,
                 )
@@ -122,7 +122,7 @@ private fun LazyListScope.vlessSettings(
             values = intListN(3),
             title = { Text(stringResource(Res.string.packet_encoding)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.outbox,
                     color = PreferenceMaskColors.IconLavender,
                 )

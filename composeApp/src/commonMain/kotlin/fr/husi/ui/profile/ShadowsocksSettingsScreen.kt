@@ -17,7 +17,7 @@ import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
@@ -144,7 +144,7 @@ private fun LazyListScope.shadowsocksSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -164,7 +164,7 @@ private fun LazyListScope.shadowsocksSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
@@ -176,7 +176,7 @@ private fun LazyListScope.shadowsocksSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 8388 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -194,7 +194,7 @@ private fun LazyListScope.shadowsocksSettings(
             onValueChange = { viewModel.setMethod(it) },
             title = { Text(stringResource(Res.string.enc_method)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.enhanced_encryption,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -225,7 +225,7 @@ private fun LazyListScope.shadowsocksSettings(
             title = { Text(stringResource(Res.string.enable_mux)) },
             summary = { Text(stringResource(Res.string.mux_sum)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.multiple_stop,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -239,7 +239,7 @@ private fun LazyListScope.shadowsocksSettings(
                     onValueChange = { viewModel.setBrutal(it) },
                     title = { Text(stringResource(Res.string.enable_brutal)) },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.bolt,
                             color = PreferenceMaskColors.IconCyan,
                         )
@@ -253,7 +253,7 @@ private fun LazyListScope.shadowsocksSettings(
                     onValueChange = { viewModel.setMuxType(it) },
                     title = { Text(stringResource(Res.string.mux_type)) },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.type_specimen,
                             color = PreferenceMaskColors.IconCyan,
                         )
@@ -269,7 +269,7 @@ private fun LazyListScope.shadowsocksSettings(
                     onValueChange = { viewModel.setMuxStrategy(it) },
                     title = { Text(stringResource(Res.string.mux_strategy)) },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.view_in_ar,
                             color = PreferenceMaskColors.IconCyan,
                         )
@@ -286,7 +286,7 @@ private fun LazyListScope.shadowsocksSettings(
                     title = { Text(stringResource(Res.string.mux_number)) },
                     textToValue = { it.toIntOrNull() ?: 8 },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.numbers,
                             color = PreferenceMaskColors.IconCyan,
                         )
@@ -304,7 +304,7 @@ private fun LazyListScope.shadowsocksSettings(
                     onValueChange = { viewModel.setMuxPadding(it) },
                     title = { Text(stringResource(Res.string.padding)) },
                     icon = {
-                        ProfilePreferenceIcon(
+                        MaskedIcon(
                             Res.drawable.border_inner,
                             color = PreferenceMaskColors.IconCyan,
                         )
@@ -324,7 +324,7 @@ private fun LazyListScope.shadowsocksSettings(
             onValueChange = { viewModel.setPluginName(it) },
             title = { Text(stringResource(Res.string.plugin)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.build, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.build, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.pluginName)) },
             type = ListPreferenceType.DROPDOWN_MENU,
@@ -338,7 +338,7 @@ private fun LazyListScope.shadowsocksSettings(
             textToValue = { it },
             enabled = uiState.pluginName.isNotBlank(),
             icon = {
-                ProfilePreferenceIcon(Res.drawable.settings, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.settings, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.pluginConfig)) },
             valueToText = { it },
@@ -373,7 +373,7 @@ private fun LazyListScope.shadowsocksSettings(
     item("category_experimental") {
         PreferenceCategory(
             icon = {
-                ProfilePreferenceIcon(Res.drawable.grid_3x3, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.grid_3x3, color = PreferenceMaskColors.IconCyan)
             },
             text = { Text(stringResource(Res.string.experimental_settings)) },
         )

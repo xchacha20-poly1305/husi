@@ -7,7 +7,7 @@ import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -77,7 +77,7 @@ private fun LazyListScope.vmessSettings(
             title = { Text(stringResource(Res.string.uuid)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.uuid)) },
             valueToText = { it },
@@ -89,7 +89,7 @@ private fun LazyListScope.vmessSettings(
             title = { Text(stringResource(Res.string.alter_id)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.alternate_email,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -107,7 +107,7 @@ private fun LazyListScope.vmessSettings(
             values = listOf("auto", "aes-128-gcm", "chacha20-poly1305", "none", "zero"),
             title = { Text(stringResource(Res.string.encryption)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.enhanced_encryption,
                     color = PreferenceMaskColors.IconLightOrange,
                 )
@@ -129,7 +129,7 @@ private fun LazyListScope.vmessSettings(
             values = intListN(3),
             title = { Text(stringResource(Res.string.packet_encoding)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.outbox,
                     color = PreferenceMaskColors.IconLavender,
                 )
@@ -148,7 +148,7 @@ private fun LazyListScope.vmessSettings(
         PreferenceCategory(
             text = { Text(stringResource(Res.string.experimental_settings)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.grid_3x3,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -161,7 +161,7 @@ private fun LazyListScope.vmessSettings(
             onValueChange = { viewModel.setAuthenticatedLength(it) },
             title = { Text(stringResource(Res.string.authenticated_length)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.security, color = PreferenceMaskColors.IconCoral)
+                MaskedIcon(Res.drawable.security, color = PreferenceMaskColors.IconCoral)
             },
             summary = { Text(stringResource(Res.string.experimental_authenticated_length)) },
         )

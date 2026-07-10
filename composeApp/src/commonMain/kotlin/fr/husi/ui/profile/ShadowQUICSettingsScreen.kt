@@ -15,7 +15,7 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
 import fr.husi.compose.PreferenceShapes
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -116,7 +116,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -136,7 +136,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
@@ -148,7 +148,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -174,7 +174,7 @@ private fun LazyListScope.shadowQuicSettings(
             onValueChange = { viewModel.setSubProtocol(it) },
             title = { Text(stringResource(Res.string.protocol)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     if (uiState.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
                         Res.drawable.brightness_4
                     } else {
@@ -193,7 +193,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.username)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.texture, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.texture, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
@@ -210,7 +210,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.alpn)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.toc, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.toc, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.alpn)) },
             valueToText = { it },
@@ -222,7 +222,7 @@ private fun LazyListScope.shadowQuicSettings(
             onValueChange = { viewModel.setCongestionControl(it) },
             title = { Text(stringResource(Res.string.tuic_congestion_controller)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.compare_arrows,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -238,7 +238,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
@@ -249,7 +249,7 @@ private fun LazyListScope.shadowQuicSettings(
             onValueChange = { viewModel.setZeroRTT(it) },
             title = { Text(stringResource(Res.string.tuic_reduce_rtt)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.flight_takeoff,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -262,7 +262,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.initial_mtu)) },
             textToValue = { it.toIntOrNull() ?: 1300 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.public_icon,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -280,7 +280,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.minimum_mtu)) },
             textToValue = { it.toIntOrNull() ?: 1290 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.developer_board,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -297,7 +297,7 @@ private fun LazyListScope.shadowQuicSettings(
             onValueChange = { viewModel.setUdpOverStream(it) },
             title = { Text(stringResource(Res.string.udp_over_stream)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.nat, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.nat, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -306,7 +306,7 @@ private fun LazyListScope.shadowQuicSettings(
             onValueChange = { viewModel.setGso(it) },
             title = { Text(stringResource(Res.string.gso)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.segment, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.segment, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -316,7 +316,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.persistent_keepalive_interval)) },
             textToValue = { it.toIntOrNull() ?: 0 },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.timer, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.timer, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.keepAliveInterval)) },
             valueToText = { it.toString() },
@@ -330,7 +330,7 @@ private fun LazyListScope.shadowQuicSettings(
             onValueChange = { viewModel.setMtuDiscovery(it) },
             title = { Text(stringResource(Res.string.mtu_discovery)) },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
             },
         )
         PreferenceDivider()
@@ -340,7 +340,7 @@ private fun LazyListScope.shadowQuicSettings(
             title = { Text(stringResource(Res.string.blackhole_detection)) },
             enabled = uiState.mtuDiscovery,
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.bug_report,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -356,7 +356,7 @@ private fun LazyListScope.shadowQuicSettings(
                 title = { Text(stringResource(Res.string.extra_paths)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.grid_on,
                         color = PreferenceMaskColors.IconCyan,
                     )
@@ -374,7 +374,7 @@ private fun LazyListScope.shadowQuicSettings(
                 title = { Text(stringResource(Res.string.certificates)) },
                 textToValue = { it },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.copyright,
                         color = PreferenceMaskColors.IconCyan,
                         shape = PreferenceShapes.credential(),
@@ -400,7 +400,7 @@ private fun LazyListScope.shadowQuicSettings(
                 valueSteps = currentPathCount.fastCoerceAtLeast(1) - 1,
                 enabled = currentPathCount > 0,
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.multiple_stop,
                         color = PreferenceMaskColors.IconCyan,
                     )

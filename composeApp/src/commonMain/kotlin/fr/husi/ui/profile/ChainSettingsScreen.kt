@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -115,7 +115,7 @@ private fun LazyListScope.chainSettings(
             onValueChange = { viewModel.setName(it) },
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
-            icon = { ProfilePreferenceIcon(Res.drawable.emoji_symbols) },
+            icon = { MaskedIcon(Res.drawable.emoji_symbols) },
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )

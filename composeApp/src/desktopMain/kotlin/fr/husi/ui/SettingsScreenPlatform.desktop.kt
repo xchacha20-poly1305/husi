@@ -7,7 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.DesktopAutoStart
 import fr.husi.Key
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.validateTunInterfaceName
@@ -40,7 +40,7 @@ internal actual fun AutoConnectPreference() {
         },
         title = { Text(stringResource(Res.string.auto_connect_desktop)) },
         icon = {
-            ProfilePreferenceIcon(
+            MaskedIcon(
                 Res.drawable.phonelink_ring,
                 color = PreferenceMaskColors.IconLightPink,
             )
@@ -70,7 +70,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         title = { Text(stringResource(Res.string.tun_interface_name)) },
         textToValue = { it },
         icon = {
-            ProfilePreferenceIcon(
+            MaskedIcon(
                 Res.drawable.arrow_and_edge,
                 color = PreferenceMaskColors.IconLightBlue,
             )
@@ -103,7 +103,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         },
         title = { Text(stringResource(Res.string.tun_strict_route)) },
         icon = {
-            ProfilePreferenceIcon(
+            MaskedIcon(
                 Res.drawable.arrow_and_edge,
                 color = PreferenceMaskColors.IconCyan,
             )
@@ -122,7 +122,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
             },
             title = { Text(stringResource(Res.string.tun_auto_redirect)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.arrow_and_edge,
                     color = PreferenceMaskColors.IconLightGreen,
                 )

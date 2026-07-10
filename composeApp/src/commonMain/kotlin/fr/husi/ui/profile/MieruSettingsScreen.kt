@@ -9,7 +9,7 @@ import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.ProfilePreferenceIcon
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -84,7 +84,7 @@ private fun LazyListScope.mieruSettings(
             title = { Text(stringResource(Res.string.profile_name)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.emoji_symbols,
                     color = PreferenceMaskColors.IconCyan,
                 )
@@ -104,7 +104,7 @@ private fun LazyListScope.mieruSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.router,
                     color = PreferenceMaskColors.IconLightBlue,
                 )
@@ -119,7 +119,7 @@ private fun LazyListScope.mieruSettings(
             title = { Text(stringResource(Res.string.server_port)) },
             textToValue = { it.toIntOrNull() ?: 443 },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.directions_boat,
                     color = PreferenceMaskColors.IconLightOrange,
                 )
@@ -137,7 +137,7 @@ private fun LazyListScope.mieruSettings(
             onValueChange = { viewModel.setProtocol(it) },
             title = { Text(stringResource(Res.string.protocol)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.compare_arrows,
                     color = PreferenceMaskColors.IconLavender,
                 )
@@ -153,7 +153,7 @@ private fun LazyListScope.mieruSettings(
             title = { Text(stringResource(Res.string.username)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
@@ -163,7 +163,7 @@ private fun LazyListScope.mieruSettings(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.vpn_key,
                     color = PreferenceMaskColors.IconWarmGray,
                 )
@@ -177,7 +177,7 @@ private fun LazyListScope.mieruSettings(
                 title = { Text(stringResource(Res.string.mtu)) },
                 textToValue = { it.toIntOrNull() ?: 1400 },
                 icon = {
-                    ProfilePreferenceIcon(
+                    MaskedIcon(
                         Res.drawable.public_icon,
                         color = PreferenceMaskColors.IconLightGreen,
                     )
@@ -196,7 +196,7 @@ private fun LazyListScope.mieruSettings(
             onValueChange = { viewModel.setMuxNumber(it) },
             title = { Text(stringResource(Res.string.mux_preference)) },
             icon = {
-                ProfilePreferenceIcon(
+                MaskedIcon(
                     Res.drawable.compare_arrows,
                     color = PreferenceMaskColors.IconLightYellow,
                 )
@@ -230,7 +230,7 @@ private fun LazyListScope.mieruSettings(
             title = { Text(stringResource(Res.string.traffic_pattern)) },
             textToValue = { it },
             icon = {
-                ProfilePreferenceIcon(Res.drawable.pattern, color = PreferenceMaskColors.IconCoral)
+                MaskedIcon(Res.drawable.pattern, color = PreferenceMaskColors.IconCoral)
             },
             summary = { Text(contentOrUnset(uiState.trafficPattern)) },
             valueToText = { it },
