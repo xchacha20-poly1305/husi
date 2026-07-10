@@ -28,13 +28,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.PreferenceShapes
 import fr.husi.compose.PreferenceType
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
@@ -190,7 +190,7 @@ private fun ObfsLocalForm(
                 icon = {
                     MaskedIcon(
                         Res.drawable.enhanced_encryption,
-                        color = PreferenceMaskColors.IconLightOrange,
+                        color = IconMaskColors.IconLightOrange,
                     )
                 },
                 summary = { Text(uiState.obfs.value) },
@@ -206,7 +206,7 @@ private fun ObfsLocalForm(
                 icon = {
                     MaskedIcon(
                         Res.drawable.router,
-                        color = PreferenceMaskColors.IconLightBlue,
+                        color = IconMaskColors.IconLightBlue,
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.obfsHost)) },
@@ -241,7 +241,7 @@ private fun V2RayPluginForm(
                 icon = {
                     MaskedIcon(
                         Res.drawable.security,
-                        color = PreferenceMaskColors.IconCoral,
+                        color = IconMaskColors.IconCoral,
                     )
                 },
             )
@@ -254,7 +254,7 @@ private fun V2RayPluginForm(
                 icon = {
                     MaskedIcon(
                         Res.drawable.multiple_stop,
-                        color = PreferenceMaskColors.IconLightGreen,
+                        color = IconMaskColors.IconLightGreen,
                     )
                 },
                 summary = { Text(uiState.mode.value) },
@@ -270,7 +270,7 @@ private fun V2RayPluginForm(
                 icon = {
                     MaskedIcon(
                         Res.drawable.router,
-                        color = PreferenceMaskColors.IconLightBlue,
+                        color = IconMaskColors.IconLightBlue,
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.host)) },
@@ -285,7 +285,7 @@ private fun V2RayPluginForm(
                 icon = {
                     MaskedIcon(
                         Res.drawable.assistant_direction,
-                        color = PreferenceMaskColors.IconLightOrange,
+                        color = IconMaskColors.IconLightOrange,
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.path)) },
@@ -299,8 +299,9 @@ private fun V2RayPluginForm(
                 textToValue = { it.toIntOrNull() ?: DEFAULT_V2RAY_MUX },
                 icon = {
                     MaskedIcon(
-                        Res.drawable.numbers,
-                        color = PreferenceMaskColors.IconLavender,
+                        resource = Res.drawable.numbers,
+                        color = IconMaskColors.IconLightYellow,
+                        shape = IconMaskShapes.route(),
                     )
                 },
                 summary = { Text(uiState.mux.toString()) },
@@ -318,8 +319,8 @@ private fun V2RayPluginForm(
                 icon = {
                     MaskedIcon(
                         Res.drawable.vpn_key,
-                        color = PreferenceMaskColors.IconWarmGray,
-                        shape = PreferenceShapes.credential(),
+                        color = IconMaskColors.IconWarmGray,
+                        shape = IconMaskShapes.credential(),
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.certRaw)) },

@@ -29,9 +29,10 @@ import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
-import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Icon
@@ -167,7 +168,7 @@ fun ConfigSettingScreen(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.emoji_symbols,
-                                    color = PreferenceMaskColors.IconCyan,
+                                    color = IconMaskColors.IconCyan,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.name)) },
@@ -188,8 +189,9 @@ fun ConfigSettingScreen(
                             title = { Text(stringResource(Res.string.is_outbound_only)) },
                             icon = {
                                 MaskedIcon(
-                                    Res.drawable.outbond,
-                                    color = PreferenceMaskColors.IconLightYellow,
+                                    resource = Res.drawable.outbond,
+                                    color = IconMaskColors.IconLightOrange,
+                                    shape = IconMaskShapes.credential(),
                                 )
                             },
                         )
@@ -198,8 +200,8 @@ fun ConfigSettingScreen(
                             title = { Text(stringResource(Res.string.custom_config)) },
                             icon = {
                                 MaskedIcon(
-                                    Res.drawable.layers,
-                                    color = PreferenceMaskColors.IconLavender,
+                                    resource = Res.drawable.layers,
+                                    color = IconMaskColors.IconLightYellow,
                                 )
                             },
                             summary = {

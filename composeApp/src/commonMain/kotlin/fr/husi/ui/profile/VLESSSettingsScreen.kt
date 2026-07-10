@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -70,7 +70,7 @@ private fun LazyListScope.vlessSettings(
             title = { Text(stringResource(Res.string.uuid)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.uuid)) },
             valueToText = { it },
@@ -84,7 +84,7 @@ private fun LazyListScope.vlessSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.stream,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
             summary = { Text(contentOrUnset(uiState.flow)) },
@@ -99,8 +99,8 @@ private fun LazyListScope.vlessSettings(
             textToValue = { it },
             icon = {
                 MaskedIcon(
-                    Res.drawable.encrypted,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    resource = Res.drawable.encrypted,
+                    color = IconMaskColors.IconCoral,
                 )
             },
             summary = { Text(contentOrUnset(uiState.encryption)) },
@@ -124,7 +124,7 @@ private fun LazyListScope.vlessSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.outbox,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
             summary = { Text(stringOrRes(packetEncodingName(uiState.packetEncoding))) },

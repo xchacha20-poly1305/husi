@@ -103,8 +103,8 @@ fun PasswordPreference(
     enabled: Boolean = true,
     icon: @Composable (() -> Unit) = {
         MaskedIcon(
-            Res.drawable.password,
-            color = PreferenceMaskColors.IconCoral,
+            resource = Res.drawable.password,
+            color = IconMaskColors.IconCoral,
         )
     },
 ) {
@@ -256,7 +256,7 @@ fun LazyListScope.preferenceGroup(
 }
 
 /** Inspired by Android system preference. */
-object PreferenceMaskColors {
+object IconMaskColors {
     // network
     val IconLightBlue = Color(0xFFD6E3FF)
 
@@ -320,7 +320,7 @@ private fun Color.blend(other: Color, fraction: Float): Color {
 @Composable
 fun MaskedIcon(
     resource: DrawableResource,
-    color: Color = PreferenceMaskColors.IconCyan,
+    color: Color = IconMaskColors.IconCyan,
     shape: Shape = CircleShape,
 ) {
     IconMask(
@@ -335,7 +335,7 @@ fun MaskedIcon(
     }
 }
 
-object PreferenceShapes {
+object IconMaskShapes {
     @Composable
     fun risk(): Shape = MaterialShapes.SoftBurst.toShape()
 

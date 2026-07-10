@@ -8,8 +8,8 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.PreferenceShapes
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
@@ -84,7 +84,7 @@ private fun LazyListScope.shadowTlsSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -102,7 +102,7 @@ private fun LazyListScope.shadowTlsSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.router, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
@@ -116,7 +116,7 @@ private fun LazyListScope.shadowTlsSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.port)) },
@@ -132,7 +132,7 @@ private fun LazyListScope.shadowTlsSettings(
             onValueChange = { viewModel.setProtocolVersion(it) },
             title = { Text(stringResource(Res.string.protocol_version)) },
             icon = {
-                MaskedIcon(Res.drawable.update, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.update, color = IconMaskColors.IconCyan)
             },
             summary = { Text(uiState.protocolVersion.toString()) },
             type = ListPreferenceType.DROPDOWN_MENU,
@@ -154,7 +154,7 @@ private fun LazyListScope.shadowTlsSettings(
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.copyright, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
@@ -166,7 +166,7 @@ private fun LazyListScope.shadowTlsSettings(
             title = { Text(stringResource(Res.string.alpn)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.toc, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.toc, color = IconMaskColors.IconLightBlue)
             },
             summary = { Text(contentOrUnset(uiState.alpn)) },
             valueToText = { it },
@@ -183,8 +183,8 @@ private fun LazyListScope.shadowTlsSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.vpn_key,
-                    color = PreferenceMaskColors.IconCyan,
-                    shape = PreferenceShapes.credential(),
+                    color = IconMaskColors.IconLightOrange,
+                    shape = IconMaskShapes.credential(),
                 )
             },
             summary = { Text(contentOrUnset(uiState.certificates)) },
@@ -200,7 +200,7 @@ private fun LazyListScope.shadowTlsSettings(
             title = { Text(stringResource(Res.string.cert_public_key_sha256)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.wb_sunny, IconMaskColors.IconLightYellow)
             },
             summary = { Text(contentOrUnset(uiState.certPublicKeySha256)) },
             valueToText = { it },
@@ -213,8 +213,8 @@ private fun LazyListScope.shadowTlsSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.lock_open,
-                    color = PreferenceMaskColors.IconCyan,
-                    shape = PreferenceShapes.risk(),
+                    color = IconMaskColors.IconCoral,
+                    shape = IconMaskShapes.risk(),
                 )
             },
         )
@@ -227,7 +227,7 @@ private fun LazyListScope.shadowTlsSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.fingerprint,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.utlsFingerprint)) },

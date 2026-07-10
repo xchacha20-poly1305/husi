@@ -37,8 +37,8 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.PreferenceShapes
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
@@ -300,7 +300,7 @@ private fun LazyListScope.groupSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -315,7 +315,7 @@ private fun LazyListScope.groupSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.layers,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
             summary = { Text(stringResource(groupType(uiState.type))) },
@@ -331,7 +331,7 @@ private fun LazyListScope.groupSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.low_priority,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
             summary = { Text(stringResource(groupOrder(uiState.order))) },
@@ -358,8 +358,8 @@ private fun LazyListScope.groupSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.low_priority,
-                    color = PreferenceMaskColors.IconLightBlue,
-                    shape = PreferenceShapes.route(),
+                    color = IconMaskColors.IconLightBlue,
+                    shape = IconMaskShapes.route(),
                 )
             },
             summary = {
@@ -392,8 +392,8 @@ private fun LazyListScope.groupSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.public_icon,
-                    color = PreferenceMaskColors.IconCyan,
-                    shape = PreferenceShapes.route(),
+                    color = IconMaskColors.IconCyan,
+                    shape = IconMaskShapes.route(),
                 )
             },
             summary = {
@@ -432,7 +432,7 @@ private fun LazyListScope.groupSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.nfc,
-                        color = PreferenceMaskColors.IconLightYellow,
+                        color = IconMaskColors.IconLightYellow,
                     )
                 },
                 summary = { Text(stringResource(subType(uiState.subscriptionType))) },
@@ -448,7 +448,7 @@ private fun LazyListScope.groupSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.link,
-                        color = PreferenceMaskColors.IconLightBlue,
+                        color = IconMaskColors.IconLightBlue,
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.subscriptionLink)) },
@@ -469,7 +469,7 @@ private fun LazyListScope.groupSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.security,
-                            color = PreferenceMaskColors.IconCoral,
+                            color = IconMaskColors.IconCoral,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.subscriptionAgeIdentity)) },
@@ -491,7 +491,7 @@ private fun LazyListScope.groupSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.vpn_key,
-                            color = PreferenceMaskColors.IconLavender,
+                            color = IconMaskColors.IconLavender,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.subscriptionToken)) },
@@ -510,7 +510,7 @@ private fun LazyListScope.groupSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.security,
-                        color = PreferenceMaskColors.IconLightYellow,
+                        color = IconMaskColors.IconLightYellow,
                     )
                 },
                 summary = { Text(stringResource(Res.string.update_when_connected_only_sum)) },
@@ -524,7 +524,7 @@ private fun LazyListScope.groupSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.grid_3x3,
-                        color = PreferenceMaskColors.IconCyan,
+                        color = IconMaskColors.IconCyan,
                     )
                 },
                 summary = {
@@ -541,7 +541,7 @@ private fun LazyListScope.groupSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.flip_camera_android,
-                        color = PreferenceMaskColors.IconLavender,
+                        color = IconMaskColors.IconLavender,
                     )
                 },
             )
@@ -555,7 +555,7 @@ private fun LazyListScope.groupSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.grid_3x3,
-                        color = PreferenceMaskColors.IconLightOrange,
+                        color = IconMaskColors.IconLightOrange,
                     )
                 },
                 summary = { Text(uiState.subscriptionUpdateDelay.toString()) },

@@ -53,7 +53,7 @@ import fr.husi.compose.MapPreference
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -549,7 +549,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.domain,
-                            color = PreferenceMaskColors.IconCyan,
+                            color = IconMaskColors.IconCyan,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.domains)) },
@@ -572,7 +572,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.add_road,
-                            color = PreferenceMaskColors.IconLightBlue,
+                            color = IconMaskColors.IconLightBlue,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.ip)) },
@@ -595,7 +595,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.directions_boat,
-                            color = PreferenceMaskColors.IconLightOrange,
+                            color = IconMaskColors.IconLightOrange,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.port)) },
@@ -613,7 +613,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.home,
-                            color = PreferenceMaskColors.IconLavender,
+                            color = IconMaskColors.IconLavender,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.sourcePort)) },
@@ -635,7 +635,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.compare_arrows,
-                            color = PreferenceMaskColors.IconLightGreen,
+                            color = IconMaskColors.IconLightGreen,
                         )
                     },
                     summary = {
@@ -657,7 +657,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.local_bar,
-                            color = PreferenceMaskColors.IconCoral,
+                            color = IconMaskColors.IconCoral,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.source)) },
@@ -675,7 +675,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.layers,
-                            color = PreferenceMaskColors.IconWarmGray,
+                            color = IconMaskColors.IconWarmGray,
                         )
                     },
                     summary = {
@@ -697,7 +697,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.fingerprint,
-                            color = PreferenceMaskColors.IconLightPink,
+                            color = IconMaskColors.IconLightPink,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.client)) },
@@ -717,7 +717,7 @@ private fun RouteSettings(
                         icon = {
                             MaskedIcon(
                                 Res.drawable.wifi,
-                                color = PreferenceMaskColors.IconLightBlue,
+                                color = IconMaskColors.IconLightBlue,
                             )
                         },
                         summary = { Text(contentOrUnset(uiState.ssid)) },
@@ -735,7 +735,7 @@ private fun RouteSettings(
                         icon = {
                             MaskedIcon(
                                 Res.drawable.wifi_find,
-                                color = PreferenceMaskColors.IconCyan,
+                                color = IconMaskColors.IconCyan,
                             )
                         },
                         summary = { Text(contentOrUnset(uiState.bssid)) },
@@ -754,7 +754,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.category,
-                            color = PreferenceMaskColors.IconLightYellow,
+                            color = IconMaskColors.IconLightYellow,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.clashMode)) },
@@ -771,7 +771,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.monetization_on,
-                            color = PreferenceMaskColors.IconCoral,
+                            color = IconMaskColors.IconCoral,
                         )
                     },
                 )
@@ -787,7 +787,7 @@ private fun RouteSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.local_airport,
-                            color = PreferenceMaskColors.IconLightGreen,
+                            color = IconMaskColors.IconLightGreen,
                         )
                     },
                     summary = { Text(uiState.networkInterfaceAddress.toString()) },
@@ -818,7 +818,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.router,
-                                    color = PreferenceMaskColors.IconLightBlue,
+                                    color = IconMaskColors.IconLightBlue,
                                 )
                             },
                             summary = {
@@ -871,7 +871,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.router,
-                                    color = PreferenceMaskColors.IconLightBlue,
+                                    color = IconMaskColors.IconLightBlue,
                                 )
                             },
                             summary = {
@@ -914,7 +914,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.location_on,
-                                    color = PreferenceMaskColors.IconCoral,
+                                    color = IconMaskColors.IconCoral,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.overrideAddress)) },
@@ -929,7 +929,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.pin_drop,
-                                    color = PreferenceMaskColors.IconLightOrange,
+                                    color = IconMaskColors.IconLightOrange,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.overridePort)) },
@@ -945,7 +945,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.segment,
-                                    color = PreferenceMaskColors.IconLightYellow,
+                                    color = IconMaskColors.IconLightYellow,
                                 )
                             },
                         )
@@ -959,7 +959,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.hourglass_top,
-                                    color = PreferenceMaskColors.IconLightBlue,
+                                    color = IconMaskColors.IconLightBlue,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
@@ -975,7 +975,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.fiber_smart_record,
-                                    color = PreferenceMaskColors.IconLavender,
+                                    color = IconMaskColors.IconLavender,
                                 )
                             },
                         )
@@ -989,7 +989,7 @@ private fun RouteSettings(
                                 icon = {
                                     MaskedIcon(
                                         Res.drawable.domino_mask,
-                                        color = PreferenceMaskColors.IconWarmGray,
+                                        color = IconMaskColors.IconWarmGray,
                                     )
                                 },
                                 summary = { Text(contentOrUnset(uiState.tlsSpoof)) },
@@ -1005,7 +1005,7 @@ private fun RouteSettings(
                                 icon = {
                                     MaskedIcon(
                                         Res.drawable.computer_cancel,
-                                        color = PreferenceMaskColors.IconCyan,
+                                        color = IconMaskColors.IconCyan,
                                     )
                                 },
                                 summary = { Text(contentOrUnset(uiState.tlsSpoofMethod)) },
@@ -1035,7 +1035,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.dns,
-                                    color = PreferenceMaskColors.IconLightBlue,
+                                    color = IconMaskColors.IconLightBlue,
                                 )
                             },
                             summary = {
@@ -1054,7 +1054,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.cached,
-                                    color = PreferenceMaskColors.IconWarmGray,
+                                    color = IconMaskColors.IconWarmGray,
                                 )
                             },
                         )
@@ -1067,7 +1067,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.timer,
-                                    color = PreferenceMaskColors.IconLightOrange,
+                                    color = IconMaskColors.IconLightOrange,
                                 )
                             },
                             summary = {
@@ -1089,7 +1089,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.push_pin,
-                                    color = PreferenceMaskColors.IconCoral,
+                                    color = IconMaskColors.IconCoral,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.resolveClientSubnet)) },
@@ -1111,7 +1111,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.timelapse,
-                                    color = PreferenceMaskColors.IconLightBlue,
+                                    color = IconMaskColors.IconLightBlue,
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.sniffTimeout)) },
@@ -1128,7 +1128,7 @@ private fun RouteSettings(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.layers,
-                                    color = PreferenceMaskColors.IconLavender,
+                                    color = IconMaskColors.IconLavender,
                                 )
                             },
                             summary = {

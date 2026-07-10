@@ -7,7 +7,7 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -15,7 +15,6 @@ import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
 import fr.husi.resources.code
 import fr.husi.resources.experimental_settings
-import fr.husi.resources.grid_3x3
 import fr.husi.resources.grid_on
 import fr.husi.resources.http_headers
 import fr.husi.resources.http_host
@@ -72,7 +71,7 @@ private fun LazyListScope.httpSettings(
             title = { Text(stringResource(Res.string.username_opt)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
@@ -85,7 +84,7 @@ private fun LazyListScope.httpSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.password,
-                    color = PreferenceMaskColors.IconWarmGray,
+                    color = IconMaskColors.IconWarmGray,
                 )
             },
         )
@@ -99,7 +98,7 @@ private fun LazyListScope.httpSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.language,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
             summary = { Text(contentOrUnset(uiState.host)) },
@@ -114,7 +113,7 @@ private fun LazyListScope.httpSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.route,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
             summary = { Text(contentOrUnset(uiState.path)) },
@@ -127,7 +126,7 @@ private fun LazyListScope.httpSettings(
             title = { Text(stringResource(Res.string.http_headers)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.code, color = PreferenceMaskColors.IconLavender)
+                MaskedIcon(Res.drawable.code, color = IconMaskColors.IconLavender)
             },
             summary = { Text(contentOrUnset(uiState.headers)) },
             valueToText = { it },
@@ -141,12 +140,6 @@ private fun LazyListScope.httpSettings(
 
     item("category_experimental") {
         PreferenceCategory(
-            icon = {
-                MaskedIcon(
-                    Res.drawable.grid_3x3,
-                    color = PreferenceMaskColors.IconLightBlue,
-                )
-            },
             text = { Text(stringResource(Res.string.experimental_settings)) },
         )
     }
@@ -156,7 +149,7 @@ private fun LazyListScope.httpSettings(
             onValueChange = { viewModel.setUdpOverTcp(it) },
             title = { Text(stringResource(Res.string.udp_over_tcp)) },
             icon = {
-                MaskedIcon(Res.drawable.grid_on, color = PreferenceMaskColors.IconCoral)
+                MaskedIcon(Res.drawable.grid_on, color = IconMaskColors.IconCoral)
             },
         )
     }

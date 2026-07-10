@@ -1,5 +1,6 @@
 package fr.husi.ui.profile
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,12 +13,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
@@ -36,7 +38,6 @@ import fr.husi.resources.enable_mux
 import fr.husi.resources.enc_method
 import fr.husi.resources.enhanced_encryption
 import fr.husi.resources.experimental_settings
-import fr.husi.resources.grid_3x3
 import fr.husi.resources.multiple_stop
 import fr.husi.resources.mux_number
 import fr.husi.resources.mux_preference
@@ -146,7 +147,7 @@ private fun LazyListScope.shadowsocksSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -164,7 +165,7 @@ private fun LazyListScope.shadowsocksSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.router, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
@@ -178,7 +179,7 @@ private fun LazyListScope.shadowsocksSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.port)) },
@@ -196,7 +197,7 @@ private fun LazyListScope.shadowsocksSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.enhanced_encryption,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.method)) },
@@ -227,11 +228,11 @@ private fun LazyListScope.shadowsocksSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.multiple_stop,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconLightPink,
                 )
             },
         )
-        androidx.compose.animation.AnimatedVisibility(visible = uiState.enableMux) {
+        AnimatedVisibility(visible = uiState.enableMux) {
             Column {
                 PreferenceDivider()
                 SwitchPreference(
@@ -240,22 +241,22 @@ private fun LazyListScope.shadowsocksSettings(
                     title = { Text(stringResource(Res.string.enable_brutal)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.bolt,
-                            color = PreferenceMaskColors.IconCyan,
+                            resource = Res.drawable.bolt,
+                            color = IconMaskColors.IconCoral,
+                            shape = IconMaskShapes.risk(),
                         )
                     },
-                    enabled = uiState.enableMux,
                 )
                 PreferenceDivider()
                 ListPreference(
                     value = uiState.muxType,
-                    values = intListN(3),
+                    values = intListN(muxTypes.size),
                     onValueChange = { viewModel.setMuxType(it) },
                     title = { Text(stringResource(Res.string.mux_type)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.type_specimen,
-                            color = PreferenceMaskColors.IconCyan,
+                            resource = Res.drawable.type_specimen,
+                            color = IconMaskColors.IconLightGreen,
                         )
                     },
                     summary = { Text(muxTypes[uiState.muxType]) },
@@ -265,13 +266,13 @@ private fun LazyListScope.shadowsocksSettings(
                 PreferenceDivider()
                 ListPreference(
                     value = uiState.muxStrategy,
-                    values = intListN(3),
+                    values = intListN(muxStrategies.size),
                     onValueChange = { viewModel.setMuxStrategy(it) },
                     title = { Text(stringResource(Res.string.mux_strategy)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.view_in_ar,
-                            color = PreferenceMaskColors.IconCyan,
+                            resource = Res.drawable.view_in_ar,
+                            color = IconMaskColors.IconWarmGray,
                         )
                     },
                     summary = { Text(stringResource(muxStrategies[uiState.muxStrategy])) },
@@ -284,18 +285,16 @@ private fun LazyListScope.shadowsocksSettings(
                     value = uiState.muxNumber,
                     onValueChange = { viewModel.setMuxNumber(it) },
                     title = { Text(stringResource(Res.string.mux_number)) },
-                    textToValue = { it.toIntOrNull() ?: 8 },
+                    textToValue = { it.toIntOrNull() ?: 0 },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.numbers,
-                            color = PreferenceMaskColors.IconCyan,
+                            resource = Res.drawable.numbers,
+                            color = IconMaskColors.IconLightYellow,
+                            shape = IconMaskShapes.route(),
                         )
                     },
                     summary = { Text(uiState.muxNumber.toString()) },
                     valueToText = { it.toString() },
-                    textField = { value, onValueChange, onOk ->
-                        UIntegerTextField(value, onValueChange, onOk)
-                    },
                     enabled = !uiState.brutal,
                 )
                 PreferenceDivider()
@@ -305,8 +304,8 @@ private fun LazyListScope.shadowsocksSettings(
                     title = { Text(stringResource(Res.string.padding)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.border_inner,
-                            color = PreferenceMaskColors.IconCyan,
+                            resource = Res.drawable.border_inner,
+                            color = IconMaskColors.IconLightBlue,
                         )
                     },
                 )
@@ -324,7 +323,7 @@ private fun LazyListScope.shadowsocksSettings(
             onValueChange = { viewModel.setPluginName(it) },
             title = { Text(stringResource(Res.string.plugin)) },
             icon = {
-                MaskedIcon(Res.drawable.build, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.build, IconMaskColors.IconLightBlue)
             },
             summary = { Text(contentOrUnset(uiState.pluginName)) },
             type = ListPreferenceType.DROPDOWN_MENU,
@@ -338,7 +337,7 @@ private fun LazyListScope.shadowsocksSettings(
             textToValue = { it },
             enabled = uiState.pluginName.isNotBlank(),
             icon = {
-                MaskedIcon(Res.drawable.settings, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.settings, IconMaskColors.IconLightYellow)
             },
             summary = { Text(contentOrUnset(uiState.pluginConfig)) },
             valueToText = { it },
@@ -372,9 +371,6 @@ private fun LazyListScope.shadowsocksSettings(
 
     item("category_experimental") {
         PreferenceCategory(
-            icon = {
-                MaskedIcon(Res.drawable.grid_3x3, color = PreferenceMaskColors.IconCyan)
-            },
             text = { Text(stringResource(Res.string.experimental_settings)) },
         )
     }

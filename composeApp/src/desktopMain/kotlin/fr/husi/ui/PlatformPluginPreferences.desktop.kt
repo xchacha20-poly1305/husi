@@ -37,7 +37,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Text
@@ -68,6 +68,7 @@ import java.io.File
 import kotlin.enums.enumEntries
 
 internal actual fun LazyListScope.platformPluginPreferences(
+    isExpert: Boolean,
     needRestart: () -> Unit,
 ) {
     item("desktop_plugins_category") {
@@ -165,7 +166,7 @@ private fun PluginPathPreference(
                 target = rowDropTarget,
             ),
         icon = {
-            MaskedIcon(Res.drawable.settings, color = PreferenceMaskColors.IconWarmGray)
+            MaskedIcon(Res.drawable.settings, color = IconMaskColors.IconWarmGray)
         },
         summary = { Text(contentOrUnset(path)) },
         onClick = { openDialog = true },

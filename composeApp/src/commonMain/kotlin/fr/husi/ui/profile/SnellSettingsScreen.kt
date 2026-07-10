@@ -7,7 +7,7 @@ import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
@@ -90,7 +90,7 @@ private fun LazyListScope.snellSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -110,7 +110,7 @@ private fun LazyListScope.snellSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.router,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
             summary = { Text(contentOrUnset(uiState.address)) },
@@ -125,7 +125,7 @@ private fun LazyListScope.snellSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
             summary = { Text(contentOrUnset(uiState.port)) },
@@ -143,7 +143,7 @@ private fun LazyListScope.snellSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.security,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
             summary = { Text(versionText(uiState.version)) },
@@ -158,7 +158,7 @@ private fun LazyListScope.snellSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.password,
-                    color = PreferenceMaskColors.IconWarmGray,
+                    color = IconMaskColors.IconWarmGray,
                 )
             },
         )
@@ -170,7 +170,7 @@ private fun LazyListScope.snellSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.enhanced_encryption,
-                    color = PreferenceMaskColors.IconCoral,
+                    color = IconMaskColors.IconCoral,
                 )
             },
         )
@@ -187,7 +187,7 @@ private fun LazyListScope.snellSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.grid_3x3,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
         )
@@ -204,7 +204,7 @@ private fun LazyListScope.snellSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.settings,
-                            color = PreferenceMaskColors.IconLightGreen,
+                            color = IconMaskColors.IconLightGreen,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.obfsMode)) },
@@ -220,7 +220,7 @@ private fun LazyListScope.snellSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.router,
-                            color = PreferenceMaskColors.IconLightOrange,
+                            color = IconMaskColors.IconLightOrange,
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.obfsHost)) },
@@ -239,7 +239,7 @@ private fun LazyListScope.snellSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.settings,
-                            color = PreferenceMaskColors.IconLightGreen,
+                            color = IconMaskColors.IconLightGreen,
                         )
                     },
                     summary = { Text(snellModeText(uiState.mode)) },

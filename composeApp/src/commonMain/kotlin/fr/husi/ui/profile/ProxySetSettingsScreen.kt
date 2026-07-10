@@ -41,8 +41,10 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import fr.husi.compose.DurationTextField
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
@@ -162,7 +164,7 @@ private fun LazyListScope.proxySetSettings(
             onValueChange = { viewModel.setManagement(it) },
             values = intListN(2),
             title = { Text(stringResource(Res.string.management)) },
-            icon = { MaskedIcon(Res.drawable.widgets) },
+            icon = { MaskedIcon(Res.drawable.widgets, IconMaskColors.IconLavender) },
             summary = { Text(stringResource(managementName(uiState.management))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(managementName(it))) },
@@ -172,7 +174,7 @@ private fun LazyListScope.proxySetSettings(
             value = uiState.interruptExistConnections,
             onValueChange = { viewModel.setInterruptExistConnections(it) },
             title = { Text(stringResource(Res.string.interrupt_exist_connections)) },
-            icon = { MaskedIcon(Res.drawable.stop) },
+            icon = { MaskedIcon(Res.drawable.stop, IconMaskColors.IconCoral) },
         )
         if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
             PreferenceDivider()
@@ -181,7 +183,13 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestURL(it) },
                 title = { Text(stringResource(Res.string.connection_test_url)) },
                 textToValue = { it },
-                icon = { MaskedIcon(Res.drawable.cast_connected) },
+                icon = {
+                    MaskedIcon(
+                        resource = Res.drawable.cast_connected,
+                        color = IconMaskColors.IconLightOrange,
+                        shape = IconMaskShapes.route(),
+                    )
+                },
                 summary = { Text(contentOrUnset(uiState.testURL)) },
                 valueToText = { it },
             )
@@ -191,7 +199,12 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestInterval(it) },
                 title = { Text(stringResource(Res.string.urltest_interval)) },
                 textToValue = { it },
-                icon = { MaskedIcon(Res.drawable.flip_camera_android) },
+                icon = {
+                    MaskedIcon(
+                        resource = Res.drawable.flip_camera_android,
+                        color = IconMaskColors.IconLightBlue,
+                    )
+                },
                 summary = { Text(contentOrUnset(uiState.testInterval)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -204,7 +217,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestIdleTimeout(it) },
                 title = { Text(stringResource(Res.string.idle_timeout)) },
                 textToValue = { it },
-                icon = { MaskedIcon(Res.drawable.photo_camera) },
+                icon = { MaskedIcon(Res.drawable.photo_camera, IconMaskColors.IconWarmGray) },
                 summary = { Text(contentOrUnset(uiState.testIdleTimeout)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -217,7 +230,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setTestTolerance(it) },
                 title = { Text(stringResource(Res.string.urltest_tolerance)) },
                 textToValue = { it.toIntOrNull() ?: 50 },
-                icon = { MaskedIcon(Res.drawable.emoji_emotions) },
+                icon = { MaskedIcon(Res.drawable.emoji_emotions, IconMaskColors.IconLightGreen) },
                 summary = { Text(uiState.testTolerance.toString()) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -237,7 +250,7 @@ private fun LazyListScope.proxySetSettings(
             onValueChange = { viewModel.setCollectType(it) },
             values = intListN(2),
             title = { Text(stringResource(Res.string.group_type)) },
-            icon = { MaskedIcon(Res.drawable.nfc) },
+            icon = { MaskedIcon(Res.drawable.nfc, IconMaskColors.IconLightPink) },
             summary = { Text(stringResource(typeName(uiState.collectType))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(typeName(it))) },
@@ -249,10 +262,9 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setGroupID(it) },
                 values = uiState.groups.keys.toList(),
                 title = { Text(stringResource(Res.string.menu_group)) },
-                icon = { MaskedIcon(Res.drawable.view_list) },
+                icon = { MaskedIcon(Res.drawable.view_list, IconMaskColors.IconLightYellow) },
                 summary = {
-                    val text =
-                        uiState.groups[uiState.groupID]?.displayName()
+                    val text = uiState.groups[uiState.groupID]?.displayName()
                             ?: stringResource(Res.string.not_set)
                     Text(text)
                 },
@@ -269,7 +281,7 @@ private fun LazyListScope.proxySetSettings(
                 onValueChange = { viewModel.setFilterNotRegex(it) },
                 title = { Text(stringResource(Res.string.filter_regex)) },
                 textToValue = { it },
-                icon = { MaskedIcon(Res.drawable.delete_sweep) },
+                icon = { MaskedIcon(Res.drawable.delete_sweep, IconMaskColors.IconCoral) },
                 summary = { Text(contentOrUnset(uiState.filterNotRegex)) },
                 valueToText = { it },
             )

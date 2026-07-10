@@ -35,7 +35,7 @@ import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -229,7 +229,7 @@ internal fun AssetEditScreen(
                                     icon = {
                                         MaskedIcon(
                                             Res.drawable.emoji_symbols,
-                                            color = PreferenceMaskColors.IconCyan,
+                                            color = IconMaskColors.IconCyan,
                                         )
                                     },
                                     summary = { Text(contentOrUnset(uiState.name)) },
@@ -244,7 +244,7 @@ internal fun AssetEditScreen(
                                     icon = {
                                         MaskedIcon(
                                             Res.drawable.link,
-                                            color = PreferenceMaskColors.IconLightBlue,
+                                            color = IconMaskColors.IconLightBlue,
                                         )
                                     },
                                     summary = { Text(contentOrUnset(uiState.link)) },
@@ -264,7 +264,7 @@ internal fun AssetEditScreen(
                                     icon = {
                                         MaskedIcon(
                                             Res.drawable.timer,
-                                            color = PreferenceMaskColors.IconLightOrange,
+                                            color = IconMaskColors.IconLightOrange,
                                         )
                                     },
                                     summary = { Text(uiState.autoUpdateDelay.toString()) },

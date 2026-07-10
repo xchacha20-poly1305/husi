@@ -10,8 +10,8 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.PreferenceShapes
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
@@ -80,7 +80,7 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -95,7 +95,7 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             icon = {
                 MaskedIcon(
                     Res.drawable.router,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
             summary = { Text(contentOrUnset(uiState.address)) },
@@ -110,7 +110,7 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
             summary = { Text(contentOrUnset(uiState.port)) },
@@ -128,7 +128,7 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             icon = {
                 MaskedIcon(
                     Res.drawable.person,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
             summary = { Text(contentOrUnset(uiState.username)) },
@@ -155,7 +155,7 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             icon = {
                 MaskedIcon(
                     Res.drawable.compare_arrows,
-                    color = PreferenceMaskColors.IconLightGreen,
+                    color = IconMaskColors.IconLightGreen,
                 )
             },
             summary = {
@@ -185,8 +185,8 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
                     icon = {
                         MaskedIcon(
                             Res.drawable.vpn_key,
-                            color = PreferenceMaskColors.IconCyan,
-                            shape = PreferenceShapes.credential(),
+                            color = IconMaskColors.IconCyan,
+                            shape = IconMaskShapes.credential(),
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.privateKey)) },
@@ -212,7 +212,7 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             icon = {
                 MaskedIcon(
                     Res.drawable.copyright,
-                    color = PreferenceMaskColors.IconWarmGray,
+                    color = IconMaskColors.IconWarmGray,
                 )
             },
             summary = { Text(contentOrUnset(uiState.publicKey)) },

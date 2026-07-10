@@ -4,7 +4,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.preferenceGroup
 import fr.husi.compose.material3.Text
@@ -17,6 +17,7 @@ import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
 internal actual fun LazyListScope.platformPluginPreferences(
+    isExpert: Boolean,
     needRestart: () -> Unit,
 ) {
     if (!isExpert) return
@@ -35,7 +36,7 @@ internal actual fun LazyListScope.platformPluginPreferences(
             icon = {
                 MaskedIcon(
                     Res.drawable.copyright,
-                    color = PreferenceMaskColors.IconCoral,
+                    color = IconMaskColors.IconCoral,
                 )
             },
             summary = { Text(stringResource(Res.string.custom_plugin_prefix_summary)) },

@@ -4,13 +4,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.ui.text.AnnotatedString
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PortTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.PreferenceShapes
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.fmt.SingBoxOptions
@@ -116,7 +116,7 @@ internal fun LazyListScope.headSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(state.name)) },
@@ -131,7 +131,7 @@ internal fun LazyListScope.headSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.router,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
             summary = { Text(contentOrUnset(state.address)) },
@@ -146,7 +146,7 @@ internal fun LazyListScope.headSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
             summary = { Text(contentOrUnset(state.port)) },
@@ -180,7 +180,7 @@ internal fun LazyListScope.tlsSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.layers,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
             summary = { Text(contentOrUnset(state.security)) },
@@ -199,7 +199,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.copyright,
-                        color = PreferenceMaskColors.IconCyan,
+                        color = IconMaskColors.IconCyan,
                     )
                 },
                 summary = { Text(contentOrUnset(state.sni)) },
@@ -214,7 +214,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.toc,
-                        color = PreferenceMaskColors.IconLightBlue,
+                        color = IconMaskColors.IconLightBlue,
                     )
                 },
                 summary = { Text(contentOrUnset(state.alpn)) },
@@ -232,8 +232,8 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.vpn_key,
-                        color = PreferenceMaskColors.IconLightOrange,
-                        shape = PreferenceShapes.credential(),
+                        color = IconMaskColors.IconLightOrange,
+                        shape = IconMaskShapes.credential(),
                     )
                 },
                 summary = { Text(contentOrUnset(state.certificate)) },
@@ -251,7 +251,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.wb_sunny,
-                        color = PreferenceMaskColors.IconLightYellow,
+                        color = IconMaskColors.IconLightYellow,
                     )
                 },
                 summary = { Text(contentOrUnset(state.certPublicKeySha256)) },
@@ -269,8 +269,8 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.enhanced_encryption,
-                        color = PreferenceMaskColors.IconCoral,
-                        shape = PreferenceShapes.risk(),
+                        color = IconMaskColors.IconCoral,
+                        shape = IconMaskShapes.risk(),
                     )
                 },
             )
@@ -283,7 +283,7 @@ internal fun LazyListScope.tlsSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.block,
-                            color = PreferenceMaskColors.IconWarmGray,
+                            color = IconMaskColors.IconWarmGray,
                         )
                     },
                 )
@@ -297,7 +297,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.texture,
-                        color = PreferenceMaskColors.IconLightBlue,
+                        color = IconMaskColors.IconLightBlue,
                     )
                 },
             )
@@ -311,7 +311,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.timer,
-                        color = PreferenceMaskColors.IconLightOrange,
+                        color = IconMaskColors.IconLightOrange,
                     )
                 },
                 summary = { Text(contentOrUnset(state.tlsFragmentFallbackDelay)) },
@@ -326,7 +326,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.wb_sunny,
-                        color = PreferenceMaskColors.IconLavender,
+                        color = IconMaskColors.IconLavender,
                     )
                 },
             )
@@ -344,7 +344,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.security,
-                        color = PreferenceMaskColors.IconCyan,
+                        color = IconMaskColors.IconCyan,
                     )
                 },
                 summary = { Text(contentOrUnset(state.utlsFingerprint)) },
@@ -361,7 +361,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.vpn_key,
-                        color = PreferenceMaskColors.IconLightBlue,
+                        color = IconMaskColors.IconLightBlue,
                     )
                 },
                 summary = { Text(contentOrUnset(state.realityPublicKey)) },
@@ -377,7 +377,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.texture,
-                        color = PreferenceMaskColors.IconLightOrange,
+                        color = IconMaskColors.IconLightOrange,
                     )
                 },
                 summary = { Text(contentOrUnset(state.realityShortID)) },
@@ -393,7 +393,7 @@ internal fun LazyListScope.tlsSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.domino_mask,
-                            color = PreferenceMaskColors.IconWarmGray,
+                            color = IconMaskColors.IconWarmGray,
                         )
                     },
                     summary = { Text(contentOrUnset(state.tlsSpoof)) },
@@ -409,7 +409,7 @@ internal fun LazyListScope.tlsSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.computer_cancel,
-                            color = PreferenceMaskColors.IconLightYellow,
+                            color = IconMaskColors.IconLightYellow,
                         )
                     },
                     summary = { Text(contentOrUnset(state.tlsSpoofMethod)) },
@@ -427,8 +427,9 @@ internal fun LazyListScope.tlsSettings(
                 title = { Text(stringResource(Res.string.enable)) },
                 icon = {
                     MaskedIcon(
-                        Res.drawable.security,
-                        color = PreferenceMaskColors.IconCoral,
+                        resource = Res.drawable.security,
+                        color = IconMaskColors.IconCoral,
+                        shape = IconMaskShapes.risk(),
                     )
                 },
             )
@@ -440,8 +441,9 @@ internal fun LazyListScope.tlsSettings(
                 textToValue = { it },
                 icon = {
                     MaskedIcon(
-                        Res.drawable.nfc,
-                        color = PreferenceMaskColors.IconLightBlue,
+                        resource = Res.drawable.nfc,
+                        color = IconMaskColors.IconLightBlue,
+                        shape = IconMaskShapes.credential(),
                     )
                 },
                 enabled = state.ech,
@@ -460,7 +462,7 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.search,
-                        color = PreferenceMaskColors.IconLightOrange,
+                        color = IconMaskColors.IconLightOrange,
                     )
                 },
                 enabled = state.ech,
@@ -481,8 +483,8 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.lock,
-                        color = PreferenceMaskColors.IconCyan,
-                        shape = PreferenceShapes.credential(),
+                        color = IconMaskColors.IconCyan,
+                        shape = IconMaskShapes.credential(),
                     )
                 },
                 summary = { Text(contentOrUnset(state.clientCert)) },
@@ -500,8 +502,8 @@ internal fun LazyListScope.tlsSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.vpn_key,
-                        color = PreferenceMaskColors.IconLavender,
-                        shape = PreferenceShapes.credential(),
+                        color = IconMaskColors.IconLavender,
+                        shape = IconMaskShapes.credential(),
                     )
                 },
                 summary = { Text(contentOrUnset(state.clientKey)) },
@@ -528,8 +530,8 @@ internal fun LazyListScope.muxSettings(
             title = { Text(stringResource(Res.string.enable)) },
             icon = {
                 MaskedIcon(
-                    Res.drawable.multiple_stop,
-                    color = PreferenceMaskColors.IconCyan,
+                    resource = Res.drawable.multiple_stop,
+                    color = IconMaskColors.IconLightPink,
                 )
             },
         )
@@ -542,8 +544,9 @@ internal fun LazyListScope.muxSettings(
                     title = { Text(stringResource(Res.string.enable_brutal)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.bolt,
-                            color = PreferenceMaskColors.IconLightOrange,
+                            resource = Res.drawable.bolt,
+                            color = IconMaskColors.IconCoral,
+                            shape = IconMaskShapes.risk(),
                         )
                     },
                 )
@@ -555,8 +558,8 @@ internal fun LazyListScope.muxSettings(
                     title = { Text(stringResource(Res.string.mux_type)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.type_specimen,
-                            color = PreferenceMaskColors.IconLightBlue,
+                            resource = Res.drawable.type_specimen,
+                            color = IconMaskColors.IconLightGreen,
                         )
                     },
                     summary = { Text(muxTypes[state.muxType]) },
@@ -571,8 +574,8 @@ internal fun LazyListScope.muxSettings(
                     title = { Text(stringResource(Res.string.mux_strategy)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.view_in_ar,
-                            color = PreferenceMaskColors.IconLavender,
+                            resource = Res.drawable.view_in_ar,
+                            color = IconMaskColors.IconWarmGray,
                         )
                     },
                     summary = { Text(stringResource(muxStrategies[state.muxStrategy])) },
@@ -588,8 +591,9 @@ internal fun LazyListScope.muxSettings(
                     textToValue = { it.toIntOrNull() ?: 0 },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.numbers,
-                            color = PreferenceMaskColors.IconLightGreen,
+                            resource = Res.drawable.numbers,
+                            color = IconMaskColors.IconLightYellow,
+                            shape = IconMaskShapes.route(),
                         )
                     },
                     summary = { Text(state.muxNumber.toString()) },
@@ -603,8 +607,8 @@ internal fun LazyListScope.muxSettings(
                     title = { Text(stringResource(Res.string.padding)) },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.border_inner,
-                            color = PreferenceMaskColors.IconWarmGray,
+                            resource = Res.drawable.border_inner,
+                            color = IconMaskColors.IconLightBlue,
                         )
                     },
                 )
@@ -637,7 +641,7 @@ internal fun LazyListScope.transportSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.route,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
             summary = { Text(contentOrUnset(state.v2rayTransport)) },
@@ -659,7 +663,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.language,
-                            color = PreferenceMaskColors.IconCyan,
+                            color = IconMaskColors.IconCyan,
                         )
                     },
                     summary = { Text(contentOrUnset(state.host)) },
@@ -676,8 +680,9 @@ internal fun LazyListScope.transportSettings(
                     textToValue = { it },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.assistant_direction,
-                            color = PreferenceMaskColors.IconLightOrange,
+                            resource = Res.drawable.assistant_direction,
+                            color = IconMaskColors.IconLightOrange,
+                            shape = IconMaskShapes.route(),
                         )
                     },
                     summary = { Text(contentOrUnset(state.path)) },
@@ -692,7 +697,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.code,
-                            color = PreferenceMaskColors.IconLavender,
+                            color = IconMaskColors.IconLavender,
                         )
                     },
                     summary = { Text(contentOrUnset(state.headers)) },
@@ -713,7 +718,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.language,
-                            color = PreferenceMaskColors.IconCyan,
+                            color = IconMaskColors.IconCyan,
                         )
                     },
                     summary = { Text(contentOrUnset(state.host)) },
@@ -730,8 +735,9 @@ internal fun LazyListScope.transportSettings(
                     textToValue = { it },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.assistant_direction,
-                            color = PreferenceMaskColors.IconLightOrange,
+                            resource = Res.drawable.assistant_direction,
+                            color = IconMaskColors.IconLightOrange,
+                            shape = IconMaskShapes.route(),
                         )
                     },
                     summary = { Text(contentOrUnset(state.path)) },
@@ -746,7 +752,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.code,
-                            color = PreferenceMaskColors.IconLavender,
+                            color = IconMaskColors.IconLavender,
                         )
                     },
                     summary = { Text(contentOrUnset(state.headers)) },
@@ -764,7 +770,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.compare_arrows,
-                            color = PreferenceMaskColors.IconLightGreen,
+                            color = IconMaskColors.IconLightGreen,
                         )
                     },
                     summary = { Text(contentOrUnset(state.wsMaxEarlyData)) },
@@ -778,7 +784,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.stream,
-                            color = PreferenceMaskColors.IconWarmGray,
+                            color = IconMaskColors.IconWarmGray,
                         )
                     },
                     summary = { Text(contentOrUnset(state.wsEarlyDataHeaderName)) },
@@ -795,8 +801,9 @@ internal fun LazyListScope.transportSettings(
                     textToValue = { it },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.assistant_direction,
-                            color = PreferenceMaskColors.IconCyan,
+                            resource = Res.drawable.assistant_direction,
+                            color = IconMaskColors.IconLightGreen,
+                            shape = IconMaskShapes.route(),
                         )
                     },
                     summary = { Text(contentOrUnset(state.path)) },
@@ -813,8 +820,9 @@ internal fun LazyListScope.transportSettings(
                     textToValue = { it },
                     icon = {
                         MaskedIcon(
-                            Res.drawable.language,
-                            color = PreferenceMaskColors.IconCyan,
+                            resource = Res.drawable.language,
+                            color = IconMaskColors.IconCyan,
+                            shape = IconMaskShapes.route(),
                         )
                     },
                     summary = { Text(contentOrUnset(state.host)) },
@@ -832,7 +840,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.assistant_direction,
-                            color = PreferenceMaskColors.IconLightOrange,
+                            color = IconMaskColors.IconLightOrange,
                         )
                     },
                     summary = { Text(contentOrUnset(state.path)) },
@@ -847,7 +855,7 @@ internal fun LazyListScope.transportSettings(
                     icon = {
                         MaskedIcon(
                             Res.drawable.code,
-                            color = PreferenceMaskColors.IconLavender,
+                            color = IconMaskColors.IconLavender,
                         )
                     },
                     summary = { Text(contentOrUnset(state.headers)) },

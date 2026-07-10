@@ -4,11 +4,11 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -18,10 +18,8 @@ import fr.husi.resources.Res
 import fr.husi.resources.directions_boat
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.experimental_settings
-import fr.husi.resources.grid_3x3
 import fr.husi.resources.grid_on
 import fr.husi.resources.nfc
-import fr.husi.resources.password
 import fr.husi.resources.password_opt
 import fr.husi.resources.person
 import fr.husi.resources.profile_config
@@ -78,7 +76,7 @@ private fun LazyListScope.socksSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -101,7 +99,7 @@ private fun LazyListScope.socksSettings(
             onValueChange = { viewModel.setProtocol(it) },
             title = { Text(stringResource(Res.string.protocol_version)) },
             icon = {
-                MaskedIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconLightBlue)
+                MaskedIcon(Res.drawable.nfc, color = IconMaskColors.IconLightBlue)
             },
             summary = {
                 val text = when (uiState.protocol) {
@@ -131,7 +129,7 @@ private fun LazyListScope.socksSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.router,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
             summary = { Text(contentOrUnset(uiState.address)) },
@@ -146,7 +144,7 @@ private fun LazyListScope.socksSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
             summary = { Text(contentOrUnset(uiState.port)) },
@@ -165,7 +163,7 @@ private fun LazyListScope.socksSettings(
                 icon = {
                     MaskedIcon(
                         Res.drawable.person,
-                        color = PreferenceMaskColors.IconCyan,
+                        color = IconMaskColors.IconCyan,
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.username)) },
@@ -176,24 +174,12 @@ private fun LazyListScope.socksSettings(
                 value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
                 title = { Text(stringResource(Res.string.password_opt)) },
-                icon = {
-                    MaskedIcon(
-                        Res.drawable.password,
-                        color = PreferenceMaskColors.IconWarmGray,
-                    )
-                },
             )
         }
     }
 
     item("category_experimental") {
         PreferenceCategory(
-            icon = {
-                MaskedIcon(
-                    Res.drawable.grid_3x3,
-                    color = PreferenceMaskColors.IconLightBlue,
-                )
-            },
             text = { Text(stringResource(Res.string.experimental_settings)) },
         )
     }
@@ -203,7 +189,7 @@ private fun LazyListScope.socksSettings(
             onValueChange = { viewModel.setUdpOverTcp(it) },
             title = { Text(stringResource(Res.string.udp_over_tcp)) },
             icon = {
-                MaskedIcon(Res.drawable.grid_on, color = PreferenceMaskColors.IconCoral)
+                MaskedIcon(Res.drawable.grid_on, color = IconMaskColors.IconCoral)
             },
         )
     }

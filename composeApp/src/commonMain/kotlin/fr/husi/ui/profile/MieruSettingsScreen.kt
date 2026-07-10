@@ -4,15 +4,17 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
+import fr.husi.fmt.mieru.MieruBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.resources.Res
@@ -86,7 +88,7 @@ private fun LazyListScope.mieruSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -106,7 +108,7 @@ private fun LazyListScope.mieruSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.router,
-                    color = PreferenceMaskColors.IconLightBlue,
+                    color = IconMaskColors.IconLightBlue,
                 )
             },
             summary = { Text(contentOrUnset(uiState.address)) },
@@ -121,7 +123,7 @@ private fun LazyListScope.mieruSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconLightOrange,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
             summary = { Text(contentOrUnset(uiState.port)) },
@@ -139,7 +141,7 @@ private fun LazyListScope.mieruSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.compare_arrows,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
             summary = { Text(contentOrUnset(uiState.protocol.uppercase())) },
@@ -153,7 +155,7 @@ private fun LazyListScope.mieruSettings(
             title = { Text(stringResource(Res.string.username)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
@@ -165,11 +167,11 @@ private fun LazyListScope.mieruSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.vpn_key,
-                    color = PreferenceMaskColors.IconWarmGray,
+                    color = IconMaskColors.IconWarmGray,
                 )
             },
         )
-        if (uiState.protocol == "udp") {
+        if (uiState.protocol == MieruBean.PROTOCOL_UDP) {
             PreferenceDivider()
             TextFieldPreference(
                 value = uiState.mtu,
@@ -178,8 +180,9 @@ private fun LazyListScope.mieruSettings(
                 textToValue = { it.toIntOrNull() ?: 1400 },
                 icon = {
                     MaskedIcon(
-                        Res.drawable.public_icon,
-                        color = PreferenceMaskColors.IconLightGreen,
+                        resource = Res.drawable.public_icon,
+                        color = IconMaskColors.IconLightGreen,
+                        shape = IconMaskShapes.route(),
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.mtu)) },
@@ -198,7 +201,8 @@ private fun LazyListScope.mieruSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.compare_arrows,
-                    color = PreferenceMaskColors.IconLightYellow,
+                    color = IconMaskColors.IconLightYellow,
+                    shape = IconMaskShapes.route(),
                 )
             },
             summary = {
@@ -230,7 +234,7 @@ private fun LazyListScope.mieruSettings(
             title = { Text(stringResource(Res.string.traffic_pattern)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.pattern, color = PreferenceMaskColors.IconCoral)
+                MaskedIcon(Res.drawable.pattern, color = IconMaskColors.IconCoral)
             },
             summary = { Text(contentOrUnset(uiState.trafficPattern)) },
             valueToText = { it },

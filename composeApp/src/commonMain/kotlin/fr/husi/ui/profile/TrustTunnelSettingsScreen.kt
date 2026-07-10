@@ -5,13 +5,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.DurationTextField
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.PreferenceShapes
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -120,7 +120,7 @@ private fun LazyListScope.trustTunnelSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.emoji_symbols,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.name)) },
@@ -138,7 +138,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.server_address)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.router, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
@@ -152,7 +152,7 @@ private fun LazyListScope.trustTunnelSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.directions_boat,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             summary = { Text(contentOrUnset(uiState.port)) },
@@ -168,7 +168,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.username)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.person, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
@@ -184,7 +184,7 @@ private fun LazyListScope.trustTunnelSettings(
             onValueChange = { viewModel.setHealthCheck(it) },
             title = { Text(stringResource(Res.string.health_check)) },
             icon = {
-                MaskedIcon(Res.drawable.ecg, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.ecg, IconMaskColors.IconLightGreen)
             },
         )
         PreferenceDivider()
@@ -194,8 +194,8 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.quic)) },
             icon = {
                 MaskedIcon(
-                    Res.drawable.fast_forward,
-                    color = PreferenceMaskColors.IconCyan,
+                    resource = Res.drawable.fast_forward,
+                    color = IconMaskColors.IconLightOrange,
                 )
             },
         )
@@ -206,7 +206,11 @@ private fun LazyListScope.trustTunnelSettings(
             onValueChange = { viewModel.setQuicCongestionControl(it) },
             title = { Text(stringResource(Res.string.tuic_congestion_controller)) },
             icon = {
-                MaskedIcon(Res.drawable.traffic, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(
+                    resource = Res.drawable.traffic,
+                    color = IconMaskColors.IconLightGreen,
+                    shape = IconMaskShapes.route(),
+                )
             },
             enabled = uiState.quic,
             summary = { Text(contentOrUnset(uiState.quicCongestionControl)) },
@@ -225,7 +229,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.sni)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.copyright, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.copyright, color = IconMaskColors.IconCyan)
             },
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
@@ -237,9 +241,9 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.allow_insecure)) },
             icon = {
                 MaskedIcon(
-                    Res.drawable.lock_open,
-                    color = PreferenceMaskColors.IconCyan,
-                    shape = PreferenceShapes.risk(),
+                    resource = Res.drawable.lock_open,
+                    color = IconMaskColors.IconCoral,
+                    shape = IconMaskShapes.risk(),
                 )
             },
         )
@@ -250,7 +254,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.alpn)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.toc, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.toc, color = IconMaskColors.IconLightBlue)
             },
             summary = { Text(contentOrUnset(uiState.alpn)) },
             valueToText = { it },
@@ -266,9 +270,9 @@ private fun LazyListScope.trustTunnelSettings(
             textToValue = { it },
             icon = {
                 MaskedIcon(
-                    Res.drawable.vpn_key,
-                    color = PreferenceMaskColors.IconCyan,
-                    shape = PreferenceShapes.credential(),
+                    resource = Res.drawable.vpn_key,
+                    color = IconMaskColors.IconLightOrange,
+                    shape = IconMaskShapes.credential(),
                 )
             },
             summary = { Text(contentOrUnset(uiState.certificates)) },
@@ -284,7 +288,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.cert_public_key_sha256)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.wb_sunny, IconMaskColors.IconLightYellow)
             },
             summary = { Text(contentOrUnset(uiState.certPublicKeySha256)) },
             valueToText = { it },
@@ -301,7 +305,7 @@ private fun LazyListScope.trustTunnelSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.fingerprint,
-                    color = PreferenceMaskColors.IconCyan,
+                    color = IconMaskColors.IconCyan,
                 )
             },
             enabled = !uiState.quic,
@@ -320,8 +324,8 @@ private fun LazyListScope.trustTunnelSettings(
                 enabled = !uiState.quic,
                 icon = {
                     MaskedIcon(
-                        Res.drawable.domino_mask,
-                        color = PreferenceMaskColors.IconCyan,
+                        resource = Res.drawable.domino_mask,
+                        color = IconMaskColors.IconWarmGray,
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.tlsSpoof)) },
@@ -336,8 +340,8 @@ private fun LazyListScope.trustTunnelSettings(
                 enabled = !uiState.quic && uiState.tlsSpoof.isNotBlank(),
                 icon = {
                     MaskedIcon(
-                        Res.drawable.computer_cancel,
-                        color = PreferenceMaskColors.IconCyan,
+                        resource = Res.drawable.computer_cancel,
+                        color = IconMaskColors.IconLightYellow,
                     )
                 },
                 summary = { Text(contentOrUnset(uiState.tlsSpoofMethod)) },
@@ -353,7 +357,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.tls_fragment)) },
             enabled = !uiState.tlsRecordFragment && !uiState.quic,
             icon = {
-                MaskedIcon(Res.drawable.texture, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.texture, color = IconMaskColors.IconLightBlue)
             },
         )
         PreferenceDivider()
@@ -363,7 +367,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.tls_fragment_fallback_delay)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.timelapse, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.timelapse, color = IconMaskColors.IconLightOrange)
             },
             enabled = uiState.tlsFragment && !uiState.quic,
             summary = { Text(contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
@@ -379,7 +383,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.tls_record_fragment)) },
             enabled = !uiState.tlsFragment && !uiState.quic,
             icon = {
-                MaskedIcon(Res.drawable.wb_sunny, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.wb_sunny, color = IconMaskColors.IconLavender)
             },
         )
     }
@@ -393,7 +397,7 @@ private fun LazyListScope.trustTunnelSettings(
             onValueChange = { viewModel.setEch(it) },
             title = { Text(stringResource(Res.string.ech)) },
             icon = {
-                MaskedIcon(Res.drawable.security, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.security, IconMaskColors.IconCoral, IconMaskShapes.risk())
             },
         )
         PreferenceDivider()
@@ -403,7 +407,11 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.ech_config)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.nfc, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(
+                    resource = Res.drawable.nfc,
+                    color = IconMaskColors.IconLightYellow,
+                    shape = IconMaskShapes.credential(),
+                )
             },
             enabled = uiState.ech,
             summary = { Text(contentOrUnset(uiState.echConfig)) },
@@ -419,7 +427,7 @@ private fun LazyListScope.trustTunnelSettings(
             title = { Text(stringResource(Res.string.ech_query_server_name)) },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.search, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.search, color = IconMaskColors.IconCyan)
             },
             enabled = uiState.ech,
             summary = { Text(contentOrUnset(uiState.echQueryServerName)) },
@@ -439,8 +447,8 @@ private fun LazyListScope.trustTunnelSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.lock,
-                    color = PreferenceMaskColors.IconCyan,
-                    shape = PreferenceShapes.credential(),
+                    color = IconMaskColors.IconCyan,
+                    shape = IconMaskShapes.credential(),
                 )
             },
             summary = { Text(contentOrUnset(uiState.clientCert)) },
@@ -458,8 +466,8 @@ private fun LazyListScope.trustTunnelSettings(
             icon = {
                 MaskedIcon(
                     Res.drawable.vpn_key,
-                    color = PreferenceMaskColors.IconCyan,
-                    shape = PreferenceShapes.credential(),
+                    color = IconMaskColors.IconCyan,
+                    shape = IconMaskShapes.credential(),
                 )
             },
             summary = { Text(contentOrUnset(uiState.clientKey)) },

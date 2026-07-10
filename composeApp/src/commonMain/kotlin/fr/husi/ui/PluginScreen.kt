@@ -46,7 +46,7 @@ import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.platformCombinedClickable
@@ -164,7 +164,7 @@ fun PluginScreen(
                     contentPadding = contentPadding,
                 ) {
                     installedPlugins(plugins, openPluginCard, uriHandler::openUri)
-                    platformPluginPreferences(::needRestart)
+                    platformPluginPreferences(isExpert, ::needRestart)
                 }
 
                 BoxedVerticalScrollbar(
@@ -235,7 +235,7 @@ private fun LazyListScope.installedPlugins(
                             icon = {
                                 MaskedIcon(
                                     Res.drawable.nfc,
-                                    color = PreferenceMaskColors.IconCyan,
+                                    color = IconMaskColors.IconCyan,
                                 )
                             },
                             title = stringResource(

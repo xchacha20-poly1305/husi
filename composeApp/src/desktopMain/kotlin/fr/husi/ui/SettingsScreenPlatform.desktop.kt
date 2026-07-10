@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.DesktopAutoStart
 import fr.husi.Key
-import fr.husi.compose.PreferenceMaskColors
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Text
@@ -42,7 +42,7 @@ internal actual fun AutoConnectPreference() {
         icon = {
             MaskedIcon(
                 Res.drawable.phonelink_ring,
-                color = PreferenceMaskColors.IconLightPink,
+                color = IconMaskColors.IconLightPink,
             )
         },
         summary = { Text(stringResource(Res.string.auto_connect_summary_desktop)) },
@@ -72,7 +72,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         icon = {
             MaskedIcon(
                 Res.drawable.arrow_and_edge,
-                color = PreferenceMaskColors.IconLightBlue,
+                color = IconMaskColors.IconLightBlue,
             )
         },
         summary = {
@@ -105,7 +105,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         icon = {
             MaskedIcon(
                 Res.drawable.arrow_and_edge,
-                color = PreferenceMaskColors.IconCyan,
+                color = IconMaskColors.IconCyan,
             )
         },
         enabled = isVpnMode,
@@ -124,7 +124,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
             icon = {
                 MaskedIcon(
                     Res.drawable.arrow_and_edge,
-                    color = PreferenceMaskColors.IconLightGreen,
+                    color = IconMaskColors.IconLightGreen,
                 )
             },
             enabled = isVpnMode,

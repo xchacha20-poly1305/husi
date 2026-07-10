@@ -71,8 +71,8 @@ import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.PortTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.PreferenceMaskColors
-import fr.husi.compose.PreferenceShapes
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
@@ -537,7 +537,7 @@ private fun ColorPickerPreference(
         icon = {
             MaskedIcon(
                 Res.drawable.color_lens,
-                color = PreferenceMaskColors.IconLightOrange,
+                color = IconMaskColors.IconLightOrange,
             )
         },
         summary = { Text(stringResource(themeString(currentTheme))) },
@@ -655,7 +655,7 @@ private fun ProxyAppsPreferences(openAppManager: () -> Unit) {
             },
             title = { Text(stringResource(Res.string.proxied_apps)) },
             icon = {
-                MaskedIcon(Res.drawable.apps, color = PreferenceMaskColors.IconCyan)
+                MaskedIcon(Res.drawable.apps, color = IconMaskColors.IconCyan)
             },
             summary = { Text(stringResource(Res.string.proxied_apps_summary)) },
             onClick = {
@@ -676,7 +676,7 @@ private fun ProxyAppsPreferences(openAppManager: () -> Unit) {
             icon = {
                 MaskedIcon(
                     Res.drawable.keyboard_tab,
-                    color = PreferenceMaskColors.IconLavender,
+                    color = IconMaskColors.IconLavender,
                 )
             },
         )
@@ -723,7 +723,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.wb_sunny,
-                color = PreferenceMaskColors.IconLightOrange,
+                color = IconMaskColors.IconLightOrange,
             )
         },
         summary = { Text(stringResource(nightString(nightValue))) },
@@ -747,7 +747,7 @@ private fun GeneralSettingsGroup(
         values = languageValues,
         title = { Text(stringResource(Res.string.language)) },
         icon = {
-            MaskedIcon(Res.drawable.translate, color = PreferenceMaskColors.IconLavender)
+            MaskedIcon(Res.drawable.translate, color = IconMaskColors.IconLavender)
         },
         summary = { Text(getLanguageDisplayName(selectedLanguage)) },
         type = ListPreferenceType.ALERT_DIALOG,
@@ -772,7 +772,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.developer_mode,
-                color = PreferenceMaskColors.IconLightBlue,
+                color = IconMaskColors.IconLightBlue,
             )
         },
         summary = { Text(stringResource(serviceModeText(serviceModeValue))) },
@@ -806,7 +806,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.flip_camera_android,
-                color = PreferenceMaskColors.IconLightBlue,
+                color = IconMaskColors.IconLightBlue,
             )
         },
         summary = { Text(tunImplText(tunValue)) },
@@ -829,7 +829,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.public_icon,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(mtuValue.toString()) },
@@ -861,7 +861,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.shutter_speed,
-                color = PreferenceMaskColors.IconLightPink,
+                color = IconMaskColors.IconLightPink,
             )
         },
         summary = { Text(stringOrRes(speedIntervalText(speedIntervalValue))) },
@@ -883,7 +883,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.traffic,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(stringResource(Res.string.profile_traffic_statistics_summary)) },
@@ -899,7 +899,7 @@ private fun GeneralSettingsGroup(
         onValueChange = { DataStore.showDirectSpeed = it },
         title = { Text(stringResource(Res.string.show_direct_speed)) },
         icon = {
-            MaskedIcon(Res.drawable.speed, color = PreferenceMaskColors.IconLightPink)
+            MaskedIcon(Res.drawable.speed, color = IconMaskColors.IconLightPink)
         },
         summary = { Text(stringResource(Res.string.show_direct_speed_sum)) },
         enabled = speedIntervalState != 0,
@@ -916,7 +916,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.center_focus_weak,
-                color = PreferenceMaskColors.IconCoral,
+                color = IconMaskColors.IconCoral,
             )
         },
         summary = { Text(stringResource(Res.string.always_show_address_sum)) },
@@ -933,7 +933,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.transgender,
-                color = PreferenceMaskColors.IconLavender,
+                color = IconMaskColors.IconLavender,
             )
         },
         enabled = alwaysShowAddressState,
@@ -950,8 +950,8 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.security,
-                color = PreferenceMaskColors.IconCoral,
-                shape = PreferenceShapes.risk(),
+                color = IconMaskColors.IconCoral,
+                shape = IconMaskShapes.risk(),
             )
         },
     )
@@ -977,7 +977,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.bug_report,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(logLevelString(logLevelValue)) },
@@ -1001,7 +1001,7 @@ private fun GeneralSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.description,
-                color = PreferenceMaskColors.IconWarmGray,
+                color = IconMaskColors.IconWarmGray,
             )
         },
         valueText = { Text(previewValue.toInt().toString()) },
@@ -1019,7 +1019,7 @@ private fun PlatformSecurityOptions() {
         onValueChange = { DataStore.privacyMode = it },
         title = { Text(stringResource(Res.string.privacy_mode)) },
         icon = {
-            MaskedIcon(Res.drawable.privacy, color = PreferenceMaskColors.IconCoral)
+            MaskedIcon(Res.drawable.privacy, color = IconMaskColors.IconCoral)
         },
         summary = { Text(stringResource(Res.string.privacy_mode_summary)) },
     )
@@ -1041,7 +1041,7 @@ private fun MeteredNetworkPreference(needReload: () -> Unit) {
         icon = {
             MaskedIcon(
                 Res.drawable.data_usage,
-                color = PreferenceMaskColors.IconLightBlue,
+                color = IconMaskColors.IconLightBlue,
             )
         },
         summary = { Text(stringResource(Res.string.metered_summary)) },
@@ -1089,7 +1089,7 @@ private fun RouteSettingsGroup(
         values = listOf("", "prefer_ipv6", "prefer_ipv4", "ipv4_only", "ipv6_only"),
         title = { Text(stringResource(Res.string.network_strategy)) },
         icon = {
-            MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconLightBlue)
+            MaskedIcon(Res.drawable.router, color = IconMaskColors.IconLightBlue)
         },
         summary = { Text(stringResource(networkStrategyTextRes(networkStrategyValue))) },
         type = ListPreferenceType.DROPDOWN_MENU,
@@ -1122,7 +1122,7 @@ private fun RouteSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.construction,
-                color = PreferenceMaskColors.IconWarmGray,
+                color = IconMaskColors.IconWarmGray,
             )
         },
         summary = { Text(stringResource(networkInterfaceStrategyTextRes(networkInterfaceValue))) },
@@ -1145,7 +1145,7 @@ private fun RouteSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.public_icon,
-                color = PreferenceMaskColors.IconWarmGray,
+                color = IconMaskColors.IconWarmGray,
             )
         },
         summary = {
@@ -1169,7 +1169,7 @@ private fun RouteSettingsGroup(
         },
         title = { Text(stringResource(Res.string.disable_tcp_keep_alive)) },
         icon = {
-            MaskedIcon(Res.drawable.ecg, color = PreferenceMaskColors.IconLightGreen)
+            MaskedIcon(Res.drawable.ecg, color = IconMaskColors.IconLightGreen)
         },
     )
     PreferenceDivider()
@@ -1189,7 +1189,7 @@ private fun RouteSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.hourglass_top,
-                color = PreferenceMaskColors.IconWarmGray,
+                color = IconMaskColors.IconWarmGray,
             )
         },
         summary = { Text(contentOrUnset(tcpKeepAliveIdleValue)) },
@@ -1212,7 +1212,7 @@ private fun RouteSettingsGroup(
         textToValue = { it },
         enabled = !disableTcpKeepAliveState,
         icon = {
-            MaskedIcon(Res.drawable.timer, color = PreferenceMaskColors.IconWarmGray)
+            MaskedIcon(Res.drawable.timer, color = IconMaskColors.IconWarmGray)
         },
         summary = { Text(contentOrUnset(tcpKeepAliveIntervalValue)) },
         valueToText = { it },
@@ -1247,7 +1247,7 @@ private fun RouteSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.rule_folder,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(stringOrRes(rulesProviderText(rulesProviderValue))) },
@@ -1269,7 +1269,7 @@ private fun RouteSettingsGroup(
             icon = {
                 MaskedIcon(
                     Res.drawable.import_contacts,
-                    color = PreferenceMaskColors.IconLightYellow,
+                    color = IconMaskColors.IconLightYellow,
                 )
             },
             summary = { Text(contentOrUnset(customRuleProviderValue)) },
@@ -1298,7 +1298,7 @@ private fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit) 
         title = { Text(stringResource(Res.string.http_proxy_bypass)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.domain, color = PreferenceMaskColors.IconCyan)
+            MaskedIcon(Res.drawable.domain, color = IconMaskColors.IconCyan)
         },
         valueToText = { it },
         enabled = enabled,
@@ -1323,7 +1323,7 @@ private fun PlatformMiscOptions(needReload: () -> Unit) {
         icon = {
             MaskedIcon(
                 Res.drawable.developer_board,
-                color = PreferenceMaskColors.IconLightGreen,
+                color = IconMaskColors.IconLightGreen,
             )
         },
         summary = { Text(stringResource(Res.string.acquire_wake_lock_summary)) },
@@ -1353,7 +1353,7 @@ private fun ProtocolSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.file_upload,
-                color = PreferenceMaskColors.IconLightBlue,
+                color = IconMaskColors.IconLightBlue,
             )
         },
         summary = { Text(uploadSpeedValue.toString()) },
@@ -1375,7 +1375,7 @@ private fun ProtocolSettingsGroup(
         title = { Text(stringResource(Res.string.hysteria_download_mbps)) },
         textToValue = { it.toIntOrNull() ?: 0 },
         icon = {
-            MaskedIcon(Res.drawable.download, color = PreferenceMaskColors.IconLightBlue)
+            MaskedIcon(Res.drawable.download, color = IconMaskColors.IconLightBlue)
         },
         summary = { Text(downloadSpeedValue.toString()) },
         valueToText = { it.toString() },
@@ -1404,7 +1404,7 @@ private fun ProtocolSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.flight_takeoff,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(stringOrRes(pluginProviderText(hysteria2ProviderValue))) },
@@ -1427,7 +1427,7 @@ private fun ProtocolSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.flight_takeoff,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(stringOrRes(pluginProviderText(juicityProviderValue))) },
@@ -1450,7 +1450,7 @@ private fun ProtocolSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.flight_takeoff,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(stringOrRes(pluginProviderText(naiveProviderValue))) },
@@ -1473,7 +1473,7 @@ private fun ProtocolSettingsGroup(
             icon = {
                 MaskedIcon(
                     Res.drawable.local_bar,
-                    color = PreferenceMaskColors.IconLightPink,
+                    color = IconMaskColors.IconLightPink,
                 )
             },
             summary = { Text(contentOrUnset(versionValue)) },
@@ -1499,7 +1499,7 @@ private fun DnsSettingsGroup(
         title = { Text(stringResource(Res.string.remote_dns)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.dns, color = PreferenceMaskColors.IconLightBlue)
+            MaskedIcon(Res.drawable.dns, color = IconMaskColors.IconLightBlue)
         },
         summary = { Text(contentOrUnset(remoteDnsValue)) },
         valueToText = { it },
@@ -1518,7 +1518,7 @@ private fun DnsSettingsGroup(
         title = { Text(stringResource(Res.string.direct_dns)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.dns, color = PreferenceMaskColors.IconLightBlue)
+            MaskedIcon(Res.drawable.dns, color = IconMaskColors.IconLightBlue)
         },
         summary = { Text(contentOrUnset(directDnsValue)) },
         valueToText = { it },
@@ -1537,7 +1537,7 @@ private fun DnsSettingsGroup(
         title = { Text(stringResource(Res.string.mdns_network_interfaces)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.wifi, color = PreferenceMaskColors.IconWarmGray)
+            MaskedIcon(Res.drawable.wifi, color = IconMaskColors.IconWarmGray)
         },
         summary = { Text(contentOrUnset(mdnsValue)) },
         valueToText = { it },
@@ -1558,7 +1558,7 @@ private fun DnsSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.emoji_emotions,
-                color = PreferenceMaskColors.IconLightYellow,
+                color = IconMaskColors.IconLightYellow,
             )
         },
         summary = { Text(contentOrUnset(optimisticCacheValue)) },
@@ -1639,7 +1639,7 @@ private fun DnsSettingsGroup(
         },
         title = { Text(stringResource(Res.string.fake_dns)) },
         icon = {
-            MaskedIcon(Res.drawable.lock, color = PreferenceMaskColors.IconLightPink)
+            MaskedIcon(Res.drawable.lock, color = IconMaskColors.IconLightPink)
         },
         summary = { Text(stringResource(Res.string.fakedns_message)) },
     )
@@ -1659,8 +1659,8 @@ private fun DnsSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.lock,
-                color = PreferenceMaskColors.IconCoral,
-                shape = PreferenceShapes.risk(),
+                color = IconMaskColors.IconCoral,
+                shape = IconMaskShapes.risk(),
             )
         },
         summary = { Text(stringResource(Res.string.fake_dns_for_all_sum)) },
@@ -1682,7 +1682,7 @@ private fun DnsSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.text_select_end,
-                color = PreferenceMaskColors.IconWarmGray,
+                color = IconMaskColors.IconWarmGray,
             )
         },
         summary = { Text(contentOrUnset(fakeDnsRange4Value)) },
@@ -1705,7 +1705,7 @@ private fun DnsSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.text_select_end,
-                color = PreferenceMaskColors.IconWarmGray,
+                color = IconMaskColors.IconWarmGray,
             )
         },
         summary = { Text(contentOrUnset(fakeDnsRange6Value)) },
@@ -1725,7 +1725,7 @@ private fun DnsSettingsGroup(
         title = { Text(stringResource(Res.string.dns_hosts)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.transform, color = PreferenceMaskColors.IconCyan)
+            MaskedIcon(Res.drawable.transform, color = IconMaskColors.IconCyan)
         },
         summary = { Text(contentOrUnset(dnsHostsValue)) },
         valueToText = { it },
@@ -1754,7 +1754,7 @@ private fun InboundSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.directions_boat,
-                color = PreferenceMaskColors.IconLightBlue,
+                color = IconMaskColors.IconLightBlue,
             )
         },
         summary = { Text(contentOrUnset(mixedPortValue)) },
@@ -1776,7 +1776,7 @@ private fun InboundSettingsGroup(
         title = { Text(stringResource(Res.string.port_local_dns)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.apps, color = PreferenceMaskColors.IconWarmGray)
+            MaskedIcon(Res.drawable.apps, color = IconMaskColors.IconWarmGray)
         },
         summary = { Text(contentOrUnset(localDnsPortValue)) },
         valueToText = { it },
@@ -1798,7 +1798,7 @@ private fun InboundSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.app_registration,
-                color = PreferenceMaskColors.IconLightGreen,
+                color = IconMaskColors.IconLightGreen,
             )
         },
         summary = {
@@ -1823,7 +1823,7 @@ private fun InboundSettingsGroup(
         },
         title = { Text(stringResource(Res.string.allow_access)) },
         icon = {
-            MaskedIcon(Res.drawable.nat, color = PreferenceMaskColors.IconCoral)
+            MaskedIcon(Res.drawable.nat, color = IconMaskColors.IconCoral)
         },
         summary = { Text(stringResource(Res.string.allow_access_sum)) },
     )
@@ -1841,7 +1841,7 @@ private fun InboundSettingsGroup(
         title = { Text(stringResource(Res.string.inbound_username)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.person, color = PreferenceMaskColors.IconCyan)
+            MaskedIcon(Res.drawable.person, color = IconMaskColors.IconCyan)
         },
         summary = { Text(contentOrUnset(inboundUsernameValue)) },
         valueToText = { it },
@@ -1873,7 +1873,7 @@ private fun InboundSettingsGroup(
             title = { Text("Anchor SSIDs") },
             textToValue = { it },
             icon = {
-                MaskedIcon(Res.drawable.wifi, color = PreferenceMaskColors.IconCoral)
+                MaskedIcon(Res.drawable.wifi, color = IconMaskColors.IconCoral)
             },
             summary = { Text(contentOrUnset(anchorSSIDValue)) },
             valueToText = { it },
@@ -1897,7 +1897,7 @@ private fun MiscSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.cast_connected,
-                color = PreferenceMaskColors.IconCyan,
+                color = IconMaskColors.IconCyan,
             )
         },
         summary = { Text(contentOrUnset(connectionTestUrlValue)) },
@@ -1922,7 +1922,7 @@ private fun MiscSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.fast_forward,
-                color = PreferenceMaskColors.IconLightGreen,
+                color = IconMaskColors.IconLightGreen,
             )
         },
         valueText = { Text(concurrentPreview.toInt().toString()) },
@@ -1942,7 +1942,7 @@ private fun MiscSettingsGroup(
         valueRange = 1024f..8192f,
         valueSteps = 20,
         icon = {
-            MaskedIcon(Res.drawable.apps, color = PreferenceMaskColors.IconWarmGray)
+            MaskedIcon(Res.drawable.apps, color = IconMaskColors.IconWarmGray)
         },
         valueText = { Text(timeoutPreview.toInt().toString()) },
     )
@@ -1979,8 +1979,8 @@ private fun MiscSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.push_pin,
-                color = PreferenceMaskColors.IconCoral,
-                shape = PreferenceShapes.credential(),
+                color = IconMaskColors.IconCoral,
+                shape = IconMaskShapes.credential(),
             )
         },
         summary = { Text(stringResource(certProviderTextRes(certProviderValue))) },
@@ -2010,7 +2010,7 @@ private fun NtpSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.timelapse,
-                color = PreferenceMaskColors.IconLightPink,
+                color = IconMaskColors.IconLightPink,
             )
         },
         summary = { Text(stringResource(Res.string.ntp_sum)) },
@@ -2029,7 +2029,7 @@ private fun NtpSettingsGroup(
         title = { Text(stringResource(Res.string.ntp_server_address)) },
         textToValue = { it },
         icon = {
-            MaskedIcon(Res.drawable.router, color = PreferenceMaskColors.IconLightBlue)
+            MaskedIcon(Res.drawable.router, color = IconMaskColors.IconLightBlue)
         },
         summary = { Text(contentOrUnset(ntpServerValue)) },
         valueToText = { it },
@@ -2051,7 +2051,7 @@ private fun NtpSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.directions_boat,
-                color = PreferenceMaskColors.IconLightBlue,
+                color = IconMaskColors.IconLightBlue,
             )
         },
         summary = { Text(ntpPortValue.toString()) },
@@ -2076,7 +2076,7 @@ private fun NtpSettingsGroup(
         icon = {
             MaskedIcon(
                 Res.drawable.flip_camera_android,
-                color = PreferenceMaskColors.IconCyan,
+                color = IconMaskColors.IconCyan,
             )
         },
         summary = { Text(contentOrUnset(ntpIntervalValue)) },
