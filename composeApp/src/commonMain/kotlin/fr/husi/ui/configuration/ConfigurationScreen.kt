@@ -374,7 +374,9 @@ fun ConfigurationScreen(
     }
 
     fun scrollToSelectedProxyAcrossGroups() {
+        focusManager.clearFocus()
         scope.launch {
+            searchBarState.animateToCollapsed()
             val proxyId = DataStore.selectedProxy
             val groupId = vm.proxyGroupId(proxyId) ?: return@launch
             val page = uiState.groups.indexOfFirst { it.id == groupId }
@@ -410,6 +412,9 @@ fun ConfigurationScreen(
                             contentDescription = stringResource(Res.string.menu),
                             onClick = onNavigationClick,
                         ),
+                        onSearchPillClick = {
+                            scope.launch { searchBarState.animateToExpanded() }
+                        },
                         onSearchPillLongPress = ::scrollToSelectedProxyAcrossGroups,
                         actions = {
                         CapsuleActionButton {

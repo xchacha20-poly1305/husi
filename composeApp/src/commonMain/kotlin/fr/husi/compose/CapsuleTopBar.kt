@@ -5,9 +5,7 @@ package fr.husi.compose
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -40,6 +38,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -199,6 +198,7 @@ fun CapsuleSearchTopBar(
     inputField: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     navigationIcon: (@Composable () -> Unit)? = null,
+    onSearchPillClick: (() -> Unit)? = null,
     onSearchPillLongPress: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
@@ -225,15 +225,9 @@ fun CapsuleSearchTopBar(
             }
 
             CapsuleSearchPill(
-                modifier = Modifier
-                    .weight(1f)
-                    .then(
-                        if (onSearchPillLongPress != null) {
-                            Modifier.consumeOnlyLongPress(onSearchPillLongPress)
-                        } else {
-                            Modifier
-                        },
-                    ),
+                modifier = Modifier.weight(1f),
+                onClick = onSearchPillClick,
+                onLongClick = onSearchPillLongPress,
             ) {
                 inputField()
             }
@@ -340,8 +334,12 @@ private fun CapsuleCircular(content: @Composable () -> Unit) {
 @Composable
 private fun CapsuleSearchPill(
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    val currentOnClick = rememberUpdatedState(onClick)
+    val currentOnLongClick = rememberUpdatedState(onLongClick)
     Surface(
         modifier = modifier.height(CapsuleSize),
         shape = CircleShape,
@@ -357,6 +355,18 @@ private fun CapsuleSearchPill(
         ) {
             Box(contentAlignment = Alignment.Center) {
                 content()
+                if (onClick != null || onLongClick != null) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { currentOnClick.value?.invoke() },
+                                    onLongPress = { currentOnLongClick.value?.invoke() },
+                                )
+                            },
+                    )
+                }
             }
         }
     }
@@ -370,19 +380,6 @@ private fun SetHeightOffsetLimit(scrollBehavior: TopAppBarScrollBehavior?) {
         if (scrollBehavior.state.heightOffsetLimit != heightOffsetLimit) {
             scrollBehavior.state.heightOffsetLimit = heightOffsetLimit
         }
-    }
-}
-
-private fun Modifier.consumeOnlyLongPress(onLongPress: () -> Unit) = pointerInput(onLongPress) {
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        val longPress = awaitLongPressOrCancellation(down.id) ?: return@awaitEachGesture
-        longPress.consume()
-        onLongPress()
-        do {
-            val event = awaitPointerEvent()
-            event.changes.forEach { it.consume() }
-        } while (event.changes.any { it.pressed })
     }
 }
 
