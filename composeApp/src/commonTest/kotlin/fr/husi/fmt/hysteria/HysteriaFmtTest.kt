@@ -133,6 +133,8 @@ class HysteriaFmtTest : HusiKoinTest() {
             authPayload = "secret"
             sni = "sni.example.com"
             allowInsecure = true
+            ech = true
+            echConfig = "AAj+DQAEAAAAAA=="
         }
 
         val parsed = parseHysteria2(source.toUri())
@@ -142,6 +144,8 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertEquals(source.authPayload, parsed.authPayload)
         assertEquals(source.sni, parsed.sni)
         assertEquals(source.allowInsecure, parsed.allowInsecure)
+        assertEquals(source.ech, parsed.ech)
+        assertEquals(source.echConfig, parsed.echConfig)
     }
 
     @Test
@@ -491,6 +495,8 @@ class HysteriaFmtTest : HusiKoinTest() {
             authPayload = "secret"
             sni = "sni.example.com"
             allowInsecure = true
+            ech = true
+            echConfig = "AAj+DQAEAAAAAA=="
         }
 
         val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
@@ -502,6 +508,7 @@ class HysteriaFmtTest : HusiKoinTest() {
         val tls = map.getObject("tls")
         assertNotNull(tls)
         assertEquals("sni.example.com", tls.getStr("sni"))
+        assertEquals("AAj+DQAEAAAAAA==", tls.getStr("ech"))
         val congestion = map.getObject("congestion")
         assertNotNull(congestion)
         assertEquals("bbr", congestion.getStr("type"))

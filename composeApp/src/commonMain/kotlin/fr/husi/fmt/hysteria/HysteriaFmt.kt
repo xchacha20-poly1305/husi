@@ -73,6 +73,10 @@ fun parseHysteria2(link: String): HysteriaBean {
 
         sni = url.queryParameter("sni")
         allowInsecure = url.parseBoolean("insecure")
+        url.queryParameterNotBlank("ech")?.let {
+            ech = true
+            echConfig = it
+        }
         url.queryParameterNotBlank("obfs")?.let { obfsType = it }
         obfsPassword = url.queryParameter("obfs-password")
         /*url.queryParameterNotBlank("pinSHA256").also {
@@ -133,6 +137,11 @@ fun HysteriaBean.toUri(): String {
     } else {
         if (sni.isNotBlank()) {
             url.addQueryParameter("sni", sni)
+        }
+        if (ech) {
+            echConfig.blankAsNull()?.let {
+                url.addQueryParameter("ech", it)
+            }
         }
         obfsType.blankAsNull()?.let {
             url.addQueryParameter("obfs", it)
@@ -311,6 +320,7 @@ fun HysteriaBean.buildHysteriaConfig(
                     buildMap<String, Any?> {
                         put("sni", sni)
                         put("insecure", allowInsecure)
+                        if (ech) echConfig.blankAsNull()?.let { put("ech", it) }
                         caPath?.let { put("ca", it) }
                         certPath?.let { put("clientCertificate", it) }
                         keyPath?.let { put("clientKey", it) }
