@@ -1118,7 +1118,7 @@ fun buildConfig(
                 type = SingBoxOptions.TYPE_BLOCK
             }.asKxsMap(),
         )
-        if (!PlatformInfo.isAndroid) outbounds!!.add(
+        if (!PlatformInfo.isAndroid && route!!.rules!!.any { it["outbound"] == TAG_BRIDGE }) outbounds!!.add(
             Outbound().apply {
                 tag = TAG_BRIDGE
                 type = SingBoxOptions.TYPE_BRIDGE

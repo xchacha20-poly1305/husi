@@ -709,6 +709,35 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig should only add bridge outbound when a bridge rule exists`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        assertEquals(null, parseOutbounds(buildConfig(proxy))[TAG_BRIDGE])
+
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "bridge",
+                domains = "full:bridge.example",
+                outbound = RuleEntity.OUTBOUND_BRIDGE,
+            ),
+        )
+
+        assertEquals(
+            SingBoxOptions.TYPE_BRIDGE,
+            parseOutbounds(buildConfig(proxy))[TAG_BRIDGE]?.get("type")?.jsonPrimitive?.content,
+        )
+    }
+
+    @Test
     fun `buildConfig should preserve request dns rule set when ip dns rule set needs response matching`() = runBlocking {
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
