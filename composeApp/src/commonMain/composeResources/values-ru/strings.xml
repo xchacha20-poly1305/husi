@@ -738,4 +738,7 @@
     <string name="blackhole_detection">Обнаружение сетевых черных дыр</string>
     <string name="age_identity">identity утилиты age</string>
     <string name="fallback_outbound">Запасное исходящее подключение</string>
+    <string name="snell_user_key">Ключ пользователя</string>
+    <string name="snell_reuse">Переиспользовать соединение</string>
+    <string name="snell_mode">Режим</string>
 </resources>
