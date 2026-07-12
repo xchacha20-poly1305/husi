@@ -25,6 +25,7 @@ const (
 	commandSubscribeLogs
 	commandImportDeepLink
 	commandRunTask
+	commandQueryAllProxy
 )
 
 const (

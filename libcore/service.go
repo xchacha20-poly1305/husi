@@ -336,6 +336,18 @@ func (s *Service) handleRequest(conn net.Conn) error {
 			return E.Cause(err, "handle query proxy sets")
 		}
 		return nil
+	case commandQueryAllProxy:
+		s.access.RLock()
+		instance, err := s.requireInstance()
+		s.access.RUnlock()
+		if err != nil {
+			return err
+		}
+		err = s.handleQueryAllProxyItems(conn, instance)
+		if err != nil {
+			return E.Cause(err, "handle query all proxy")
+		}
+		return nil
 	case commandResetNetwork:
 		s.access.RLock()
 		instance, err := s.requireInstance()

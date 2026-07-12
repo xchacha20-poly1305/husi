@@ -19,8 +19,8 @@ import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.ktx.toList
 import fr.husi.libcore.Client
 import fr.husi.libcore.ConnectionEvent
-import fr.husi.libcore.GroupItemIterator
 import fr.husi.libcore.Libcore
+import fr.husi.libcore.ProxyItemIterator
 import fr.husi.utils.LibcoreClientManager
 import fr.husi.utils.PackageResolver
 import kotlin.experimental.and
@@ -81,11 +81,13 @@ data class NetworkInterfaceInfo(
 @Immutable
 data class ProxySet(
     val tag: String = "",
+    val id: String = tag,
     val type: String = "",
     val selectable: Boolean = false,
     var selected: String = "",
-    var items: List<ProxySetItem> = emptyList(),
+    var items: List<ProxyItem> = emptyList(),
     val urlTestProgress: GroupUrlTestProgress? = null,
+    val isAll: Boolean = false,
 ) {
     constructor(set: fr.husi.libcore.ProxySet) : this(
         tag = set.tag,
@@ -97,6 +99,18 @@ data class ProxySet(
 
     val isTesting: Boolean
         get() = urlTestProgress != null
+}
+
+internal const val ALL_PROXY_SET_ID = "__all_proxy_set__"
+
+internal fun allProxySet(items: List<ProxyItem>): ProxySet {
+    return ProxySet(
+        id = ALL_PROXY_SET_ID,
+        tag = "All proxies",
+        type = "All",
+        items = items,
+        isAll = true,
+    )
 }
 
 fun fr.husi.libcore.ProxySetIterator.toList(): List<ProxySet> {
@@ -114,12 +128,12 @@ data class GroupUrlTestProgress(
 )
 
 @Immutable
-data class ProxySetItem(
+data class ProxyItem(
     val tag: String = "",
     val type: String = "",
     val urlTestDelay: Int = -1,
 ) {
-    constructor(item: fr.husi.libcore.GroupItem) : this(
+    constructor(item: fr.husi.libcore.ProxyItem) : this(
         tag = item.tag,
         type = item.type,
         urlTestDelay = item.delay,
@@ -132,10 +146,10 @@ internal data class ProcessInfo(
     val icon: Any? = null,
 )
 
-fun GroupItemIterator.toList(): List<ProxySetItem> {
-    return ArrayList<ProxySetItem>(length()).apply {
+fun ProxyItemIterator.toList(): List<ProxyItem> {
+    return ArrayList<ProxyItem>(length()).apply {
         while (hasNext()) {
-            add(ProxySetItem(next()))
+            add(ProxyItem(next()))
         }
     }
 }
@@ -365,9 +379,11 @@ class DashboardViewModel(
         uiState.update { state ->
             state.copy(
                 proxySets = state.proxySets.map {
-                    if (it.tag == group) {
+                    if (it.id == group) {
                         val updated = it.copy(urlTestProgress = progress)
-                        proxySetsByTag[group] = updated
+                        if (!it.isAll) {
+                            proxySetsByTag[it.tag] = updated
+                        }
                         updated
                     } else {
                         it
@@ -569,13 +585,19 @@ class DashboardViewModel(
     ): List<ProxySet> {
         if (proxySetsByTag.isEmpty() && olds.isNotEmpty()) {
             for (old in olds) {
-                proxySetsByTag[old.tag] = old
+                if (!old.isAll) {
+                    proxySetsByTag[old.tag] = old
+                }
             }
         }
         val fresh = client.queryProxySets()?.toList().orEmpty()
+        val allItems = client.queryAllProxyItems()?.toList().orEmpty()
+        val allSet = allProxySet(allItems).copy(
+            urlTestProgress = olds.firstOrNull { it.isAll }?.urlTestProgress,
+        )
         if (fresh.isEmpty()) {
             proxySetsByTag.clear()
-            return emptyList()
+            return listOf(allSet)
         }
         val freshTags = HashSet<String>(fresh.size)
         val result = buildList(fresh.size) {
@@ -597,7 +619,10 @@ class DashboardViewModel(
             }
         }
         proxySetsByTag.keys.retainAll(freshTags)
-        return result
+        return buildList(result.size + 1) {
+            add(allSet)
+            addAll(result)
+        }
     }
 
     fun closeConnection(uuid: String) = viewModelScope.launch(Dispatchers.IO) {
@@ -630,10 +655,14 @@ class DashboardViewModel(
         }
     }
 
-    fun urlTestForGroup(tag: String) = viewModelScope.launch(Dispatchers.IO) {
-        val proxySet = uiState.value.proxySets.firstOrNull { it.tag == tag } ?: return@launch
+    fun urlTestForGroup(id: String) = viewModelScope.launch(Dispatchers.IO) {
+        val proxySet = uiState.value.proxySets.firstOrNull { it.id == id } ?: return@launch
         if (proxySet.isTesting) return@launch
-        val items = proxySet.items.toList()
+        val items = if (proxySet.isAll) {
+            proxySet.items.filterNot(::skipGroupUrlTest)
+        } else {
+            proxySet.items.toList()
+        }
         if (items.isEmpty()) return@launch
         val testURL = DataStore.connectionTestURL
         val testTimeout = DataStore.connectionTestTimeout
@@ -641,7 +670,7 @@ class DashboardViewModel(
             urlTestClient.withClient { client ->
                 for ((index, item) in items.withIndex()) {
                     setUrlTestProgress(
-                        tag,
+                        id,
                         GroupUrlTestProgress(
                             current = index + 1,
                             total = items.size,
@@ -657,7 +686,7 @@ class DashboardViewModel(
         } catch (e: Exception) {
             Logs.w(e)
         } finally {
-            setUrlTestProgress(tag, null)
+            setUrlTestProgress(id, null)
         }
     }
 
@@ -680,4 +709,8 @@ class DashboardViewModel(
             Logs.w(e)
         }
     }
+}
+
+internal fun skipGroupUrlTest(item: ProxyItem): Boolean {
+    return item.type == "Direct" || item.type == "Block"
 }

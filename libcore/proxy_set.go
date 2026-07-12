@@ -125,10 +125,10 @@ type ProxySet struct {
 	Type       string
 	Selected   string
 	Selectable bool
-	Items      []*GroupItem
+	Items      []*ProxyItem
 }
 
-func (p *ProxySet) GetItems() GroupItemIterator {
+func (p *ProxySet) GetItems() ProxyItemIterator {
 	return newIterator(p.Items)
 }
 
@@ -150,6 +150,18 @@ func (c *Client) QueryProxySets() (ProxySetIterator, error) {
 	return newIterator(proxySets), nil
 }
 
+func (c *Client) QueryAllProxyItems() (ProxyItemIterator, error) {
+	err := vario.WriteUint8(c.conn, commandQueryAllProxy)
+	if err != nil {
+		return nil, E.Cause(err, "write command")
+	}
+	items, err := vario.ReadSlices(c.conn, readProxyItem)
+	if err != nil {
+		return nil, E.Cause(err, "read proxy items")
+	}
+	return newIterator(items), nil
+}
+
 func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance) error {
 	outboundManager := instance.Outbound()
 	historyStorage := instance.urlTestHistory
@@ -169,6 +181,25 @@ func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance
 	return writer.Flush()
 }
 
+func (s *Service) handleQueryAllProxyItems(conn io.ReadWriter, instance *boxInstance) error {
+	outbounds := instance.Outbound().Outbounds()
+	endpoints := instance.Endpoint().Endpoints()
+	historyStorage := instance.urlTestHistory
+	items := make([]*ProxyItem, 0, len(outbounds)+len(endpoints))
+	for _, outbound := range outbounds {
+		items = append(items, buildProxyItem(outbound, historyStorage))
+	}
+	for _, endpoint := range endpoints {
+		items = append(items, buildProxyItem(endpoint, historyStorage))
+	}
+	writer := bufio.NewWriter(conn)
+	err := vario.WriteSlices(writer, items)
+	if err != nil {
+		return E.Cause(err, "write proxy items")
+	}
+	return writer.Flush()
+}
+
 func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapter.OutboundGroup, historyStorage *urltest.HistoryStorage) *ProxySet {
 	_, isSelector := outboundGroup.(*group.Selector)
 	return &ProxySet{
@@ -176,33 +207,33 @@ func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapte
 		Type:       pluginoption.ProxyDisplayName(outboundGroup.Type()),
 		Selected:   outboundGroup.Now(),
 		Selectable: isSelector,
-		Items: common.Map(outboundGroup.All(), func(it string) *GroupItem {
+		Items: common.Map(outboundGroup.All(), func(it string) *ProxyItem {
 			outbound, _ := outboundManager.Outbound(it)
-			return buildGroupItem(outbound, historyStorage)
+			return buildProxyItem(outbound, historyStorage)
 		}),
 	}
 }
 
-type GroupItem struct {
+type ProxyItem struct {
 	Tag   string
 	Type  string
 	Delay int32
 }
 
-type GroupItemIterator interface {
-	Next() *GroupItem
+type ProxyItemIterator interface {
+	Next() *ProxyItem
 	HasNext() bool
 	Length() int32
 }
 
-func buildGroupItem(outbound adapter.Outbound, historyStorage *urltest.HistoryStorage) *GroupItem {
+func buildProxyItem(outbound adapter.Outbound, historyStorage *urltest.HistoryStorage) *ProxyItem {
 	var delay int32
 	if historyStorage != nil {
 		if history := historyStorage.LoadURLTestHistory(outbound.Tag()); history != nil {
 			delay = int32(history.Delay)
 		}
 	}
-	return &GroupItem{
+	return &ProxyItem{
 		Tag:   outbound.Tag(),
 		Type:  pluginoption.ProxyDisplayName(outbound.Type()),
 		Delay: delay,
@@ -250,7 +281,7 @@ func readProxySet(reader io.Reader) (*ProxySet, error) {
 	if err != nil {
 		return nil, E.Cause(err, "read selectable")
 	}
-	items, err := vario.ReadSlices(reader, readGroupItem)
+	items, err := vario.ReadSlices(reader, readProxyItem)
 	if err != nil {
 		return nil, E.Cause(err, "read items")
 	}
@@ -263,7 +294,7 @@ func readProxySet(reader io.Reader) (*ProxySet, error) {
 	}, nil
 }
 
-func (g *GroupItem) WriteToBinary(writer io.Writer) error {
+func (g *ProxyItem) WriteToBinary(writer io.Writer) error {
 	err := vario.WriteString(writer, g.Tag)
 	if err != nil {
 		return E.Cause(err, "write tag")
@@ -279,7 +310,7 @@ func (g *GroupItem) WriteToBinary(writer io.Writer) error {
 	return nil
 }
 
-func readGroupItem(reader io.Reader) (*GroupItem, error) {
+func readProxyItem(reader io.Reader) (*ProxyItem, error) {
 	tag, err := vario.ReadString(reader)
 	if err != nil {
 		return nil, E.Cause(err, "read tag")
@@ -292,7 +323,7 @@ func readGroupItem(reader io.Reader) (*GroupItem, error) {
 	if err != nil {
 		return nil, E.Cause(err, "read delay")
 	}
-	return &GroupItem{
+	return &ProxyItem{
 		Tag:   tag,
 		Type:  itemType,
 		Delay: delay,
