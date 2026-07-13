@@ -73,12 +73,32 @@ import fr.husi.fmt.wireguard.WireGuardBean
 import fr.husi.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import fr.husi.fmt.wireguard.parseWireGuardEndpoint
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.b64Decode
+import fr.husi.ktx.b64EncodeOneLine
 import fr.husi.ktx.getBool
 import fr.husi.ktx.getIntOrNull
 import fr.husi.ktx.getObject
 import fr.husi.ktx.getStr
 import fr.husi.ktx.kxs
 import fr.husi.ktx.toJsonStringKxs
+
+const val ECH_CONFIGS_PEM_HEADER = "-----BEGIN ECH CONFIGS-----"
+const val ECH_CONFIGS_PEM_FOOTER = "-----END ECH CONFIGS-----"
+
+fun String.toECHOneLine(): String {
+    val base64 = lineSequence()
+        .filterNot { it == ECH_CONFIGS_PEM_HEADER || it == ECH_CONFIGS_PEM_FOOTER }
+        .joinToString(separator = "")
+    return base64.b64Decode().b64EncodeOneLine()
+}
+
+fun String.toECHPem(): String {
+    return buildString {
+        appendLine(ECH_CONFIGS_PEM_HEADER)
+        appendLine(b64Decode().b64EncodeOneLine())
+        append(ECH_CONFIGS_PEM_FOOTER)
+    }
+}
 
 fun AbstractBean.toJsonStringKxs(): String = when (this) {
     is AnyTLSBean -> kxs.encodeToString(this)

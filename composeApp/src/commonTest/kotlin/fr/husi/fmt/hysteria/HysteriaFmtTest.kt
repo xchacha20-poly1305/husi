@@ -17,6 +17,12 @@ import kotlin.test.assertTrue
 
 class HysteriaFmtTest : HusiKoinTest() {
 
+    private val singBoxECHConfig = """
+        -----BEGIN ECH CONFIGS-----
+        AAj+DQAEAAAAAA==
+        -----END ECH CONFIGS-----
+    """.trimIndent()
+
     override suspend fun postStartKoin() {
         DataStore.configurationStore.reset()
     }
@@ -134,7 +140,7 @@ class HysteriaFmtTest : HusiKoinTest() {
             sni = "sni.example.com"
             allowInsecure = true
             ech = true
-            echConfig = "AAj+DQAEAAAAAA=="
+            echConfig = singBoxECHConfig
         }
 
         val parsed = parseHysteria2(source.toUri())
@@ -145,7 +151,7 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertEquals(source.sni, parsed.sni)
         assertEquals(source.allowInsecure, parsed.allowInsecure)
         assertEquals(source.ech, parsed.ech)
-        assertEquals(source.echConfig, parsed.echConfig)
+        assertEquals(singBoxECHConfig, parsed.echConfig)
     }
 
     @Test
@@ -496,7 +502,7 @@ class HysteriaFmtTest : HusiKoinTest() {
             sni = "sni.example.com"
             allowInsecure = true
             ech = true
-            echConfig = "AAj+DQAEAAAAAA=="
+            echConfig = singBoxECHConfig
         }
 
         val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)

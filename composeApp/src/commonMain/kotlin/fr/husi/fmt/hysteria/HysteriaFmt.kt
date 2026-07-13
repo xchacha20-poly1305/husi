@@ -8,6 +8,8 @@ import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.listable
 import fr.husi.fmt.parseBoxTLS
+import fr.husi.fmt.toECHOneLine
+import fr.husi.fmt.toECHPem
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.emptyAsNull
@@ -75,7 +77,7 @@ fun parseHysteria2(link: String): HysteriaBean {
         allowInsecure = url.parseBoolean("insecure")
         url.queryParameterNotBlank("ech")?.let {
             ech = true
-            echConfig = it
+            echConfig = it.toECHPem()
         }
         url.queryParameterNotBlank("obfs")?.let { obfsType = it }
         obfsPassword = url.queryParameter("obfs-password")
@@ -140,7 +142,7 @@ fun HysteriaBean.toUri(): String {
         }
         if (ech) {
             echConfig.blankAsNull()?.let {
-                url.addQueryParameter("ech", it)
+                url.addQueryParameter("ech", it.toECHOneLine())
             }
         }
         obfsType.blankAsNull()?.let {
@@ -320,7 +322,9 @@ fun HysteriaBean.buildHysteriaConfig(
                     buildMap<String, Any?> {
                         put("sni", sni)
                         put("insecure", allowInsecure)
-                        if (ech) echConfig.blankAsNull()?.let { put("ech", it) }
+                        if (ech) echConfig.blankAsNull()?.let {
+                            put("ech", it.toECHOneLine())
+                        }
                         caPath?.let { put("ca", it) }
                         certPath?.let { put("clientCertificate", it) }
                         keyPath?.let { put("clientKey", it) }

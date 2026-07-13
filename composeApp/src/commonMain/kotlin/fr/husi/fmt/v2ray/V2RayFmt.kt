@@ -30,6 +30,8 @@ import fr.husi.fmt.listable
 import fr.husi.fmt.parseBoxOutbound
 import fr.husi.fmt.parseBoxTLS
 import fr.husi.fmt.parseHeader
+import fr.husi.fmt.toECHOneLine
+import fr.husi.fmt.toECHPem
 import fr.husi.fmt.trojan.TrojanBean
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.Logs
@@ -39,7 +41,6 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
-import fr.husi.ktx.queryParameterUnescapeNotBlank
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.libcore.Libcore
@@ -103,9 +104,6 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
     return bean
 }
 
-const val BEGIN_ECH = "-----BEGIN ECH CONFIG-----"
-const val END_ECH = "-----END ECH CONFIG-----"
-
 private fun StandardV2RayBean.parseDuckSoftTlsQueries(url: URL) {
     sni = url.queryParameterNotBlank("sni") ?: url.queryParameterNotBlank("host") ?: ""
     alpn = url.queryParameter("alpn")
@@ -113,14 +111,14 @@ private fun StandardV2RayBean.parseDuckSoftTlsQueries(url: URL) {
     realityPublicKey = url.queryParameter("pbk")
     realityShortID = url.queryParameter("sid")
 
-    url.queryParameterUnescapeNotBlank("ech")?.let {
+    url.queryParameterNotBlank("ech")?.let {
         ech = true
 
         if (it.contains("://")) {
-            echQueryServerName = it.substringBefore("+", "")
+            echQueryServerName = it.substringBefore("://", "").substringBefore("+", "")
         } else runCatching {
             if (it.b64Decode().isNotEmpty()) {
-                echConfig = "$BEGIN_ECH\n$it\n$END_ECH"
+                echConfig = it.toECHPem()
             }
         }
     }
@@ -394,8 +392,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
                 // Xray requires a DNS server in ECH field, which is coupling.
                 // We don't set a hard-coded DNS server here. 😅
                 if (ech) echConfig.blankAsNull()?.let {
-                    val config = it.removeSuffix("$BEGIN_ECH\n").removeSuffix("\n$END_ECH")
-                    builder.setQueryParameter("ech", config)
+                    builder.setQueryParameter("ech", it.toECHOneLine())
                 }
             }
         }

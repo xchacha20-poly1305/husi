@@ -16,6 +16,12 @@ import kotlin.test.assertTrue
 
 class V2RayFmtTest {
 
+    private val singBoxECHConfig = """
+        -----BEGIN ECH CONFIGS-----
+        AAj+DQAEAAAAAA==
+        -----END ECH CONFIGS-----
+    """.trimIndent()
+
     @Test
     fun `parseV2Ray should parse vmess ducksoft url`() {
         val bean = parseV2Ray(FmtTestConstant.VMESS_DUCKSOFT_URL)
@@ -118,6 +124,23 @@ class V2RayFmtTest {
         assertIs<VLESSBean>(parsed)
         assertEquals(source.uuid, parsed.uuid)
         assertEquals(source.flow, parsed.flow)
+    }
+
+    @Test
+    fun `toUriVMessVLESSTrojan should preserve ECH config in sing-box format`() {
+        val source = VLESSBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            uuid = "test-uuid"
+            security = "tls"
+            ech = true
+            echConfig = singBoxECHConfig
+        }
+
+        val parsed = parseV2Ray(source.toUriVMessVLESSTrojan())
+
+        assertTrue(parsed.ech)
+        assertEquals(singBoxECHConfig, parsed.echConfig)
     }
 
     @Test
