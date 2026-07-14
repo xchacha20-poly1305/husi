@@ -270,6 +270,10 @@ func (w *boxPlatformInterfaceWrapper) StartNeighborMonitor(listener adapter.Neig
 	return os.ErrInvalid
 }
 
+func (w *boxPlatformInterfaceWrapper) ProcessPlatformOptions(options option.TunPlatformOptions) error {
+	return nil
+}
+
 func (w *boxPlatformInterfaceWrapper) CloseNeighborMonitor(listener adapter.NeighborUpdateListener) error {
 	return os.ErrInvalid
 }

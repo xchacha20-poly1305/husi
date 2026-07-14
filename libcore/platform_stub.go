@@ -36,6 +36,10 @@ func (p platformInterfaceStub) OpenInterface(_ *tun.Options, _ option.TunPlatfor
 	return nil, os.ErrInvalid
 }
 
+func (p platformInterfaceStub) ProcessPlatformOptions(_ option.TunPlatformOptions) error {
+	return nil
+}
+
 func (p platformInterfaceStub) UsePlatformDefaultInterfaceMonitor() bool {
 	return true
 }
