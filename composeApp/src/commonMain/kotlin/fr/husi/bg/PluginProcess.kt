@@ -82,9 +82,18 @@ fun launchPlugins(
     cacheFiles: MutableList<File>,
     isVPN: Boolean,
 ) {
-    val cacheDir = File(resolveRepository().cacheDir, "tmpcfg")
+    val repository = resolveRepository()
+    val cacheDir = File(repository.cacheDir, "tmpcfg")
     cacheDir.mkdirs()
     val shouldProtect = isVPN && PlatformInfo.isAndroid
+
+    val env = mutableMapOf<String, String>()
+    repository.externalAssetsDir.resolve(Libcore.PluginCaFile)
+        .takeIf { it.isFile }
+        ?.absolutePath
+        ?.let {
+            env["SSL_CERT_FILE"] = it
+        }
 
     for ((chain) in config.externalIndex) {
         chain.entries.forEach { (port, profile) ->
@@ -96,7 +105,7 @@ fun launchPlugins(
                     val configFile = File(cacheDir, "mieru_${System.currentTimeMillis()}.json")
                     configFile.writeText(cfg)
                     cacheFiles.add(configFile)
-                    val env = mutableMapOf("MIERU_CONFIG_JSON_FILE" to configFile.absolutePath)
+                    env["MIERU_CONFIG_JSON_FILE"] = configFile.absolutePath
                     if (shouldProtect) {
                         env["MIERU_PROTECT_PATH"] = Libcore.ProtectPath
                     }
@@ -115,7 +124,7 @@ fun launchPlugins(
                             PluginManager.init("naive-plugin")!!.path,
                             configFile.absolutePath,
                         ),
-                        mutableMapOf(),
+                        env,
                     )
                 }
 
@@ -149,9 +158,10 @@ fun launchPlugins(
                     ) {
                         commands.addAll(0, listOf("su", "-c"))
                     }
+                    env["HYSTERIA_DISABLE_UPDATE_CHECK"] = "1"
                     processes.start(
                         commands,
-                        mutableMapOf("HYSTERIA_DISABLE_UPDATE_CHECK" to "1"),
+                        env,
                     )
                 }
 
@@ -159,6 +169,7 @@ fun launchPlugins(
                     val configFile = File(cacheDir, "juicity_${System.currentTimeMillis()}.json")
                     configFile.writeText(cfg)
                     cacheFiles.add(configFile)
+                    env["QUIC_GO_DISABLE_GSO"] = "1"
                     processes.start(
                         listOf(
                             PluginManager.init("juicity-plugin")!!.path,
@@ -166,7 +177,7 @@ fun launchPlugins(
                             "-c",
                             configFile.absolutePath,
                         ),
-                        mutableMapOf("QUIC_GO_DISABLE_GSO" to "1"),
+                        env,
                     )
                 }
 
@@ -180,6 +191,7 @@ fun launchPlugins(
                             "-c",
                             configFile.absolutePath,
                         ),
+                        env,
                     )
                 }
             }

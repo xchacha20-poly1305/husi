@@ -42,81 +42,118 @@ const (
 	CertChrome
 )
 
-const customCaFile = "ca.pem"
+const (
+	customCaFile = "ca.pem"
+	PluginCaFile = "plugin-ca.pem"
+)
 
-// UpdateRootCACerts updates Go trusted certs.
+// SetupRootCA updates Go trusted certs and creates the PEM bundle for external plugins.
 //
 // On Android, this appends externalAssetsPath/ca.pem to root CA.
-func UpdateRootCACerts(certOption int32) {
+func SetupRootCA(certOption int32) {
 	// https://github.com/golang/go/blob/30b6fd60a63c738c2736e83b6a6886a032e6f269/src/crypto/x509/root.go#L31
 	// Make sure initialize system cert pool.
 	// If system cert has not been initialized,
 	// other place, where using x509.SystemCertPool(), will initialize systemRoots and override out hook.
 	systemRoots = nil // Clean up old, then x508.SystemCertPool can read again, getting real system certs.
-	sysRoots, _ := x509.SystemCertPool()
+	_, _ = x509.SystemCertPool()
 
-	var roots *x509.CertPool
+	roots := newRootCABundle()
+	var err error
 	switch certOption {
 	case CertSystem:
-		var err error
-		roots, err = loadSystemCertWithUserTrust(sysRoots, false)
-		if err != nil {
-			log.Error("load system root: ", err)
-			roots = sysRoots
-		}
+		err = appendSystemRootCAs(roots, false)
 	case CertWithUserTrust:
-		var err error
-		roots, err = loadSystemCertWithUserTrust(sysRoots, true)
-		if err != nil {
-			log.Error("load system root with user trust: ", err)
-			roots = sysRoots
-		}
+		err = appendSystemRootCAs(roots, true)
 	case CertMozilla:
-		roots = x509.NewCertPool()
-		if !roots.AppendCertsFromPEM([]byte(mozillaIncludedPEM())) {
-			log.Error("failed to load Mozilla cert")
-			roots = sysRoots
-		}
+		err = roots.Append([]byte(mozillaIncludedPEM()))
 	case CertChrome:
-		roots = x509.NewCertPool()
-		if !roots.AppendCertsFromPEM([]byte(chromeIncludedPEM())) {
-			log.Error("failed to load Chrome cert")
-			roots = sysRoots
-		}
+		err = roots.Append([]byte(chromeIncludedPEM()))
 	default:
 		panic("unknown cert option")
+	}
+	if err != nil {
+		log.Error("load root certificates: ", err)
+		roots = newRootCABundle()
+		fallbackErr := roots.Append([]byte(mozillaIncludedPEM()))
+		if fallbackErr != nil {
+			log.Error("load fallback Mozilla certificates: ", fallbackErr)
+			return
+		}
 	}
 
 	if C.IsAndroid {
 		externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, customCaFile))
 		if len(externalPem) > 0 {
-			if tryAddCert(roots, externalPem) {
-				log.Info("loaded external cert")
+			err := roots.Append(externalPem)
+			if err != nil {
+				log.Error(E.Cause(err, "load external cert"))
 			} else {
-				log.Warn("failed to loaded external cert")
+				log.Info("loaded external cert")
 			}
 		}
 	}
+	systemRoots = roots.pool
 
-	systemRoots = roots
+	err = os.MkdirAll(externalAssetsPath, 0o700)
+	if err != nil {
+		log.Error("create plugin certificate directory: ", err)
+		return
+	}
+	err = os.WriteFile(filepath.Join(externalAssetsPath, PluginCaFile), roots.pem.Bytes(), 0o600)
+	if err != nil {
+		log.Error("write plugin root certificates: ", err)
+		return
+	}
 }
 
-// tryAddCert tries to add raw as pem or DER to pool.
-// This not returns error because the error just caused by parsing DER.
-func tryAddCert(pool *x509.CertPool, raw []byte) bool {
-	if pool.AppendCertsFromPEM(raw) {
-		return true
+type rootCABundle struct {
+	pool *x509.CertPool
+	pem  bytes.Buffer
+}
+
+func newRootCABundle() *rootCABundle {
+	return &rootCABundle{pool: x509.NewCertPool()}
+}
+
+func (b *rootCABundle) Append(raw []byte) error {
+	foundPEM := false
+	remaining := raw
+	for {
+		block, rest := pem.Decode(remaining)
+		if block == nil {
+			break
+		}
+		remaining = rest
+		if block.Type != typeCert {
+			continue
+		}
+		foundPEM = true
+		certificate, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return E.Cause(err, "parse PEM certificate")
+		}
+		b.pool.AddCert(certificate)
+		err = pem.Encode(&b.pem, &pem.Block{Type: typeCert, Bytes: certificate.Raw})
+		if err != nil {
+			return E.Cause(err, "encode PEM certificate")
+		}
 	}
-	// Inspired by:
-	// https://github.com/MetaCubeX/mihomo/blob/9bfb10d7aefee0799f0116c22479627f312ccf4f/component/ca/config.go#L41-L48
-	certs, err := x509.ParseCertificates(raw)
+	if foundPEM {
+		return nil
+	}
+
+	certificates, err := x509.ParseCertificates(raw)
 	if err != nil {
-		return false
+		return err
 	}
-	for _, cert := range certs {
-		pool.AddCert(cert)
+	for _, certificate := range certificates {
+		b.pool.AddCert(certificate)
+		if err := pem.Encode(&b.pem, &pem.Block{Type: typeCert, Bytes: certificate.Raw}); err != nil {
+			return E.Cause(err, "encode DER certificate")
+		}
 	}
-	return true
+	return nil
 }
 
 const typeCert = "CERTIFICATE"

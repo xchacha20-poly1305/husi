@@ -1,9 +1,13 @@
 package libcore
 
 import (
+	"bytes"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"net"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -15,7 +19,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_UpdateRootCACerts(t *testing.T) {
+func TestRootCABundleAppendBuildsPoolAndPEM(t *testing.T) {
+	_, certificatePEM, err := aTLS.GenerateCertificate(nil, nil, time.Now, "example.com", time.Now().Add(5*time.Minute))
+	require.NoError(t, err)
+
+	roots := newRootCABundle()
+	require.NoError(t, roots.Append(certificatePEM))
+
+	block, remaining := pem.Decode(roots.pem.Bytes())
+	require.NotNil(t, block)
+	assert.Empty(t, remaining)
+	certificate, err := x509.ParseCertificate(block.Bytes)
+	require.NoError(t, err)
+	require.Len(t, roots.pool.Subjects(), 1)
+	assert.True(t, bytes.Equal(certificate.RawSubject, roots.pool.Subjects()[0]))
+}
+
+func TestSetupRootCA(t *testing.T) {
+	previousExternalAssetsPath := externalAssetsPath
+	externalAssetsPath = t.TempDir()
+	t.Cleanup(func() {
+		externalAssetsPath = previousExternalAssetsPath
+	})
+
 	const (
 		chinaRailway     = "www.12306.cn" // Use CA from China
 		trustAsiaAddress = chinaRailway + ":443"
@@ -91,12 +117,37 @@ func Test_UpdateRootCACerts(t *testing.T) {
 	testConnect(husi, listen, true, "normal local")
 
 	// Load local cert and Mozilla CA
-	UpdateRootCACerts(CertMozilla)
+	SetupRootCA(CertMozilla)
 	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
 	testConnect(husi, listen, !C.IsAndroid, "loaded custom")
 
 	// Set back but load local
-	UpdateRootCACerts(CertSystem)
+	SetupRootCA(CertSystem)
 	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
 	testConnect(husi, listen, !C.IsAndroid, "loaded custom 2")
+}
+
+func TestSetupRootCAWritesPluginRootCACerts(t *testing.T) {
+	previousExternalAssetsPath := externalAssetsPath
+	externalAssetsPath = t.TempDir()
+	t.Cleanup(func() {
+		externalAssetsPath = previousExternalAssetsPath
+	})
+
+	tests := []struct {
+		name       string
+		certOption int32
+	}{
+		{name: "mozilla", certOption: CertMozilla},
+		{name: "chrome", certOption: CertChrome},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			SetupRootCA(test.certOption)
+			certificates, err := os.ReadFile(filepath.Join(externalAssetsPath, PluginCaFile))
+			require.NoError(t, err)
+			assert.Contains(t, string(certificates), "-----BEGIN CERTIFICATE-----")
+		})
+	}
 }

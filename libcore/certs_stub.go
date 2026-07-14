@@ -1,11 +1,13 @@
-//go:build !android
+//go:build !android && !darwin && !linux && !windows
 
 package libcore
 
 import (
-	"crypto/x509"
+	"os"
+
+	E "github.com/sagernet/sing/common/exceptions"
 )
 
-func loadSystemCertWithUserTrust(sysRoot *x509.CertPool, withUserTrust bool) (*x509.CertPool, error) {
-	return sysRoot, nil
+func appendSystemRootCAs(roots *rootCABundle, withUserTrust bool) error {
+	return E.Cause(os.ErrInvalid, "unexpected platform")
 }

@@ -20,5 +20,5 @@ actual fun loadCA(provider: Int) {
         CertProvider.CHROME -> Libcore.CertChrome
         else -> Libcore.CertSystem
     }
-    Libcore.updateRootCACerts(certOption)
+    Libcore.setupRootCA(certOption)
 }

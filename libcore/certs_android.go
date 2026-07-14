@@ -1,7 +1,6 @@
 package libcore
 
 import (
-	"crypto/x509"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,10 +9,31 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-func loadSystemCertWithUserTrust(sysRoot *x509.CertPool, withUserTrust bool) (*x509.CertPool, error) {
+func appendSystemRootCAs(roots *rootCABundle, withUserTrust bool) error {
 	// Inspired by https://github.com/ExclaveNetwork/LibExclaveCore/blob/a715e817dd2cfc585163084b19fd4bd2614fe058/ca.go#L134
 	// Workaround for https://github.com/golang/go/issues/71258
 
+	paths, err := systemCertPaths(withUserTrust)
+	if err != nil {
+		return err
+	}
+
+	for name, path := range paths {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return E.Cause(err, "load cert")
+		}
+		if err := roots.Append(content); err != nil {
+			log.Warn("add cert ", name, ": ", err)
+		}
+	}
+	if roots.pem.Len() == 0 {
+		return E.New("no system root certificates")
+	}
+	return nil
+}
+
+func systemCertPaths(withUserTrust bool) (map[string]string, error) {
 	var paths map[string]string // name:fullPath
 
 	systemDir := "/apex/com.android.conscrypt/cacerts" // Android 14+
@@ -52,17 +72,5 @@ func loadSystemCertWithUserTrust(sysRoot *x509.CertPool, withUserTrust bool) (*x
 		log.Warn("read user removed cert dir: ", err)
 	}
 
-	roots := x509.NewCertPool()
-	for name, path := range paths {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return nil, E.Cause(err, "load cert")
-		}
-		if !tryAddCert(roots, content) {
-			// SHA1WithRSA like CatCert is unsupported since Go 1.24
-			log.Warn("add cert ", name, ": ", string(content))
-			continue
-		}
-	}
-	return roots, nil
+	return paths, nil
 }
