@@ -174,7 +174,9 @@ fun ShadowQUICBean.buildShadowQUICConfig(
                 put("over-stream", udpOverStream.takeIf { it })
                 if (mtuDiscovery) {
                     put("mtu-discovery", true)
-                    put("blackhole-detection", blackholeDetection.takeIf { it })
+                    if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
+                        put("blackhole-detection", blackholeDetection.takeIf { it })
+                    }
                 }
                 put("gso", gso)
                 put("protect-path", if (shouldProtect) Libcore.ProtectPath else null)

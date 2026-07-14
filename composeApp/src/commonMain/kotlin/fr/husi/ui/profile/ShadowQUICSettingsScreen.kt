@@ -334,20 +334,22 @@ private fun LazyListScope.shadowQuicSettings(
                 MaskedIcon(Res.drawable.search, IconMaskColors.IconLightBlue)
             },
         )
-        PreferenceDivider()
-        SwitchPreference(
-            value = uiState.blackholeDetection,
-            onValueChange = { viewModel.setBlackholeDetection(it) },
-            title = { Text(stringResource(Res.string.blackhole_detection)) },
-            enabled = uiState.mtuDiscovery,
-            icon = {
-                MaskedIcon(
-                    resource = Res.drawable.bug_report,
-                    color = IconMaskColors.IconLavender,
-                    shape = IconMaskShapes.route(),
-                )
-            },
-        )
+        if (uiState.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
+            PreferenceDivider()
+            SwitchPreference(
+                value = uiState.blackholeDetection,
+                onValueChange = { viewModel.setBlackholeDetection(it) },
+                title = { Text(stringResource(Res.string.blackhole_detection)) },
+                enabled = uiState.mtuDiscovery,
+                icon = {
+                    MaskedIcon(
+                        resource = Res.drawable.bug_report,
+                        color = IconMaskColors.IconLavender,
+                        shape = IconMaskShapes.route(),
+                    )
+                },
+            )
+        }
     }
 
     if (uiState.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {

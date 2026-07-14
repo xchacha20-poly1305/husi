@@ -167,6 +167,8 @@ class ShadowQUICFmtTest : HusiKoinTest() {
             serverPort = 443
             username = "user"
             password = "pass"
+            mtuDiscovery = true
+            blackholeDetection = true
             subProtocol = ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC
         }
         bean.initializeDefaultValues()
@@ -179,6 +181,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
         assertEquals("example.com:443", outbound["addr"])
         assertEquals("user", outbound["username"])
         assertEquals("pass", outbound["password"])
+        assertFalse("blackhole-detection" in outbound)
     }
 
     @Test
