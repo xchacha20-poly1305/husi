@@ -166,6 +166,9 @@ object SingBoxOptions {
         var route: MyRouteOptions? = null
 
         @JvmField
+        var services: MutableList<Service>? = null
+
+        @JvmField
         var experimental: ExperimentalOptions? = null
 
         // public MITMOptions mitm;
@@ -463,6 +466,9 @@ object SingBoxOptions {
 
         @JvmField
         var http_clients: MutableList<HTTPClient>? = null
+
+        @JvmField
+        var network_namespaces: MutableList<NetworkNamespace>? = null
 
         @JvmField
         var endpoints: MutableList<Endpoint>? = null
@@ -1295,7 +1301,27 @@ object SingBoxOptions {
         var stun_servers: MutableList<String>? = null
 
         @JvmField
+        var ip_version: Int? = null
+
+        @JvmField
+        var port_mapping: Hysteria2RealmPortMapping? = null
+
+        @JvmField
         var http_client: HTTPClientOptions? = null
+
+    }
+
+    @KxsSerializable
+    open class Hysteria2RealmPortMapping : SingBoxOption() {
+
+        @JvmField
+        var enabled: Boolean? = null
+
+        @JvmField
+        var timeout: String? = null
+
+        @JvmField
+        var lifetime: String? = null
 
     }
 
@@ -1592,6 +1618,107 @@ object SingBoxOptions {
 
         @JvmField
         var disable_path_mtu_discovery: Boolean? = null
+
+    }
+
+    @KxsSerializable
+    open class NetworkNamespace : SingBoxOption() {
+
+        @JvmField
+        var type: String? = null
+
+        @JvmField
+        var tag: String? = null
+
+        // Generate note: inlined from DefaultNetworkNamespaceOptions
+        @JvmField
+        var path: String? = null
+
+        // Generate note: inlined from UnshareNetworkNamespaceOptions
+        @JvmField
+        var pid_file: String? = null
+
+    }
+
+    @KxsSerializable
+    open class AnchorServiceOptions : Service() {
+
+        // Generate note: nested type ListenOptions
+        @JvmField
+        var listen: String? = null
+
+        @JvmField
+        var listen_port: Int? = null
+
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var udp_timeout: Long? = null
+
+        @JvmField
+        var detour: String? = null
+
+        @JvmField
+        var proxy_protocol: Boolean? = null
+
+        @JvmField
+        var proxy_protocol_accept_no_header: Boolean? = null
+
+        // Generate note: nested type InboundOptions
+        @JvmField
+        var sniff: Boolean? = null
+
+        @JvmField
+        var sniff_override_destination: Boolean? = null
+
+        @JvmField
+        var sniff_timeout: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
+
+        @JvmField
+        var udp_disable_domain_unmapping: Boolean? = null
+
+        @JvmField
+        var dns_port: Int? = null
+
+        @JvmField
+        var device_name: String? = null
+
+        @JvmField
+        var socks_port: Int? = null
+
+        @JvmField
+        var allowed_ssids: MutableList<String>? = null
 
     }
 
@@ -2475,6 +2602,9 @@ object SingBoxOptions {
 
         @JvmField
         var interface_name: String? = null
+
+        @JvmField
+        var netns: String? = null
 
         @JvmField
         var mtu: Int? = null

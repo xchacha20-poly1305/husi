@@ -7,7 +7,6 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Process
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
-import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.toPrefix
 import fr.husi.ktx.toStringIterator
@@ -28,8 +27,6 @@ class AndroidPlatformInterface : PlatformInterface {
 
     //  libbox interface
 
-    override fun anchorSSID(): String = DataStore.anchorSSID
-
     override fun autoDetectInterfaceControl(fd: Int): Boolean {
         return ServiceRegistry.vpnService?.protect(fd) == true
     }
@@ -41,8 +38,6 @@ class AndroidPlatformInterface : PlatformInterface {
     override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
         DefaultNetworkMonitor.setListener(null)
     }
-
-    override fun deviceName(): String = Build.MODEL
 
     override fun openTun(): Int {
         if (ServiceRegistry.vpnService == null) throw NullPointerException("no vpnService")

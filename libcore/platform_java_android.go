@@ -12,8 +12,6 @@ type PlatformInterface interface {
 	CloseDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	GetInterfaces() (NetworkInterfaceIterator, error)
 
-	DeviceName() string
-	AnchorSSID() string
 	OnGroupSelectedChange(group, old, now string)
 	OnDeepLink(deepLink string)
 	OnTask(taskID string)

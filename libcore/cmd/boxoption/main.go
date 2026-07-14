@@ -94,6 +94,7 @@ var boxList = []any{
 	option.InboundTLSOptions{},
 	option.Hysteria2Obfs{},
 	option.Hysteria2Realm{},
+	option.Hysteria2RealmPortMapping{},
 	option.WireGuardPeer{},
 	// option.V2RayTransportOptions{},
 	option.DomainResolveOptions{},
@@ -101,6 +102,8 @@ var boxList = []any{
 	option.CertificateProviderOptions{},
 	option.HTTPClient{},
 	option.HTTPClientOptions{},
+	option.NetworkNamespace{},
+	pluginoption.AnchorServiceOptions{},
 
 	// MITM
 	// option.MITMOptions{},
@@ -206,6 +209,11 @@ var inlineExtensions = buildInlineExtensions([]inlineExtensionSpec{
 		target:     option.SnellOutboundOptions{},
 		belongs:    "Outbound",
 		extensions: []any{option.SnellObfsClientOptions{}, option.SnellV6Options{}},
+	},
+	{
+		target:     option.NetworkNamespace{},
+		belongs:    extendsBox,
+		extensions: []any{option.DefaultNetworkNamespaceOptions{}, option.UnshareNetworkNamespaceOptions{}},
 	},
 })
 

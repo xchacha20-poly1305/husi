@@ -20,8 +20,6 @@ import (
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
-
-	"github.com/xchacha20-poly1305/anchor/anchorservice"
 )
 
 type boxInstance struct {
@@ -36,7 +34,6 @@ type boxInstance struct {
 	trafficManager     *trafficcontrol.Manager
 	urlTestHistory     *urltest.HistoryStorage
 	connectionObserver *connectionObserver
-	anchor             *anchorservice.Anchor
 
 	pauseManager pause.Manager
 }
@@ -96,14 +93,6 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 			b.connectionObserver = newConnectionObserver(b.trafficManager)
 		}
 
-		// Anchor
-		socksPort, dnsPort := sharedPublicPort(options.Inbounds)
-		if socksPort > 0 {
-			b.anchor, err = b.createAnchor(socksPort, dnsPort)
-			if err != nil {
-				log.WarnContext(b.ctx, "create anchor: ", err)
-			}
-		}
 	}
 
 	return b, nil
@@ -121,13 +110,6 @@ func (b *boxInstance) Start() (err error) {
 		// Never return error
 		_ = b.protect.Start()
 	}
-	if b.anchor != nil {
-		err = b.anchor.Start()
-		if err != nil {
-			return E.Cause(err, "start anchor service")
-		}
-	}
-
 	if b.connectionObserver != nil {
 		go b.connectionObserver.run(b.ctx)
 	}
@@ -148,7 +130,6 @@ func (b *boxInstance) CloseTimeout(timeout time.Duration) (err error) {
 
 	_ = common.Close(
 		common.PtrOrNil(b.protect),
-		common.PtrOrNil(b.anchor),
 	)
 
 	done := make(chan error, 1)
@@ -170,7 +151,7 @@ func (b *boxInstance) CloseTimeout(timeout time.Duration) (err error) {
 }
 
 func (b *boxInstance) NeedWIFIState() bool {
-	return b.anchor != nil || b.Network().NeedWIFIState()
+	return b.Network().NeedWIFIState()
 }
 
 func (b *boxInstance) resetNetwork() {

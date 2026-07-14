@@ -137,6 +137,8 @@ func registerQUICTransports(registry *dns.TransportRegistry) {
 func ServiceRegistry() *service.Registry {
 	registry := service.NewRegistry()
 
+	registerAnchor(registry)
+
 	return registry
 }
 

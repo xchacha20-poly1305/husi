@@ -8,6 +8,7 @@ import (
 const (
 	TypeJuicity     = "juicity"
 	TypeTrustTunnel = "trusttunnel"
+	TypeAnchor      = "anchor"
 )
 
 func ProxyDisplayName(proxyType string) string {

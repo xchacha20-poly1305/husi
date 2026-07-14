@@ -109,8 +109,10 @@ const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
 const val TAG_DNS_HOSTS = "dns-hosts"
 const val TAG_DNS_MDNS = "dns-mdns"
+const val TAG_SERVICE_ANCHOR = "service-anchor"
 
 const val LOCALHOST4 = "127.0.0.1"
+private const val ANCHOR_PORT = 45947
 
 val FAKE_DNS_QUERY_TYPE get() = listOf("A", "AAAA")
 
@@ -314,6 +316,23 @@ fun buildConfig(
         }
 
         inbounds = mutableListOf()
+
+        if (!forTest && PlatformInfo.isAndroid && DataStore.allowAccess) {
+            DataStore.anchorSSID.blankAsNull()?.let { allowedSSIDs ->
+                services = mutableListOf<SingBoxOptions.Service>(
+                    SingBoxOptions.AnchorServiceOptions().apply {
+                        type = TAG_SERVICE_ANCHOR
+                        tag = TAG_SERVICE_ANCHOR
+                        listen = bind
+                        listen_port = ANCHOR_PORT
+                        dns_port = localDNSPort ?: 0
+                        device_name = anchorDeviceName
+                        socks_port = DataStore.mixedPort
+                        allowed_ssids = allowedSSIDs.lines().toMutableList()
+                    },
+                )
+            }
+        }
 
         if (!forTest) {
             if (isVPN) inbounds!!.add(
