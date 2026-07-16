@@ -67,6 +67,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
 data class ConfigurationUiState(
@@ -378,7 +379,7 @@ class ConfigurationScreenViewModel : ViewModel() {
                 val pluginConfigs = initPlugins(config, false, cacheFiles)
                 processes = GuardedProcessPool { throw it }
                 launchPlugins(config, pluginConfigs, processes, cacheFiles, false)
-                delay(500L)
+                delay(500.milliseconds)
             }
 
             val result = client.newInstanceURLTest(config.config, "", testURL, testTimeout)

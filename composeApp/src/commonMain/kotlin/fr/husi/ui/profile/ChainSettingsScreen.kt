@@ -61,6 +61,7 @@ import kotlinx.coroutines.delay
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,7 +199,7 @@ private fun LazyListScope.chainSettings(
             }
             LaunchedEffect(visible) {
                 if (!visible) {
-                    delay(220)
+                    delay(220.milliseconds)
                     viewModel.remove(i)
                 }
             }

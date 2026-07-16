@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.StringResource
+import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
 sealed interface ConfigEditUiEvent {
@@ -56,7 +57,7 @@ class ConfigEditViewModel(
     private val maxHistorySize = 25
 
     private var debounceJob: Job? = null
-    private val debounceDelay = 500L
+    private val debounceDelay = 500.milliseconds
 
     private var lastText: String = ""
 

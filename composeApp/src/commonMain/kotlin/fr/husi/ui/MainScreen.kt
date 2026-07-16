@@ -111,6 +111,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.parametersOf
 import org.koin.core.scope.Scope
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun MainScreen(
@@ -185,7 +186,7 @@ private fun MainScreenContent(
             permission.requestPermission(AppPermission.QueryInstalledApps) { granted ->
                 if (granted) runOnDefaultDispatcher {
                     resolveRepository().stopService()
-                    delay(500)
+                    delay(500.milliseconds)
                     SagerDatabase.instance.close()
                     Executable.killAll(true)
                     restartApplication()

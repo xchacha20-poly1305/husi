@@ -134,6 +134,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 private fun RepeatableIconButton(
@@ -141,8 +143,8 @@ private fun RepeatableIconButton(
     contentDescription: String,
     enabled: Boolean = true,
     contentColor: Color = LocalContentColor.current,
-    initialDelay: Long = 500L,
-    repeatDelay: Long = 60L,
+    initialDelay: Duration = 500.milliseconds,
+    repeatDelay: Duration = 60.milliseconds,
     onClick: () -> Unit,
 ) {
     Box(

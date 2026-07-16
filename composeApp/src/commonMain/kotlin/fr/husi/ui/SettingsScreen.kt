@@ -270,6 +270,7 @@ import me.zhanghai.compose.preference.TwoTargetSwitchPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SettingsScreen(
@@ -313,7 +314,7 @@ fun SettingsScreen(
         if (result == SnackbarResult.Dismissed) return@launch
         resolveRepository().stopService()
         runOnDefaultDispatcher {
-            delay(500)
+            delay(500.milliseconds)
             SagerDatabase.instance.close()
             Executable.killAll(true)
             restartApplication()

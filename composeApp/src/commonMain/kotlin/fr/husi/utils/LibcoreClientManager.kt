@@ -14,11 +14,14 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.measureTime
 
 class LibcoreClientManager(
-    private val retryDelayMs: Long = 200L,
-    private val maxRetryDelayMs: Long = 5000L,
-    private val stableResetMs: Long = 5000L,
+    private val retryDelay: Duration = 200.milliseconds,
+    private val maxRetryDelay: Duration = 5000.milliseconds,
+    private val stableReset: Duration = 5000.milliseconds,
 ) {
     private val access = Mutex()
     private var client: Client? = null
@@ -70,33 +73,33 @@ class LibcoreClientManager(
         label: String,
         callback: (Client) -> Unit,
     ): Job = scope.launch(Dispatchers.IO) {
-        var delayMs = retryDelayMs
+        var delayDuration = retryDelay
         while (isActive) {
             val subClient = try {
                 Libcore.newClient(null)
             } catch (e: Exception) {
                 Logs.w("$label create client", e)
-                delay(delayMs)
-                delayMs = (delayMs * 2).coerceAtMost(maxRetryDelayMs)
+                delay(delayDuration)
+                delayDuration = (delayDuration * 2).coerceAtMost(maxRetryDelay)
                 continue
             }
-            val startNanos = System.nanoTime()
-            try {
-                callback(subClient)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Logs.w("$label error", e)
-            } finally {
-                subClient.closeQuietly()
+            val elapsed = measureTime {
+                try {
+                    callback(subClient)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w("$label error", e)
+                } finally {
+                    subClient.closeQuietly()
+                }
             }
-            val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
-            delayMs = if (elapsedMs >= stableResetMs) {
-                retryDelayMs
+            delayDuration = if (elapsed >= stableReset) {
+                retryDelay
             } else {
-                (delayMs * 2).coerceAtMost(maxRetryDelayMs)
+                (delayDuration * 2).coerceAtMost(maxRetryDelay)
             }
-            delay(delayMs)
+            delay(delayDuration)
         }
     }
 

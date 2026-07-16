@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
 data class DashboardState(
@@ -167,7 +168,7 @@ class DashboardViewModel(
     private val proxySetsByTag = HashMap<String, ProxySet>()
 
     companion object {
-        private const val LOOP_INTERVAL = 1000L
+        private val LOOP_INTERVAL = 1000L.milliseconds
     }
 
     init {
