@@ -49,12 +49,12 @@ import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.DurationTextField
+import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MapPreference
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.IconMaskColors
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
@@ -471,38 +471,52 @@ private fun RouteSettings(
                 add(CUSTOM_OUTBOUND_OPTION)
             }
 
-            item("name") {
+            preferenceGroup(key = "basic") {
                 TextFieldPreference(
                     value = uiState.name,
                     onValueChange = { viewModel.setName(it) },
                     title = { Text(stringResource(Res.string.route_name)) },
                     textToValue = { it },
-                    icon = { Icon(vectorResource(Res.drawable.emoji_symbols), null) },
+                    icon = {
+                        MaskedIcon(
+                            resource = Res.drawable.emoji_symbols,
+                            color = IconMaskColors.IconLightYellow,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.name)) },
                     valueToText = { it },
                 )
-            }
-            appSelectPreference(uiState.packages, onSelectApps)
-            if (PlatformInfo.isAndroid) {
-                item("package_name_regex") {
+                PreferenceDivider()
+                AppSelectPreference(uiState.packages, onSelectApps)
+                if (PlatformInfo.isAndroid) {
+                    PreferenceDivider()
                     TextFieldPreference(
                         value = uiState.packageNameRegex,
                         onValueChange = { viewModel.setPackageNameRegex(it) },
                         title = { Text(stringResource(Res.string.package_name_regex)) },
                         textToValue = { it },
-                        icon = { Icon(vectorResource(Res.drawable.fiber_smart_record), null) },
+                        icon = {
+                            MaskedIcon(
+                                resource = Res.drawable.fiber_smart_record,
+                                color = IconMaskColors.IconCyan,
+                            )
+                        },
                         summary = { Text(contentOrUnset(uiState.packageNameRegex)) },
                         valueToText = { it },
                     )
                 }
-            }
-            item("network_type") {
+                PreferenceDivider()
                 MultiSelectListPreference(
                     value = uiState.networkType,
                     onValueChange = { viewModel.setNetworkType(it) },
                     values = networkTypes,
                     title = { Text(stringResource(Res.string.network_type)) },
-                    icon = { Icon(vectorResource(Res.drawable.public_icon), null) },
+                    icon = {
+                        MaskedIcon(
+                            resource = Res.drawable.public_icon,
+                            color = IconMaskColors.IconLightBlue,
+                        )
+                    },
                     summary = {
                         val text = if (uiState.networkType.isEmpty()) {
                             stringResource(Res.string.not_set)
@@ -513,8 +527,7 @@ private fun RouteSettings(
                     },
                     valueToText = { AnnotatedString(it) },
                 )
-            }
-            item("action") {
+                PreferenceDivider()
                 ListPreference(
                     value = uiState.action,
                     onValueChange = { viewModel.setAction(it) },
@@ -530,7 +543,12 @@ private fun RouteSettings(
                         add(SingBoxOptions.ACTION_REJECT)
                     },
                     title = { Text(stringResource(Res.string.route_action)) },
-                    icon = { Icon(vectorResource(Res.drawable.shuffle), null) },
+                    icon = {
+                        MaskedIcon(
+                            resource = Res.drawable.shuffle,
+                            color = IconMaskColors.IconLavender,
+                        )
+                    },
                     summary = { Text(contentOrUnset(uiState.action)) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(it) },
