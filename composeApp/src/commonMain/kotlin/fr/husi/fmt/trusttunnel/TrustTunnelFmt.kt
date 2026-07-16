@@ -26,13 +26,13 @@ fun TrustTunnelBean.toUri(): String {
     return TrustTunnelURL().apply {
         host = serverAddress
         port = serverPort
-        serverName = serverName
-        username = username
-        password = password
+        this.serverName = serverName
+        this.username = username
+        this.password = password
         skipVerification = allowInsecure
         certificate = certificates
-        quic = quic
-        name = this@toUri.name
+        this.quic = quic
+        this.name = name
     }.build()
 }
 
