@@ -8,6 +8,7 @@ import fr.husi.resources.action_mieru
 import fr.husi.resources.action_naive
 import fr.husi.resources.action_shadowquic
 import org.jetbrains.compose.resources.StringResource
+import kotlin.enums.enumEntries
 
 enum class PluginEntry(
     val pluginId: String,
@@ -91,7 +92,7 @@ enum class PluginEntry(
     companion object {
         fun find(name: String?): PluginEntry? {
             if (name.isNullOrBlank()) return null
-            for (pluginEntry in enumValues<PluginEntry>()) {
+            for (pluginEntry in enumEntries<PluginEntry>()) {
                 if (name == pluginEntry.pluginId) {
                     return pluginEntry
                 }

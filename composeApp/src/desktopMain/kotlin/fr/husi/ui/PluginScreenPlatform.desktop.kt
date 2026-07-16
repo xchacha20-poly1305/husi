@@ -9,9 +9,10 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.openFilePath
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.enums.enumEntries
 
 internal actual fun platformPluginsFlow(): Flow<List<PluginDisplay>> {
-    val entries = enumValues<PluginEntry>().toList()
+    val entries = enumEntries<PluginEntry>()
     return SagerDatabase.pluginDao.getAll().map { plugins ->
         val pluginMap = plugins.associateBy { it.pluginId }
         entries.mapNotNull { entry ->
