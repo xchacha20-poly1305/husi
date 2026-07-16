@@ -44,9 +44,3 @@ internal actual fun rememberOpenPluginCard(): (PluginDisplay) -> Unit {
         }
     }
 }
-
-@Composable
-internal actual fun rememberShouldRequestBatteryOptimizations(): Boolean = false
-
-@Composable
-internal actual fun rememberRequestIgnoreBatteryOptimizations(): () -> Unit = remember { {} }
