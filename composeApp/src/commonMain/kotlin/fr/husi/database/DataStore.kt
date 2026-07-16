@@ -179,7 +179,15 @@ object DataStore {
     }
 
     private fun getLocalPort(key: String, default: Int): Int {
-        return parsePort(configurationStore.getString(key), default + userIndex)
+        // 0 means "let the OS auto-assign an ephemeral port" and must stay 0
+        // regardless of the calling user; only offset non-zero defaults to
+        // avoid port collisions between multiple Android user profiles.
+        val effectiveDefault = if (default == 0) {
+            0
+        } else {
+            default + userIndex
+        }
+        return parsePort(configurationStore.getString(key), effectiveDefault)
     }
 
     private fun saveLocalPort(key: String, value: Int) {
