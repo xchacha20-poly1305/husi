@@ -20,15 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draganddrop.DragAndDropEvent
-import androidx.compose.ui.draganddrop.DragAndDropTarget
-import androidx.compose.ui.draganddrop.awtTransferable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -40,8 +36,10 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.hasFileList
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
+import fr.husi.compose.rememberFileDropTarget
 import fr.husi.database.PluginEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
@@ -63,8 +61,6 @@ import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.Preference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.awt.datatransfer.DataFlavor
-import java.io.File
 import kotlin.enums.enumEntries
 
 internal actual fun LazyListScope.platformPluginPreferences(
@@ -123,29 +119,11 @@ private fun PluginPathPreference(
             )
         }
     }
-    val onValueChangeState = rememberUpdatedState(onValueChange)
     var isRowDragOver by remember { mutableStateOf(false) }
-    val rowDropTarget = remember(pluginId) {
-        object : DragAndDropTarget {
-            override fun onEntered(event: DragAndDropEvent) {
-                isRowDragOver = true
-            }
-
-            override fun onExited(event: DragAndDropEvent) {
-                isRowDragOver = false
-            }
-
-            override fun onEnded(event: DragAndDropEvent) {
-                isRowDragOver = false
-            }
-
-            override fun onDrop(event: DragAndDropEvent): Boolean {
-                isRowDragOver = false
-                val file = event.firstDroppedFile() ?: return false
-                onValueChangeState.value(file.absolutePath)
-                return true
-            }
-        }
+    val rowDropTarget = rememberFileDropTarget(
+        onDragStateChange = { isRowDragOver = it },
+    ) { files ->
+        onValueChange(files.first().absolutePath)
     }
     val rowHighlightColor by animateColorAsState(
         targetValue = if (isRowDragOver) {
@@ -196,28 +174,11 @@ private fun PluginPathDialog(
         mutableStateOf(TextFieldValue(initialPath, TextRange(initialPath.length)))
     }
     var isDialogDragOver by remember { mutableStateOf(false) }
-    val dropTarget = remember {
-        object : DragAndDropTarget {
-            override fun onEntered(event: DragAndDropEvent) {
-                isDialogDragOver = true
-            }
-
-            override fun onExited(event: DragAndDropEvent) {
-                isDialogDragOver = false
-            }
-
-            override fun onEnded(event: DragAndDropEvent) {
-                isDialogDragOver = false
-            }
-
-            override fun onDrop(event: DragAndDropEvent): Boolean {
-                isDialogDragOver = false
-                val file = event.firstDroppedFile() ?: return false
-                val absolute = file.absolutePath
-                dialogText = TextFieldValue(absolute, TextRange(absolute.length))
-                return true
-            }
-        }
+    val dropTarget = rememberFileDropTarget(
+        onDragStateChange = { isDialogDragOver = it },
+    ) { files ->
+        val absolute = files.first().absolutePath
+        dialogText = TextFieldValue(absolute, TextRange(absolute.length))
     }
     val containerColor by animateColorAsState(
         targetValue = if (isDialogDragOver) {
@@ -278,13 +239,3 @@ private suspend fun upsertPlugin(pluginId: String, plugin: PluginEntity?) {
         SagerDatabase.pluginDao.upsert(plugin)
     }
 }
-
-private fun DragAndDropEvent.hasFileList(): Boolean = runCatching {
-    awtTransferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
-}.getOrDefault(false)
-
-private fun DragAndDropEvent.firstDroppedFile(): File? = runCatching {
-    @Suppress("UNCHECKED_CAST")
-    val fileList = awtTransferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<File>
-    fileList?.firstOrNull()
-}.getOrNull()
