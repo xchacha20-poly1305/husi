@@ -12,7 +12,9 @@ plugins {
     alias(libs.plugins.aboutlibraries)
 }
 
-val metadata = requireMetadata()
+val packageNameProvider = requireMetadata("PACKAGE_NAME")
+val versionNameProvider = requireMetadata("VERSION_NAME")
+val versionCodeProvider = requireMetadata("VERSION_CODE")
 enum class DesktopPlatform(
     val id: String,
     private val aliases: Set<String>,
@@ -157,11 +159,11 @@ data class DesktopTarget(
 
 fun resolveHostDesktopTarget(): DesktopTarget =
     DesktopTarget.parseHost(
-        platformRawValue = System.getProperty("os.name"),
-        archRawValue = System.getProperty("os.arch"),
+        platformRawValue = providers.systemProperty("os.name").get(),
+        archRawValue = providers.systemProperty("os.arch").get(),
     )
 
-val requestedDesktopTargetRaw = project.findProperty("desktopTarget")?.toString()?.trim().orEmpty()
+val requestedDesktopTargetRaw = providers.gradleProperty("desktopTarget").orNull?.trim().orEmpty()
 val requestedDesktopTarget =
     if (requestedDesktopTargetRaw.isNotEmpty()) {
         DesktopTarget.parse(requestedDesktopTargetRaw)
@@ -181,14 +183,16 @@ val libcoreDesktopJarRequired =
         }
         desktopJarFile
     })
-val desktopPackageName = metadata.getProperty("PACKAGE_NAME").trim()
-val desktopVersion = metadata.getProperty("VERSION_NAME").trim()
+val desktopPackageName = packageNameProvider.get().trim()
+val desktopVersion = versionNameProvider.get().trim()
 val desktopTargetFormats = emptySet<TargetFormat>()
 
 val generateBuildConfig by tasks.registering {
     val outputDir = layout.buildDirectory.dir("generated/buildConfig/kotlin")
-    val versionName = metadata.getProperty("VERSION_NAME")
-    val versionCode = metadata.getProperty("VERSION_CODE")
+    val versionName = versionNameProvider.get()
+    val versionCode = versionCodeProvider.get()
+    inputs.property("versionName", versionNameProvider)
+    inputs.property("versionCode", versionCodeProvider)
     outputs.dir(outputDir)
     doLast {
         val dir = outputDir.get().asFile.resolve("fr/husi")
@@ -207,23 +211,19 @@ val generateBuildConfig by tasks.registering {
     }
 }
 
-val generateDesktopPlatformInfo by tasks.registering {
+val generateDesktopPlatformInfo = tasks.register<GeneratePlatformInfoTask>("generateDesktopPlatformInfo") {
     val outputDir = layout.buildDirectory.dir("generated/platformInfo/desktop/${desktopTarget.id}")
-    val platformInfoPackage = "fr.husi.platform"
     inputs.property("desktopTarget", desktopTarget.toString())
-    outputs.dir(outputDir)
-    doLast {
-        writePlatformInfo(
-            outputDir = outputDir.get().asFile,
-            packageName = platformInfoPackage,
-            fileName = "PlatformInfo.desktop.kt",
-            platform = when (desktopTarget.platform) {
-                DesktopPlatform.Linux -> "Linux"
-                DesktopPlatform.Darwin -> "MacOs"
-                DesktopPlatform.Windows -> "Windows"
-            },
-        )
-    }
+    this.outputDir.set(outputDir)
+    packageName.set("fr.husi.platform")
+    fileName.set("PlatformInfo.desktop.kt")
+    platform.set(
+        when (desktopTarget.platform) {
+            DesktopPlatform.Linux -> "Linux"
+            DesktopPlatform.Darwin -> "MacOs"
+            DesktopPlatform.Windows -> "Windows"
+        },
+    )
 }
 
 kotlin {

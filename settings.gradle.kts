@@ -17,7 +17,7 @@ plugins {
 
 include(":plugin:api")
 
-val buildPlugin = System.getenv("BUILD_PLUGIN")
+val buildPlugin = providers.environmentVariable("BUILD_PLUGIN").orNull
 when {
     buildPlugin.isNullOrBlank() -> {
         include(":plugin:hysteria2")
