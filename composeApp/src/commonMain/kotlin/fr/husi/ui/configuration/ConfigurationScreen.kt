@@ -114,6 +114,8 @@ import fr.husi.resources.action_import_file
 import fr.husi.resources.action_juicity
 import fr.husi.resources.action_mieru
 import fr.husi.resources.action_naive
+import fr.husi.resources.action_openconnect
+import fr.husi.resources.action_openvpn
 import fr.husi.resources.action_shadowquic
 import fr.husi.resources.action_shadowsocks
 import fr.husi.resources.action_shadowtls
@@ -344,6 +346,8 @@ fun ConfigurationScreen(
             Res.string.action_direct to ProxyEntity.TYPE_DIRECT,
             Res.string.action_ssh to ProxyEntity.TYPE_SSH,
             Res.string.action_wireguard to ProxyEntity.TYPE_WG,
+            Res.string.action_openconnect to ProxyEntity.TYPE_OPENCONNECT,
+            Res.string.action_openvpn to ProxyEntity.TYPE_OPENVPN,
             Res.string.action_shadowtls to ProxyEntity.TYPE_SHADOWTLS,
             Res.string.action_anytls to ProxyEntity.TYPE_ANYTLS,
             Res.string.action_shadowquic to ProxyEntity.TYPE_SHADOWQUIC,

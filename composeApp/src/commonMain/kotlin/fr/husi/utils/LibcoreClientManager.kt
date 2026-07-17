@@ -5,6 +5,7 @@ import fr.husi.libcore.Client
 import fr.husi.libcore.ConnectionEvent
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.LogItem
+import fr.husi.libcore.OpenConnectEndpointStatusIterator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +66,15 @@ class LibcoreClientManager(
     fun subscribeClashMode(scope: CoroutineScope, callback: (String) -> Unit): Job {
         return subscribe(scope, "subscribe clash mode") { client ->
             client.subscribeClashMode(callback)
+        }
+    }
+
+    fun subscribeOpenConnectStatus(
+        scope: CoroutineScope,
+        callback: (OpenConnectEndpointStatusIterator) -> Unit,
+    ): Job {
+        return subscribe(scope, "subscribe openconnect status") { client ->
+            client.subscribeOpenConnectStatus(callback)
         }
     }
 

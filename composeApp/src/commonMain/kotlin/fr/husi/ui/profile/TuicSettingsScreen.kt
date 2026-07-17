@@ -23,6 +23,8 @@ import fr.husi.resources.alpn
 import fr.husi.resources.block
 import fr.husi.resources.cert_public_key_sha256
 import fr.husi.resources.certificates
+import fr.husi.resources.client_certificate
+import fr.husi.resources.client_key
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.copyright
 import fr.husi.resources.directions_boat
@@ -56,7 +58,6 @@ import fr.husi.resources.security
 import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.sni
-import fr.husi.resources.ssh_private_key
 import fr.husi.resources.texture
 import fr.husi.resources.timelapse
 import fr.husi.resources.toc
@@ -489,7 +490,7 @@ private fun LazyListScope.tuicSettings(
         TextFieldPreference(
             value = uiState.clientCert,
             onValueChange = { viewModel.setClientCert(it) },
-            title = { Text(stringResource(Res.string.certificates)) },
+            title = { Text(stringResource(Res.string.client_certificate)) },
             textToValue = { it },
             icon = {
                 MaskedIcon(
@@ -508,7 +509,7 @@ private fun LazyListScope.tuicSettings(
         TextFieldPreference(
             value = uiState.clientKey,
             onValueChange = { viewModel.setClientKey(it) },
-            title = { Text(stringResource(Res.string.ssh_private_key)) },
+            title = { Text(stringResource(Res.string.client_key)) },
             textToValue = { it },
             icon = {
                 MaskedIcon(

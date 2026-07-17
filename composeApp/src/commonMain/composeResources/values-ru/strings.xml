@@ -141,7 +141,7 @@
     <string name="profile_requiring_plugin">Профиль %1$s требует установки подключаемого модуля %2$s, но он не найден.</string>
     <string name="missing_plugin">Отсутствующий плагин</string>
     <string name="confirm">Подтвердить</string>
-    <string name="subscription_user_agent">UserAgent</string>
+    <string name="user_agent">UserAgent</string>
     <string name="update_when_connected_only_sum">Предотвратить утечку IP-адреса</string>
     <string name="update_when_connected_only">Обновлять только при подключении</string>
     <string name="auto_update_delay">Задержка автоматического обновления (в минутах)</string>

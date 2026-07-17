@@ -42,6 +42,7 @@ func main() {
 		{"Inbound", inboundList},
 		{"Outbound", outboundList},
 		{"Endpoint", endpointList},
+		{"Service", serviceList},
 		{"NewDNSServerOptions", newDNSServerList},
 	}
 	for _, classes := range all {
@@ -96,6 +97,17 @@ var boxList = []any{
 	option.Hysteria2Realm{},
 	option.Hysteria2RealmPortMapping{},
 	option.WireGuardPeer{},
+	option.OpenConnectTLSOptions{},
+	option.OpenConnectTokenOptions{},
+	option.OpenConnectCSDOptions{},
+	option.OpenConnectHIPOptions{},
+	option.OpenConnectTNCCOptions{},
+	option.OpenConnectTNCCCertificateOptions{},
+	option.OpenConnectFormEntryOptions{},
+	option.OpenVPNOutboundTLSOptions{},
+	option.OpenVPNControlWrapOptions{},
+	option.OpenVPNRemoteOptions{},
+	option.OpenVPNPullFilterOptions{},
 	// option.V2RayTransportOptions{},
 	option.DomainResolveOptions{},
 	option.CertificateProvider{},
@@ -103,7 +115,6 @@ var boxList = []any{
 	option.HTTPClient{},
 	option.HTTPClientOptions{},
 	option.NetworkNamespace{},
-	pluginoption.AnchorServiceOptions{},
 
 	// MITM
 	// option.MITMOptions{},
@@ -173,6 +184,12 @@ var outboundList = []any{
 
 var endpointList = []any{
 	option.WireGuardEndpointOptions{},
+	option.OpenConnectEndpointOptions{},
+	option.OpenVPNClientEndpointOptions{},
+}
+
+var serviceList = []any{
+	pluginoption.AnchorServiceOptions{},
 }
 
 type inlineExtensionSpec struct {

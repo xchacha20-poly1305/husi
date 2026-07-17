@@ -38,6 +38,7 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
 import fr.husi.libcore.Libcore
+import fr.husi.ui.openconnect.OpenConnectAuthController
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
@@ -46,8 +47,10 @@ import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 internal fun DashboardStatusScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
+    openConnectController: OpenConnectAuthController,
     bottomPadding: Dp,
     selectClashMode: (mode: String) -> Unit,
+    showError: (String) -> Unit,
     onCopySuccess: () -> Unit,
     onVisibleChange: (Boolean) -> Unit,
 ) {
@@ -101,6 +104,11 @@ internal fun DashboardStatusScreen(
                 }
             }
         }
+
+        OpenConnectStatusSection(
+            controller = openConnectController,
+            showError = showError,
+        )
 
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),

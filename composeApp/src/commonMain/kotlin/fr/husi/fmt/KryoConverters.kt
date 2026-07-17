@@ -13,6 +13,8 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
+import fr.husi.fmt.openconnect.OpenConnectBean
+import fr.husi.fmt.openvpn.OpenVPNBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowtls.ShadowTLSBean
@@ -153,6 +155,20 @@ class KryoConverters {
         fun wireguardDeserialize(bytes: ByteArray?): WireGuardBean? {
             if (bytes?.isNotEmpty() != true) return null
             return deserialize(WireGuardBean(), bytes)
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun openConnectDeserialize(bytes: ByteArray?): OpenConnectBean? {
+            if (bytes?.isNotEmpty() != true) return null
+            return deserialize(OpenConnectBean(), bytes)
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun openVPNDeserialize(bytes: ByteArray?): OpenVPNBean? {
+            if (bytes?.isNotEmpty() != true) return null
+            return deserialize(OpenVPNBean(), bytes)
         }
 
         @TypeConverter

@@ -19,6 +19,7 @@ import fr.husi.Action
 import fr.husi.bg.SagerConnection
 import fr.husi.libcore.createBoxService
 import fr.husi.resources.Res
+import fr.husi.resources.openconnect_auth_channel
 import fr.husi.resources.service_proxy
 import fr.husi.resources.service_subscription
 import fr.husi.resources.service_vpn
@@ -169,6 +170,11 @@ open class SagerRepository(
                 "service-subscription",
                 getString(Res.string.service_subscription),
                 NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+            NotificationChannel(
+                "service-openconnect-auth",
+                getString(Res.string.openconnect_auth_channel),
+                NotificationManager.IMPORTANCE_HIGH,
             ),
         )
         notification.createNotificationChannels(channels)

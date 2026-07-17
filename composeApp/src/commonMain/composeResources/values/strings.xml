@@ -148,6 +148,8 @@
     <string name="sni">Server Name Indication</string>
     <string name="alpn">Application-Layer Protocol Negotiation</string>
     <string name="certificates">Certificates</string>
+    <string name="client_certificate">Client Certificate</string>
+    <string name="client_key">Client Key</string>
     <string name="early_data_header_name">Early Data Header Name</string>
     <string name="encryption">Encryption</string>
     <string name="extra_headers">Extra Headers</string>
@@ -240,6 +242,26 @@
     <string name="action_hysteria2" translatable="false">Hysteria 2</string>
     <string name="action_ssh" translatable="false">SSH</string>
     <string name="action_wireguard" translatable="false">WireGuard</string>
+    <string name="action_openconnect" translatable="false">OpenConnect</string>
+    <string name="action_openvpn" translatable="false">OpenVPN</string>
+    <string name="openconnect_flavor">Flavor</string>
+    <string name="openconnect_auth_group">Authentication Group</string>
+    <string name="openconnect_reported_os">Reported OS</string>
+    <string name="openconnect_allow_insecure_crypto">Allow Legacy Cryptography</string>
+    <string name="vpn_server_url">Server URL</string>
+    <string name="machine_certificate">Machine Certificate</string>
+    <string name="machine_key">Machine Key</string>
+    <string name="openvpn_server_name_type">Server Name Type</string>
+    <string name="openvpn_peer_fingerprint">Peer Fingerprint</string>
+    <string name="openvpn_remote_certificate_ku">Remote Certificate Key Usage</string>
+    <string name="openvpn_remote_certificate_eku">Remote Certificate Extended Key Usage</string>
+    <string name="openvpn_control_wrap_type">Control Channel Protection</string>
+    <string name="openvpn_control_wrap_key">Control Channel Key</string>
+    <string name="openvpn_control_wrap_direction">Control Channel Key Direction</string>
+    <string name="openvpn_data_ciphers">Data Ciphers</string>
+    <string name="openvpn_auth">Data Channel Authentication</string>
+    <string name="openvpn_compression">Compression</string>
+    <string name="openvpn_redirect_gateway">Redirect Gateway</string>
     <string name="action_tuic" translatable="false">TUIC</string>
     <string name="action_juicity" translatable="false">Juicity</string>
     <string name="action_direct" translatable="false">Direct</string>
@@ -383,7 +405,7 @@
     <string name="auto_update_delay">Auto Update Delay (In minutes)</string>
     <string name="update_when_connected_only">Update only when connected</string>
     <string name="update_when_connected_only_sum">Prevent IP address leakage</string>
-    <string name="subscription_user_agent">UserAgent</string>
+    <string name="user_agent">UserAgent</string>
     <string name="confirm">Confirm</string>
     <string name="missing_plugin">Missing Plugin</string>
     <string name="profile_requiring_plugin">Profile %1$s requires the %2$s plugin to be installed, but it was not found.</string>
@@ -793,4 +815,22 @@
     <string name="route_invert">Invert Match</string>
     <string name="latency">Latency</string>
     <string name="select_file">Select File</string>
+    <string name="openconnect_authentication">OpenConnect Authentication</string>
+    <string name="clear_remembered_authentication_answers">Clear remembered authentication answers</string>
+    <string name="auth_later">Later</string>
+    <string name="auth_submit">Submit</string>
+    <string name="auth_continue">Continue</string>
+    <string name="auth_open_url">Open authentication page</string>
+    <string name="auth_verifying">Verifying…</string>
+    <string name="auth_later_hint">You can finish authentication later from Dashboard → Status.</string>
+    <string name="cancel_auth">Cancel authentication</string>
+    <string name="state">State</string>
+    <string name="auth_required">Authentication required</string>
+    <string name="connected">Connected</string>
+    <string name="transport">Transport</string>
+    <string name="dns" translatable="false">DNS</string>
+    <string name="ipv4" translatable="false">IPv4</string>
+    <string name="ipv6" translatable="false">IPv6</string>
+    <string name="connected_since">Connected since</string>
+    <string name="openconnect_auth_channel">OpenConnect Authentication</string>
 </resources>

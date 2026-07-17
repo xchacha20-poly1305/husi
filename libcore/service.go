@@ -390,6 +390,42 @@ func (s *Service) handleRequest(conn net.Conn) error {
 			return E.Cause(err, "handle task request")
 		}
 		return nil
+	case commandSubscribeOpenConnectStatus:
+		s.access.RLock()
+		instance, err := s.requireInstance()
+		s.access.RUnlock()
+		if err != nil {
+			return err
+		}
+		err = s.handleSubscribeOpenConnectStatus(conn, instance)
+		if err != nil {
+			return E.Cause(err, "handle subscribe openconnect status")
+		}
+		return nil
+	case commandCompleteOpenConnectAuthForm:
+		s.access.RLock()
+		instance, err := s.requireInstance()
+		s.access.RUnlock()
+		if err != nil {
+			return err
+		}
+		err = s.handleCompleteOpenConnectAuthForm(conn, instance)
+		if err != nil {
+			return E.Cause(err, "handle complete openconnect auth form")
+		}
+		return nil
+	case commandCancelOpenConnectAuthForm:
+		s.access.RLock()
+		instance, err := s.requireInstance()
+		s.access.RUnlock()
+		if err != nil {
+			return err
+		}
+		err = s.handleCancelOpenConnectAuthForm(conn, instance)
+		if err != nil {
+			return E.Cause(err, "handle cancel openconnect auth form")
+		}
+		return nil
 	default:
 		return E.New("unknown command: ", command)
 	}

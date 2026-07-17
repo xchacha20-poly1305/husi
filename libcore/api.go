@@ -26,6 +26,9 @@ const (
 	commandImportDeepLink
 	commandRunTask
 	commandQueryAllProxy
+	commandSubscribeOpenConnectStatus
+	commandCompleteOpenConnectAuthForm
+	commandCancelOpenConnectAuthForm
 )
 
 const (

@@ -58,6 +58,8 @@ import fr.husi.fmt.v2ray.VLESSBean
 import fr.husi.fmt.v2ray.VMessBean
 import fr.husi.fmt.v2ray.toUriVMessVLESSTrojan
 import fr.husi.fmt.wireguard.WireGuardBean
+import fr.husi.fmt.openconnect.OpenConnectBean
+import fr.husi.fmt.openvpn.OpenVPNBean
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -88,6 +90,8 @@ data class ProxyEntity(
     var juicityBean: JuicityBean? = null,
     var sshBean: SSHBean? = null,
     var wgBean: WireGuardBean? = null,
+    var openConnectBean: OpenConnectBean? = null,
+    var openVPNBean: OpenVPNBean? = null,
     var shadowTLSBean: ShadowTLSBean? = null,
     var directBean: DirectBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
@@ -122,6 +126,8 @@ data class ProxyEntity(
         const val TYPE_PROXY_SET = 26
         const val TYPE_TRUST_TUNNEL = 27
         const val TYPE_SNELL = 28
+        const val TYPE_OPENCONNECT = 29
+        const val TYPE_OPENVPN = 30
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -212,6 +218,8 @@ data class ProxyEntity(
             TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
             TYPE_SSH -> sshBean = KryoConverters.sshDeserialize(byteArray)
             TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
+            TYPE_OPENCONNECT -> openConnectBean = KryoConverters.openConnectDeserialize(byteArray)
+            TYPE_OPENVPN -> openVPNBean = KryoConverters.openVPNDeserialize(byteArray)
             TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
             TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
             TYPE_DIRECT -> directBean = KryoConverters.directDeserialize(byteArray)
@@ -251,6 +259,8 @@ data class ProxyEntity(
             TYPE_HYSTERIA -> hysteriaBean
             TYPE_SSH -> sshBean
             TYPE_WG -> wgBean
+            TYPE_OPENCONNECT -> openConnectBean
+            TYPE_OPENVPN -> openVPNBean
             TYPE_TUIC -> tuicBean
             TYPE_JUICITY -> juicityBean
             TYPE_DIRECT -> directBean
@@ -410,6 +420,8 @@ data class ProxyEntity(
         hysteriaBean = null
         sshBean = null
         wgBean = null
+        openConnectBean = null
+        openVPNBean = null
         tuicBean = null
         juicityBean = null
         directBean = null
@@ -481,6 +493,16 @@ data class ProxyEntity(
             is WireGuardBean -> {
                 type = TYPE_WG
                 wgBean = bean
+            }
+
+            is OpenConnectBean -> {
+                type = TYPE_OPENCONNECT
+                openConnectBean = bean
+            }
+
+            is OpenVPNBean -> {
+                type = TYPE_OPENVPN
+                openVPNBean = bean
             }
 
             is TuicBean -> {

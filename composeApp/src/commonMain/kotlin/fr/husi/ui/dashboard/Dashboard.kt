@@ -119,7 +119,9 @@ import fr.husi.resources.warning_amber
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.ui.MainViewModelUiEvent
+import fr.husi.ui.StringOrRes
 import fr.husi.ui.getStringOrRes
+import fr.husi.ui.openconnect.OpenConnectAuthController
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -133,6 +135,7 @@ private const val PAGE_PROXY_SET = 2
 fun DashboardScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
+    openConnectController: OpenConnectAuthController,
     onDrawerClick: () -> Unit,
     openConnectionDetail: (uuid: String) -> Unit,
 ) {
@@ -464,8 +467,12 @@ fun DashboardScreen(
                 when (page) {
                     PAGE_STATUS -> DashboardStatusScreen(
                         uiState = uiState,
+                        openConnectController = openConnectController,
                         bottomPadding = bottomPadding,
                         selectClashMode = { dashboardViewModel.setClashMode(it) },
+                        showError = { message ->
+                            mainViewModel.showSnackbar(StringOrRes.Direct(message))
+                        },
                         onCopySuccess = {
                             scope.launch {
                                 snackbarState.showSnackbar(

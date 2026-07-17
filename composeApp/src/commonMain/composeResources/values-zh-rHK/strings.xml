@@ -120,4 +120,22 @@
     <string name="language">語言</string>
     <string name="language_system_default">系統預設</string>
     <string name="quic">QUIC</string>
+    <string name="openconnect_authentication">OpenConnect 驗證</string>
+    <string name="clear_remembered_authentication_answers">清除已記住的驗證答案</string>
+    <string name="auth_later">稍後</string>
+    <string name="auth_submit">提交</string>
+    <string name="auth_continue">繼續</string>
+    <string name="auth_open_url">開啟驗證頁面</string>
+    <string name="auth_verifying">驗證中…</string>
+    <string name="auth_later_hint">您可以稍後在「儀表板 → 狀態」完成驗證。</string>
+    <string name="cancel_auth">取消驗證</string>
+    <string name="state">狀態</string>
+    <string name="auth_required">需要驗證</string>
+    <string name="connected">已連線</string>
+    <string name="transport">傳輸</string>
+    <string name="dns" translatable="false">DNS</string>
+    <string name="ipv4" translatable="false">IPv4</string>
+    <string name="ipv6" translatable="false">IPv6</string>
+    <string name="connected_since">連線時間</string>
+    <string name="openconnect_auth_channel">OpenConnect 驗證</string>
 </resources>

@@ -7,6 +7,8 @@ TAGS=(
     "with_gvisor"
     "with_quic"
     "with_wireguard"
+    "with_openconnect"
+    "with_openvpn"
     "with_utls"
     "with_naive_outbound"
 )

@@ -50,6 +50,10 @@ import fr.husi.fmt.juicity.buildSingBoxOutboundJuicityBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
+import fr.husi.fmt.openconnect.OpenConnectBean
+import fr.husi.fmt.openconnect.buildSingBoxEndpointOpenConnectBean
+import fr.husi.fmt.openvpn.OpenVPNBean
+import fr.husi.fmt.openvpn.buildSingBoxEndpointOpenVPNBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
@@ -319,8 +323,8 @@ fun buildConfig(
 
         if (!forTest && PlatformInfo.isAndroid && DataStore.allowAccess) {
             DataStore.anchorSSID.blankAsNull()?.let { allowedSSIDs ->
-                services = mutableListOf<SingBoxOptions.Service>(
-                    SingBoxOptions.AnchorServiceOptions().apply {
+                services = mutableListOf(
+                    SingBoxOptions.Service_AnchorOptions().apply {
                         type = TAG_SERVICE_ANCHOR
                         tag = TAG_SERVICE_ANCHOR
                         listen = bind
@@ -566,6 +570,10 @@ fun buildConfig(
                         is SnellBean -> buildSingBoxOutboundSnellBean(bean).asKxsMap()
 
                         is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asKxsMap()
+
+                        is OpenConnectBean -> buildSingBoxEndpointOpenConnectBean(bean).asKxsMap()
+
+                        is OpenVPNBean -> buildSingBoxEndpointOpenVPNBean(bean).asKxsMap()
 
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asKxsMap()
 

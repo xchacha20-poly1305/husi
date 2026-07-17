@@ -101,7 +101,7 @@ import fr.husi.resources.ssh_auth_type_none
 import fr.husi.resources.subscription
 import fr.husi.resources.subscription_settings
 import fr.husi.resources.subscription_type
-import fr.husi.resources.subscription_user_agent
+import fr.husi.resources.user_agent
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.update_settings
 import fr.husi.resources.update_when_connected_only
@@ -519,7 +519,7 @@ private fun LazyListScope.groupSettings(
             TextFieldPreference(
                 value = uiState.subscriptionUserAgent,
                 onValueChange = { viewModel.setSubscriptionUserAgent(it) },
-                title = { Text(stringResource(Res.string.subscription_user_agent)) },
+                title = { Text(stringResource(Res.string.user_agent)) },
                 textToValue = { it },
                 icon = {
                     MaskedIcon(

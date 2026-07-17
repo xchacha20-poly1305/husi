@@ -6,6 +6,7 @@ import fr.husi.libcore.HttpClientFactory
 import fr.husi.libcore.LibcoreHttpClientFactory
 import fr.husi.repository.Repository
 import fr.husi.ui.ImportLinkInteractor
+import fr.husi.ui.openconnect.OpenConnectAuthController
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -17,6 +18,7 @@ private fun commonUiModule() = module {
     single<PlatformThemeApi> { platformThemeApi() }
     single<HttpClientFactory> { LibcoreHttpClientFactory }
     singleOf(::ImportLinkInteractor)
+    singleOf(::OpenConnectAuthController)
 }
 
 internal expect fun platformMaterialApi(): PlatformMaterialApi

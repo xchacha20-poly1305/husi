@@ -16,6 +16,8 @@ import fr.husi.fmt.SingBoxOptions.TYPE_HTTP
 import fr.husi.fmt.SingBoxOptions.TYPE_HYSTERIA
 import fr.husi.fmt.SingBoxOptions.TYPE_HYSTERIA2
 import fr.husi.fmt.SingBoxOptions.TYPE_NAIVE
+import fr.husi.fmt.SingBoxOptions.TYPE_OPENCONNECT
+import fr.husi.fmt.SingBoxOptions.TYPE_OPENVPN_CLIENT
 import fr.husi.fmt.SingBoxOptions.TYPE_SHADOWSOCKS
 import fr.husi.fmt.SingBoxOptions.TYPE_SNELL
 import fr.husi.fmt.SingBoxOptions.TYPE_SOCKS
@@ -42,6 +44,12 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
+import fr.husi.fmt.openconnect.OpenConnectBean
+import fr.husi.fmt.openconnect.buildSingBoxEndpointOpenConnectBean
+import fr.husi.fmt.openconnect.parseOpenConnectEndpoint
+import fr.husi.fmt.openvpn.OpenVPNBean
+import fr.husi.fmt.openvpn.buildSingBoxEndpointOpenVPNBean
+import fr.husi.fmt.openvpn.parseOpenVPNEndpoint
 import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
 import fr.husi.fmt.naive.parseNaiveOutbound
 import fr.husi.fmt.shadowquic.ShadowQUICBean
@@ -111,6 +119,8 @@ fun AbstractBean.toJsonStringKxs(): String = when (this) {
     is JuicityBean -> kxs.encodeToString(this)
     is MieruBean -> kxs.encodeToString(this)
     is NaiveBean -> kxs.encodeToString(this)
+    is OpenConnectBean -> kxs.encodeToString(this)
+    is OpenVPNBean -> kxs.encodeToString(this)
     is ShadowQUICBean -> kxs.encodeToString(this)
     is ShadowsocksBean -> kxs.encodeToString(this)
     is ShadowTLSBean -> kxs.encodeToString(this)
@@ -142,6 +152,10 @@ fun buildSingBoxOutbound(bean: AbstractBean): String = when (bean) {
     is TuicBean -> kxs.encodeToString(buildSingBoxOutboundTuicBean(bean).apply { tag = bean.name })
     is WireGuardBean ->
         kxs.encodeToString(buildSingBoxEndpointWireGuardBean(bean).apply { tag = bean.name })
+    is OpenConnectBean ->
+        kxs.encodeToString(buildSingBoxEndpointOpenConnectBean(bean).apply { tag = bean.name })
+    is OpenVPNBean ->
+        kxs.encodeToString(buildSingBoxEndpointOpenVPNBean(bean).apply { tag = bean.name })
     is AnyTLSBean ->
         kxs.encodeToString(buildSingBoxOutboundAnyTLSBean(bean).apply { tag = bean.name })
     is NaiveBean ->
@@ -203,6 +217,10 @@ fun parseOutbound(json: JSONMap): AbstractBean? = when (json["type"].toString())
     TYPE_VMESS, TYPE_VLESS, TYPE_TROJAN -> parseStandardV2RayOutbound(json)
 
     TYPE_WIREGUARD -> parseWireGuardEndpoint(json)
+
+    TYPE_OPENCONNECT -> parseOpenConnectEndpoint(json)
+
+    TYPE_OPENVPN_CLIENT -> parseOpenVPNEndpoint(json)
 
     TYPE_HYSTERIA -> parseHysteria1Outbound(json)
 

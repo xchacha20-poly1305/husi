@@ -255,6 +255,8 @@
     <string name="connection_test_url">连接测试链接</string>
     <string name="connection_test_available_http">连接成功: HTTP 握手耗时 %1$dms</string>
     <string name="certificates">证书 (链)</string>
+    <string name="client_certificate">客户端证书</string>
+    <string name="client_key">客户端密钥</string>
     <string name="ignore_battery_optimizations">忽略电池优化</string>
     <string name="ignore_battery_optimizations_sum">移除一些限制</string>
     <string name="document">文档</string>
@@ -329,7 +331,6 @@
     <string name="auto_update_delay">自动更新间隔 (分)</string>
     <string name="update_when_connected_only">仅在连接时更新</string>
     <string name="update_when_connected_only_sum">防止 IP 地址泄漏</string>
-    <string name="subscription_user_agent">用户代理</string>
     <string name="confirm">确认</string>
     <string name="missing_plugin">缺少插件</string>
     <string name="profile_requiring_plugin">配置 %1$s 需要插件 %2$s, 但找不到.</string>
@@ -730,4 +731,45 @@
     <string name="route_invert">反转匹配</string>
     <string name="latency">延迟</string>
     <string name="select_file">选择文件</string>
+    <!-- OpenConnect -->
+    <string name="vpn_server_url">服务器 URL</string>
+    <string name="openconnect_flavor">协议类型</string>
+    <string name="openconnect_auth_group">认证组</string>
+    <string name="openconnect_reported_os">汇报的操作系统</string>
+    <string name="user_agent">用户代理</string>
+    <string name="openconnect_allow_insecure_crypto">允许老旧加密算法</string>
+    <!-- TLS / certificates -->
+    <string name="machine_certificate">设备证书</string>
+    <string name="machine_key">设备密钥</string>
+    <!-- OpenVPN -->
+    <string name="openvpn_data_ciphers">数据加密套件</string>
+    <string name="openvpn_auth">数据通道认证</string>
+    <string name="openvpn_compression">压缩</string>
+    <string name="openvpn_redirect_gateway">重定向网关</string>
+    <string name="openvpn_server_name_type">服务器名称类型</string>
+    <string name="openvpn_peer_fingerprint">对端指纹</string>
+    <string name="openvpn_remote_certificate_ku">远程证书密钥用途</string>
+    <string name="openvpn_remote_certificate_eku">远程证书扩展密钥用途</string>
+    <string name="openvpn_control_wrap_type">控制通道保护</string>
+    <string name="openvpn_control_wrap_key">控制通道密钥</string>
+    <string name="openvpn_control_wrap_direction">控制通道密钥方向</string>
+    <string name="openconnect_authentication">OpenConnect 身份验证</string>
+    <string name="clear_remembered_authentication_answers">清除已记住的身份验证答案</string>
+    <string name="auth_later">稍后</string>
+    <string name="auth_submit">提交</string>
+    <string name="auth_continue">继续</string>
+    <string name="auth_open_url">打开身份验证页面</string>
+    <string name="auth_verifying">正在验证…</string>
+    <string name="auth_later_hint">您可以稍后在“仪表板 → 状态”中完成身份验证。</string>
+    <string name="cancel_auth">取消身份验证</string>
+    <string name="state">状态</string>
+    <string name="auth_required">需要身份验证</string>
+    <string name="connected">已连接</string>
+    <string name="error">错误</string>
+    <string name="transport">传输</string>
+    <string name="dns" translatable="false">DNS</string>
+    <string name="ipv4" translatable="false">IPv4</string>
+    <string name="ipv6" translatable="false">IPv6</string>
+    <string name="connected_since">连接时间</string>
+    <string name="openconnect_auth_channel">OpenConnect 身份验证</string>
 </resources>

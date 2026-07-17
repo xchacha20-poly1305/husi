@@ -234,7 +234,7 @@
     <string name="profile_requiring_plugin">يتطلب ملف التعريف %1$s تثبيت المكون الإضافي %2$s، لكن لم يتم العثور عليه.</string>
     <string name="missing_plugin">في عداد المفقودين المكونات في</string>
     <string name="confirm">أكد</string>
-    <string name="subscription_user_agent">وكيل المستخدم</string>
+    <string name="user_agent">وكيل المستخدم</string>
     <string name="update_when_connected_only_sum">منع تسرب عنوان IP</string>
     <string name="update_when_connected_only">التحديث فقط عند الاتصال</string>
     <string name="auto_update_delay">تأخير التحديث التلقائي (بالدقائق)</string>

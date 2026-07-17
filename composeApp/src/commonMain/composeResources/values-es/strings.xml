@@ -311,7 +311,7 @@
     <string name="auto_update_delay">Demora de actualización automática (en minutos)</string>
     <string name="update_when_connected_only">Actualizar solo cuando esté conectado</string>
     <string name="update_when_connected_only_sum">Evita la fuga de direcciones IP</string>
-    <string name="subscription_user_agent">Agente de usuario</string>
+    <string name="user_agent">Agente de usuario</string>
     <string name="confirm">Confirmar</string>
     <string name="missing_plugin">Plugin faltante</string>
     <string name="profile_requiring_plugin">El perfil %1$s requiere que el plugin %2$s esté instalado, pero no se ha encontrado.</string>

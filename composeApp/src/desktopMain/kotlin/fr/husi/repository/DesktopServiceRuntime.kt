@@ -4,6 +4,7 @@ import fr.husi.AlertType
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.GuardedProcessPool
+import fr.husi.bg.OpenConnectAuthWatcher
 import fr.husi.bg.ServiceState
 import fr.husi.bg.initPlugins
 import fr.husi.bg.launchPlugins
@@ -114,6 +115,7 @@ internal class DesktopServiceRuntime(
 
             service.newInstance(config.config)
             service.startInstance()
+            OpenConnectAuthWatcher.start()
 
             trafficLooper = TrafficLooper(
                 box = service,
@@ -167,6 +169,8 @@ internal class DesktopServiceRuntime(
         val service = boxService
         val pool = processes
         processes = null
+
+        OpenConnectAuthWatcher.stop()
 
         trafficLooper?.stop()
         trafficLooper = null

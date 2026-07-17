@@ -326,14 +326,14 @@ fun MyOptions.buildRuleSets(
 
     if (route == null) route = MyRouteOptions()
     if (route!!.rule_set == null) route!!.rule_set = mutableListOf()
-    for (set in route!!.rule_set!!) names.add(set.tag!!)
+    for (set in route!!.rule_set!!) set.tag?.let { names.addAll(it) }
     val list = ArrayList<RuleSet>(names.size)
 
     val isRemote = ipURL != null
     for (name in names.sorted()) {
         if (isRemote) list.add(
             RuleSet_Remote().apply {
-                tag = name
+                tag = mutableListOf(name)
                 type = SingBoxOptions.RULE_SET_TYPE_REMOTE
                 format = SingBoxOptions.RULE_SET_FORMAT_BINARY
                 val isIP = name.startsWith("geoip-")
@@ -345,7 +345,7 @@ fun MyOptions.buildRuleSets(
             },
         ) else list.add(
             RuleSet_Local().apply {
-                tag = name
+                tag = mutableListOf(name)
                 type = SingBoxOptions.RULE_SET_TYPE_LOCAL
                 format = SingBoxOptions.RULE_SET_FORMAT_BINARY
                 path = "$localPath/$name.srs"
@@ -385,6 +385,8 @@ private fun collectSet(set: MutableSet<String>, rules: List<*>?) {
 
 fun isEndpoint(type: String): Boolean = when (type) {
     SingBoxOptions.TYPE_WIREGUARD -> true
+    SingBoxOptions.TYPE_OPENCONNECT -> true
+    SingBoxOptions.TYPE_OPENVPN_CLIENT -> true
     else -> false
 }
 

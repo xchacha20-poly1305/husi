@@ -321,7 +321,7 @@
     <string name="auto_update_delay">自動更新間隔（分鐘）</string>
     <string name="update_when_connected_only">僅在已連線時更新</string>
     <string name="update_when_connected_only_sum">防止 IP 位址洩漏</string>
-    <string name="subscription_user_agent">使用者代理</string>
+    <string name="user_agent">使用者代理</string>
     <string name="confirm">確認</string>
     <string name="missing_plugin">遺失外掛程式</string>
     <string name="profile_requiring_plugin">設定檔 %1$s 需要外掛程式 %2$s，但其未被安裝。</string>
@@ -654,4 +654,22 @@
     <string name="internal_link">內部連結</string>
     <string name="back">返回</string>
     <string name="quic">QUIC</string>
+    <string name="openconnect_authentication">OpenConnect 驗證</string>
+    <string name="clear_remembered_authentication_answers">清除已記住的驗證答案</string>
+    <string name="auth_later">稍後</string>
+    <string name="auth_submit">提交</string>
+    <string name="auth_continue">繼續</string>
+    <string name="auth_open_url">開啟驗證頁面</string>
+    <string name="auth_verifying">驗證中…</string>
+    <string name="auth_later_hint">您可以稍後在「儀表板 → 狀態」完成驗證。</string>
+    <string name="cancel_auth">取消驗證</string>
+    <string name="state">狀態</string>
+    <string name="auth_required">需要驗證</string>
+    <string name="connected">已連線</string>
+    <string name="transport">傳輸</string>
+    <string name="dns" translatable="false">DNS</string>
+    <string name="ipv4" translatable="false">IPv4</string>
+    <string name="ipv6" translatable="false">IPv6</string>
+    <string name="connected_since">連線時間</string>
+    <string name="openconnect_auth_channel">OpenConnect 驗證</string>
 </resources>

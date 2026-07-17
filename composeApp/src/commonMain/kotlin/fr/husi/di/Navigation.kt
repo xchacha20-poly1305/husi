@@ -130,6 +130,7 @@ internal val commonNavigationModule = module {
             val navigator = get<Navigator>()
             DashboardScreen(
                 mainViewModel = viewModel,
+                openConnectController = get(),
                 onDrawerClick = drawerController::toggle,
                 openConnectionDetail = { uuid ->
                     navigator.navigateTo(NavRoutes.ConnectionsDetail(uuid = uuid))

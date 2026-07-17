@@ -82,6 +82,7 @@ import fr.husi.resources.menu_tools
 import fr.husi.resources.missing_plugin
 import fr.husi.resources.nfc
 import fr.husi.resources.no_thanks
+import fr.husi.resources.auth_later_hint
 import fr.husi.resources.ok
 import fr.husi.resources.permission_denied
 import fr.husi.resources.plugin
@@ -95,6 +96,8 @@ import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
+import fr.husi.ui.openconnect.OpenConnectAuthController
+import fr.husi.ui.openconnect.OpenConnectAuthDialog
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -103,6 +106,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.currentKoinScope
+import org.koin.compose.koinInject
 import org.koin.compose.navigation3.EntryProvider
 import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.compose.scope.KoinScope
@@ -410,6 +414,24 @@ private fun MainScreenContent(
                     preSelected = session.preSelected,
                     onDismiss = profilePickerController::dismiss,
                     onSelected = profilePickerController::select,
+                )
+            }
+
+            val openConnectController = koinInject<OpenConnectAuthController>()
+            val pendingOpenConnectAuth by openConnectController.pendingDialogAuth
+                .collectAsStateWithLifecycle()
+            pendingOpenConnectAuth?.let { pending ->
+                OpenConnectAuthDialog(
+                    pending = pending,
+                    controller = openConnectController,
+                    showError = { message ->
+                        viewModel.showSnackbar(StringOrRes.Direct(message))
+                    },
+                    onDismissed = {
+                        viewModel.showSnackbar(
+                            StringOrRes.Res(Res.string.auth_later_hint),
+                        )
+                    },
                 )
             }
         }

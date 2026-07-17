@@ -233,6 +233,41 @@ fun <K, V> MapPreference(
 }
 
 @Composable
+fun <T> OrderedMultiselectPreference(
+    selected: List<T>,
+    values: List<T>,
+    onValueChange: (List<T>) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    title: @Composable () -> Unit,
+    icon: (@Composable () -> Unit)? = null,
+    summary: (@Composable () -> Unit)? = null,
+    valueToText: (T) -> String,
+) {
+    var openDialog by remember { mutableStateOf(false) }
+
+    Preference(
+        title = title,
+        modifier = modifier,
+        enabled = enabled,
+        icon = icon,
+        summary = summary,
+        onClick = { openDialog = true },
+    )
+
+    if (openDialog) {
+        OrderedMultiselectDialog(
+            selected = selected,
+            values = values,
+            onValueChange = onValueChange,
+            onDismissRequest = { openDialog = false },
+            title = title,
+            valueToText = valueToText,
+        )
+    }
+}
+
+@Composable
 fun PreferenceDivider() {
     HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
 }

@@ -95,7 +95,7 @@ desktop_uberjar:
 aboutlibraries: aboutlibraries_go aboutlibraries_android aboutlibraries_desktop
 
 aboutlibraries_go:
-	cd libcore && go run -tags=with_gvisor,with_quic,with_wireguard,with_utls ./cmd/licencecollect -d ../composeApp/src/commonMain/aboutlibraries/libraries -clean
+	cd libcore && go run -tags=with_gvisor,with_quic,with_wireguard,with_openconnect,with_openvpn,with_utls ./cmd/licencecollect -d ../composeApp/src/commonMain/aboutlibraries/libraries -clean
 
 aboutlibraries_android:
 	./gradlew :composeApp:exportLibraryDefinitions

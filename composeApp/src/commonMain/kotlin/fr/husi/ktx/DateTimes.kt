@@ -33,6 +33,12 @@ fun currentUtcReportTimestamp(): String {
     return displayDateTimeFormat.format(nowIn(TimeZone.UTC)) + " UTC"
 }
 
+fun formatLocalDateTime(epochSeconds: Long): String {
+    val dateTime = Instant.fromEpochSeconds(epochSeconds)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+    return displayDateTimeFormat.format(dateTime)
+}
+
 fun formatDate(millis: Long): String {
     val date = Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.currentSystemDefault()).date
     return LocalDate.Formats.ISO.format(date)

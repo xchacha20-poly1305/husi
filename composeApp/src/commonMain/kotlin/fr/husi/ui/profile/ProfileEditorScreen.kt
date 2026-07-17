@@ -211,6 +211,20 @@ fun ProfileEditorScreen(
             onOpenConfigEditor = onOpenConfigEditor,
         )
 
+        ProxyEntity.TYPE_OPENCONNECT -> OpenConnectSettingsScreen(
+            profileId = profileId,
+            isSubscription = isSubscription,
+            onResult = onResult,
+            onOpenConfigEditor = onOpenConfigEditor,
+        )
+
+        ProxyEntity.TYPE_OPENVPN -> OpenVPNSettingsScreen(
+            profileId = profileId,
+            isSubscription = isSubscription,
+            onResult = onResult,
+            onOpenConfigEditor = onOpenConfigEditor,
+        )
+
         ProxyEntity.TYPE_TUIC -> TuicSettingsScreen(
             profileId = profileId,
             isSubscription = isSubscription,

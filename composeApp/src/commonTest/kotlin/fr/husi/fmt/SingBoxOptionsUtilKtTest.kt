@@ -47,16 +47,16 @@ class SingBoxOptionsUtilKtTest {
 
     private fun List<RuleSet>.assertTags(expected: Set<String>) {
         assertEquals(expected.size, size)
-        assertEquals(expected, mapNotNull { it.tag }.toSet())
+        assertEquals(expected, flatMap { it.tag.orEmpty() }.toSet())
     }
 
     private fun List<RuleSet>.requireRemote(tag: String): RuleSet_Remote {
-        val rule = firstOrNull { it.tag == tag } ?: fail("Rule set '$tag' not found")
+        val rule = firstOrNull { tag in it.tag.orEmpty() } ?: fail("Rule set '$tag' not found")
         return rule as? RuleSet_Remote ?: fail("Rule set '$tag' is not remote")
     }
 
     private fun List<RuleSet>.requireLocal(tag: String): RuleSet_Local {
-        val rule = firstOrNull { it.tag == tag } ?: fail("Rule set '$tag' not found")
+        val rule = firstOrNull { tag in it.tag.orEmpty() } ?: fail("Rule set '$tag' not found")
         return rule as? RuleSet_Local ?: fail("Rule set '$tag' is not local")
     }
 
@@ -172,8 +172,8 @@ class SingBoxOptionsUtilKtTest {
         }
         options.route = MyRouteOptions().apply {
             rule_set = mutableListOf(
-                RuleSet_Remote().apply { tag = "existing-rule"; type = RULE_SET_TYPE_REMOTE },
-                RuleSet_Remote().apply { tag = "geoip-kr"; type = RULE_SET_TYPE_REMOTE }
+                RuleSet_Remote().apply { tag = mutableListOf("existing-rule"); type = RULE_SET_TYPE_REMOTE },
+                RuleSet_Remote().apply { tag = mutableListOf("geoip-kr"); type = RULE_SET_TYPE_REMOTE }
             )
             rules = mutableListOf()
         }
@@ -339,8 +339,8 @@ class SingBoxOptionsUtilKtTest {
         }
         options.route = MyRouteOptions().apply {
             rule_set = mutableListOf(
-                RuleSet_Local().apply { tag = "existing-local"; type = RULE_SET_TYPE_LOCAL },
-                RuleSet_Remote().apply { tag = "existing-remote"; type = RULE_SET_TYPE_REMOTE }
+                RuleSet_Local().apply { tag = mutableListOf("existing-local"); type = RULE_SET_TYPE_LOCAL },
+                RuleSet_Remote().apply { tag = mutableListOf("existing-remote"); type = RULE_SET_TYPE_REMOTE }
             )
             rules = mutableListOf()
         }

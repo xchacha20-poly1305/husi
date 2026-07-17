@@ -348,7 +348,7 @@
     <string name="raw">Звичайний</string>
     <string name="append_http_proxy_sum">HTTP-проксі буде використовуватия напряму з (браузера/ деяких застосунків, що підтримуються), без використання віртуального мережевого інтерфейсу (Android 10+)</string>
     <string name="auto_update_delay">Затримка автоматичного оновлення (у хвилинах)</string>
-    <string name="subscription_user_agent">UserAgent</string>
+    <string name="user_agent">UserAgent</string>
     <string name="ooc_missing_protocol">Підписка потребує підтримки протоколу %1$s, але вона не може бути знайдена. Протоколи, що не підтримуються, будуть проігноровані.</string>
     <string name="service_subscription">Служба оновлення підписки</string>
     <string name="subscription_update">Оновлення підписки</string>
