@@ -114,8 +114,6 @@ fun Project.setupCommon() {
             checkAllWarnings = true
             checkReleaseBuilds = false
             warningsAsErrors = true
-            textOutput = project.file("build/lint.txt")
-            htmlOutput = project.file("build/lint.html")
         }
         packaging.apply {
             resources.excludes.addAll(
@@ -341,7 +339,7 @@ fun Project.setupPlugin(projectName: String) {
         )
     }
 
-    dependencies.add("implementation", project(":plugin:api"))
+    dependencies.add("implementation", dependencies.project(":plugin:api"))
 
 }
 

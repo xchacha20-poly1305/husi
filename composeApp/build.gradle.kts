@@ -187,7 +187,8 @@ val desktopPackageName = packageNameProvider.get().trim()
 val desktopVersion = versionNameProvider.get().trim()
 val desktopTargetFormats = emptySet<TargetFormat>()
 
-val generateBuildConfig by tasks.registering {
+val generateBuildConfig = tasks.register("generateBuildConfig") {
+    description = "Generates the shared BuildConfig Kotlin source."
     val outputDir = layout.buildDirectory.dir("generated/buildConfig/kotlin")
     val versionName = versionNameProvider.get()
     val versionCode = versionCodeProvider.get()
@@ -245,7 +246,7 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             kotlin.srcDir(generateBuildConfig)
             dependencies {
                 // Optional workaround for IDE to get libcore info
@@ -290,7 +291,7 @@ kotlin {
                 implementation(libs.koin.compose.navigation3)
             }
         }
-        val androidMain by getting {
+        val androidMain = getByName("androidMain") {
             languageSettings.optIn("androidx.tv.material3.ExperimentalTvMaterial3Api")
             dependencies {
                 implementation(
@@ -326,7 +327,7 @@ kotlin {
                 implementation(libs.androidx.tv.material)
             }
         }
-        val commonTest by getting {
+        val commonTest = getByName("commonTest") {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
@@ -337,7 +338,7 @@ kotlin {
                 runtimeOnly(libs.junit.jupiter.engine)
             }
         }
-        val desktopMain by getting {
+        val desktopMain = getByName("desktopMain") {
             kotlin.srcDir(generateDesktopPlatformInfo)
             dependencies {
                 if (requestedDesktopTarget == null) {
