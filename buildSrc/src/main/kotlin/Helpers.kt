@@ -136,7 +136,7 @@ fun Project.setupCommon() {
     }
     (android as? ApplicationExtension)?.apply {
         defaultConfig.apply {
-            targetSdk = 36
+            targetSdk = 37
         }
         buildTypes {
             getByName("release") {

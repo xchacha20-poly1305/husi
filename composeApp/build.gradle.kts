@@ -236,6 +236,7 @@ kotlin {
 
     android {
         namespace = "fr.husi.lib"
+        buildToolsVersion = "37.0.0"
         compileSdk = 37
         minSdk = 24
         androidResources {
