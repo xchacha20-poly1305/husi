@@ -10,7 +10,6 @@ import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_RemoteDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_RemoteHTTPSDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_RemoteTLSDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.OutboundTLSOptions
-import fr.husi.fmt.SingBoxOptions.RuleSet
 import fr.husi.fmt.SingBoxOptions.RuleSet_Local
 import fr.husi.fmt.SingBoxOptions.RuleSet_Remote
 import fr.husi.fmt.SingBoxOptions.Rule_Default
@@ -326,34 +325,36 @@ fun MyOptions.buildRuleSets(
 
     if (route == null) route = MyRouteOptions()
     if (route!!.rule_set == null) route!!.rule_set = mutableListOf()
-    for (set in route!!.rule_set!!) set.tag?.let { names.addAll(it) }
-    val list = ArrayList<RuleSet>(names.size)
+    for (set in route!!.rule_set!!) {
+        set.tag?.let { names.addAll(it) }
+    }
 
-    val isRemote = ipURL != null
-    for (name in names.sorted()) {
-        if (isRemote) list.add(
+    val sorted = names.sorted()
+    val ruleSets = if (ipURL != null) {
+        sorted.groupBy { it.startsWith("geoip-") }.map { (isIP, tags) ->
             RuleSet_Remote().apply {
-                tag = mutableListOf(name)
+                tag = tags.toMutableList()
                 type = SingBoxOptions.RULE_SET_TYPE_REMOTE
                 format = SingBoxOptions.RULE_SET_FORMAT_BINARY
-                val isIP = name.startsWith("geoip-")
                 url = if (isIP) {
-                    "${ipURL}/${name}.srs"
+                    "$ipURL/${SingBoxOptions.RULE_SET_TAG_PLACEHOLDER}.srs"
                 } else {
-                    "${domainURL}/${name}.srs"
+                    "$domainURL/${SingBoxOptions.RULE_SET_TAG_PLACEHOLDER}.srs"
                 }
-            },
-        ) else list.add(
+            }
+        }
+    } else {
+        listOf(
             RuleSet_Local().apply {
-                tag = mutableListOf(name)
+                tag = sorted.toMutableList()
                 type = SingBoxOptions.RULE_SET_TYPE_LOCAL
                 format = SingBoxOptions.RULE_SET_FORMAT_BINARY
-                path = "$localPath/$name.srs"
+                path = "$localPath/${SingBoxOptions.RULE_SET_TAG_PLACEHOLDER}.srs"
             },
         )
     }
 
-    route!!.rule_set = list
+    route!!.rule_set = ruleSets.toMutableList()
 }
 
 /**

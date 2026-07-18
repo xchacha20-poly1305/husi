@@ -46,18 +46,21 @@ class SingBoxOptionsUtilKtTest {
     ) { "route.rule_set should not be null" }
 
     private fun List<RuleSet>.assertTags(expected: Set<String>) {
-        assertEquals(expected.size, size)
         assertEquals(expected, flatMap { it.tag.orEmpty() }.toSet())
     }
 
-    private fun List<RuleSet>.requireRemote(tag: String): RuleSet_Remote {
-        val rule = firstOrNull { tag in it.tag.orEmpty() } ?: fail("Rule set '$tag' not found")
-        return rule as? RuleSet_Remote ?: fail("Rule set '$tag' is not remote")
+    private fun List<RuleSet>.requireRemote(vararg tags: String): RuleSet_Remote {
+        val expectedTags = tags.toSet()
+        val rule = firstOrNull { it.tag.orEmpty().toSet() == expectedTags }
+            ?: fail("Rule set $expectedTags not found")
+        return rule as? RuleSet_Remote ?: fail("Rule set $expectedTags is not remote")
     }
 
-    private fun List<RuleSet>.requireLocal(tag: String): RuleSet_Local {
-        val rule = firstOrNull { tag in it.tag.orEmpty() } ?: fail("Rule set '$tag' not found")
-        return rule as? RuleSet_Local ?: fail("Rule set '$tag' is not local")
+    private fun List<RuleSet>.requireLocal(vararg tags: String): RuleSet_Local {
+        val expectedTags = tags.toSet()
+        val rule = firstOrNull { it.tag.orEmpty().toSet() == expectedTags }
+            ?: fail("Rule set $expectedTags not found")
+        return rule as? RuleSet_Local ?: fail("Rule set $expectedTags is not local")
     }
 
     @BeforeTest
@@ -97,7 +100,7 @@ class SingBoxOptionsUtilKtTest {
     fun `buildRuleSets should create RouteOptions and build remote rule sets if route is null and rules exist`() {
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
-                buildRule<DNSRule_Default>(listOf("geoip-cn", "geosite-youtube")).asMap(),
+                buildRule<DNSRule_Default>(listOf("geoip-cn", "geoip-us", "geosite-youtube")).asMap(),
                 logicalRule(buildRule<DNSRule_Default>(listOf("geosite-google")).asMap()),
             )
         }
@@ -112,24 +115,19 @@ class SingBoxOptionsUtilKtTest {
             localPath = null
         )
 
-        val expectedTags = setOf("geoip-cn", "geosite-google", "geosite-youtube")
+        val expectedTags = setOf("geoip-cn", "geoip-us", "geosite-google", "geosite-youtube")
         val ruleSets = options.requireRuleSets()
         ruleSets.assertTags(expectedTags)
 
-        val geoipCnRule = ruleSets.requireRemote("geoip-cn")
-        assertEquals(RULE_SET_TYPE_REMOTE, geoipCnRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, geoipCnRule.format)
-        assertEquals("$ipURL/geoip-cn.srs", geoipCnRule.url)
+        val geoipRule = ruleSets.requireRemote("geoip-cn", "geoip-us")
+        assertEquals(RULE_SET_TYPE_REMOTE, geoipRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geoipRule.format)
+        assertEquals("$ipURL/{tag}.srs", geoipRule.url)
 
-        val geositeGoogleRule = ruleSets.requireRemote("geosite-google")
-        assertEquals(RULE_SET_TYPE_REMOTE, geositeGoogleRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, geositeGoogleRule.format)
-        assertEquals("$domainURL/geosite-google.srs", geositeGoogleRule.url)
-
-        val geositeYoutubeRule = ruleSets.requireRemote("geosite-youtube")
-        assertEquals(RULE_SET_TYPE_REMOTE, geositeYoutubeRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, geositeYoutubeRule.format)
-        assertEquals("$domainURL/geosite-youtube.srs", geositeYoutubeRule.url)
+        val geositeRule = ruleSets.requireRemote("geosite-google", "geosite-youtube")
+        assertEquals(RULE_SET_TYPE_REMOTE, geositeRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geositeRule.format)
+        assertEquals("$domainURL/{tag}.srs", geositeRule.url)
     }
 
     @Test
@@ -152,15 +150,10 @@ class SingBoxOptionsUtilKtTest {
         val ruleSets = options.requireRuleSets()
         ruleSets.assertTags(expectedTags)
 
-        val geositeFacebookRule = ruleSets.requireLocal("geosite-facebook")
-        assertEquals(RULE_SET_TYPE_LOCAL, geositeFacebookRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, geositeFacebookRule.format)
-        assertEquals("$localPath/geosite-facebook.srs", geositeFacebookRule.path)
-
-        val geoipUsRule = ruleSets.requireLocal("geoip-us")
-        assertEquals(RULE_SET_TYPE_LOCAL, geoipUsRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, geoipUsRule.format)
-        assertEquals("$localPath/geoip-us.srs", geoipUsRule.path)
+        val ruleSet = ruleSets.requireLocal("geosite-facebook", "geoip-us")
+        assertEquals(RULE_SET_TYPE_LOCAL, ruleSet.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, ruleSet.format)
+        assertEquals("$localPath/{tag}.srs", ruleSet.path)
     }
 
     @Test
@@ -191,16 +184,15 @@ class SingBoxOptionsUtilKtTest {
         val ruleSets = options.requireRuleSets()
         ruleSets.assertTags(expectedTags)
 
-        expectedTags.forEach { tag ->
-            val remoteRuleSet = ruleSets.requireRemote(tag)
-            assertEquals(RULE_SET_TYPE_REMOTE, remoteRuleSet.type)
-            assertEquals(RULE_SET_FORMAT_BINARY, remoteRuleSet.format)
-            if (tag.startsWith("geoip-")) {
-                assertEquals("$ipURL/$tag.srs", remoteRuleSet.url)
-            } else {
-                assertEquals("$domainURL/$tag.srs", remoteRuleSet.url)
-            }
-        }
+        val geoipRuleSet = ruleSets.requireRemote("geoip-jp", "geoip-kr")
+        assertEquals(RULE_SET_TYPE_REMOTE, geoipRuleSet.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geoipRuleSet.format)
+        assertEquals("$ipURL/{tag}.srs", geoipRuleSet.url)
+
+        val domainRuleSet = ruleSets.requireRemote("existing-rule", "twitter")
+        assertEquals(RULE_SET_TYPE_REMOTE, domainRuleSet.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, domainRuleSet.format)
+        assertEquals("$domainURL/{tag}.srs", domainRuleSet.url)
     }
 
     @Test
@@ -230,14 +222,11 @@ class SingBoxOptionsUtilKtTest {
         val ruleSets = options.requireRuleSets()
         ruleSets.assertTags(expectedTags)
 
-        val dnsSet1 = ruleSets.requireRemote("dns-set-1")
-        assertEquals("$domainURL/dns-set-1.srs", dnsSet1.url)
+        val domainRuleSet = ruleSets.requireRemote("dns-set-1", "dns-set-3", "route-set-A", "route-set-C")
+        assertEquals("$domainURL/{tag}.srs", domainRuleSet.url)
 
-        val geoipDnsSet2 = ruleSets.requireRemote("geoip-dns-set-2")
-        assertEquals("$ipURL/geoip-dns-set-2.srs", geoipDnsSet2.url)
-
-        val routeSetC = ruleSets.requireRemote("route-set-C")
-        assertEquals("$domainURL/route-set-C.srs", routeSetC.url)
+        val geoipRuleSet = ruleSets.requireRemote("geoip-dns-set-2", "geoip-route-set-B")
+        assertEquals("$ipURL/{tag}.srs", geoipRuleSet.url)
     }
 
     @Test
@@ -355,20 +344,10 @@ class SingBoxOptionsUtilKtTest {
         val ruleSets = options.requireRuleSets()
         ruleSets.assertTags(expectedTags)
 
-        val existingLocalRule = ruleSets.requireRemote("existing-local")
-        assertEquals(RULE_SET_TYPE_REMOTE, existingLocalRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, existingLocalRule.format)
-        assertEquals("$domainURL/existing-local.srs", existingLocalRule.url)
-
-        val existingRemoteRule = ruleSets.requireRemote("existing-remote")
-        assertEquals(RULE_SET_TYPE_REMOTE, existingRemoteRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, existingRemoteRule.format)
-        assertEquals("$domainURL/existing-remote.srs", existingRemoteRule.url)
-
-        val newSetRule = ruleSets.requireRemote("new-set")
-        assertEquals(RULE_SET_TYPE_REMOTE, newSetRule.type)
-        assertEquals(RULE_SET_FORMAT_BINARY, newSetRule.format)
-        assertEquals("$domainURL/new-set.srs", newSetRule.url)
+        val ruleSet = ruleSets.requireRemote("existing-local", "existing-remote", "new-set")
+        assertEquals(RULE_SET_TYPE_REMOTE, ruleSet.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, ruleSet.format)
+        assertEquals("$domainURL/{tag}.srs", ruleSet.url)
     }
 
     @Test
@@ -391,11 +370,11 @@ class SingBoxOptionsUtilKtTest {
 
         val geoipRule = ruleSets.requireRemote("geoip-route-only-set-2")
         assertEquals(RULE_SET_FORMAT_BINARY, geoipRule.format)
-        assertEquals("$ipURL/geoip-route-only-set-2.srs", geoipRule.url)
+        assertEquals("$ipURL/{tag}.srs", geoipRule.url)
 
         val domainRule = ruleSets.requireRemote("route-only-set-1")
         assertEquals(RULE_SET_FORMAT_BINARY, domainRule.format)
-        assertEquals("$domainURL/route-only-set-1.srs", domainRule.url)
+        assertEquals("$domainURL/{tag}.srs", domainRule.url)
     }
 
     @Test
@@ -403,7 +382,7 @@ class SingBoxOptionsUtilKtTest {
         options.route = null
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
-                buildRule<DNSRule_Default>(listOf("geosite-facebook")).asMap(),
+                buildRule<DNSRule_Default>(listOf("geosite-facebook", "geosite-google")).asMap(),
             )
         }
 
@@ -413,8 +392,8 @@ class SingBoxOptionsUtilKtTest {
             localPath = """C:\Users\demo\.config\husi\external\geo""",
         )
 
-        val ruleSet = options.requireRuleSets().requireLocal("geosite-facebook")
+        val ruleSet = options.requireRuleSets().requireLocal("geosite-facebook", "geosite-google")
         assertEquals(RULE_SET_FORMAT_BINARY, ruleSet.format)
-        assertEquals("""C:\Users\demo\.config\husi\external\geo/geosite-facebook.srs""", ruleSet.path)
+        assertEquals("""C:\Users\demo\.config\husi\external\geo/{tag}.srs""", ruleSet.path)
     }
 }

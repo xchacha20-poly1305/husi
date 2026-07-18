@@ -10,7 +10,9 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +441
+    // Generate on line +436
+
+    const val RULE_SET_TAG_PLACEHOLDER = "{tag}"
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
