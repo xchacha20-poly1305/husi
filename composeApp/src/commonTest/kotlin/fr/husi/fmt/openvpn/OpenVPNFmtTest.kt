@@ -7,7 +7,9 @@ import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class OpenVPNFmtTest {
 
@@ -108,5 +110,122 @@ class OpenVPNFmtTest {
         assertEquals("tls_crypt", bean.controlWrapType)
         assertEquals("wrap-one\nwrap-two", bean.controlWrapKey)
         assertEquals("1", bean.controlWrapDirection)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig recognizes inline configuration`() {
+        val config = """
+            ############################
+            #        VPN Gate          #
+            ############################
+            client
+            dev tun
+            proto tcp-client
+            remote vpn.example.com 443
+            auth SHA256
+            data-ciphers AES-256-GCM:CHACHA20-POLY1305
+            redirect-gateway def1
+            tun-mtu 1400
+            verify-x509-name vpn.example.com name
+            remote-cert-tls server
+            tls-auth [inline] 1
+            <ca>
+            -----BEGIN CERTIFICATE-----
+            test-ca
+            -----END CERTIFICATE-----
+            </ca>
+            <cert>
+            -----BEGIN CERTIFICATE-----
+            test-client-cert
+            -----END CERTIFICATE-----
+            </cert>
+            <key>
+            -----BEGIN PRIVATE KEY-----
+            test-client-key
+            -----END PRIVATE KEY-----
+            </key>
+            <tls-auth>
+            test-control-key
+            </tls-auth>
+        """.trimIndent()
+
+        val bean = assertNotNull(parseOpenVPNConfig(config))
+
+        assertEquals("vpn.example.com", bean.serverAddress)
+        assertEquals(443, bean.serverPort)
+        assertEquals("tcp", bean.network)
+        assertEquals("AES-256-GCM\nCHACHA20-POLY1305", bean.dataCiphers)
+        assertEquals("SHA256", bean.auth)
+        assertTrue(bean.redirectGateway)
+        assertEquals(1400, bean.mtu)
+        assertEquals("vpn.example.com", bean.serverName)
+        assertEquals("name", bean.serverNameType)
+        assertEquals("server", bean.remoteCertificateEKU)
+        assertEquals("tls_auth", bean.controlWrapType)
+        assertEquals("client", bean.controlWrapDirection)
+        assertTrue(bean.certificate.contains("test-ca"))
+        assertTrue(bean.clientCertificate.contains("test-client-cert"))
+        assertTrue(bean.clientKey.contains("test-client-key"))
+        assertEquals("test-control-key", bean.controlWrapKey)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig rejects missing trusted server certificate`() {
+        val error = assertFailsWith<IllegalStateException> {
+            parseOpenVPNConfig("remote vpn.example.com 443")
+        }
+
+        assertEquals("OpenVPN configuration requires an inline <ca> block or peer-fingerprint.", error.message)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig rejects missing remote server`() {
+        val error = assertFailsWith<IllegalStateException> {
+            parseOpenVPNConfig(
+                """
+                client
+                <ca>
+                test-ca
+                </ca>
+                """.trimIndent(),
+            )
+        }
+
+        assertEquals("OpenVPN configuration is missing a remote server.", error.message)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig rejects unpaired client certificate`() {
+        val error = assertFailsWith<IllegalStateException> {
+            parseOpenVPNConfig(
+                """
+                remote vpn.example.com 443
+                <ca>
+                test-ca
+                </ca>
+                <cert>
+                test-client-cert
+                </cert>
+                """.trimIndent(),
+            )
+        }
+
+        assertEquals("OpenVPN client certificate and private key must be provided together.", error.message)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig rejects unclosed inline block`() {
+        val error = assertFailsWith<IllegalStateException> {
+            parseOpenVPNConfig(
+                """
+                remote vpn.example.com 443
+                <ca>
+                -----BEGIN CERTIFICATE-----
+                test-ca
+                """.trimIndent(),
+            )
+        }
+
+        assertEquals("OpenVPN inline <ca> block is not closed.", error.message)
     }
 }

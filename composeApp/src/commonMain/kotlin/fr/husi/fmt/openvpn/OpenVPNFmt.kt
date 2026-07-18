@@ -3,9 +3,181 @@ package fr.husi.fmt.openvpn
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.listable
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.getObject
 import fr.husi.ktx.listByLineOrComma
+
+fun looksLikeOpenVPNConfig(conf: String): Boolean {
+    return conf.lineSequence().any { rawLine ->
+        val line = rawLine.trim()
+        line == "client" || line.startsWith("remote ")
+    }
+}
+
+/**
+# https://openvpn.net/community-docs/community-articles/openvpn-2-7-manual.html
+remote 127.0.0.1 443
+proto tcp
+cipher AES-128-CBC
+data-ciphers AES-128-CBC
+auth SHA1
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+client
+verb 3
+
+<ca>
+xxx
+</ca>
+
+<cert>
+xxx
+</cert>
+
+<key>
+xxx
+</key>
+ */
+fun parseOpenVPNConfig(conf: String): OpenVPNBean {
+    val inlineBlocks = parseOpenVPNInlineBlocks(conf)
+    val bean = OpenVPNBean().applyDefaultValues().also {
+        it.certificate = inlineBlocks["ca"].orEmpty()
+        it.clientCertificate = inlineBlocks["cert"].orEmpty()
+        it.clientKey = inlineBlocks["key"].orEmpty()
+        listOf("tls-auth", "tls-crypt", "tls-crypt-v2").firstOrNull { directive ->
+            !inlineBlocks[directive].isNullOrBlank()
+        }?.let { directive ->
+            it.controlWrapType = directive.replace('-', '_')
+            it.controlWrapKey = inlineBlocks[directive].orEmpty()
+        }
+    }
+    var foundRemote = false
+
+    for (rawLine in conf.lineSequence()) {
+        val line = rawLine.trim()
+        if (line.isEmpty() || line.startsWith("#") || line.startsWith(";") || line.startsWith("<")) {
+            continue
+        }
+
+        val arguments = line.split(' ', '\t').filter { it.isNotEmpty() }
+        val directive = arguments.first().lowercase()
+        val values = arguments.drop(1)
+        when (directive) {
+            "remote" -> {
+                val server = values.getOrNull(0).orEmpty()
+                if (server.isBlank() || foundRemote) continue
+                bean.serverAddress = server
+                bean.serverPort = values.getOrNull(1)?.toIntOrNull() ?: bean.defaultPort
+                values.getOrNull(2)?.let { bean.network = parseOpenVPNNetwork(it) }
+                foundRemote = true
+            }
+
+            "proto" -> values.firstOrNull()?.let { bean.network = parseOpenVPNNetwork(it) }
+
+            "ca" -> inlineBlocks["ca"]?.let { certificate -> bean.certificate = certificate }
+
+            "cert" -> inlineBlocks["cert"]?.let { certificate ->
+                bean.clientCertificate = certificate
+            }
+
+            "key" -> inlineBlocks["key"]?.let { key -> bean.clientKey = key }
+
+            "tls-auth", "tls-crypt", "tls-crypt-v2" -> {
+                bean.controlWrapType = directive.replace('-', '_')
+                inlineBlocks[directive]?.let { key -> bean.controlWrapKey = key }
+                if (directive == "tls-auth") {
+                    bean.controlWrapDirection = when (values.getOrNull(1)) {
+                        "0" -> "server"
+                        "1" -> "client"
+                        else -> ""
+                    }
+                }
+            }
+
+            "data-ciphers" -> bean.dataCiphers = values.joinToString("\n") { it.replace(':', '\n') }
+
+            "cipher" -> if (bean.dataCiphers.isBlank()) bean.dataCiphers =
+                values.firstOrNull().orEmpty()
+
+            "auth" -> bean.auth = values.firstOrNull().orEmpty()
+
+            "compress" -> bean.compression = values.firstOrNull().orEmpty()
+
+            "redirect-gateway" -> bean.redirectGateway = true
+
+            "tun-mtu" -> values.firstOrNull()?.toIntOrNull()?.let { bean.mtu = it }
+
+            "verify-x509-name" -> {
+                bean.serverName = values.firstOrNull().orEmpty()
+                bean.serverNameType = values.getOrNull(1).orEmpty()
+            }
+
+            "remote-cert-ku" -> bean.remoteCertificateKU = values.joinToString("\n")
+
+            "remote-cert-tls" -> bean.remoteCertificateEKU = when (values.firstOrNull()) {
+                "server" -> "server"
+                "client" -> "client"
+                else -> ""
+            }
+
+            "peer-fingerprint" -> bean.peerFingerprint = values.joinToString("\n")
+        }
+    }
+
+    check(foundRemote) { "OpenVPN configuration is missing a remote server." }
+    check(bean.certificate.isNotBlank() || bean.peerFingerprint.isNotBlank()) {
+        "OpenVPN configuration requires an inline <ca> block or peer-fingerprint."
+    }
+    check(bean.clientCertificate.isBlank() == bean.clientKey.isBlank()) {
+        "OpenVPN client certificate and private key must be provided together."
+    }
+    check(bean.controlWrapType.isBlank() || bean.controlWrapKey.isNotBlank()) {
+        "OpenVPN control channel protection requires an inline key block."
+    }
+    return bean.applyDefaultValues()
+}
+
+/**
+<ca>
+xxxxxx
+</ca>
+ */
+private fun parseOpenVPNInlineBlocks(conf: String): Map<String, String> {
+    val supportedBlockNames = setOf("ca", "cert", "key", "tls-auth", "tls-crypt", "tls-crypt-v2")
+    val blocks = mutableMapOf<String, String>()
+    var activeBlockName: String? = null
+    val content = StringBuilder()
+
+    for (rawLine in conf.lineSequence()) {
+        val line = rawLine.trim()
+        val currentBlockName = activeBlockName
+        if (currentBlockName == null) {
+            if (line.startsWith('<') && line.endsWith('>') && !line.startsWith("</")) {
+                val blockName = line.substring(1, line.length - 1).lowercase()
+                if (blockName in supportedBlockNames) {
+                    activeBlockName = blockName
+                    content.clear()
+                }
+            }
+        } else if (line.equals("</$currentBlockName>", ignoreCase = true)) {
+            blocks[currentBlockName] = content.toString().trim()
+            activeBlockName = null
+        } else {
+            if (content.isNotEmpty()) content.append('\n')
+            content.append(rawLine)
+        }
+    }
+
+    check(activeBlockName == null) { "OpenVPN inline <$activeBlockName> block is not closed." }
+    return blocks
+}
+
+private fun parseOpenVPNNetwork(value: String): String {
+    return if (value.lowercase().startsWith("tcp")) "tcp" else "udp"
+}
 
 fun buildSingBoxEndpointOpenVPNBean(bean: OpenVPNBean): SingBoxOptions.Endpoint_OpenVPNClientOptions {
     return SingBoxOptions.Endpoint_OpenVPNClientOptions().apply {

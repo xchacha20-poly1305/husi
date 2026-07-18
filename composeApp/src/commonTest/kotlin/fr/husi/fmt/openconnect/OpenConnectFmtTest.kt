@@ -7,6 +7,7 @@ import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class OpenConnectFmtTest {
@@ -81,5 +82,48 @@ class OpenConnectFmtTest {
         assertEquals("machine-cert", bean.mcaCertificate)
         assertEquals("machine-key", bean.mcaKey)
         assertEquals("machine-password", bean.mcaKeyPassword)
+    }
+
+    @Test
+    fun `parseOpenConnectConfig recognizes client configuration`() {
+        val config = """
+            # OpenConnect configuration files use long options without leading dashes.
+            server = https://vpn.example.com/portal
+            protocol gp
+            user alice
+            authgroup employees
+            os android
+            useragent Husi/1.0
+            allow-insecure-crypto
+            cafile /etc/ssl/corp-ca.pem
+            certificate /home/alice/.config/husi/client.pem
+            sslkey /home/alice/.config/husi/client.key
+            key-password client-password
+            mca-certificate /home/alice/.config/husi/machine.pem
+            mca-key /home/alice/.config/husi/machine.key
+            mca-key-password machine-password
+            form-entry login:tenant=engineering
+        """.trimIndent()
+
+        val bean = parseOpenConnectConfig(config)
+
+        assertEquals("https://vpn.example.com/portal", bean.server)
+        assertEquals("gp", bean.flavor)
+        assertEquals("alice", bean.username)
+        assertEquals("employees", bean.authGroup)
+        assertEquals("android", bean.reportedOS)
+        assertEquals("Husi/1.0", bean.userAgent)
+        assertTrue(bean.allowInsecureCrypto)
+        assertEquals("/etc/ssl/corp-ca.pem", bean.certificateAuthority)
+        assertEquals("/home/alice/.config/husi/client.pem", bean.clientCertificate)
+        assertEquals("/home/alice/.config/husi/client.key", bean.clientKey)
+        assertEquals("client-password", bean.clientKeyPassword)
+        assertEquals("/home/alice/.config/husi/machine.pem", bean.mcaCertificate)
+        assertEquals("/home/alice/.config/husi/machine.key", bean.mcaKey)
+        assertEquals("machine-password", bean.mcaKeyPassword)
+        assertEquals(
+            listOf(OpenConnectFormEntry(formId = "login", name = "tenant", value = "engineering")),
+            bean.formEntries,
+        )
     }
 }

@@ -78,4 +78,21 @@ class RawUpdaterTest {
         assertIs<OpenConnectBean>(proxies[0])
         assertIs<OpenVPNBean>(proxies[1])
     }
+
+    @Test
+    fun `parseRaw should recognize OpenConnect configuration`() = runBlocking {
+        val config = """
+            server=https://vpn.example.com
+            protocol=anyconnect
+            user=alice
+        """.trimIndent()
+
+        val bean = assertIs<OpenConnectBean>(assertNotNull(RawUpdater.parseRaw(config, "work.conf")).single())
+
+        assertEquals("work", bean.name)
+        assertEquals("https://vpn.example.com", bean.server)
+        assertEquals("anyconnect", bean.flavor)
+        assertEquals("alice", bean.username)
+    }
+
 }

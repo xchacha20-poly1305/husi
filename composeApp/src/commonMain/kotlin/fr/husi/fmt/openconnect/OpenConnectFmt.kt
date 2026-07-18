@@ -3,9 +3,76 @@ package fr.husi.fmt.openconnect
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.listable
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.getObject
 import fr.husi.ktx.listByLineOrComma
+
+/**
+ * https://www.infradead.org/openconnect/manual.html
+ */
+fun parseOpenConnectConfig(conf: String): OpenConnectBean {
+    val bean = OpenConnectBean().applyDefaultValues()
+    var hasServer = false
+
+    for (line in conf.lineSequence()) {
+        val (name, value) = parseOpenConnectConfigOption(line) ?: continue
+        when (name) {
+            "server" -> {
+                bean.server = value.orEmpty()
+                hasServer = bean.server.isNotBlank()
+            }
+
+            "protocol" -> bean.flavor = value.orEmpty()
+            "user" -> bean.username = value.orEmpty()
+            "usergroup", "authgroup" -> bean.authGroup = value.orEmpty()
+            "os" -> bean.reportedOS = value.orEmpty()
+            "useragent" -> bean.userAgent = value.orEmpty()
+            "allow-insecure-crypto" -> bean.allowInsecureCrypto = true
+            "cafile" -> bean.certificateAuthority = value.orEmpty()
+            "certificate" -> bean.clientCertificate = value.orEmpty()
+            "sslkey" -> bean.clientKey = value.orEmpty()
+            "key-password" -> bean.clientKeyPassword = value.orEmpty()
+            "mca-certificate" -> bean.mcaCertificate = value.orEmpty()
+            "mca-key" -> bean.mcaKey = value.orEmpty()
+            "mca-key-password" -> bean.mcaKeyPassword = value.orEmpty()
+            "form-entry" -> value?.toOpenConnectFormEntry()?.let { entry ->
+                bean.formEntries += entry
+            }
+        }
+    }
+
+    require(hasServer) { "missing server" }
+    return bean
+}
+
+private fun parseOpenConnectConfigOption(rawLine: String): Pair<String, String?>? {
+    val line = rawLine.trim()
+    if (line.isEmpty() || line.startsWith('#')) return null
+
+    val separator = line.indexOfFirst { it == '=' || it.isWhitespace() }
+    if (separator == -1) return line.lowercase() to null
+
+    val name = line.substring(0, separator).lowercase()
+    val value = line.substring(separator)
+        .trimStart()
+        .removePrefix("=")
+        .trimStart()
+    return name to value
+}
+
+private fun String.toOpenConnectFormEntry(): OpenConnectFormEntry? {
+    val key = substringBefore('=')
+    val formId = key.substringBefore(':')
+    val name = key.substringAfter(':', missingDelimiterValue = "")
+    if (formId.isBlank() || name.isBlank() || '=' !in this) return null
+
+    return OpenConnectFormEntry(
+        formId = formId,
+        name = name,
+        value = substringAfter('='),
+    )
+}
 
 fun buildSingBoxEndpointOpenConnectBean(bean: OpenConnectBean): SingBoxOptions.Endpoint_OpenConnectOptions {
     return SingBoxOptions.Endpoint_OpenConnectOptions().apply {
