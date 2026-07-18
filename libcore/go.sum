@@ -2,8 +2,8 @@ c2sp.org/CCTV/age v0.0.0-20251208015420-e9274a7bdbfd h1:ZLsPO6WdZ5zatV4UfVpr7oAw
 c2sp.org/CCTV/age v0.0.0-20251208015420-e9274a7bdbfd/go.mod h1:SrHC2C7r5GkDk8R+NFVzYy/sdj0Ypg9htaPXQq5Cqeo=
 code.pfad.fr/check v1.1.0 h1:GWvjdzhSEgHvEHe2uJujDcpmZoySKuHQNrZMfzfO0bE=
 code.pfad.fr/check v1.1.0/go.mod h1:NiUH13DtYsb7xp5wll0U4SXx7KhXQVCtRgdC96IPfoM=
-codeberg.org/xchacha20-poly1305/pkgsite-go v0.5.0 h1:jDOMVaOnKEAJhclrzQgfAJ5ElNl64zXeEiMD8D9BNMU=
-codeberg.org/xchacha20-poly1305/pkgsite-go v0.5.0/go.mod h1:KX6NZEij3zmprTQJh08m3tSQfewN0BTU+4RgzRo4lmw=
+codeberg.org/xchacha20-poly1305/pkgsite-go v0.6.0 h1:iBuJ3XUHh5fdcJLGqqFYJxjZHSVpNB8sZkURUY+raio=
+codeberg.org/xchacha20-poly1305/pkgsite-go v0.6.0/go.mod h1:KX6NZEij3zmprTQJh08m3tSQfewN0BTU+4RgzRo4lmw=
 filippo.io/age v1.3.1 h1:hbzdQOJkuaMEpRCLSN1/C5DX74RPcNCk6oqhKMXmZi0=
 filippo.io/age v1.3.1/go.mod h1:EZorDTYUxt836i3zdori5IJX/v2Lj6kWFU0cfh6C0D4=
 filippo.io/hpke v0.4.0 h1:p575VVQ6ted4pL+it6M00V/f2qTZITO0zgmdKCkd5+A=
@@ -205,8 +205,8 @@ github.com/sagernet/quic-go v0.59.0-sing-box-mod.5 h1:73oI/46ckKWtPYtke10oR2T0xq
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.5/go.mod h1:OqILvS182CyOol5zNNo6bguvOGgXzV459+chpRaUC+4=
 github.com/sagernet/sing v0.8.12-0.20260717153536-4f1ed45a99a5 h1:WyL7xI7h+mNF6we/arqVNDEB+0iK2SwJRjim8rGydDM=
 github.com/sagernet/sing v0.8.12-0.20260717153536-4f1ed45a99a5/go.mod h1:olXxWQNqRW/l2Q6JI3b2Qmz8iQnIFlOeeH8bx6JhgUA=
-github.com/sagernet/sing-box v1.14.0-alpha.45.0.20260718014739-37b4386bddb1 h1:OY28ptUAV3IeenX2wZ6FCdoWQKx17msL3xirl75aQGw=
-github.com/sagernet/sing-box v1.14.0-alpha.45.0.20260718014739-37b4386bddb1/go.mod h1:wPbxg+KAPb3ipXKUk2e4dEFaE1dYzvg1kFmmVZSlMEM=
+github.com/sagernet/sing-box v1.14.0-alpha.47 h1:G9JRVkJ4PD0QCKvA4d2lyfo4uYAXYxLRjg1ZJWOQ8G4=
+github.com/sagernet/sing-box v1.14.0-alpha.47/go.mod h1:wPbxg+KAPb3ipXKUk2e4dEFaE1dYzvg1kFmmVZSlMEM=
 github.com/sagernet/sing-mux v0.3.5 h1:RHnhVEc+SFqkrK4xMygYjDwwLhzp2Bj3lztSukONfhI=
 github.com/sagernet/sing-mux v0.3.5/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-openconnect v0.0.0-20260717081856-cf2c71a71aba h1:S87Ej/jFssn0qhPF1ExF0YIV0USfGZF2If6kSjGLPt8=

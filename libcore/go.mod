@@ -10,7 +10,7 @@ require (
 	github.com/klauspost/compress v1.19.0
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/sing v0.8.12-0.20260717153536-4f1ed45a99a5
-	github.com/sagernet/sing-box v1.14.0-alpha.45.0.20260718014739-37b4386bddb1
+	github.com/sagernet/sing-box v1.14.0-alpha.47
 	github.com/sagernet/sing-tun v0.8.12-0.20260717024008-39eed1f6361d
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
@@ -34,7 +34,7 @@ replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vme
 
 // cmd
 require (
-	codeberg.org/xchacha20-poly1305/pkgsite-go v0.5.0
+	codeberg.org/xchacha20-poly1305/pkgsite-go v0.6.0
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/oschwald/maxminddb-golang v1.13.1
 )
