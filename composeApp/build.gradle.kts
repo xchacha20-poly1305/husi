@@ -71,6 +71,7 @@ enum class DesktopArch(
     val packageJarArchToken: String,
     val nativeNames: Set<String>,
     val jnaName: String,
+    val nucleusName: String,
 ) {
     Amd64(
         id = "amd64",
@@ -79,6 +80,7 @@ enum class DesktopArch(
         packageJarArchToken = "x64",
         nativeNames = setOf("x64", "amd64"),
         jnaName = "x86-64",
+        nucleusName = "x64",
     ),
     Arm64(
         id = "arm64",
@@ -87,6 +89,7 @@ enum class DesktopArch(
         packageJarArchToken = "arm64",
         nativeNames = setOf("arm64", "aarch64"),
         jnaName = "aarch64",
+        nucleusName = "aarch64",
     ),
     ;
 
@@ -117,6 +120,14 @@ data class DesktopTarget(
     val jnaNativeKeepPrefixes: Set<String> =
         setOf(
             "com/sun/jna/${platform.jnaName}-${arch.jnaName}/",
+        )
+    val composeTrayNativeKeepPrefixes: Set<String> =
+        setOf(
+            "composetray/native/${platform.jnaName}-${arch.jnaName}/",
+        )
+    val nucleusNativeKeepPrefixes: Set<String> =
+        setOf(
+            "nucleus/native/${platform.jnaName}-${arch.nucleusName}/",
         )
     val skikoNativeKeepEntries: Set<String> =
         buildSet {
@@ -408,6 +419,8 @@ tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
 
         val nativeKeepPrefixes = desktopTarget.nativeKeepPrefixes
         val jnaNativeKeepPrefixes = desktopTarget.jnaNativeKeepPrefixes
+        val composeTrayNativeKeepPrefixes = desktopTarget.composeTrayNativeKeepPrefixes
+        val nucleusNativeKeepPrefixes = desktopTarget.nucleusNativeKeepPrefixes
         val skikoNativeKeepEntries = desktopTarget.skikoNativeKeepEntries
         val targetJarName =
             "$desktopPackageName-${desktopTarget.platform.id}-${desktopTarget.arch.packageJarArchToken}-$desktopVersion.jar"
@@ -429,6 +442,22 @@ tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
                         entryPath.endsWith(".jnilib") ||
                         entryPath.endsWith(".a"))
             if (isJnaNativeBinary && jnaNativeKeepPrefixes.none(entryPath::startsWith)) {
+                exclude()
+                return@eachFile
+            }
+
+            if (
+                entryPath.startsWith("composetray/native/") &&
+                composeTrayNativeKeepPrefixes.none(entryPath::startsWith)
+            ) {
+                exclude()
+                return@eachFile
+            }
+
+            if (
+                entryPath.startsWith("nucleus/native/") &&
+                nucleusNativeKeepPrefixes.none(entryPath::startsWith)
+            ) {
                 exclude()
                 return@eachFile
             }
