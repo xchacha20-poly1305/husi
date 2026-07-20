@@ -32,11 +32,11 @@ object OpenConnectAuthWatcher {
 
     private const val NOTIFICATION_ID = 3
 
-    private class PendingAuth(val endpointTag: String, val formId: String) {
+    private class PendingAuth(val endpointTag: String, val challengeId: String) {
         override fun equals(other: Any?): Boolean =
-            other is PendingAuth && other.endpointTag == endpointTag && other.formId == formId
+            other is PendingAuth && other.endpointTag == endpointTag && other.challengeId == challengeId
 
-        override fun hashCode(): Int = endpointTag.hashCode() * 31 + formId.hashCode()
+        override fun hashCode(): Int = endpointTag.hashCode() * 31 + challengeId.hashCode()
     }
 
     private var scope: CoroutineScope? = null
@@ -56,9 +56,9 @@ object OpenConnectAuthWatcher {
             var pending: PendingAuth? = null
             while (iterator.hasNext()) {
                 val status = iterator.next() ?: continue
-                val form = status.authForm
-                if (status.state == OPENCONNECT_STATE_AUTH_PENDING && form != null) {
-                    pending = PendingAuth(status.tag, form.id)
+                val challenge = status.authChallenge
+                if (status.state == OPENCONNECT_STATE_AUTH_PENDING && challenge != null) {
+                    pending = PendingAuth(status.tag, challenge.id)
                     break
                 }
             }

@@ -821,6 +821,12 @@
     <string name="auth_submit">Submit</string>
     <string name="auth_continue">Continue</string>
     <string name="auth_open_url">Open authentication page</string>
+    <string name="auth_browser_callback_hint">After completing sign-in in the browser, provide the requested callback data.</string>
+    <string name="auth_final_url">Final URL</string>
+    <string name="auth_cookie">Cookie</string>
+    <string name="auth_response_header">Response header</string>
+    <string name="auth_browser_header_unsupported_android">This authentication requires response headers that Android WebView cannot collect.</string>
+    <string name="auth_browser_cookie_missing">The required authentication cookie was not found.</string>
     <string name="auth_verifying">Verifying…</string>
     <string name="auth_later_hint">You can finish authentication later from Dashboard → Status.</string>
     <string name="cancel_auth">Cancel authentication</string>

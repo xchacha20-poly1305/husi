@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 internal object OpenConnectAuthWatcher {
 
-    private data class PendingAuth(val endpointTag: String, val formId: String)
+    private data class PendingAuth(val endpointTag: String, val challengeId: String)
 
     private var scope: CoroutineScope? = null
     private var pendingAuth: PendingAuth? = null
@@ -27,9 +27,9 @@ internal object OpenConnectAuthWatcher {
             var pending: PendingAuth? = null
             while (iterator.hasNext()) {
                 val status = iterator.next() ?: continue
-                val form = status.authForm
-                if (status.state == Libcore.OpenConnectStateAuthPending && form != null) {
-                    pending = PendingAuth(status.tag, form.id)
+                val challenge = status.authChallenge
+                if (status.state == Libcore.OpenConnectStateAuthPending && challenge != null) {
+                    pending = PendingAuth(status.tag, challenge.id)
                     break
                 }
             }

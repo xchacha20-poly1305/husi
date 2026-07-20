@@ -19,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,7 +27,6 @@ import fr.husi.compose.material3.Text
 import fr.husi.ktx.formatLocalDateTime
 import fr.husi.resources.Res
 import fr.husi.resources.action_openconnect
-import fr.husi.resources.auth_continue
 import fr.husi.resources.auth_open_url
 import fr.husi.resources.auth_required
 import fr.husi.resources.auth_submit
@@ -48,10 +46,12 @@ import fr.husi.ui.openconnect.OPENCONNECT_STATE_AUTH_PENDING
 import fr.husi.ui.openconnect.OPENCONNECT_STATE_CONNECTED
 import fr.husi.ui.openconnect.OPENCONNECT_STATE_ERROR
 import fr.husi.ui.openconnect.OpenConnectAuthController
-import fr.husi.ui.openconnect.OpenConnectAuthFormContent
-import fr.husi.ui.openconnect.OpenConnectAuthFormState
+import fr.husi.ui.openconnect.OpenConnectAuthChallengeContent
+import fr.husi.ui.openconnect.OpenConnectAuthChallengeState
+import fr.husi.ui.openconnect.OpenConnectBrowserResultState
 import fr.husi.ui.openconnect.OpenConnectEndpointState
 import fr.husi.ui.openconnect.OpenConnectTunnelInfoState
+import fr.husi.ui.openconnect.PlatformOpenConnectBrowserDialog
 import fr.husi.ui.openconnect.initialAuthFormValues
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -113,12 +113,12 @@ private fun EndpointContent(
         endpoint.tunnelInfo?.takeIf {
             endpoint.state == OPENCONNECT_STATE_CONNECTED
         }?.let { TunnelInfoContent(it) }
-        endpoint.authForm?.takeIf {
+        endpoint.authChallenge?.takeIf {
             endpoint.state == OPENCONNECT_STATE_AUTH_PENDING
-        }?.let { form ->
+        }?.let { challenge ->
             AuthSection(
                 endpointTag = endpoint.tag,
-                form = form,
+                challenge = challenge,
                 controller = controller,
                 showError = showError,
             )
@@ -129,66 +129,111 @@ private fun EndpointContent(
 @Composable
 private fun AuthSection(
     endpointTag: String,
-    form: OpenConnectAuthFormState,
+    challenge: OpenConnectAuthChallengeState,
     controller: OpenConnectAuthController,
     showError: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
-    val values = remember(endpointTag, form.id) {
-        mutableStateMapOf<String, String>().also {
-            it.putAll(initialAuthFormValues(form))
+    val form = challenge.form
+    val browser = challenge.browser
+    val values = remember(endpointTag, challenge.id) {
+        mutableStateMapOf<String, String>().also { values ->
+            form?.let { values.putAll(initialAuthFormValues(it)) }
         }
     }
-    var working by remember(form.id) { mutableStateOf(false) }
+    var finalUrl by remember(endpointTag, challenge.id) {
+        mutableStateOf(browser?.finalUrl.orEmpty())
+    }
+    val cookies = remember(endpointTag, challenge.id) {
+        mutableStateMapOf<String, String>().also { values ->
+            browser?.cookieNames?.forEach { values[it] = "" }
+        }
+    }
+    val headers = remember(endpointTag, challenge.id) {
+        mutableStateMapOf<String, String>().also { values ->
+            browser?.headerNames?.forEach { values[it] = "" }
+        }
+    }
+    var working by remember(challenge.id) { mutableStateOf(false) }
+    var showBrowser by remember(endpointTag, challenge.id) { mutableStateOf(false) }
 
-    if (form.url.isNotEmpty()) {
-        OutlinedButton(onClick = { uriHandler.openUri(form.url) }) {
+    if (browser != null) {
+        OutlinedButton(onClick = { showBrowser = true }) {
             Text(stringResource(Res.string.auth_open_url))
         }
-    } else {
-        OpenConnectAuthFormContent(
-            form = form,
-            values = values,
-            enabled = !working,
+    }
+    browser?.let { request ->
+        PlatformOpenConnectBrowserDialog(
+            challengeId = challenge.id,
+            request = request,
+            visible = showBrowser,
+            onDismiss = { showBrowser = false },
+            onResult = { result ->
+                showBrowser = false
+                scope.launch {
+                    working = true
+                    controller.submitAuthChallenge(
+                        endpointTag = endpointTag,
+                        challenge = challenge,
+                        formValues = form?.let { values.toMap() },
+                        browserResult = result,
+                    )?.let(showError)
+                    working = false
+                }
+            },
+            onError = { error ->
+                showBrowser = false
+                showError(error)
+            },
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+    }
+    OpenConnectAuthChallengeContent(
+        challenge = challenge,
+        values = values,
+        browserFinalUrl = finalUrl,
+        onBrowserFinalUrlChange = { finalUrl = it },
+        cookies = cookies,
+        headers = headers,
+        enabled = !working,
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+    ) {
+        OutlinedButton(
+            enabled = !working,
+            onClick = {
+                scope.launch {
+                    working = true
+                    controller.cancelAuthChallenge(endpointTag, challenge.id)?.let(showError)
+                    working = false
+                }
+            },
         ) {
-            OutlinedButton(
-                enabled = !working,
-                onClick = {
-                    scope.launch {
-                        working = true
-                        controller.cancelAuthForm(endpointTag, form.id)?.let(showError)
-                        working = false
-                    }
-                },
-            ) {
-                Text(stringResource(Res.string.cancel_auth))
-            }
-            Button(
-                enabled = !working,
-                onClick = {
-                    scope.launch {
-                        working = true
-                        controller.submitAuthForm(endpointTag, form, values.toMap())
-                            ?.let(showError)
-                        working = false
-                    }
-                },
-            ) {
-                Text(
-                    stringResource(
-                        if (form.fields.isEmpty()) {
-                            Res.string.auth_continue
-                        } else {
-                            Res.string.auth_submit
+            Text(stringResource(Res.string.cancel_auth))
+        }
+        Button(
+            enabled = !working,
+            onClick = {
+                scope.launch {
+                    working = true
+                    controller.submitAuthChallenge(
+                        endpointTag = endpointTag,
+                        challenge = challenge,
+                        formValues = form?.let { values.toMap() },
+                        browserResult = browser?.let {
+                            OpenConnectBrowserResultState(
+                                finalUrl = finalUrl,
+                                cookies = cookies.toMap(),
+                                headers = headers.toMap(),
+                            )
                         },
-                    ),
-                )
+                    )?.let(showError)
+                    working = false
+                }
             }
+        ) {
+            Text(stringResource(Res.string.auth_submit))
         }
     }
 }

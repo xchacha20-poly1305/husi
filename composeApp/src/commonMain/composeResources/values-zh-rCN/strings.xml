@@ -759,6 +759,12 @@
     <string name="auth_submit">提交</string>
     <string name="auth_continue">继续</string>
     <string name="auth_open_url">打开身份验证页面</string>
+    <string name="auth_browser_callback_hint">请在浏览器中完成登录，然后填写所需的回调数据。</string>
+    <string name="auth_final_url">最终 URL</string>
+    <string name="auth_cookie">Cookie</string>
+    <string name="auth_response_header">响应头</string>
+    <string name="auth_browser_header_unsupported_android">此认证需要 Android WebView 无法采集的响应头。</string>
+    <string name="auth_browser_cookie_missing">未找到认证所需的 Cookie。</string>
     <string name="auth_verifying">正在验证…</string>
     <string name="auth_later_hint">您可以稍后在“仪表板 → 状态”中完成身份验证。</string>
     <string name="cancel_auth">取消身份验证</string>

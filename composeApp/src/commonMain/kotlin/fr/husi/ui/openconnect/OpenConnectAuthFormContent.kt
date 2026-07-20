@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -42,23 +41,6 @@ fun OpenConnectAuthFormContent(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (form.banner.isNotEmpty()) {
-            Text(
-                form.banner,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (form.message.isNotEmpty()) {
-            Text(form.message, style = MaterialTheme.typography.bodyMedium)
-        }
-        if (form.error.isNotEmpty()) {
-            Text(
-                form.error,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
         for (field in form.fields) {
             AuthFieldInput(
                 field = field,

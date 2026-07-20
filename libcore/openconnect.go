@@ -22,11 +22,11 @@ const (
 )
 
 type OpenConnectEndpointStatus struct {
-	Tag        string
-	State      string
-	Error      string
-	AuthForm   *OpenConnectAuthForm
-	TunnelInfo *OpenConnectTunnelInfo
+	Tag           string
+	State         string
+	Error         string
+	AuthChallenge *OpenConnectAuthChallenge
+	TunnelInfo    *OpenConnectTunnelInfo
 }
 
 type OpenConnectEndpointStatusIterator interface {
@@ -35,13 +35,17 @@ type OpenConnectEndpointStatusIterator interface {
 	Length() int32
 }
 
-type OpenConnectAuthForm struct {
+type OpenConnectAuthChallenge struct {
 	ID      string
 	Banner  string
 	Message string
 	Error   string
-	URL     string
-	fields  []*OpenConnectAuthFormField
+	Form    *OpenConnectAuthForm
+	Browser *OpenConnectBrowserRequest
+}
+
+type OpenConnectAuthForm struct {
+	fields []*OpenConnectAuthFormField
 }
 
 func (o *OpenConnectAuthForm) GetFields() OpenConnectAuthFormFieldIterator {
@@ -76,6 +80,67 @@ type OpenConnectAuthFormChoiceIterator interface {
 	Next() *OpenConnectAuthFormChoice
 	HasNext() bool
 	Length() int32
+}
+
+type OpenConnectBrowserRequest struct {
+	URL         string
+	FinalURL    string
+	cookieNames []string
+	headerNames []string
+}
+
+func (o *OpenConnectBrowserRequest) GetCookieNames() StringIterator {
+	return newIterator(o.cookieNames)
+}
+
+func (o *OpenConnectBrowserRequest) GetHeaderNames() StringIterator {
+	return newIterator(o.headerNames)
+}
+
+type OpenConnectBrowserResult struct {
+	FinalURL string
+	cookies  []*OpenConnectBrowserCookie
+	headers  []*OpenConnectBrowserHeader
+}
+
+func NewOpenConnectBrowserResult(finalURL string) *OpenConnectBrowserResult {
+	return &OpenConnectBrowserResult{FinalURL: finalURL}
+}
+
+func (o *OpenConnectBrowserResult) AddCookie(name, value string) {
+	o.cookies = append(o.cookies, &OpenConnectBrowserCookie{Name: name, Value: value})
+}
+
+func (o *OpenConnectBrowserResult) AddHeader(name, value string) {
+	for _, header := range o.headers {
+		if header.Name == name {
+			header.values = append(header.values, value)
+			return
+		}
+	}
+	o.headers = append(o.headers, &OpenConnectBrowserHeader{Name: name, values: []string{value}})
+}
+
+type OpenConnectBrowserCookie struct {
+	Name  string
+	Value string
+}
+
+type OpenConnectBrowserHeader struct {
+	Name   string
+	values []string
+}
+
+type OpenConnectAuthResponse struct {
+	formValues    *OpenConnectFormValues
+	browserResult *OpenConnectBrowserResult
+}
+
+func NewOpenConnectAuthResponse(
+	formValues *OpenConnectFormValues,
+	browserResult *OpenConnectBrowserResult,
+) *OpenConnectAuthResponse {
+	return &OpenConnectAuthResponse{formValues: formValues, browserResult: browserResult}
 }
 
 type OpenConnectTunnelInfo struct {
@@ -139,8 +204,11 @@ func (c *Client) SubscribeOpenConnectStatus(callback OpenConnectStatusCallback) 
 	}
 }
 
-func (c *Client) CompleteOpenConnectAuthForm(tag, formID string, values *OpenConnectFormValues) error {
-	err := vario.WriteUint8(c.conn, commandCompleteOpenConnectAuthForm)
+func (c *Client) CompleteOpenConnectAuthChallenge(
+	tag, challengeID string,
+	response *OpenConnectAuthResponse,
+) error {
+	err := vario.WriteUint8(c.conn, commandCompleteOpenConnectAuthChallenge)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
@@ -148,13 +216,17 @@ func (c *Client) CompleteOpenConnectAuthForm(tag, formID string, values *OpenCon
 	if err != nil {
 		return E.Cause(err, "write tag")
 	}
-	err = vario.WriteString(c.conn, formID)
+	err = vario.WriteString(c.conn, challengeID)
 	if err != nil {
-		return E.Cause(err, "write form id")
+		return E.Cause(err, "write challenge id")
 	}
 	var keys, vals []string
-	if values != nil {
-		keys, vals = values.keys, values.values
+	if response != nil && response.formValues != nil {
+		keys, vals = response.formValues.keys, response.formValues.values
+	}
+	err = vario.WriteBool(c.conn, response != nil && response.formValues != nil)
+	if err != nil {
+		return E.Cause(err, "write form response flag")
 	}
 	err = vario.WriteStringSlice(c.conn, keys)
 	if err != nil {
@@ -164,11 +236,26 @@ func (c *Client) CompleteOpenConnectAuthForm(tag, formID string, values *OpenCon
 	if err != nil {
 		return E.Cause(err, "write values")
 	}
+	if response == nil || response.browserResult == nil {
+		err = vario.WriteBool(c.conn, false)
+		if err != nil {
+			return E.Cause(err, "write browser response flag")
+		}
+	} else {
+		err = vario.WriteBool(c.conn, true)
+		if err != nil {
+			return E.Cause(err, "write browser response flag")
+		}
+		err = response.browserResult.writeToBinary(c.conn)
+		if err != nil {
+			return E.Cause(err, "write browser response")
+		}
+	}
 	return c.readOpenConnectResult()
 }
 
-func (c *Client) CancelOpenConnectAuthForm(tag, formID string) error {
-	err := vario.WriteUint8(c.conn, commandCancelOpenConnectAuthForm)
+func (c *Client) CancelOpenConnectAuthChallenge(tag, challengeID string) error {
+	err := vario.WriteUint8(c.conn, commandCancelOpenConnectAuthChallenge)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
@@ -176,9 +263,9 @@ func (c *Client) CancelOpenConnectAuthForm(tag, formID string) error {
 	if err != nil {
 		return E.Cause(err, "write tag")
 	}
-	err = vario.WriteString(c.conn, formID)
+	err = vario.WriteString(c.conn, challengeID)
 	if err != nil {
-		return E.Cause(err, "write form id")
+		return E.Cause(err, "write challenge id")
 	}
 	return c.readOpenConnectResult()
 }
@@ -259,14 +346,18 @@ func (s *Service) handleSubscribeOpenConnectStatus(conn io.ReadWriter, instance 
 	}
 }
 
-func (s *Service) handleCompleteOpenConnectAuthForm(conn io.ReadWriter, instance *boxInstance) error {
+func (s *Service) handleCompleteOpenConnectAuthChallenge(conn io.ReadWriter, instance *boxInstance) error {
 	tag, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read tag")
 	}
-	formID, err := vario.ReadString(conn)
+	challengeID, err := vario.ReadString(conn)
 	if err != nil {
-		return E.Cause(err, "read form id")
+		return E.Cause(err, "read challenge id")
+	}
+	hasFormResponse, err := vario.ReadBool(conn)
+	if err != nil {
+		return E.Cause(err, "read form response flag")
 	}
 	keys, err := vario.ReadStringSlice(conn)
 	if err != nil {
@@ -276,34 +367,55 @@ func (s *Service) handleCompleteOpenConnectAuthForm(conn io.ReadWriter, instance
 	if err != nil {
 		return E.Cause(err, "read values")
 	}
+	if !hasFormResponse && (len(keys) != 0 || len(values) != 0) {
+		return writeOpenConnectResult(conn, E.New("form values without a form response"))
+	}
 	if len(keys) != len(values) {
 		return writeOpenConnectResult(conn, E.New("mismatched form keys and values"))
+	}
+	hasBrowserResponse, err := vario.ReadBool(conn)
+	if err != nil {
+		return E.Cause(err, "read browser response flag")
+	}
+	var browserResult *OpenConnectBrowserResult
+	if hasBrowserResponse {
+		browserResult, err = readOpenConnectBrowserResult(conn)
+		if err != nil {
+			return E.Cause(err, "read browser response")
+		}
 	}
 	endpoint, err := requireOpenConnectEndpoint(instance, tag)
 	if err != nil {
 		return writeOpenConnectResult(conn, err)
 	}
-	formValues := make(map[string]string, len(keys))
-	for i, key := range keys {
-		formValues[key] = values[i]
+	response := adapter.OpenConnectAuthResponse{}
+	if hasFormResponse {
+		formValues := make(map[string]string, len(keys))
+		for i, key := range keys {
+			formValues[key] = values[i]
+		}
+		response.Form = &adapter.OpenConnectAuthFormResponse{Values: formValues}
 	}
-	return writeOpenConnectResult(conn, endpoint.CompleteAuthForm(formID, formValues))
+	if browserResult != nil {
+		response.Browser = browserResult.toAdapter()
+	}
+	return writeOpenConnectResult(conn, endpoint.CompleteAuthChallenge(challengeID, response))
 }
 
-func (s *Service) handleCancelOpenConnectAuthForm(conn io.ReadWriter, instance *boxInstance) error {
+func (s *Service) handleCancelOpenConnectAuthChallenge(conn io.ReadWriter, instance *boxInstance) error {
 	tag, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read tag")
 	}
-	formID, err := vario.ReadString(conn)
+	challengeID, err := vario.ReadString(conn)
 	if err != nil {
-		return E.Cause(err, "read form id")
+		return E.Cause(err, "read challenge id")
 	}
 	endpoint, err := requireOpenConnectEndpoint(instance, tag)
 	if err != nil {
 		return writeOpenConnectResult(conn, err)
 	}
-	return writeOpenConnectResult(conn, endpoint.CancelAuthForm(formID))
+	return writeOpenConnectResult(conn, endpoint.CancelAuthChallenge(challengeID))
 }
 
 func requireOpenConnectEndpoint(instance *boxInstance, tag string) (adapter.OpenConnectEndpoint, error) {
@@ -336,28 +448,39 @@ func buildOpenConnectStatus(endpoint adapter.OpenConnectEndpoint) *OpenConnectEn
 		State: endpointStatus.State,
 		Error: endpointStatus.Error,
 	}
-	if authForm := endpointStatus.AuthForm; authForm != nil {
-		status.AuthForm = &OpenConnectAuthForm{
-			ID:      authForm.ID,
-			Banner:  authForm.Banner,
-			Message: authForm.Message,
-			Error:   authForm.Error,
-			URL:     authForm.URL,
-			fields: common.Map(authForm.Fields, func(field adapter.OpenConnectAuthFormField) *OpenConnectAuthFormField {
-				return &OpenConnectAuthFormField{
-					SubmissionKey: field.SubmissionKey,
-					Name:          field.Name,
-					Label:         field.Label,
-					Kind:          field.Kind,
-					Value:         field.Value,
-					options: common.Map(field.Options, func(choice adapter.OpenConnectAuthFormChoice) *OpenConnectAuthFormChoice {
-						return &OpenConnectAuthFormChoice{
-							Value: choice.Value,
-							Label: choice.Label,
-						}
-					}),
-				}
-			}),
+	if authChallenge := endpointStatus.AuthChallenge; authChallenge != nil {
+		status.AuthChallenge = &OpenConnectAuthChallenge{
+			ID:      authChallenge.ID,
+			Banner:  authChallenge.Banner,
+			Message: authChallenge.Message,
+			Error:   authChallenge.Error,
+		}
+		if authForm := authChallenge.Form; authForm != nil {
+			status.AuthChallenge.Form = &OpenConnectAuthForm{
+				fields: common.Map(authForm.Fields, func(field adapter.OpenConnectAuthFormField) *OpenConnectAuthFormField {
+					return &OpenConnectAuthFormField{
+						SubmissionKey: field.SubmissionKey,
+						Name:          field.Name,
+						Label:         field.Label,
+						Kind:          field.Kind,
+						Value:         field.Value,
+						options: common.Map(field.Options, func(choice adapter.OpenConnectAuthFormChoice) *OpenConnectAuthFormChoice {
+							return &OpenConnectAuthFormChoice{
+								Value: choice.Value,
+								Label: choice.Label,
+							}
+						}),
+					}
+				}),
+			}
+		}
+		if browser := authChallenge.Browser; browser != nil {
+			status.AuthChallenge.Browser = &OpenConnectBrowserRequest{
+				URL:         browser.URL,
+				FinalURL:    browser.FinalURL,
+				cookieNames: browser.CookieNames,
+				headerNames: browser.HeaderNames,
+			}
 		}
 	}
 	if tunnelInfo := endpointStatus.TunnelInfo; tunnelInfo != nil {
@@ -388,14 +511,14 @@ func (s *OpenConnectEndpointStatus) WriteToBinary(writer io.Writer) error {
 	if err != nil {
 		return E.Cause(err, "write error")
 	}
-	err = vario.WriteBool(writer, s.AuthForm != nil)
+	err = vario.WriteBool(writer, s.AuthChallenge != nil)
 	if err != nil {
-		return E.Cause(err, "write auth form flag")
+		return E.Cause(err, "write auth challenge flag")
 	}
-	if s.AuthForm != nil {
-		err = s.AuthForm.writeToBinary(writer)
+	if s.AuthChallenge != nil {
+		err = s.AuthChallenge.writeToBinary(writer)
 		if err != nil {
-			return E.Cause(err, "write auth form")
+			return E.Cause(err, "write auth challenge")
 		}
 	}
 	err = vario.WriteBool(writer, s.TunnelInfo != nil)
@@ -429,14 +552,14 @@ func readOpenConnectEndpointStatus(reader io.Reader) (*OpenConnectEndpointStatus
 		State: state,
 		Error: statusError,
 	}
-	hasAuthForm, err := vario.ReadBool(reader)
+	hasAuthChallenge, err := vario.ReadBool(reader)
 	if err != nil {
-		return nil, E.Cause(err, "read auth form flag")
+		return nil, E.Cause(err, "read auth challenge flag")
 	}
-	if hasAuthForm {
-		status.AuthForm, err = readOpenConnectAuthForm(reader)
+	if hasAuthChallenge {
+		status.AuthChallenge, err = readOpenConnectAuthChallenge(reader)
 		if err != nil {
-			return nil, E.Cause(err, "read auth form")
+			return nil, E.Cause(err, "read auth challenge")
 		}
 	}
 	hasTunnelInfo, err := vario.ReadBool(reader)
@@ -452,7 +575,7 @@ func readOpenConnectEndpointStatus(reader io.Reader) (*OpenConnectEndpointStatus
 	return status, nil
 }
 
-func (o *OpenConnectAuthForm) writeToBinary(writer io.Writer) error {
+func (o *OpenConnectAuthChallenge) writeToBinary(writer io.Writer) error {
 	err := vario.WriteString(writer, o.ID)
 	if err != nil {
 		return err
@@ -469,42 +592,198 @@ func (o *OpenConnectAuthForm) writeToBinary(writer io.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = vario.WriteString(writer, o.URL)
+	err = vario.WriteBool(writer, o.Form != nil)
 	if err != nil {
 		return err
 	}
+	if o.Form != nil {
+		err = o.Form.writeToBinary(writer)
+		if err != nil {
+			return err
+		}
+	}
+	err = vario.WriteBool(writer, o.Browser != nil)
+	if err != nil {
+		return err
+	}
+	if o.Browser != nil {
+		return o.Browser.writeToBinary(writer)
+	}
+	return nil
+}
+
+func readOpenConnectAuthChallenge(reader io.Reader) (*OpenConnectAuthChallenge, error) {
+	challenge := &OpenConnectAuthChallenge{}
+	var err error
+	challenge.ID, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	challenge.Banner, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	challenge.Message, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	challenge.Error, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	hasForm, err := vario.ReadBool(reader)
+	if err != nil {
+		return nil, err
+	}
+	if hasForm {
+		challenge.Form, err = readOpenConnectAuthForm(reader)
+		if err != nil {
+			return nil, E.Cause(err, "read form")
+		}
+	}
+	hasBrowser, err := vario.ReadBool(reader)
+	if err != nil {
+		return nil, err
+	}
+	if hasBrowser {
+		challenge.Browser, err = readOpenConnectBrowserRequest(reader)
+		if err != nil {
+			return nil, E.Cause(err, "read browser request")
+		}
+	}
+	return challenge, nil
+}
+
+func (o *OpenConnectAuthForm) writeToBinary(writer io.Writer) error {
 	return vario.WriteSlices(writer, o.fields)
 }
 
 func readOpenConnectAuthForm(reader io.Reader) (*OpenConnectAuthForm, error) {
-	form := &OpenConnectAuthForm{}
-	var err error
-	form.ID, err = vario.ReadString(reader)
-	if err != nil {
-		return nil, err
-	}
-	form.Banner, err = vario.ReadString(reader)
-	if err != nil {
-		return nil, err
-	}
-	form.Message, err = vario.ReadString(reader)
-	if err != nil {
-		return nil, err
-	}
-	form.Error, err = vario.ReadString(reader)
-	if err != nil {
-		return nil, err
-	}
-	form.URL, err = vario.ReadString(reader)
-	if err != nil {
-		return nil, err
-	}
 	fields, err := vario.ReadSlices(reader, readOpenConnectAuthFormField)
 	if err != nil {
 		return nil, E.Cause(err, "read fields")
 	}
-	form.fields = fields
-	return form, nil
+	return &OpenConnectAuthForm{fields: fields}, nil
+}
+
+func (o *OpenConnectBrowserRequest) writeToBinary(writer io.Writer) error {
+	err := vario.WriteString(writer, o.URL)
+	if err != nil {
+		return err
+	}
+	err = vario.WriteString(writer, o.FinalURL)
+	if err != nil {
+		return err
+	}
+	err = vario.WriteStringSlice(writer, o.cookieNames)
+	if err != nil {
+		return err
+	}
+	return vario.WriteStringSlice(writer, o.headerNames)
+}
+
+func readOpenConnectBrowserRequest(reader io.Reader) (*OpenConnectBrowserRequest, error) {
+	request := &OpenConnectBrowserRequest{}
+	var err error
+	request.URL, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	request.FinalURL, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	request.cookieNames, err = vario.ReadStringSlice(reader)
+	if err != nil {
+		return nil, err
+	}
+	request.headerNames, err = vario.ReadStringSlice(reader)
+	if err != nil {
+		return nil, err
+	}
+	return request, nil
+}
+
+func (o *OpenConnectBrowserResult) writeToBinary(writer io.Writer) error {
+	err := vario.WriteString(writer, o.FinalURL)
+	if err != nil {
+		return err
+	}
+	err = vario.WriteSlices(writer, o.cookies)
+	if err != nil {
+		return err
+	}
+	return vario.WriteSlices(writer, o.headers)
+}
+
+func readOpenConnectBrowserResult(reader io.Reader) (*OpenConnectBrowserResult, error) {
+	result := &OpenConnectBrowserResult{}
+	var err error
+	result.FinalURL, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	result.cookies, err = vario.ReadSlices(reader, readOpenConnectBrowserCookie)
+	if err != nil {
+		return nil, E.Cause(err, "read cookies")
+	}
+	result.headers, err = vario.ReadSlices(reader, readOpenConnectBrowserHeader)
+	if err != nil {
+		return nil, E.Cause(err, "read headers")
+	}
+	return result, nil
+}
+
+func (o *OpenConnectBrowserResult) toAdapter() *adapter.OpenConnectBrowserResult {
+	return &adapter.OpenConnectBrowserResult{
+		FinalURL: o.FinalURL,
+		Cookies: common.Map(o.cookies, func(cookie *OpenConnectBrowserCookie) adapter.OpenConnectBrowserCookie {
+			return adapter.OpenConnectBrowserCookie{Name: cookie.Name, Value: cookie.Value}
+		}),
+		Headers: common.Map(o.headers, func(header *OpenConnectBrowserHeader) adapter.OpenConnectBrowserHeader {
+			return adapter.OpenConnectBrowserHeader{Name: header.Name, Values: header.values}
+		}),
+	}
+}
+
+func (o *OpenConnectBrowserCookie) WriteToBinary(writer io.Writer) error {
+	err := vario.WriteString(writer, o.Name)
+	if err != nil {
+		return err
+	}
+	return vario.WriteString(writer, o.Value)
+}
+
+func readOpenConnectBrowserCookie(reader io.Reader) (*OpenConnectBrowserCookie, error) {
+	name, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	value, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	return &OpenConnectBrowserCookie{Name: name, Value: value}, nil
+}
+
+func (o *OpenConnectBrowserHeader) WriteToBinary(writer io.Writer) error {
+	err := vario.WriteString(writer, o.Name)
+	if err != nil {
+		return err
+	}
+	return vario.WriteStringSlice(writer, o.values)
+}
+
+func readOpenConnectBrowserHeader(reader io.Reader) (*OpenConnectBrowserHeader, error) {
+	name, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
+	values, err := vario.ReadStringSlice(reader)
+	if err != nil {
+		return nil, err
+	}
+	return &OpenConnectBrowserHeader{Name: name, values: values}, nil
 }
 
 func (o *OpenConnectAuthFormField) WriteToBinary(writer io.Writer) error {

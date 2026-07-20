@@ -27,8 +27,8 @@ const (
 	commandRunTask
 	commandQueryAllProxy
 	commandSubscribeOpenConnectStatus
-	commandCompleteOpenConnectAuthForm
-	commandCancelOpenConnectAuthForm
+	commandCompleteOpenConnectAuthChallenge
+	commandCancelOpenConnectAuthChallenge
 )
 
 const (

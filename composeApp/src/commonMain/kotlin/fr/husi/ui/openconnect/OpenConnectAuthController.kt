@@ -9,7 +9,9 @@ import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openconnect.OpenConnectFormEntry
 import fr.husi.ktx.Logs
 import fr.husi.libcore.Libcore
+import fr.husi.libcore.OpenConnectAuthChallenge as LibcoreAuthChallenge
 import fr.husi.libcore.OpenConnectAuthForm as LibcoreAuthForm
+import fr.husi.libcore.OpenConnectBrowserRequest as LibcoreBrowserRequest
 import fr.husi.libcore.OpenConnectEndpointStatus as LibcoreEndpointStatus
 import fr.husi.libcore.OpenConnectTunnelInfo as LibcoreTunnelInfo
 import fr.husi.libcore.StringIterator
@@ -50,12 +52,29 @@ data class OpenConnectAuthField(
 )
 
 data class OpenConnectAuthFormState(
+    val fields: List<OpenConnectAuthField>,
+)
+
+data class OpenConnectBrowserRequestState(
+    val url: String,
+    val finalUrl: String,
+    val cookieNames: List<String>,
+    val headerNames: List<String>,
+)
+
+data class OpenConnectBrowserResultState(
+    val finalUrl: String,
+    val cookies: Map<String, String>,
+    val headers: Map<String, String>,
+)
+
+data class OpenConnectAuthChallengeState(
     val id: String,
     val banner: String,
     val message: String,
     val error: String,
-    val url: String,
-    val fields: List<OpenConnectAuthField>,
+    val form: OpenConnectAuthFormState?,
+    val browser: OpenConnectBrowserRequestState?,
 )
 
 data class OpenConnectTunnelInfoState(
@@ -73,22 +92,22 @@ data class OpenConnectEndpointState(
     val tag: String,
     val state: String,
     val error: String,
-    val authForm: OpenConnectAuthFormState?,
+    val authChallenge: OpenConnectAuthChallengeState?,
     val tunnelInfo: OpenConnectTunnelInfoState?,
 )
 
 data class PendingOpenConnectAuth(
     val endpointTag: String,
-    val form: OpenConnectAuthFormState,
+    val challenge: OpenConnectAuthChallengeState,
 )
 
 /**
  * Long-lived owner of the OpenConnect endpoint status subscription.
  *
- * The auth form lives in the core as part of the endpoint state; this
+ * The auth challenge lives in the core as part of the endpoint state; this
  * controller only mirrors it. Dismissing the dialog hides it locally
- * (the form stays pending in the core and remains reachable from the
- * status page) while [cancelAuthForm] actually aborts authentication.
+ * (the challenge stays pending in the core and remains reachable from the
+ * status page) while [cancelAuthChallenge] actually aborts authentication.
  */
 class OpenConnectAuthController {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -98,16 +117,16 @@ class OpenConnectAuthController {
     val endpoints: StateFlow<List<OpenConnectEndpointState>>
         field = MutableStateFlow(emptyList())
 
-    private val dismissedForms = MutableStateFlow<Set<String>>(emptySet())
+    private val dismissedChallenges = MutableStateFlow<Set<String>>(emptySet())
 
     val pendingDialogAuth: StateFlow<PendingOpenConnectAuth?> =
-        combine(endpoints, dismissedForms) { endpointList, dismissed ->
+        combine(endpoints, dismissedChallenges) { endpointList, dismissed ->
             endpointList.firstNotNullOfOrNull { endpoint ->
-                val form = endpoint.authForm?.takeIf {
+                val challenge = endpoint.authChallenge?.takeIf {
                     endpoint.state == OPENCONNECT_STATE_AUTH_PENDING &&
-                        formKey(endpoint.tag, it.id) !in dismissed
+                        challengeKey(endpoint.tag, it.id) !in dismissed
                 } ?: return@firstNotNullOfOrNull null
-                PendingOpenConnectAuth(endpoint.tag, form)
+                PendingOpenConnectAuth(endpoint.tag, challenge)
             }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
@@ -138,36 +157,58 @@ class OpenConnectAuthController {
         subscriptionJob?.cancel()
         subscriptionJob = null
         endpoints.value = emptyList()
-        dismissedForms.value = emptySet()
+        dismissedChallenges.value = emptySet()
         clientManager.close()
     }
 
-    /** Hide the dialog for this form without cancelling authentication. */
-    fun dismissDialog(endpointTag: String, formId: String) {
-        dismissedForms.update { it + formKey(endpointTag, formId) }
+    /** Hide the dialog for this challenge without cancelling authentication. */
+    fun dismissDialog(endpointTag: String, challengeId: String) {
+        dismissedChallenges.update { it + challengeKey(endpointTag, challengeId) }
     }
 
     /** @return an error message, or null on success. */
-    suspend fun submitAuthForm(
+    suspend fun submitAuthChallenge(
         endpointTag: String,
-        form: OpenConnectAuthFormState,
-        values: Map<String, String>,
+        challenge: OpenConnectAuthChallengeState,
+        formValues: Map<String, String>?,
+        browserResult: OpenConnectBrowserResultState?,
     ): String? = withContext(Dispatchers.IO) {
         try {
             clientManager.withClient { client ->
-                val formValues = Libcore.newOpenConnectFormValues()
-                for ((key, value) in values) {
-                    formValues.add(key, value)
+                val libcoreFormValues = formValues?.let { values ->
+                    Libcore.newOpenConnectFormValues().also { result ->
+                        for ((key, value) in values) {
+                            result.add(key, value)
+                        }
+                    }
                 }
-                client.completeOpenConnectAuthForm(endpointTag, form.id, formValues)
+                val libcoreBrowserResult = browserResult?.let { result ->
+                    Libcore.newOpenConnectBrowserResult(result.finalUrl).also { browser ->
+                        for ((name, value) in result.cookies) {
+                            if (value.isNotEmpty()) browser.addCookie(name, value)
+                        }
+                        for ((name, value) in result.headers) {
+                            for (headerValue in value.lineSequence()) {
+                                if (headerValue.isNotEmpty()) browser.addHeader(name, headerValue)
+                            }
+                        }
+                    }
+                }
+                client.completeOpenConnectAuthChallenge(
+                    endpointTag,
+                    challenge.id,
+                    Libcore.newOpenConnectAuthResponse(libcoreFormValues, libcoreBrowserResult),
+                )
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Logs.w("submit openconnect auth form", e)
-            return@withContext e.message ?: "submit auth form failed"
+            Logs.w("submit openconnect auth challenge", e)
+            return@withContext e.message ?: "submit auth challenge failed"
         }
-        persistFormEntries(endpointTag, form, values)
+        if (challenge.form != null && formValues != null) {
+            persistFormEntries(endpointTag, challenge, formValues)
+        }
         null
     }
 
@@ -178,15 +219,15 @@ class OpenConnectAuthController {
      */
     private suspend fun persistFormEntries(
         endpointTag: String,
-        form: OpenConnectAuthFormState,
+        challenge: OpenConnectAuthChallengeState,
         values: Map<String, String>,
     ) {
-        val newEntries = form.fields.mapNotNull { field ->
+        val newEntries = challenge.form?.fields.orEmpty().mapNotNull { field ->
             if (field.kind == "password") return@mapNotNull null
             val value = values[field.submissionKey] ?: return@mapNotNull null
             if (value.isBlank()) return@mapNotNull null
             OpenConnectFormEntry(
-                formId = form.id,
+                formId = challenge.id,
                 submissionKey = field.submissionKey,
                 name = field.name,
                 value = value,
@@ -223,30 +264,39 @@ class OpenConnectAuthController {
     }
 
     /** @return an error message, or null on success. */
-    suspend fun cancelAuthForm(endpointTag: String, formId: String): String? =
+    suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String): String? =
         withContext(Dispatchers.IO) {
             try {
                 clientManager.withClient { client ->
-                    client.cancelOpenConnectAuthForm(endpointTag, formId)
+                    client.cancelOpenConnectAuthChallenge(endpointTag, challengeId)
                 }
                 null
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Logs.w("cancel openconnect auth form", e)
-                e.message ?: "cancel auth form failed"
+                Logs.w("cancel openconnect auth challenge", e)
+                e.message ?: "cancel auth challenge failed"
             }
         }
 
-    private fun formKey(endpointTag: String, formId: String): String = "$endpointTag\n$formId"
+    private fun challengeKey(endpointTag: String, challengeId: String): String = "$endpointTag\n$challengeId"
 }
 
 private fun LibcoreEndpointStatus.toState() = OpenConnectEndpointState(
     tag = tag,
     state = state,
     error = error,
-    authForm = authForm?.toState(),
+    authChallenge = authChallenge?.toState(),
     tunnelInfo = tunnelInfo?.toState(),
+)
+
+private fun LibcoreAuthChallenge.toState() = OpenConnectAuthChallengeState(
+    id = id,
+    banner = banner,
+    message = message,
+    error = error,
+    form = form?.toState(),
+    browser = browser?.toState(),
 )
 
 private fun LibcoreAuthForm.toState(): OpenConnectAuthFormState {
@@ -274,14 +324,16 @@ private fun LibcoreAuthForm.toState(): OpenConnectAuthFormState {
         }
     }
     return OpenConnectAuthFormState(
-        id = id,
-        banner = banner,
-        message = message,
-        error = error,
-        url = url,
         fields = fields,
     )
 }
+
+private fun LibcoreBrowserRequest.toState() = OpenConnectBrowserRequestState(
+    url = url,
+    finalUrl = finalURL,
+    cookieNames = cookieNames.toStringList(),
+    headerNames = headerNames.toStringList(),
+)
 
 private fun LibcoreTunnelInfo.toState() = OpenConnectTunnelInfoState(
     server = server,

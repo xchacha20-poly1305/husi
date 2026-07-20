@@ -402,26 +402,26 @@ func (s *Service) handleRequest(conn net.Conn) error {
 			return E.Cause(err, "handle subscribe openconnect status")
 		}
 		return nil
-	case commandCompleteOpenConnectAuthForm:
+	case commandCompleteOpenConnectAuthChallenge:
 		s.access.RLock()
 		instance, err := s.requireInstance()
 		s.access.RUnlock()
 		if err != nil {
 			return err
 		}
-		err = s.handleCompleteOpenConnectAuthForm(conn, instance)
+		err = s.handleCompleteOpenConnectAuthChallenge(conn, instance)
 		if err != nil {
 			return E.Cause(err, "handle complete openconnect auth form")
 		}
 		return nil
-	case commandCancelOpenConnectAuthForm:
+	case commandCancelOpenConnectAuthChallenge:
 		s.access.RLock()
 		instance, err := s.requireInstance()
 		s.access.RUnlock()
 		if err != nil {
 			return err
 		}
-		err = s.handleCancelOpenConnectAuthForm(conn, instance)
+		err = s.handleCancelOpenConnectAuthChallenge(conn, instance)
 		if err != nil {
 			return E.Cause(err, "handle cancel openconnect auth form")
 		}

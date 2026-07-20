@@ -660,6 +660,12 @@
     <string name="auth_submit">提交</string>
     <string name="auth_continue">繼續</string>
     <string name="auth_open_url">開啟驗證頁面</string>
+    <string name="auth_browser_callback_hint">請在瀏覽器中完成登入，然後填寫所需的回呼資料。</string>
+    <string name="auth_final_url">最終 URL</string>
+    <string name="auth_cookie">Cookie</string>
+    <string name="auth_response_header">回應標頭</string>
+    <string name="auth_browser_header_unsupported_android">此驗證需要 Android WebView 無法擷取的回應標頭。</string>
+    <string name="auth_browser_cookie_missing">找不到驗證所需的 Cookie。</string>
     <string name="auth_verifying">驗證中…</string>
     <string name="auth_later_hint">您可以稍後在「儀表板 → 狀態」完成驗證。</string>
     <string name="cancel_auth">取消驗證</string>
