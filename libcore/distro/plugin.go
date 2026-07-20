@@ -4,12 +4,10 @@ import (
 	_ "libcore/combinedapi"
 	"libcore/plugin/http"
 	"libcore/plugin/juicity"
-	"libcore/plugin/plugindns"
 	"libcore/plugin/trusttunnel"
 	"libcore/plugin/vless"
 
 	"github.com/sagernet/sing-box/adapter/outbound"
-	"github.com/sagernet/sing-box/dns"
 )
 
 func registerPluginsOutbound(registry *outbound.Registry) {
@@ -17,9 +15,4 @@ func registerPluginsOutbound(registry *outbound.Registry) {
 	juicity.RegisterOutbound(registry)
 	vless.RegisterOutbound(registry)
 	trusttunnel.RegisterOutbound(registry)
-}
-
-func registerPluginsDNSTransport(registry *dns.TransportRegistry) {
-	plugindns.RegisterTCP(registry)
-	plugindns.RegisterTLS(registry)
 }

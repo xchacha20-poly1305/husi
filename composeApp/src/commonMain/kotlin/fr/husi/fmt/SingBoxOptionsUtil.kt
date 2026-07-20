@@ -14,8 +14,6 @@ import fr.husi.fmt.SingBoxOptions.RuleSet_Local
 import fr.husi.fmt.SingBoxOptions.RuleSet_Remote
 import fr.husi.fmt.SingBoxOptions.Rule_Default
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.parseBoolean
-import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.libcore.Libcore
 
 fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
@@ -424,8 +422,6 @@ fun buildDNSServer(
                 enabled = true
             }
             detour = out
-            if (url.parseBoolean("pipeline")) pipeline = true
-            max_queries = url.queryParameterNotBlank("maxqueries")?.toIntOrNull()
         }
 
         SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
@@ -455,16 +451,13 @@ fun buildDNSServer(
             detour = out
         }
 
-        SingBoxOptions.DNS_TYPE_TCP -> SingBoxOptions.NewDNSServerOptions_RemoteTCPDNSServerOptions()
+        SingBoxOptions.DNS_TYPE_TCP -> NewDNSServerOptions_RemoteDNSServerOptions()
             .apply {
                 type = SingBoxOptions.DNS_TYPE_TCP
                 server = url.host
                 server_port = url.ports.toIntOrNull()
                 domain_resolver = resolver
                 detour = out
-                if (url.parseBoolean("reuse")) reuse = true
-                if (url.parseBoolean("pipeline")) pipeline = true
-                max_queries = url.queryParameterNotBlank("maxqueries")?.toIntOrNull()
             }
 
         // "", SingBoxOptions.DNS_TYPE_UDP ->

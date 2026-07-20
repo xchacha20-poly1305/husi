@@ -115,9 +115,9 @@ func registerWireGuardEndpoint(registry *endpoint.Registry) {
 func DNSTransportRegistry() *dns.TransportRegistry {
 	registry := dns.NewTransportRegistry()
 
-	// transport.RegisterTCP(registry) // Move to plugin
+	transport.RegisterTCP(registry)
 	transport.RegisterUDP(registry)
-	// transport.RegisterTLS(registry) // Move to plugin
+	transport.RegisterTLS(registry)
 	transport.RegisterHTTPS(registry)
 	hosts.RegisterTransport(registry)
 	local.RegisterTransport(registry)
@@ -125,8 +125,6 @@ func DNSTransportRegistry() *dns.TransportRegistry {
 	mdns.RegisterTransport(registry)
 
 	registerQUICTransports(registry)
-
-	registerPluginsDNSTransport(registry)
 
 	return registry
 }
