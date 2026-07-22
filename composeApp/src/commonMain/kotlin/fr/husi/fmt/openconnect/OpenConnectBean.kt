@@ -43,7 +43,11 @@ class OpenConnectBean : AbstractBean() {
     var authGroup: String = ""
     var reportedOS: String = ""
     var userAgent: String = ""
+    var localHostname: String = ""
     var allowInsecureCrypto: Boolean = false
+    var tlsInsecure: Boolean = false
+    var tlsServerName: String = ""
+    var tlsPeerFingerprint: String = ""
     var certificateAuthority: String = ""
     var clientCertificate: String = ""
     var clientKey: String = ""
@@ -56,7 +60,7 @@ class OpenConnectBean : AbstractBean() {
     var formEntries: List<OpenConnectFormEntry> = emptyList()
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(1)
+        output.writeInt(2)
         super.serialize(output)
         output.writeString(server)
         output.writeString(flavor)
@@ -79,6 +83,12 @@ class OpenConnectBean : AbstractBean() {
         for (entry in formEntries) {
             entry.serialize(output)
         }
+
+        // version 2
+        output.writeString(localHostname)
+        output.writeBoolean(tlsInsecure)
+        output.writeString(tlsServerName)
+        output.writeString(tlsPeerFingerprint)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -105,6 +115,13 @@ class OpenConnectBean : AbstractBean() {
             formEntries = List(count) {
                 OpenConnectFormEntry.deserialize(input)
             }
+        }
+
+        if (version >= 2) {
+            localHostname = input.readString().orEmpty()
+            tlsInsecure = input.readBoolean()
+            tlsServerName = input.readString().orEmpty()
+            tlsPeerFingerprint = input.readString().orEmpty()
         }
     }
 

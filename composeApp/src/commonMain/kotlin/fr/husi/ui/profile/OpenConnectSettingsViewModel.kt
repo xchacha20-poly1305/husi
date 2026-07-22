@@ -20,7 +20,11 @@ internal data class OpenConnectUiState(
     val authGroup: String = "",
     val reportedOS: String = "",
     val userAgent: String = "",
+    val localHostname: String = "",
     val allowInsecureCrypto: Boolean = false,
+    val tlsInsecure: Boolean = false,
+    val tlsServerName: String = "",
+    val tlsPeerFingerprint: String = "",
     val certificateAuthority: String = "",
     val clientCertificate: String = "",
     val clientKey: String = "",
@@ -51,7 +55,11 @@ internal class OpenConnectSettingsViewModel : ProfileEditorViewModel<OpenConnect
                 authGroup = authGroup,
                 reportedOS = reportedOS,
                 userAgent = userAgent,
+                localHostname = localHostname,
                 allowInsecureCrypto = allowInsecureCrypto,
+                tlsInsecure = tlsInsecure,
+                tlsServerName = tlsServerName,
+                tlsPeerFingerprint = tlsPeerFingerprint,
                 certificateAuthority = certificateAuthority,
                 clientCertificate = clientCertificate,
                 clientKey = clientKey,
@@ -75,7 +83,11 @@ internal class OpenConnectSettingsViewModel : ProfileEditorViewModel<OpenConnect
         authGroup = it.authGroup
         reportedOS = it.reportedOS
         userAgent = it.userAgent
+        localHostname = it.localHostname
         allowInsecureCrypto = it.allowInsecureCrypto
+        tlsInsecure = it.tlsInsecure
+        tlsServerName = it.tlsServerName
+        tlsPeerFingerprint = it.tlsPeerFingerprint
         certificateAuthority = it.certificateAuthority
         clientCertificate = it.clientCertificate
         clientKey = it.clientKey
@@ -130,8 +142,24 @@ internal class OpenConnectSettingsViewModel : ProfileEditorViewModel<OpenConnect
         mutableUiState.update { it.copy(userAgent = value) }
     }
 
+    fun setLocalHostname(value: String) {
+        mutableUiState.update { it.copy(localHostname = value) }
+    }
+
     fun setAllowInsecureCrypto(allow: Boolean) {
         mutableUiState.update { it.copy(allowInsecureCrypto = allow) }
+    }
+
+    fun setTlsInsecure(value: Boolean) {
+        mutableUiState.update { it.copy(tlsInsecure = value) }
+    }
+
+    fun setTlsServerName(value: String) {
+        mutableUiState.update { it.copy(tlsServerName = value) }
+    }
+
+    fun setTlsPeerFingerprint(value: String) {
+        mutableUiState.update { it.copy(tlsPeerFingerprint = value) }
     }
 
     fun setCertificateAuthority(value: String) {

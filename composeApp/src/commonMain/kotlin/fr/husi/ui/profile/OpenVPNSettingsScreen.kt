@@ -19,6 +19,7 @@ import fr.husi.ktx.listByLineOrComma
 import fr.husi.resources.Res
 import fr.husi.resources.auto
 import fr.husi.resources.certificates
+import fr.husi.resources.cipher
 import fr.husi.resources.client_certificate
 import fr.husi.resources.client_key
 import fr.husi.resources.compare_arrows
@@ -240,6 +241,16 @@ private fun LazyListScope.openVPNSettings(
             summary = { Text(contentOrUnset(state.dataCiphers)) },
             icon = { MaskedIcon(Res.drawable.lock, IconMaskColors.IconLightYellow) },
             valueToText = { it },
+        )
+        PreferenceDivider()
+        TextFieldPreference(
+            value = state.cipher,
+            onValueChange = viewModel::setCipher,
+            title = { Text(stringResource(Res.string.cipher)) },
+            textToValue = { it },
+            valueToText = { it },
+            summary = { Text(contentOrUnset(state.cipher)) },
+            icon = { MaskedIcon(Res.drawable.lock, IconMaskColors.IconLightYellow) },
         )
         PreferenceDivider()
         ListPreference(

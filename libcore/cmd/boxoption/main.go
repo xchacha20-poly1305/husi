@@ -104,6 +104,8 @@ var boxList = []any{
 	option.OpenConnectTNCCOptions{},
 	option.OpenConnectTNCCCertificateOptions{},
 	option.OpenConnectFormEntryOptions{},
+	option.OpenConnectFortinetHostCheckOptions{},
+	option.OpenConnectMobileOptions{},
 	option.OpenVPNOutboundTLSOptions{},
 	option.OpenVPNControlWrapOptions{},
 	option.OpenVPNRemoteOptions{},

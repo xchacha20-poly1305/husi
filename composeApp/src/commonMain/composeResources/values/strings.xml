@@ -248,6 +248,9 @@
     <string name="openconnect_auth_group">Authentication Group</string>
     <string name="openconnect_reported_os">Reported OS</string>
     <string name="openconnect_allow_insecure_crypto">Allow Legacy Cryptography</string>
+    <string name="local_hostname">Local Hostname</string>
+    <string name="tls_server_name">TLS Server Name</string>
+    <string name="tls_peer_fingerprint">TLS Peer Fingerprint</string>
     <string name="vpn_server_url">Server URL</string>
     <string name="machine_certificate">Machine Certificate</string>
     <string name="machine_key">Machine Key</string>
@@ -262,6 +265,7 @@
     <string name="openvpn_auth">Data Channel Authentication</string>
     <string name="openvpn_compression">Compression</string>
     <string name="openvpn_redirect_gateway">Redirect Gateway</string>
+    <string name="cipher">Data Cipher</string>
     <string name="action_tuic" translatable="false">TUIC</string>
     <string name="action_juicity" translatable="false">Juicity</string>
     <string name="action_direct" translatable="false">Direct</string>

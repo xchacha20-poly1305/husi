@@ -12,6 +12,7 @@ class OpenVPNBean : AbstractBean() {
     var network: String = "udp"
     var username: String = ""
     var password: String = ""
+    var cipher: String = ""
     var serverName: String = ""
     var certificate: String = ""
     var clientCertificate: String = ""
@@ -30,7 +31,7 @@ class OpenVPNBean : AbstractBean() {
     var mtu: Int = 1500
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(0)
+        output.writeInt(1)
         super.serialize(output)
         output.writeString(network)
         output.writeString(username)
@@ -51,10 +52,13 @@ class OpenVPNBean : AbstractBean() {
         output.writeString(peerFingerprint)
         output.writeString(remoteCertificateKU)
         output.writeString(remoteCertificateEKU)
+
+        // version 1
+        output.writeString(cipher)
     }
 
     override fun deserialize(input: ByteBufferInput) {
-        input.readInt()
+        val version = input.readInt()
         super.deserialize(input)
         network = input.readString().orEmpty()
         username = input.readString().orEmpty()
@@ -75,6 +79,10 @@ class OpenVPNBean : AbstractBean() {
         peerFingerprint = input.readString().orEmpty()
         remoteCertificateKU = input.readString().orEmpty()
         remoteCertificateEKU = input.readString().orEmpty()
+
+        if (version >= 1) {
+            cipher = input.readString().orEmpty()
+        }
     }
 
     override fun initializeDefaultValues() {

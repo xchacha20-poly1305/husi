@@ -8,6 +8,7 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/dns"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -21,3 +22,5 @@ func registerOpenConnectEndpoint(registry *endpoint.Registry) {
 		return nil, E.New(`OpenConnect is not included in this build, rebuild with -tags with_openconnect`)
 	})
 }
+
+func registerOpenConnectDNSTransport(registry *dns.TransportRegistry) {}

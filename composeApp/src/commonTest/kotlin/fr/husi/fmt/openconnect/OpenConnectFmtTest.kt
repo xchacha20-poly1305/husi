@@ -22,7 +22,11 @@ class OpenConnectFmtTest {
             authGroup = "employees"
             reportedOS = "android"
             userAgent = "Husi/1.0"
+            localHostname = "phone"
             allowInsecureCrypto = true
+            tlsInsecure = true
+            tlsServerName = "vpn.example.com"
+            tlsPeerFingerprint = "SHA256:abc"
             certificateAuthority = "ca-one\nca-two"
             mcaCertificate = "machine-cert"
             mcaKey = "machine-key"
@@ -35,7 +39,9 @@ class OpenConnectFmtTest {
         assertEquals("android", endpoint.reported_os)
         assertEquals("Husi/1.0", endpoint.user_agent)
         assertEquals(true, endpoint.allow_insecure_crypto)
-        assertEquals(null, endpoint.no_udp)
+        assertEquals(true, endpoint.tls?.insecure)
+        assertEquals("vpn.example.com", endpoint.tls?.server_name)
+        assertEquals<List<String>?>(listOf("SHA256:abc"), endpoint.tls?.peer_fingerprint)
         assertEquals<List<String>?>(listOf("ca-one", "ca-two"), endpoint.tls?.certificate_authority)
         assertEquals<List<String>?>(listOf("machine-cert"), endpoint.tls?.mca_certificate)
         assertEquals<List<String>?>(listOf("machine-key"), endpoint.tls?.mca_key)

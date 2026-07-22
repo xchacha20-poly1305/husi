@@ -84,6 +84,7 @@ fun buildSingBoxEndpointOpenConnectBean(bean: OpenConnectBean): SingBoxOptions.E
         auth_group = bean.authGroup.blankAsNull()
         reported_os = bean.reportedOS.blankAsNull()
         user_agent = bean.userAgent.blankAsNull()
+        local_hostname = bean.localHostname.blankAsNull()
         allow_insecure_crypto = bean.allowInsecureCrypto.takeIf { it }
         form_entries = bean.formEntries.takeIf { it.isNotEmpty() }?.map { entry ->
             SingBoxOptions.OpenConnectFormEntryOptions().apply {
@@ -94,6 +95,14 @@ fun buildSingBoxEndpointOpenConnectBean(bean: OpenConnectBean): SingBoxOptions.E
             }
         }?.toMutableList()
         tls = SingBoxOptions.OpenConnectTLSOptions().apply {
+            if (bean.tlsInsecure) {
+                insecure = true
+            }
+            server_name = bean.tlsServerName.blankAsNull()
+            peer_fingerprint = bean.tlsPeerFingerprint
+                .blankAsNull()
+                ?.listByLineOrComma()
+                ?.toMutableList()
             certificate_authority = bean.certificateAuthority
                 .blankAsNull()
                 ?.listByLineOrComma()
@@ -117,6 +126,7 @@ fun parseOpenConnectEndpoint(json: JSONMap): OpenConnectBean = OpenConnectBean()
     authGroup = json["auth_group"]?.toString().orEmpty()
     reportedOS = json["reported_os"]?.toString().orEmpty()
     userAgent = json["user_agent"]?.toString().orEmpty()
+    localHostname = json["local_hostname"]?.toString().orEmpty()
     allowInsecureCrypto = json["allow_insecure_crypto"].toString().toBoolean()
 
     (json["form_entries"] as? List<*>)?.let { entries ->
@@ -132,6 +142,9 @@ fun parseOpenConnectEndpoint(json: JSONMap): OpenConnectBean = OpenConnectBean()
     }
 
     val tls = json.getObject("tls") ?: return@apply
+    tlsInsecure = tls["insecure"].toString().toBoolean()
+    tlsServerName = tls["server_name"]?.toString().orEmpty()
+    tlsPeerFingerprint = listable<String>(tls["peer_fingerprint"])?.joinToString("\n").orEmpty()
     certificateAuthority = listable<String>(tls["certificate_authority"])?.joinToString("\n").orEmpty()
     clientCertificate = listable<String>(tls["client_certificate"])?.joinToString("\n").orEmpty()
     clientKey = listable<String>(tls["client_key"])?.joinToString("\n").orEmpty()

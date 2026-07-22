@@ -17,6 +17,7 @@ internal data class OpenVPNUiState(
     val network: String = "udp",
     val username: String = "",
     val password: String = "",
+    val cipher: String = "",
     val certificate: String = "",
     val clientCertificate: String = "",
     val clientKey: String = "",
@@ -52,6 +53,7 @@ internal class OpenVPNSettingsViewModel : ProfileEditorViewModel<OpenVPNBean>() 
                 network = network,
                 username = username,
                 password = password,
+                cipher = cipher,
                 certificate = certificate,
                 clientCertificate = clientCertificate,
                 clientKey = clientKey,
@@ -81,6 +83,7 @@ internal class OpenVPNSettingsViewModel : ProfileEditorViewModel<OpenVPNBean>() 
         network = it.network
         username = it.username
         password = it.password
+        cipher = it.cipher
         certificate = it.certificate
         clientCertificate = it.clientCertificate
         clientKey = it.clientKey
@@ -129,6 +132,10 @@ internal class OpenVPNSettingsViewModel : ProfileEditorViewModel<OpenVPNBean>() 
 
     fun setPassword(value: String) {
         mutableUiState.update { it.copy(password = value) }
+    }
+
+    fun setCipher(value: String) {
+        mutableUiState.update { it.copy(cipher = value) }
     }
 
     fun setCertificate(value: String) {

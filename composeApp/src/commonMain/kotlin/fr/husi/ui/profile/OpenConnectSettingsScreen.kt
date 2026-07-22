@@ -18,21 +18,25 @@ import fr.husi.resources.android
 import fr.husi.resources.auto
 import fr.husi.resources.category
 import fr.husi.resources.certificate_authority
+import fr.husi.resources.clear_remembered_authentication_answers
 import fr.husi.resources.client_certificate
 import fr.husi.resources.client_key
-import fr.husi.resources.clear_remembered_authentication_answers
 import fr.husi.resources.delete
+import fr.husi.resources.directions_boat
+import fr.husi.resources.dns
 import fr.husi.resources.domain
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.enhanced_encryption
 import fr.husi.resources.fingerprint
+import fr.husi.resources.insecure
 import fr.husi.resources.language
+import fr.husi.resources.local_hostname
 import fr.husi.resources.lock
 import fr.husi.resources.machine_certificate
 import fr.husi.resources.machine_key
 import fr.husi.resources.openconnect_allow_insecure_crypto
-import fr.husi.resources.openconnect_authentication
 import fr.husi.resources.openconnect_auth_group
+import fr.husi.resources.openconnect_authentication
 import fr.husi.resources.openconnect_flavor
 import fr.husi.resources.openconnect_reported_os
 import fr.husi.resources.password
@@ -42,6 +46,8 @@ import fr.husi.resources.profile_name
 import fr.husi.resources.proxy_cat
 import fr.husi.resources.router
 import fr.husi.resources.security_settings
+import fr.husi.resources.tls_peer_fingerprint
+import fr.husi.resources.tls_server_name
 import fr.husi.resources.user_agent
 import fr.husi.resources.username
 import fr.husi.resources.vpn_key
@@ -196,9 +202,52 @@ private fun LazyListScope.openConnectSettings(
             summary = { Text(contentOrUnset(state.userAgent)) },
             icon = { MaskedIcon(Res.drawable.language, IconMaskColors.IconWarmGray) },
         )
+        PreferenceDivider()
+        TextFieldPreference(
+            value = state.localHostname,
+            onValueChange = viewModel::setLocalHostname,
+            title = { Text(stringResource(Res.string.local_hostname)) },
+            textToValue = { it },
+            valueToText = { it },
+            summary = { Text(contentOrUnset(state.localHostname)) },
+            icon = { MaskedIcon(Res.drawable.dns, IconMaskColors.IconWarmGray) },
+        )
     }
     item("category_tls") { PreferenceCategory(text = { Text(stringResource(Res.string.security_settings)) }) }
     preferenceGroup {
+        SwitchPreference(
+            value = state.tlsInsecure,
+            onValueChange = viewModel::setTlsInsecure,
+            title = { Text(stringResource(Res.string.insecure)) },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.warning_amber,
+                    IconMaskColors.IconCoral,
+                    IconMaskShapes.risk(),
+                )
+            },
+        )
+        PreferenceDivider()
+        TextFieldPreference(
+            value = state.tlsServerName,
+            onValueChange = viewModel::setTlsServerName,
+            title = { Text(stringResource(Res.string.tls_server_name)) },
+            textToValue = { it },
+            valueToText = { it },
+            summary = { Text(contentOrUnset(state.tlsServerName)) },
+            icon = { MaskedIcon(Res.drawable.dns, IconMaskColors.IconLightBlue) },
+        )
+        PreferenceDivider()
+        TextFieldPreference(
+            value = state.tlsPeerFingerprint,
+            onValueChange = viewModel::setTlsPeerFingerprint,
+            title = { Text(stringResource(Res.string.tls_peer_fingerprint)) },
+            textToValue = { it },
+            valueToText = { it },
+            summary = { Text(contentOrUnset(state.tlsPeerFingerprint)) },
+            icon = { MaskedIcon(Res.drawable.fingerprint, IconMaskColors.IconLightYellow) },
+        )
+        PreferenceDivider()
         TextFieldPreference(
             value = state.certificateAuthority,
             onValueChange = viewModel::setCertificateAuthority,

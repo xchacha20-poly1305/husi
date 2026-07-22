@@ -187,6 +187,7 @@ fun buildSingBoxEndpointOpenVPNBean(bean: OpenVPNBean): SingBoxOptions.Endpoint_
         network = bean.network
         username = bean.username.blankAsNull()
         password = bean.password.blankAsNull()
+        cipher = bean.cipher.blankAsNull()
         data_ciphers = bean.dataCiphers.blankAsNull()?.listByLineOrComma()?.toMutableList()
         auth = bean.auth.blankAsNull()
         compression = bean.compression.blankAsNull()
@@ -227,6 +228,7 @@ fun parseOpenVPNEndpoint(json: JSONMap): OpenVPNBean = OpenVPNBean().apply {
     network = json["network"]?.toString().orEmpty()
     username = json["username"]?.toString().orEmpty()
     password = json["password"]?.toString().orEmpty()
+    cipher = json["cipher"]?.toString().orEmpty()
     dataCiphers = listable<String>(json["data_ciphers"])?.joinToString("\n").orEmpty()
     auth = json["auth"]?.toString().orEmpty()
     compression = json["compression"]?.toString().orEmpty()

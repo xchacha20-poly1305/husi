@@ -1359,6 +1359,18 @@ object SingBoxOptions {
     open class OpenConnectTLSOptions : SingBoxOption() {
 
         @JvmField
+        var insecure: Boolean? = null
+
+        @JvmField
+        var server_name: String? = null
+
+        @JvmField
+        var peer_fingerprint: MutableList<String>? = null
+
+        @JvmField
+        var system_trust_disabled: Boolean? = null
+
+        @JvmField
         var certificate_authority: MutableList<String>? = null
 
         @JvmField
@@ -1404,6 +1416,9 @@ object SingBoxOptions {
 
         @JvmField
         var secret: String? = null
+
+        @JvmField
+        var secret_path: String? = null
 
         @JvmField
         var pin: String? = null
@@ -1487,6 +1502,31 @@ object SingBoxOptions {
     }
 
     @KxsSerializable
+    open class OpenConnectFortinetHostCheckOptions : SingBoxOption() {
+
+        @JvmField
+        var hostcheck: String? = null
+
+        @JvmField
+        var check_virtual_desktop: String? = null
+
+    }
+
+    @KxsSerializable
+    open class OpenConnectMobileOptions : SingBoxOption() {
+
+        @JvmField
+        var platform_version: String? = null
+
+        @JvmField
+        var device_type: String? = null
+
+        @JvmField
+        var device_unique_id: String? = null
+
+    }
+
+    @KxsSerializable
     open class OpenVPNOutboundTLSOptions : SingBoxOption() {
 
         @JvmField
@@ -1524,6 +1564,15 @@ object SingBoxOptions {
 
         @JvmField
         var remote_certificate_eku: String? = null
+
+        @JvmField
+        var remote_certificate_tls: String? = null
+
+        @JvmField
+        var certificate_profile: String? = null
+
+        @JvmField
+        var ns_certificate_type: String? = null
 
         @JvmField
         var version_min: String? = null
@@ -5088,6 +5137,9 @@ object SingBoxOptions {
         var auth_group: String? = null
 
         @JvmField
+        var cookie: String? = null
+
+        @JvmField
         var token: OpenConnectTokenOptions? = null
 
         @JvmField
@@ -5095,6 +5147,15 @@ object SingBoxOptions {
 
         @JvmField
         var user_agent: String? = null
+
+        @JvmField
+        var version: String? = null
+
+        @JvmField
+        var local_hostname: String? = null
+
+        @JvmField
+        var mobile: OpenConnectMobileOptions? = null
 
         @JvmField
         var csd: OpenConnectCSDOptions? = null
@@ -5106,7 +5167,58 @@ object SingBoxOptions {
         var tncc: OpenConnectTNCCOptions? = null
 
         @JvmField
+        var fortinet_host_check: OpenConnectFortinetHostCheckOptions? = null
+
+        @JvmField
         var no_udp: Boolean? = null
+
+        @JvmField
+        var dtls_local_port: Int? = null
+
+        @JvmField
+        var compression_disabled: Boolean? = null
+
+        @JvmField
+        var compression_mode: String? = null
+
+        @JvmField
+        var ipv6_disabled: Boolean? = null
+
+        @JvmField
+        var http_keepalive_disabled: Boolean? = null
+
+        @JvmField
+        var xml_post_disabled: Boolean? = null
+
+        @JvmField
+        var external_auth_disabled: Boolean? = null
+
+        @JvmField
+        var password_authentication_disabled: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive_enabled: Boolean? = null
+
+        @JvmField
+        var pfs: Boolean? = null
+
+        @JvmField
+        var mtu: Int? = null
+
+        @JvmField
+        var base_mtu: Int? = null
+
+        @JvmField
+        var dpd_interval: String? = null
+
+        @JvmField
+        var reconnect_timeout: String? = null
+
+        @JvmField
+        var trojan_interval: String? = null
+
+        @JvmField
+        var queue_length: Int? = null
 
         @JvmField
         var allow_insecure_crypto: Boolean? = null
@@ -5216,6 +5328,9 @@ object SingBoxOptions {
         var udp_nat_max: Int? = null
 
         @JvmField
+        var mode: String? = null
+
+        @JvmField
         var network: String? = null
 
         @JvmField
@@ -5223,6 +5338,18 @@ object SingBoxOptions {
 
         @JvmField
         var remote_random: Boolean? = null
+
+        @JvmField
+        var address: MutableList<String>? = null
+
+        @JvmField
+        var peer_address: String? = null
+
+        @JvmField
+        var peer_address_ipv6: String? = null
+
+        @JvmField
+        var topology: String? = null
 
         @JvmField
         var username: String? = null
@@ -5240,7 +5367,19 @@ object SingBoxOptions {
         var static_challenge_echo: Boolean? = null
 
         @JvmField
+        var static_key: MutableList<String>? = null
+
+        @JvmField
+        var static_key_path: String? = null
+
+        @JvmField
+        var key_direction: String? = null
+
+        @JvmField
         var tls: OpenVPNOutboundTLSOptions? = null
+
+        @JvmField
+        var cipher: String? = null
 
         @JvmField
         var data_ciphers: MutableList<String>? = null
@@ -5255,7 +5394,19 @@ object SingBoxOptions {
         var mss_fix: Int? = null
 
         @JvmField
+        var mss_fix_disabled: Boolean? = null
+
+        @JvmField
+        var mss_fix_mode: String? = null
+
+        @JvmField
         var fragment: Int? = null
+
+        @JvmField
+        var replay_window: Int? = null
+
+        @JvmField
+        var replay_window_time: String? = null
 
         @JvmField
         var compression: String? = null
@@ -5288,13 +5439,37 @@ object SingBoxOptions {
         var redirect_gateway_flags: MutableList<String>? = null
 
         @JvmField
+        var redirect_private: Boolean? = null
+
+        @JvmField
+        var block_ipv6: Boolean? = null
+
+        @JvmField
         var ping_interval: String? = null
 
         @JvmField
         var ping_restart: String? = null
 
         @JvmField
+        var ping_restart_disabled: Boolean? = null
+
+        @JvmField
         var renegotiate_interval: String? = null
+
+        @JvmField
+        var renegotiate_disabled: Boolean? = null
+
+        @JvmField
+        var renegotiate_bytes: Long? = null
+
+        @JvmField
+        var renegotiate_packets: Long? = null
+
+        @JvmField
+        var tls_timeout: String? = null
+
+        @JvmField
+        var handshake_window: String? = null
 
         @JvmField
         var explicit_exit_notify: Int? = null
