@@ -4,23 +4,9 @@
     height="80">
 </a>
 
-We have migrated to [codeberg](https://codeberg.org/xchacha20-poly1305/husi)!
-
 # Husi (虎兕)
 
 Husi is a non-professional and recreational proxy tool integration, aiming at promoting proxy customization.
-
-## 🗣️ Alert
-
-In August 2025, Google [announced](https://developer.android.com/developer-verification) that as of September 2026, it will no longer be possible to develop apps for the Android platform without first registering centrally with Google. This registration will involve:
-
-- Paying a fee to Google
-- Agreeing to Google’s Terms and Conditions
-- Providing government identification
-- Uploading evidence of the developer’s private signing key
-- Listing all current and future application identifiers
-
-As a free software, husi will never submit to Google. Visit [Keep Android Open](https://keepandroidopen.org/) to defend the openness!
 
 ## 🛠️ Contribution
 
@@ -45,7 +31,7 @@ as [version.sh](./buildScript/init/version.sh).
 #### 🧰 Get the Source Code
 
 ```shell
-git clone https://codeberg.org/xchacha20-poly1305/husi.git --depth=1
+git clone https://github.com/xchacha20-poly1305/husi.git --depth=1
 cd husi/
 ./run lib source # Will help you to get submodules
 ```
@@ -421,7 +407,7 @@ URLs to import.
 
 ## ☠️ End users
 
-[Wiki](https://codeberg.org/xchacha20-poly1305/husi/wiki)
+[Wiki](https://github.com/xchacha20-poly1305/husi/wiki)
 
 ## 📖 License
 

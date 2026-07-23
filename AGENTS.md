@@ -162,5 +162,3 @@ before committing Go). Read it before editing Kotlin or Go.
 - `.gitignore` excludes `.claude/`, `.gemini/`, `.codex/`, generated `composeApp/libs/`, and
   submodule trees under `external/`. Build outputs (`build/`, `*.aar`, `*.jar` in libs, `*.tar.zst`
   assets) are also ignored.
-- Codeberg is the canonical remote (`https://codeberg.org/xchacha20-poly1305/husi`); the GitHub
-  mirror is read-only.
