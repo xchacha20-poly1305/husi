@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 
-source buildScript/init/env.sh
+build_android=0
+for argument in "$@"; do
+  if [ "$argument" == "--android" ]; then
+    build_android=1
+    break
+  fi
+done
+
+if [ "$build_android" -eq 1 ]; then
+  source buildScript/init/env.sh
+fi
 
 caller_pwd="$PWD"
 declare -a args

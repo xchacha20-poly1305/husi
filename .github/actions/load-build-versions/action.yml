@@ -1,0 +1,13 @@
+name: Load build versions
+description: Export toolchain versions and paths from buildScript/init/version.sh
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        source buildScript/init/version.sh
+        for name in GO_VERSION JAVA_VERSION ANDROID_NDK_VERSION ZIG_VERSION NFPM_VERSION JNI_HEADERS_VERSION JNI_HEADERS_COMMIT MACOS_SDK_VERSION MACOS_SDK_COMMIT CRONET_GO_COMMIT; do
+          echo "$name=${!name}" >> "$GITHUB_ENV"
+        done
+        echo "JNI_INCLUDE=$GITHUB_WORKSPACE/jni-headers/versions/$JNI_HEADERS_VERSION/include" >> "$GITHUB_ENV"
+        echo "MACOS_SDK_PATH=$GITHUB_WORKSPACE/macos-sdk/MacOSX$MACOS_SDK_VERSION.sdk" >> "$GITHUB_ENV"

@@ -179,6 +179,30 @@ apply_darwin_toolchain_env() {
         return
     fi
 
+    # A macOS runner already provides the SDK and linker through Xcode. The
+    # hermetic Xcode bundle is only needed when cross-compiling from Linux.
+    if command -v xcrun >/dev/null 2>&1; then
+        sdk_root="$(xcrun --sdk macosx --show-sdk-path)"
+        clang_bin="$(xcrun --sdk macosx --find clang)"
+        clang_bin_cxx="$(xcrun --sdk macosx --find clang++)"
+        if [ -z "$sdk_root" ] || [ ! -d "$sdk_root" ] || [ ! -x "$clang_bin" ] || [ ! -x "$clang_bin_cxx" ]; then
+            echo "Unable to resolve the macOS SDK and clang toolchain with xcrun"
+            exit 1
+        fi
+        deployment_target="$EXTERNAL_MACOSX_DEPLOYMENT_TARGET"
+        if [ -z "$deployment_target" ]; then
+            deployment_target="12.0"
+        fi
+        export SDKROOT="$sdk_root"
+        export MACOSX_DEPLOYMENT_TARGET="$deployment_target"
+        export CC="$clang_bin --target=${clang_arch}-apple-macos"
+        export CXX="$clang_bin_cxx --target=${clang_arch}-apple-macos"
+        export CGO_CFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET -Wno-deprecated-declarations"
+        export CGO_CXXFLAGS="$CGO_CFLAGS"
+        export CGO_LDFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET $dead_strip_dylibs"
+        return
+    fi
+
     cronet_go_root="$(resolve_cronet_go_root)"
     if [ ! -d "$cronet_go_root" ]; then
         echo "Missing cronet-go root: $cronet_go_root"

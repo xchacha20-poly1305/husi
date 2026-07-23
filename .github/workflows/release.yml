@@ -1,0 +1,164 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag
+        required: true
+        type: string
+      no-publish:
+        description: Build artifacts without publishing a GitHub Release
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - uses: ./.github/actions/load-build-versions
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
+      - uses: actions/cache@v6
+        with:
+          path: composeApp/libs
+          key: libcore-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('libcore/go.sum', 'libcore/build.sh', 'husi.properties') }}
+          restore-keys: libcore-${{ runner.os }}-${{ runner.arch }}-
+      - name: Prepare assets
+        run: make assets
+      - name: Write signing properties
+        env:
+          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+        run: printf '%s' "$LOCAL_PROPERTIES" > local.properties
+      - name: Build Android libcore
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: make libcore_android
+      - name: Build Android app
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: make apk
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android
+          path: androidApp/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+  desktop:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - uses: ./.github/actions/load-build-versions
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - uses: actions/checkout@v7
+        with:
+          repository: Casterlabs/jni-headers
+          ref: ${{ env.JNI_HEADERS_COMMIT }}
+          path: jni-headers
+          sparse-checkout: versions/${{ env.JNI_HEADERS_VERSION }}
+      - uses: actions/checkout@v7
+        with:
+          repository: alexey-lysiuk/macos-sdk
+          ref: ${{ env.MACOS_SDK_COMMIT }}
+          path: macos-sdk
+          sparse-checkout: MacOSX${{ env.MACOS_SDK_VERSION }}.sdk
+      - uses: actions/checkout@v7
+        with:
+          repository: SagerNet/cronet-go
+          ref: ${{ env.CRONET_GO_COMMIT }}
+          path: cronet-go
+          submodules: recursive
+          fetch-depth: 1
+      - uses: actions/cache@v6
+        with:
+          path: |
+            composeApp/libs
+            cronet-go/naiveproxy/src/third_party/llvm-build
+            cronet-go/naiveproxy/src/gn/out
+            cronet-go/naiveproxy/src/chrome/build/pgo_profiles
+            cronet-go/naiveproxy/src/out/sysroot-build
+          key: libcore-desktop-${{ env.CRONET_GO_COMMIT }}-${{ hashFiles('libcore/go.sum', 'libcore/build.sh', 'husi.properties') }}
+          restore-keys: libcore-desktop-
+      - name: Install system packaging tools
+        run: sudo apt-get update && sudo apt-get install -y nsis xorriso
+      - name: Install nfpm
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v${NFPM_VERSION}
+      - name: Prepare cronet toolchain
+        run: (cd cronet-go && go run ./cmd/build-naive --target=linux/amd64,linux/arm64 download-toolchain)
+      - name: Prepare assets
+        run: make assets
+      - name: Build desktop libcore
+        env:
+          CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
+        run: make libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64,windows/amd64,windows/arm64,darwin/amd64,darwin/arm64 JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
+      - name: Build desktop packages
+        run: |
+          make desktop_package_linux DESKTOP_TARGET=linux/amd64
+          make desktop_package_linux DESKTOP_TARGET=linux/arm64
+          make desktop_package_windows DESKTOP_TARGET=windows/amd64
+          make desktop_package_windows DESKTOP_TARGET=windows/arm64
+          make desktop_package_macos DESKTOP_TARGET=darwin/amd64
+          make desktop_package_macos DESKTOP_TARGET=darwin/arm64
+      - uses: actions/upload-artifact@v7
+        with:
+          name: desktop
+          path: composeApp/build/compose/packages
+          if-no-files-found: error
+
+  publish:
+    needs: [android, desktop]
+    if: ${{ !inputs.no-publish }}
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: release-artifacts
+      - name: Publish GitHub Release
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          mapfile -d '' files < <(find release-artifacts -type f -print0)
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${files[@]}" --generate-notes
+          fi
