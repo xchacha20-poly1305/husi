@@ -101,9 +101,9 @@ func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []by
 			}
 			switch field.Name {
 			case "RuleAction":
-				writeActionFields(builder, seen, ruleActionTypes)
+				writeActionFields(builder, seen, field.Type, ruleActionTypes)
 			case "DNSRuleAction":
-				writeActionFields(builder, seen, dnsRuleActionTypes)
+				writeActionFields(builder, seen, field.Type, dnsRuleActionTypes)
 			default:
 				if strings.HasPrefix(field.Name, "Legacy") {
 					continue
@@ -133,11 +133,9 @@ func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []by
 	return builder.Bytes()
 }
 
-func writeActionFields(builder *bytes.Buffer, seen map[string]struct{}, actionTypes []reflect.Type) {
-	if _, exists := seen["action"]; !exists {
-		_, _ = builder.WriteString(actionPrefix)
-		seen["action"] = struct{}{}
-	}
+func writeActionFields(builder *bytes.Buffer, seen map[string]struct{}, actionType reflect.Type, actionTypes []reflect.Type) {
+	_, _ = builder.WriteString(F.ToString(fieldSpace, "// Generate Note: Action\n"))
+	_, _ = builder.Write(buildContentWithSeen(actionType, seen))
 	for _, actionType := range actionTypes {
 		_, _ = builder.Write(buildContentWithSeen(actionType, seen))
 	}
@@ -198,6 +196,8 @@ func className(valueType reflect.Type) string {
 		case "Addr", "Prefix", "Prefixable",
 			"Regexp", "DNSRecordOptions", "NetworkBytesCompat":
 			return kotlinString
+		case "DNSRuleMatchResponse":
+			return kotlinJsonElement
 		case "Rule", "DNSRule", "V2RayTransportOptions",
 			"GeoIPOptions", "GeositeOptions", "InboundACMEOptions", "InboundECHOptions", "InboundRealityOptions":
 			return kotlinJsonElement
@@ -340,10 +340,6 @@ func init() {
 		dnsRuleActionTypes = append(dnsRuleActionTypes, reflect.TypeOf(field.Value))
 	}
 }
-
-const actionPrefix = fieldSpace + "// Generate Note: Action\n" +
-	fieldSpace + "@JvmField\n" +
-	fieldSpace + "var action: String? = null\n\n"
 
 var (
 	ruleActionTypes    []reflect.Type

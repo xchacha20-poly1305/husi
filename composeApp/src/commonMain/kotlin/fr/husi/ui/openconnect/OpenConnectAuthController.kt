@@ -58,15 +58,61 @@ data class OpenConnectAuthFormState(
 data class OpenConnectBrowserRequestState(
     val url: String,
     val finalUrl: String,
+    val cacheId: String,
     val cookieNames: List<String>,
+    val earlyCookieNames: List<String>,
     val headerNames: List<String>,
-)
+    val callbackUrlPrefixes: List<String>,
+) {
+    val completionMode: OpenConnectBrowserCompletionMode
+        get() = when {
+            callbackUrlPrefixes.isNotEmpty() && finalUrl.isEmpty() && cookieNames.isEmpty() &&
+                earlyCookieNames.isEmpty() && headerNames.isEmpty() -> OpenConnectBrowserCompletionMode.Callback
+            callbackUrlPrefixes.isEmpty() && finalUrl.isNotEmpty() && cookieNames.isNotEmpty() &&
+                headerNames.isEmpty() -> OpenConnectBrowserCompletionMode.Cookie
+            callbackUrlPrefixes.isEmpty() && finalUrl.isEmpty() && cookieNames.isEmpty() &&
+                earlyCookieNames.isEmpty() && headerNames.isNotEmpty() -> OpenConnectBrowserCompletionMode.Header
+            else -> OpenConnectBrowserCompletionMode.Invalid
+        }
+}
+
+enum class OpenConnectBrowserCompletionMode {
+    Callback,
+    Cookie,
+    Header,
+    Invalid,
+}
 
 data class OpenConnectBrowserResultState(
     val finalUrl: String,
     val cookies: Map<String, String>,
     val headers: Map<String, String>,
 )
+
+internal fun OpenConnectBrowserRequestState.buildResult(
+    finalUrl: String,
+    cookies: Map<String, String>,
+    headers: Map<String, String>,
+): OpenConnectBrowserResultState {
+    if (completionMode == OpenConnectBrowserCompletionMode.Cookie) {
+        for (name in earlyCookieNames) {
+            val value = cookies[name].orEmpty()
+            if (value.isNotEmpty()) {
+                return OpenConnectBrowserResultState("", mapOf(name to value), emptyMap())
+            }
+        }
+    }
+    return when (completionMode) {
+        OpenConnectBrowserCompletionMode.Callback -> OpenConnectBrowserResultState(finalUrl, emptyMap(), emptyMap())
+        OpenConnectBrowserCompletionMode.Cookie -> OpenConnectBrowserResultState(
+            finalUrl,
+            cookies.filterKeys { it in cookieNames },
+            emptyMap(),
+        )
+        OpenConnectBrowserCompletionMode.Header -> OpenConnectBrowserResultState("", emptyMap(), headers)
+        OpenConnectBrowserCompletionMode.Invalid -> OpenConnectBrowserResultState(finalUrl, cookies, headers)
+    }
+}
 
 data class OpenConnectAuthChallengeState(
     val id: String,
@@ -331,8 +377,11 @@ private fun LibcoreAuthForm.toState(): OpenConnectAuthFormState {
 private fun LibcoreBrowserRequest.toState() = OpenConnectBrowserRequestState(
     url = url,
     finalUrl = finalURL,
+    cacheId = cacheID,
     cookieNames = cookieNames.toStringList(),
+    earlyCookieNames = earlyCookieNames.toStringList(),
     headerNames = headerNames.toStringList(),
+    callbackUrlPrefixes = callbackURLPrefixes.toStringList(),
 )
 
 private fun LibcoreTunnelInfo.toState() = OpenConnectTunnelInfoState(

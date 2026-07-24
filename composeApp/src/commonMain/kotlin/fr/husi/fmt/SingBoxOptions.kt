@@ -2462,7 +2462,7 @@ object SingBoxOptions {
         var rule_set_ip_cidr_match_source: Boolean? = null
 
         @JvmField
-        var match_response: Boolean? = null
+        var match_response: JsonElement? = null
 
         @JvmField
         var ip_cidr: MutableList<String>? = null
@@ -2508,7 +2508,16 @@ object SingBoxOptions {
         var action: String? = null
 
         @JvmField
+        var race: Boolean? = null
+
+        @JvmField
         var server: String? = null
+
+        @JvmField
+        var tag: String? = null
+
+        @JvmField
+        var speculative: Boolean? = null
 
         @JvmField
         var timeout: String? = null
@@ -2566,7 +2575,16 @@ object SingBoxOptions {
         var action: String? = null
 
         @JvmField
+        var race: Boolean? = null
+
+        @JvmField
         var server: String? = null
+
+        @JvmField
+        var tag: String? = null
+
+        @JvmField
+        var speculative: Boolean? = null
 
         @JvmField
         var timeout: String? = null

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.TextButton as Material3TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -27,6 +26,7 @@ import fr.husi.resources.auth_verifying
 import fr.husi.resources.openconnect_authentication
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.material3.TextButton as Material3TextButton
 
 /**
  * Global dialog for a pending OpenConnect auth challenge.
@@ -56,7 +56,9 @@ fun OpenConnectAuthDialog(
     }
     val cookies = remember(pending.endpointTag, challenge.id) {
         mutableStateMapOf<String, String>().also { values ->
-            browser?.cookieNames?.forEach { values[it] = "" }
+            (browser?.cookieNames.orEmpty() + browser?.earlyCookieNames.orEmpty())
+                .distinct()
+                .forEach { values[it] = "" }
         }
     }
     val headers = remember(pending.endpointTag, challenge.id) {
@@ -92,13 +94,11 @@ fun OpenConnectAuthDialog(
                                     endpointTag = pending.endpointTag,
                                     challenge = challenge,
                                     formValues = form?.let { values.toMap() },
-                                    browserResult = browser?.let {
-                                        OpenConnectBrowserResultState(
-                                            finalUrl = finalUrl,
-                                            cookies = cookies.toMap(),
-                                            headers = headers.toMap(),
-                                        )
-                                    },
+                                    browserResult = browser?.buildResult(
+                                        finalUrl,
+                                        cookies.toMap(),
+                                        headers.toMap(),
+                                    ),
                                 )
                                 submitting = false
                                 if (error != null) {

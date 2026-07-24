@@ -24,10 +24,13 @@ func TestOpenConnectAuthChallengeStatusRoundTrip(t *testing.T) {
 				Value:         "alice",
 			}}},
 			Browser: &OpenConnectBrowserRequest{
-				URL:         "https://login.example.com",
-				FinalURL:    "https://vpn.example.com/final",
-				cookieNames: []string{"webvpn"},
-				headerNames: []string{"saml-username"},
+				URL:                 "https://login.example.com",
+				FinalURL:            "https://vpn.example.com/final",
+				CacheID:             "fortinet-cache",
+				cookieNames:         []string{"webvpn"},
+				earlyCookieNames:    []string{"ccsrftoken"},
+				headerNames:         []string{"saml-username"},
+				callbackURLPrefixes: []string{"https://vpn.example.com/remote/saml/", "fortinet://saml"},
 			},
 		},
 	}
@@ -44,15 +47,18 @@ func TestOpenConnectAuthChallengeStatusRoundTrip(t *testing.T) {
 	require.Equal(t, status.AuthChallenge.Form.fields[0].SubmissionKey, restored.AuthChallenge.Form.fields[0].SubmissionKey)
 	require.Equal(t, status.AuthChallenge.Browser.URL, restored.AuthChallenge.Browser.URL)
 	require.Equal(t, status.AuthChallenge.Browser.FinalURL, restored.AuthChallenge.Browser.FinalURL)
+	require.Equal(t, status.AuthChallenge.Browser.CacheID, restored.AuthChallenge.Browser.CacheID)
 	require.Equal(t, status.AuthChallenge.Browser.cookieNames, restored.AuthChallenge.Browser.cookieNames)
+	require.Equal(t, status.AuthChallenge.Browser.earlyCookieNames, restored.AuthChallenge.Browser.earlyCookieNames)
 	require.Equal(t, status.AuthChallenge.Browser.headerNames, restored.AuthChallenge.Browser.headerNames)
+	require.Equal(t, status.AuthChallenge.Browser.callbackURLPrefixes, restored.AuthChallenge.Browser.callbackURLPrefixes)
 }
 
 func TestOpenConnectBrowserResultRoundTrip(t *testing.T) {
 	result := NewOpenConnectBrowserResult("https://vpn.example.com/final")
 	result.AddCookie("webvpn", "token")
 	result.AddHeader("saml-username", "alice")
-	result.AddHeader("saml-username", "alice@example.com")
+	result.AddHeader("SAML-Username", "alice@example.com")
 
 	var buffer bytes.Buffer
 	require.NoError(t, result.writeToBinary(&buffer))
@@ -62,4 +68,6 @@ func TestOpenConnectBrowserResultRoundTrip(t *testing.T) {
 	require.Equal(t, result.FinalURL, restored.FinalURL)
 	require.Equal(t, result.cookies, restored.cookies)
 	require.Equal(t, result.headers, restored.headers)
+	require.Len(t, restored.headers, 1)
+	require.Equal(t, []string{"alice", "alice@example.com"}, restored.headers[0].values)
 }

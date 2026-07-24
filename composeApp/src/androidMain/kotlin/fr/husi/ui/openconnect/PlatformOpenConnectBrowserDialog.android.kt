@@ -1,6 +1,8 @@
 package fr.husi.ui.openconnect
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.webkit.WebResourceRequest
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -110,11 +112,11 @@ private class OpenConnectWebViewBrowser(
 
     @SuppressLint("SetJavaScriptEnabled")
     fun start(view: WebView) {
-        if (request.headerNames.isNotEmpty()) {
+        if (request.completionMode == OpenConnectBrowserCompletionMode.Header) {
             fail(unsupportedMessage)
             return
         }
-        if (request.cookieNames.isEmpty()) {
+        if (request.completionMode == OpenConnectBrowserCompletionMode.Invalid) {
             fail(missingCookieMessage)
             return
         }
@@ -131,9 +133,20 @@ private class OpenConnectWebViewBrowser(
             settings.setSupportMultipleWindows(false)
         }
         view.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, navigationRequest: WebResourceRequest): Boolean =
+                handleNavigation(view, navigationRequest.url.toString())
+
+            @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = handleNavigation(view, url)
+
+            override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                if (completeCallback(url)) view.stopLoading()
+            }
+
             override fun onPageFinished(view: WebView, url: String) {
                 super.onPageFinished(view, url)
-                if (request.finalUrl.isEmpty() || url == request.finalUrl) {
+                if (request.completionMode == OpenConnectBrowserCompletionMode.Cookie) {
                     completeWhenCookiesAvailable(view, url, 0)
                 }
             }
@@ -155,15 +168,12 @@ private class OpenConnectWebViewBrowser(
     private fun completeWhenCookiesAvailable(view: WebView, url: String, attempt: Int) {
         if (completed || closed || webView !== view) return
         val cookies = requestedCookies(url)
-        if (cookies.any { it.value.isNotEmpty() }) {
+        if (completeEarlyCookie(cookies)) return
+        if (url != request.finalUrl) return
+        val finalCookies = cookies.filterKeys { it in request.cookieNames && cookies[it].orEmpty().isNotEmpty() }
+        if (finalCookies.isNotEmpty()) {
             completed = true
-            onResult(
-                OpenConnectBrowserResultState(
-                    finalUrl = url,
-                    cookies = cookies,
-                    headers = emptyMap(),
-                ),
-            )
+            onResult(OpenConnectBrowserResultState(url, finalCookies, emptyMap()))
             return
         }
         if (attempt >= COOKIE_RETRY_COUNT) {
@@ -176,8 +186,38 @@ private class OpenConnectWebViewBrowser(
         )
     }
 
+    private fun handleNavigation(view: WebView, url: String): Boolean {
+        if (
+            request.completionMode == OpenConnectBrowserCompletionMode.Cookie &&
+            completeEarlyCookie(requestedCookies(view.url.orEmpty()))
+        ) {
+            view.stopLoading()
+            return true
+        }
+        return completeCallback(url)
+    }
+
+    private fun completeCallback(url: String): Boolean {
+        if (completed || closed || request.completionMode != OpenConnectBrowserCompletionMode.Callback) return false
+        if (request.callbackUrlPrefixes.none { prefix -> url.startsWith(prefix) }) return false
+        completed = true
+        onResult(OpenConnectBrowserResultState(url, emptyMap(), emptyMap()))
+        return true
+    }
+
+    private fun completeEarlyCookie(cookies: Map<String, String>): Boolean {
+        for (name in request.earlyCookieNames) {
+            val value = cookies[name].orEmpty()
+            if (value.isEmpty()) continue
+            completed = true
+            onResult(OpenConnectBrowserResultState("", mapOf(name to value), emptyMap()))
+            return true
+        }
+        return false
+    }
+
     private fun requestedCookies(url: String): Map<String, String> {
-        val requestedNames = request.cookieNames.toSet()
+        val requestedNames = (request.cookieNames + request.earlyCookieNames).toSet()
         return CookieManager.getInstance().getCookie(url)
             .orEmpty()
             .split(';')

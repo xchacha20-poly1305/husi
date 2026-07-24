@@ -31,7 +31,13 @@ fun OpenConnectBrowserAuthContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(stringResource(Res.string.auth_browser_callback_hint))
-        if (request.finalUrl.isNotEmpty()) {
+        if (request.callbackUrlPrefixes.isNotEmpty()) {
+            Text(request.callbackUrlPrefixes.joinToString("\n"))
+        }
+        if (
+            request.completionMode == OpenConnectBrowserCompletionMode.Callback ||
+            request.completionMode == OpenConnectBrowserCompletionMode.Cookie
+        ) {
             OutlinedTextField(
                 value = finalUrl,
                 onValueChange = onFinalUrlChange,
@@ -42,6 +48,17 @@ fun OpenConnectBrowserAuthContent(
             )
         }
         for (name in request.cookieNames) {
+            OutlinedTextField(
+                value = cookies[name].orEmpty(),
+                onValueChange = { cookies[name] = it },
+                label = { Text("${stringResource(Res.string.auth_cookie)}: $name") },
+                singleLine = true,
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        for (name in request.earlyCookieNames) {
+            if (name in request.cookieNames) continue
             OutlinedTextField(
                 value = cookies[name].orEmpty(),
                 onValueChange = { cookies[name] = it },

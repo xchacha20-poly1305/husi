@@ -45,13 +45,13 @@ import fr.husi.resources.transport
 import fr.husi.ui.openconnect.OPENCONNECT_STATE_AUTH_PENDING
 import fr.husi.ui.openconnect.OPENCONNECT_STATE_CONNECTED
 import fr.husi.ui.openconnect.OPENCONNECT_STATE_ERROR
-import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openconnect.OpenConnectAuthChallengeContent
 import fr.husi.ui.openconnect.OpenConnectAuthChallengeState
-import fr.husi.ui.openconnect.OpenConnectBrowserResultState
+import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openconnect.OpenConnectEndpointState
 import fr.husi.ui.openconnect.OpenConnectTunnelInfoState
 import fr.husi.ui.openconnect.PlatformOpenConnectBrowserDialog
+import fr.husi.ui.openconnect.buildResult
 import fr.husi.ui.openconnect.initialAuthFormValues
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -146,7 +146,9 @@ private fun AuthSection(
     }
     val cookies = remember(endpointTag, challenge.id) {
         mutableStateMapOf<String, String>().also { values ->
-            browser?.cookieNames?.forEach { values[it] = "" }
+            (browser?.cookieNames.orEmpty() + browser?.earlyCookieNames.orEmpty())
+                .distinct()
+                .forEach { values[it] = "" }
         }
     }
     val headers = remember(endpointTag, challenge.id) {
@@ -221,17 +223,15 @@ private fun AuthSection(
                         endpointTag = endpointTag,
                         challenge = challenge,
                         formValues = form?.let { values.toMap() },
-                        browserResult = browser?.let {
-                            OpenConnectBrowserResultState(
-                                finalUrl = finalUrl,
-                                cookies = cookies.toMap(),
-                                headers = headers.toMap(),
-                            )
-                        },
+                        browserResult = browser?.buildResult(
+                            finalUrl,
+                            cookies.toMap(),
+                            headers.toMap(),
+                        ),
                     )?.let(showError)
                     working = false
                 }
-            }
+            },
         ) {
             Text(stringResource(Res.string.auth_submit))
         }

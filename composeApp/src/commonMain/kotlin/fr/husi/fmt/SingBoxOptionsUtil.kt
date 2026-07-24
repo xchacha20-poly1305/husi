@@ -92,7 +92,7 @@ fun DNSRule_Default.makeResponseRule(list: List<RuleItem>) {
 }
 
 fun DNSRule_Default.checkEmpty(): Boolean {
-    if (match_response == true) return false
+    if (match_response != null) return false
     if (ip_cidr?.isNotEmpty() == true) return false
     if (ip_is_private == true) return false
     if (ip_accept_any == true) return false

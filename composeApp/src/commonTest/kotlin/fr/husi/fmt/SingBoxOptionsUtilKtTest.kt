@@ -13,6 +13,10 @@ import fr.husi.fmt.SingBoxOptions.RuleSet_Local
 import fr.husi.fmt.SingBoxOptions.Rule_Default
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.asMap
+import fr.husi.ktx.toJsonObjectKxs
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -66,6 +70,31 @@ class SingBoxOptionsUtilKtTest {
     @BeforeTest
     fun setUp() {
         options = MyOptions()
+    }
+
+    @Test
+    fun `DNS rule should serialize named parallel evaluate options`() {
+        val evaluateRule = DNSRule_Default().apply {
+            action = SingBoxOptions.ACTION_EVALUATE
+            server = "dns-remote"
+            tag = "remote"
+            speculative = true
+        }.toJsonObjectKxs()
+        val responseRule = DNSRule_Default().apply {
+            match_response = JsonPrimitive("remote")
+            action = SingBoxOptions.ACTION_ROUTE
+            race = true
+            server = "dns-direct"
+        }.toJsonObjectKxs()
+
+        assertEquals("evaluate", evaluateRule["action"]?.jsonPrimitive?.content)
+        assertEquals("dns-remote", evaluateRule["server"]?.jsonPrimitive?.content)
+        assertEquals("remote", evaluateRule["tag"]?.jsonPrimitive?.content)
+        assertEquals(true, evaluateRule["speculative"]?.jsonPrimitive?.boolean)
+        assertEquals("remote", responseRule["match_response"]?.jsonPrimitive?.content)
+        assertEquals("route", responseRule["action"]?.jsonPrimitive?.content)
+        assertEquals(true, responseRule["race"]?.jsonPrimitive?.boolean)
+        assertEquals("dns-direct", responseRule["server"]?.jsonPrimitive?.content)
     }
 
     @Test

@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"net/netip"
+	"strings"
 
 	"libcore/vario"
 
@@ -83,18 +84,29 @@ type OpenConnectAuthFormChoiceIterator interface {
 }
 
 type OpenConnectBrowserRequest struct {
-	URL         string
-	FinalURL    string
-	cookieNames []string
-	headerNames []string
+	URL                 string
+	FinalURL            string
+	CacheID             string
+	cookieNames         []string
+	earlyCookieNames    []string
+	headerNames         []string
+	callbackURLPrefixes []string
 }
 
 func (o *OpenConnectBrowserRequest) GetCookieNames() StringIterator {
 	return newIterator(o.cookieNames)
 }
 
+func (o *OpenConnectBrowserRequest) GetEarlyCookieNames() StringIterator {
+	return newIterator(o.earlyCookieNames)
+}
+
 func (o *OpenConnectBrowserRequest) GetHeaderNames() StringIterator {
 	return newIterator(o.headerNames)
+}
+
+func (o *OpenConnectBrowserRequest) GetCallbackURLPrefixes() StringIterator {
+	return newIterator(o.callbackURLPrefixes)
 }
 
 type OpenConnectBrowserResult struct {
@@ -112,9 +124,9 @@ func (o *OpenConnectBrowserResult) AddCookie(name, value string) {
 }
 
 func (o *OpenConnectBrowserResult) AddHeader(name, value string) {
-	for _, header := range o.headers {
-		if header.Name == name {
-			header.values = append(header.values, value)
+	for i := range o.headers {
+		if strings.EqualFold(o.headers[i].Name, name) {
+			o.headers[i].values = append(o.headers[i].values, value)
 			return
 		}
 	}
@@ -476,10 +488,13 @@ func buildOpenConnectStatus(endpoint adapter.OpenConnectEndpoint) *OpenConnectEn
 		}
 		if browser := authChallenge.Browser; browser != nil {
 			status.AuthChallenge.Browser = &OpenConnectBrowserRequest{
-				URL:         browser.URL,
-				FinalURL:    browser.FinalURL,
-				cookieNames: browser.CookieNames,
-				headerNames: browser.HeaderNames,
+				URL:                 browser.URL,
+				FinalURL:            browser.FinalURL,
+				CacheID:             browser.CacheID,
+				cookieNames:         browser.CookieNames,
+				earlyCookieNames:    browser.EarlyCookieNames,
+				headerNames:         browser.HeaderNames,
+				callbackURLPrefixes: browser.CallbackURLPrefixes,
 			}
 		}
 	}
@@ -675,11 +690,23 @@ func (o *OpenConnectBrowserRequest) writeToBinary(writer io.Writer) error {
 	if err != nil {
 		return err
 	}
+	err = vario.WriteString(writer, o.CacheID)
+	if err != nil {
+		return err
+	}
 	err = vario.WriteStringSlice(writer, o.cookieNames)
 	if err != nil {
 		return err
 	}
-	return vario.WriteStringSlice(writer, o.headerNames)
+	err = vario.WriteStringSlice(writer, o.earlyCookieNames)
+	if err != nil {
+		return err
+	}
+	err = vario.WriteStringSlice(writer, o.headerNames)
+	if err != nil {
+		return err
+	}
+	return vario.WriteStringSlice(writer, o.callbackURLPrefixes)
 }
 
 func readOpenConnectBrowserRequest(reader io.Reader) (*OpenConnectBrowserRequest, error) {
@@ -693,11 +720,23 @@ func readOpenConnectBrowserRequest(reader io.Reader) (*OpenConnectBrowserRequest
 	if err != nil {
 		return nil, err
 	}
+	request.CacheID, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, err
+	}
 	request.cookieNames, err = vario.ReadStringSlice(reader)
 	if err != nil {
 		return nil, err
 	}
+	request.earlyCookieNames, err = vario.ReadStringSlice(reader)
+	if err != nil {
+		return nil, err
+	}
 	request.headerNames, err = vario.ReadStringSlice(reader)
+	if err != nil {
+		return nil, err
+	}
+	request.callbackURLPrefixes, err = vario.ReadStringSlice(reader)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/sagernet/sing-box/option"
@@ -47,4 +48,19 @@ func TestInlineExtensionsUseGeneratedClassName(t *testing.T) {
 		require.NotContains(t, inlineExtensions, "SnellOutboundOptions")
 	}
 	require.Contains(t, inlineExtensions, "Outbound_SnellOptions")
+}
+
+func TestDNSRuleActionFields(t *testing.T) {
+	generated := string(buildClass(option.DefaultDNSRule{}, "DNSRule"))
+
+	for _, field := range []string{
+		"var match_response: JsonElement? = null",
+		"var action: String? = null",
+		"var race: Boolean? = null",
+		"var tag: String? = null",
+		"var speculative: Boolean? = null",
+	} {
+		assert.Contains(t, generated, field)
+	}
+	assert.Equal(t, 1, strings.Count(generated, "var action: String? = null"))
 }

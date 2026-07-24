@@ -95,6 +95,7 @@ import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonPrimitive
 
 // Inbound
 const val TAG_MIXED = "mixed-in"
@@ -920,7 +921,7 @@ fun buildConfig(
                     }
                     val terminalRule = DNSRule_Default().applyDnsBase(useFakeQueryScope).apply {
                         if (hasResponseRule) {
-                            match_response = true
+                            match_response = JsonPrimitive(true)
                             makeResponseRule(responseDNSRules)
                         }
                         this.action = terminalAction
