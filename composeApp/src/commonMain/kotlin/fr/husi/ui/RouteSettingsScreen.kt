@@ -3,6 +3,7 @@
 package fr.husi.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -56,6 +60,7 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.fadingEdge
@@ -85,6 +90,7 @@ import fr.husi.resources.clash_mode
 import fr.husi.resources.close
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.computer_cancel
+import fr.husi.resources.copy_success
 import fr.husi.resources.custom_config
 import fr.husi.resources.delete
 import fr.husi.resources.delete_confirm_prompt
@@ -106,6 +112,7 @@ import fr.husi.resources.layers
 import fr.husi.resources.local_airport
 import fr.husi.resources.local_bar
 import fr.husi.resources.location_on
+import fr.husi.resources.manage_search
 import fr.husi.resources.menu_route
 import fr.husi.resources.monetization_on
 import fr.husi.resources.more
@@ -133,6 +140,7 @@ import fr.husi.resources.route_invert
 import fr.husi.resources.route_name
 import fr.husi.resources.route_options
 import fr.husi.resources.route_proxy
+import fr.husi.resources.rule_set_match
 import fr.husi.resources.router
 import fr.husi.resources.segment
 import fr.husi.resources.select_profile
@@ -154,8 +162,10 @@ import fr.husi.resources.wifi
 import fr.husi.resources.wifi_find
 import fr.husi.results.ResultEffect
 import fr.husi.ui.profile.tlsSpoofMethod
+import fr.husi.ui.tools.RuleSetMatchDialog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -195,6 +205,11 @@ internal fun RouteSettingsScreen(
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scope = rememberCoroutineScope()
+    val snackbarState = remember { SnackbarHostState() }
+
+    val stringCopySuccess = stringResource(Res.string.copy_success)
+    val stringOK = stringResource(Res.string.ok)
 
     var showExpandedMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -343,6 +358,7 @@ internal fun RouteSettingsScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
+        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
     ) { innerPadding ->
         ProvidePreferenceLocals {
             RouteSettings(
@@ -364,6 +380,15 @@ internal fun RouteSettingsScreen(
                         )
                     } else {
                         viewModel.setPackages(packages)
+                    }
+                },
+                onRuleSetCopy = {
+                    scope.launch {
+                        snackbarState.showSnackbar(
+                            message = stringCopySuccess,
+                            actionLabel = stringOK,
+                            duration = SnackbarDuration.Short,
+                        )
                     }
                 },
             )
@@ -440,6 +465,7 @@ private fun RouteSettings(
     viewModel: RouteSettingsViewModel,
     onSelectOutboundProfile: (Long) -> Unit,
     onSelectApps: (Set<String>) -> Unit,
+    onRuleSetCopy: suspend () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val geoDir = remember(resolveRepository().externalAssetsDir) {
@@ -573,12 +599,28 @@ private fun RouteSettings(
                     summary = { Text(contentOrUnset(uiState.domains)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
-                        RuleSetAutoCompleteTextField(
-                            value = value,
-                            onValueChange = onValueChange,
-                            onOk = onOk,
-                            geoDir = geoDir,
-                        )
+                        var showRuleSetMatchDialog by rememberSaveable {
+                            mutableStateOf(false)
+                        }
+                        Column {
+                            RuleSetAutoCompleteTextField(
+                                value = value,
+                                onValueChange = onValueChange,
+                                onOk = onOk,
+                                geoDir = geoDir,
+                            )
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.manage_search),
+                                contentDescription = stringResource(Res.string.rule_set_match),
+                                onClick = { showRuleSetMatchDialog = true },
+                            )
+                        }
+                        if (showRuleSetMatchDialog) {
+                            RuleSetMatchDialog(
+                                onDismissRequest = { showRuleSetMatchDialog = false },
+                                onCopy = onRuleSetCopy,
+                            )
+                        }
                     },
                 )
                 PreferenceDivider()

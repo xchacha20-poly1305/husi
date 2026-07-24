@@ -615,7 +615,7 @@
     <string name="persistent_keepalive_interval">持久性保持活动间隔</string>
     <string name="language">语言</string>
     <string name="language_system_default">系统默认设置</string>
-    <string name="rule_set_match">Rule Set 匹配</string>
+    <string name="rule_set_match">Rule Set 速查</string>
     <string name="route_action">路由动作</string>
     <string name="route_options">路由选项</string>
     <string name="tls_fragment">TLS 分片</string>

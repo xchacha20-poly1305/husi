@@ -582,7 +582,7 @@
     <string name="import_http_url">您正在匯入一個 HTTP URL。您想要進行什麼操作？</string>
     <string name="language">語言</string>
     <string name="language_system_default">系統預設</string>
-    <string name="rule_set_match">Rule Set 匹配</string>
+    <string name="rule_set_match">Rule Set 速查</string>
     <string name="route_action">路由動作</string>
     <string name="route_options">路由選項</string>
     <string name="tls_fragment">TLS 分片</string>
