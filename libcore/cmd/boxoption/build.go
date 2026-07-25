@@ -328,6 +328,10 @@ func init() {
 			Value: option.DNSRouteOptionsActionOptions{},
 		},
 		{
+			Key:   "EvaluateOptions",
+			Value: option.DNSEvaluateActionOptions{},
+		},
+		{
 			Key:   "Predefined",
 			Value: option.DNSRouteActionPredefined{},
 		},
