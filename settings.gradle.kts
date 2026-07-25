@@ -35,7 +35,6 @@ when {
 
 include(":androidApp")
 include(":composeApp")
-include(":library:compose-code-editor:codeeditor")
 include(":library:DragDropSwipeLazyColumn")
 
 rootProject.name = "husi"

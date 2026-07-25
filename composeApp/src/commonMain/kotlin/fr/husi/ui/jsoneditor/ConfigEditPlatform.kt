@@ -1,4 +1,4 @@
-package fr.husi.ui.profile
+package fr.husi.ui.jsoneditor
 
 internal expect val showFloatingToolbarSymbolAndCursorButtons: Boolean
 

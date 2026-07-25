@@ -1,4 +1,4 @@
-package fr.husi.ui.profile
+package fr.husi.ui.jsoneditor
 
 internal actual const val showFloatingToolbarSymbolAndCursorButtons = false
 

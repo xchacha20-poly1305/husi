@@ -80,8 +80,7 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
   root is `fr.husi`.
 - `androidApp/` — thin Android `application` that depends on `:composeApp`. Defines the
   `AndroidManifest.xml`, ABI splits, signing, and `foss`/`play` flavors.
-- `library/` — vendored submodules (`compose-code-editor`, `DragDropSwipeLazyColumn`) plus
-  `libcore-stub` for IDE indexing.
+- `library/` — vendored `DragDropSwipeLazyColumn` submodule plus `libcore-stub` for IDE indexing.
 - `launcher/` — Zig executable embedded into desktop installers (`launcher/src/main.zig`); on Linux
   it gets `setcap` for ambient capabilities before exec'ing the JVM, on Windows it embeds an
   admin-elevating manifest.

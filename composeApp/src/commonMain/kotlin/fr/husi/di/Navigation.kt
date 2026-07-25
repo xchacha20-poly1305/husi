@@ -24,7 +24,7 @@ import fr.husi.ui.SettingsScreen
 import fr.husi.ui.configuration.ConfigurationScreen
 import fr.husi.ui.dashboard.ConnectionDetailScreen
 import fr.husi.ui.dashboard.DashboardScreen
-import fr.husi.ui.profile.ConfigEditScreen
+import fr.husi.ui.jsoneditor.ConfigEditScreen
 import fr.husi.ui.profile.ProfileEditorScreen
 import fr.husi.ui.profile.SIP003EditorScreen
 import fr.husi.ui.tools.GetCertScreen

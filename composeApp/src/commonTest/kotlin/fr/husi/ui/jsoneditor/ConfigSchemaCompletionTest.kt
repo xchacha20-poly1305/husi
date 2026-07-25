@@ -1,4 +1,4 @@
-package fr.husi.ui.profile
+package fr.husi.ui.jsoneditor
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -107,6 +107,14 @@ class ConfigSchemaCompletionTest {
         val text = "{\"outbounds\": [{\"tag\": \"tag"
 
         assertEquals(emptyList(), completer.complete(text, text.length))
+    }
+
+    @Test
+    fun `cursor after a completed string is no longer treated as inside it`() {
+        val text = "{\"log\"}"
+        val cursor = text.indexOf('}')
+
+        assertEquals(emptyList(), completer.complete(text, cursor))
     }
 
     @Test

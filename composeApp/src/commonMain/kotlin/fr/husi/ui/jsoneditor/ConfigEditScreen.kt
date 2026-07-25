@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
-package fr.husi.ui.profile
+package fr.husi.ui.jsoneditor
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -83,6 +83,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -90,11 +91,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.wakaztahir.codeeditor.model.CodeLang
-import com.wakaztahir.codeeditor.prettify.PrettifyParser
-import com.wakaztahir.codeeditor.theme.CodeTheme
-import com.wakaztahir.codeeditor.theme.SyntaxColors
-import com.wakaztahir.codeeditor.utils.parseCodeAsAnnotatedString
 import fr.husi.compose.AutoCompleteSuggestionList
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -440,35 +436,25 @@ private fun ConfigEditScreenContent(
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    val parser = remember { PrettifyParser() }
-
     val colorScheme = MaterialTheme.colorScheme
-    val theme = remember(colorScheme) {
-        object : CodeTheme(
-            SyntaxColors(
-                type = Color(0xFFA7E22E),
-                keyword = Color(0xFFFA2772),
-                literal = Color(0xFF66D9EE),
-                comment = colorScheme.onSurfaceVariant,
-                string = Color(0xFFE6DB74),
-                punctuation = colorScheme.onSurface.copy(alpha = 0.7f),
-                plain = colorScheme.onSurface,
-                tag = Color(0xFFF92672),
-                declaration = Color(0xFFFA2772),
-                source = colorScheme.onSurface,
-                attrName = Color(0xFFA6E22E),
-                attrValue = Color(0xFFE6DB74),
-                nocode = colorScheme.onSurface,
+    val syntaxStyles = remember(colorScheme) {
+        mapOf(
+            ConfigJsonTokenType.STRING to SpanStyle(color = Color(0xFFE6DB74)),
+            ConfigJsonTokenType.NUMBER to SpanStyle(color = Color(0xFF66D9EE)),
+            ConfigJsonTokenType.BOOLEAN to SpanStyle(color = Color(0xFFFA2772)),
+            ConfigJsonTokenType.NULL to SpanStyle(color = Color(0xFFA7E22E)),
+            ConfigJsonTokenType.PUNCTUATION to SpanStyle(
+                color = colorScheme.onSurface.copy(alpha = 0.7f),
             ),
-        ) {}
+            ConfigJsonTokenType.INVALID to SpanStyle(color = colorScheme.error),
+        )
     }
 
-    val outputTransformation = remember(parser, theme) {
+    val outputTransformation = remember(syntaxStyles) {
         OutputTransformation {
             val text = asCharSequence().toString()
-            val highlighted = parseCodeAsAnnotatedString(parser, theme, CodeLang.JSON, text)
-            highlighted.spanStyles.forEach { spanStyle ->
-                addStyle(spanStyle.item, spanStyle.start, spanStyle.end)
+            for (token in configJsonEngine.document(text).tokens) {
+                addStyle(syntaxStyles.getValue(token.type), token.start, token.end)
             }
         }
     }

@@ -1,4 +1,4 @@
-package fr.husi.ui.profile
+package fr.husi.ui.jsoneditor
 
 import fr.husi.libcore.Libcore
 import kotlinx.serialization.json.Json
@@ -34,10 +34,11 @@ private data class JsonCursor(
 
 class ConfigSchemaCompleter(
     private val root: JsonObject,
+    private val jsonEngine: ConfigJsonEngine = ConfigJsonEngine(),
 ) {
 
     fun complete(text: String, cursor: Int): List<ConfigSchemaCompletion> {
-        val context = scan(text, cursor)
+        val context = scan(jsonEngine.document(text), cursor)
         if (!context.isInString && context.prefix.isEmpty()) return emptyList()
         return if (context.inKey) {
             keyCompletions(context)
@@ -131,44 +132,48 @@ class ConfigSchemaCompleter(
         it["description"]?.jsonPrimitiveContent()
     }
 
-    private fun scan(text: String, cursor: Int): JsonCursor {
+    private fun scan(document: ConfigJsonDocument, cursor: Int): JsonCursor {
+        val text = document.text
         val frames = mutableListOf(SchemaFrame(root, isArray = false))
-        var inString = false
-        var escaped = false
-        var stringStart = -1
-        var stringIsKey = false
         var lastString: String? = null
         var lastStringWasKey = false
+        val safeCursor = cursor.coerceIn(0, text.length)
 
-        for (index in 0 until cursor.coerceAtMost(text.length)) {
-            val character = text[index]
-            if (inString) {
-                if (escaped) {
-                    escaped = false
-                } else if (character == '\\') {
-                    escaped = true
-                } else if (character == '"') {
-                    lastString = text.substring(stringStart + 1, index)
-                    lastStringWasKey = stringIsKey
-                    inString = false
+        for (token in document.tokens) {
+            if (token.start >= safeCursor) break
+            if (token.type == ConfigJsonTokenType.STRING) {
+                val stringIsKey = !frames.last().isArray &&
+                    previousMeaningful(text, token.start - 1) in setOf('{', ',')
+                val isClosed = token.end - token.start >= 2 && text[token.end - 1] == '"'
+                val isInside = if (isClosed) safeCursor < token.end else safeCursor <= token.end
+                if (isInside) {
+                    val contentStart = token.start + 1
+                    val contentEnd = safeCursor.coerceAtLeast(contentStart).coerceAtMost(
+                        if (isClosed) token.end - 1 else token.end,
+                    )
+                    val prefix = text.substring(contentStart, contentEnd)
+                    val schema = if (stringIsKey) frames.last().schema else valueSchema(frames.last())
+                    val replaceEnd = if (safeCursor < text.length && text[safeCursor] == '"') {
+                        safeCursor + 1
+                    } else {
+                        safeCursor
+                    }
+                    return JsonCursor(schema, stringIsKey, true, prefix, token.start, replaceEnd)
                 }
+                val contentEnd = token.end - if (isClosed) 1 else 0
+                lastString = text.substring(token.start + 1, contentEnd)
+                lastStringWasKey = stringIsKey
                 continue
             }
-
-            when (character) {
-                '"' -> {
-                    inString = true
-                    stringStart = index
-                    stringIsKey = !frames.last().isArray && previousMeaningful(text, index - 1) in setOf('{', ',')
-                }
-
+            if (token.type != ConfigJsonTokenType.PUNCTUATION) continue
+            when (text[token.start]) {
                 ':' -> if (lastStringWasKey) {
                     frames.last().pendingKey = lastString
                     lastString = null
                 }
 
                 '{', '[' -> {
-                    if (previousMeaningful(text, index - 1) == null) {
+                    if (previousMeaningful(text, token.start - 1) == null) {
                         continue
                     }
                     val parent = frames.last()
@@ -177,7 +182,7 @@ class ConfigSchemaCompleter(
                     } else {
                         parent.pendingKey?.let { key -> propertiesOf(parent.schema)[key] }
                     } ?: JsonObject(emptyMap())
-                    frames += SchemaFrame(childSchema, isArray = character == '[')
+                    frames += SchemaFrame(childSchema, isArray = text[token.start] == '[')
                 }
 
                 '}', ']' -> if (frames.size > 1) {
@@ -193,26 +198,15 @@ class ConfigSchemaCompleter(
         }
 
         val frame = frames.last()
-        if (inString) {
-            val prefix = text.substring(stringStart + 1, cursor.coerceAtMost(text.length))
-            val schema = if (stringIsKey) {
-                frame.schema
-            } else {
-                valueSchema(frame)
-            }
-            val replaceEnd = if (cursor < text.length && text[cursor] == '"') cursor + 1 else cursor
-            return JsonCursor(schema, stringIsKey, true, prefix, stringStart, replaceEnd)
-        }
-
-        val previous = previousMeaningful(text, cursor - 1)
+        val previous = previousMeaningful(text, safeCursor - 1)
         val expectsValue = previous == ':' || frame.isArray
         return JsonCursor(
             schema = if (expectsValue) valueSchema(frame) else frame.schema,
             inKey = !expectsValue,
             isInString = false,
             prefix = "",
-            replaceStart = cursor,
-            replaceEnd = cursor,
+            replaceStart = safeCursor,
+            replaceEnd = safeCursor,
         )
     }
 
@@ -311,5 +305,8 @@ class ConfigSchemaCompleter(
 private val schemaCompositionKeys = setOf("allOf", "anyOf", "oneOf")
 
 val configSchemaCompleter by lazy {
-    ConfigSchemaCompleter(Json.parseToJsonElement(Libcore.generateConfigSchema()).jsonObject)
+    ConfigSchemaCompleter(
+        Json.parseToJsonElement(Libcore.generateConfigSchema()).jsonObject,
+        configJsonEngine,
+    )
 }

@@ -1,4 +1,4 @@
-package fr.husi.ui.profile
+package fr.husi.ui.jsoneditor
 
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.ui.text.TextRange
