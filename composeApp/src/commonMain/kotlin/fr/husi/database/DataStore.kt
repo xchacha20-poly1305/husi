@@ -207,9 +207,13 @@ object DataStore {
 
     var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
     var httpProxyBypass by configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }
+
     var connectionTestURL by configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
     var connectionTestConcurrent by configurationStore.int(Key.CONNECTION_TEST_CONCURRENT) { 5 }
     var connectionTestTimeout by configurationStore.int(Key.CONNECTION_TEST_TIMEOUT) { 3000 }
+    var connectionTestUnifiedDelay by configurationStore.boolean(Key.CONNECTION_TEST_UNIFIED_DELAY) { false }
+    var connectionTestIgnoreHandshakeTime by configurationStore.boolean(Key.CONNECTION_TEST_IGNORE_HANDSHAKE_TIME) { false }
+
     var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
     var blurredAddress by configurationStore.boolean(Key.BLURRED_ADDRESS)
     var privacyMode by configurationStore.boolean(Key.PRIVACY_MODE) { false }

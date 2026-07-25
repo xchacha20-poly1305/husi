@@ -17,15 +17,13 @@ import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.ktx.toList
+import fr.husi.ktx.urlTestOptions
 import fr.husi.libcore.Client
 import fr.husi.libcore.ConnectionEvent
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.ProxyItemIterator
 import fr.husi.utils.LibcoreClientManager
 import fr.husi.utils.PackageResolver
-import kotlin.experimental.and
-import kotlin.experimental.inv
-import kotlin.experimental.or
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -41,6 +39,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.experimental.and
+import kotlin.experimental.inv
+import kotlin.experimental.or
 import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
@@ -649,7 +650,12 @@ class DashboardViewModel(
     fun urlTestForSingle(tag: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
             client.withClient { client ->
-                client.urlTest(tag, DataStore.connectionTestURL, DataStore.connectionTestTimeout)
+                client.urlTest(
+                    tag,
+                    DataStore.connectionTestURL,
+                    DataStore.connectionTestTimeout,
+                    urlTestOptions,
+                )
             }
         } catch (e: Exception) {
             Logs.w(e)
@@ -667,6 +673,7 @@ class DashboardViewModel(
         if (items.isEmpty()) return@launch
         val testURL = DataStore.connectionTestURL
         val testTimeout = DataStore.connectionTestTimeout
+        val testOptions = urlTestOptions
         try {
             urlTestClient.withClient { client ->
                 for ((index, item) in items.withIndex()) {
@@ -678,7 +685,7 @@ class DashboardViewModel(
                         ),
                     )
                     try {
-                        client.urlTest(item.tag, testURL, testTimeout)
+                        client.urlTest(item.tag, testURL, testTimeout, testOptions)
                     } catch (e: Exception) {
                         Logs.w(e)
                     }

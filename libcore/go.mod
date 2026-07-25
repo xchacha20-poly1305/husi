@@ -10,8 +10,8 @@ require (
 	github.com/klauspost/compress v1.19.0
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/sing v0.8.12-0.20260721063414-596db5dd6ef4
-	github.com/sagernet/sing-box v1.14.0-beta.1
-	github.com/sagernet/sing-tun v0.8.12-0.20260722035624-8cededca4cc1
+	github.com/sagernet/sing-box v1.14.0-beta.2
+	github.com/sagernet/sing-tun v0.8.12-0.20260724023008-68aa7bdc2819
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.2

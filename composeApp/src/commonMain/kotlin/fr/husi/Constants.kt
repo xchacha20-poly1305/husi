@@ -75,6 +75,8 @@ object Key {
     const val CONNECTION_TEST_URL = "connectionTestURL"
     const val CONNECTION_TEST_CONCURRENT = "connectionTestConcurrent"
     const val CONNECTION_TEST_TIMEOUT = "connectionTestTimeout"
+    const val CONNECTION_TEST_UNIFIED_DELAY = "connectionTestUnifiedDelay"
+    const val CONNECTION_TEST_IGNORE_HANDSHAKE_TIME = "connectionIgnoreHandshakeTime"
 
     const val SECURITY_ADVISORY = "securityAdvisory"
     const val DISABLE_TCP_KEEP_ALIVE = "disableTcpKeepAlive"

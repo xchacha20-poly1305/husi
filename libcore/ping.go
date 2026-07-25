@@ -68,7 +68,7 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 
 // urlTest perform URL test for tag using link and timeout as millisecond.
 // If tag is empty, it will use the default outbound.
-func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, err error) {
+func (b *boxInstance) urlTest(tag, link string, timeout int32, options uint8) (latency int32, err error) {
 	var detour adapter.Outbound
 	if tag == "" {
 		detour = b.Outbound().Default()
@@ -87,7 +87,7 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 	chLatency := make(chan uint16, 1)
 	go func() {
 		var t uint16
-		t, err = urlTest(ctx, link, detour)
+		t, err = urlTest(ctx, link, detour, options)
 		if err != nil {
 			close(chLatency)
 			return
@@ -115,7 +115,7 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 	}
 }
 
-func (c *Client) NewInstanceURLTest(config, tag, link string, timeout int32) (int32, error) {
+func (c *Client) NewInstanceURLTest(config, tag, link string, timeout int32, options uint8) (int32, error) {
 	err := vario.WriteUint8(c.conn, commandNewInstanceURLTest)
 	if err != nil {
 		return -1, E.Cause(err, "write command")
@@ -135,6 +135,10 @@ func (c *Client) NewInstanceURLTest(config, tag, link string, timeout int32) (in
 	err = vario.WriteInt32(c.conn, timeout)
 	if err != nil {
 		return -1, E.Cause(err, "write timeout")
+	}
+	err = vario.WriteUint8(c.conn, options)
+	if err != nil {
+		return -1, E.Cause(err, "write options")
 	}
 	resultCode, err := vario.ReadUint8(c.conn)
 	if err != nil {
@@ -171,8 +175,12 @@ func (s *Service) handleNewInstanceURLTest(conn io.ReadWriter) error {
 	if err != nil {
 		return E.Cause(err, "read timeout")
 	}
+	options, err := vario.ReadUint8(conn)
+	if err != nil {
+		return E.Cause(err, "read options")
+	}
 
-	latency, err := s.newInstanceURLTest(config, tag, link, timeout)
+	latency, err := s.newInstanceURLTest(config, tag, link, timeout, options)
 	if err != nil {
 		_ = vario.WriteUint8(conn, resultCommonError)
 		_ = vario.WriteString(conn, err.Error())
@@ -190,7 +198,7 @@ func (s *Service) handleNewInstanceURLTest(conn io.ReadWriter) error {
 	return nil
 }
 
-func (s *Service) newInstanceURLTest(config, tag, link string, timeout int32) (int32, error) {
+func (s *Service) newInstanceURLTest(config, tag, link string, timeout int32, options uint8) (int32, error) {
 	instance, err := newBoxInstance(config, s.platformInterface, true)
 	if err != nil {
 		return -1, E.Cause(err, "create instance")
@@ -200,10 +208,10 @@ func (s *Service) newInstanceURLTest(config, tag, link string, timeout int32) (i
 	if err != nil {
 		return -1, E.Cause(err, "start instance")
 	}
-	return instance.urlTest(tag, link, timeout)
+	return instance.urlTest(tag, link, timeout, options)
 }
 
-func (c *Client) UrlTest(tag, link string, timeout int32) (int32, error) {
+func (c *Client) UrlTest(tag, link string, timeout int32, options uint8) (int32, error) {
 	err := vario.WriteUint8(c.conn, commandUrlTest)
 	if err != nil {
 		return -1, E.Cause(err, "write command")
@@ -219,6 +227,10 @@ func (c *Client) UrlTest(tag, link string, timeout int32) (int32, error) {
 	err = vario.WriteInt32(c.conn, timeout)
 	if err != nil {
 		return -1, E.Cause(err, "write timeout")
+	}
+	err = vario.WriteUint8(c.conn, options)
+	if err != nil {
+		return -1, E.Cause(err, "write options")
 	}
 	resultCode, err := vario.ReadUint8(c.conn)
 	if err != nil {
@@ -251,7 +263,11 @@ func (s *Service) handleUrlTest(conn io.ReadWriter, instance *boxInstance) error
 	if err != nil {
 		return E.Cause(err, "read timeout")
 	}
-	latency, err := instance.urlTest(tag, link, timeout)
+	options, err := vario.ReadUint8(conn)
+	if err != nil {
+		return E.Cause(err, "read options")
+	}
+	latency, err := instance.urlTest(tag, link, timeout, options)
 	if err != nil {
 		_ = vario.WriteUint8(conn, resultCommonError)
 		_ = vario.WriteString(conn, err.Error())
@@ -268,8 +284,12 @@ func (s *Service) handleUrlTest(conn io.ReadWriter, instance *boxInstance) error
 	return nil
 }
 
-// Different from urltest.URLTest: never ignore handshake delay.
-func urlTest(ctx context.Context, link string, detour N.Dialer) (t uint16, err error) {
+const (
+	URLTestUnifiedDelay uint8 = 1 << iota
+	URLTestIgnoreHandshakeTime
+)
+
+func urlTest(ctx context.Context, link string, detour N.Dialer, options uint8) (t uint16, err error) {
 	link = cmp.Or(link, "https://www.gstatic.com/generate_204")
 	linkURL, err := url.Parse(link)
 	if err != nil {
@@ -292,6 +312,9 @@ func urlTest(ctx context.Context, link string, detour N.Dialer) (t uint16, err e
 		return
 	}
 	defer instance.Close()
+	if options&URLTestIgnoreHandshakeTime != 0 && N.NeedHandshakeForWrite(instance) {
+		start = time.Now()
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, link, nil)
 	if err != nil {
 		return
@@ -312,11 +335,18 @@ func urlTest(ctx context.Context, link string, detour N.Dialer) (t uint16, err e
 		Timeout: C.TCPTimeout,
 	}
 	defer client.CloseIdleConnections()
-	resp, err := client.Do(req)
-	if err != nil {
-		return
+	times := 1
+	if options&URLTestUnifiedDelay != 0 {
+		times++
 	}
-	defer resp.Body.Close()
-	t = uint16(time.Since(start) / time.Millisecond)
+	for range times {
+		var resp *http.Response
+		resp, err = client.Do(req)
+		if err != nil {
+			return
+		}
+		t = uint16(time.Since(start) / time.Millisecond)
+		_ = resp.Body.Close()
+	}
 	return
 }

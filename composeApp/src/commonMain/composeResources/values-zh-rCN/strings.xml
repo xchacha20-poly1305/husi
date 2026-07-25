@@ -253,6 +253,8 @@
     <string name="key_opt">密码 (可选)</string>
     <string name="group_diff">变化 (%1$s)</string>
     <string name="connection_test_url">连接测试链接</string>
+    <string name="connection_test_unified_delay">连接测试 统一延迟</string>
+    <string name="connection_test_ignore_handshake_time">连接测试 忽略握手时间</string>
     <string name="connection_test_available_http">连接成功: HTTP 握手耗时 %1$dms</string>
     <string name="certificates">证书 (链)</string>
     <string name="client_certificate">客户端证书</string>

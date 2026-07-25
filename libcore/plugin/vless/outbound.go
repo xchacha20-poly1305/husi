@@ -128,6 +128,10 @@ func (h *Outbound) ListenPacket(ctx context.Context, destination M.Socksaddr) (n
 	}
 }
 
+func (h *Outbound) MultiplexEnabled() bool {
+	return h.multiplexDialer != nil
+}
+
 func (h *Outbound) InterfaceUpdated() {
 	if h.transport != nil {
 		h.transport.Close()

@@ -133,13 +133,13 @@ func (s *Service) InitializeProxySet() {
 	}
 }
 
-func (s *Service) UrlTest(tag, link string, timeout int32) (int32, error) {
+func (s *Service) UrlTest(tag, link string, timeout int32, options uint8) (int32, error) {
 	s.access.RLock()
 	defer s.access.RUnlock()
 	if s.instance == nil {
 		return -1, E.New("instance not created")
 	}
-	return s.instance.urlTest(tag, link, timeout)
+	return s.instance.urlTest(tag, link, timeout, options)
 }
 
 func (s *Service) Start() error {

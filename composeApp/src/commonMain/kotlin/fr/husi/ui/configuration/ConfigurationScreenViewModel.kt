@@ -33,6 +33,7 @@ import fr.husi.ktx.removeFirstMatched
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.ktx.selectByNetworkStrategy
 import fr.husi.ktx.serverAddressDomainStrategy
+import fr.husi.ktx.urlTestOptions
 import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
 import fr.husi.plugin.PluginNotFoundException
@@ -41,11 +42,6 @@ import fr.husi.utils.closeQuietly
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
-import java.io.File
-import java.net.InetAddress
-import java.net.UnknownHostException
-import java.util.concurrent.ConcurrentHashMap
-import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -67,6 +63,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.io.File
+import java.net.InetAddress
+import java.net.UnknownHostException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.ZipInputStream
 import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
@@ -367,6 +368,7 @@ class ConfigurationScreenViewModel : ViewModel() {
     private suspend fun urlTest(profile: ProxyEntity): TestResult {
         val testURL = DataStore.connectionTestURL
         val testTimeout = DataStore.connectionTestTimeout
+        val testOptions = urlTestOptions
         var client: Client? = null
         var processes: GuardedProcessPool? = null
         val cacheFiles = ArrayList<File>()
@@ -382,7 +384,13 @@ class ConfigurationScreenViewModel : ViewModel() {
                 delay(500.milliseconds)
             }
 
-            val result = client.newInstanceURLTest(config.config, "", testURL, testTimeout)
+            val result = client.newInstanceURLTest(
+                config.config,
+                "",
+                testURL,
+                testTimeout,
+                testOptions,
+            )
             TestResult.Success(result)
         } catch (e: PluginNotFoundException) {
             TestResult.Failure(FailureReason.PluginNotFound(e.plugin))

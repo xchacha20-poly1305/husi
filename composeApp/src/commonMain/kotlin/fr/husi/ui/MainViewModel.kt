@@ -22,6 +22,7 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
+import fr.husi.ktx.urlTestOptions
 import fr.husi.repository.Repository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
@@ -157,6 +158,7 @@ class MainViewModel(
                     "",
                     DataStore.connectionTestURL,
                     DataStore.connectionTestTimeout,
+                    urlTestOptions,
                 )
             }
             urlTestStatus.update { URLTestStatus.Success(result) }

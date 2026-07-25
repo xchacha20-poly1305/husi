@@ -65,15 +65,15 @@ import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.HostTextField
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.LinkOrContentTextField
+import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.PortTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.IconMaskColors
-import fr.husi.compose.IconMaskShapes
-import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
@@ -125,6 +125,8 @@ import fr.husi.resources.cert_chrome
 import fr.husi.resources.certificate_authority
 import fr.husi.resources.check
 import fr.husi.resources.color_lens
+import fr.husi.resources.connection_test_ignore_handshake_time
+import fr.husi.resources.connection_test_unified_delay
 import fr.husi.resources.connection_test_url
 import fr.husi.resources.construction
 import fr.husi.resources.custom_rule_provider
@@ -220,6 +222,7 @@ import fr.husi.resources.proxied_apps
 import fr.husi.resources.proxied_apps_summary
 import fr.husi.resources.public_icon
 import fr.husi.resources.push_pin
+import fr.husi.resources.question_mark
 import fr.husi.resources.remote_dns
 import fr.husi.resources.route_options
 import fr.husi.resources.route_rules_official
@@ -1946,6 +1949,38 @@ private fun MiscSettingsGroup(
             MaskedIcon(Res.drawable.apps, color = IconMaskColors.IconWarmGray)
         },
         valueText = { Text(timeoutPreview.toInt().toString()) },
+    )
+    PreferenceDivider()
+
+    val connectionTestUnifiedDelay by DataStore.configurationStore
+        .booleanFlow(Key.CONNECTION_TEST_UNIFIED_DELAY, false)
+        .collectAsStateWithLifecycle(false)
+    SwitchPreference(
+        value = connectionTestUnifiedDelay,
+        onValueChange = {
+            DataStore.connectionTestUnifiedDelay = it
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.connection_test_unified_delay)) },
+        icon = {
+            MaskedIcon(Res.drawable.timer, IconMaskColors.IconLightGreen)
+        },
+    )
+    PreferenceDivider()
+
+    val connectionTestIgnoreHandshakeTime by DataStore.configurationStore
+        .booleanFlow(Key.CONNECTION_TEST_IGNORE_HANDSHAKE_TIME, false)
+        .collectAsStateWithLifecycle(false)
+    SwitchPreference(
+        value = connectionTestIgnoreHandshakeTime,
+        onValueChange = {
+            DataStore.connectionTestIgnoreHandshakeTime = it
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.connection_test_ignore_handshake_time)) },
+        icon = {
+            MaskedIcon(Res.drawable.question_mark, IconMaskColors.IconLightGreen)
+        },
     )
     if (PlatformInfo.isAndroid) {
         PreferenceDivider()

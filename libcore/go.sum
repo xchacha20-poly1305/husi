@@ -237,8 +237,8 @@ github.com/sagernet/quic-go v0.59.0-sing-box-mod.5 h1:73oI/46ckKWtPYtke10oR2T0xq
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.5/go.mod h1:OqILvS182CyOol5zNNo6bguvOGgXzV459+chpRaUC+4=
 github.com/sagernet/sing v0.8.12-0.20260721063414-596db5dd6ef4 h1:dIHd4IiQs0mtptfe8SdwDascDwh1w2LqDI8exoDuKeQ=
 github.com/sagernet/sing v0.8.12-0.20260721063414-596db5dd6ef4/go.mod h1:olXxWQNqRW/l2Q6JI3b2Qmz8iQnIFlOeeH8bx6JhgUA=
-github.com/sagernet/sing-box v1.14.0-beta.1 h1:vNFJ80cMmW+iKob9Yg54VUIggQonNKs/58b2+H2lxTk=
-github.com/sagernet/sing-box v1.14.0-beta.1/go.mod h1:PieydKfkv4/nhmMn/bJ0XNE5Ry3JfFhXddiLli3Zayw=
+github.com/sagernet/sing-box v1.14.0-beta.2 h1:aNJudYmHGWNGy+m5Tfdttnh5MWXBWYoBxTMZkhO62hI=
+github.com/sagernet/sing-box v1.14.0-beta.2/go.mod h1:NWqAED704Lsvj8eL98FnrhBIpfKea5liApgCs5ii8jQ=
 github.com/sagernet/sing-mux v0.3.5 h1:RHnhVEc+SFqkrK4xMygYjDwwLhzp2Bj3lztSukONfhI=
 github.com/sagernet/sing-mux v0.3.5/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-openconnect v0.0.0-20260722140139-e0c977659ca2 h1:IOzb7F/NRhAKx49+8HEsJmKrZT73EPseFouxQ6MvAOo=
@@ -255,8 +255,8 @@ github.com/sagernet/sing-shadowtls v0.2.1 h1:ZiHZdnEnP+YS73NMsxiZmIFCwNd0M4k7PkG
 github.com/sagernet/sing-shadowtls v0.2.1/go.mod h1:sWqKnGlMipCHaGsw1sTTlimyUpgzP4WP3pjhCsYt9oA=
 github.com/sagernet/sing-snell v0.0.0-20260719094200-c43fbee0e839 h1:YL0oCb55moImUGvjhhVEYODGMo5i9dAf+RpmMFPCq9w=
 github.com/sagernet/sing-snell v0.0.0-20260719094200-c43fbee0e839/go.mod h1:PcwzX/Xvqky0EP3kGt8OCjYb3R1pydenPHNQZcPZmXY=
-github.com/sagernet/sing-tun v0.8.12-0.20260722035624-8cededca4cc1 h1:Xy3t3S1ZUUKIwbKgS/CLDV4lf67Ay1V+jwz2Xn336v4=
-github.com/sagernet/sing-tun v0.8.12-0.20260722035624-8cededca4cc1/go.mod h1:BPbhYPXfcoJhQERTFf9DLEXkp2lMA8J47f892W+a/gM=
+github.com/sagernet/sing-tun v0.8.12-0.20260724023008-68aa7bdc2819 h1:JxzMsy4EMUsAJqKtDbWKW79NIvWfuD4ARPl5RLoMPjE=
+github.com/sagernet/sing-tun v0.8.12-0.20260724023008-68aa7bdc2819/go.mod h1:BPbhYPXfcoJhQERTFf9DLEXkp2lMA8J47f892W+a/gM=
 github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb h1:KEMbfexD4DvrQGYWwx6r+AwH9Veh8z6cnBZmtCS2G+0=
 github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb/go.mod h1:D4CnJX3MNAAANhbQUxfIRgBdnvlTEaV7h6ojedcs+pw=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1 h1:XkJcivBC9V4wBjiGXIXZ229aZCU1hzcbp6kSkkyQ478=
