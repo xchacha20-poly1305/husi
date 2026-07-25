@@ -1,11 +1,25 @@
 package libcore
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestGenerateConfigSchema(t *testing.T) {
+	content, err := GenerateConfigSchema()
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	var generated map[string]any
+	if assert.NoError(t, json.Unmarshal([]byte(content), &generated)) {
+		assert.Contains(t, generated, "$defs")
+		assert.Contains(t, content, `"$ref"`)
+	}
+}
 
 func Test_FormatConfig(t *testing.T) {
 	tt := []struct {

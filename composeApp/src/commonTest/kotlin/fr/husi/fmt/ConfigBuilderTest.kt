@@ -93,6 +93,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals(landing.id, trafficGroup.last().id)
 
         val root = Json.parseToJsonElement(result.config).jsonObject
+        assertEquals("https://sing-box.sagernet.org/schema.json", root["\$schema"]?.jsonPrimitive?.content)
         val outbounds = root["outbounds"]!!.jsonArray.map { it.jsonObject }
         fun outboundByTag(tag: String) = outbounds.first { it["tag"]?.jsonPrimitive?.content == tag }
 

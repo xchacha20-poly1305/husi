@@ -3,6 +3,7 @@ package libcore
 import (
 	"bytes"
 	"context"
+	"reflect"
 	"time"
 	_ "unsafe"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing-box/schema"
 	"github.com/sagernet/sing/common/byteformats"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
@@ -57,6 +59,15 @@ func FormatConfig(configContent string) (string, error) {
 	}
 
 	return buffer.String(), nil
+}
+
+// GenerateConfigSchema generates the JSON Schema for the supported configuration options.
+func GenerateConfigSchema() (string, error) {
+	content, err := schema.Generate(baseContext(nil), reflect.TypeFor[option.Options]())
+	if err != nil {
+		return "", E.Cause(err, "generate config schema")
+	}
+	return string(content), nil
 }
 
 // CheckConfig checks whether configContent can run as sing-box configuration.

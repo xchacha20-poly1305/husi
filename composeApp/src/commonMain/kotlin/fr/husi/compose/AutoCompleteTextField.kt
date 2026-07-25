@@ -1,14 +1,9 @@
 package fr.husi.compose
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MenuDefaults
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -22,9 +17,9 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastCoerceAtMost
+import fr.husi.compose.material3.Text
 
 @Composable
 fun <T> AutoCompleteTextField(
@@ -104,24 +99,18 @@ fun <T> AutoCompleteTextField(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { allowExpanded = false },
-            modifier = Modifier.heightIn(max = 200.dp),
-            scrollState = rememberScrollState(),
             containerColor = MenuDefaults.groupStandardContainerColor,
             shape = MenuDefaults.standaloneGroupShape,
         ) {
-            for ((i, suggestion) in suggestions.withIndex()) {
-                DropdownMenuItem(
-                    selected = i == selectedIndex,
-                    text = { Text(displaySuggestion(suggestion)) },
-                    onClick = {
-                        allowExpanded = false
-                        onChooseSuggestion(suggestion)
-                    },
-                    shapes = MenuDefaults.itemShape(i, suggestions.size),
-                    colors = MenuDefaults.selectableItemColors(),
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
-            }
+            AutoCompleteSuggestionList(
+                suggestions = suggestions,
+                selectedIndex = selectedIndex,
+                onChooseSuggestion = { suggestion ->
+                    allowExpanded = false
+                    onChooseSuggestion(suggestion)
+                },
+                itemContent = { Text(displaySuggestion(it)) },
+            )
         }
     }
 }

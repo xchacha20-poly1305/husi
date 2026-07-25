@@ -119,6 +119,9 @@ const val TAG_SERVICE_ANCHOR = "service-anchor"
 const val LOCALHOST4 = "127.0.0.1"
 private const val ANCHOR_PORT = 45947
 
+// For a certain version schema, maybe we should use [typebox](https://github.com/jiang-zhexin/typebox) ?
+const val CONFIG_SCHEMA_URL = "https://sing-box.sagernet.org/schema.json"
+
 val FAKE_DNS_QUERY_TYPE get() = listOf("A", "AAAA")
 
 class ConfigBuildResult(
@@ -277,6 +280,7 @@ fun buildConfig(
         LinkedHashMap()
 
     return MyOptions().apply {
+        `$schema` = CONFIG_SCHEMA_URL
         if (!forTest) experimental = ExperimentalOptions().apply {
             if (!forExport) {
                 if (DataStore.isExpert) DataStore.debugListen.blankAsNull()?.let {

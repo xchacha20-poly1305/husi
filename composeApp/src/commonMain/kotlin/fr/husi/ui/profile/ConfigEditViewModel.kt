@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.input.insert
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.text.TextRange
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.ktx.Logs
@@ -37,6 +38,8 @@ sealed interface ConfigEditUiEvent {
 data class ConfigEditUiState(
     val canUndo: Boolean = false,
     val canRedo: Boolean = false,
+    val schemaCompletions: List<ConfigSchemaCompletion> = emptyList(),
+    val selectedSchemaCompletion: Int = 0,
 )
 
 @Stable
@@ -86,6 +89,22 @@ class ConfigEditViewModel(
         }
     }
 
+    fun onEditorChange(text: String, selection: TextRange) {
+        onTextChange(text)
+        uiState.value = uiState.value.copy(
+            schemaCompletions = configSchemaCompleter.complete(text, selection.end),
+            selectedSchemaCompletion = 0,
+        )
+    }
+
+    fun selectSchemaCompletion(offset: Int) {
+        val completions = uiState.value.schemaCompletions
+        if (completions.isEmpty()) return
+        uiState.value = uiState.value.copy(
+            selectedSchemaCompletion = (uiState.value.selectedSchemaCompletion + offset).mod(completions.size),
+        )
+    }
+
     fun insertText(insertion: String) {
         textFieldState.edit {
             val start = selection.start
@@ -95,6 +114,18 @@ class ConfigEditViewModel(
             selection = androidx.compose.ui.text.TextRange(start + insertion.length)
         }
         addToHistory(textFieldState.text.toString())
+    }
+
+    fun applySchemaCompletion(completion: ConfigSchemaCompletion) {
+        textFieldState.edit {
+            delete(completion.replaceStart, completion.replaceEnd)
+            insert(completion.replaceStart, completion.replacement)
+            selection = TextRange(completion.replaceStart + completion.cursorOffset)
+        }
+        val text = textFieldState.text.toString()
+        lastText = text
+        addToHistory(text)
+        onEditorChange(text, textFieldState.selection)
     }
 
     fun moveCursor(offset: Int) {

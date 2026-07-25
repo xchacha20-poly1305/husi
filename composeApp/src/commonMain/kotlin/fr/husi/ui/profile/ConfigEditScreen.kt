@@ -42,9 +42,11 @@ import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -61,7 +63,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -74,6 +79,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
@@ -88,6 +95,7 @@ import com.wakaztahir.codeeditor.prettify.PrettifyParser
 import com.wakaztahir.codeeditor.theme.CodeTheme
 import com.wakaztahir.codeeditor.theme.SyntaxColors
 import com.wakaztahir.codeeditor.utils.parseCodeAsAnnotatedString
+import fr.husi.compose.AutoCompleteSuggestionList
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
@@ -307,6 +315,51 @@ private fun BoxScope.ConfigEditFloatingToolbar(
     }
 }
 
+@Composable
+private fun BoxScope.ConfigSchemaCompletionBar(
+    completions: List<ConfigSchemaCompletion>,
+    selectedCompletion: Int,
+    isEditorFocused: Boolean,
+    cursorPosition: Offset?,
+    cursorRect: Rect?,
+    onCompletionClick: (ConfigSchemaCompletion) -> Unit,
+) {
+    if (!isEditorFocused || completions.isEmpty() || cursorPosition == null || cursorRect == null) return
+    val density = LocalDensity.current
+    val xOffset = with(density) { (cursorPosition.x + cursorRect.left).toDp() }
+    val yOffset = with(density) { (cursorPosition.y + cursorRect.bottom).toDp() }
+    Surface(
+        modifier = Modifier
+            .align(Alignment.TopStart)
+            .offset(x = xOffset, y = yOffset),
+        shape = MenuDefaults.standaloneGroupShape,
+        color = MenuDefaults.groupStandardContainerColor,
+        shadowElevation = 4.dp,
+    ) {
+        AutoCompleteSuggestionList(
+            suggestions = completions,
+            selectedIndex = selectedCompletion,
+            onChooseSuggestion = onCompletionClick,
+        ) { completion ->
+            Column {
+                Text(
+                    text = completion.label,
+                    fontWeight = FontWeight.Medium,
+                )
+                completion.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Medium,
+                        ),
+                        color = LocalContentColor.current,
+                    )
+                }
+            }
+        }
+    }
+}
+
 /**
  * Result definition: String? ( null means user cancel, otherwise is the edited config )
  */
@@ -376,8 +429,10 @@ private fun ConfigEditScreenContent(
     }
 
     LaunchedEffect(viewModel) {
-        snapshotFlow { viewModel.textFieldState.text.toString() }.collect { text ->
-            viewModel.onTextChange(text)
+        snapshotFlow {
+            viewModel.textFieldState.text.toString() to viewModel.textFieldState.selection
+        }.collect { (text, selection) ->
+            viewModel.onEditorChange(text, selection)
         }
     }
 
@@ -450,8 +505,11 @@ private fun ConfigEditScreenContent(
         },
         snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
     ) { innerPadding ->
+        var completionHostPosition by remember { mutableStateOf<Offset?>(null) }
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { completionHostPosition = it.positionInRoot() },
         ) {
             val density = LocalDensity.current
             val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
@@ -468,6 +526,9 @@ private fun ConfigEditScreenContent(
             )
             val extraHeight = with(density) { toolbarHeightPx.toDp() } + toolbarYOffset
             var editorHeightPx by remember { mutableIntStateOf(0) }
+            var editorPosition by remember { mutableStateOf<Offset?>(null) }
+            var cursorRect by remember { mutableStateOf<Rect?>(null) }
+            var editorFocused by remember { mutableStateOf(false) }
             val editorMinHeight = (
                     with(density) { editorHeightPx.toDp() } - extraHeight
                     ).coerceAtLeast(0.dp)
@@ -497,9 +558,28 @@ private fun ConfigEditScreenContent(
                             .fillMaxWidth()
                             .heightIn(min = editorMinHeight)
                             .focusRequester(focusRequester)
+                            .onFocusChanged { editorFocused = it.isFocused }
+                            .onGloballyPositioned { editorPosition = it.positionInRoot() }
                             .onPreviewKeyEvent { keyEvent ->
                                 if (keyEvent.type != KeyEventType.KeyDown) {
                                     return@onPreviewKeyEvent false
+                                }
+                                if (keyEvent.key == Key.DirectionUp && uiState.schemaCompletions.isNotEmpty()) {
+                                    viewModel.selectSchemaCompletion(-1)
+                                    return@onPreviewKeyEvent true
+                                }
+                                if (keyEvent.key == Key.DirectionDown && uiState.schemaCompletions.isNotEmpty()) {
+                                    viewModel.selectSchemaCompletion(1)
+                                    return@onPreviewKeyEvent true
+                                }
+                                if (keyEvent.key == Key.Tab) {
+                                    val completion = uiState.schemaCompletions.getOrNull(
+                                        uiState.selectedSchemaCompletion,
+                                    )
+                                    if (completion != null) {
+                                        viewModel.applySchemaCompletion(completion)
+                                        return@onPreviewKeyEvent true
+                                    }
                                 }
                                 if (!keyEvent.isTypeControlPressed || keyEvent.key != Key.Z) {
                                     return@onPreviewKeyEvent false
@@ -514,9 +594,13 @@ private fun ConfigEditScreenContent(
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
+                        inputTransformation = configEditInputTransformation,
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         lineLimits = TextFieldLineLimits.MultiLine(),
                         outputTransformation = outputTransformation,
+                        onTextLayout = { getResult ->
+                            cursorRect = getResult()?.getCursorRect(viewModel.textFieldState.selection.end)
+                        },
                     )
                     Spacer(modifier = Modifier.height(extraHeight))
                 }
@@ -529,6 +613,14 @@ private fun ConfigEditScreenContent(
                     ),
                 )
             }
+            ConfigSchemaCompletionBar(
+                completions = uiState.schemaCompletions,
+                selectedCompletion = uiState.selectedSchemaCompletion,
+                isEditorFocused = editorFocused,
+                cursorPosition = editorPosition?.minus(completionHostPosition ?: Offset.Zero),
+                cursorRect = cursorRect,
+                onCompletionClick = viewModel::applySchemaCompletion,
+            )
         }
     }
 

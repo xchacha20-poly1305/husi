@@ -49,6 +49,7 @@ data class MyRouteOptionsKxs(
 
 @KxsSerializable
 data class MyOptionsKxs(
+    val `$schema`: String? = null,
     val log: LogOptions? = null,
     val dns: MyDNSOptionsKxs? = null,
     val ntp: NTPOptions? = null,
@@ -90,6 +91,7 @@ fun MyRouteOptions.toKxs(): MyRouteOptionsKxs = MyRouteOptionsKxs(
 )
 
 fun MyOptions.toKxs(): MyOptionsKxs = MyOptionsKxs(
+    `$schema` = `$schema`,
     log = log,
     dns = dns?.toKxs(),
     ntp = ntp,

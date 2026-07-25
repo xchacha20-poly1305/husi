@@ -3,6 +3,7 @@ package pluginoption
 import (
 	"strings"
 
+	"github.com/sagernet/sing-box/schema"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	N "github.com/sagernet/sing/common/network"
@@ -37,4 +38,8 @@ func (v NetworkListWithICMP) Build() []string {
 		return []string{N.NetworkTCP, N.NetworkUDP, N.NetworkICMP}
 	}
 	return strings.Split(string(v), "\n")
+}
+
+func (v NetworkListWithICMP) DescribeSchema(builder schema.Builder) (*schema.Node, error) {
+	return schema.ListableOf(schema.StringEnum(N.NetworkTCP, N.NetworkUDP, N.NetworkICMP)), nil
 }

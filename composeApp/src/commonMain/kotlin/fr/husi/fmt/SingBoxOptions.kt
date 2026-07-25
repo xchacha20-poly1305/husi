@@ -149,6 +149,9 @@ object SingBoxOptions {
 
     open class MyOptions : SingBoxOption() {
         @JvmField
+        var `$schema`: String? = null
+
+        @JvmField
         var log: LogOptions? = null
 
         @JvmField
