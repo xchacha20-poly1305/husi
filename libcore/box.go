@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"libcore/combinedapi"
+	"libcore/plugin/anchor"
 	"libcore/protect"
 
 	"github.com/sagernet/sing-box"
@@ -18,8 +19,11 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
+	"github.com/sagernet/sing/common/x/list"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
+
+	"go4.org/netipx"
 )
 
 type boxInstance struct {
@@ -101,6 +105,15 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 func (b *boxInstance) Start() (err error) {
 	defer catchPanic("box.Start", func(panicErr error) { err = panicErr })
 
+	// Workaround to set `needWIFIState` for anchor
+	serviceManager := service.FromContext[adapter.ServiceManager](b.ctx)
+	if common.Any(serviceManager.Services(), func(it adapter.Service) bool {
+		_, isAnchorService := it.(*anchor.Service)
+		return isAnchorService
+	}) {
+		b.Box.Network().Initialize([]adapter.RuleSet{fakeWifiRuleSet{}})
+	}
+
 	err = b.Box.Start()
 	if err != nil {
 		return err
@@ -119,6 +132,56 @@ func (b *boxInstance) Start() (err error) {
 	}
 
 	return nil
+}
+
+var _ adapter.RuleSet = fakeWifiRuleSet{}
+
+type fakeWifiRuleSet struct{}
+
+func (f fakeWifiRuleSet) Name() string {
+	return f.String()
+}
+
+func (f fakeWifiRuleSet) StartContext(ctx context.Context, startContext *adapter.HTTPStartContext) error {
+	return nil
+}
+
+func (f fakeWifiRuleSet) Metadata() adapter.RuleSetMetadata {
+	return adapter.RuleSetMetadata{
+		ContainsWIFIRule: true,
+	}
+}
+
+func (f fakeWifiRuleSet) ExtractIPSet() []*netipx.IPSet {
+	return nil
+}
+
+func (f fakeWifiRuleSet) IncRef() {
+}
+
+func (f fakeWifiRuleSet) DecRef() {
+}
+
+func (f fakeWifiRuleSet) Cleanup() {
+}
+
+func (f fakeWifiRuleSet) RegisterCallback(callback adapter.RuleSetUpdateCallback) *list.Element[adapter.RuleSetUpdateCallback] {
+	return nil
+}
+
+func (f fakeWifiRuleSet) UnregisterCallback(element *list.Element[adapter.RuleSetUpdateCallback]) {
+}
+
+func (f fakeWifiRuleSet) Close() error {
+	return nil
+}
+
+func (f fakeWifiRuleSet) Match(metadata *adapter.InboundContext) bool {
+	return false
+}
+
+func (f fakeWifiRuleSet) String() string {
+	return "fakeWifiRuleSet"
 }
 
 func (b *boxInstance) Close() (err error) {
