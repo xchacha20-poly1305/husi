@@ -8,16 +8,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateConfigSchema(t *testing.T) {
-	content, err := GenerateConfigSchema()
-	if !assert.NoError(t, err) {
-		return
+func TestGenerateSchema(t *testing.T) {
+	tests := map[string]func() (string, error){
+		"config":   GenerateConfigSchema,
+		"outbound": GenerateOutboundSchema,
+		"DNS rule": GenerateDNSRuleSchema,
 	}
+	for name, generate := range tests {
+		t.Run(name, func(t *testing.T) {
+			content, err := generate()
+			if !assert.NoError(t, err) {
+				return
+			}
 
-	var generated map[string]any
-	if assert.NoError(t, json.Unmarshal([]byte(content), &generated)) {
-		assert.Contains(t, generated, "$defs")
-		assert.Contains(t, content, `"$ref"`)
+			var generated map[string]any
+			if assert.NoError(t, json.Unmarshal([]byte(content), &generated)) {
+				assert.Contains(t, generated, "$defs")
+				assert.Contains(t, content, `"$ref"`)
+			}
+		})
 	}
 }
 

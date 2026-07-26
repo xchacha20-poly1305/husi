@@ -364,10 +364,11 @@ fun ConfigEditScreen(
     modifier: Modifier = Modifier,
     initialText: String,
     resultKey: String,
+    schema: ConfigSchema = ConfigSchema.CONFIG,
     onBack: () -> Unit,
 ) {
     val viewModel: ConfigEditViewModel = viewModel {
-        ConfigEditViewModel(initialText)
+        ConfigEditViewModel(initialText, schema)
     }
     // Force LTR ( this is JSON editor + make AutoMirrored arrow correct  )
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {

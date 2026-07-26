@@ -79,6 +79,7 @@ import fr.husi.resources.question_mark
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
 import fr.husi.results.ResultEffect
+import fr.husi.ui.jsoneditor.ConfigSchema
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.OpenProfilePicker
 import fr.husi.ui.stringOrRes
@@ -422,6 +423,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                                             NavRoutes.ConfigEditor(
                                                 initialText = viewModel.uiState.value.customOutbound,
                                                 resultKey = outboundConfigResultKey,
+                                                schema = ConfigSchema.OUTBOUND,
                                             ),
                                         )
                                     },

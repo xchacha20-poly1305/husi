@@ -2,6 +2,7 @@ package fr.husi.ui
 
 import androidx.navigation3.runtime.NavKey
 import androidx.savedstate.serialization.SavedStateConfiguration
+import fr.husi.ui.jsoneditor.ConfigSchema
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -122,6 +123,7 @@ sealed class NavRoutes : NavKey {
     data class ConfigEditor(
         val initialText: String = "",
         val resultKey: String,
+        val schema: ConfigSchema = ConfigSchema.CONFIG,
     ) : NavRoutes()
 
     @Serializable

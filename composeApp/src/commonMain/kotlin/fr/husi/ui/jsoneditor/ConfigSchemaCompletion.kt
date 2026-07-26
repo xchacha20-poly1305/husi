@@ -1,12 +1,9 @@
 package fr.husi.ui.jsoneditor
 
-import fr.husi.libcore.Libcore
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonObject
 
 data class ConfigSchemaCompletion(
     val label: String,
@@ -304,9 +301,3 @@ class ConfigSchemaCompleter(
 
 private val schemaCompositionKeys = setOf("allOf", "anyOf", "oneOf")
 
-val configSchemaCompleter by lazy {
-    ConfigSchemaCompleter(
-        Json.parseToJsonElement(Libcore.generateConfigSchema()).jsonObject,
-        configJsonEngine,
-    )
-}

@@ -161,6 +161,7 @@ import fr.husi.resources.warning_amber
 import fr.husi.resources.wifi
 import fr.husi.resources.wifi_find
 import fr.husi.results.ResultEffect
+import fr.husi.ui.jsoneditor.ConfigSchema
 import fr.husi.ui.profile.tlsSpoofMethod
 import fr.husi.ui.tools.RuleSetMatchDialog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -331,6 +332,7 @@ internal fun RouteSettingsScreen(
                                             NavRoutes.ConfigEditor(
                                                 initialText = uiState.customDnsConfig,
                                                 resultKey = dnsConfigEditResultKey,
+                                                schema = ConfigSchema.DNS_RULE,
                                             ),
                                         )
                                     },

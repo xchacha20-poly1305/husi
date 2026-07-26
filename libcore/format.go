@@ -61,13 +61,28 @@ func FormatConfig(configContent string) (string, error) {
 	return buffer.String(), nil
 }
 
-// GenerateConfigSchema generates the JSON Schema for the supported configuration options.
-func GenerateConfigSchema() (string, error) {
-	content, err := schema.Generate(baseContext(nil), reflect.TypeFor[option.Options]())
+func generateSchema[T any]() (string, error) {
+	rootType := reflect.TypeFor[T]()
+	content, err := schema.Generate(baseContext(nil), rootType)
 	if err != nil {
-		return "", E.Cause(err, "generate config schema")
+		return "", E.Cause(err, "generate schema for ", rootType)
 	}
 	return string(content), nil
+}
+
+// GenerateConfigSchema generates the JSON Schema for the supported configuration options.
+func GenerateConfigSchema() (string, error) {
+	return generateSchema[option.Options]()
+}
+
+// GenerateOutboundSchema generates the JSON Schema for a supported outbound.
+func GenerateOutboundSchema() (string, error) {
+	return generateSchema[option.Outbound]()
+}
+
+// GenerateDNSRuleSchema generates the JSON Schema for a DNS rule.
+func GenerateDNSRuleSchema() (string, error) {
+	return generateSchema[option.DNSRule]()
 }
 
 // CheckConfig checks whether configContent can run as sing-box configuration.

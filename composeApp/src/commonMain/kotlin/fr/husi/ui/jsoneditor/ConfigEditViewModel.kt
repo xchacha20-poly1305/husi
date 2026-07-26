@@ -45,6 +45,7 @@ data class ConfigEditUiState(
 @Stable
 class ConfigEditViewModel(
     initialText: String,
+    schema: ConfigSchema = ConfigSchema.CONFIG,
 ) : ViewModel() {
 
     val uiEvent: SharedFlow<ConfigEditUiEvent>
@@ -63,6 +64,7 @@ class ConfigEditViewModel(
     private val debounceDelay = 500.milliseconds
 
     private var lastText: String = ""
+    private val schemaCompleter = schema.completer
 
     init {
         initialize(initialText)
@@ -92,7 +94,7 @@ class ConfigEditViewModel(
     fun onEditorChange(text: String, selection: TextRange) {
         onTextChange(text)
         uiState.value = uiState.value.copy(
-            schemaCompletions = configSchemaCompleter.complete(text, selection.end),
+            schemaCompletions = schemaCompleter.complete(text, selection.end),
             selectedSchemaCompletion = 0,
         )
     }

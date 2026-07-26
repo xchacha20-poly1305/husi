@@ -202,6 +202,7 @@ internal val commonNavigationModule = module {
             ConfigEditScreen(
                 initialText = route.initialText,
                 resultKey = route.resultKey,
+                schema = route.schema,
                 onBack = { navigator.popBackStack() },
             )
         }
