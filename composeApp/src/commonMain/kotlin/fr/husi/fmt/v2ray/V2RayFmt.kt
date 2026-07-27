@@ -421,12 +421,14 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                     headers!!["Host"] = bean.host.listByLineOrComma().toMutableList()
                 }
 
-                if (bean.path.contains("?ed=")) {
-                    path = bean.path.substringBefore("?ed=")
-                    max_early_data = bean.path.substringAfter("?ed=").toIntOrNull() ?: 2048
+                val rawPath = bean.path.takeIf { it.isNotBlank() } ?: "/"
+                val pathUrl = Libcore.parseURL(
+                    "http://localhost${if (rawPath.startsWith("/")) rawPath else "/$rawPath"}",
+                )
+                path = pathUrl.path.takeIf { it.isNotBlank() } ?: "/"
+                pathUrl.queryParameterNotBlank("ed")?.let { ed ->
+                    max_early_data = ed.toIntOrNull() ?: 2048
                     early_data_header_name = "Sec-WebSocket-Protocol"
-                } else {
-                    path = bean.path.takeIf { it.isNotBlank() } ?: "/"
                 }
 
                 if (bean.wsMaxEarlyData > 0) {
