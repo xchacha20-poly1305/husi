@@ -23,7 +23,8 @@ jobs:
   android:
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout source code
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: recursive
@@ -70,7 +71,8 @@ jobs:
   desktop:
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout source code
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: recursive
@@ -87,19 +89,22 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
-      - uses: actions/checkout@v7
+      - name: Checkout JNI headers
+        uses: actions/checkout@v7
         with:
           repository: Casterlabs/jni-headers
           ref: ${{ env.JNI_HEADERS_COMMIT }}
           path: jni-headers
           sparse-checkout: versions/${{ env.JNI_HEADERS_VERSION }}
-      - uses: actions/checkout@v7
+      - name: Checkout macOS SDK
+        uses: actions/checkout@v7
         with:
           repository: alexey-lysiuk/macos-sdk
           ref: ${{ env.MACOS_SDK_COMMIT }}
           path: macos-sdk
           sparse-checkout: MacOSX${{ env.MACOS_SDK_VERSION }}.sdk
-      - uses: actions/checkout@v7
+      - name: Checkout cronet-go
+        uses: actions/checkout@v7
         with:
           repository: SagerNet/cronet-go
           ref: ${{ env.CRONET_GO_COMMIT }}
@@ -160,5 +165,5 @@ jobs:
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           else
-            gh release create "$RELEASE_TAG" "${files[@]}" --generate-notes
+            gh release create "$RELEASE_TAG" "${files[@]}" --generate-notes --prerelease
           fi

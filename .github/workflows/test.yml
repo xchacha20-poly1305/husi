@@ -4,7 +4,25 @@ on:
   push:
     branches:
       - 'dev*'
+    paths:
+      - .github/workflows/test.yml
+      - androidApp/
+      - buildScript/
+      - buildSrc/
+      - composeApp/
+      - gradle/
+      - libcore/
+      - library/
   pull_request:
+    paths:
+      - .github/workflows/test.yml
+      - androidApp/
+      - buildScript/
+      - buildSrc/
+      - composeApp/
+      - gradle/
+      - libcore/
+      - library/
 
 permissions:
   contents: read
@@ -13,7 +31,8 @@ jobs:
   test:
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout source code
+        uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: ./.github/actions/load-build-versions
@@ -34,7 +53,8 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
-      - uses: actions/checkout@v7
+      - name: Checkout cronet-go
+        uses: actions/checkout@v7
         with:
           repository: SagerNet/cronet-go
           ref: ${{ env.CRONET_GO_COMMIT }}
