@@ -272,24 +272,24 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should parse ws early data from path query`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should parse ws early data settings from path query`() {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
             uuid = "test-uuid"
             v2rayTransport = "ws"
-            path = "/ws?ed=2560"
+            path = "/ws?ed=2560&eh=Custom-Header"
         }
 
         val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
         val transport = assertIs<Map<*, *>>(outboundMap["transport"])
         assertEquals("/ws", transport["path"])
         assertEquals(2560L, transport["max_early_data"])
-        assertEquals("Sec-WebSocket-Protocol", transport["early_data_header_name"])
+        assertEquals("Custom-Header", transport["early_data_header_name"])
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should default ws path without early data query`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should preserve blank ws path`() {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
@@ -300,7 +300,7 @@ class V2RayFmtTest {
 
         val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
         val transport = assertIs<Map<*, *>>(outboundMap["transport"])
-        assertEquals("/", transport["path"])
+        assertEquals("", transport["path"])
         assertNull(transport["max_early_data"])
         assertNull(transport["early_data_header_name"])
     }
@@ -319,7 +319,7 @@ class V2RayFmtTest {
         val transport = assertIs<Map<*, *>>(outboundMap["transport"])
         val path = assertIs<String>(transport["path"])
         assertEquals(2560L, transport["max_early_data"])
-        assertEquals("Sec-WebSocket-Protocol", transport["early_data_header_name"])
+        assertNull(transport["early_data_header_name"])
 
         assertTrue(path.startsWith("/ws?"))
         assertFalse(path.contains("ed=2560"))
