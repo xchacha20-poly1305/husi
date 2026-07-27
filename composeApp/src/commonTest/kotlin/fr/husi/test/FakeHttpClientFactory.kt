@@ -170,6 +170,7 @@ class FakeURL(private val raw: String) : URL {
     override fun getUsername(): String = ""
     override fun queryParameter(key: String?): String = ""
     override fun queryParameterUnescape(key: String?): String = ""
+    override fun removeQueryParameter(key: String?) = unsupported()
     override fun setFragment(value: String?) = unsupported()
     override fun setFullHost(value: String?) = unsupported()
     override fun setHost(value: String?) = unsupported()

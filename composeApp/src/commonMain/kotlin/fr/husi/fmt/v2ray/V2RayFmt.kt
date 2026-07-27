@@ -422,11 +422,12 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 }
 
                 val pathUrl = Libcore.parseURL(bean.path)
-                path = pathUrl.path.takeIf { it.isNotBlank() } ?: "/"
                 pathUrl.queryParameterNotBlank("ed")?.let { ed ->
                     max_early_data = ed.toIntOrNull() ?: 2048
                     early_data_header_name = "Sec-WebSocket-Protocol"
+                    pathUrl.removeQueryParameter("ed")
                 }
+                path = pathUrl.string.takeIf { it.isNotBlank() } ?: "/"
 
                 if (bean.wsMaxEarlyData > 0) {
                     max_early_data = bean.wsMaxEarlyData

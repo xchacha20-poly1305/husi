@@ -42,6 +42,7 @@ type URL interface {
 	QueryParameterUnescape(key string) string
 	AddQueryParameter(key, value string)
 	SetQueryParameter(key, value string)
+	RemoveQueryParameter(key string)
 
 	GetFragment() string
 	SetFragment(fragment string)
@@ -227,6 +228,10 @@ func (u *netURL) AddQueryParameter(key, value string) {
 
 func (u *netURL) SetQueryParameter(key, value string) {
 	u.Set(key, value)
+}
+
+func (u *netURL) RemoveQueryParameter(key string) {
+	u.Del(key)
 }
 
 func (u *netURL) GetFragment() string {
