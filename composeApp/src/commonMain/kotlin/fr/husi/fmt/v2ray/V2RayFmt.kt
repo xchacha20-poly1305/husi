@@ -421,10 +421,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                     headers!!["Host"] = bean.host.listByLineOrComma().toMutableList()
                 }
 
-                val rawPath = bean.path.takeIf { it.isNotBlank() } ?: "/"
-                val pathUrl = Libcore.parseURL(
-                    "http://localhost${if (rawPath.startsWith("/")) rawPath else "/$rawPath"}",
-                )
+                val pathUrl = Libcore.parseURL(bean.path)
                 path = pathUrl.path.takeIf { it.isNotBlank() } ?: "/"
                 pathUrl.queryParameterNotBlank("ed")?.let { ed ->
                     max_early_data = ed.toIntOrNull() ?: 2048

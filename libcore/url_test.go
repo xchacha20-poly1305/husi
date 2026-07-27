@@ -137,6 +137,24 @@ func Test_ParseUrl(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name: "relative path with query, no scheme or host",
+			args: args{
+				rawURL: "/ws?ed=2560",
+			},
+			isWant: func(u URL) bool {
+				if u == nil {
+					return false
+				}
+				if u.GetPath() != "/ws" {
+					return false
+				}
+				if u.QueryParameter("ed") != "2560" {
+					return false
+				}
+				return true
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

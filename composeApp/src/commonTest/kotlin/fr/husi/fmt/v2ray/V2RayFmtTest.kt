@@ -271,6 +271,59 @@ class V2RayFmtTest {
     }
 
     @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should parse ws early data from path query`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            path = "/ws?ed=2560"
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        assertEquals("/ws", transport["path"])
+        assertEquals(2560L, transport["max_early_data"])
+        assertEquals("Sec-WebSocket-Protocol", transport["early_data_header_name"])
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should default ws path without early data query`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            path = ""
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        assertEquals("/", transport["path"])
+        assertNull(transport["max_early_data"])
+        assertNull(transport["early_data_header_name"])
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should let explicit wsMaxEarlyData override path query`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            path = "/ws?ed=2048"
+            wsMaxEarlyData = 4096
+            earlyDataHeaderName = "Custom-Header"
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        assertEquals("/ws", transport["path"])
+        assertEquals(4096L, transport["max_early_data"])
+        assertEquals("Custom-Header", transport["early_data_header_name"])
+    }
+
+    @Test
     fun `buildSingBoxOutboundStandardV2RayBean should build trojan outbound`() {
         val bean = TrojanBean().apply {
             serverAddress = "example.com"
