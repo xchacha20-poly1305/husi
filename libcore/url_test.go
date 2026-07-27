@@ -137,6 +137,51 @@ func Test_ParseUrl(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name: "relative path with query, no scheme or host",
+			args: args{
+				rawURL: "/ws?ed=2560",
+			},
+			isWant: func(u URL) bool {
+				if u == nil {
+					return false
+				}
+				if u.GetPath() != "/ws" {
+					return false
+				}
+				if u.QueryParameter("ed") != "2560" {
+					return false
+				}
+				return true
+			},
+		},
+		{
+			name: "relative path with many query parameters",
+			args: args{
+				rawURL: "/ws?foo=1&ed=2560&bar=2&baz=hello%20world",
+			},
+			isWant: func(u URL) bool {
+				if u == nil {
+					return false
+				}
+				if u.GetPath() != "/ws" {
+					return false
+				}
+				if u.QueryParameter("ed") != "2560" {
+					return false
+				}
+				if u.QueryParameter("foo") != "1" {
+					return false
+				}
+				if u.QueryParameter("bar") != "2" {
+					return false
+				}
+				if u.QueryParameter("baz") != "hello world" {
+					return false
+				}
+				return true
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -150,4 +195,21 @@ func Test_ParseUrl(t *testing.T) {
 			assert.True(t, tt.isWant(got), got.GetString())
 		})
 	}
+}
+
+func Test_URL_RemoveQueryParameter(t *testing.T) {
+	u, err := ParseURL("/ws?foo=1&ed=2560&bar=2")
+	require.NoError(t, err)
+
+	u.RemoveQueryParameter("ed")
+
+	assert.Equal(t, "/ws", u.GetPath())
+	assert.Empty(t, u.QueryParameter("ed"))
+	assert.Equal(t, "1", u.QueryParameter("foo"))
+	assert.Equal(t, "2", u.QueryParameter("bar"))
+
+	rebuilt := u.GetString()
+	assert.NotContains(t, rebuilt, "ed=")
+	assert.Contains(t, rebuilt, "foo=1")
+	assert.Contains(t, rebuilt, "bar=2")
 }

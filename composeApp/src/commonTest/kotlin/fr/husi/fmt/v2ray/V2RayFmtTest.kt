@@ -9,6 +9,7 @@ import fr.husi.ktx.b64EncodeOneLine
 import fr.husi.ktx.asKxsMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -268,6 +269,82 @@ class V2RayFmtTest {
         val headers = assertIs<Map<*, *>>(transport["headers"])
         assertEquals(listOf("host.example.com"), headers["Host"])
         assertNull(headers["host"])
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should parse ws early data settings from path query`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            path = "/ws?ed=2560&eh=Custom-Header"
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        assertEquals("/ws", transport["path"])
+        assertEquals(2560L, transport["max_early_data"])
+        assertEquals("Custom-Header", transport["early_data_header_name"])
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should preserve blank ws path`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            path = ""
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        assertEquals("", transport["path"])
+        assertNull(transport["max_early_data"])
+        assertNull(transport["early_data_header_name"])
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should strip only ed from path with many query params`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            path = "/ws?foo=1&ed=2560&bar=2&baz=hello%20world"
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        val path = assertIs<String>(transport["path"])
+        assertEquals(2560L, transport["max_early_data"])
+        assertNull(transport["early_data_header_name"])
+
+        assertTrue(path.startsWith("/ws?"))
+        assertFalse(path.contains("ed=2560"))
+        assertTrue(path.contains("foo=1"))
+        assertTrue(path.contains("bar=2"))
+        assertTrue(path.contains("baz=hello"))
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should let explicit wsMaxEarlyData override path query`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            path = "/ws?ed=2048"
+            wsMaxEarlyData = 4096
+            earlyDataHeaderName = "Custom-Header"
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        assertEquals("/ws", transport["path"])
+        assertEquals(4096L, transport["max_early_data"])
+        assertEquals("Custom-Header", transport["early_data_header_name"])
     }
 
     @Test

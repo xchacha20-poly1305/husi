@@ -48,6 +48,9 @@ import fr.husi.libcore.URL
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
 
+private const val DEFAULT_WS_MAX_EARLY_DATA = 2048
+private const val DEFAULT_WS_EARLY_DATA_HEADER = "Sec-WebSocket-Protocol"
+
 /**
  * A legacy but still be used widely and be updated continually format.
  * @see <a href="https://github.com/2dust/v2rayN/wiki/Description-of-VMess-share-link">Description of VMess share link</a>
@@ -170,8 +173,9 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
             host = url.queryParameter("host")
             path = url.queryParameter("path")
             url.queryParameterNotBlank("ed")?.let { ed ->
-                wsMaxEarlyData = ed.toIntOrNull() ?: 2048
-                earlyDataHeaderName = url.queryParameterNotBlank("eh") ?: "Sec-WebSocket-Protocol"
+                wsMaxEarlyData = ed.toIntOrNull() ?: DEFAULT_WS_MAX_EARLY_DATA
+                earlyDataHeaderName = url.queryParameterNotBlank("eh")
+                    ?: DEFAULT_WS_EARLY_DATA_HEADER
             }
         }
 
@@ -347,9 +351,9 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
             }
             if (v2rayTransport == "ws") {
                 if (wsMaxEarlyData > 0) {
-                    builder.addQueryParameter("ed", "$wsMaxEarlyData")
+                    builder.setQueryParameter("ed", "$wsMaxEarlyData")
                     if (earlyDataHeaderName.isNotBlank()) {
-                        builder.addQueryParameter("eh", earlyDataHeaderName)
+                        builder.setQueryParameter("eh", earlyDataHeaderName)
                     }
                 }
             } else if (v2rayTransport == "http" && !isTLS) {
@@ -421,12 +425,20 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                     headers!!["Host"] = bean.host.listByLineOrComma().toMutableList()
                 }
 
-                if (bean.path.contains("?ed=")) {
-                    path = bean.path.substringBefore("?ed=")
-                    max_early_data = bean.path.substringAfter("?ed=").toIntOrNull() ?: 2048
-                    early_data_header_name = "Sec-WebSocket-Protocol"
-                } else {
-                    path = bean.path.takeIf { it.isNotBlank() } ?: "/"
+                runCatching {
+                    Libcore.parseURL(bean.path)
+                }.onSuccess { pathURL ->
+                    pathURL.queryParameterNotBlank("ed")?.toIntOrNull()?.let { maxEarlyData ->
+                        max_early_data = maxEarlyData
+                        pathURL.removeQueryParameter("ed")
+                    }
+                    pathURL.queryParameterNotBlank("eh")?.let { headerName ->
+                        early_data_header_name = headerName
+                        pathURL.removeQueryParameter("eh")
+                    }
+                    path = pathURL.string
+                }.onFailure {
+                    path = bean.path
                 }
 
                 if (bean.wsMaxEarlyData > 0) {
