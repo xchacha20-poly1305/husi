@@ -14,6 +14,10 @@ import io.github.vinceglb.filekit.write
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Image
 import java.awt.Desktop
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.Transferable
+import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -82,6 +86,31 @@ actual suspend fun shareQRCodeImage(
         if (Desktop.isDesktopSupported()) {
             Desktop.getDesktop().open(File(resolveRepository().cacheDir, "qrcodes/$name.png"))
         }
+    } catch (e: Exception) {
+        Logs.e(e)
+    }
+}
+
+actual suspend fun copyQRCodeImage(
+    bitmap: ImageBitmap,
+    name: String,
+) = onIoDispatcher {
+    try {
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height)
+        bitmap.readPixels(pixels)
+        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+        image.setRGB(0, 0, width, height, pixels, 0, width)
+        val transferable = object : Transferable {
+            override fun getTransferDataFlavors() = arrayOf(DataFlavor.imageFlavor)
+            override fun isDataFlavorSupported(flavor: DataFlavor) = flavor == DataFlavor.imageFlavor
+            override fun getTransferData(flavor: DataFlavor): Any {
+                if (flavor != DataFlavor.imageFlavor) throw UnsupportedFlavorException(flavor)
+                return image
+            }
+        }
+        Toolkit.getDefaultToolkit().systemClipboard.setContents(transferable, null)
     } catch (e: Exception) {
         Logs.e(e)
     }

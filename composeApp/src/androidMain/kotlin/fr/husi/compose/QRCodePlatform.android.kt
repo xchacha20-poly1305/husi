@@ -1,5 +1,8 @@
 package fr.husi.compose
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -90,6 +93,30 @@ actual suspend fun shareQRCodeImage(
                     resolveRepository().getString(Res.string.share),
                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
+        }
+    } catch (e: Exception) {
+        Logs.e(e)
+    }
+}
+
+actual suspend fun copyQRCodeImage(
+    bitmap: ImageBitmap,
+    name: String,
+) = onIoDispatcher {
+    try {
+        val context = resolveAndroidRepository().context
+        val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
+        cacheDir.createDirectories()
+        val platformFile = PlatformFile(cacheDir, "$name.png")
+        platformFile.write(encodeImageBitmapToPng(bitmap))
+
+        val javaFile = File(resolveRepository().cacheDir, "qrcodes/$name.png")
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", javaFile)
+        val clipData = ClipData.newUri(context.contentResolver, name, uri)
+
+        onMainDispatcher {
+            val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboardManager.setPrimaryClip(clipData)
         }
     } catch (e: Exception) {
         Logs.e(e)

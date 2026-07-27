@@ -6,3 +6,5 @@ expect fun Modifier.platformCombinedClickable(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ): Modifier
+
+expect fun Modifier.platformLongClickable(onLongClick: () -> Unit): Modifier

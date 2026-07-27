@@ -1,7 +1,6 @@
 package fr.husi.compose
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -17,14 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.DpOffset
 import fr.husi.ktx.Logs
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
@@ -45,7 +41,6 @@ fun QRCodeDialog(
     val scope = rememberCoroutineScope()
 
     var showMenu by remember { mutableStateOf(false) }
-    var touchOffset by remember { mutableStateOf(Offset.Zero) }
 
     val qrSize = remember(windowInfo.containerSize) {
         val screenWidthPx = windowInfo.containerSize.width
@@ -98,23 +93,12 @@ fun QRCodeDialog(
                     contentDescription = stringResource(Res.string.share_qr_nfc),
                     modifier = Modifier
                         .size(with(density) { qrSize.toDp() })
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onLongPress = { offset ->
-                                    touchOffset = offset
-                                    showMenu = true
-                                },
-                            )
-                        },
+                        .platformLongClickable(onLongClick = { showMenu = true }),
                 )
 
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    offset = DpOffset(
-                        x = with(density) { touchOffset.x.toDp() },
-                        y = with(density) { (touchOffset.y - qrSize).toDp() },
-                    ),
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(Res.string.save_to_system)) },
@@ -143,6 +127,21 @@ fun QRCodeDialog(
                         leadingIcon = {
                             Icon(
                                 vectorResource(Res.drawable.share),
+                                contentDescription = null,
+                            )
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.action_copy)) },
+                        onClick = {
+                            showMenu = false
+                            scope.launch {
+                                copyQRCodeImage(qrBitmap, name)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                vectorResource(Res.drawable.content_copy),
                                 contentDescription = null,
                             )
                         },

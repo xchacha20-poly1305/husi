@@ -17,3 +17,9 @@ actual fun Modifier.platformCombinedClickable(
         matcher = PointerMatcher.mouse(PointerButton.Secondary),
         onClick = onLongClick,
     )
+
+@OptIn(ExperimentalFoundationApi::class)
+actual fun Modifier.platformLongClickable(onLongClick: () -> Unit): Modifier = onClick(
+    matcher = PointerMatcher.mouse(PointerButton.Secondary),
+    onClick = onLongClick,
+)
