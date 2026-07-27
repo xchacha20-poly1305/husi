@@ -4,7 +4,25 @@ on:
   push:
     branches:
       - 'dev*'
+    paths:
+      - .github/workflows/test.yml
+      - androidApp/
+      - buildScript/
+      - buildSrc/
+      - composeApp/
+      - gradle/
+      - libcore/
+      - library/
   pull_request:
+    paths:
+      - .github/workflows/test.yml
+      - androidApp/
+      - buildScript/
+      - buildSrc/
+      - composeApp/
+      - gradle/
+      - libcore/
+      - library/
 
 permissions:
   contents: read
