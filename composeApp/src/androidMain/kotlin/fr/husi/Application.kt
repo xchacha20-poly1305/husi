@@ -12,11 +12,13 @@ import fr.husi.bg.AppChangeReceiver
 import fr.husi.bg.DefaultNetworkMonitor
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.SubscriptionUpdater
+import fr.husi.compose.clearClipboardImageCache
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.repository.AndroidRepository
@@ -54,6 +56,10 @@ class Application : Application(),
 
         System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
+
+        if (isMainProcess) runOnIoDispatcher {
+            clearClipboardImageCache(cacheDir)
+        }
 
         if (isMainProcess || isBgProcess) {
             runOnDefaultDispatcher {

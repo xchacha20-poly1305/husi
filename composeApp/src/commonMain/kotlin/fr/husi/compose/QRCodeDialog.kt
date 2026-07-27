@@ -1,14 +1,11 @@
 package fr.husi.compose
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,20 +15,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.ktx.Logs
 import fr.husi.repository.resolveRepository
+import fr.husi.resources.*
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
-import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @Composable
 fun QRCodeDialog(
@@ -42,6 +41,7 @@ fun QRCodeDialog(
 ) {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
+    val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
     var showMenu by remember { mutableStateOf(false) }
@@ -98,13 +98,9 @@ fun QRCodeDialog(
                     contentDescription = stringResource(Res.string.share_qr_nfc),
                     modifier = Modifier
                         .size(with(density) { qrSize.toDp() })
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onLongPress = { offset ->
-                                    touchOffset = offset
-                                    showMenu = true
-                                },
-                            )
+                        .platformContextClickable { offset ->
+                            touchOffset = offset
+                            showMenu = true
                         },
                 )
 
@@ -116,6 +112,21 @@ fun QRCodeDialog(
                         y = with(density) { (touchOffset.y - qrSize).toDp() },
                     ),
                 ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.action_copy)) },
+                        onClick = {
+                            showMenu = false
+                            scope.launch {
+                                clipboard.setImage(qrBitmap)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                vectorResource(Res.drawable.content_copy),
+                                contentDescription = null,
+                            )
+                        },
+                    )
                     DropdownMenuItem(
                         text = { Text(stringResource(Res.string.save_to_system)) },
                         onClick = {
