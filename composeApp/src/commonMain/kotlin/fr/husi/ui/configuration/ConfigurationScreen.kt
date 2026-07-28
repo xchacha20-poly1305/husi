@@ -80,6 +80,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.ClipboardContent
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.ExpandableDropdownMenuItem
@@ -91,7 +92,8 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.colorForUrlTestDelay
-import fr.husi.compose.getPlainText
+import fr.husi.compose.decodeQRCode
+import fr.husi.compose.getFirstContent
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryScrollableTabRow
 import fr.husi.compose.material3.Tab
@@ -101,6 +103,7 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.keyevent.isTypeControlPressed
+import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.repository.resolveRepository
@@ -158,6 +161,7 @@ import fr.husi.resources.menu
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
 import fr.husi.resources.need_reload
+import fr.husi.resources.no_proxies_found_in_clipboard
 import fr.husi.resources.no_proxies_found_in_file
 import fr.husi.resources.note_add
 import fr.husi.resources.ok
@@ -174,6 +178,7 @@ import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.NavRoutes
+import fr.husi.ui.StringOrRes
 import fr.husi.ui.getStringOrRes
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.launch
@@ -372,8 +377,22 @@ fun ConfigurationScreen(
 
     fun importFromClipboard() {
         lifecycleOwner.lifecycleScope.launch {
-            val text = clipboard.getPlainText()
-            mainViewModel.parseProxy(text)
+            when (val content = clipboard.getFirstContent()) {
+                is ClipboardContent.Text -> mainViewModel.parseProxy(content.text)
+
+                is ClipboardContent.Image -> {
+                    val text = onIoDispatcher { decodeQRCode(content.bitmap) }
+                    if (text == null) {
+                        mainViewModel.showSnackbar(
+                            StringOrRes.Res(Res.string.no_proxies_found_in_clipboard),
+                        )
+                    } else {
+                        mainViewModel.parseProxy(text)
+                    }
+                }
+
+                null -> mainViewModel.parseProxy(null)
+            }
         }
     }
 

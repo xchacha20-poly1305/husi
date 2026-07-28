@@ -1,10 +1,13 @@
 package fr.husi.compose
 
 import android.content.ClipData
+import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.toClipEntry
 import androidx.core.content.FileProvider
+import fr.husi.ktx.Logs
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
@@ -20,6 +23,28 @@ actual suspend fun Clipboard.setPlainText(text: String) {
 
 actual suspend fun Clipboard.getPlainText(): String? {
     return getClipEntry()?.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+}
+
+actual suspend fun Clipboard.getFirstContent(): ClipboardContent? {
+    val item = getClipEntry()?.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0) ?: return null
+    item.text?.toString()?.let { return ClipboardContent.Text(it) }
+
+    val context = resolveAndroidRepository().context
+    val uri = item.uri ?: return null
+    return onIoDispatcher {
+        try {
+            if (context.contentResolver.getType(uri)?.startsWith("image/") == true) {
+                context.contentResolver.openInputStream(uri)
+                    .use { BitmapFactory.decodeStream(it) }
+                    ?.let { ClipboardContent.Image(it.asImageBitmap()) }
+            } else {
+                item.coerceToText(context)?.toString()?.let(ClipboardContent::Text)
+            }
+        } catch (e: Exception) {
+            Logs.e(e)
+            null
+        }
+    }
 }
 
 actual suspend fun Clipboard.setImage(bitmap: ImageBitmap) {
