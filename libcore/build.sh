@@ -18,6 +18,7 @@ IFS="," BUILD_TAGS="${TAGS[*]}"
 BUILD_DESKTOP=0
 BUILD_ANDROID=0
 PLATFORM_SPECIFIED=0
+NO_NAIVE="${NO_NAIVE:-0}"
 DESKTOP_TARGETS=""
 DESKTOP_OUTPUTS=()
 JNI_INCLUDE=""
@@ -373,6 +374,10 @@ while [ "$#" -gt 0 ]; do
         DARWIN_SDKROOT="${1#*=}"
         shift
         ;;
+    --no-naive)
+        NO_NAIVE=1
+        shift
+        ;;
     *)
         echo "Unknown argument: $1"
         exit 1
@@ -382,6 +387,10 @@ done
 
 if [ "$PLATFORM_SPECIFIED" == "0" ]; then
     BUILD_ANDROID=1
+fi
+
+if [ "$NO_NAIVE" == "1" ]; then
+    BUILD_TAGS="$(remove_build_tag "$BUILD_TAGS" "with_naive_outbound")"
 fi
 
 # Just install anja & anjb if not have or version not same

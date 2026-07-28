@@ -43,6 +43,11 @@ auto-detected; for Darwin targets on non-Darwin hosts also pass `DARWIN_SDK=/pat
 uses `zig cc`). Linux desktop builds pull in `cronet-go` for naive outbound — set `CRONET_GO_ROOT`
 if it's not in `../../cronet-go` or `$HOME/cronet-go`.
 
+In restricted environments without a `cronet-go` checkout (or without network access to fetch
+one), pass `NO_NAIVE=1` to `make libcore` / `make libcore_desktop` (or `--no-naive` to
+`libcore/build.sh` directly) to drop the `with_naive_outbound` build tag and skip the cronet-go
+toolchain setup entirely. The resulting build omits the naive outbound protocol.
+
 Desktop Gradle picks the libcore jar from `os.name`/`os.arch`; override with
 `./gradlew -p composeApp run -PdesktopTarget=linux/amd64`. Missing jars fail the build immediately
 rather than silently falling back.
