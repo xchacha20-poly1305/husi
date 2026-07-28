@@ -113,6 +113,14 @@ For Darwin targets on non-Darwin hosts, `libcore/build.sh` uses `zig cc` / `zig 
 path via `DARWIN_SDK` or `--darwinsdk`, exports the matching `CGO_*` sysroot/library flags, keeps
 `with_naive_outbound`, and does not require a `cronet-go` checkout, so `zig` must be available in `PATH`.
 
+If `cronet-go` isn't available and you don't need the naive outbound protocol (e.g. in a restricted build
+environment), pass `NO_NAIVE=1` (or `--no-naive` to `libcore/build.sh` directly) to drop `with_naive_outbound`
+from the build tags and skip the cronet-go toolchain setup entirely:
+
+```shell
+NO_NAIVE=1 make libcore_desktop DESKTOP_TARGETS=linux/amd64
+```
+
 Desktop Gradle builds select `composeApp/libs/libcore-desktop-<platform>-<arch>.jar` automatically from the current
 `os.name` and `os.arch`.
 
