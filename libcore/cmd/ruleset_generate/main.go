@@ -3,12 +3,15 @@ package main
 import (
 	"archive/tar"
 	"bytes"
+	"context"
 	"flag"
 	"io"
 	"net"
 	"net/http"
 	"os"
 	"strings"
+
+	"libcore/cmd/internal/shared"
 
 	"github.com/sagernet/sing-box/common/geosite"
 	"github.com/sagernet/sing-box/common/srs"
@@ -17,6 +20,8 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
 
 	"github.com/klauspost/compress/zstd"
 )
@@ -65,24 +70,40 @@ func main() {
 	buffer := bytes.NewBuffer(nil) // Shared buf.
 	buffer.Grow(finalBufCap)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	dialer, err := shared.DialerFromEnv(ctx, nil)
+	if err != nil {
+		log.WarnContext(ctx, err)
+		dialer = N.SystemDialer
+	}
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return dialer.DialContext(ctx, network, M.ParseSocksaddr(addr))
+			},
+		},
+		Timeout: C.TCPTimeout * 2,
+	}
+
 	if *geositeDate != "" {
-		if err := generateGeositeArchive(buffer); err != nil {
-			log.Fatal(err)
+		if err := generateGeositeArchive(ctx, httpClient, buffer); err != nil {
+			log.FatalContext(ctx, err)
 		}
 	}
 
-	log.Trace("Buf length: ", buffer.Len(), " cap: ", buffer.Cap())
+	log.TraceContext(ctx, "Buf length: ", buffer.Len(), " cap: ", buffer.Cap())
 
 	if *geoipDate != "" {
-		if err := generateGeoipArchive(buffer); err != nil {
-			log.Fatal(err)
+		if err := generateGeoipArchive(ctx, httpClient, buffer); err != nil {
+			log.FatalContext(ctx, err)
 		}
 	}
 
-	log.Trace("Buf length: ", buffer.Len(), " cap: ", buffer.Cap())
+	log.TraceContext(ctx, "Buf length: ", buffer.Len(), " cap: ", buffer.Cap())
 }
 
-func generateGeositeArchive(buffer *bytes.Buffer) error {
+func generateGeositeArchive(ctx context.Context, httpClient *http.Client, buffer *bytes.Buffer) error {
 	siteFile, err := os.Create(*geositeOutput)
 	if err != nil {
 		return err
@@ -96,7 +117,7 @@ func generateGeositeArchive(buffer *bytes.Buffer) error {
 	tWriter := tar.NewWriter(zWriter)
 	defer tWriter.Close()
 
-	geositeArchive, err := fetchGitHubArchive(geositeRepo, *geositeDate)
+	geositeArchive, err := fetchGitHubArchive(ctx, httpClient, geositeRepo, *geositeDate)
 	if err != nil {
 		return err
 	}
@@ -142,7 +163,7 @@ func generateGeositeArchive(buffer *bytes.Buffer) error {
 	return nil
 }
 
-func generateGeoipArchive(buf *bytes.Buffer) error {
+func generateGeoipArchive(ctx context.Context, httpClient *http.Client, buf *bytes.Buffer) error {
 	ipFile, err := os.Create(*geoipOutput)
 	if err != nil {
 		return err
@@ -156,7 +177,7 @@ func generateGeoipArchive(buf *bytes.Buffer) error {
 	tWriter := tar.NewWriter(zWriter)
 	defer tWriter.Close()
 
-	geoipData, err := fetchRelease(geoipRepo, *geoipDate, ipName)
+	geoipData, err := fetchRelease(ctx, httpClient, geoipRepo, *geoipDate, ipName)
 	if err != nil {
 		return err
 	}
@@ -198,10 +219,14 @@ func generateGeoipArchive(buf *bytes.Buffer) error {
 	return nil
 }
 
-func fetchRelease(repo, tag, name string) ([]byte, error) {
+func fetchRelease(ctx context.Context, httpClient *http.Client, repo, tag, name string) ([]byte, error) {
 	link := "https://github.com/" + repo + "/releases/download/" + tag + "/" + name
 
-	resp, err := http.Get(link)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, link, nil)
+	if err != nil {
+		return nil, E.Cause(err, "build http request")
+	}
+	resp, err := httpClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
@@ -213,13 +238,17 @@ func fetchRelease(repo, tag, name string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func fetchGitHubArchive(repo, ref string) (io.ReadCloser, error) {
+func fetchGitHubArchive(ctx context.Context, httpClient *http.Client, repo, ref string) (io.ReadCloser, error) {
 	if !strings.HasPrefix(ref, "refs/") {
 		ref = "refs/tags/" + ref
 	}
 	link := "https://codeload.github.com/" + repo + "/tar.gz/" + ref
 
-	resp, err := http.Get(link)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, link, nil)
+	if err != nil {
+		return nil, E.Cause(err, "build http request")
+	}
+	resp, err := httpClient.Do(request)
 	if err != nil {
 		return nil, err
 	}

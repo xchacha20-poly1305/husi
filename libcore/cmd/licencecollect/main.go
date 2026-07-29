@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path"
@@ -17,10 +18,13 @@ import (
 	"time"
 
 	_ "libcore" // Import dependencies
+	"libcore/cmd/internal/shared"
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
 
 	"codeberg.org/xchacha20-poly1305/pkgsite-go"
 )
@@ -68,7 +72,20 @@ func main() {
 		return
 	}
 
-	client := pkgsite.NewClient()
+	dialer, err := shared.DialerFromEnv(ctx, nil)
+	if err != nil {
+		log.WarnContext(ctx, err)
+		dialer = N.SystemDialer
+	}
+	client := pkgsite.NewClient(
+		pkgsite.WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+					return dialer.DialContext(ctx, network, M.ParseSocksaddr(addr))
+				},
+			},
+		}),
+	)
 	libraries := make([]Library, 0, len(buildInfo.Deps)+1)
 	for _, dependency := range buildInfo.Deps {
 		library, err := resolveLibrary(ctx, client, dependency)
@@ -98,7 +115,7 @@ func main() {
 		return
 	}
 
-	err := json.NewEncoder(output).Encode(libraries)
+	err = json.NewEncoder(output).Encode(libraries)
 	if err != nil {
 		log.PanicContext(ctx, "encode json ", err)
 		return
@@ -209,7 +226,7 @@ func resolveModule(ctx context.Context, client *pkgsite.Client, modulePath strin
 	pkgModule, err := requestModuleWithRetry(ctx, client, modulePath, options)
 	// The module may not be recorded by pkgsite yet, ask it to fetch and retry once.
 	if isHTTPErrorCode(err, http.StatusNotFound) {
-		log.InfoContext(ctx, "not found, try to fetch ", modulePath)
+		log.WarnContext(ctx, "not found, try to fetch ", modulePath)
 		if fetchError := fetchModule(ctx, client, modulePath, options.Version); fetchError != nil {
 			log.ErrorContext(ctx, "also failed to fetch: ", fetchError)
 			return nil, err
