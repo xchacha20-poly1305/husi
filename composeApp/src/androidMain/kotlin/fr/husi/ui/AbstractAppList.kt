@@ -39,6 +39,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarDuration
 import fr.husi.compose.SwipeableSnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -81,6 +82,7 @@ import fr.husi.resources.action_copy
 import fr.husi.resources.action_import
 import fr.husi.resources.action_import_err
 import fr.husi.resources.action_import_msg
+import fr.husi.resources.cancel
 import fr.husi.resources.close
 import fr.husi.resources.content_paste
 import fr.husi.resources.copy_all
@@ -373,6 +375,20 @@ internal fun AppListScaffold(
             },
             leadingIcon = {
                 Icon(vectorResource(Res.drawable.search), null)
+            },
+            trailingIcon = if (searchBarState.currentValue == SearchBarValue.Expanded) {
+                {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.close),
+                        contentDescription = stringResource(Res.string.cancel),
+                        onClick = {
+                            textFieldState.setTextAndPlaceCursorAtEnd("")
+                            scope.launch { searchBarState.animateToCollapsed() }
+                        },
+                    )
+                }
+            } else {
+                null
             },
         )
     }
