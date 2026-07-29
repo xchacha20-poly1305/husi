@@ -51,9 +51,14 @@
       ],
       "matchPackageNames": [
         "github.com/sagernet/sing-box",
-        "github.com/sagernet/gomobile",
-        "github.com/dyhkwong/sing-juicity",
-        "github.com/xchacha20-poly1305/cazilla",
+        "github.com/sagernet/sing-tun",
+        "github.com/sagernet/sing-vmess",
+        "github.com/anytls/sing-anytls",
+        "github.com/exclavenetwork/sing-juicity",
+        "github.com/xchacha20-poly1305/TLS-scribe",
+        "github.com/xchacha20-poly1305/anchor",
+        "github.com/xchacha20-poly1305/anja",
+        "github.com/xchacha20-poly1305/libping",
         "github.com/xchacha20-poly1305/sing-trusttunnel"
       ],
       "enabled": true,
