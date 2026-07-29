@@ -5,7 +5,7 @@ go 1.26
 require (
 	filippo.io/age v1.3.1
 	github.com/anytls/sing-anytls v0.0.11
-	github.com/exclavenetwork/sing-juicity v0.2.0-beta.3
+	github.com/exclavenetwork/sing-juicity v0.2.0-beta.4
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.19.0
 	github.com/miekg/dns v1.1.72
@@ -19,6 +19,7 @@ require (
 	github.com/xchacha20-poly1305/anja v0.22.13
 	github.com/xchacha20-poly1305/libping v0.10.1
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.4-0.20260705061516-038d20c84f6d
+	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/sys v0.46.0
 	google.golang.org/protobuf v1.36.11
 )
@@ -146,7 +147,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
-	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/mod v0.36.0 // indirect
