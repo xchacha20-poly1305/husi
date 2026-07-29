@@ -51,9 +51,11 @@
       ],
       "matchPackageNames": [
         "github.com/sagernet/sing-box",
-        "github.com/sagernet/gomobile",
-        "github.com/dyhkwong/sing-juicity",
-        "github.com/xchacha20-poly1305/cazilla",
+        "github.com/exclavenetwork/sing-juicity",
+        "github.com/xchacha20-poly1305/TLS-scribe",
+        "github.com/xchacha20-poly1305/anchor",
+        "github.com/xchacha20-poly1305/anja",
+        "github.com/xchacha20-poly1305/libping",
         "github.com/xchacha20-poly1305/sing-trusttunnel"
       ],
       "enabled": true,
@@ -70,18 +72,6 @@
       ],
       "addLabels": [
         "java"
-      ]
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "groupName": "Google & Android Tools",
-      "groupSlug": "google-android-tools",
-      "matchPackageNames": [
-        "com.google.{/,}**",
-        "com.android.{/,}**",
-        "com.android.tools{/,}**"
       ]
     },
     {
@@ -121,7 +111,8 @@
         "androidx.activity{/,}**",
         "androidx.browser{/,}**",
         "androidx.lifecycle{/,}**",
-        "androidx.camera{/,}**"
+        "androidx.camera{/,}**",
+        "androidx.tv{/,}**"
       ]
     },
     {
@@ -151,7 +142,8 @@
       "matchPackageNames": [
         "com.esotericsoftware:kryo",
         "com.jakewharton:process-phoenix",
-        "org.ini4j:ini4j"
+        "org.ini4j:ini4j",
+        "com.github.ajalt.clikt{/,}**"
       ],
       "groupName": "Utility Libraries",
       "groupSlug": "utility-libraries"
@@ -174,7 +166,41 @@
       "groupName": "Testing",
       "groupSlug": "testing",
       "matchPackageNames": [
-        "org.junit{/,}**"
+        "org.junit{/,}**",
+        "io.mockk{/,}**"
+      ]
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "groupName": "Koin",
+      "groupSlug": "koin",
+      "matchPackageNames": [
+        "io.insert-koin{/,}**"
+      ]
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "groupName": "Desktop Native Integration",
+      "groupSlug": "desktop-native-integration",
+      "matchPackageNames": [
+        "io.github.kdroidfilter{/,}**",
+        "com.github.hypfvieh{/,}**",
+        "net.java.dev.jna{/,}**"
+      ]
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "groupName": "Google & Android Tools",
+      "groupSlug": "google-android-tools",
+      "matchPackageNames": [
+        "com.google.{/,}**",
+        "com.android.{/,}**"
       ]
     },
     {
