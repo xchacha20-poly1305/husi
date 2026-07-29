@@ -3,7 +3,7 @@ name: Plugin Mieru
 on:
   push:
     tags:
-      - 'plugin-mieru-*'
+      - 'plugin-mieru-v*'
   workflow_dispatch:
 
 permissions:
