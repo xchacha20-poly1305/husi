@@ -51,9 +51,6 @@
       ],
       "matchPackageNames": [
         "github.com/sagernet/sing-box",
-        "github.com/sagernet/sing-tun",
-        "github.com/sagernet/sing-vmess",
-        "github.com/anytls/sing-anytls",
         "github.com/exclavenetwork/sing-juicity",
         "github.com/xchacha20-poly1305/TLS-scribe",
         "github.com/xchacha20-poly1305/anchor",
@@ -75,18 +72,6 @@
       ],
       "addLabels": [
         "java"
-      ]
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "groupName": "Google & Android Tools",
-      "groupSlug": "google-android-tools",
-      "matchPackageNames": [
-        "com.google.{/,}**",
-        "com.android.{/,}**",
-        "com.android.tools{/,}**"
       ]
     },
     {
@@ -180,6 +165,17 @@
       "groupSlug": "testing",
       "matchPackageNames": [
         "org.junit{/,}**"
+      ]
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "groupName": "Google & Android Tools",
+      "groupSlug": "google-android-tools",
+      "matchPackageNames": [
+        "com.google.{/,}**",
+        "com.android.{/,}**"
       ]
     },
     {
