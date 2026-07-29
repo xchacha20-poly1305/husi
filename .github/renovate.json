@@ -214,6 +214,24 @@
         "com.google.guava:guava"
       ],
       "allowedVersions": "/-android$/"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "org.jetbrains.compose**"
+      ],
+      "allowedVersions": "!/(-[Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt](\\+.*)?|\\+dev\\d+)$/"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "org.jetbrains.kotlinx:kotlinx-datetime"
+      ],
+      "allowedVersions": "!/(-[Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt](\\+.*)?|-compat)$/"
     }
   ]
 }
