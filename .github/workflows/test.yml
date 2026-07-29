@@ -45,6 +45,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+          cache-dependency-path: 'libcore/go.sum'
       - name: Setup Android NDK
         id: setup-ndk
         uses: nttld/setup-ndk@v1
