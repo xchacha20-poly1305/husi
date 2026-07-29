@@ -33,15 +33,6 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-      - name: Cache assets
-        id: cache-assets
-        uses: actions/cache@v6
-        with:
-          path: composeApp/src/commonMain/composeResources/files/sing-box
-          key: assets-${{ hashFiles('buildScript/init/version.sh') }}
-      - name: Prepare assets
-        if: steps.cache-assets.outputs.cache-hit != 'true'
-        run: make assets
       - name: Build Mieru plugin
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
