@@ -40,7 +40,7 @@ jobs:
       - name: Assemble Mieru plugin APK
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        run: BUILD_PLUGIN=mieru ./gradlew :plugin:mieru:assembleFossRelease --no-daemon -x :plugin:mieru:externalBuild
+        run: BUILD_PLUGIN=mieru ./gradlew :plugin:mieru:assembleFossRelease --no-daemon -DSKIP_BUILD_MIERU=on
       - uses: actions/upload-artifact@v7
         with:
           name: plugin-mieru
