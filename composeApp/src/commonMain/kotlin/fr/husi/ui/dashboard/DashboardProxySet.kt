@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceAtLeast
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.colorForUrlTestDelay
@@ -285,15 +286,8 @@ private fun ProxySetCard(
 private const val PROXY_COLUMNS = 2
 
 /** Gap between the proxy cards of a set. */
-private val PROXY_CARD_GAP = 8.dp
+private const val PROXY_CARD_GAP = 8
 
-/**
- * Grid of the proxies of [proxySet].
- *
- * This uses the non lazy [Grid]: the card lives inside a lazy list item, so a lazy grid would be
- * measured with an unbounded height. The proxies of a single set are few enough to lay out eagerly
- * anyway.
- */
 @Composable
 private fun ProxyGrid(
     modifier: Modifier = Modifier,
@@ -303,14 +297,14 @@ private fun ProxyGrid(
 ) {
     Grid(
         config = {
-            gap(PROXY_CARD_GAP)
+            gap(PROXY_CARD_GAP.toDp())
             // A flexible track starts at its min content width, which would make the columns
             // uneven, so split the available width evenly instead. The config block runs during
             // measure, so the constraints are the ones the grid is measured with.
             if (constraints.hasBoundedWidth) {
-                val gaps = PROXY_CARD_GAP.roundToPx() * (PROXY_COLUMNS - 1)
+                val gaps = PROXY_CARD_GAP * (PROXY_COLUMNS - 1)
                 val columnWidth = ((constraints.maxWidth - gaps) / PROXY_COLUMNS)
-                    .coerceAtLeast(0)
+                    .fastCoerceAtLeast(0)
                     .toDp()
                 repeat(PROXY_COLUMNS) { column(columnWidth) }
             } else {
