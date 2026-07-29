@@ -63,14 +63,14 @@ fun String.unUrlSafe(): String {
     }
 }
 
-fun <T> Continuation<T>.tryResume(value: T) {
+fun <T> Continuation<T>.resumeOnce(value: T) {
     try {
         resumeWith(Result.success(value))
     } catch (_: IllegalStateException) {
     }
 }
 
-fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
+fun <T> Continuation<T>.resumeWithExceptionOnce(exception: Throwable) {
     try {
         resumeWith(Result.failure(exception))
     } catch (_: IllegalStateException) {
