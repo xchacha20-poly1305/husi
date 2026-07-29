@@ -33,10 +33,14 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-      - name: Build Mieru plugin
+      - name: Build Mieru native libraries
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        run: BUILD_PLUGIN=mieru ./gradlew :plugin:mieru:assembleFossRelease --no-daemon
+        run: ./run plugin mieru
+      - name: Assemble Mieru plugin APK
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: BUILD_PLUGIN=mieru ./gradlew :plugin:mieru:assembleFossRelease --no-daemon -x :plugin:mieru:externalBuild
       - uses: actions/upload-artifact@v7
         with:
           name: plugin-mieru
