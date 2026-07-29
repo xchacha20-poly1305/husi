@@ -76,24 +76,22 @@
       "matchManagers": [
         "gradle"
       ],
-      "matchPackagePrefixes": [
-        "com.google.",
-        "com.android.",
-        "com.android.tools"
-      ],
       "groupName": "Google & Android Tools",
-      "groupSlug": "google-android-tools"
+      "groupSlug": "google-android-tools",
+      "matchPackageNames": [
+        "com.google.{/,}**",
+        "com.android.{/,}**",
+        "com.android.tools{/,}**"
+      ]
     },
     {
       "matchManagers": [
         "gradle"
       ],
-      "matchPackagePrefixes": [
-        "org.jetbrains.kotlin",
-        "org.jetbrains.kotlinx"
-      ],
       "matchPackageNames": [
-        "com.google.devtools.ksp"
+        "com.google.devtools.ksp",
+        "org.jetbrains.kotlin{/,}**",
+        "org.jetbrains.kotlinx{/,}**"
       ],
       "groupName": "Kotlin Ecosystem",
       "groupSlug": "kotlin-ecosystem"
@@ -102,48 +100,46 @@
       "matchManagers": [
         "gradle"
       ],
-      "matchPackagePrefixes": [
-        "androidx.work",
-        "androidx.datastore",
-        "androidx.room",
-        "androidx.sqlite"
-      ],
       "groupName": "AndroidX Architecture & Data",
-      "groupSlug": "androidx-arch"
+      "groupSlug": "androidx-arch",
+      "matchPackageNames": [
+        "androidx.work{/,}**",
+        "androidx.datastore{/,}**",
+        "androidx.room{/,}**",
+        "androidx.sqlite{/,}**"
+      ]
     },
     {
       "matchManagers": [
         "gradle"
-      ],
-      "matchPackagePrefixes": [
-        "androidx.core",
-        "androidx.appcompat",
-        "androidx.activity",
-        "androidx.browser",
-        "androidx.lifecycle",
-        "androidx.camera"
       ],
       "groupName": "AndroidX Core & UI",
-      "groupSlug": "androidx-core-ui"
+      "groupSlug": "androidx-core-ui",
+      "matchPackageNames": [
+        "androidx.core{/,}**",
+        "androidx.appcompat{/,}**",
+        "androidx.activity{/,}**",
+        "androidx.browser{/,}**",
+        "androidx.lifecycle{/,}**",
+        "androidx.camera{/,}**"
+      ]
     },
     {
       "matchManagers": [
         "gradle"
-      ],
-      "matchPackagePrefixes": [
-        "androidx.compose",
-        "org.jetbrains.compose",
-        "org.jetbrains.androidx",
-        "com.google.accompanist",
-        "me.zhanghai.compose.preference",
-        "io.github.oikvpqya.compose.fastscroller",
-        "io.github.vinceglb"
       ],
       "matchPackageNames": [
         "androidx.activity:activity-compose",
         "androidx.lifecycle:lifecycle-runtime-compose",
         "androidx.lifecycle:lifecycle-viewmodel-compose",
-        "androidx.navigation:navigation-compose"
+        "androidx.navigation:navigation-compose",
+        "androidx.compose{/,}**",
+        "org.jetbrains.compose{/,}**",
+        "org.jetbrains.androidx{/,}**",
+        "com.google.accompanist{/,}**",
+        "me.zhanghai.compose.preference{/,}**",
+        "io.github.oikvpqya.compose.fastscroller{/,}**",
+        "io.github.vinceglb{/,}**"
       ],
       "groupName": "Compose Ecosystem",
       "groupSlug": "compose-ecosystem"
@@ -164,11 +160,9 @@
       "matchManagers": [
         "gradle"
       ],
-      "matchPackagePrefixes": [
-        "com.mikepenz"
-      ],
       "matchPackageNames": [
-        "org.gradle.toolchains.foojay-resolver-convention"
+        "org.gradle.toolchains.foojay-resolver-convention",
+        "com.mikepenz{/,}**"
       ],
       "groupName": "Build Plugins & Tooling",
       "groupSlug": "build-plugins-tooling"
@@ -177,11 +171,11 @@
       "matchManagers": [
         "gradle"
       ],
-      "matchPackagePrefixes": [
-        "org.junit"
-      ],
       "groupName": "Testing",
-      "groupSlug": "testing"
+      "groupSlug": "testing",
+      "matchPackageNames": [
+        "org.junit{/,}**"
+      ]
     },
     {
       "matchPackageNames": [
