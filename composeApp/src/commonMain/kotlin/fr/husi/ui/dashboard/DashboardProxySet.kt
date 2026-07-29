@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalGridApi::class)
 
 package fr.husi.ui.dashboard
 
@@ -13,6 +13,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalGridApi
+import androidx.compose.foundation.layout.Grid
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,6 +45,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceAtLeast
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.colorForUrlTestDelay
@@ -228,32 +231,11 @@ private fun ProxySetCard(
                     }
 
                     if (expanded) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            proxySet.items.chunked(2).forEach { rowItems ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    rowItems.forEach { proxy ->
-                                        val selected = proxySet.selected == proxy.tag
-                                        ProxyCard(
-                                            modifier = Modifier.weight(1f),
-                                            proxy = proxy,
-                                            selected = selected,
-                                            selectable = proxySet.selectable,
-                                            select = { selectProxy(proxySet.tag, proxy.tag) },
-                                            urlTest = { urlTestSingle(proxy.tag) },
-                                        )
-                                    }
-                                    // Fill remaining space if odd number of items
-                                    if (rowItems.size == 1) {
-                                        Spacer(modifier = Modifier.weight(1f))
-                                    }
-                                }
-                            }
-                        }
+                        ProxyGrid(
+                            proxySet = proxySet,
+                            selectProxy = selectProxy,
+                            urlTestSingle = urlTestSingle,
+                        )
                     } else if (!proxySet.isAll) {
                         Surface(
                             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -296,6 +278,49 @@ private fun ProxySetCard(
                     }
                 }
             }
+        }
+    }
+}
+
+/** Number of proxy cards per row. */
+private const val PROXY_COLUMNS = 2
+
+/** Gap between the proxy cards of a set. */
+private const val PROXY_CARD_GAP = 8
+
+@Composable
+private fun ProxyGrid(
+    modifier: Modifier = Modifier,
+    proxySet: ProxySet,
+    selectProxy: (group: String, tag: String) -> Unit,
+    urlTestSingle: (tag: String) -> Unit,
+) {
+    Grid(
+        config = {
+            gap(PROXY_CARD_GAP.toDp())
+            // A flexible track starts at its min content width, which would make the columns
+            // uneven, so split the available width evenly instead. The config block runs during
+            // measure, so the constraints are the ones the grid is measured with.
+            if (constraints.hasBoundedWidth) {
+                val gaps = PROXY_CARD_GAP * (PROXY_COLUMNS - 1)
+                val columnWidth = ((constraints.maxWidth - gaps) / PROXY_COLUMNS)
+                    .fastCoerceAtLeast(0)
+                    .toDp()
+                repeat(PROXY_COLUMNS) { column(columnWidth) }
+            } else {
+                repeat(PROXY_COLUMNS) { column(1.fr) }
+            }
+        },
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        proxySet.items.forEach { proxy ->
+            ProxyCard(
+                proxy = proxy,
+                selected = proxySet.selected == proxy.tag,
+                selectable = proxySet.selectable,
+                select = { selectProxy(proxySet.tag, proxy.tag) },
+                urlTest = { urlTestSingle(proxy.tag) },
+            )
         }
     }
 }
