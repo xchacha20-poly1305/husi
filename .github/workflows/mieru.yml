@@ -27,9 +27,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: |
-            libcore/go.sum
-            plugin/mieru/src/main/go/mieru/go.sum
+          cache-dependency-path: plugin/mieru/src/main/go/mieru/go.sum
       - name: Setup Android NDK
         id: setup-ndk
         uses: nttld/setup-ndk@v1
