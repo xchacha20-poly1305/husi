@@ -16,9 +16,9 @@ import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
 import fr.husi.resources.route_asset_no_update
@@ -309,7 +309,7 @@ internal class AssetsScreenViewModel(
             hiddenAssets.clear()
             pending
         }
-        runOnIoDispatcher {
+        onIoDispatcher {
             for (fileName in toDelete) {
                 val file = if (fileName.endsWith(".version.txt")) {
                     assetsDir.resolve(fileName)

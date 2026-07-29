@@ -472,7 +472,7 @@ class ConfigurationScreenViewModel : ViewModel() {
     fun updateOrder(groupId: Long, order: Int) = viewModelScope.launch {
         val group = uiState.value.groups.find { it.id == groupId } ?: return@launch
         if (group.order == order) return@launch
-        runOnIoDispatcher {
+        onIoDispatcher {
             GroupManager.updateGroup(
                 group.copy(
                     order = order,

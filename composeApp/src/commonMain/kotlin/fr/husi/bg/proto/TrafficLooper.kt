@@ -76,15 +76,17 @@ class TrafficLooper(
     }
 
     private suspend fun loop() = coroutineScope {
+        // Share into this scope rather than the outer one, so that cancelling [job]
+        // in [stop] also tears down these eager collectors.
         val speedInterval = DataStore.configurationStore
             .intFlow(Key.SPEED_INTERVAL, 1000)
-            .stateIn(scope, SharingStarted.Eagerly, 1000)
+            .stateIn(this, SharingStarted.Eagerly, 1000)
         val showDirectSpeed = DataStore.configurationStore
             .booleanFlow(Key.SHOW_DIRECT_SPEED, true)
-            .stateIn(scope, SharingStarted.Eagerly, true)
+            .stateIn(this, SharingStarted.Eagerly, true)
         val profileTrafficStatistics = DataStore.configurationStore
             .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
-            .stateIn(scope, SharingStarted.Eagerly, true)
+            .stateIn(this, SharingStarted.Eagerly, true)
         // update database / 10s
         val persistEveryMs = 10_000L
 

@@ -12,8 +12,14 @@ import fr.husi.utils.PackageCache
 class AppChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Logs.d("onReceive: ${intent.action}")
+        // Keep the process alive until the scan finishes, which a bare coroutine cannot do.
+        val pendingResult = goAsync()
         runOnIoDispatcher {
-            checkUpdate(intent)
+            try {
+                checkUpdate(intent)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 

@@ -7,8 +7,12 @@ import fr.husi.bg.SpeedStats
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.ktx.Logs
-import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.repository.resolveRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
@@ -17,6 +21,9 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     var displayProfileName = profile.displayNameForService()
 
     var trafficLooper: TrafficLooper? = null
+
+    /** Owns the traffic looper, cancelled in [close] so nothing outlives this instance. */
+    private val looperScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     override fun buildConfig() {
         super.buildConfig()
@@ -34,12 +41,12 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
 
     override fun launch() {
         super.launch() // start box
-        runOnDefaultDispatcher {
-            val data = service?.data ?: return@runOnDefaultDispatcher
+        looperScope.launch {
+            val data = service?.data ?: return@launch
             trafficLooper = TrafficLooper(
                 box = resolveRepository().boxService!!,
                 config = config,
-                scope = this,
+                scope = looperScope,
                 onSpeedUpdate = { stats ->
                     val speed = stats.toSpeedDisplayData()
                     data.binder.notifySpeed(speed)
@@ -58,6 +65,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
             trafficLooper?.stop()
             trafficLooper = null
         }
+        looperScope.cancel()
     }
 }
 
