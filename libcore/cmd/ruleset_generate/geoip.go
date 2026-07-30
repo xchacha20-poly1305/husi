@@ -24,7 +24,7 @@ func parseGeoip(binary []byte) (countryMap sortedStringMap[[]*net.IPNet], err er
 			return
 		}
 		code := strings.ToLower(country.RegisteredCountry.IsoCode)
-		old, _ := countryMap.Get(code)
+		old := countryMap.Get(code)
 		countryMap.Put(code, append(old, ipNet))
 	}
 	err = networks.Err()

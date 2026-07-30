@@ -32,23 +32,23 @@ child.com
 	domainMap, err := processor.generateDomainMap()
 	require.NoError(t, err)
 
-	base, _ := domainMap.Get("base")
+	base := domainMap.Get("base")
 	assertHasGeositeItem(t, base, geosite.RuleTypeDomain, "example.com")
 	assertHasGeositeItem(t, base, geosite.RuleTypeDomainSuffix, ".example.com")
 	assertHasGeositeItem(t, base, geosite.RuleTypeDomainKeyword, "ads")
 	assertHasGeositeItem(t, base, geosite.RuleTypeDomainRegex, `^foo\.example$`)
 	assertNoGeositeItem(t, base, geosite.RuleTypeDomain, "api.example.com")
 
-	child, _ := domainMap.Get("child")
+	child := domainMap.Get("child")
 	assertHasGeositeItem(t, child, geosite.RuleTypeDomain, "child.com")
 	assertHasGeositeItem(t, child, geosite.RuleTypeDomainRegex, `^foo\.example$`)
 	assertHasGeositeItem(t, child, geosite.RuleTypeDomain, "example.cn")
 	assertNoGeositeItem(t, child, geosite.RuleTypeDomainKeyword, "ads")
 
-	affiliate, _ := domainMap.Get("affiliate")
+	affiliate := domainMap.Get("affiliate")
 	assertHasGeositeItem(t, affiliate, geosite.RuleTypeDomain, "example.cn")
 
-	baseCN, _ := domainMap.Get("base@cn")
+	baseCN := domainMap.Get("base@cn")
 	assertHasGeositeItem(t, baseCN, geosite.RuleTypeDomainRegex, `^foo\.example$`)
 	assertHasGeositeItem(t, baseCN, geosite.RuleTypeDomain, "example.cn")
 }

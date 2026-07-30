@@ -114,8 +114,8 @@ func geositeListNameFromArchivePath(name string) (string, bool) {
 }
 
 func (p *geositeProcessor) getOrCreateParsedList(name string) *geositeParsedList {
-	parsedList, exists := p.parsedLists[name]
-	if !exists {
+	parsedList, loaded := p.parsedLists[name]
+	if !loaded {
 		parsedList = &geositeParsedList{Name: name}
 		p.parsedLists[name] = parsedList
 	}
@@ -322,16 +322,16 @@ func (p *geositeProcessor) generateDomainMap() (sortedStringMap[[]geosite.Item],
 	for _, listName := range listNames {
 		entries := p.finalLists[listName]
 		items := make([]geosite.Item, 0, len(entries)*2)
-		attributes := make(map[string][]*geositeEntry)
+		attributes := make(sortedStringMap[[]*geositeEntry])
 		for _, entry := range entries {
 			items = appendGeositeItems(items, entry)
 			for _, attr := range entry.Attrs {
-				attributes[attr] = append(attributes[attr], entry)
+				attributes.Put(attr, append(attributes.Get(attr), entry))
 			}
 		}
 		code := strings.ToLower(listName)
 		domainMap.Put(code, common.Uniq(items))
-		attrNames := sortedStringMap[[]*geositeEntry](attributes).Keys()
+		attrNames := attributes.Keys()
 		for _, attrName := range attrNames {
 			attrEntries := attributes[attrName]
 			attrItems := make([]geosite.Item, 0, len(attrEntries)*2)
@@ -380,8 +380,8 @@ func (p *geositeProcessor) resolveList(listName string) error {
 	if _, resolved := p.finalLists[listName]; resolved {
 		return nil
 	}
-	parsedList, exists := p.parsedLists[listName]
-	if !exists {
+	parsedList, loaded := p.parsedLists[listName]
+	if !loaded {
 		return E.New("list not found")
 	}
 	if p.circular[listName] {
@@ -520,12 +520,12 @@ func filterGeositeTags(data sortedStringMap[[]geosite.Item]) {
 		}
 	}
 	for _, it := range badCodeList {
-		badList, _ := data.Get(it.badCode)
+		badList := data.Get(it.badCode)
 		if badList == nil {
 			panic("bad list not found: " + it.badCode)
 		}
 		data.Remove(it.badCode)
-		items, _ := data.Get(it.code)
+		items := data.Get(it.code)
 		seen := make(map[geosite.Item]struct{}, len(items))
 		newList := make([]geosite.Item, 0, len(items))
 		for _, item := range items {
@@ -575,12 +575,12 @@ func mergeGeositeTags(data sortedStringMap[[]geosite.Item]) {
 	}
 	seen := make(map[geosite.Item]struct{})
 	var newList []geosite.Item
-	cnLocation, _ := data.Get("geolocation-cn")
+	cnLocation := data.Get("geolocation-cn")
 	for _, item := range cnLocation {
 		newList = appendUniqueGeositeItem(newList, seen, item)
 	}
 	for _, code := range cnCodeList {
-		items, _ := data.Get(code)
+		items := data.Get(code)
 		for _, item := range items {
 			newList = appendUniqueGeositeItem(newList, seen, item)
 		}
@@ -594,7 +594,7 @@ func mergeGeositeTags(data sortedStringMap[[]geosite.Item]) {
 }
 
 func appendUniqueGeositeItem(items []geosite.Item, seen map[geosite.Item]struct{}, item geosite.Item) []geosite.Item {
-	if _, exists := seen[item]; exists {
+	if _, loaded := seen[item]; loaded {
 		return items
 	}
 	seen[item] = struct{}{}
@@ -604,7 +604,7 @@ func appendUniqueGeositeItem(items []geosite.Item, seen map[geosite.Item]struct{
 func filterGeositeItems(items []geosite.Item, keep map[geosite.Item]struct{}) []geosite.Item {
 	filtered := items[:0]
 	for _, item := range items {
-		if _, exists := keep[item]; exists {
+		if _, loaded := keep[item]; loaded {
 			filtered = append(filtered, item)
 		}
 	}
