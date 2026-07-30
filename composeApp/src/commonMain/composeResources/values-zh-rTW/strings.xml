@@ -618,6 +618,10 @@
     <string name="tasker_blurb_start_profile">啟動設定檔 %1$s</string>
     <string name="process">程序</string>
     <string name="disable_process_text">停用 Process Text</string>
+    <string name="hide_launcher_icon">隱藏桌面圖示</string>
+    <string name="hide_launcher_icon_summary">在撥號介面輸入 %1$s 可恢復圖示</string>
+    <string name="hide_launcher_icon_confirm">應用程式將從桌面消失。在電話應用程式的撥號介面輸入 %1$s 即可重新顯示。繼續前請記下此代碼。</string>
+    <string name="launcher_icon_restored">桌面圖示已恢復</string>
     <string name="refresh">重新整理</string>
     <string name="route_asset_name">資源名稱</string>
     <string name="invalid_filename">無效檔名</string>
