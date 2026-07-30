@@ -1,1 +1,1 @@
-See https://github.com/AntiNeko/CatBoxForAndroid/releases/latest to get full changelogs
+See https://github.com/xchacha20-poly1305/husi/releases/latest to get full changelogs
