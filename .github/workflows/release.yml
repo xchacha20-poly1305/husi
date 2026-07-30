@@ -59,6 +59,8 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: make libcore_android
+      - name: Generate about libraries metadata
+        run: make aboutlibraries_go aboutlibraries_android
       - name: Build Android app
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -135,6 +137,8 @@ jobs:
         env:
           CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
         run: make libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64,windows/amd64,windows/arm64,darwin/amd64,darwin/arm64 JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
+      - name: Generate about libraries metadata
+        run: make aboutlibraries_go aboutlibraries_desktop
       - name: Build desktop packages
         run: |
           make desktop_package_linux DESKTOP_TARGET=linux/amd64
