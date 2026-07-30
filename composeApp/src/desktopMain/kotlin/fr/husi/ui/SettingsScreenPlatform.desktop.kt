@@ -153,3 +153,7 @@ internal actual fun rememberAppLanguageController(defaultTag: String): AppLangua
 @Composable
 internal actual fun DisableProcessTextPreference() {
 }
+
+@Composable
+internal actual fun HideLauncherIconPreference() {
+}

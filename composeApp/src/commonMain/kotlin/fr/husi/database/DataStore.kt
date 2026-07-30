@@ -226,6 +226,7 @@ object DataStore {
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
     var certProvider by configurationStore.int(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
     var disableProcessText by configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
+    var hideLauncherIcon by configurationStore.boolean(Key.HIDE_LAUNCHER_ICON)
 
     var trafficDescending by configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
     var trafficSortMode by configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }

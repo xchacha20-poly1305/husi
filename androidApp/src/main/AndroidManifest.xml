@@ -104,17 +104,6 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
 
@@ -172,10 +161,35 @@
 
             </intent-filter>
 
+        </activity>
+
+        <!--
+            The launcher entry lives on an alias so that it can be disabled to hide the app from
+            the launcher without breaking deep links, shortcuts or the quick settings tile.
+            See fr.husi.LauncherIcon.
+        -->
+        <activity-alias
+            android:name=".ui.LauncherActivityAlias"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
-        </activity>
+        </activity-alias>
 
         <activity-alias
             android:name=".ui.ProcessTextActivityAlias"
@@ -300,6 +314,20 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Restores the launcher icon when *#*#231230#*#* is dialled, see fr.husi.LauncherIcon. -->
+        <receiver
+            android:name=".SecretCodeReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SECRET_CODE" />
+                <action android:name="android.telephony.action.SECRET_CODE" />
+
+                <data
+                    android:host="231230"
+                    android:scheme="android_secret_code" />
             </intent-filter>
         </receiver>
 

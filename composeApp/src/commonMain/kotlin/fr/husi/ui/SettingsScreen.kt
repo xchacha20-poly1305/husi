@@ -1338,6 +1338,9 @@ private fun PlatformMiscOptions(needReload: () -> Unit) {
 internal expect fun DisableProcessTextPreference()
 
 @Composable
+internal expect fun HideLauncherIconPreference()
+
+@Composable
 private fun ProtocolSettingsGroup(
     needReload: () -> Unit,
     needRestart: () -> Unit,
@@ -2026,6 +2029,7 @@ private fun MiscSettingsGroup(
     PreferenceDivider()
 
     DisableProcessTextPreference()
+    HideLauncherIconPreference()
 }
 
 @Composable

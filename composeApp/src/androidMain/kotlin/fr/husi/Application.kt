@@ -61,6 +61,12 @@ class Application : Application(),
             clearClipboardImageCache(cacheDir)
         }
 
+        if (isMainProcess) runOnDefaultDispatcher {
+            // The component state may drift from the preference, e.g. after a backup restore.
+            val hidden = DataStore.hideLauncherIcon
+            if (LauncherIcon.hidden != hidden) LauncherIcon.hidden = hidden
+        }
+
         if (isMainProcess || isBgProcess) {
             runOnDefaultDispatcher {
                 PackageCache.register(this@Application)

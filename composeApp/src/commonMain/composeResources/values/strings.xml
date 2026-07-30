@@ -738,6 +738,10 @@
     <string name="tasker_blurb_start_profile">Start profile %1$s</string>
     <string name="process">Process</string>
     <string name="disable_process_text">Disable Process Text</string>
+    <string name="hide_launcher_icon">Hide launcher icon</string>
+    <string name="hide_launcher_icon_summary">Dial %1$s to bring the icon back</string>
+    <string name="hide_launcher_icon_confirm">The app will disappear from the launcher. Dial %1$s in the phone app to show it again. Write the code down before continuing.</string>
+    <string name="launcher_icon_restored">Launcher icon restored</string>
     <string name="refresh">Refresh</string>
     <string name="url" translatable="false">URL</string>
     <string name="route_asset_name">Asset Name</string>

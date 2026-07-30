@@ -5,16 +5,23 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
+import fr.husi.LauncherIcon
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.TextButton
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
@@ -24,14 +31,20 @@ import fr.husi.resources.Res
 import fr.husi.resources.allow_apps_bypass_vpn
 import fr.husi.resources.auto_connect
 import fr.husi.resources.auto_connect_summary
+import fr.husi.resources.cancel
 import fr.husi.resources.disable_process_text
 import fr.husi.resources.format_align_left
+import fr.husi.resources.hide_launcher_icon
+import fr.husi.resources.hide_launcher_icon_confirm
+import fr.husi.resources.hide_launcher_icon_summary
 import fr.husi.resources.label
 import fr.husi.resources.legend_toggle
+import fr.husi.resources.ok
 import fr.husi.resources.phonelink_ring
 import fr.husi.resources.route_opt_bypass_lan
 import fr.husi.resources.show_group_in_notification
 import fr.husi.resources.transform
+import fr.husi.resources.visibility_off
 import fr.husi.resources.vpn_session_name
 import fr.husi.resources.vpn_session_name_summary
 import kotlinx.coroutines.flow.flowOf
@@ -226,4 +239,60 @@ internal actual fun DisableProcessTextPreference() {
             )
         },
     )
+}
+
+@Composable
+internal actual fun HideLauncherIconPreference() {
+    val value by DataStore.configurationStore
+        .booleanFlow(Key.HIDE_LAUNCHER_ICON, false)
+        .collectAsStateWithLifecycle(false)
+    var showConfirm by rememberSaveable { mutableStateOf(false) }
+
+    fun setHidden(hidden: Boolean) {
+        DataStore.hideLauncherIcon = hidden
+        LauncherIcon.hidden = hidden
+    }
+
+    PreferenceDivider()
+    SwitchPreference(
+        value = value,
+        onValueChange = { hide ->
+            if (hide) {
+                showConfirm = true
+            } else {
+                setHidden(false)
+            }
+        },
+        title = { Text(stringResource(Res.string.hide_launcher_icon)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.visibility_off,
+                color = IconMaskColors.IconLavender,
+            )
+        },
+        summary = {
+            Text(stringResource(Res.string.hide_launcher_icon_summary, LauncherIcon.DIAL_CODE))
+        },
+    )
+
+    if (showConfirm) {
+        AlertDialog(
+            onDismissRequest = { showConfirm = false },
+            title = { Text(stringResource(Res.string.hide_launcher_icon)) },
+            text = {
+                Text(stringResource(Res.string.hide_launcher_icon_confirm, LauncherIcon.DIAL_CODE))
+            },
+            confirmButton = {
+                TextButton(stringResource(Res.string.ok)) {
+                    showConfirm = false
+                    setHidden(true)
+                }
+            },
+            dismissButton = {
+                TextButton(stringResource(Res.string.cancel)) {
+                    showConfirm = false
+                }
+            },
+        )
+    }
 }
