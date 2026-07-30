@@ -317,7 +317,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Restores the launcher icon when *#*#4874#*#* is dialled, see fr.husi.LauncherIcon. -->
+        <!-- Restores the launcher icon when *#*#231230#*#* is dialled, see fr.husi.LauncherIcon. -->
         <receiver
             android:name=".SecretCodeReceiver"
             android:exported="true">
@@ -326,7 +326,7 @@
                 <action android:name="android.telephony.action.SECRET_CODE" />
 
                 <data
-                    android:host="4874"
+                    android:host="231230"
                     android:scheme="android_secret_code" />
             </intent-filter>
         </receiver>

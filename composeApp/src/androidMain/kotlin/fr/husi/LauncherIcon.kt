@@ -16,8 +16,8 @@ object LauncherIcon {
     /** Class name of the `activity-alias` holding the launcher intent filters. */
     private const val ALIAS = "fr.husi.ui.LauncherActivityAlias"
 
-    /** Digits of the dialer secret code, "HUSI" on a phone keypad. */
-    const val SECRET_CODE = "4874"
+    /** Digits of the dialer secret code. Keep in sync with the manifest intent filter. */
+    const val SECRET_CODE = "231230"
 
     /** What the user has to dial to bring the icon back. */
     const val DIAL_CODE = "*#*#$SECRET_CODE#*#*"
