@@ -55,6 +55,8 @@ import fr.husi.resources.security_settings
 import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.sni
+import fr.husi.resources.use_tunnel_dns
+import fr.husi.resources.use_tunnel_dns_summary
 import fr.husi.resources.username
 import fr.husi.resources.vpn_key
 import fr.husi.resources.wifi
@@ -293,6 +295,14 @@ private fun LazyListScope.openVPNSettings(
             onValueChange = viewModel::setRedirectGateway,
             title = { Text(stringResource(Res.string.openvpn_redirect_gateway)) },
             icon = { MaskedIcon(Res.drawable.route, IconMaskColors.IconLightBlue) },
+        )
+        PreferenceDivider()
+        SwitchPreference(
+            value = state.useTunnelDNS,
+            onValueChange = viewModel::setUseTunnelDNS,
+            title = { Text(stringResource(Res.string.use_tunnel_dns)) },
+            summary = { Text(stringResource(Res.string.use_tunnel_dns_summary)) },
+            icon = { MaskedIcon(Res.drawable.dns, IconMaskColors.IconLightGreen) },
         )
     }
     item("category_tls") { PreferenceCategory(text = { Text(stringResource(Res.string.security_settings)) }) }

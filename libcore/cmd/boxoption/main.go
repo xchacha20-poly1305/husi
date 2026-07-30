@@ -256,4 +256,6 @@ var newDNSServerList = []any{
 	option.RemoteHTTPSDNSServerOptions{},
 	option.FakeIPDNSServerOptions{},
 	option.MDNSDNSServerOptions{},
+	option.OpenConnectDNSServerOptions{},
+	option.OpenVPNDNSServerOptions{},
 }

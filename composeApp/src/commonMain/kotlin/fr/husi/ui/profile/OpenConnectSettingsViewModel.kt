@@ -22,6 +22,7 @@ internal data class OpenConnectUiState(
     val userAgent: String = "",
     val localHostname: String = "",
     val allowInsecureCrypto: Boolean = false,
+    val useTunnelDNS: Boolean = true,
     val tlsInsecure: Boolean = false,
     val tlsServerName: String = "",
     val tlsPeerFingerprint: String = "",
@@ -57,6 +58,7 @@ internal class OpenConnectSettingsViewModel : ProfileEditorViewModel<OpenConnect
                 userAgent = userAgent,
                 localHostname = localHostname,
                 allowInsecureCrypto = allowInsecureCrypto,
+                useTunnelDNS = useTunnelDNS,
                 tlsInsecure = tlsInsecure,
                 tlsServerName = tlsServerName,
                 tlsPeerFingerprint = tlsPeerFingerprint,
@@ -85,6 +87,7 @@ internal class OpenConnectSettingsViewModel : ProfileEditorViewModel<OpenConnect
         userAgent = it.userAgent
         localHostname = it.localHostname
         allowInsecureCrypto = it.allowInsecureCrypto
+        useTunnelDNS = it.useTunnelDNS
         tlsInsecure = it.tlsInsecure
         tlsServerName = it.tlsServerName
         tlsPeerFingerprint = it.tlsPeerFingerprint
@@ -148,6 +151,10 @@ internal class OpenConnectSettingsViewModel : ProfileEditorViewModel<OpenConnect
 
     fun setAllowInsecureCrypto(allow: Boolean) {
         mutableUiState.update { it.copy(allowInsecureCrypto = allow) }
+    }
+
+    fun setUseTunnelDNS(value: Boolean) {
+        mutableUiState.update { it.copy(useTunnelDNS = value) }
     }
 
     fun setTlsInsecure(value: Boolean) {

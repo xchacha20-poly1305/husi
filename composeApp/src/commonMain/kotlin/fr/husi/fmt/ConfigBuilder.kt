@@ -114,6 +114,7 @@ const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
 const val TAG_DNS_HOSTS = "dns-hosts"
 const val TAG_DNS_MDNS = "dns-mdns"
+const val TAG_DNS_TUNNEL = "dns-tunnel"
 const val TAG_SERVICE_ANCHOR = "service-anchor"
 
 const val LOCALHOST4 = "127.0.0.1"
@@ -262,6 +263,15 @@ fun buildConfig(
             ?.takeIf { it.isNotEmpty() }
     }
     val externalIndexMap = ArrayList<IndexEntity>()
+
+    // VPN endpoints (OpenConnect/OpenVPN) whose pushed DNS servers should be used:
+    // outbound tag to sing-box DNS server type.
+    val tunnelDNSEndpoints = LinkedHashMap<String, String>()
+
+    // The endpoint that the main chain exits from, if its pushed DNS servers
+    // should replace the remote DNS.
+    var tunnelDNSExitTag: String? = null
+
     val networkStrategy = DataStore.networkStrategy
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
@@ -673,6 +683,28 @@ fun buildConfig(
                 currentOutbound["tag"] = tagOut
                 tagMap[proxyEntity.id] = tagOut
                 outboundsByTag[tagOut] = currentOutbound
+
+                // OpenConnect and OpenVPN servers push their own DNS servers, search domains
+                // and split DNS rules. Only the tunnel can reach them, so their DNS is
+                // exposed as a DNS server of the endpoint.
+                if (!forTest) {
+                    val tunnelDNSType = when {
+                        bean is OpenConnectBean && bean.useTunnelDNS ->
+                            SingBoxOptions.DNS_TYPE_OPENCONNECT
+
+                        bean is OpenVPNBean && bean.useTunnelDNS ->
+                            SingBoxOptions.DNS_TYPE_OPENVPN
+
+                        else -> null
+                    }
+                    if (tunnelDNSType != null) {
+                        tunnelDNSEndpoints[tagOut] = tunnelDNSType
+                        // The last profile of the chain is the one traffic exits from.
+                        if (chainId == 0L && index == profileList.lastIndex) {
+                            tunnelDNSExitTag = tagOut
+                        }
+                    }
+                }
 
                 // External proxy need a direct inbound to forward the traffic
                 // For external proxy software, their traffic must goes to sing-box to use protected fd.
@@ -1202,11 +1234,33 @@ fun buildConfig(
             }
         }
 
+        // VPN endpoint DNS objects: endpoint tag to DNS server tag.
+        val tunnelDNSServerTags = LinkedHashMap<String, String>()
+        tunnelDNSExitTag?.let { exitTag ->
+            // Traffic exits from a VPN endpoint, so the servers it pushes take the place of
+            // the remote DNS: they are the only ones reachable through the tunnel.
+            tunnelDNSServerTags[exitTag] = TAG_DNS_REMOTE
+        }
+        for (endpointTag in tunnelDNSEndpoints.keys) {
+            if (endpointTag in tunnelDNSServerTags) continue
+            tunnelDNSServerTags[endpointTag] = "$TAG_DNS_TUNNEL-${tunnelDNSServerTags.size}"
+        }
+        for ((endpointTag, serverTag) in tunnelDNSServerTags) {
+            dns!!.servers!!.add(
+                buildEndpointDNSServer(
+                    type = tunnelDNSEndpoints.getValue(endpointTag),
+                    tag = serverTag,
+                    endpoint = endpointTag,
+                ),
+            )
+        }
+
         // remote dns obj
-        remoteDns.firstOrNull()?.let {
+        if (tunnelDNSExitTag == null) {
+            val remote = remoteDns.firstOrNull() ?: error("missing remote DNS")
             dns!!.servers!!.add(
                 buildDNSServer(
-                    it,
+                    remote,
                     mainTag,
                     TAG_DNS_REMOTE,
                     DomainResolveOptions().apply {
@@ -1214,7 +1268,7 @@ fun buildConfig(
                     },
                 ),
             )
-        } ?: error("missing remote DNS")
+        }
 
         // add directDNS objects here
         directDNS.firstOrNull()?.let {
@@ -1360,6 +1414,12 @@ fun buildConfig(
                     },
                 )
                 addPreferredDNSRule(TAG_DNS_MDNS)
+            }
+
+            // The domains pushed by a VPN endpoint (search domains and split DNS) only
+            // resolve inside its tunnel, so they win over the local resolver.
+            for (serverTag in tunnelDNSServerTags.values) {
+                addPreferredDNSRule(serverTag)
             }
 
             dnsHosts?.let {

@@ -9,6 +9,7 @@ import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
+import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
@@ -781,6 +782,64 @@ class ConfigBuilderTest : HusiKoinTest() {
         )
     }
 
+    @Test
+    fun `buildConfig should resolve with DNS pushed by OpenConnect endpoint`() = runBlocking {
+        DataStore.remoteDns = "tcp://dns.example.com"
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createOpenConnectProxy(
+            groupId = group.id,
+            order = 1,
+            name = "vpn",
+        )
+
+        val result = buildConfig(proxy)
+        val dnsServers = parseDnsServers(result)
+        val remote = assertNotNull(dnsServers[TAG_DNS_REMOTE])
+
+        assertEquals(SingBoxOptions.DNS_TYPE_OPENCONNECT, remote["type"]?.jsonPrimitive?.content)
+        assertEquals("vpn", remote["endpoint"]?.jsonPrimitive?.content)
+        assertEquals("true", remote["accept_default_resolvers"]?.jsonPrimitive?.content)
+        assertEquals("true", remote["accept_search_domain"]?.jsonPrimitive?.content)
+        assertEquals(null, remote["detour"])
+        // Only one DNS server is allowed per endpoint.
+        assertEquals(
+            1,
+            dnsServers.count { it.value["endpoint"]?.jsonPrimitive?.content == "vpn" },
+        )
+
+        val preferredRule = parseDnsRules(result).first {
+            it["preferred_by"]?.jsonArray?.map { item -> item.jsonPrimitive.content } ==
+                listOf(TAG_DNS_REMOTE)
+        }
+        assertEquals(TAG_DNS_REMOTE, preferredRule["server"]?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun `buildConfig should keep remote DNS when OpenConnect tunnel DNS is disabled`() = runBlocking {
+        DataStore.remoteDns = "tcp://dns.example.com"
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createOpenConnectProxy(
+            groupId = group.id,
+            order = 1,
+            name = "vpn",
+            useTunnelDNS = false,
+        )
+
+        val dnsServers = parseDnsServers(buildConfig(proxy))
+        val remote = assertNotNull(dnsServers[TAG_DNS_REMOTE])
+
+        assertEquals(SingBoxOptions.DNS_TYPE_TCP, remote["type"]?.jsonPrimitive?.content)
+        assertEquals("dns.example.com", remote["server"]?.jsonPrimitive?.content)
+        assertEquals("vpn", remote["detour"]?.jsonPrimitive?.content)
+        assertEquals(0, dnsServers.count { it.value["endpoint"] != null })
+    }
+
     private fun parseOutbounds(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
             .jsonArray
@@ -824,6 +883,23 @@ class ConfigBuilderTest : HusiKoinTest() {
                 this.name = name
                 serverAddress = host
                 serverPort = port
+            }.applyDefaultValues(),
+        )
+        proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+        return proxy
+    }
+
+    private suspend fun createOpenConnectProxy(
+        groupId: Long,
+        order: Long,
+        name: String,
+        useTunnelDNS: Boolean = true,
+    ): ProxyEntity {
+        val proxy = ProxyEntity(groupId = groupId, userOrder = order).putBean(
+            OpenConnectBean().apply {
+                this.name = name
+                server = "https://vpn.example.com"
+                this.useTunnelDNS = useTunnelDNS
             }.applyDefaultValues(),
         )
         proxy.id = SagerDatabase.proxyDao.addProxy(proxy)

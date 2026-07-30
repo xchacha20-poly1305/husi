@@ -59,8 +59,14 @@ class OpenConnectBean : AbstractBean() {
     /** Answers remembered from interactive authentication, replayed on reconnect. */
     var formEntries: List<OpenConnectFormEntry> = emptyList()
 
+    /**
+     * Resolve proxied domains with the DNS servers pushed by the server,
+     * instead of the app's remote DNS.
+     */
+    var useTunnelDNS: Boolean = true
+
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(2)
+        output.writeInt(3)
         super.serialize(output)
         output.writeString(server)
         output.writeString(flavor)
@@ -89,6 +95,9 @@ class OpenConnectBean : AbstractBean() {
         output.writeBoolean(tlsInsecure)
         output.writeString(tlsServerName)
         output.writeString(tlsPeerFingerprint)
+
+        // version 3
+        output.writeBoolean(useTunnelDNS)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -122,6 +131,10 @@ class OpenConnectBean : AbstractBean() {
             tlsInsecure = input.readBoolean()
             tlsServerName = input.readString().orEmpty()
             tlsPeerFingerprint = input.readString().orEmpty()
+        }
+
+        if (version >= 3) {
+            useTunnelDNS = input.readBoolean()
         }
     }
 

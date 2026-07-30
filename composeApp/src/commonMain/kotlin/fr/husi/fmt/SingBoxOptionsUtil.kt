@@ -6,6 +6,8 @@ import fr.husi.fmt.SingBoxOptions.MyOptions
 import fr.husi.fmt.SingBoxOptions.MyRouteOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_OpenConnectDNSServerOptions
+import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_OpenVPNDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_RemoteDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_RemoteHTTPSDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_RemoteTLSDNSServerOptions
@@ -472,6 +474,34 @@ fun buildDNSServer(
         }
 
     }.also {
+        it.tag = tag
+    }
+}
+
+/**
+ * Builds a DNS server resolving with the DNS servers pushed by the VPN [endpoint],
+ * like the official OpenConnect and OpenVPN clients do.
+ *
+ * [type] must be [SingBoxOptions.DNS_TYPE_OPENCONNECT] or [SingBoxOptions.DNS_TYPE_OPENVPN].
+ * Only one such DNS server is allowed per endpoint.
+ */
+fun buildEndpointDNSServer(type: String, tag: String, endpoint: String): NewDNSServerOptions {
+    return when (type) {
+        SingBoxOptions.DNS_TYPE_OPENCONNECT -> NewDNSServerOptions_OpenConnectDNSServerOptions().also {
+            it.endpoint = endpoint
+            it.accept_default_resolvers = true
+            it.accept_search_domain = true
+        }
+
+        SingBoxOptions.DNS_TYPE_OPENVPN -> NewDNSServerOptions_OpenVPNDNSServerOptions().also {
+            it.endpoint = endpoint
+            it.accept_default_resolvers = true
+            it.accept_search_domain = true
+        }
+
+        else -> error("not an endpoint DNS type: $type")
+    }.also {
+        it.type = type
         it.tag = tag
     }
 }

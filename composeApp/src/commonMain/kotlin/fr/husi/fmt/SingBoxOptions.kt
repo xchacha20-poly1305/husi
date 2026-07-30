@@ -103,6 +103,8 @@ object SingBoxOptions {
     const val DNS_TYPE_FAKEIP = "fakeip"
     const val DNS_TYPE_HOSTS = "hosts"
     const val DNS_TYPE_MDNS = "mdns"
+    const val DNS_TYPE_OPENCONNECT = "openconnect"
+    const val DNS_TYPE_OPENVPN = "openvpn"
 
     const val TUN_DNS_MODE_DISABLED = "disabled"
     const val TUN_DNS_MODE_NATIVE = "native"
@@ -6023,6 +6025,34 @@ object SingBoxOptions {
 
         @JvmField
         var `interface`: MutableList<String>? = null
+
+    }
+
+    @KxsSerializable
+    open class NewDNSServerOptions_OpenConnectDNSServerOptions : NewDNSServerOptions() {
+
+        @JvmField
+        var endpoint: String? = null
+
+        @JvmField
+        var accept_default_resolvers: Boolean? = null
+
+        @JvmField
+        var accept_search_domain: Boolean? = null
+
+    }
+
+    @KxsSerializable
+    open class NewDNSServerOptions_OpenVPNDNSServerOptions : NewDNSServerOptions() {
+
+        @JvmField
+        var endpoint: String? = null
+
+        @JvmField
+        var accept_default_resolvers: Boolean? = null
+
+        @JvmField
+        var accept_search_domain: Boolean? = null
 
     }
 

@@ -48,6 +48,8 @@ import fr.husi.resources.router
 import fr.husi.resources.security_settings
 import fr.husi.resources.tls_peer_fingerprint
 import fr.husi.resources.tls_server_name
+import fr.husi.resources.use_tunnel_dns
+import fr.husi.resources.use_tunnel_dns_summary
 import fr.husi.resources.user_agent
 import fr.husi.resources.username
 import fr.husi.resources.vpn_key
@@ -211,6 +213,14 @@ private fun LazyListScope.openConnectSettings(
             valueToText = { it },
             summary = { Text(contentOrUnset(state.localHostname)) },
             icon = { MaskedIcon(Res.drawable.dns, IconMaskColors.IconWarmGray) },
+        )
+        PreferenceDivider()
+        SwitchPreference(
+            value = state.useTunnelDNS,
+            onValueChange = viewModel::setUseTunnelDNS,
+            title = { Text(stringResource(Res.string.use_tunnel_dns)) },
+            summary = { Text(stringResource(Res.string.use_tunnel_dns_summary)) },
+            icon = { MaskedIcon(Res.drawable.dns, IconMaskColors.IconLightGreen) },
         )
     }
     item("category_tls") { PreferenceCategory(text = { Text(stringResource(Res.string.security_settings)) }) }

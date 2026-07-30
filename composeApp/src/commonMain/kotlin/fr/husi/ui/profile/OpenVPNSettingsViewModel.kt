@@ -33,6 +33,7 @@ internal data class OpenVPNUiState(
     val auth: String = "",
     val compression: String = "",
     val redirectGateway: Boolean = false,
+    val useTunnelDNS: Boolean = true,
     val mtu: Int = 1500,
 ) : ProfileEditorUiState
 
@@ -69,6 +70,7 @@ internal class OpenVPNSettingsViewModel : ProfileEditorViewModel<OpenVPNBean>() 
                 auth = auth,
                 compression = compression,
                 redirectGateway = redirectGateway,
+                useTunnelDNS = useTunnelDNS,
                 mtu = mtu,
             )
         }
@@ -99,6 +101,7 @@ internal class OpenVPNSettingsViewModel : ProfileEditorViewModel<OpenVPNBean>() 
         auth = it.auth
         compression = it.compression
         redirectGateway = it.redirectGateway
+        useTunnelDNS = it.useTunnelDNS
         mtu = it.mtu
     }
 
@@ -201,6 +204,10 @@ internal class OpenVPNSettingsViewModel : ProfileEditorViewModel<OpenVPNBean>() 
 
     fun setRedirectGateway(enabled: Boolean) {
         mutableUiState.update { it.copy(redirectGateway = enabled) }
+    }
+
+    fun setUseTunnelDNS(value: Boolean) {
+        mutableUiState.update { it.copy(useTunnelDNS = value) }
     }
 
     fun setMtu(value: Int) {

@@ -30,8 +30,14 @@ class OpenVPNBean : AbstractBean() {
     var redirectGateway: Boolean = false
     var mtu: Int = 1500
 
+    /**
+     * Resolve proxied domains with the DNS servers pushed by the server,
+     * instead of the app's remote DNS.
+     */
+    var useTunnelDNS: Boolean = true
+
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(1)
+        output.writeInt(2)
         super.serialize(output)
         output.writeString(network)
         output.writeString(username)
@@ -55,6 +61,9 @@ class OpenVPNBean : AbstractBean() {
 
         // version 1
         output.writeString(cipher)
+
+        // version 2
+        output.writeBoolean(useTunnelDNS)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -82,6 +91,10 @@ class OpenVPNBean : AbstractBean() {
 
         if (version >= 1) {
             cipher = input.readString().orEmpty()
+        }
+
+        if (version >= 2) {
+            useTunnelDNS = input.readBoolean()
         }
     }
 

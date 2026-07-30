@@ -251,6 +251,8 @@
     <string name="openconnect_reported_os">Reported OS</string>
     <string name="openconnect_allow_insecure_crypto">Allow Legacy Cryptography</string>
     <string name="local_hostname">Local Hostname</string>
+    <string name="use_tunnel_dns">Use DNS Pushed by Server</string>
+    <string name="use_tunnel_dns_summary">Resolve proxied domains with the DNS servers, search domains and split DNS rules pushed by the server, like the official client does. Disable it to keep using the remote DNS of the app.</string>
     <string name="tls_server_name">TLS Server Name</string>
     <string name="tls_peer_fingerprint">TLS Peer Fingerprint</string>
     <string name="vpn_server_url">Server URL</string>
