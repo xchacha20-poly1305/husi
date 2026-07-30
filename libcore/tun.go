@@ -47,10 +47,11 @@ type NetworkInterfaceIterator interface {
 
 type interfaceMonitor struct {
 	*boxPlatformInterfaceWrapper
-	element      *list.Element[tun.NetworkUpdateCallback]
-	callbacks    list.List[tun.DefaultInterfaceUpdateCallback]
-	logger       logger.Logger
-	myInterfaces []string
+	element                     *list.Element[tun.NetworkUpdateCallback]
+	callbacks                   list.List[tun.DefaultInterfaceUpdateCallback]
+	logger                      logger.Logger
+	myInterfaces                []string
+	defaultInterfaceInitialized bool
 }
 
 func (m *interfaceMonitor) RegisterMyInterface(interfaceName string) {
@@ -116,6 +117,7 @@ func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfac
 	m.defaultInterfaceAccess.Lock()
 	if interfaceIndex32 == -1 {
 		m.defaultInterface = nil
+		m.defaultInterfaceInitialized = true
 		callbacks := m.callbacks.Array()
 		m.defaultInterfaceAccess.Unlock()
 		for _, callback := range callbacks {
@@ -131,10 +133,11 @@ func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfac
 		return
 	}
 	m.defaultInterface = newInterface
-	if oldInterface != nil && oldInterface.Name == m.defaultInterface.Name && oldInterface.Index == m.defaultInterface.Index {
+	if m.defaultInterfaceInitialized && oldInterface != nil && oldInterface.Name == m.defaultInterface.Name && oldInterface.Index == m.defaultInterface.Index {
 		m.defaultInterfaceAccess.Unlock()
 		return
 	}
+	m.defaultInterfaceInitialized = true
 	callbacks := m.callbacks.Array()
 	m.defaultInterfaceAccess.Unlock()
 	for _, callback := range callbacks {
