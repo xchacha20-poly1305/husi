@@ -133,6 +133,26 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
 }
 
 @Composable
+internal actual fun ProxyAppsPreferences(openAppManager: () -> Unit) {
+}
+
+@Composable
+internal actual fun PlatformSecurityOptions() {
+}
+
+@Composable
+internal actual fun MeteredNetworkPreference(needReload: () -> Unit) {
+}
+
+@Composable
+internal actual fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit) {
+}
+
+@Composable
+internal actual fun PlatformMiscOptions(needReload: () -> Unit) {
+}
+
+@Composable
 internal actual fun rememberThemeExtraColors(): List<Color> = emptyList()
 
 @Composable

@@ -16,8 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.husi.DEFAULT_HTTP_BYPASS
 import fr.husi.Key
 import fr.husi.LauncherIcon
+import fr.husi.compose.HostTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PreferenceDivider
@@ -28,28 +30,45 @@ import fr.husi.database.DataStore
 import fr.husi.ktx.findActivity
 import fr.husi.ktx.getColour
 import fr.husi.resources.Res
+import fr.husi.resources.acquire_wake_lock
+import fr.husi.resources.acquire_wake_lock_summary
 import fr.husi.resources.allow_apps_bypass_vpn
+import fr.husi.resources.apps
 import fr.husi.resources.auto_connect
 import fr.husi.resources.auto_connect_summary
 import fr.husi.resources.cancel
+import fr.husi.resources.data_usage
+import fr.husi.resources.developer_board
 import fr.husi.resources.disable_process_text
+import fr.husi.resources.domain
 import fr.husi.resources.format_align_left
 import fr.husi.resources.hide_launcher_icon
 import fr.husi.resources.hide_launcher_icon_confirm
 import fr.husi.resources.hide_launcher_icon_summary
+import fr.husi.resources.http_proxy_bypass
+import fr.husi.resources.keyboard_tab
 import fr.husi.resources.label
 import fr.husi.resources.legend_toggle
+import fr.husi.resources.metered
+import fr.husi.resources.metered_summary
 import fr.husi.resources.ok
 import fr.husi.resources.phonelink_ring
+import fr.husi.resources.privacy
+import fr.husi.resources.privacy_mode
+import fr.husi.resources.privacy_mode_summary
+import fr.husi.resources.proxied_apps
+import fr.husi.resources.proxied_apps_summary
 import fr.husi.resources.route_opt_bypass_lan
 import fr.husi.resources.show_group_in_notification
 import fr.husi.resources.transform
+import fr.husi.resources.update_proxy_apps_when_install
 import fr.husi.resources.visibility_off
 import fr.husi.resources.vpn_session_name
 import fr.husi.resources.vpn_session_name_summary
 import kotlinx.coroutines.flow.flowOf
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
+import me.zhanghai.compose.preference.TwoTargetSwitchPreference
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -91,6 +110,7 @@ internal actual fun rememberApplyNightMode(): (Int) -> Unit {
 
 @Composable
 internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
+    PreferenceDivider()
     val value by DataStore.configurationStore
         .stringFlow(Key.VPN_SESSION_NAME, "")
         .collectAsStateWithLifecycle("")
@@ -174,6 +194,135 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
                 color = IconMaskColors.IconLightGreen,
             )
         },
+    )
+}
+
+@Composable
+internal actual fun ProxyAppsPreferences(openAppManager: () -> Unit) {
+    val value by DataStore.configurationStore
+        .booleanFlow(Key.PROXY_APPS, false)
+        .collectAsStateWithLifecycle(false)
+    TwoTargetSwitchPreference(
+        value = value,
+        onValueChange = {
+            DataStore.proxyApps = it
+            if (it) {
+                openAppManager()
+            }
+        },
+        title = { Text(stringResource(Res.string.proxied_apps)) },
+        icon = {
+            MaskedIcon(Res.drawable.apps, color = IconMaskColors.IconCyan)
+        },
+        summary = { Text(stringResource(Res.string.proxied_apps_summary)) },
+        onClick = {
+            if (!value) {
+                DataStore.proxyApps = true
+            }
+            openAppManager()
+        },
+    )
+    val updateValue by DataStore.configurationStore
+        .booleanFlow(Key.UPDATE_PROXY_APPS_WHEN_INSTALL, false)
+        .collectAsStateWithLifecycle(false)
+    PreferenceDivider()
+    SwitchPreference(
+        value = updateValue,
+        onValueChange = { DataStore.updateProxyAppsWhenInstall = it },
+        title = { Text(stringResource(Res.string.update_proxy_apps_when_install)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.keyboard_tab,
+                color = IconMaskColors.IconLavender,
+            )
+        },
+    )
+    PreferenceDivider()
+}
+
+@Composable
+internal actual fun PlatformSecurityOptions() {
+    PreferenceDivider()
+    val value by DataStore.configurationStore
+        .booleanFlow(Key.PRIVACY_MODE, false)
+        .collectAsStateWithLifecycle(false)
+    SwitchPreference(
+        value = value,
+        onValueChange = { DataStore.privacyMode = it },
+        title = { Text(stringResource(Res.string.privacy_mode)) },
+        icon = {
+            MaskedIcon(Res.drawable.privacy, color = IconMaskColors.IconCoral)
+        },
+        summary = { Text(stringResource(Res.string.privacy_mode_summary)) },
+    )
+}
+
+@Composable
+internal actual fun MeteredNetworkPreference(needReload: () -> Unit) {
+    PreferenceDivider()
+    val value by DataStore.configurationStore
+        .booleanFlow(Key.METERED_NETWORK, false)
+        .collectAsStateWithLifecycle(false)
+    SwitchPreference(
+        value = value,
+        onValueChange = {
+            DataStore.meteredNetwork = it
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.metered)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.data_usage,
+                color = IconMaskColors.IconLightBlue,
+            )
+        },
+        summary = { Text(stringResource(Res.string.metered_summary)) },
+    )
+}
+
+@Composable
+internal actual fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit) {
+    val value by DataStore.configurationStore
+        .stringFlow(Key.HTTP_PROXY_BYPASS, DEFAULT_HTTP_BYPASS)
+        .collectAsStateWithLifecycle(DEFAULT_HTTP_BYPASS)
+    TextFieldPreference(
+        value = value,
+        onValueChange = {
+            DataStore.httpProxyBypass = it
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.http_proxy_bypass)) },
+        textToValue = { it },
+        icon = {
+            MaskedIcon(Res.drawable.domain, color = IconMaskColors.IconCyan)
+        },
+        valueToText = { it },
+        enabled = enabled,
+    ) { value, onValueChange, onOk ->
+        HostTextField(value, onValueChange, onOk)
+    }
+}
+
+@Composable
+internal actual fun PlatformMiscOptions(needReload: () -> Unit) {
+    PreferenceDivider()
+    val value by DataStore.configurationStore
+        .booleanFlow(Key.ACQUIRE_WAKE_LOCK, true)
+        .collectAsStateWithLifecycle(true)
+    SwitchPreference(
+        value = value,
+        onValueChange = {
+            DataStore.acquireWakeLock = it
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.acquire_wake_lock)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.developer_board,
+                color = IconMaskColors.IconLightGreen,
+            )
+        },
+        summary = { Text(stringResource(Res.string.acquire_wake_lock_summary)) },
     )
 }
 

@@ -37,3 +37,33 @@ internal expect fun rememberThemeExtraColors(): List<Color>
 
 @Composable
 internal expect fun rememberAppLanguageController(defaultTag: String): AppLanguageController
+
+@Composable
+internal expect fun AutoConnectPreference()
+
+@Composable
+internal expect fun PlatformGeneralOptions(needReload: () -> Unit)
+
+@Composable
+internal expect fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Boolean)
+
+@Composable
+internal expect fun ProxyAppsPreferences(openAppManager: () -> Unit)
+
+@Composable
+internal expect fun PlatformSecurityOptions()
+
+@Composable
+internal expect fun MeteredNetworkPreference(needReload: () -> Unit)
+
+@Composable
+internal expect fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit)
+
+@Composable
+internal expect fun PlatformMiscOptions(needReload: () -> Unit)
+
+@Composable
+internal expect fun DisableProcessTextPreference()
+
+@Composable
+internal expect fun HideLauncherIconPreference()
