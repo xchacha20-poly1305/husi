@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.CONNECTION_TEST_URL
 import fr.husi.CertProvider
-import fr.husi.DEFAULT_HTTP_BYPASS
 import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.ProtocolProvider
@@ -102,8 +101,6 @@ import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
-import fr.husi.resources.acquire_wake_lock
-import fr.husi.resources.acquire_wake_lock_summary
 import fr.husi.resources.allow_access
 import fr.husi.resources.allow_access_sum
 import fr.husi.resources.always_show_address
@@ -130,9 +127,7 @@ import fr.husi.resources.connection_test_unified_delay
 import fr.husi.resources.connection_test_url
 import fr.husi.resources.construction
 import fr.husi.resources.custom_rule_provider
-import fr.husi.resources.data_usage
 import fr.husi.resources.description
-import fr.husi.resources.developer_board
 import fr.husi.resources.developer_mode
 import fr.husi.resources.direct_dns
 import fr.husi.resources.directions_boat
@@ -140,7 +135,6 @@ import fr.husi.resources.disable
 import fr.husi.resources.disable_tcp_keep_alive
 import fr.husi.resources.dns
 import fr.husi.resources.dns_hosts
-import fr.husi.resources.domain
 import fr.husi.resources.domain_strategy_for_direct
 import fr.husi.resources.domain_strategy_for_server
 import fr.husi.resources.download
@@ -162,7 +156,6 @@ import fr.husi.resources.flip_camera_android
 import fr.husi.resources.follow_system
 import fr.husi.resources.general_settings
 import fr.husi.resources.hourglass_top
-import fr.husi.resources.http_proxy_bypass
 import fr.husi.resources.hybrid
 import fr.husi.resources.hysteria2_provider
 import fr.husi.resources.hysteria_download_mbps
@@ -176,7 +169,6 @@ import fr.husi.resources.ipv4_only
 import fr.husi.resources.ipv6_only
 import fr.husi.resources.juicity_provider
 import fr.husi.resources.keep_default
-import fr.husi.resources.keyboard_tab
 import fr.husi.resources.language
 import fr.husi.resources.language_system_default
 import fr.husi.resources.local_bar
@@ -186,8 +178,6 @@ import fr.husi.resources.long_click_to_see_name
 import fr.husi.resources.max_log_line
 import fr.husi.resources.mdns_network_interfaces
 import fr.husi.resources.menu
-import fr.husi.resources.metered
-import fr.husi.resources.metered_summary
 import fr.husi.resources.mozilla
 import fr.husi.resources.mtu
 import fr.husi.resources.nat
@@ -211,15 +201,10 @@ import fr.husi.resources.port_local_dns
 import fr.husi.resources.port_proxy
 import fr.husi.resources.prefer_ipv4
 import fr.husi.resources.prefer_ipv6
-import fr.husi.resources.privacy
-import fr.husi.resources.privacy_mode
-import fr.husi.resources.privacy_mode_summary
 import fr.husi.resources.profile_traffic_statistics
 import fr.husi.resources.profile_traffic_statistics_summary
 import fr.husi.resources.protocol_settings
 import fr.husi.resources.provider_naive
-import fr.husi.resources.proxied_apps
-import fr.husi.resources.proxied_apps_summary
 import fr.husi.resources.public_icon
 import fr.husi.resources.push_pin
 import fr.husi.resources.question_mark
@@ -253,7 +238,6 @@ import fr.husi.resources.transform
 import fr.husi.resources.transgender
 import fr.husi.resources.translate
 import fr.husi.resources.tun_implementation
-import fr.husi.resources.update_proxy_apps_when_install
 import fr.husi.resources.wb_sunny
 import fr.husi.resources.wifi
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -269,7 +253,6 @@ import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SliderPreference
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
-import me.zhanghai.compose.preference.TwoTargetSwitchPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -640,54 +623,6 @@ private fun ColorPickerPreference(
 }
 
 @Composable
-internal expect fun AutoConnectPreference()
-
-@Composable
-private fun ProxyAppsPreferences(openAppManager: () -> Unit) {
-    if (PlatformInfo.isAndroid) {
-        val value by DataStore.configurationStore
-            .booleanFlow(Key.PROXY_APPS, false)
-            .collectAsStateWithLifecycle(false)
-        // Per-app proxy
-        TwoTargetSwitchPreference(
-            value = value,
-            onValueChange = {
-                DataStore.proxyApps = it
-                if (it) {
-                    openAppManager()
-                }
-            },
-            title = { Text(stringResource(Res.string.proxied_apps)) },
-            icon = {
-                MaskedIcon(Res.drawable.apps, color = IconMaskColors.IconCyan)
-            },
-            summary = { Text(stringResource(Res.string.proxied_apps_summary)) },
-            onClick = {
-                if (!value) {
-                    DataStore.proxyApps = true
-                }
-                openAppManager()
-            },
-        )
-        val updateValue by DataStore.configurationStore
-            .booleanFlow(Key.UPDATE_PROXY_APPS_WHEN_INSTALL, false)
-            .collectAsStateWithLifecycle(false)
-        PreferenceDivider()
-        SwitchPreference(
-            value = updateValue,
-            onValueChange = { DataStore.updateProxyAppsWhenInstall = it },
-            title = { Text(stringResource(Res.string.update_proxy_apps_when_install)) },
-            icon = {
-                MaskedIcon(
-                    Res.drawable.keyboard_tab,
-                    color = IconMaskColors.IconLavender,
-                )
-            },
-        )
-    }
-}
-
-@Composable
 private fun GeneralSettingsGroup(
     needReload: () -> Unit,
     needRestart: () -> Unit,
@@ -839,10 +774,7 @@ private fun GeneralSettingsGroup(
         summary = { Text(mtuValue.toString()) },
         valueToText = { it.toString() },
     )
-    if (PlatformInfo.isAndroid) {
-        PreferenceDivider()
-        PlatformGeneralOptions(needReload)
-    }
+    PlatformGeneralOptions(needReload)
     PreferenceDivider()
 
     fun speedIntervalText(ms: Int): StringOrRes = when (ms) {
@@ -959,12 +891,8 @@ private fun GeneralSettingsGroup(
             )
         },
     )
-    if (PlatformInfo.isAndroid) {
-        PreferenceDivider()
-        PlatformSecurityOptions()
-        PreferenceDivider()
-        MeteredNetworkPreference(needReload)
-    }
+    PlatformSecurityOptions()
+    MeteredNetworkPreference(needReload)
     PreferenceDivider()
 
     val logLevelValue by DataStore.configurationStore
@@ -1013,46 +941,6 @@ private fun GeneralSettingsGroup(
 }
 
 @Composable
-private fun PlatformSecurityOptions() {
-    if (!PlatformInfo.isAndroid) return
-    val value by DataStore.configurationStore
-        .booleanFlow(Key.PRIVACY_MODE, false)
-        .collectAsStateWithLifecycle(false)
-    SwitchPreference(
-        value = value,
-        onValueChange = { DataStore.privacyMode = it },
-        title = { Text(stringResource(Res.string.privacy_mode)) },
-        icon = {
-            MaskedIcon(Res.drawable.privacy, color = IconMaskColors.IconCoral)
-        },
-        summary = { Text(stringResource(Res.string.privacy_mode_summary)) },
-    )
-}
-
-@Composable
-private fun MeteredNetworkPreference(needReload: () -> Unit) {
-    if (!PlatformInfo.isAndroid) return
-    val value by DataStore.configurationStore
-        .booleanFlow(Key.METERED_NETWORK, false)
-        .collectAsStateWithLifecycle(false)
-    SwitchPreference(
-        value = value,
-        onValueChange = {
-            DataStore.meteredNetwork = it
-            needReload()
-        },
-        title = { Text(stringResource(Res.string.metered)) },
-        icon = {
-            MaskedIcon(
-                Res.drawable.data_usage,
-                color = IconMaskColors.IconLightBlue,
-            )
-        },
-        summary = { Text(stringResource(Res.string.metered_summary)) },
-    )
-}
-
-@Composable
 private fun RouteSettingsGroup(
     needReload: () -> Unit,
     serviceMode: String,
@@ -1061,10 +949,7 @@ private fun RouteSettingsGroup(
     appendHttpProxyState: Boolean,
     openAppManager: () -> Unit,
 ) {
-    if (PlatformInfo.isAndroid) {
-        ProxyAppsPreferences(openAppManager)
-        PreferenceDivider()
-    }
+    ProxyAppsPreferences(openAppManager)
 
     PlatformRouteOptions(
         needReload = needReload,
@@ -1284,61 +1169,6 @@ private fun RouteSettingsGroup(
     }
 }
 
-@Composable
-internal expect fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Boolean)
-
-@Composable
-private fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit) {
-    if (!PlatformInfo.isAndroid) return
-    val value by DataStore.configurationStore
-        .stringFlow(Key.HTTP_PROXY_BYPASS, DEFAULT_HTTP_BYPASS)
-        .collectAsStateWithLifecycle(DEFAULT_HTTP_BYPASS)
-    TextFieldPreference(
-        value = value,
-        onValueChange = {
-            DataStore.httpProxyBypass = it
-            needReload()
-        },
-        title = { Text(stringResource(Res.string.http_proxy_bypass)) },
-        textToValue = { it },
-        icon = {
-            MaskedIcon(Res.drawable.domain, color = IconMaskColors.IconCyan)
-        },
-        valueToText = { it },
-        enabled = enabled,
-    ) { value, onValueChange, onOk ->
-        HostTextField(value, onValueChange, onOk)
-    }
-}
-
-@Composable
-private fun PlatformMiscOptions(needReload: () -> Unit) {
-    if (!PlatformInfo.isAndroid) return
-    val value by DataStore.configurationStore
-        .booleanFlow(Key.ACQUIRE_WAKE_LOCK, true)
-        .collectAsStateWithLifecycle(true)
-    SwitchPreference(
-        value = value,
-        onValueChange = {
-            DataStore.acquireWakeLock = it
-            needReload()
-        },
-        title = { Text(stringResource(Res.string.acquire_wake_lock)) },
-        icon = {
-            MaskedIcon(
-                Res.drawable.developer_board,
-                color = IconMaskColors.IconLightGreen,
-            )
-        },
-        summary = { Text(stringResource(Res.string.acquire_wake_lock_summary)) },
-    )
-}
-
-@Composable
-internal expect fun DisableProcessTextPreference()
-
-@Composable
-internal expect fun HideLauncherIconPreference()
 
 @Composable
 private fun ProtocolSettingsGroup(
@@ -1985,10 +1815,7 @@ private fun MiscSettingsGroup(
             MaskedIcon(Res.drawable.question_mark, IconMaskColors.IconLightGreen)
         },
     )
-    if (PlatformInfo.isAndroid) {
-        PreferenceDivider()
-        PlatformMiscOptions(needReload)
-    }
+    PlatformMiscOptions(needReload)
     PreferenceDivider()
 
     val certProviderValue by DataStore.configurationStore
@@ -2126,9 +1953,6 @@ private fun NtpSettingsGroup(
         DurationTextField(value, onValueChange, onOk)
     }
 }
-
-@Composable
-internal expect fun PlatformGeneralOptions(needReload: () -> Unit)
 
 @Composable
 private fun Circle(
