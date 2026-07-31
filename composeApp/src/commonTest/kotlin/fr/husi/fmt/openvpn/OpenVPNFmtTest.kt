@@ -170,6 +170,130 @@ class OpenVPNFmtTest {
     }
 
     @Test
+    fun `parseOpenVPNConfig reads standalone key-direction`() {
+        val config = """
+            client
+            dev tun
+            proto udp
+            remote vpn.example.com 1194
+            remote-cert-tls server
+            auth-user-pass
+            cipher AES-256-CBC
+            auth SHA512
+            <ca>
+            test-ca
+            </ca>
+            key-direction 1
+            <tls-auth>
+            #
+            # 2048 bit OpenVPN static key
+            #
+            test-control-key
+            </tls-auth>
+        """.trimIndent()
+
+        val bean = assertNotNull(parseOpenVPNConfig(config))
+
+        assertEquals("vpn.example.com", bean.serverAddress)
+        assertEquals(1194, bean.serverPort)
+        assertEquals("udp", bean.network)
+        assertEquals("AES-256-CBC", bean.dataCiphers)
+        assertEquals("tls_auth", bean.controlWrapType)
+        assertEquals("client", bean.controlWrapDirection)
+        assertTrue(bean.controlWrapKey.contains("test-control-key"))
+    }
+
+    @Test
+    fun `parseOpenVPNConfig ignores key-direction without tls-auth`() {
+        val config = """
+            client
+            remote vpn.example.com 1194
+            key-direction 1
+            <ca>
+            test-ca
+            </ca>
+            <tls-crypt>
+            test-control-key
+            </tls-crypt>
+        """.trimIndent()
+
+        val bean = assertNotNull(parseOpenVPNConfig(config))
+
+        assertEquals("tls_crypt", bean.controlWrapType)
+        assertEquals("", bean.controlWrapDirection)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig reads inline credentials`() {
+        val config = """
+            client
+            remote vpn.example.com 1194
+            compress
+            <auth-user-pass>
+            alice
+            secret
+            </auth-user-pass>
+            <ca>
+            test-ca
+            </ca>
+        """.trimIndent()
+
+        val bean = assertNotNull(parseOpenVPNConfig(config))
+
+        assertEquals("alice", bean.username)
+        assertEquals("secret", bean.password)
+        assertEquals("stub", bean.compression)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig reads remote from connection block`() {
+        val config = """
+            client
+            dev tun
+            data-ciphers AES-256-GCM:AES-256-CBC
+
+            <connection>
+            remote 192.0.2.1 443 udp
+            nobind
+            connect-retry 5 5
+            </connection>
+
+            <connection>
+            remote 192.0.2.1 443 tcp-client
+            nobind
+            </connection>
+
+            <ca>
+            test-ca
+            </ca>
+        """.trimIndent()
+
+        val bean = assertNotNull(parseOpenVPNConfig(config))
+
+        assertEquals("192.0.2.1", bean.serverAddress)
+        assertEquals(443, bean.serverPort)
+        assertEquals("udp", bean.network)
+        assertEquals("AES-256-GCM\nAES-256-CBC", bean.dataCiphers)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig ignores directive like lines inside material blocks`() {
+        val config = """
+            client
+            remote vpn.example.com 1194
+            <ca>
+            test-ca
+            auth SHA512
+            </ca>
+        """.trimIndent()
+
+        val bean = assertNotNull(parseOpenVPNConfig(config))
+
+        assertEquals("", bean.auth)
+        assertTrue(bean.certificate.contains("auth SHA512"))
+    }
+
+    @Test
     fun `parseOpenVPNConfig rejects missing trusted server certificate`() {
         val error = assertFailsWith<IllegalStateException> {
             parseOpenVPNConfig("remote vpn.example.com 443")

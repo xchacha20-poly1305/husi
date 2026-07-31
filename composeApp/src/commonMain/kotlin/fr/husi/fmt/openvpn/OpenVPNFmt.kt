@@ -53,15 +53,15 @@ fun parseOpenVPNConfig(conf: String): OpenVPNBean {
             it.controlWrapType = directive.replace('-', '_')
             it.controlWrapKey = inlineBlocks[directive].orEmpty()
         }
+        // <auth-user-pass> holds the user name on the first line and the password on the second.
+        inlineBlocks["auth-user-pass"]?.lines()?.let { credentials ->
+            it.username = credentials.getOrNull(0)?.trim().orEmpty()
+            it.password = credentials.getOrNull(1)?.trim().orEmpty()
+        }
     }
     var foundRemote = false
 
-    for (rawLine in conf.lineSequence()) {
-        val line = rawLine.trim()
-        if (line.isEmpty() || line.startsWith("#") || line.startsWith(";") || line.startsWith("<")) {
-            continue
-        }
-
+    for (line in openVPNDirectiveLines(conf)) {
         val arguments = line.split(' ', '\t').filter { it.isNotEmpty() }
         val directive = arguments.first().lowercase()
         val values = arguments.drop(1)
@@ -89,12 +89,15 @@ fun parseOpenVPNConfig(conf: String): OpenVPNBean {
                 bean.controlWrapType = directive.replace('-', '_')
                 inlineBlocks[directive]?.let { key -> bean.controlWrapKey = key }
                 if (directive == "tls-auth") {
-                    bean.controlWrapDirection = when (values.getOrNull(1)) {
-                        "0" -> "server"
-                        "1" -> "client"
-                        else -> ""
+                    parseOpenVPNKeyDirection(values.getOrNull(1))?.let { direction ->
+                        bean.controlWrapDirection = direction
                     }
                 }
+            }
+
+            // Standalone key direction, used together with an inline <tls-auth> block.
+            "key-direction" -> parseOpenVPNKeyDirection(values.firstOrNull())?.let { direction ->
+                bean.controlWrapDirection = direction
             }
 
             "data-ciphers" -> bean.dataCiphers = values.joinToString("\n") { it.replace(':', '\n') }
@@ -104,7 +107,8 @@ fun parseOpenVPNConfig(conf: String): OpenVPNBean {
 
             "auth" -> bean.auth = values.firstOrNull().orEmpty()
 
-            "compress" -> bean.compression = values.firstOrNull().orEmpty()
+            // A bare `compress` enables the compression framing without compressing.
+            "compress" -> bean.compression = values.firstOrNull() ?: "stub"
 
             "redirect-gateway" -> bean.redirectGateway = true
 
@@ -137,8 +141,24 @@ fun parseOpenVPNConfig(conf: String): OpenVPNBean {
     check(bean.controlWrapType.isBlank() || bean.controlWrapKey.isNotBlank()) {
         "OpenVPN control channel protection requires an inline key block."
     }
+    // Only tls-auth is keyed per direction, the other wrappers reject a direction.
+    if (bean.controlWrapType != "tls_auth") bean.controlWrapDirection = ""
     return bean.applyDefaultValues()
 }
+
+/**
+ * Inline blocks holding raw material instead of directives.
+ * Blocks outside of this set, such as `<connection>`, wrap regular directives.
+ */
+private val openVPNMaterialBlocks = setOf(
+    "ca",
+    "cert",
+    "key",
+    "tls-auth",
+    "tls-crypt",
+    "tls-crypt-v2",
+    "auth-user-pass",
+)
 
 /**
 <ca>
@@ -146,7 +166,6 @@ xxxxxx
 </ca>
  */
 private fun parseOpenVPNInlineBlocks(conf: String): Map<String, String> {
-    val supportedBlockNames = setOf("ca", "cert", "key", "tls-auth", "tls-crypt", "tls-crypt-v2")
     val blocks = mutableMapOf<String, String>()
     var activeBlockName: String? = null
     val content = StringBuilder()
@@ -157,7 +176,7 @@ private fun parseOpenVPNInlineBlocks(conf: String): Map<String, String> {
         if (currentBlockName == null) {
             if (line.startsWith('<') && line.endsWith('>') && !line.startsWith("</")) {
                 val blockName = line.substring(1, line.length - 1).lowercase()
-                if (blockName in supportedBlockNames) {
+                if (blockName in openVPNMaterialBlocks) {
                     activeBlockName = blockName
                     content.clear()
                 }
@@ -173,6 +192,38 @@ private fun parseOpenVPNInlineBlocks(conf: String): Map<String, String> {
 
     check(activeBlockName == null) { "OpenVPN inline <$activeBlockName> block is not closed." }
     return blocks
+}
+
+/**
+ * Yields the trimmed directive lines of [conf], dropping comments and the content of material
+ * blocks, which could otherwise be mistaken for directives.
+ */
+private fun openVPNDirectiveLines(conf: String): Sequence<String> = sequence {
+    var closingTag: String? = null
+
+    for (rawLine in conf.lineSequence()) {
+        val line = rawLine.trim()
+        val currentClosingTag = closingTag
+        if (currentClosingTag != null) {
+            if (line.equals(currentClosingTag, ignoreCase = true)) closingTag = null
+            continue
+        }
+        if (line.isEmpty() || line.startsWith("#") || line.startsWith(";")) continue
+        if (line.startsWith('<') && line.endsWith('>')) {
+            if (!line.startsWith("</")) {
+                val blockName = line.substring(1, line.length - 1).lowercase()
+                if (blockName in openVPNMaterialBlocks) closingTag = "</$blockName>"
+            }
+            continue
+        }
+        yield(line)
+    }
+}
+
+private fun parseOpenVPNKeyDirection(value: String?): String? = when (value) {
+    "0" -> "server"
+    "1" -> "client"
+    else -> null
 }
 
 private fun parseOpenVPNNetwork(value: String): String {
