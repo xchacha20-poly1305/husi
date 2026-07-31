@@ -812,7 +812,7 @@ fun buildConfig(
                 if (rule.port.isNotBlank()) {
                     port = mutableListOf()
                     port_range = mutableListOf()
-                    rule.port.listByLineOrComma().map {
+                    rule.port.listByLineOrComma().forEach {
                         if (it.contains(":")) {
                             port_range!!.add(it)
                         } else {
@@ -823,7 +823,7 @@ fun buildConfig(
                 if (rule.sourcePort.isNotBlank()) {
                     source_port = mutableListOf()
                     source_port_range = mutableListOf()
-                    rule.sourcePort.listByLineOrComma().map {
+                    rule.sourcePort.listByLineOrComma().forEach {
                         if (it.contains(":")) {
                             source_port_range!!.add(it)
                         } else {
