@@ -273,11 +273,11 @@ fun buildConfig(
     lateinit var mainTag: String
 
     val readableNames = mutableSetOf(TAG_DIRECT, TAG_BLOCK)
-
     // server+port:tags
     // This structure may reduce rules when multiple rules share the same server+port.
     val mappingOverride: LinkedHashMap<Pair<String, Int>, MutableList<String>> =
         LinkedHashMap()
+    val vpnWithPushDNS = mutableMapOf<String, String>() // endpointTag:dnsType
 
     return MyOptions().apply {
         `$schema` = CONFIG_SCHEMA_URL
@@ -576,9 +576,15 @@ fun buildConfig(
 
                         is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asKxsMap()
 
-                        is OpenConnectBean -> buildSingBoxEndpointOpenConnectBean(bean).asKxsMap()
+                        is OpenConnectBean -> {
+                            vpnWithPushDNS[tagOut] = SingBoxOptions.DNS_TYPE_OPENCONNECT
+                            buildSingBoxEndpointOpenConnectBean(bean).asKxsMap()
+                        }
 
-                        is OpenVPNBean -> buildSingBoxEndpointOpenVPNBean(bean).asKxsMap()
+                        is OpenVPNBean -> {
+                            vpnWithPushDNS[tagOut] = SingBoxOptions.DNS_TYPE_OPENVPN
+                            buildSingBoxEndpointOpenVPNBean(bean).asKxsMap()
+                        }
 
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asKxsMap()
 
@@ -1334,18 +1340,44 @@ fun buildConfig(
             // Pre-filter:
             // Hosts [->mDNS] -> local
 
-            fun addPreferredDNSRule(tag: String) {
+            fun addPreferredDNSRule(dnsServerTag: String) {
                 dns!!.rules!!.add(
                     0,
                     DNSRule_Default().apply {
-                        preferred_by = mutableListOf(tag)
-                        server = tag
+                        preferred_by = mutableListOf(dnsServerTag)
+                        server = dnsServerTag
                     }.asKxsMap(),
                 )
             }
 
             if (localDNSSupportRaw) {
                 addPreferredDNSRule(TAG_DNS_LOCAL)
+            }
+
+            // VPN with server-push DNS
+            for ((endpointTag, dnsType) in vpnWithPushDNS) {
+                val dnsTag = "dns-${endpointTag}"
+                val server = when (dnsType) {
+                    SingBoxOptions.DNS_TYPE_OPENCONNECT -> {
+                        SingBoxOptions.NewDNSServerOptions_OpenConnectDNSServerOptions().apply {
+                            type = dnsType
+                            tag = dnsTag
+                            endpoint = endpointTag
+                        }
+                    }
+
+                    SingBoxOptions.DNS_TYPE_OPENVPN -> {
+                        SingBoxOptions.NewDNSServerOptions_OpenVPNDNSServerOptions().apply {
+                            type = dnsType
+                            tag = dnsTag
+                            endpoint = endpointTag
+                        }
+                    }
+
+                    else -> error("unsupported VPN DNS type: $dnsType")
+                }
+                dns!!.servers!!.add(server)
+                addPreferredDNSRule(dnsTag)
             }
 
             // mDNS

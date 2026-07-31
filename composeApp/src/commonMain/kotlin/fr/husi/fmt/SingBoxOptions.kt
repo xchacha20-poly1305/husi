@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +436
+    // Generate on line +439
 
     const val RULE_SET_TAG_PLACEHOLDER = "{tag}"
 
@@ -92,6 +92,8 @@ object SingBoxOptions {
 
     // Custom for URL, not belongs to box.
     const val DNS_TYPE_LOCAL = "local"
+    const val DNS_TYPE_OPENCONNECT = "openconnect"
+    const val DNS_TYPE_OPENVPN = "openvpn"
     const val DNS_TYPE_UDP = "udp"
     const val DNS_TYPE_TCP = "tcp"
     const val DNS_TYPE_TLS = "tls"
@@ -537,6 +539,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -1705,6 +1708,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -1819,6 +1823,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -2106,9 +2111,7 @@ object SingBoxOptions {
         @JvmField
         var tls_spoof_method: String? = null
 
-        @JvmField
-        var detour: String? = null
-
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -2253,9 +2256,7 @@ object SingBoxOptions {
         @JvmField
         var tls_spoof_method: String? = null
 
-        @JvmField
-        var detour: String? = null
-
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -2517,11 +2518,9 @@ object SingBoxOptions {
         var server: String? = null
 
         @JvmField
-        var tag: String? = null
-
-        @JvmField
         var speculative: Boolean? = null
 
+        // Generate note: nested type AbstractDNSRouteActionOptions
         @JvmField
         var timeout: String? = null
 
@@ -2540,6 +2539,10 @@ object SingBoxOptions {
         @JvmField
         var client_subnet: String? = null
 
+        @JvmField
+        var tag: String? = null
+
+        // Generate note: nested type AbstractDNSRouteActionOptions
         @JvmField
         var rcode: String? = null
 
@@ -2584,11 +2587,9 @@ object SingBoxOptions {
         var server: String? = null
 
         @JvmField
-        var tag: String? = null
-
-        @JvmField
         var speculative: Boolean? = null
 
+        // Generate note: nested type AbstractDNSRouteActionOptions
         @JvmField
         var timeout: String? = null
 
@@ -2607,6 +2608,10 @@ object SingBoxOptions {
         @JvmField
         var client_subnet: String? = null
 
+        @JvmField
+        var tag: String? = null
+
+        // Generate note: nested type AbstractDNSRouteActionOptions
         @JvmField
         var rcode: String? = null
 
@@ -2648,6 +2653,9 @@ object SingBoxOptions {
 
         @JvmField
         var url: String? = null
+
+        @JvmField
+        var initial_path: String? = null
 
         @JvmField
         var http_client: HTTPClientOptions? = null
@@ -3096,6 +3104,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3177,6 +3186,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3277,6 +3287,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3404,6 +3415,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3499,6 +3511,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3597,6 +3610,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3709,6 +3723,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3804,6 +3819,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -3949,6 +3965,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4088,6 +4105,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4219,6 +4237,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4323,6 +4342,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4433,6 +4453,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4528,6 +4549,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4620,6 +4642,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4730,6 +4753,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4827,10 +4851,15 @@ object SingBoxOptions {
     @KxsSerializable
     open class Outbound_SnellOptions : Outbound() {
 
+        @JvmField
+        var version: Int? = null
+
+        // Generate note: nested type AbstractSnellOutboundOptions
         // Generate note: nested type DialerOptions
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -4900,9 +4929,6 @@ object SingBoxOptions {
 
         @JvmField
         var server_port: Int? = null
-
-        @JvmField
-        var version: Int? = null
 
         @JvmField
         var psk: String? = null
@@ -4989,6 +5015,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -5061,6 +5088,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -5259,6 +5287,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -5601,6 +5630,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -5680,6 +5710,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -5761,6 +5792,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -5847,6 +5879,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -5952,6 +5985,7 @@ object SingBoxOptions {
         @JvmField
         var detour: String? = null
 
+        // Generate note: nested type AbstractDialerOptions
         @JvmField
         var bind_interface: String? = null
 
@@ -6023,6 +6057,34 @@ object SingBoxOptions {
 
         @JvmField
         var `interface`: MutableList<String>? = null
+
+    }
+
+    @KxsSerializable
+    open class NewDNSServerOptions_OpenConnectDNSServerOptions : NewDNSServerOptions() {
+
+        @JvmField
+        var endpoint: String? = null
+
+        @JvmField
+        var accept_default_resolvers: Boolean? = null
+
+        @JvmField
+        var accept_search_domain: Boolean? = null
+
+    }
+
+    @KxsSerializable
+    open class NewDNSServerOptions_OpenVPNDNSServerOptions : NewDNSServerOptions() {
+
+        @JvmField
+        var endpoint: String? = null
+
+        @JvmField
+        var accept_default_resolvers: Boolean? = null
+
+        @JvmField
+        var accept_search_domain: Boolean? = null
 
     }
 

@@ -2,13 +2,15 @@ package fr.husi.fmt
 
 import fr.husi.Key
 import fr.husi.database.DataStore
+import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
-import fr.husi.database.ProfileManager
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
+import fr.husi.fmt.openconnect.OpenConnectBean
+import fr.husi.fmt.openvpn.OpenVPNBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
@@ -288,6 +290,43 @@ class ConfigBuilderTest : HusiKoinTest() {
         )
         assertEquals(TAG_DNS_MDNS, mdnsRule["server"]?.jsonPrimitive?.content)
     }
+
+    @Test
+    fun `buildConfig should add endpoint DNS server and preferred rule for OpenConnect`() =
+        runBlocking {
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                OpenConnectBean().apply {
+                    name = "openconnect"
+                    server = "https://vpn.example.com"
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            assertEndpointDNS(
+                buildConfig(proxy),
+                "openconnect",
+                SingBoxOptions.DNS_TYPE_OPENCONNECT,
+            )
+        }
+
+    @Test
+    fun `buildConfig should add endpoint DNS server and preferred rule for OpenVPN`() =
+        runBlocking {
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                OpenVPNBean().apply {
+                    name = "openvpn"
+                    serverAddress = "vpn.example.com"
+                    serverPort = 1194
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            assertEndpointDNS(buildConfig(proxy), "openvpn", SingBoxOptions.DNS_TYPE_OPENVPN)
+        }
 
     @Test
     fun `buildConfig should expand group chain front and landing around proxy set`() = runBlocking {
@@ -805,6 +844,20 @@ class ConfigBuilderTest : HusiKoinTest() {
             .jsonArray
             .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
             .mapValues { it.value.jsonObject }
+
+    private fun assertEndpointDNS(result: ConfigBuildResult, tag: String, type: String) {
+        val dnsTag = "dns-$tag"
+        val server = assertNotNull(parseDnsServers(result)[dnsTag])
+        val rule = parseDnsRules(result).first {
+            it["preferred_by"]?.jsonArray?.map { item -> item.jsonPrimitive.content } == listOf(
+                dnsTag,
+            )
+        }
+
+        assertEquals(type, server["type"]?.jsonPrimitive?.content)
+        assertEquals(tag, server["endpoint"]?.jsonPrimitive?.content)
+        assertEquals(dnsTag, rule["server"]?.jsonPrimitive?.content)
+    }
 
     private fun parseTunInbound(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["inbounds"]!!
