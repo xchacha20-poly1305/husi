@@ -65,8 +65,10 @@ import fr.husi.resources.auto_update_delay
 import fr.husi.resources.close
 import fr.husi.resources.delete
 import fr.husi.resources.delete_group_prompt
+import fr.husi.resources.delete_sweep
 import fr.husi.resources.done
 import fr.husi.resources.emoji_symbols
+import fr.husi.resources.filter_regex
 import fr.husi.resources.flip_camera_android
 import fr.husi.resources.front_proxy
 import fr.husi.resources.grid_3x3
@@ -456,6 +458,21 @@ private fun LazyListScope.groupSettings(
                 textField = { value, onValueChange, onOk ->
                     LinkOrContentTextField(value, onValueChange, onOk)
                 },
+            )
+            PreferenceDivider()
+            TextFieldPreference(
+                value = uiState.subscriptionFilterNotRegex,
+                onValueChange = { viewModel.setSubscriptionFilterNotRegex(it) },
+                title = { Text(stringResource(Res.string.filter_regex)) },
+                textToValue = { it },
+                icon = {
+                    MaskedIcon(
+                        Res.drawable.delete_sweep,
+                        color = IconMaskColors.IconLightGreen,
+                    )
+                },
+                summary = { Text(contentOrUnset(uiState.subscriptionFilterNotRegex)) },
+                valueToText = { it },
             )
         }
         val supportsAge = uiState.subscriptionType == SubscriptionType.RAW
