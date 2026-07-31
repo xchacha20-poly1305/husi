@@ -33,16 +33,18 @@ fun <T> AutoCompleteTextField(
     enabled: Boolean = true,
     label: @Composable (() -> Unit)? = null,
 ) {
-    var allowExpanded by remember { mutableStateOf(true) }
+    // Suggestions are for typing, so an untouched field starts without them, even if its initial
+    // value already has something to suggest.
+    var allowExpanded by remember { mutableStateOf(false) }
     var selectedIndex by remember { mutableIntStateOf(0) }
     val expanded = enabled && allowExpanded && suggestions.isNotEmpty()
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = {
-            allowExpanded = it
-            if (it) {
-                selectedIndex = 0
+        onExpandedChange = { expand ->
+            // Typing is what opens the menu, so only closing is honored here.
+            if (!expand) {
+                allowExpanded = false
             }
         },
         modifier = modifier,
