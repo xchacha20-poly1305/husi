@@ -55,9 +55,10 @@ rather than silently falling back.
 ## Tests & lint
 
 ```
-make test                # = test_gradle + test_go
+make test                # = test_gradle + test_go + test_launcher
 make test_gradle         # ./gradlew :composeApp:allTests (JUnit5)
 make test_go             # cd libcore && go test -v -count=1 ./...
+make test_launcher       # cd launcher && zig build test
 make lint_go             # GOOS=android golangci-lint run ./...
 make fmt_go              # gofumpt + gofmt + gci (run before committing Go)
 ```

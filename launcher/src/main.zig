@@ -551,3 +551,248 @@ pub fn main(init: std.process.Init) !u8 {
         }
     }
 }
+
+const testing = std.testing;
+const TmpDir = testing.TmpDir;
+
+fn writeTempFile(io: Io, tmp_dir: TmpDir, sub_path: []const u8, content: []const u8) !void {
+    const file = try tmp_dir.dir.createFile(io, sub_path, .{});
+    defer file.close(io);
+    var buf: [4096]u8 = undefined;
+    var writer = file.writer(io, &buf);
+    try writer.interface.writeAll(content);
+    try writer.interface.flush();
+}
+
+fn tmpDirPath(io: Io, tmp_dir: TmpDir, allocator: mem.Allocator, sub_path: []const u8) ![]u8 {
+    var path_buf: [Io.Dir.max_path_bytes]u8 = undefined;
+    const len = tmp_dir.dir.realPath(io, &path_buf) catch return error.BadPath;
+    return std.fmt.allocPrint(allocator, "{s}/{s}", .{ path_buf[0..len], sub_path });
+}
+
+test "readArgsFile: basic lines" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "test.conf", "-Xmx512m\n-Dfoo=bar\n");
+
+    const path = try tmpDirPath(io, tmp_dir, allocator, "test.conf");
+    defer allocator.free(path);
+
+    var list: ArrayList([]u8) = .empty;
+    defer {
+        for (list.items) |item| allocator.free(item);
+        list.deinit(allocator);
+    }
+
+    try readArgsFile(io, allocator, path, &list);
+    try testing.expectEqual(@as(usize, 2), list.items.len);
+    try testing.expectEqualStrings("-Xmx512m", list.items[0]);
+    try testing.expectEqualStrings("-Dfoo=bar", list.items[1]);
+}
+
+test "readArgsFile: skips comments and blank lines" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "test.conf", "# comment\n\n-Xmx256m\n  # indented comment\n-Dfoo=1\n");
+
+    const path = try tmpDirPath(io, tmp_dir, allocator, "test.conf");
+    defer allocator.free(path);
+
+    var list: ArrayList([]u8) = .empty;
+    defer {
+        for (list.items) |item| allocator.free(item);
+        list.deinit(allocator);
+    }
+
+    try readArgsFile(io, allocator, path, &list);
+    try testing.expectEqual(@as(usize, 2), list.items.len);
+    try testing.expectEqualStrings("-Xmx256m", list.items[0]);
+    try testing.expectEqualStrings("-Dfoo=1", list.items[1]);
+}
+
+test "readArgsFile: no trailing newline" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "test.conf", "-Xmx128m");
+
+    const path = try tmpDirPath(io, tmp_dir, allocator, "test.conf");
+    defer allocator.free(path);
+
+    var list: ArrayList([]u8) = .empty;
+    defer {
+        for (list.items) |item| allocator.free(item);
+        list.deinit(allocator);
+    }
+
+    try readArgsFile(io, allocator, path, &list);
+    try testing.expectEqual(@as(usize, 1), list.items.len);
+    try testing.expectEqualStrings("-Xmx128m", list.items[0]);
+}
+
+test "readArgsFile: empty file" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "test.conf", "");
+
+    const path = try tmpDirPath(io, tmp_dir, allocator, "test.conf");
+    defer allocator.free(path);
+
+    var list: ArrayList([]u8) = .empty;
+    defer {
+        for (list.items) |item| allocator.free(item);
+        list.deinit(allocator);
+    }
+
+    try readArgsFile(io, allocator, path, &list);
+    try testing.expectEqual(@as(usize, 0), list.items.len);
+}
+
+test "readArgsFile: only comments" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "test.conf", "# comment 1\n# comment 2\n");
+
+    const path = try tmpDirPath(io, tmp_dir, allocator, "test.conf");
+    defer allocator.free(path);
+
+    var list: ArrayList([]u8) = .empty;
+    defer {
+        for (list.items) |item| allocator.free(item);
+        list.deinit(allocator);
+    }
+
+    try readArgsFile(io, allocator, path, &list);
+    try testing.expectEqual(@as(usize, 0), list.items.len);
+}
+
+test "readArgsFile: trims whitespace" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "test.conf", "  -Xmx512m  \n\t-Dfoo=bar\t\n");
+
+    const path = try tmpDirPath(io, tmp_dir, allocator, "test.conf");
+    defer allocator.free(path);
+
+    var list: ArrayList([]u8) = .empty;
+    defer {
+        for (list.items) |item| allocator.free(item);
+        list.deinit(allocator);
+    }
+
+    try readArgsFile(testing.io, allocator, path, &list);
+    try testing.expectEqual(@as(usize, 2), list.items.len);
+    try testing.expectEqualStrings("-Xmx512m", list.items[0]);
+    try testing.expectEqualStrings("-Dfoo=bar", list.items[1]);
+}
+
+test "resolveArgsFile: prefers user path" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "user.conf", "a");
+    try writeTempFile(io, tmp_dir, "template.conf", "b");
+
+    const user_path = try tmpDirPath(io, tmp_dir, allocator, "user.conf");
+    defer allocator.free(user_path);
+    const template_path = try tmpDirPath(io, tmp_dir, allocator, "template.conf");
+    defer allocator.free(template_path);
+
+    const result = resolveArgsFile(io, user_path, template_path);
+    try testing.expect(result != null);
+    try testing.expectEqualStrings(user_path, result.?);
+}
+
+test "resolveArgsFile: falls back to template" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    try writeTempFile(io, tmp_dir, "template.conf", "b");
+
+    const user_path = try tmpDirPath(io, tmp_dir, allocator, "user.conf");
+    defer allocator.free(user_path);
+    const template_path = try tmpDirPath(io, tmp_dir, allocator, "template.conf");
+    defer allocator.free(template_path);
+
+    const result = resolveArgsFile(io, user_path, template_path);
+    try testing.expect(result != null);
+    try testing.expectEqualStrings(template_path, result.?);
+}
+
+test "resolveArgsFile: returns null when neither exists" {
+    const io = testing.io;
+    const result = resolveArgsFile(io, "/nonexistent/user.conf", "/nonexistent/template.conf");
+    try testing.expect(result == null);
+}
+
+test "resolveConfigBase: linux uses XDG_CONFIG_HOME" {
+    if (native_os != .linux) return error.SkipZigTest;
+
+    const allocator = testing.allocator;
+    var env_map: process.Environ.Map = .init(allocator);
+    defer env_map.deinit();
+    try env_map.put("XDG_CONFIG_HOME", "/custom/config");
+
+    const result = try resolveConfigBase(allocator, &env_map);
+    defer allocator.free(result);
+    try testing.expectEqualStrings("/custom/config", result);
+}
+
+test "resolveConfigBase: linux falls back to HOME/.config" {
+    if (native_os != .linux) return error.SkipZigTest;
+
+    const allocator = testing.allocator;
+    var env_map: process.Environ.Map = .init(allocator);
+    defer env_map.deinit();
+    try env_map.put("HOME", "/home/testuser");
+
+    const result = try resolveConfigBase(allocator, &env_map);
+    defer allocator.free(result);
+    try testing.expectEqualStrings("/home/testuser/.config", result);
+}
+
+test "resolveUserHome: missing HOME returns error" {
+    const allocator = testing.allocator;
+    var env_map: process.Environ.Map = .init(allocator);
+    defer env_map.deinit();
+
+    const result = resolveUserHome(allocator, &env_map);
+    try testing.expectError(error.MissingHome, result);
+}
+
+test "resolveUserConfigPaths: produces expected paths" {
+    if (native_os != .linux) return error.SkipZigTest;
+
+    const allocator = testing.allocator;
+    var env_map: process.Environ.Map = .init(allocator);
+    defer env_map.deinit();
+    try env_map.put("XDG_CONFIG_HOME", "/tmp/testconfig");
+
+    const paths = try resolveUserConfigPaths(allocator, &env_map);
+    defer allocator.free(paths.java_opts_path);
+    defer allocator.free(paths.app_args_path);
+
+    try testing.expectEqualStrings("/tmp/testconfig/husi/desktop-java-opts.conf", paths.java_opts_path);
+    try testing.expectEqualStrings("/tmp/testconfig/husi/desktop-app-args.conf", paths.app_args_path);
+}
