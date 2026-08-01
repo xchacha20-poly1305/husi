@@ -460,6 +460,8 @@
     <string name="quic_keep_alive_period">QUIC Keep-Alive Period</string>
     <string name="quic_max_concurrent_streams">QUIC Max Concurrent Streams</string>
     <string name="quic_initial_packet_size">QUIC Initial Packet Size</string>
+    <string name="hysteria2_disable_chrome_parrot">Disable Chrome Parrot</string>
+    <string name="hysteria2_disable_chrome_parrot_sum">Stop mimicking Google Chrome\'s QUIC handshake fingerprint. Needed if the server uses an Ed25519 certificate. sing-box\'s outbound has no Chrome Parrot to provide, so leaving this off forces the Hysteria2 plugin, which does not support QUIC max concurrent streams or initial packet size</string>
     <string name="group_order">Order</string>
     <string name="group_order_origin">Origin</string>
     <string name="group_order_by_name">By Name</string>

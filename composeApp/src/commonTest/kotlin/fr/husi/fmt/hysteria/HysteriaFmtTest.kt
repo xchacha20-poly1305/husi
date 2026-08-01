@@ -4,12 +4,15 @@ import fr.husi.database.DataStore
 import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.getBool
+import fr.husi.ktx.getIntOrNull
 import fr.husi.ktx.getObject
 import fr.husi.ktx.getStr
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -542,5 +545,85 @@ class HysteriaFmtTest : HusiKoinTest() {
         val gecko = obfs.getObject(HysteriaBean.OBFS_TYPE_GECKO)
         assertNotNull(gecko)
         assertEquals("pwd", gecko.getStr("password"))
+    }
+
+    @Test
+    fun `buildHysteriaConfig hy2 should emit disableChromeParrot under quic`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            disableChromeParrot = true
+        }
+
+        val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
+        val map = json.toJsonMapKxs()
+
+        val quic = map.getObject("quic")
+        assertNotNull(quic)
+        assertEquals(true, quic.getBool("disableChromeParrot"))
+    }
+
+    @Test
+    fun `buildHysteriaConfig hy2 should emit receive windows, timeouts and mtu discovery under quic`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            streamReceiveWindow = 8388608
+            connectionReceiveWindow = 20971520
+            idleTimeout = "30s"
+            keepAlivePeriod = "10s"
+            disableMtuDiscovery = true
+        }
+
+        val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
+        val map = json.toJsonMapKxs()
+
+        val quic = map.getObject("quic")
+        assertNotNull(quic)
+        assertEquals(8388608, quic.getIntOrNull("initStreamReceiveWindow"))
+        assertEquals(20971520, quic.getIntOrNull("initConnReceiveWindow"))
+        assertEquals("30s", quic.getStr("maxIdleTimeout"))
+        assertEquals("10s", quic.getStr("keepAlivePeriod"))
+        assertEquals(true, quic.getBool("disablePathMTUDiscovery"))
+    }
+
+    @Test
+    fun `buildHysteriaConfig hy2 should omit quic when disableChromeParrot is false and not protecting`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            disableChromeParrot = false
+        }
+
+        val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
+        val map = json.toJsonMapKxs()
+
+        assertNull(map.getObject("quic"))
+    }
+
+    @Test
+    fun `canUseSingBox should be false when hy2 disableChromeParrot is disabled`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            disableChromeParrot = false
+        }
+
+        assertFalse(bean.canUseSingBox())
+    }
+
+    @Test
+    fun `canUseSingBox should be true when hy2 disableChromeParrot is enabled`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            disableChromeParrot = true
+        }
+
+        assertTrue(bean.canUseSingBox())
     }
 }

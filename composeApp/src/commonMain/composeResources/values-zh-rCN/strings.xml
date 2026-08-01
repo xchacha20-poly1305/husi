@@ -387,6 +387,8 @@
     <string name="quic_keep_alive_period">QUIC 保活间隔</string>
     <string name="quic_max_concurrent_streams">QUIC 最大并发流</string>
     <string name="quic_initial_packet_size">QUIC 初始报文大小</string>
+    <string name="hysteria2_disable_chrome_parrot">禁用 Chrome 拟态</string>
+    <string name="hysteria2_disable_chrome_parrot_sum">停止模仿 Google Chrome 的 QUIC 握手指纹。若服务器使用 Ed25519 证书则需要开启。sing-box 的出站没有 Chrome 拟态可提供，因此关闭此项会强制使用 Hysteria2 插件，该插件不支持 QUIC 最大并发流和初始报文大小</string>
     <string name="group_order">排序</string>
     <string name="group_order_origin">原始</string>
     <string name="group_order_by_name">以名称</string>

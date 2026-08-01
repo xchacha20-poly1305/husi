@@ -305,17 +305,21 @@ fun HysteriaBean.buildHysteriaConfig(
                         },
                     )
                 }
-                if (shouldProtect) {
-                    put(
-                        "quic",
-                        buildMap {
-                            put(
-                                "sockopts",
-                                buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
-                            )
-                        },
-                    )
+                val quic = buildMap<String, Any?> {
+                    if (streamReceiveWindow > 0) put("initStreamReceiveWindow", streamReceiveWindow)
+                    if (connectionReceiveWindow > 0) put("initConnReceiveWindow", connectionReceiveWindow)
+                    idleTimeout.blankAsNull()?.let { put("maxIdleTimeout", it) }
+                    keepAlivePeriod.blankAsNull()?.let { put("keepAlivePeriod", it) }
+                    if (disableMtuDiscovery) put("disablePathMTUDiscovery", true)
+                    if (disableChromeParrot) put("disableChromeParrot", true)
+                    if (shouldProtect) {
+                        put(
+                            "sockopts",
+                            buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
+                        )
+                    }
                 }
+                if (quic.isNotEmpty()) put("quic", quic)
                 put("socks5", buildMap { put("listen", "$LOCALHOST4:$port") })
                 put(
                     "tls",
@@ -400,6 +404,9 @@ fun HysteriaBean.canUseSingBox(): Boolean {
         && protocol != HysteriaBean.PROTOCOL_UDP
     ) {
         return false // special mode
+    }
+    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 && !disableChromeParrot) {
+        return false // sing-box's Hysteria2 outbound has no Chrome parrot to enable
     }
     return true
 }
