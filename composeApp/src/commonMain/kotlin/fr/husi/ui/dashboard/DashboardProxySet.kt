@@ -351,37 +351,38 @@ private fun ProxyCard(
             },
         ),
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            if (selected) {
-                Box(
-                    modifier = Modifier
-                        .width(4.dp)
-                        .fillMaxHeight()
-                        .background(MaterialTheme.colorScheme.primary),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = proxy.type,
-                    color = MaterialTheme.colorScheme.secondary,
-                    style = MaterialTheme.typography.titleSmallEmphasized,
-                )
-                Text(
-                    text = proxy.tag,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    style = MaterialTheme.typography.bodyMediumEmphasized,
-                )
+            Row {
+                if (selected) {
+                    Box(
+                        modifier = Modifier
+                            .width(4.dp)
+                            .fillMaxHeight()
+                            .background(MaterialTheme.colorScheme.primary),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = proxy.type,
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.titleSmallEmphasized,
+                    )
+                    Text(
+                        text = proxy.tag,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        style = MaterialTheme.typography.bodyMediumEmphasized,
+                    )
+                }
             }
             ItemURLTestButton(
-                modifier = Modifier.align(Alignment.Bottom),
+                modifier = Modifier.align(Alignment.BottomEnd),
                 delay = proxy.urlTestDelay,
                 onClick = urlTest,
             )
