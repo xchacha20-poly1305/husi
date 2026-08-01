@@ -336,7 +336,9 @@ private fun ProxyCard(
 ) {
     Card(
         onClick = select,
-        modifier = modifier.fillMaxWidth(),
+        // The grid measures its items with the row height as the maximum, so filling the size
+        // stretches the shorter cards of a row up to the tallest one.
+        modifier = modifier.fillMaxSize(),
         enabled = selectable,
         shape = CardDefaults.elevatedShape,
         colors = CardDefaults.elevatedCardColors(),
@@ -352,9 +354,8 @@ private fun ProxyCard(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.Bottom,
         ) {
             if (selected) {
                 Box(
@@ -381,6 +382,7 @@ private fun ProxyCard(
                 )
             }
             ItemURLTestButton(
+                modifier = Modifier.align(Alignment.Bottom),
                 delay = proxy.urlTestDelay,
                 onClick = urlTest,
             )
