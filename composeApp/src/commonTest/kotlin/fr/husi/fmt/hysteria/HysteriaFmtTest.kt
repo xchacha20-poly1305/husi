@@ -5,6 +5,7 @@ import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.getBool
+import fr.husi.ktx.getIntOrNull
 import fr.husi.ktx.getObject
 import fr.husi.ktx.getStr
 import fr.husi.ktx.toJsonMapKxs
@@ -562,6 +563,32 @@ class HysteriaFmtTest : HusiKoinTest() {
         val quic = map.getObject("quic")
         assertNotNull(quic)
         assertEquals(true, quic.getBool("disableChromeParrot"))
+    }
+
+    @Test
+    fun `buildHysteriaConfig hy2 should emit receive windows, timeouts and mtu discovery under quic`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            streamReceiveWindow = 8388608
+            connectionReceiveWindow = 20971520
+            idleTimeout = "30s"
+            keepAlivePeriod = "10s"
+            disableMtuDiscovery = true
+        }
+
+        val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
+        val map = json.toJsonMapKxs()
+
+        val quic = map.getObject("quic")
+        assertNotNull(quic)
+        assertEquals(8388608, quic.getIntOrNull("initStreamReceiveWindow"))
+        assertEquals(20971520, quic.getIntOrNull("initConnReceiveWindow"))
+        assertEquals("30s", quic.getStr("maxIdleTimeout"))
+        assertEquals("10s", quic.getStr("keepAlivePeriod"))
+        assertEquals(true, quic.getBool("disablePathMTUDiscovery"))
     }
 
     @Test

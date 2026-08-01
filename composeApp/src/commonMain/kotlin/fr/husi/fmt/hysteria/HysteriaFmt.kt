@@ -305,20 +305,21 @@ fun HysteriaBean.buildHysteriaConfig(
                         },
                     )
                 }
-                if (shouldProtect || disableChromeParrot) {
-                    put(
-                        "quic",
-                        buildMap<String, Any?> {
-                            if (shouldProtect) {
-                                put(
-                                    "sockopts",
-                                    buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
-                                )
-                            }
-                            if (disableChromeParrot) put("disableChromeParrot", true)
-                        },
-                    )
+                val quic = buildMap<String, Any?> {
+                    if (streamReceiveWindow > 0) put("initStreamReceiveWindow", streamReceiveWindow)
+                    if (connectionReceiveWindow > 0) put("initConnReceiveWindow", connectionReceiveWindow)
+                    idleTimeout.blankAsNull()?.let { put("maxIdleTimeout", it) }
+                    keepAlivePeriod.blankAsNull()?.let { put("keepAlivePeriod", it) }
+                    if (disableMtuDiscovery) put("disablePathMTUDiscovery", true)
+                    if (disableChromeParrot) put("disableChromeParrot", true)
+                    if (shouldProtect) {
+                        put(
+                            "sockopts",
+                            buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
+                        )
+                    }
                 }
+                if (quic.isNotEmpty()) put("quic", quic)
                 put("socks5", buildMap { put("listen", "$LOCALHOST4:$port") })
                 put(
                     "tls",
