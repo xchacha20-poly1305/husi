@@ -316,7 +316,7 @@ kotlin {
                 implementation(libs.androidx.appcompat)
                 implementation(libs.androidx.work.multiprocess)
                 implementation(libs.androidx.datastore)
-                implementation(libs.androidx.compose.ui.viewbinding)
+                implementation(libs.androidx.compose.ui.tooling)
                 implementation(libs.androidx.activity.compose)
 
                 implementation(libs.koin.android)
