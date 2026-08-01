@@ -37,6 +37,7 @@ internal data class HysteriaUiState(
     val clientKey: String = "",
     val congestionControl: String = HysteriaBean.CONGESTION_CONTROL_BBR,
     val bbrProfile: Int = HysteriaBean.BBR_PROFILE_STANDARD,
+    val disableChromeParrot: Boolean = false,
     val ech: Boolean = false,
     val echConfig: String = "",
     val echQueryServerName: String = "",
@@ -83,6 +84,7 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
                 clientKey = clientKey,
                 congestionControl = congestionControl,
                 bbrProfile = bbrProfile,
+                disableChromeParrot = disableChromeParrot,
                 ech = ech,
                 echConfig = echConfig,
                 echQueryServerName = echQueryServerName,
@@ -123,6 +125,7 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
         clientKey = state.clientKey
         congestionControl = state.congestionControl
         bbrProfile = state.bbrProfile
+        disableChromeParrot = state.disableChromeParrot
         ech = state.ech
         echConfig = state.echConfig
         echQueryServerName = state.echQueryServerName
@@ -238,6 +241,10 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
 
     fun setBBRProfile(bbrProfile: Int) {
         uiState.update { it.copy(bbrProfile = bbrProfile) }
+    }
+
+    fun setDisableChromeParrot(disable: Boolean) {
+        uiState.update { it.copy(disableChromeParrot = disable) }
     }
 
     fun setEch(enabled: Boolean) {

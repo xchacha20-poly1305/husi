@@ -305,14 +305,17 @@ fun HysteriaBean.buildHysteriaConfig(
                         },
                     )
                 }
-                if (shouldProtect) {
+                if (shouldProtect || disableChromeParrot) {
                     put(
                         "quic",
-                        buildMap {
-                            put(
-                                "sockopts",
-                                buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
-                            )
+                        buildMap<String, Any?> {
+                            if (shouldProtect) {
+                                put(
+                                    "sockopts",
+                                    buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
+                                )
+                            }
+                            if (disableChromeParrot) put("disableChromeParrot", true)
                         },
                     )
                 }
@@ -400,6 +403,9 @@ fun HysteriaBean.canUseSingBox(): Boolean {
         && protocol != HysteriaBean.PROTOCOL_UDP
     ) {
         return false // special mode
+    }
+    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 && disableChromeParrot) {
+        return false // sing-box's Hysteria2 outbound has no Chrome parrot to disable
     }
     return true
 }

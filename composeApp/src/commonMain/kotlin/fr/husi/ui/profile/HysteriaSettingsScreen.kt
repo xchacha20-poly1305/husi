@@ -42,6 +42,7 @@ import fr.husi.resources.client_key
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.copyright
 import fr.husi.resources.directions_boat
+import fr.husi.resources.domino_mask
 import fr.husi.resources.ech
 import fr.husi.resources.ech_config
 import fr.husi.resources.ech_query_server_name
@@ -49,6 +50,8 @@ import fr.husi.resources.emoji_symbols
 import fr.husi.resources.enable
 import fr.husi.resources.enhanced_encryption
 import fr.husi.resources.hop_interval
+import fr.husi.resources.hysteria2_disable_chrome_parrot
+import fr.husi.resources.hysteria2_disable_chrome_parrot_sum
 import fr.husi.resources.hysteria2_gecko_max_packet_size
 import fr.husi.resources.hysteria2_gecko_min_packet_size
 import fr.husi.resources.hysteria2_obfs_type
@@ -500,6 +503,18 @@ private fun LazyListScope.hysteriaSettings(
                 )
             },
         )
+        if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {
+            PreferenceDivider()
+            SwitchPreference(
+                value = uiState.disableChromeParrot,
+                onValueChange = { viewModel.setDisableChromeParrot(it) },
+                title = { Text(stringResource(Res.string.hysteria2_disable_chrome_parrot)) },
+                summary = { Text(stringResource(Res.string.hysteria2_disable_chrome_parrot_sum)) },
+                icon = {
+                    MaskedIcon(Res.drawable.domino_mask, IconMaskColors.IconWarmGray)
+                },
+            )
+        }
         PreferenceDivider()
         TextFieldPreference(
             value = uiState.idleTimeout,
@@ -531,11 +546,14 @@ private fun LazyListScope.hysteriaSettings(
             },
         )
         PreferenceDivider()
+        val forcedToPlugin = uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 &&
+                uiState.disableChromeParrot
         TextFieldPreference(
             value = uiState.maxConcurrentStreams,
             onValueChange = { viewModel.setMaxConcurrentStreams(it) },
             title = { Text(stringResource(Res.string.quic_max_concurrent_streams)) },
             textToValue = { it.toIntOrNull() ?: 0 },
+            enabled = !forcedToPlugin,
             icon = {
                 MaskedIcon(Res.drawable.transform, IconMaskColors.IconWarmGray)
             },
@@ -558,6 +576,7 @@ private fun LazyListScope.hysteriaSettings(
             onValueChange = { viewModel.setInitialPacketSize(it) },
             title = { Text(stringResource(Res.string.quic_initial_packet_size)) },
             textToValue = { it.toIntOrNull() ?: 0 },
+            enabled = !forcedToPlugin,
             icon = {
                 MaskedIcon(Res.drawable.texture, IconMaskColors.IconWarmGray)
             },

@@ -79,6 +79,9 @@ class HysteriaBean : AbstractBean() {
     var congestionControl: String = CONGESTION_CONTROL_BBR
     var bbrProfile: Int = BBR_PROFILE_STANDARD
 
+    // Hy2, plugin only: sing-box's outbound has no equivalent.
+    var disableChromeParrot: Boolean = false
+
     // Hy2 obfuscation
     var obfsType: String = OBFS_TYPE_NONE
     var obfsPassword: String = ""
@@ -111,7 +114,7 @@ class HysteriaBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(8)
+        output.writeInt(9)
         super.serialize(output)
 
         output.writeInt(protocolVersion)
@@ -161,6 +164,9 @@ class HysteriaBean : AbstractBean() {
         output.writeString(obfsType)
         output.writeInt(geckoMinPacketSize)
         output.writeInt(geckoMaxPacketSize)
+
+        // version 9
+        output.writeBoolean(disableChromeParrot)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -227,6 +233,10 @@ class HysteriaBean : AbstractBean() {
                 obfsType = OBFS_TYPE_SALAMANDER
             }
         }
+
+        if (version >= 9) {
+            disableChromeParrot = input.readBoolean()
+        }
     }
 
     override fun applyFeatureSettings(other: AbstractBean) {
@@ -239,6 +249,7 @@ class HysteriaBean : AbstractBean() {
         other.echConfig = echConfig
         other.congestionControl = congestionControl
         other.bbrProfile = bbrProfile
+        other.disableChromeParrot = disableChromeParrot
         other.idleTimeout = idleTimeout
         other.keepAlivePeriod = keepAlivePeriod
         other.maxConcurrentStreams = maxConcurrentStreams
