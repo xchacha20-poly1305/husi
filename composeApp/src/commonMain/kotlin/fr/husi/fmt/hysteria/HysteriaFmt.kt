@@ -405,8 +405,8 @@ fun HysteriaBean.canUseSingBox(): Boolean {
     ) {
         return false // special mode
     }
-    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 && disableChromeParrot) {
-        return false // sing-box's Hysteria2 outbound has no Chrome parrot to disable
+    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 && !disableChromeParrot) {
+        return false // sing-box's Hysteria2 outbound has no Chrome parrot to enable
     }
     return true
 }

@@ -598,6 +598,7 @@ class HysteriaFmtTest : HusiKoinTest() {
             serverAddress = "example.com"
             serverPorts = "9443"
             authPayload = "secret"
+            disableChromeParrot = false
         }
 
         val json = bean.buildHysteriaConfig(port = 1080, shouldProtect = false, cacheFile = null)
@@ -607,12 +608,22 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `canUseSingBox should be false when hy2 disableChromeParrot is enabled`() {
+    fun `canUseSingBox should be false when hy2 disableChromeParrot is disabled`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            disableChromeParrot = false
+        }
+
+        assertFalse(bean.canUseSingBox())
+    }
+
+    @Test
+    fun `canUseSingBox should be true when hy2 disableChromeParrot is enabled`() {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             disableChromeParrot = true
         }
 
-        assertFalse(bean.canUseSingBox())
+        assertTrue(bean.canUseSingBox())
     }
 }
