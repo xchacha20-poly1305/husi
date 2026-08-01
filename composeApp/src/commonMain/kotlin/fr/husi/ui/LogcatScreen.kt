@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -20,14 +22,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
@@ -98,6 +100,7 @@ import fr.husi.resources.more_vert
 import fr.husi.resources.ok
 import fr.husi.resources.pause
 import fr.husi.resources.play_arrow
+import fr.husi.resources.resume
 import fr.husi.resources.scroll_to_bottom
 import fr.husi.resources.search
 import fr.husi.resources.search_go
@@ -219,19 +222,6 @@ fun LogcatScreen(
                 actions = {
                     CapsuleActionButton {
                         SimpleIconButton(
-                            imageVector = vectorResource(
-                                if (uiState.pause) {
-                                    Res.drawable.play_arrow
-                                } else {
-                                    Res.drawable.pause
-                                },
-                            ),
-                            contentDescription = stringResource(Res.string.pause),
-                            onClick = viewModel::togglePause,
-                        )
-                    }
-                    CapsuleActionButton {
-                        SimpleIconButton(
                             imageVector = vectorResource(Res.drawable.share),
                             contentDescription = stringResource(Res.string.logcat),
                             onClick = { showBottomSheet = true },
@@ -244,35 +234,48 @@ fun LogcatScreen(
                                 contentDescription = stringResource(Res.string.more),
                                 onClick = { expandMenu = true },
                             )
-                            DropdownMenu(
+                            DropdownMenuPopup(
                                 expanded = expandMenu,
                                 onDismissRequest = { expandMenu = false },
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.clear_logcat)) },
-                                    onClick = viewModel::clearLog,
-                                    leadingIcon = {
-                                        Icon(vectorResource(Res.drawable.delete_sweep), null)
-                                    },
-                                    colors = MenuDefaults.itemColors().copy(
-                                        leadingIconColor = MaterialTheme.colorScheme.error,
-                                    ),
-                                )
-                                HorizontalDivider()
-                                LogLevel.entries.forEach { level ->
+                                DropdownMenuGroup(
+                                    shapes = MenuDefaults.groupShape(0, 2),
+                                ) {
                                     DropdownMenuItem(
-                                        text = { Text(level.name) },
-                                        onClick = {
-                                            viewModel.setLogLevel(level)
-                                            expandMenu = false
+                                        text = { Text(stringResource(Res.string.clear_logcat)) },
+                                        onClick = viewModel::clearLog,
+                                        leadingIcon = {
+                                            Icon(vectorResource(Res.drawable.delete_sweep), null)
                                         },
-                                        trailingIcon = {
-                                            RadioButton(
-                                                selected = uiState.logLevel == level,
-                                                onClick = null,
-                                            )
-                                        },
+                                        colors = MenuDefaults.itemColors().copy(
+                                            leadingIconColor = MaterialTheme.colorScheme.error,
+                                        ),
+                                        shape = MenuDefaults.itemShape(0, 1).shape,
                                     )
+                                }
+
+                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
+
+                                DropdownMenuGroup(
+                                    shapes = MenuDefaults.groupShape(1, 2),
+                                ) {
+                                    val levels = LogLevel.entries
+                                    for ((index, level) in levels.withIndex()) {
+                                        DropdownMenuItem(
+                                            text = { Text(level.name) },
+                                            onClick = {
+                                                viewModel.setLogLevel(level)
+                                                expandMenu = false
+                                            },
+                                            trailingIcon = {
+                                                RadioButton(
+                                                    selected = uiState.logLevel == level,
+                                                    onClick = null,
+                                                )
+                                            },
+                                            shape = MenuDefaults.itemShape(index, levels.size).shape,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -307,6 +310,29 @@ fun LogcatScreen(
                         )
                     },
                 ) {
+                    FloatingActionButtonMenuItem(
+                        onClick = viewModel::togglePause,
+                        text = {
+                            Text(
+                                stringResource(
+                                    if (uiState.pause) Res.string.resume else Res.string.pause,
+                                ),
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = vectorResource(
+                                    if (uiState.pause) {
+                                        Res.drawable.play_arrow
+                                    } else {
+                                        Res.drawable.pause
+                                    },
+                                ),
+                                contentDescription = null,
+                            )
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    )
                     FloatingActionButtonMenuItem(
                         onClick = {
                             scope.launch {
