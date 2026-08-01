@@ -79,8 +79,7 @@ class HysteriaBean : AbstractBean() {
     var congestionControl: String = CONGESTION_CONTROL_BBR
     var bbrProfile: Int = BBR_PROFILE_STANDARD
 
-    // Hy2, plugin only: sing-box's outbound has no equivalent.
-    var disableChromeParrot: Boolean = false
+    var disableChromeParrot: Boolean = true
 
     // Hy2 obfuscation
     var obfsType: String = OBFS_TYPE_NONE
