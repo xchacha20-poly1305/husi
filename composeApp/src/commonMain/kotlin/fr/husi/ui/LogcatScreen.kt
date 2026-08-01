@@ -2,9 +2,6 @@
 
 package fr.husi.ui
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,7 +35,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
@@ -54,7 +50,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -65,7 +60,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
-import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
@@ -181,16 +175,6 @@ fun LogcatScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
-    val appBarContainerColor by animateColorAsState(
-        targetValue = lerp(
-            topAppBarColors.containerColor,
-            topAppBarColors.scrolledContainerColor,
-            scrollBehavior.state.overlappedFraction.fastCoerceIn(0f, 1f),
-        ),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "appBarContainerColor",
-    )
     val windowInsets = WindowInsets.safeDrawing
     val searchBarState = rememberSearchBarState()
     val searchTextFieldState = viewModel.searchTextFieldState
@@ -225,80 +209,78 @@ fun LogcatScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Surface(color = appBarContainerColor) {
-                CapsuleSearchTopBar(
-                    inputField = searchInputField,
-                    navigationIcon = PlatformMenuIcon(
-                        imageVector = vectorResource(Res.drawable.menu),
-                        contentDescription = stringResource(Res.string.menu),
-                        onClick = onDrawerClick,
-                    ),
-                    actions = {
-                        CapsuleActionButton {
+            CapsuleSearchTopBar(
+                inputField = searchInputField,
+                navigationIcon = PlatformMenuIcon(
+                    imageVector = vectorResource(Res.drawable.menu),
+                    contentDescription = stringResource(Res.string.menu),
+                    onClick = onDrawerClick,
+                ),
+                actions = {
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(
+                                if (uiState.pause) {
+                                    Res.drawable.play_arrow
+                                } else {
+                                    Res.drawable.pause
+                                },
+                            ),
+                            contentDescription = stringResource(Res.string.pause),
+                            onClick = viewModel::togglePause,
+                        )
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.share),
+                            contentDescription = stringResource(Res.string.logcat),
+                            onClick = { showBottomSheet = true },
+                        )
+                    }
+                    CapsuleActionButton {
+                        Box {
                             SimpleIconButton(
-                                imageVector = vectorResource(
-                                    if (uiState.pause) {
-                                        Res.drawable.play_arrow
-                                    } else {
-                                        Res.drawable.pause
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                                onClick = { expandMenu = true },
+                            )
+                            DropdownMenu(
+                                expanded = expandMenu,
+                                onDismissRequest = { expandMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.clear_logcat)) },
+                                    onClick = viewModel::clearLog,
+                                    leadingIcon = {
+                                        Icon(vectorResource(Res.drawable.delete_sweep), null)
                                     },
-                                ),
-                                contentDescription = stringResource(Res.string.pause),
-                                onClick = viewModel::togglePause,
-                            )
-                        }
-                        CapsuleActionButton {
-                            SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.share),
-                                contentDescription = stringResource(Res.string.logcat),
-                                onClick = { showBottomSheet = true },
-                            )
-                        }
-                        CapsuleActionButton {
-                            Box {
-                                SimpleIconButton(
-                                    imageVector = vectorResource(Res.drawable.more_vert),
-                                    contentDescription = stringResource(Res.string.more),
-                                    onClick = { expandMenu = true },
+                                    colors = MenuDefaults.itemColors().copy(
+                                        leadingIconColor = MaterialTheme.colorScheme.error,
+                                    ),
                                 )
-                                DropdownMenu(
-                                    expanded = expandMenu,
-                                    onDismissRequest = { expandMenu = false },
-                                ) {
+                                HorizontalDivider()
+                                LogLevel.entries.forEach { level ->
                                     DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.clear_logcat)) },
-                                        onClick = viewModel::clearLog,
-                                        leadingIcon = {
-                                            Icon(vectorResource(Res.drawable.delete_sweep), null)
+                                        text = { Text(level.name) },
+                                        onClick = {
+                                            viewModel.setLogLevel(level)
+                                            expandMenu = false
                                         },
-                                        colors = MenuDefaults.itemColors().copy(
-                                            leadingIconColor = MaterialTheme.colorScheme.error,
-                                        ),
+                                        trailingIcon = {
+                                            RadioButton(
+                                                selected = uiState.logLevel == level,
+                                                onClick = null,
+                                            )
+                                        },
                                     )
-                                    HorizontalDivider()
-                                    LogLevel.entries.forEach { level ->
-                                        DropdownMenuItem(
-                                            text = { Text(level.name) },
-                                            onClick = {
-                                                viewModel.setLogLevel(level)
-                                                expandMenu = false
-                                            },
-                                            trailingIcon = {
-                                                RadioButton(
-                                                    selected = uiState.logLevel == level,
-                                                    onClick = null,
-                                                )
-                                            },
-                                        )
-                                    }
                                 }
                             }
                         }
-                    },
-                    windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                    scrollBehavior = scrollBehavior,
-                )
-            }
+                    }
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+            )
         },
         snackbarHost = { SwipeableSnackbarHost(snackbarState) },
         floatingActionButton = {
