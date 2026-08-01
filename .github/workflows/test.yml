@@ -48,7 +48,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: burrunan/gradle-cache-action@v3
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
