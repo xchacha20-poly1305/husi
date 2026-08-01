@@ -5,6 +5,7 @@ on:
     branches:
       - 'dev*'
     paths:
+      - .github/actions/**
       - .github/workflows/test.yml
       - androidApp/**
       - buildScript/**
@@ -16,6 +17,7 @@ on:
       - library/**
   pull_request:
     paths:
+      - .github/actions/**
       - .github/workflows/test.yml
       - androidApp/**
       - buildScript/**
