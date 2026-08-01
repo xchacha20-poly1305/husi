@@ -95,6 +95,7 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
+          cache-key: launcher-desktop-all-targets
       - name: Checkout JNI headers
         uses: actions/checkout@v7
         with:

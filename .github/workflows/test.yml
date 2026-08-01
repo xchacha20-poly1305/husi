@@ -57,6 +57,7 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
+          cache-key: launcher-test
       - name: Checkout cronet-go
         uses: actions/checkout@v7
         with:
