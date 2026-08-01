@@ -29,6 +29,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-26.04
@@ -42,17 +46,12 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: gradle
+      - uses: gradle/actions/setup-gradle@v4
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
           cache-dependency-path: 'libcore/go.sum'
-      - name: Setup Android NDK
-        id: setup-ndk
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
       - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
@@ -64,27 +63,31 @@ jobs:
           path: cronet-go
           submodules: recursive
           fetch-depth: 1
-      - name: Cache libcore and native toolchains
+      - name: Cache cronet toolchain
         uses: actions/cache@v6
         with:
           path: |
-            composeApp/libs
             cronet-go/naiveproxy/src/third_party/llvm-build
             cronet-go/naiveproxy/src/gn/out
             cronet-go/naiveproxy/src/chrome/build/pgo_profiles
             cronet-go/naiveproxy/src/out/sysroot-build
-          key: libcore-${{ runner.os }}-${{ runner.arch }}-${{ env.CRONET_GO_COMMIT }}-${{ hashFiles('libcore/go.sum', 'libcore/build.sh', 'husi.properties') }}
-          restore-keys: libcore-${{ runner.os }}-${{ runner.arch }}-
-      - name: Prepare assets and cronet toolchain
-        run: |
-          make assets
-          (cd cronet-go && go run ./cmd/build-naive --target=linux/amd64 download-toolchain)
+          key: cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64-${{ env.CRONET_GO_COMMIT }}
+      - name: Cache route assets
+        id: cache-assets
+        uses: actions/cache@v6
+        with:
+          path: composeApp/src/commonMain/composeResources/files/sing-box
+          key: assets-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}
+      - name: Prepare assets
+        if: steps.cache-assets.outputs.cache-hit != 'true'
+        run: make assets
+      - name: Prepare cronet toolchain
+        run: cd cronet-go && go run ./cmd/build-naive --target=linux/amd64 download-toolchain
       - name: Test libcore
         working-directory: libcore
         run: go test -v -count=1 ./...
       - name: Build libcore bindings
         env:
-          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
           CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
         run: |
           make libcore
@@ -93,4 +96,4 @@ jobs:
       - name: Test Kotlin
         env:
           BUILD_PLUGIN: none
-        run: ./gradlew :composeApp:allTests --no-daemon
+        run: ./gradlew :composeApp:allTests --build-cache
