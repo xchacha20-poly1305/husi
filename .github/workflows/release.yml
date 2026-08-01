@@ -33,7 +33,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: gradle
+      - uses: gradle/actions/setup-gradle@v6
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -44,12 +44,14 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-      - uses: actions/cache@v6
+      - name: Cache route assets
+        id: cache-assets
+        uses: actions/cache@v6
         with:
-          path: composeApp/libs
-          key: libcore-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('libcore/go.sum', 'libcore/build.sh', 'husi.properties') }}
-          restore-keys: libcore-${{ runner.os }}-${{ runner.arch }}-
+          path: composeApp/src/commonMain/composeResources/files/sing-box
+          key: assets-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}
       - name: Prepare assets
+        if: steps.cache-assets.outputs.cache-hit != 'true'
         run: make assets
       - name: Write signing properties
         env:
@@ -84,7 +86,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: gradle
+      - uses: gradle/actions/setup-gradle@v6
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -93,6 +95,7 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
+          cache-key: launcher-desktop-all-targets
       - name: Checkout JNI headers
         uses: actions/checkout@v7
         with:
@@ -115,23 +118,36 @@ jobs:
           path: cronet-go
           submodules: recursive
           fetch-depth: 1
-      - uses: actions/cache@v6
+      - name: Cache cronet toolchain
+        uses: actions/cache@v6
         with:
           path: |
-            composeApp/libs
             cronet-go/naiveproxy/src/third_party/llvm-build
             cronet-go/naiveproxy/src/gn/out
             cronet-go/naiveproxy/src/chrome/build/pgo_profiles
             cronet-go/naiveproxy/src/out/sysroot-build
-          key: libcore-desktop-${{ env.CRONET_GO_COMMIT }}-${{ hashFiles('libcore/go.sum', 'libcore/build.sh', 'husi.properties') }}
-          restore-keys: libcore-desktop-
+          key: cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64_arm64-${{ env.CRONET_GO_COMMIT }}
       - name: Install system packaging tools
         run: sudo apt-get update && sudo apt-get install -y nsis xorriso
+      - name: Cache nfpm
+        id: cache-nfpm
+        uses: actions/cache@v6
+        with:
+          path: ~/go/bin/nfpm
+          key: nfpm-${{ runner.os }}-${{ runner.arch }}-${{ env.NFPM_VERSION }}
       - name: Install nfpm
+        if: steps.cache-nfpm.outputs.cache-hit != 'true'
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v${NFPM_VERSION}
       - name: Prepare cronet toolchain
         run: (cd cronet-go && go run ./cmd/build-naive --target=linux/amd64,linux/arm64 download-toolchain)
+      - name: Cache route assets
+        id: cache-assets
+        uses: actions/cache@v6
+        with:
+          path: composeApp/src/commonMain/composeResources/files/sing-box
+          key: assets-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}
       - name: Prepare assets
+        if: steps.cache-assets.outputs.cache-hit != 'true'
         run: make assets
       - name: Build desktop libcore
         env:
