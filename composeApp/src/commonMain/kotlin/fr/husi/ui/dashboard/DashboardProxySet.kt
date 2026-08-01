@@ -42,7 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
@@ -396,13 +395,25 @@ private fun ItemURLTestButton(
     delay: Int,
     onClick: () -> Unit,
 ) {
+    val delayColor = colorForUrlTestDelay(delay)
     Surface(
         modifier = modifier
             .width(56.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(50),
-        color = Color.Black,
-        shadowElevation = 6.dp,
+        color = if (delay > 0) {
+            delayColor.copy(alpha = 0.12f)
+        } else {
+            MaterialTheme.colorScheme.secondaryContainer
+        },
+        border = BorderStroke(
+            1.dp,
+            if (delay > 0) {
+                delayColor.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            },
+        ),
     ) {
         Box(
             modifier = Modifier
@@ -413,12 +424,14 @@ private fun ItemURLTestButton(
             if (delay > 0) {
                 Text(
                     text = delay.toString(),
-                    color = colorForUrlTestDelay(delay),
+                    color = delayColor,
+                    style = MaterialTheme.typography.labelMedium,
                 )
             } else {
                 Icon(
                     vectorResource(Res.drawable.bolt),
                     stringResource(Res.string.connection_test),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
         }
