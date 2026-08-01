@@ -447,11 +447,16 @@ private fun LazyListScope.hysteriaSettings(
         PreferenceCategory(text = { Text(stringResource(Res.string.quic)) })
     }
     preferenceGroup(key = "stream_receive_window") {
+        // Chrome Parrot pins initStreamReceiveWindow/initConnReceiveWindow/maxIdleTimeout to its
+        // own constants, so these are silently ignored by the real client unless disabled.
+        val quicOverriddenByChromeParrot = uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 &&
+                !uiState.disableChromeParrot
         TextFieldPreference(
             value = uiState.streamReceiveWindow,
             onValueChange = { viewModel.setStreamReceiveWindow(it) },
             title = { Text(stringResource(Res.string.quic_stream_receive_window)) },
             textToValue = { it.toIntOrNull() ?: 0 },
+            enabled = !quicOverriddenByChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.texture, IconMaskColors.IconWarmGray)
             },
@@ -474,6 +479,7 @@ private fun LazyListScope.hysteriaSettings(
             onValueChange = { viewModel.setConnectionReceiveWindow(it) },
             title = { Text(stringResource(Res.string.quic_connection_receive_window)) },
             textToValue = { it.toIntOrNull() ?: 0 },
+            enabled = !quicOverriddenByChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.transform, IconMaskColors.IconWarmGray)
             },
@@ -521,6 +527,7 @@ private fun LazyListScope.hysteriaSettings(
             onValueChange = { viewModel.setIdleTimeout(it) },
             title = { Text(stringResource(Res.string.quic_idle_timeout)) },
             textToValue = { it },
+            enabled = !quicOverriddenByChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.timelapse, IconMaskColors.IconWarmGray)
             },
