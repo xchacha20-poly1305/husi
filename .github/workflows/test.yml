@@ -11,6 +11,7 @@ on:
       - buildSrc/**
       - composeApp/**
       - gradle/**
+      - launcher/**
       - libcore/**
       - library/**
   pull_request:
@@ -21,6 +22,7 @@ on:
       - buildSrc/**
       - composeApp/**
       - gradle/**
+      - launcher/**
       - libcore/**
       - library/**
 
@@ -86,6 +88,8 @@ jobs:
           CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
         run: |
           make libcore
+      - name: Test launcher
+        run: cd launcher && zig build test
       - name: Test Kotlin
         env:
           BUILD_PLUGIN: none
