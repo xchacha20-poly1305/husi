@@ -787,4 +787,11 @@
     <string name="cipher">Шифр данных</string>
     <string name="connection_test_unified_delay">Тест соединений - Унифицированная задержка</string>
     <string name="connection_test_ignore_handshake_time">Тест соединений - Игнорировать время рукопожатия</string>
+    <string name="hide_launcher_icon">Скрыть значок запуска</string>
+    <string name="hide_launcher_icon_summary">Наберите %1$s для возврата значка</string>
+    <string name="hide_launcher_icon_confirm">Приложение исчезнет из лаунчера. Наберите %1$s в приложении для звонков, чтобы вернуть отображение. Запишите код, прежде чем продолжить.</string>
+    <string name="launcher_icon_restored">Значок запуска восстановлен</string>
+    <string name="hysteria2_disable_chrome_parrot">Отключить Chrome Parrot</string>
+    <string name="hysteria2_disable_chrome_parrot_sum">Прекратить имитацию отпечатка QUIC-рукопожатия Google Chrome. Это необходимо, если сервер использует сертификат Ed25519. Исходящие подключения (outbound) sing-box не поддерживают Chrome Parrot, поэтому, если оставить эту опцию выключенной, будет принудительно использоваться плагин Hysteria2, который не поддерживает настройку максимального количества одновременных потоков QUIC или начального размера пакета</string>
+    <string name="resume">Возобновить</string>
 </resources>
