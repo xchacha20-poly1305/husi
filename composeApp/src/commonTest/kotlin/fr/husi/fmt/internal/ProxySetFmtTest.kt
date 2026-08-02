@@ -5,7 +5,6 @@ import fr.husi.fmt.SingBoxOptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertTrue
 
 class ProxySetFmtTest {
 
@@ -22,7 +21,7 @@ class ProxySetFmtTest {
         val selector = assertIs<SingBoxOptions.Outbound_SelectorOptions>(outbound)
         assertEquals(SingBoxOptions.TYPE_SELECTOR, selector.type)
         assertEquals(outbounds, selector.outbounds?.toList())
-        assertTrue(selector.interrupt_exist_connections == true)
+        assertEquals(true, selector.interrupt_exist_connections)
     }
 
     @Test

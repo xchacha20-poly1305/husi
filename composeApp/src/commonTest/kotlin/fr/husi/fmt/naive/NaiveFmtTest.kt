@@ -61,7 +61,7 @@ class NaiveFmtTest : HusiKoinTest() {
         assertNull(outbound.quic)
 
         val tls = assertNotNull(outbound.tls)
-        assertEquals(tls.enabled, true)
+        assertEquals(true, tls.enabled)
         assertEquals("sni.example.com", tls.server_name)
     }
 
@@ -78,7 +78,7 @@ class NaiveFmtTest : HusiKoinTest() {
 
         val outbound = buildSingBoxOutboundNaiveBean(bean)
 
-        assertEquals(outbound.quic, true)
+        assertEquals(true, outbound.quic)
         assertEquals("bbr", outbound.quic_congestion_control)
     }
 

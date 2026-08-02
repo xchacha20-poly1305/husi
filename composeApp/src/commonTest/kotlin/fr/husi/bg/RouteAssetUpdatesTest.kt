@@ -11,6 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class RouteAssetUpdatesTest {
@@ -19,22 +20,6 @@ class RouteAssetUpdatesTest {
 
     private fun createTempDir(): File =
         createTempDirectory("route-asset-updates-test-").toFile().also { it.deleteOnExit() }
-
-    // region RuleProvider constants
-
-    @Test
-    fun `RUNETFREEDOM value does not collide with other providers`() {
-        val values = listOf(
-            RuleProvider.OFFICIAL,
-            RuleProvider.LOYALSOLDIER,
-            RuleProvider.CHOCOLATE4U,
-            RuleProvider.CUSTOM,
-            RuleProvider.RUNETFREEDOM,
-        )
-        assertEquals(values.size, values.toSet().size)
-    }
-
-    // endregion
 
     // region hasUnstableBranch
 
@@ -89,23 +74,35 @@ class RouteAssetUpdatesTest {
     fun `OFFICIAL provider maps to two SagerNet repositories`() {
         val sources = buildGithubAssetSources(RuleProvider.OFFICIAL, dummyFiles)
         assertEquals(2, sources.size)
+
         assertEquals("SagerNet/sing-geoip", sources[0].repository.fullName)
+        assertNull(sources[0].repository.unstableBranch)
+        assertEquals(dummyFiles[0], sources[0].versionFile)
+
         assertEquals("SagerNet/sing-geosite", sources[1].repository.fullName)
+        assertEquals("rule-set-unstable", sources[1].repository.unstableBranch)
+        assertEquals(dummyFiles[1], sources[1].versionFile)
     }
 
     @Test
     fun `LOYALSOLDIER provider maps to two 1715173329 repositories`() {
         val sources = buildGithubAssetSources(RuleProvider.LOYALSOLDIER, dummyFiles)
         assertEquals(2, sources.size)
+
         assertEquals("1715173329/sing-geoip", sources[0].repository.fullName)
+        assertEquals(dummyFiles[0], sources[0].versionFile)
+
         assertEquals("1715173329/sing-geosite", sources[1].repository.fullName)
+        assertEquals("rule-set-unstable", sources[1].repository.unstableBranch)
+        assertEquals(dummyFiles[1], sources[1].versionFile)
     }
 
     @Test
     fun `CHOCOLATE4U provider maps to one Iran-sing-box-rules repository`() {
         val sources = buildGithubAssetSources(RuleProvider.CHOCOLATE4U, dummyFiles)
         assertEquals(1, sources.size)
-        assertEquals("Chocolate4U/Iran-sing-box-rules", sources[0].repository.fullName)
+        assertEquals("Chocolate4U/Iran-sing-box-rules", sources.single().repository.fullName)
+        assertEquals(dummyFiles[0], sources.single().versionFile)
     }
 
     @Test
@@ -113,24 +110,6 @@ class RouteAssetUpdatesTest {
         assertFailsWith<IllegalStateException> {
             buildGithubAssetSources(999, dummyFiles)
         }
-    }
-
-    // endregion
-
-    // region GithubReleaseSource for RUNETFREEDOM
-
-    @Test
-    fun `GithubReleaseSource has expected repository and asset name`() {
-        val source = GithubReleaseSource(
-            repository = GithubRepository(
-                author = "runetfreedom",
-                name = "russia-v2ray-rules-dat",
-            ),
-            assetName = "sing-box.zip",
-            versionFile = dummyFiles[0],
-        )
-        assertEquals("runetfreedom/russia-v2ray-rules-dat", source.repository.fullName)
-        assertEquals("sing-box.zip", source.assetName)
     }
 
     // endregion

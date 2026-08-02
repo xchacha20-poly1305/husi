@@ -7,6 +7,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class FormatsKtTest {
 
@@ -83,7 +84,7 @@ class FormatsKtTest {
             "世".b64Decode()
         }
 
-        assertEquals(error.message?.startsWith("decode base64: "), true)
+        assertTrue(error.message.orEmpty().startsWith("decode base64: "), error.message)
     }
 
     @Test

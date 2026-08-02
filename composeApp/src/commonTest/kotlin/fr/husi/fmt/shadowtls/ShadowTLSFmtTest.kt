@@ -42,9 +42,9 @@ class ShadowTLSFmtTest {
         val outbound = buildSingBoxOutboundShadowTLSBean(bean)
 
         val tls = assertNotNull(outbound.tls)
-        assertEquals(tls.enabled, true)
+        assertEquals(true, tls.enabled)
         assertEquals("sni.example.com", tls.server_name)
-        assertEquals(tls.insecure, true)
+        assertEquals(true, tls.insecure)
         val utls = assertNotNull(tls.utls)
         assertEquals(SingBoxOptions.FINGERPRINT_CHROME, utls.fingerprint)
     }

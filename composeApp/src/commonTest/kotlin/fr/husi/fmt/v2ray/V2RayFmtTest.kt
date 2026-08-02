@@ -183,9 +183,9 @@ class V2RayFmtTest {
         assertEquals("auto", vmess.security)
 
         val tls = assertNotNull(vmess.tls)
-        assertEquals(tls.enabled, true)
+        assertEquals(true, tls.enabled)
         assertEquals("sni.example.com", tls.server_name)
-        assertEquals(tls.insecure, true)
+        assertEquals(true, tls.insecure)
     }
 
     @Test

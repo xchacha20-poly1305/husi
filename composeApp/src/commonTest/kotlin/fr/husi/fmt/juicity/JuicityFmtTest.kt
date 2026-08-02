@@ -72,9 +72,9 @@ class JuicityFmtTest {
         assertEquals("sha256hash", outbound.pin_cert_sha256)
 
         val tls = assertNotNull(outbound.tls)
-        assertEquals(tls.enabled, true)
+        assertEquals(true, tls.enabled)
         assertEquals("sni.example.com", tls.server_name)
-        assertEquals(tls.insecure, true)
+        assertEquals(true, tls.insecure)
     }
 
     @Test

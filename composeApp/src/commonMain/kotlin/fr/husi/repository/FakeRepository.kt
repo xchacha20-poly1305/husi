@@ -1,5 +1,6 @@
 package fr.husi.repository
 
+import fr.husi.libcore.Service
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
@@ -12,7 +13,7 @@ class FakeRepository : Repository {
     override val isBgProcess = false
     override val isTv = false
 
-    override val boxService: fr.husi.libcore.Service? = null
+    override val boxService: Service? = null
 
     @Suppress("NewApi")
     private val tempRoot = createTempDirectory("husi-fake-repo").toFile()
