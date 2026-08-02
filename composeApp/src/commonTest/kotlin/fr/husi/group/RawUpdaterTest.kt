@@ -53,7 +53,7 @@ class RawUpdaterTest {
     }
 
     @Test
-    fun `parseRaw should recognize OpenConnect and OpenVPN sing-box endpoints`() = runBlocking {
+    fun `parseRaw should recognize OpenConnect and OpenVPN sing-box endpoints`(): Unit = runBlocking {
         val rawConfig = """
             {
               "endpoints": [

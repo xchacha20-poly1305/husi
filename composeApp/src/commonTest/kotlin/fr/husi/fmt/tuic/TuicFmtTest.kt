@@ -93,12 +93,12 @@ class TuicFmtTest {
         assertEquals("token123", outbound.password)
         assertEquals("bbr", outbound.congestion_control)
         assertEquals("native", outbound.udp_relay_mode)
-        assertEquals(outbound.zero_rtt_handshake, true)
+        assertEquals(true, outbound.zero_rtt_handshake)
 
         val tls = assertNotNull(outbound.tls)
-        assertEquals(tls.enabled, true)
+        assertEquals(true, tls.enabled)
         assertEquals("sni.example.com", tls.server_name)
-        assertEquals(tls.insecure, true)
+        assertEquals(true, tls.insecure)
         assertEquals(listOf("h3"), tls.alpn?.toList())
         assertEquals(listOf("cert-1", "cert-2"), tls.certificate?.toList())
         assertEquals(listOf("sha-1", "sha-2"), tls.certificate_public_key_sha256?.toList())
@@ -106,7 +106,7 @@ class TuicFmtTest {
         assertEquals(listOf("client-key"), tls.client_key?.toList())
 
         val echOpts = assertNotNull(tls.ech)
-        assertEquals(echOpts.enabled, true)
+        assertEquals(true, echOpts.enabled)
         assertEquals(listOf("ech-config"), echOpts.config?.toList())
         assertEquals("ech.example.com", echOpts.query_server_name)
     }

@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class TrustTunnelFmtTest {
 
@@ -43,14 +42,14 @@ class TrustTunnelFmtTest {
         assertEquals(443, outbound.server_port)
         assertEquals("user", outbound.username)
         assertEquals("pass", outbound.password)
-        assertTrue(outbound.health_check == true)
-        assertTrue(outbound.quic == true)
+        assertEquals(true, outbound.health_check)
+        assertEquals(true, outbound.quic)
         assertEquals("bbr", outbound.quic_congestion_control)
 
         val tls = assertNotNull(outbound.tls)
-        assertTrue(tls.enabled == true)
+        assertEquals(true, tls.enabled)
         assertEquals("sni.example.com", tls.server_name)
-        assertTrue(tls.insecure == true)
+        assertEquals(true, tls.insecure)
         assertEquals(listOf("h2", "http/1.1"), tls.alpn?.toList())
         assertEquals(listOf("cert-a", "cert-b"), tls.certificate?.toList())
         assertEquals(listOf("sha-a", "sha-b"), tls.certificate_public_key_sha256?.toList())
@@ -60,11 +59,11 @@ class TrustTunnelFmtTest {
         val utls = assertNotNull(tls.utls)
         assertEquals(SingBoxOptions.FINGERPRINT_CHROME, utls.fingerprint)
 
-        assertTrue(tls.fragment == true)
+        assertEquals(true, tls.fragment)
         assertEquals("200ms", tls.fragment_fallback_delay)
 
         val echOpts = assertNotNull(tls.ech)
-        assertTrue(echOpts.enabled == true)
+        assertEquals(true, echOpts.enabled)
         assertEquals(listOf("cfg-1", "cfg-2"), echOpts.config?.toList())
         assertEquals("ech.example.com", echOpts.query_server_name)
     }
@@ -100,7 +99,7 @@ class TrustTunnelFmtTest {
         val outbound = buildSingBoxOutboundTrustTunnelBean(bean)
 
         val tls = assertNotNull(outbound.tls)
-        assertTrue(tls.record_fragment == true)
+        assertEquals(true, tls.record_fragment)
         assertNull(tls.fragment_fallback_delay)
     }
 
