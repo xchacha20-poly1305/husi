@@ -86,11 +86,11 @@ class AnyTLSFmtTest {
         assertEquals("sni.example.com", tls.server_name)
         assertEquals(true, tls.insecure)
         assertEquals(true, tls.disable_sni)
-        assertEquals(listOf("h2", "http/1.1"), tls.alpn)
-        assertEquals(listOf("cert-a", "cert-b"), tls.certificate)
-        assertEquals(listOf("client-cert"), tls.client_certificate)
-        assertEquals(listOf("client-key-a", "client-key-b"), tls.client_key)
-        assertEquals(listOf("sha-a", "sha-b"), tls.certificate_public_key_sha256)
+        assertEquals(listOf("h2", "http/1.1"), tls.alpn?.toList())
+        assertEquals(listOf("cert-a", "cert-b"), tls.certificate?.toList())
+        assertEquals(listOf("client-cert"), tls.client_certificate?.toList())
+        assertEquals(listOf("client-key-a", "client-key-b"), tls.client_key?.toList())
+        assertEquals(listOf("sha-a", "sha-b"), tls.certificate_public_key_sha256?.toList())
 
         val utls = assertNotNull(tls.utls)
         assertEquals(true, utls.enabled)
@@ -104,7 +104,7 @@ class AnyTLSFmtTest {
 
         val ech = assertNotNull(tls.ech)
         assertEquals(true, ech.enabled)
-        assertEquals(listOf("cfg-1", "cfg-2"), ech.config)
+        assertEquals(listOf("cfg-1", "cfg-2"), ech.config?.toList())
         assertEquals("ech.example.com", ech.query_server_name)
     }
 
