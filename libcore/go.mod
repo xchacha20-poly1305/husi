@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	filippo.io/age v1.3.1
-	github.com/exclavenetwork/sing-juicity v0.2.0-beta.4
+	github.com/exclavenetwork/sing-juicity v0.2.0-beta.5
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.19.0
 	github.com/miekg/dns v1.1.72
