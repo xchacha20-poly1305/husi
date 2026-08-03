@@ -4,9 +4,9 @@ go 1.26
 
 require (
 	filippo.io/age v1.3.1
-	github.com/exclavenetwork/sing-juicity v0.2.0-beta.4
-	github.com/gofrs/uuid/v5 v5.4.0
-	github.com/klauspost/compress v1.19.0
+	github.com/exclavenetwork/sing-juicity v0.2.0-beta.5
+	github.com/gofrs/uuid/v5 v5.5.0
+	github.com/klauspost/compress v1.19.1
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/sing v0.8.12-0.20260731081310-cb3e09a281aa
 	github.com/sagernet/sing-box v1.14.0-beta.5
@@ -30,13 +30,13 @@ tool (
 
 // replace github.com/sagernet/sing-box => ../../sing-box
 
-replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260702085737-e1afc329811d
+replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a
 
 // cmd
 require (
-	codeberg.org/xchacha20-poly1305/pkgsite-go v0.6.0
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/oschwald/maxminddb-golang v1.13.1
+	github.com/xchacha20-poly1305/pkgsite-go v0.6.3
 )
 
 require (

@@ -10,9 +10,9 @@ import (
 	"runtime/debug"
 	"testing"
 
-	"codeberg.org/xchacha20-poly1305/pkgsite-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/xchacha20-poly1305/pkgsite-go"
 )
 
 func TestResolveLibraryFallbacksToLatestModuleForUnindexedVersion(t *testing.T) {
