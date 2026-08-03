@@ -131,9 +131,6 @@ func (w *boxPlatformInterfaceWrapper) NetworkInterfaces() ([]adapter.NetworkInte
 	interfaces := make([]adapter.NetworkInterface, 0, interfaceIterator.Length())
 	for interfaceIterator.HasNext() {
 		netInterface := interfaceIterator.Next()
-		if netInterface.Name == w.myTunName {
-			continue
-		}
 		// w.defaultInterfaceAccess.Lock()
 		// isDefault := w.defaultInterface != nil && int(netInterface.Index) == w.defaultInterface.Index
 		// w.defaultInterfaceAccess.Unlock()
