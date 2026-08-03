@@ -29,6 +29,8 @@ class AnyTLSBean : AbstractBean() {
     var idleSessionCheckInterval: String = "30s"
     var idleSessionTimeout: String = "30s"
     var minIdleSession: Int = 0
+    var disableReuse: Boolean = false // TODO: add it one day
+    var clientMetadata: String = ""
     var serverName: String = ""
     var alpn: String = ""
     var certificates: String = ""
@@ -63,7 +65,7 @@ class AnyTLSBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(8)
+        output.writeInt(9)
 
         // version 0
         super.serialize(output)
@@ -104,6 +106,10 @@ class AnyTLSBean : AbstractBean() {
         // version 8
         output.writeString(tlsSpoof)
         output.writeString(tlsSpoofMethod)
+
+        // version 9
+        output.writeBoolean(disableReuse)
+        output.writeString(clientMetadata)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -154,6 +160,11 @@ class AnyTLSBean : AbstractBean() {
             tlsSpoof = input.readString()
             tlsSpoofMethod = input.readString()
         }
+
+        if (version >= 9) {
+            disableReuse = input.readBoolean()
+            clientMetadata = input.readString()
+        }
     }
 
     override fun clone(): AnyTLSBean {
@@ -173,6 +184,8 @@ class AnyTLSBean : AbstractBean() {
         other.idleSessionCheckInterval = idleSessionCheckInterval
         other.idleSessionTimeout = idleSessionTimeout
         other.minIdleSession = minIdleSession
+        other.disableReuse = disableReuse
+        other.clientMetadata = clientMetadata
     }
 
     override val defaultPort get() = 443

@@ -48,6 +48,10 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
         idle_session_check_interval = bean.idleSessionCheckInterval.blankAsNull()
         idle_session_timeout = bean.idleSessionTimeout.blankAsNull()
         min_idle_session = bean.minIdleSession.takeIf { it > 0 }
+        /*if (bean.disableReuse) {
+            disable_reuse = true
+        }*/
+        client_metadata = bean.clientMetadata.blankAsNull()
 
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             enabled = true
@@ -96,6 +100,9 @@ fun parseAnyTLSOutbound(json: JSONMap): AnyTLSBean = AnyTLSBean().apply {
             "min_idle_session" -> value.toString().toIntOrNull()?.let {
                 minIdleSession = it
             }
+
+            "disable_reuse" -> value.toString().toBoolean() // XXX
+            "client_metadata" -> clientMetadata = value.toString()
 
             "tls" -> {
                 val tlsField = value as? JSONMap ?: return@parseBoxOutbound

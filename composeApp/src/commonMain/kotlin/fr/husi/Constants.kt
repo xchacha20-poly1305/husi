@@ -107,7 +107,6 @@ object Key {
     const val PROVIDER_JUICITY = "providerJuicity"
     const val PROVIDER_NAIVE = "providerNaive"
     const val CUSTOM_PLUGIN_PREFIX = "customPluginPrefix"
-    const val ANYTLS_CUSTOM_VERSION = "anytlsCustomVersion"
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
 

@@ -700,6 +700,8 @@
     <string name="idle_session_check_interval">IDLE Session Check Interval</string>
     <string name="idle_session_timeout">IDLE Session Timeout</string>
     <string name="min_idle_session">Mininum IDLE Session</string>
+    <string name="anytls_client_metadata">Client Metadata</string>
+    <string name="anytls_client_metadata_sum">The evil proxy provider uses AnyTLS's client metadata to block client. Set this value to oppose discrimination.</string>
     <string name="persistent_keepalive_interval">Persistent Keepalive Interval</string>
     <string name="language">Language</string>
     <string name="language_system_default">System default</string>

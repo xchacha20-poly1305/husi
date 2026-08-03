@@ -4540,6 +4540,9 @@ object SingBoxOptions {
         @JvmField
         var min_idle_session: Int? = null
 
+        @JvmField
+        var client_metadata: String? = null
+
     }
 
     @KxsSerializable

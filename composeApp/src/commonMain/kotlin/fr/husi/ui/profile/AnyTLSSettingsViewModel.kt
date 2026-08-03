@@ -19,6 +19,8 @@ internal data class AnyTLSUiState(
     val idleSessionCheckInterval: String = "30s",
     val idleSessionTimeout: String = "30s",
     val minIdleSession: Int = 0,
+    val disableReuse: Boolean = false,
+    val clientMetadata: String = "",
     val sni: String = "",
     val alpn: String = "",
     val certificates: String = "",
@@ -57,6 +59,8 @@ internal class AnyTLSSettingsViewModel : ProfileEditorViewModel<AnyTLSBean>() {
                 idleSessionCheckInterval = idleSessionCheckInterval,
                 idleSessionTimeout = idleSessionTimeout,
                 minIdleSession = minIdleSession,
+                disableReuse = disableReuse,
+                clientMetadata = clientMetadata,
                 sni = serverName,
                 alpn = alpn,
                 certificates = certificates,
@@ -89,6 +93,8 @@ internal class AnyTLSSettingsViewModel : ProfileEditorViewModel<AnyTLSBean>() {
         idleSessionCheckInterval = state.idleSessionCheckInterval
         idleSessionTimeout = state.idleSessionTimeout
         minIdleSession = state.minIdleSession
+        disableReuse = state.disableReuse
+        clientMetadata = state.clientMetadata
         serverName = state.sni
         alpn = state.alpn
         certificates = state.certificates
@@ -146,6 +152,14 @@ internal class AnyTLSSettingsViewModel : ProfileEditorViewModel<AnyTLSBean>() {
 
     fun setMinIdleSession(count: Int) {
         uiState.update { it.copy(minIdleSession = count) }
+    }
+
+    fun setDisableReuse(disableReuse: Boolean) {
+        uiState.update { it.copy(disableReuse = disableReuse) }
+    }
+
+    fun setClientMetadata(clientMetadata: String) {
+        uiState.update { it.copy(clientMetadata = clientMetadata) }
     }
 
     fun setSni(sni: String) {

@@ -15,7 +15,6 @@ import fr.husi.bg.SubscriptionUpdater
 import fr.husi.compose.clearClipboardImageCache
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
-import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
@@ -95,9 +94,6 @@ class Application : Application(),
             DataStore.isExpert,
         )
         loadCA(DataStore.certProvider)
-        DataStore.anytlsCustomVersion.blankAsNull()?.let {
-            Libcore.setAnyTLSVersion(it)
-        }
 
         if (isMainProcess) runOnDefaultDispatcher {
             runCatching {

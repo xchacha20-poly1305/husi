@@ -248,7 +248,6 @@ object DataStore {
     var uploadSpeed by configurationStore.int(Key.UPLOAD_SPEED) { 0 }
     var downloadSpeed by configurationStore.int(Key.DOWNLOAD_SPEED) { 0 }
     var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
-    var anytlsCustomVersion by configurationStore.string(Key.ANYTLS_CUSTOM_VERSION)
 
     var rulesFirstCreate by configurationStore.boolean(Key.RULES_FIRST_CREATE)
 

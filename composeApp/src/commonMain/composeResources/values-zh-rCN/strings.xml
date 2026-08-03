@@ -617,6 +617,8 @@
     <string name="idle_session_check_interval">空闲会话检查间隔</string>
     <string name="idle_session_timeout">空闲会话超时</string>
     <string name="min_idle_session">最小闲置会话数</string>
+    <string name="anytls_client_metadata">客户端元信息</string>
+    <string name="anytls_client_metadata_sum">邪恶的代理提供者使用 AnyTLS 的客户端元数据进行封禁。设置此字段以与封锁对抗。</string>
     <string name="persistent_keepalive_interval">持久性保持活动间隔</string>
     <string name="language">语言</string>
     <string name="language_system_default">系统默认设置</string>

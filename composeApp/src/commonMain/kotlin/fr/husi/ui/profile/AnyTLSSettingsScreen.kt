@@ -20,6 +20,8 @@ import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
 import fr.husi.resources.allow_insecure
 import fr.husi.resources.alpn
+import fr.husi.resources.anytls_client_metadata
+import fr.husi.resources.anytls_client_metadata_sum
 import fr.husi.resources.block
 import fr.husi.resources.cert_public_key_sha256
 import fr.husi.resources.certificates
@@ -207,6 +209,25 @@ private fun LazyListScope.anyTlsSettings(
             textField = { value, onValueChange, onOk ->
                 UIntegerTextField(value, onValueChange, onOk)
             },
+        )
+        PreferenceDivider()
+        TextFieldPreference(
+            value = uiState.clientMetadata,
+            onValueChange = { viewModel.setClientMetadata(it) },
+            title = { Text(stringResource(Res.string.anytls_client_metadata)) },
+            textToValue = { it },
+            icon = {
+                MaskedIcon(
+                    resource = Res.drawable.domino_mask,
+                    color = IconMaskColors.IconCoral,
+                    shape = IconMaskShapes.risk(),
+                )
+            },
+            summary = {
+                Text(contentOrUnset(uiState.clientMetadata))
+                Text(stringResource(Res.string.anytls_client_metadata_sum))
+            },
+            valueToText = { it },
         )
     }
 

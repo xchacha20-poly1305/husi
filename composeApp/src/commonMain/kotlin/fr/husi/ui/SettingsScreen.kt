@@ -171,7 +171,6 @@ import fr.husi.resources.juicity_provider
 import fr.husi.resources.keep_default
 import fr.husi.resources.language
 import fr.husi.resources.language_system_default
-import fr.husi.resources.local_bar
 import fr.husi.resources.lock
 import fr.husi.resources.log_level
 import fr.husi.resources.long_click_to_see_name
@@ -1294,29 +1293,6 @@ private fun ProtocolSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringOrRes(pluginProviderText(it))) },
     )
-    if (isExpertState) {
-        PreferenceDivider()
-        val versionValue by DataStore.configurationStore
-            .stringFlow(Key.ANYTLS_CUSTOM_VERSION, "")
-            .collectAsStateWithLifecycle("")
-        TextFieldPreference(
-            value = versionValue,
-            onValueChange = {
-                DataStore.anytlsCustomVersion = it
-                needRestart()
-            },
-            title = { Text("AnyTLS version") },
-            textToValue = { it },
-            icon = {
-                MaskedIcon(
-                    Res.drawable.local_bar,
-                    color = IconMaskColors.IconLightPink,
-                )
-            },
-            summary = { Text(contentOrUnset(versionValue)) },
-            valueToText = { it },
-        )
-    }
 }
 
 @Composable
