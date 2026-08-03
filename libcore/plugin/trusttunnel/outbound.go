@@ -149,6 +149,11 @@ func (h *Outbound) InterfaceUpdated() {
 	h.client.ResetConnections()
 }
 
+func (h *Outbound) MultiplexEnabled() bool {
+	// h2/h3 is multiplexed
+	return true
+}
+
 func (h *Outbound) PreMatchFlow(network string, destination netip.Addr) adapter.PreMatchAction {
 	if network == N.NetworkICMP && h.icmpPort != nil {
 		return adapter.PreMatchFlow
