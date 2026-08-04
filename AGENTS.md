@@ -98,7 +98,7 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
   `setupKotlinCommon`, `setupPlugin`, `requireMetadata` (reads `husi.properties`),
   `requireLocalProperties`, APK renamer, and `writePlatformInfo` (used to emit `expect`/`actual`
   `PlatformInfo` per desktop target).
-- `buildScript/` — bash scripts invoked via `./run`: `lib/{core,assets,source,update}.sh`,
+- `buildScript/` — bash scripts invoked via `./run`: `lib/{core,assets,source}.sh`,
   `plugin/<name>.sh`, `init/{env,env_ndk,version}.sh`, plus `rename.sh` for forking under a new
   package name.
 - `release/{linux,macos,windows}/package.sh` — invoked by `make desktop_package_*` after the uber

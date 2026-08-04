@@ -1,0 +1,4 @@
+# SC1091: sourced files are resolved relative to the repo root at runtime.
+# SC2034: version.sh and the plugin entry scripts define variables consumed
+#         by the scripts that source them.
+disable=SC1091,SC2034

@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
-buildScript/plugin/mieru/init.sh &&  set -x &&
-  buildScript/plugin/mieru/armeabi-v7a.sh &&
-  buildScript/plugin/mieru/arm64-v8a.sh &&
-  buildScript/plugin/mieru/x86.sh &&
-  buildScript/plugin/mieru/x86_64.sh
+set -euo pipefail
+
+PLUGIN=mieru
+GO_SOURCE_DIR="src/main/go/mieru"
+GO_MAIN_PKG="./cmd/mieru"
+
+source "buildScript/plugin/common.sh"
+
+dispatch "$@"

@@ -1,21 +1,24 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 EXEC=""
 TARGET="buildScript"
-declare -a PARAMS
-declare -i INDEX=0
+PARAMS=()
 
 for e in "$@"; do
   TARGET="$TARGET/$e"
-  PARAMS[$INDEX]="$e"
-  ((INDEX += 1))
-  shift
+  PARAMS+=("$e")
   if [ -x "${TARGET}.sh" ]; then
     EXEC="${TARGET}.sh"
     PARAMS=()
-    INDEX=0
   fi
 done
+
+if [ -z "$EXEC" ]; then
+  echo "No script found under buildScript/ for: $*" >&2
+  exit 1
+fi
 
 echo ">> $EXEC"
 exec "$EXEC" "${PARAMS[@]}"

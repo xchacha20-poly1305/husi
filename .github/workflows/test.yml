@@ -15,6 +15,7 @@ on:
       - launcher/**
       - libcore/**
       - library/**
+      - run
   pull_request:
     paths:
       - .github/actions/**
@@ -27,6 +28,7 @@ on:
       - launcher/**
       - libcore/**
       - library/**
+      - run
 
 permissions:
   contents: read
@@ -36,6 +38,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  shellcheck:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+      - name: Lint shell scripts
+        run: |
+          command -v shellcheck >/dev/null || sudo apt-get install -y shellcheck
+          shellcheck run
+          find buildScript -name '*.sh' -exec shellcheck {} +
   test:
     runs-on: ubuntu-26.04
     steps:

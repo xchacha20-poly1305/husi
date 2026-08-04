@@ -17,7 +17,7 @@ NO_NAIVE_SCRIPT_ARG = $(if $(filter 1,$(NO_NAIVE)),--no-naive,)
 LAUNCHER_ZIG_TARGET = $(subst linux/amd64,x86_64-linux-musl,$(subst linux/arm64,aarch64-linux-musl,$(subst darwin/amd64,x86_64-macos,$(subst darwin/arm64,aarch64-macos,$(subst windows/amd64,x86_64-windows,$(subst windows/arm64,aarch64-windows,$(DESKTOP_TARGET)))))))
 LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TARGET),)
 
-.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_all desktop_uberjar launcher lint_go test_go test_launcher plugin generate_option
+.PHONY: libcore libcore_android libcore_desktop_common libcore_desktop aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_all desktop_uberjar launcher lint_go test_go test_launcher plugin generate_option
 
 build: libcore_android assets apk
 
@@ -115,9 +115,6 @@ apk_debug:
 
 assets:
 	./run lib assets
-
-update:
-	./run lib update
 
 lint_go:
 	cd libcore/ && GOOS=android golangci-lint run ./...

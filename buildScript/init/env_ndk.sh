@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ -z "$ANDROID_HOME" ]; then
+source buildScript/init/version.sh
+
+if [ -z "${ANDROID_HOME:-}" ]; then
   if [ -d "$HOME/Android/Sdk" ]; then
     export ANDROID_HOME="$HOME/Android/Sdk"
   elif [ -d "$HOME/.local/lib/android/sdk" ]; then
@@ -10,15 +12,15 @@ if [ -z "$ANDROID_HOME" ]; then
   fi
 fi
 
-_NDK="$ANDROID_HOME/ndk/29.0.14206865"
-[ -f "$_NDK/source.properties" ] || _NDK="$ANDROID_NDK_HOME"
-[ -f "$_NDK/source.properties" ] || _NDK="$NDK"
-[ -f "$_NDK/source.properties" ] || _NDK="$ANDROID_HOME/ndk-bundle"
+_NDK="${ANDROID_HOME:-}/ndk/$ANDROID_NDK_FULL_VERSION"
+[ -f "$_NDK/source.properties" ] || _NDK="${ANDROID_NDK_HOME:-}"
+[ -f "$_NDK/source.properties" ] || _NDK="${NDK:-}"
+[ -f "$_NDK/source.properties" ] || _NDK="${ANDROID_HOME:-}/ndk-bundle"
 
 if [ ! -f "$_NDK/source.properties" ]; then
-  echo "Error: NDK not found."
+  echo "Error: NDK not found." >&2
   exit 1
 fi
 
-export ANDROID_NDK_HOME=$_NDK
-export NDK=$_NDK
+export ANDROID_NDK_HOME="$_NDK"
+export NDK="$_NDK"

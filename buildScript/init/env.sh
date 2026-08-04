@@ -1,36 +1,29 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 source buildScript/init/env_ndk.sh
 
-# "PROJECT"
 if [[ "$OSTYPE" =~ ^darwin ]]; then
-  export SRC_ROOT=$PWD
+  export SRC_ROOT="$PWD"
+  _NDK_HOST="darwin-x86_64"
 else
-  export SRC_ROOT=$(realpath .)
+  SRC_ROOT="$(realpath .)"
+  export SRC_ROOT
+  _NDK_HOST="linux-x86_64"
 fi
 
-DEPS=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
+export ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$_NDK_HOST"
+_BIN="$ANDROID_TOOLCHAIN/bin"
 
-export ANDROID_AR=$DEPS/llvm-ar
+export ANDROID_AR="$_BIN/llvm-ar"
 
-export ANDROID_ARM_STRIP=$DEPS/arm-linux-androideabi-strip
-export ANDROID_ARM64_STRIP=$DEPS/aarch64-linux-android-strip
-export ANDROID_X86_STRIP=$DEPS/i686-linux-android-strip
-export ANDROID_X86_64_STRIP=$DEPS/x86_64-linux-android-strip
+export ANDROID_ARM_CC="$_BIN/armv7a-linux-androideabi21-clang"
+export ANDROID_ARM_CXX="$_BIN/armv7a-linux-androideabi21-clang++"
 
-export ANDROID_ARM_CC=$DEPS/armv7a-linux-androideabi21-clang
-export ANDROID_ARM_CXX=$DEPS/armv7a-linux-androideabi21-clang++
-export ANDROID_ARM_CC_21=$DEPS/armv7a-linux-androideabi21-clang
-export ANDROID_ARM_CXX_21=$DEPS/armv7a-linux-androideabi21-clang++
+export ANDROID_ARM64_CC="$_BIN/aarch64-linux-android21-clang"
+export ANDROID_ARM64_CXX="$_BIN/aarch64-linux-android21-clang++"
 
-export ANDROID_ARM64_CC=$DEPS/aarch64-linux-android21-clang
-export ANDROID_ARM64_CXX=$DEPS/aarch64-linux-android21-clang++
+export ANDROID_X86_CC="$_BIN/i686-linux-android21-clang"
+export ANDROID_X86_CXX="$_BIN/i686-linux-android21-clang++"
 
-export ANDROID_X86_CC=$DEPS/i686-linux-android21-clang
-export ANDROID_X86_CXX=$DEPS/i686-linux-android21-clang++
-export ANDROID_X86_CC_21=$DEPS/i686-linux-android21-clang
-export ANDROID_X86_CXX_21=$DEPS/i686-linux-android21-clang++
-
-export ANDROID_X86_64_CC=$DEPS/x86_64-linux-android21-clang
-export ANDROID_X86_64_CXX=$DEPS/x86_64-linux-android21-clang++
-
+export ANDROID_X86_64_CC="$_BIN/x86_64-linux-android21-clang"
+export ANDROID_X86_64_CXX="$_BIN/x86_64-linux-android21-clang++"
