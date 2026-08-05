@@ -387,7 +387,7 @@
     <string name="quic_max_concurrent_streams">QUIC 最大並行串流</string>
     <string name="quic_initial_packet_size">QUIC 初始封包大小</string>
     <string name="hysteria2_disable_chrome_parrot">停用 Chrome 擬態</string>
-    <string name="hysteria2_disable_chrome_parrot_sum">停止模仿 Google Chrome 的 QUIC 交握指紋。若伺服器使用 Ed25519 憑證則需要開啟。sing-box 的出站沒有 Chrome 擬態可提供，因此關閉此項會強制使用 Hysteria2 外掛，該外掛不支援 QUIC 最大並行串流與初始封包大小</string>
+    <string name="hysteria2_disable_chrome_parrot_sum">停止模仿 Google Chrome 的 QUIC 交握指紋。若伺服器使用 Ed25519 憑證則需要開啟。關閉此項時，QUIC 接收視窗、最大並行串流及初始封包大小等設定將被忽略</string>
     <string name="experimental_settings">實驗性</string>
     <string name="hysteria_download_mbps">最大下載速度 (Mbps) (Brutal)</string>
     <string name="hysteria_upload_mbps">最大上傳速度 (Mbps) (Brutal)</string>

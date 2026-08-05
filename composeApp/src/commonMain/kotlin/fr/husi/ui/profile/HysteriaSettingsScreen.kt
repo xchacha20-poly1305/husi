@@ -447,18 +447,12 @@ private fun LazyListScope.hysteriaSettings(
         PreferenceCategory(text = { Text(stringResource(Res.string.quic)) })
     }
     preferenceGroup(key = "stream_receive_window") {
-        // sing-box's Hysteria2 outbound has no Chrome Parrot, so a profile with it left enabled
-        // (disableChromeParrot == false) is forced onto the real plugin, whose ChromeParrot
-        // support in turn pins initStreamReceiveWindow/initConnReceiveWindow/maxIdleTimeout to
-        // its own constants, ignoring whatever is configured here.
-        val forcedToPlugin = uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 &&
-                !uiState.disableChromeParrot
         TextFieldPreference(
             value = uiState.streamReceiveWindow,
             onValueChange = { viewModel.setStreamReceiveWindow(it) },
             title = { Text(stringResource(Res.string.quic_stream_receive_window)) },
             textToValue = { it.toIntOrNull() ?: 0 },
-            enabled = !forcedToPlugin,
+            enabled = uiState.disableChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.texture, IconMaskColors.IconWarmGray)
             },
@@ -481,7 +475,7 @@ private fun LazyListScope.hysteriaSettings(
             onValueChange = { viewModel.setConnectionReceiveWindow(it) },
             title = { Text(stringResource(Res.string.quic_connection_receive_window)) },
             textToValue = { it.toIntOrNull() ?: 0 },
-            enabled = !forcedToPlugin,
+            enabled = uiState.disableChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.transform, IconMaskColors.IconWarmGray)
             },
@@ -529,7 +523,7 @@ private fun LazyListScope.hysteriaSettings(
             onValueChange = { viewModel.setIdleTimeout(it) },
             title = { Text(stringResource(Res.string.quic_idle_timeout)) },
             textToValue = { it },
-            enabled = !forcedToPlugin,
+            enabled = uiState.disableChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.timelapse, IconMaskColors.IconWarmGray)
             },
@@ -560,7 +554,7 @@ private fun LazyListScope.hysteriaSettings(
             onValueChange = { viewModel.setMaxConcurrentStreams(it) },
             title = { Text(stringResource(Res.string.quic_max_concurrent_streams)) },
             textToValue = { it.toIntOrNull() ?: 0 },
-            enabled = !forcedToPlugin,
+            enabled = uiState.disableChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.transform, IconMaskColors.IconWarmGray)
             },
@@ -583,7 +577,7 @@ private fun LazyListScope.hysteriaSettings(
             onValueChange = { viewModel.setInitialPacketSize(it) },
             title = { Text(stringResource(Res.string.quic_initial_packet_size)) },
             textToValue = { it.toIntOrNull() ?: 0 },
-            enabled = !forcedToPlugin,
+            enabled = uiState.disableChromeParrot,
             icon = {
                 MaskedIcon(Res.drawable.texture, IconMaskColors.IconWarmGray)
             },

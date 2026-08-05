@@ -305,7 +305,7 @@ fun HysteriaBean.buildHysteriaConfig(
                         },
                     )
                 }
-                val quic = buildMap<String, Any?> {
+                val quicOptions = buildMap<String, Any?> {
                     if (streamReceiveWindow > 0) put("initStreamReceiveWindow", streamReceiveWindow)
                     if (connectionReceiveWindow > 0) put("initConnReceiveWindow", connectionReceiveWindow)
                     idleTimeout.blankAsNull()?.let { put("maxIdleTimeout", it) }
@@ -319,7 +319,7 @@ fun HysteriaBean.buildHysteriaConfig(
                         )
                     }
                 }
-                if (quic.isNotEmpty()) put("quic", quic)
+                if (quicOptions.isNotEmpty()) put("quic", quicOptions)
                 put("socks5", buildMap { put("listen", "$LOCALHOST4:$port") })
                 put(
                     "tls",
@@ -404,9 +404,6 @@ fun HysteriaBean.canUseSingBox(): Boolean {
         && protocol != HysteriaBean.PROTOCOL_UDP
     ) {
         return false // special mode
-    }
-    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 && !disableChromeParrot) {
-        return false // sing-box's Hysteria2 outbound has no Chrome parrot to enable
     }
     return true
 }
@@ -510,6 +507,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             }
             if (bean.initialPacketSize > 0) {
                 initial_packet_size = bean.initialPacketSize
+            }
+            if (bean.disableChromeParrot) {
+                disable_chrome_parrot = true
             }
             tls = SingBoxOptions.OutboundTLSOptions().apply {
                 enabled = true

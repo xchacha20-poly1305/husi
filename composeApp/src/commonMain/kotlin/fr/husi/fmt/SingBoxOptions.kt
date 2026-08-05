@@ -4094,6 +4094,9 @@ object SingBoxOptions {
         var brutal_debug: Boolean? = null
 
         @JvmField
+        var disable_chrome_parrot: Boolean? = null
+
+        @JvmField
         var realm: Hysteria2Realm? = null
 
     }
