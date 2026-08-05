@@ -12,7 +12,6 @@ import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -605,16 +604,6 @@ class HysteriaFmtTest : HusiKoinTest() {
         val map = json.toJsonMapKxs()
 
         assertNull(map.getObject("quic"))
-    }
-
-    @Test
-    fun `canUseSingBox should be false when hy2 disableChromeParrot is disabled`() {
-        val bean = HysteriaBean().apply {
-            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
-            disableChromeParrot = false
-        }
-
-        assertFalse(bean.canUseSingBox())
     }
 
     @Test

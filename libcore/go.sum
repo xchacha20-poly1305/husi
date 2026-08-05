@@ -237,8 +237,8 @@ github.com/sagernet/quic-go v0.61.0-sing-box-mod.1 h1:ER31GLdh9u/06s1NmZ7zAL4hQK
 github.com/sagernet/quic-go v0.61.0-sing-box-mod.1/go.mod h1:hmLC8GJPp+BrpBgrgJnacvI4fZGIhasuy1ROJJ8GR4E=
 github.com/sagernet/sing v0.8.13-0.20260804143108-f22b119cc7a2 h1:H8RBUK38HSzi9H2lwQJP1yvNUCbJ2Sa2EC2S9wiKROE=
 github.com/sagernet/sing v0.8.13-0.20260804143108-f22b119cc7a2/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
-github.com/sagernet/sing-box v1.14.0-beta.7 h1:yjM0pWE6QIqclBaPrHqlR4iV4/Sm7qmwY/xcWgEoICc=
-github.com/sagernet/sing-box v1.14.0-beta.7/go.mod h1:7RZg14rJ7SGxByjvGnuIpxcyeHzMu3rGzrWUYU8yryo=
+github.com/sagernet/sing-box v1.14.0-beta.7.0.20260805061919-d1e283be4ff8 h1:YPcL5LZMnaWryhqmk7Pe0cTTJTSF55AbtquTp/Lbs4A=
+github.com/sagernet/sing-box v1.14.0-beta.7.0.20260805061919-d1e283be4ff8/go.mod h1:lMZTjc4L8ovoKLE05yXykaFgXRkeu9j+MM+G3NZV2v0=
 github.com/sagernet/sing-mux v0.3.5 h1:RHnhVEc+SFqkrK4xMygYjDwwLhzp2Bj3lztSukONfhI=
 github.com/sagernet/sing-mux v0.3.5/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-openconnect v0.0.0-20260722140139-e0c977659ca2 h1:IOzb7F/NRhAKx49+8HEsJmKrZT73EPseFouxQ6MvAOo=
@@ -261,8 +261,8 @@ github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb h1:KEMbfexD4Dv
 github.com/sagernet/sing-usbip v0.0.0-20260616101517-efb91521eddb/go.mod h1:D4CnJX3MNAAANhbQUxfIRgBdnvlTEaV7h6ojedcs+pw=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1 h1:XkJcivBC9V4wBjiGXIXZ229aZCU1hzcbp6kSkkyQ478=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1/go.mod h1:NjhsCEWedJm7eFLyhuBgIEzwfhRmytrUoiLluxs5Sk8=
-github.com/sagernet/wireguard-go v0.0.5-0.20260805024757-da8671622b26 h1:tJEfxYIf6BC4bh3MHCCbjV7QxcOOBMR1/Pq2t3ls9rs=
-github.com/sagernet/wireguard-go v0.0.5-0.20260805024757-da8671622b26/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
+github.com/sagernet/wireguard-go v0.0.5-0.20260805042941-f39689ad3562 h1:dhvhMpGaa+enzCS6FKozBwvPseiIOrGrmBCsAgCwoSY=
+github.com/sagernet/wireguard-go v0.0.5-0.20260805042941-f39689ad3562/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
 github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 h1:6uUiZcDRnZSAegryaUGwPC/Fj13JSHwiTftrXhMmYOc=
 github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854/go.mod h1:LtfoSK3+NG57tvnVEHgcuBW9ujgE8enPSgzgwStwCAA=
 github.com/smallstep/pkcs7 v0.1.1 h1:x+rPdt2W088V9Vkjho4KtoggyktZJlMduZAtRHm68LU=

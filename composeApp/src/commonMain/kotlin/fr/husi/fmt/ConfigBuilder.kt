@@ -122,7 +122,7 @@ private const val ANCHOR_PORT = 45947
 // For a certain version schema, maybe we should use [typebox](https://github.com/jiang-zhexin/typebox) ?
 const val CONFIG_SCHEMA_URL = "https://sing-box.sagernet.org/schema.json"
 
-val FAKE_DNS_QUERY_TYPE get() = listOf("A", "AAAA")
+val DNS_QUERY_TYPE_ADDRESS get() = listOf("A", "AAAA")
 
 class ConfigBuildResult(
     val mainTag: String,
@@ -907,7 +907,7 @@ fun buildConfig(
                     }
                     if (useFakeQueryScope) {
                         inbound = mutableListOf(TAG_TUN)
-                        query_type = FAKE_DNS_QUERY_TYPE.toMutableList()
+                        query_type = DNS_QUERY_TYPE_ADDRESS.toMutableList()
                     }
                     return this
                 }
@@ -1332,7 +1332,7 @@ fun buildConfig(
                         inbound = mutableListOf(TAG_TUN)
                         server = TAG_DNS_FAKE
                         disable_cache = true
-                        query_type = FAKE_DNS_QUERY_TYPE.toMutableList()
+                        query_type = DNS_QUERY_TYPE_ADDRESS.toMutableList()
                     }.asKxsMap(),
                 )
             }
@@ -1340,19 +1340,28 @@ fun buildConfig(
             // Pre-filter:
             // Hosts [->mDNS] -> local
 
-            fun addPreferredDNSRule(dnsServerTag: String) {
+            fun addPreferredDNSRule(
+                dnsServerTag: String,
+                queryType: MutableList<String>? = null,
+            ) {
                 dns!!.rules!!.add(
                     0,
                     DNSRule_Default().apply {
                         preferred_by = mutableListOf(dnsServerTag)
                         server = dnsServerTag
+                        query_type = queryType
                     }.asKxsMap(),
                 )
             }
 
-            if (localDNSSupportRaw) {
-                addPreferredDNSRule(TAG_DNS_LOCAL)
-            }
+            addPreferredDNSRule(
+                TAG_DNS_LOCAL,
+                if (localDNSSupportRaw) {
+                    null
+                } else {
+                    DNS_QUERY_TYPE_ADDRESS.toMutableList()
+                },
+            )
 
             // VPN with server-push DNS
             for ((endpointTag, dnsType) in vpnWithPushDNS) {
@@ -1381,7 +1390,7 @@ fun buildConfig(
             }
 
             // mDNS
-            // Make sure mDNS rule before local, because local includes mDNS
+            // Make sure mDNS rule is before local, because raw local includes mDNS
             val resolveMDNSByLocal = localDNSSupportRaw && mDNSInterfaces == null
             if (!resolveMDNSByLocal) {
                 dns!!.servers!!.add(
