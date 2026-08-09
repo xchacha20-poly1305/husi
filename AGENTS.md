@@ -16,6 +16,7 @@ First-time setup needs git submodules for plugins and library pins:
 ```
 ./run lib source     # = git submodule update --init --recursive
 make assets          # downloads geoip/geosite into composeApp resources
+make libcore         # host desktop libcore jar — Gradle sync fails without it
 ```
 
 Common targets:
@@ -49,8 +50,9 @@ one), pass `NO_NAIVE=1` to `make libcore` / `make libcore_desktop` (or `--no-nai
 toolchain setup entirely. The resulting build omits the naive outbound protocol.
 
 Desktop Gradle picks the libcore jar from `os.name`/`os.arch`; override with
-`./gradlew -p composeApp run -PdesktopTarget=linux/amd64`. Missing jars fail the build immediately
-rather than silently falling back.
+`./gradlew -p composeApp run -PdesktopTarget=linux/amd64`. A missing jar fails Gradle sync (and any
+build) immediately rather than silently falling back — even Android-only work in the IDE needs the
+host desktop jar built first.
 
 ## Tests & lint
 
@@ -74,8 +76,8 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
 - `libcore/` — Go module exposed to JVM. Built **two ways**:
     - Android via `gomobile` → `composeApp/libs/libcore.aar` (entry: `libcore.go`, with sibling Go
       files for tun, dns, ping, ruleset, plugin glue, etc.).
-    - Desktop via `anja` (JNI bindings) → per-platform `libcore-desktop-<os>-<arch>.jar` checked
-      into `composeApp/libs/` for IDE consumption.
+    - Desktop via `anja` (JNI bindings) → per-platform `libcore-desktop-<os>-<arch>.jar` built
+      into the gitignored `composeApp/libs/`.
     - `libcore/cmd/` holds `boxoption` (option codegen), `boxversion`, `licencecollect`,
       `ruleset_generate`. `libcore/plugin/` houses Go-side plugin support: outbound adapters (
       `http`, `juicity`, `trusttunnel`, `vless`), plus `mieruproto` (Mieru traffic-pattern
@@ -86,7 +88,7 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
   root is `fr.husi`.
 - `androidApp/` — thin Android `application` that depends on `:composeApp`. Defines the
   `AndroidManifest.xml`, ABI splits, signing, and `foss`/`play` flavors.
-- `library/` — vendored `DragDropSwipeLazyColumn` submodule plus `libcore-stub` for IDE indexing.
+- `library/` — vendored `DragDropSwipeLazyColumn` submodule.
 - `launcher/` — Zig executable embedded into desktop installers (`launcher/src/main.zig`); on Linux
   it gets `setcap` for ambient capabilities before exec'ing the JVM, on Windows it embeds an
   admin-elevating manifest.
@@ -147,10 +149,7 @@ defaults to the platform config directory: Linux uses `$XDG_CONFIG_HOME/husi` wh
 
 # Coding conventions
 
-Canonical conventions live in `CONTRIBUTING.md` (English-only comments, path handling via
-`File.resolve` and `fr.husi.ktx.invariantPathString`, no fully-qualified Kotlin imports, `forEach`
-only at chain ends, `also` over `apply` when `this` is ambiguous, `make fmt_go` + `make test_go`
-before committing Go). Read it before editing Kotlin or Go.
+Canonical conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it first if you need to write code.
 
 # Repo conventions to know
 
@@ -161,9 +160,6 @@ before committing Go). Read it before editing Kotlin or Go.
   `setupAppCommon` — that's intentional, not a bug.
 - `composeApp/executableSo/` is added as a JNI libs source dir for the Android app (used to bundle
   plugin executables alongside the host APK).
-- The Go module uses `golangci-lint` with `GOOS=android`; many files have `//go:build` constraints
-  for android vs desktop vs darwin/linux variants — when adding platform-specific code, follow the
-  existing `*_android.go` / `*_darwin.go` / `*_linux.go` / `*_stub.go` split.
-- `.gitignore` excludes `.claude/`, `.gemini/`, `.codex/`, generated `composeApp/libs/`, and
+- `.gitignore` excludes `.claude/`, `.codex/`, `.agents`, generated `composeApp/libs/`, and
   submodule trees under `external/`. Build outputs (`build/`, `*.aar`, `*.jar` in libs, `*.tar.zst`
   assets) are also ignored.
