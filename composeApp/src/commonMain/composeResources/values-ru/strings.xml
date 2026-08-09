@@ -626,7 +626,7 @@
     <string name="not_found">Не найдено</string>
     <string name="full">Полностью</string>
     <string name="query_package_denied">Необходимо разрешение на запрос списка установленных пакетов, для маршрутизации на основе приложения.</string>
-    <string name="more">Меню</string>
+    <string name="more">Больше</string>
     <string name="redo">Повторить</string>
     <string name="indent">Отступ</string>
     <string name="back">Назад</string>
@@ -635,8 +635,8 @@
     <string name="fake_dns_for_all_sum">Унифицировать сетевые стратегии, предпочитаемые приложениями.</string>
     <string name="fake_dns_for_all">Применять Fake DNS для каждого домена</string>
     <string name="internal_link">Внутренняя ссылка</string>
-    <string name="fake_ip_range_4">Диапазон поддельных IP (IPv4)</string>
-    <string name="fake_ip_range_6">Диапазон поддельных IP (IPv6)</string>
+    <string name="fake_ip_range_4">Диапазон Fake IP (IPv4)</string>
+    <string name="fake_ip_range_6">Диапазон Fake IP (IPv6)</string>
     <string name="provider_naive">Провайдер NaïveProxy</string>
     <string name="long_click_to_see_name">Удерживайте, чтобы увидеть название</string>
     <string name="max_log_line">Максимум строк в журнале</string>
@@ -792,4 +792,7 @@
     <string name="hysteria2_disable_chrome_parrot">Отключить Chrome Parrot</string>
     <string name="hysteria2_disable_chrome_parrot_sum">Прекратить имитацию отпечатка QUIC-рукопожатия Google Chrome. Это необходимо, если сервер использует сертификат Ed25519. При выключении этой опции параметры окна приема QUIC, максимального количества потоков и начального размера пакета будут проигнорированы</string>
     <string name="resume">Возобновить</string>
+    <string name="route_bridge">Мост</string>
+    <string name="anytls_client_metadata">Метаданные клиента</string>
+    <string name="auth_cookie">Cookie</string>
 </resources>
