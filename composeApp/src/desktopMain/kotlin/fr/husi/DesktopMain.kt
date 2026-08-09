@@ -30,6 +30,7 @@ import com.kdroid.composetray.menu.api.KeyShortcut
 import com.kdroid.composetray.tray.api.Tray
 import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
+import fr.husi.bg.DesktopNotificationCenter
 import fr.husi.bg.DesktopTaskRegistry
 import fr.husi.bg.DesktopTaskScheduler
 import fr.husi.bg.RouteAssetUpdater
@@ -203,6 +204,12 @@ private class DesktopMain : CliktCommand(APP_NAME) {
             fun openWindow() {
                 windowVisible = true
                 windowState.isMinimized = false
+            }
+
+            LaunchedEffect(Unit) {
+                DesktopNotificationCenter.activations.collect {
+                    openWindow()
+                }
             }
 
             fun exitGracefully() {
@@ -414,6 +421,18 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         System.setProperty(PREFERENCE_NODE_PROPERTY_NAME, PREFERENCE_NODE_NAME)
     }
 
+    /**
+     * Nucleus runtime modules resolve the app identity from these properties (normally injected
+     * by the Nucleus Gradle plugin, which we do not use). The Windows toast backend derives its
+     * AUMID and Start Menu shortcut name from them, so they must be set before the first
+     * notification is sent.
+     */
+    private fun configureNucleusApp() {
+        System.setProperty("nucleus.app.id", APP_NAME)
+        System.setProperty("nucleus.app.name", "Husi")
+        DesktopNotificationCenter.initialize()
+    }
+
     private fun createDesktopRepository(): DesktopRepository {
         val baseDir = baseDir ?: DesktopPaths.dataDir
         baseDir.mkdirs()
@@ -424,6 +443,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         repository: DesktopRepository,
         startCommandServer: Boolean,
     ) {
+        configureNucleusApp()
         DesktopAutoStart.initialize()
         DesktopTaskScheduler.initialize()
         initHusiKoin(repository)

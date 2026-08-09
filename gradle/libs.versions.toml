@@ -35,7 +35,7 @@ aboutlibraries = "15.0.4"
 androidxTv = "1.1.0"
 # Do not update to 2.0 (dev.nucleusframework.composenativetray), which requires the whole Nucleus framwork.
 kdroidComposeTray = "1.3.3"
-dbusJava = "5.2.0"
+nucleus = "2.3.2"
 jna = "5.19.1"
 agp = "9.3.1"
 kotlinGradlePlugin = "2.4.10"
@@ -102,8 +102,7 @@ koin-compose = { module = "io.insert-koin:koin-compose" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
 koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3" }
 com-kdroid-composetray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "kdroidComposeTray" }
-dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
-dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
+nucleus-notification = { module = "dev.nucleusframework:nucleus.notification-common", version.ref = "nucleus" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 
 [plugins]

@@ -360,9 +360,7 @@ kotlin {
                 implementation(libs.clikt)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.com.kdroid.composetray)
-                implementation(libs.dbus.java.core)
-                implementation(libs.dbus.java.transport.native.unixsocket)
-                implementation(libs.jna.platform)
+                implementation(libs.nucleus.notification)
                 implementation(libcoreDesktopJarRequired)
             }
         }
