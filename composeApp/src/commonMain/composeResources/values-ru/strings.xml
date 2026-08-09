@@ -795,4 +795,5 @@
     <string name="route_bridge">Мост</string>
     <string name="anytls_client_metadata">Метаданные клиента</string>
     <string name="auth_cookie">Cookie</string>
+    <string name="anytls_client_metadata_sum">Недобросовестный прокси-провайдер использует метаданные клиента AnyTLS для блокировки пользователей. Установите это значение, чтобы противостоять дискриминации.</string>
 </resources>
