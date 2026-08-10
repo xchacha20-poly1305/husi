@@ -76,6 +76,14 @@
     },
     {
       "matchManagers": [
+        "gradle-wrapper"
+      ],
+      "addLabels": [
+        "java"
+      ]
+    },
+    {
+      "matchManagers": [
         "gradle"
       ],
       "matchPackageNames": [
@@ -143,7 +151,8 @@
         "com.esotericsoftware:kryo",
         "com.jakewharton:process-phoenix",
         "org.ini4j:ini4j",
-        "com.github.ajalt.clikt{/,}**"
+        "com.github.ajalt.clikt{/,}**",
+        "com.google.zxing{/,}**"
       ],
       "groupName": "Utility Libraries",
       "groupSlug": "utility-libraries"
@@ -184,12 +193,10 @@
       "matchManagers": [
         "gradle"
       ],
-      "groupName": "Desktop Native Integration",
-      "groupSlug": "desktop-native-integration",
+      "groupName": "Desktop Nucleus Framework",
+      "groupSlug": "nucleus-framework",
       "matchPackageNames": [
-        "io.github.kdroidfilter{/,}**",
-        "com.github.hypfvieh{/,}**",
-        "net.java.dev.jna{/,}**"
+        "dev.nucleusframework{/,}**"
       ]
     },
     {
