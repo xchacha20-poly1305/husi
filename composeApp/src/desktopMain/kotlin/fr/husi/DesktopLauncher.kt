@@ -1,5 +1,6 @@
 package fr.husi
 
+import fr.husi.ktx.blankAsNull
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import java.io.File
@@ -14,20 +15,19 @@ internal fun buildLauncherCommand(vararg arguments: String): List<String> {
     }
 }
 
-internal fun quoteDesktopEntryArgument(argument: String): String {
-    val escaped = buildString(argument.length) {
-        for (char in argument) {
-            when (char) {
-                '\\', '"', '$', '`' -> {
-                    append('\\')
-                    append(char)
-                }
-
-                else -> append(char)
-            }
-        }
+/**
+ * The single launcher executable of a packaged install, or null when running from a
+ * dev environment where the app is only reachable through a multi-part java command.
+ */
+internal fun resolvePackagedLauncherExecutable(): File? {
+    resolvePackagedDesktopLauncher()?.let {
+        return it
     }
-    return "\"$escaped\""
+
+    return System.getProperty("jpackage.app-path")
+        ?.blankAsNull()
+        ?.let(::File)
+        ?.takeIf(File::isFile)
 }
 
 internal fun quoteSystemdArgument(argument: String): String {
@@ -102,18 +102,13 @@ internal fun xmlEscape(value: String): String {
  * Resolve based on package path -> try resolving jpackage -> try getting from process
  */
 private fun resolveLauncherCommand(): List<String> {
-    val packagedLauncher = resolvePackagedDesktopLauncher()
-    packagedLauncher
-        ?.let { return listOf(it.absolutePath) }
+    resolvePackagedLauncherExecutable()?.let {
+        return listOf(it.absolutePath)
+    }
 
-    System.getProperty("jpackage.app-path")
-        ?.takeIf { it.isNotBlank() }
-        ?.let(::File)
-        ?.takeIf(File::isFile)
-        ?.let { return listOf(it.absolutePath) }
-
-    resolveCurrentProcessCommand(allowJava = packagedLauncher == null)
-        ?.let { return it }
+    resolveCurrentProcessCommand(allowJava = true)?.let {
+        return it
+    }
 
     error("Desktop launcher not found")
 }

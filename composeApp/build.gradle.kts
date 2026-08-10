@@ -362,6 +362,7 @@ kotlin {
                 implementation(libs.com.kdroid.composetray)
                 implementation(libs.nucleus.notification)
                 implementation(libs.nucleus.darkmode.detector)
+                implementation(libs.nucleus.autolaunch)
                 implementation(libcoreDesktopJarRequired)
             }
         }

@@ -93,9 +93,26 @@ import com.kdroid.composetray.menu.api.Key as TrayKey
 
 private const val APP_NAME = "fr.husi"
 
-fun main(args: Array<String>) = DesktopMain().main(args)
+fun main(args: Array<String>) {
+    configureNucleusAppIdentity()
+    DesktopMain(args).main(args)
+}
 
-private class DesktopMain : CliktCommand(APP_NAME) {
+/**
+ * Nucleus runtime modules resolve the app identity from these properties (normally injected by
+ * the Nucleus Gradle plugin, which we do not use). NucleusApp caches them on first access, so
+ * they must be set before any Nucleus API is touched: the Windows toast backend derives its
+ * AUMID and Start Menu shortcut name from them, and AutoLaunch login-launch detection — which
+ * runs ahead of the runtime bootstrap — keys its systemd unit name on the app id.
+ */
+private fun configureNucleusAppIdentity() {
+    System.setProperty("nucleus.app.id", APP_NAME)
+    System.setProperty("nucleus.app.name", "Husi")
+}
+
+private class DesktopMain(
+    private val rawArgs: Array<String>,
+) : CliktCommand(APP_NAME) {
 
     companion object {
         private const val MIN_LOG_LEVEL = 0
@@ -146,6 +163,15 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         help = "[Internal] Run a hidden desktop task and exit.",
     )
 
+    /**
+     * True when this process was launched by the login auto-start mechanism: via the explicit
+     * flags (Windows Run entry, legacy entries) or via platform detection for the argument-less
+     * Linux systemd unit / macOS SMAppService registrations.
+     */
+    private val launchedAtLogin: Boolean by lazy {
+        autoStart || DesktopAutoStart.wasStartedAtLogin(rawArgs)
+    }
+
     override val invokeWithoutSubcommand = true
 
     init {
@@ -195,8 +221,9 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         application {
             val repository = resolveDesktopRepository()
             val supportTray = remember { isNativeTrayLikelySupported() }
+            val startInBackground = background || launchedAtLogin
             var windowVisible by remember {
-                mutableStateOf(!background || !supportTray)
+                mutableStateOf(!startInBackground || !supportTray)
             }
 
             val windowState = rememberWindowState(size = DpSize(1200.dp, 800.dp))
@@ -222,7 +249,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
             }
 
             DesktopResourceEnvironmentFix {
-                LaunchedEffect(autoStart) {
+                LaunchedEffect(Unit) {
                     if (shouldAutoConnectOnLaunch()) {
                         repository.startService()
                     }
@@ -358,7 +385,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
     }
 
     private fun shouldAutoConnectOnLaunch(): Boolean {
-        return autoStart
+        return launchedAtLogin
                 && DataStore.persistAcrossReboot
                 && DataStore.selectedProxy > 0L
                 && !DataStore.serviceState.started
@@ -378,7 +405,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
                 }
 
                 ExistingInstanceCheckResult.ExistsNoDeepLink
-                    if (autoStart) -> exitApplication()
+                    if (launchedAtLogin) -> exitApplication()
 
                 ExistingInstanceCheckResult.ExistsNoDeepLink,
                 ExistingInstanceCheckResult.ExistsForwardFailed,
@@ -421,18 +448,6 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         System.setProperty(PREFERENCE_NODE_PROPERTY_NAME, PREFERENCE_NODE_NAME)
     }
 
-    /**
-     * Nucleus runtime modules resolve the app identity from these properties (normally injected
-     * by the Nucleus Gradle plugin, which we do not use). The Windows toast backend derives its
-     * AUMID and Start Menu shortcut name from them, so they must be set before the first
-     * notification is sent.
-     */
-    private fun configureNucleusApp() {
-        System.setProperty("nucleus.app.id", APP_NAME)
-        System.setProperty("nucleus.app.name", "Husi")
-        DesktopNotificationCenter.initialize()
-    }
-
     private fun createDesktopRepository(): DesktopRepository {
         val baseDir = baseDir ?: DesktopPaths.dataDir
         baseDir.mkdirs()
@@ -443,8 +458,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         repository: DesktopRepository,
         startCommandServer: Boolean,
     ) {
-        configureNucleusApp()
-        DesktopAutoStart.initialize()
+        DesktopNotificationCenter.initialize()
         DesktopTaskScheduler.initialize()
         initHusiKoin(repository)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
