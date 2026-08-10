@@ -810,8 +810,6 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="search_go">Search</string>
-    <string name="instance_already_running_title">Already running</string>
-    <string name="instance_already_running">Another instance is already running.\nDetected active API socket:\n%1$s\n\nThis instance will exit now.</string>
 
     <!-- security warnings -->
     <string name="warn_hysteria_legacy">The configuration (Hysteria1) is deprecated.\n\nLearn more: https://v2.hysteria.network/docs/misc/2-vs-1/</string>

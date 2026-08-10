@@ -23,7 +23,6 @@ const (
 	commandResetNetwork
 	commandClearLog
 	commandSubscribeLogs
-	commandImportDeepLink
 	commandRunTask
 	commandQueryAllProxy
 	commandSubscribeOpenConnectStatus

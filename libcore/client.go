@@ -52,18 +52,6 @@ func (c *Client) Hello() error {
 	return nil
 }
 
-func (c *Client) ImportDeepLinks(deepLinks StringIterator) error {
-	err := vario.WriteUint8(c.conn, commandImportDeepLink)
-	if err != nil {
-		return E.Cause(err, "write command")
-	}
-	err = vario.WriteStringSlice(c.conn, iteratorToArray(deepLinks))
-	if err != nil {
-		return E.Cause(err, "write deep link")
-	}
-	return nil
-}
-
 func (c *Client) RunTask(taskID string) error {
 	err := vario.WriteUint8(c.conn, commandRunTask)
 	if err != nil {

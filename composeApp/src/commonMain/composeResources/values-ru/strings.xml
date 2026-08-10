@@ -688,8 +688,6 @@
     <string name="warn_not_encrypted">Эта конфигурация (без шифрования) крайне легко обнаруживается и идентифицируется, передача полностью видима цензору; отсутствует защита от MITM-вмешательства в содержимое коммуникации.</string>
     <string name="warn_insecure">Эта конфигурация (небезопасно) может быть обнаружена и идентифицирована; передача полностью видима цензору и не устойчива к MITM-вмешательству в содержимое коммуникации.</string>
     <string name="warn_hysteria_legacy">Эта конфигурация (Hysteria1) более не поддерживается.\n\nПодробнее: https://v2.hysteria.network/docs/misc/2-vs-1/</string>
-    <string name="instance_already_running">Другой экземпляр уже запущен.\nОбнаружен активный API-сокет:\n%1$s\n\nЭтот экземпляр будет завершен.</string>
-    <string name="instance_already_running_title">Уже запущено</string>
     <string name="subscription_updated">Обновлено: %1$s</string>
     <string name="subscription_last_updated">Последнее обновление: %1$s</string>
     <string name="traffic_pattern">Паттерн Трафика</string>

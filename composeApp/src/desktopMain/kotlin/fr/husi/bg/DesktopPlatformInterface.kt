@@ -13,10 +13,6 @@ class DesktopPlatformInterface : PlatformInterface {
         resolveDesktopRepository().serviceRuntime.trafficLooper?.updateSelectedTag(group, old, now)
     }
 
-    override fun onDeepLink(deepLink: String) {
-        DeepLinkDispatcher.emit(deepLink)
-    }
-
     override fun onTask(taskId: String) {
         DesktopTaskRegistry.dispatch(taskId)
     }

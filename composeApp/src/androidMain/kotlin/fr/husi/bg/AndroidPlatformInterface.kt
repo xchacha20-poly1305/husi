@@ -140,10 +140,6 @@ class AndroidPlatformInterface : PlatformInterface {
         ServiceRegistry.baseService?.data?.proxy?.trafficLooper?.updateSelectedTag(group, old, now)
     }
 
-    override fun onDeepLink(deepLink: String) {
-        DeepLinkDispatcher.emit(deepLink)
-    }
-
     override fun onTask(taskId: String) = Unit
 
     private class InterfaceArray(

@@ -378,12 +378,6 @@ func (s *Service) handleRequest(conn net.Conn) error {
 			return E.Cause(err, "handle url test")
 		}
 		return nil
-	case commandImportDeepLink:
-		err := s.handleImportDeepLink(conn)
-		if err != nil {
-			return E.Cause(err, "handle deep link import")
-		}
-		return nil
 	case commandRunTask:
 		err := s.handleRunTask(conn)
 		if err != nil {
@@ -457,20 +451,6 @@ func (s *Service) handleHello(conn io.ReadWriter) error {
 	err := vario.WriteUint8(conn, resultNoError)
 	if err != nil {
 		return E.Cause(err, "write result")
-	}
-	return nil
-}
-
-func (s *Service) handleImportDeepLink(conn io.ReadWriter) error {
-	deepLinks, err := vario.ReadStringSlice(conn)
-	if err != nil {
-		return E.Cause(err, "read deep links")
-	}
-	if len(deepLinks) == 0 || s.platformInterface == nil {
-		return nil
-	}
-	for _, deepLink := range deepLinks {
-		s.platformInterface.OnDeepLink(deepLink)
 	}
 	return nil
 }

@@ -13,6 +13,5 @@ type PlatformInterface interface {
 	GetInterfaces() (NetworkInterfaceIterator, error)
 
 	OnGroupSelectedChange(group, old, now string)
-	OnDeepLink(deepLink string)
 	OnTask(taskID string)
 }

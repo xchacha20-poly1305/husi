@@ -29,11 +29,13 @@ import dev.nucleusframework.application.NucleusBackend
 import dev.nucleusframework.application.nucleusApplication
 import dev.nucleusframework.composenativetray.menu.api.KeyShortcut
 import dev.nucleusframework.composenativetray.tray.api.Tray
+import dev.nucleusframework.core.runtime.SingleInstanceManager
 import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.DesktopNotificationCenter
 import fr.husi.bg.DesktopTaskRegistry
 import fr.husi.bg.DesktopTaskScheduler
+import fr.husi.bg.InstanceRestoreBus
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
@@ -43,8 +45,8 @@ import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
 import fr.husi.ktx.exitApplication
 import fr.husi.ktx.invariantDirectoryPathString
+import fr.husi.ktx.sha256Hex
 import fr.husi.ktx.toList
-import fr.husi.ktx.toStringIterator
 import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
@@ -56,8 +58,6 @@ import fr.husi.resources.app_name
 import fr.husi.resources.close
 import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
-import fr.husi.resources.instance_already_running
-import fr.husi.resources.instance_already_running_title
 import fr.husi.resources.service_mode
 import fr.husi.resources.service_mode_proxy
 import fr.husi.resources.service_mode_vpn
@@ -85,6 +85,8 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import javax.swing.UIManager
@@ -121,6 +123,8 @@ private class DesktopMain(
 
         private const val PREFERENCE_NODE_PROPERTY_NAME = "me.zhanghai.compose.preference.node"
         private const val PREFERENCE_NODE_NAME = "/fr/husi/preference"
+
+        private const val LOCK_ID_HASH_LENGTH = 16
     }
 
     val baseDir: File? by option(
@@ -221,7 +225,10 @@ private class DesktopMain(
 
         // AWT backend explicitly: the tray library links against the Tao backend, and Auto
         // resolution would pick Tao if it ever lands on the classpath — husi's windows are
-        // plain Compose/AWT. Single instance and deep links stay on husi's libcore socket.
+        // plain Compose/AWT. Nucleus's built-in single instance stays off: husi drives
+        // SingleInstanceManager itself in initDesktopRuntime, before libcore bootstrap and
+        // with a payload carrying multiple deep links (the built-in path handles one URI
+        // and unconditionally restores the window).
         nucleusApplication(
             args = rawArgs,
             backend = NucleusBackend.Awt,
@@ -242,6 +249,12 @@ private class DesktopMain(
 
             LaunchedEffect(Unit) {
                 DesktopNotificationCenter.activations.collect {
+                    openWindow()
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                InstanceRestoreBus.restores.collect {
                     openWindow()
                 }
             }
@@ -370,28 +383,46 @@ private class DesktopMain(
     private fun initDesktopRuntime(deepLinks: List<String>) {
         fixComposePreferenceNode()
         val repository = createDesktopRepository()
-        val filesDir = repository.filesDir.invariantDirectoryPathString()
 
-        if (!many) {
-            when (val result = checkExistingInstance(filesDir, deepLinks)) {
-                ExistingInstanceCheckResult.NotFound -> Unit
-
-                is ExistingInstanceCheckResult.LibcoreJNIBroken -> {
-                    warnLibcoreLoadFailureAndExit(result.e)
-                }
-
-                ExistingInstanceCheckResult.ExistsNoDeepLink
-                    if (launchedAtLogin) -> exitApplication()
-
-                ExistingInstanceCheckResult.ExistsNoDeepLink,
-                ExistingInstanceCheckResult.ExistsForwardFailed,
-                    -> warnForExistInstanceAndExit(repository, filesDir)
-
-                ExistingInstanceCheckResult.ExistsForwarded -> exitApplication()
-            }
+        if (!many && !acquireSingleInstanceLock(repository, deepLinks)) {
+            // A running instance holds the lock and has been handed this launch's payload.
+            exitApplication()
         }
 
         bootstrapDesktopRuntime(repository, startCommandServer = true)
+    }
+
+    /**
+     * Acquires the single-instance file lock via Nucleus.
+     *
+     * The lock identifier hashes the files directory so instances started with different
+     * `-d` data directories coexist, matching the per-directory scoping of the command
+     * socket. Lock files stay in the default temp directory: Nucleus writes the
+     * restore-request payload to a temp file and moves it into place, and keeping both on
+     * the same filesystem makes that move an atomic rename.
+     *
+     * On the primary instance this registers a watcher handling later launches' payloads;
+     * on a secondary launch it writes the payload for the primary and returns false.
+     */
+    private fun acquireSingleInstanceLock(
+        repository: DesktopRepository,
+        deepLinks: List<String>,
+    ): Boolean {
+        val filesDir = repository.filesDir.invariantDirectoryPathString()
+        SingleInstanceManager.configuration = SingleInstanceManager.Configuration(
+            lockIdentifier = "$APP_NAME-${filesDir.sha256Hex().take(LOCK_ID_HASH_LENGTH)}",
+        )
+        // A login auto-start finding an instance already running should stay unnoticed;
+        // any other secondary launch pops the primary's window up.
+        val restoreWindow = deepLinks.isNotEmpty() || !launchedAtLogin
+        return SingleInstanceManager.isSingleInstance(
+            onRestoreFileCreated = {
+                writeRestorePayload(this, restoreWindow, deepLinks)
+            },
+            onRestoreRequest = {
+                handleRestoreRequest(this)
+            },
+        )
     }
 
     /**
@@ -450,21 +481,58 @@ private class DesktopMain(
                 copyBundledRuleSetAssetsIfNeeded()
             }
         }
-        Libcore.initCore(
-            true,
-            true,
-            cacheDir,
-            filesDir,
-            externalAssetsDir,
-            DataStore.logMaxLine,
-            logLevel ?: DataStore.logLevel,
-            isOfficialProvider,
-            DataStore.isExpert,
-        )
-        loadCA(DataStore.certProvider)
+        try {
+            // First touch of the Libcore class in this process: loads the JNI library.
+            Libcore.initCore(
+                true,
+                true,
+                cacheDir,
+                filesDir,
+                externalAssetsDir,
+                DataStore.logMaxLine,
+                logLevel ?: DataStore.logLevel,
+                isOfficialProvider,
+                DataStore.isExpert,
+            )
+            loadCA(DataStore.certProvider)
+        } catch (e: LinkageError) {
+            warnLibcoreLoadFailureAndExit(e)
+        }
         if (startCommandServer) {
             repository.boxService?.start()
         }
+    }
+}
+
+/**
+ * First line of a single-instance restore-request payload; the remaining lines are deep
+ * links to import. [RESTORE_PAYLOAD_SILENT] keeps the primary's window untouched (login
+ * auto-start racing an already running instance), anything else brings it to the front.
+ */
+private const val RESTORE_PAYLOAD_RESTORE = "restore"
+private const val RESTORE_PAYLOAD_SILENT = "silent"
+
+private fun writeRestorePayload(path: Path, restoreWindow: Boolean, deepLinks: List<String>) {
+    val lines = buildList {
+        add(if (restoreWindow) RESTORE_PAYLOAD_RESTORE else RESTORE_PAYLOAD_SILENT)
+        addAll(deepLinks)
+    }
+    Files.write(path, lines)
+}
+
+/** Runs on the Nucleus watcher thread of the primary instance. */
+private fun handleRestoreRequest(path: Path) {
+    val lines = try {
+        Files.readAllLines(path)
+    } catch (e: Exception) {
+        Logs.w("read single-instance restore request", e)
+        return
+    }
+    for (link in lines.drop(1)) {
+        DeepLinkDispatcher.emit(link)
+    }
+    if (lines.firstOrNull() != RESTORE_PAYLOAD_SILENT) {
+        InstanceRestoreBus.fire()
     }
 }
 
@@ -507,42 +575,10 @@ private fun registerMacOSOpenUriHandler() {
     }
 }
 
-private sealed interface ExistingInstanceCheckResult {
-    object NotFound : ExistingInstanceCheckResult
-    class LibcoreJNIBroken(val e: LinkageError) : ExistingInstanceCheckResult
-    object ExistsNoDeepLink : ExistingInstanceCheckResult
-    object ExistsForwarded : ExistingInstanceCheckResult
-    object ExistsForwardFailed : ExistingInstanceCheckResult
-}
-
 private enum class ExistingTaskDispatchResult {
     NotFound,
     Forwarded,
     ForwardFailed,
-}
-
-private fun checkExistingInstance(
-    socketBasePath: String,
-    deepLinks: List<String>,
-): ExistingInstanceCheckResult {
-    val client = try {
-        connectExistingClient(socketBasePath)
-    } catch (e: LinkageError) {
-        return ExistingInstanceCheckResult.LibcoreJNIBroken(e)
-    } catch (_: Exception) {
-        null
-    } ?: return ExistingInstanceCheckResult.NotFound
-    return try {
-        if (deepLinks.isEmpty()) {
-            ExistingInstanceCheckResult.ExistsNoDeepLink
-        } else if (forwardDeepLinks(client, deepLinks)) {
-            ExistingInstanceCheckResult.ExistsForwarded
-        } else {
-            ExistingInstanceCheckResult.ExistsForwardFailed
-        }
-    } finally {
-        client.close()
-    }
 }
 
 private fun connectExistingClient(socketBasePath: String): Client? {
@@ -557,14 +593,6 @@ private fun connectExistingClient(socketBasePath: String): Client? {
         return null
     }
     return client
-}
-
-private fun forwardDeepLinks(client: Client, deepLinks: List<String>): Boolean {
-    return runCatching {
-        client.importDeepLinks(deepLinks.toStringIterator(deepLinks.size))
-    }.onFailure {
-        Logs.e(it)
-    }.isSuccess
 }
 
 private fun checkExistingTaskInstance(
@@ -589,21 +617,6 @@ private fun forwardTask(client: Client, taskId: String): Boolean {
     }.onFailure {
         Logs.e(it)
     }.isSuccess
-}
-
-private fun warnForExistInstanceAndExit(repository: DesktopRepository, socketBasePath: String) {
-    val socketPath = socketBasePath + Libcore.Socket
-    val title = runBlocking { repository.getString(Res.string.instance_already_running_title) }
-    val message = runBlocking {
-        repository.getString(Res.string.instance_already_running, socketPath)
-    }
-    try {
-        showSelectableMessageDialog(message, title, JOptionPane.WARNING_MESSAGE)
-    } catch (e: Exception) {
-        System.err.println("$title: $message")
-        System.err.println(e.message)
-    }
-    exitProcess(1)
 }
 
 private fun showSelectableMessageDialog(

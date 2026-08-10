@@ -722,8 +722,6 @@
     <string name="ok">好</string>
     <string name="cancel">取消</string>
     <string name="search_go">搜索</string>
-    <string name="instance_already_running_title">已在运行</string>
-    <string name="instance_already_running">已有实例在运行。\n检测到活跃的 API socket：\n%1$s\n\n当前实例将退出。</string>
 
     <!-- security warnings -->
     <string name="warn_hysteria_legacy">该配置 (Hysteria1) 已弃用。\n\n了解更多: https://v2.hysteria.network/zh/docs/misc/2-vs-1/</string>
