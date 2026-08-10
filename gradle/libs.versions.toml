@@ -33,9 +33,8 @@ junitBom = "6.1.2"
 mockk = "1.14.11"
 aboutlibraries = "15.0.4"
 androidxTv = "1.1.0"
-# Do not update to 2.0 (dev.nucleusframework.composenativetray), which requires the whole Nucleus framwork.
-kdroidComposeTray = "1.3.3"
 nucleus = "2.3.2"
+composeNativeTray = "2.0.3"
 jna = "5.19.1"
 agp = "9.3.1"
 kotlinGradlePlugin = "2.4.10"
@@ -101,7 +100,8 @@ koin-android = { module = "io.insert-koin:koin-android" }
 koin-compose = { module = "io.insert-koin:koin-compose" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
 koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3" }
-com-kdroid-composetray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "kdroidComposeTray" }
+nucleus-composetray = { module = "dev.nucleusframework:composenativetray", version.ref = "composeNativeTray" }
+nucleus-application = { module = "dev.nucleusframework:nucleus.nucleus-application", version.ref = "nucleus" }
 nucleus-notification = { module = "dev.nucleusframework:nucleus.notification-common", version.ref = "nucleus" }
 nucleus-darkmode-detector = { module = "dev.nucleusframework:nucleus.darkmode-detector", version.ref = "nucleus" }
 nucleus-autolaunch = { module = "dev.nucleusframework:nucleus.autolaunch", version.ref = "nucleus" }

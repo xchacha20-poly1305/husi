@@ -10,7 +10,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.ProgramResult
@@ -26,8 +25,10 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
-import com.kdroid.composetray.menu.api.KeyShortcut
-import com.kdroid.composetray.tray.api.Tray
+import dev.nucleusframework.application.NucleusBackend
+import dev.nucleusframework.application.nucleusApplication
+import dev.nucleusframework.composenativetray.menu.api.KeyShortcut
+import dev.nucleusframework.composenativetray.tray.api.Tray
 import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.DesktopNotificationCenter
@@ -62,8 +63,8 @@ import fr.husi.resources.service_mode_proxy
 import fr.husi.resources.service_mode_vpn
 import fr.husi.resources.start
 import fr.husi.resources.stop
-import fr.husi.ui.MainScreen
 import fr.husi.ui.LogLevel
+import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.closeQuietly
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
@@ -84,12 +85,12 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
 import java.io.File
-import java.util.concurrent.TimeUnit
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import javax.swing.UIManager
 import kotlin.system.exitProcess
-import com.kdroid.composetray.menu.api.Key as TrayKey
+import kotlin.time.Duration.Companion.milliseconds
+import dev.nucleusframework.composenativetray.menu.api.Key as TrayKey
 
 private const val APP_NAME = "fr.husi"
 
@@ -218,12 +219,18 @@ private class DesktopMain(
             DeepLinkDispatcher.emit(link)
         }
 
-        application {
+        // AWT backend explicitly: the tray library links against the Tao backend, and Auto
+        // resolution would pick Tao if it ever lands on the classpath — husi's windows are
+        // plain Compose/AWT. Single instance and deep links stay on husi's libcore socket.
+        nucleusApplication(
+            args = rawArgs,
+            backend = NucleusBackend.Awt,
+            enableSingleInstance = false,
+        ) {
             val repository = resolveDesktopRepository()
-            val supportTray = remember { isNativeTrayLikelySupported() }
             val startInBackground = background || launchedAtLogin
             var windowVisible by remember {
-                mutableStateOf(!startInBackground || !supportTray)
+                mutableStateOf(!startInBackground)
             }
 
             val windowState = rememberWindowState(size = DpSize(1200.dp, 800.dp))
@@ -258,92 +265,84 @@ private class DesktopMain(
                 val appName = stringResource(Res.string.app_name)
                 val iconServiceActive = painterResource(Res.drawable.ic_service_active)
 
-                if (supportTray) {
-                    val serviceStatus by BackendState.status.collectAsState()
-                    val switchText = stringResource(
-                        if (serviceStatus.state == ServiceState.Connected) {
-                            Res.string.stop
-                        } else {
-                            Res.string.start
-                        },
-                    )
+                val serviceStatus by BackendState.status.collectAsState()
+                val switchText = stringResource(
+                    if (serviceStatus.state == ServiceState.Connected) {
+                        Res.string.stop
+                    } else {
+                        Res.string.start
+                    },
+                )
 
-                    val textServiceMode = stringResource(Res.string.service_mode)
-                    val textServiceModeProxy = stringResource(Res.string.service_mode_proxy)
-                    val textServiceModeVpn = stringResource(Res.string.service_mode_vpn)
-                    val serviceMode by DataStore.configurationStore
-                        .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
-                        .collectAsState(Key.MODE_VPN)
+                val textServiceMode = stringResource(Res.string.service_mode)
+                val textServiceModeProxy = stringResource(Res.string.service_mode_proxy)
+                val textServiceModeVpn = stringResource(Res.string.service_mode_vpn)
+                val serviceMode by DataStore.configurationStore
+                    .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                    .collectAsState(Key.MODE_VPN)
 
-                    val textExit = stringResource(Res.string.exit)
-                    val iconClose = painterResource(Res.drawable.close)
-                    Tray(
-                        icon = iconServiceActive,
-                        tooltip = appName,
-                        primaryAction = ::openWindow,
-                        menuContent = {
-                            Item(
-                                label = serviceStatus.profileName ?: appName,
-                                shortcut = KeyShortcut(TrayKey.O),
-                            ) {
-                                openWindow()
-                            }
+                val textExit = stringResource(Res.string.exit)
+                val iconClose = painterResource(Res.drawable.close)
+                Tray(
+                    icon = iconServiceActive,
+                    tooltip = appName,
+                    primaryAction = ::openWindow,
+                    menuContent = {
+                        Item(
+                            label = serviceStatus.profileName ?: appName,
+                            shortcut = KeyShortcut(TrayKey.O),
+                        ) {
+                            openWindow()
+                        }
+                        CheckableItem(
+                            label = switchText,
+                            checked = serviceStatus.state == ServiceState.Connected
+                                    || serviceStatus.state == ServiceState.Stopped
+                                    || serviceStatus.state == ServiceState.Idle,
+                            onCheckedChange = {
+                                when (serviceStatus.state) {
+                                    ServiceState.Stopped -> repository.startService()
+                                    ServiceState.Idle, ServiceState.Connected -> repository.stopService()
+                                    else -> {}
+                                }
+                            },
+                            shortcut = KeyShortcut(TrayKey.Return, ctrl = true),
+                        )
+                        SubMenu(
+                            label = textServiceMode,
+                        ) {
                             CheckableItem(
-                                label = switchText,
-                                checked = serviceStatus.state == ServiceState.Connected
-                                        || serviceStatus.state == ServiceState.Stopped
-                                        || serviceStatus.state == ServiceState.Idle,
+                                label = textServiceModeProxy,
+                                checked = serviceMode == Key.MODE_PROXY,
                                 onCheckedChange = {
-                                    when (serviceStatus.state) {
-                                        ServiceState.Stopped -> repository.startService()
-                                        ServiceState.Idle, ServiceState.Connected -> repository.stopService()
-                                        else -> {}
+                                    if (serviceMode != Key.MODE_PROXY) {
+                                        DataStore.serviceMode = Key.MODE_PROXY
+                                        repository.reloadService()
                                     }
                                 },
-                                shortcut = KeyShortcut(TrayKey.Return, ctrl = true),
                             )
-                            SubMenu(
-                                label = textServiceMode,
-                            ) {
-                                CheckableItem(
-                                    label = textServiceModeProxy,
-                                    checked = serviceMode == Key.MODE_PROXY,
-                                    onCheckedChange = {
-                                        if (serviceMode != Key.MODE_PROXY) {
-                                            DataStore.serviceMode = Key.MODE_PROXY
-                                            repository.reloadService()
-                                        }
-                                    },
-                                )
-                                CheckableItem(
-                                    label = textServiceModeVpn,
-                                    checked = serviceMode == Key.MODE_VPN,
-                                    onCheckedChange = {
-                                        if (serviceMode != Key.MODE_VPN) {
-                                            DataStore.serviceMode = Key.MODE_VPN
-                                            repository.reloadService()
-                                        }
-                                    },
-                                )
-                            }
-                            Item(
-                                label = textExit,
-                                icon = iconClose,
-                                shortcut = KeyShortcut(TrayKey.Q),
-                                onClick = ::exitGracefully,
+                            CheckableItem(
+                                label = textServiceModeVpn,
+                                checked = serviceMode == Key.MODE_VPN,
+                                onCheckedChange = {
+                                    if (serviceMode != Key.MODE_VPN) {
+                                        DataStore.serviceMode = Key.MODE_VPN
+                                        repository.reloadService()
+                                    }
+                                },
                             )
-                        },
-                    )
-                }
+                        }
+                        Item(
+                            label = textExit,
+                            icon = iconClose,
+                            shortcut = KeyShortcut(TrayKey.Q),
+                            onClick = ::exitGracefully,
+                        )
+                    },
+                )
 
                 Window(
-                    onCloseRequest = {
-                        if (supportTray) {
-                            windowVisible = false
-                        } else {
-                            exitGracefully()
-                        }
-                    },
+                    onCloseRequest = ::exitGracefully,
                     state = windowState,
                     visible = windowVisible,
                     title = appName,
@@ -352,36 +351,13 @@ private class DesktopMain(
                     AppTheme {
                         MainScreen(
                             moveToBackground = {
-                                if (supportTray) {
-                                    windowVisible = false
-                                }
+                                windowVisible = false
                             },
                         )
                     }
                 }
             }
         }
-    }
-
-    private fun isNativeTrayLikelySupported(): Boolean {
-        if (!PlatformInfo.isLinux) {
-            return true
-        }
-        return isStatusNotifierWatcherAvailable()
-    }
-
-    private fun isStatusNotifierWatcherAvailable(): Boolean {
-        return runCatching {
-            val process = ProcessBuilder("busctl", "--user", "--no-pager", "--no-legend", "list")
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start()
-            val output = process.inputStream.bufferedReader().use { it.readText() }
-            val exited = process.waitFor(500, TimeUnit.MILLISECONDS)
-            if (!exited) {
-                process.destroyForcibly()
-            }
-            exited && process.exitValue() == 0 && output.contains("org.kde.StatusNotifierWatcher")
-        }.getOrDefault(false)
     }
 
     private fun shouldAutoConnectOnLaunch(): Boolean {
@@ -682,7 +658,7 @@ private fun currentClashMode(socketBasePath: String): String? {
             }
         }
         try {
-            withTimeoutOrNull(2_000) { firstMode.await() }
+            withTimeoutOrNull(2_000.milliseconds) { firstMode.await() }
         } finally {
             client.closeQuietly() // unblock the native read so `reader` can finish
             reader.cancel()
@@ -852,7 +828,10 @@ private class ConnCommand : ClientCommand("conn") {
                             for (info in filtered) {
                                 addJsonObject {
                                     put("uuid", info.uuid)
-                                    put("state", if (info.closedAt.isNotEmpty()) "closed" else "active")
+                                    put(
+                                        "state",
+                                        if (info.closedAt.isNotEmpty()) "closed" else "active",
+                                    )
                                     put("network", info.network)
                                     put("src", info.src)
                                     put("dst", info.dst)
