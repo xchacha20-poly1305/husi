@@ -35,7 +35,6 @@ aboutlibraries = "15.0.4"
 androidxTv = "1.1.0"
 nucleus = "2.3.2"
 composeNativeTray = "2.0.3"
-jna = "5.19.1"
 agp = "9.3.1"
 kotlinGradlePlugin = "2.4.10"
 
@@ -53,7 +52,6 @@ androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "a
 androidx-tv-material = { module = "androidx.tv:tv-material", version.ref = "androidxTv" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastore" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBom" }
-androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
@@ -68,6 +66,8 @@ zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite" }
+# Imported by implementation(libs.smali.dexlib2.get().toString()) on Android
+#noinspection UnusedVersionCatalogEntry
 smali-dexlib2 = { module = "com.android.tools.smali:smali-dexlib2", version.ref = "smaliDexlib2" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "processPhoenix" }
@@ -105,7 +105,6 @@ nucleus-application = { module = "dev.nucleusframework:nucleus.nucleus-applicati
 nucleus-notification = { module = "dev.nucleusframework:nucleus.notification-common", version.ref = "nucleus" }
 nucleus-darkmode-detector = { module = "dev.nucleusframework:nucleus.darkmode-detector", version.ref = "nucleus" }
 nucleus-autolaunch = { module = "dev.nucleusframework:nucleus.autolaunch", version.ref = "nucleus" }
-jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
