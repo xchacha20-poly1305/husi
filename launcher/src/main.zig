@@ -317,6 +317,7 @@ fn resolveMacOSAppBundleOptions(io: Io, allocator: mem.Allocator, runtime: Runti
 }
 
 const UserConfigPaths = struct {
+    config_dir: []u8,
     java_opts_path: []u8,
     app_args_path: []u8,
 };
@@ -375,13 +376,14 @@ fn resolveUserConfigPaths(allocator: mem.Allocator, env_map: *process.Environ.Ma
     defer allocator.free(config_base);
 
     const config_dir = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ config_base, husi_config_dir_name });
-    defer allocator.free(config_dir);
+    errdefer allocator.free(config_dir);
 
     const java_opts_path = try std.fmt.allocPrint(allocator, "{s}/desktop-java-opts.conf", .{config_dir});
     errdefer allocator.free(java_opts_path);
     const app_args_path = try std.fmt.allocPrint(allocator, "{s}/desktop-app-args.conf", .{config_dir});
 
     return UserConfigPaths{
+        .config_dir = config_dir,
         .java_opts_path = java_opts_path,
         .app_args_path = app_args_path,
     };
@@ -390,9 +392,9 @@ fn resolveUserConfigPaths(allocator: mem.Allocator, env_map: *process.Environ.Ma
 fn resolveMacOSJavaHome(io: Io, allocator: mem.Allocator) !?[]const u8 {
     if (native_os != .macos) return null;
 
-    const java_version = "21";
+    const java_version_requirement = "21+";
     const result = process.run(allocator, io, .{
-        .argv = &.{ "/usr/libexec/java_home", "-v", java_version },
+        .argv = &.{ "/usr/libexec/java_home", "-v", java_version_requirement },
     }) catch |err| switch (err) {
         error.FileNotFound => return null,
         else => |e| return e,
@@ -435,6 +437,138 @@ fn resolveJavaHomeCommand(io: Io, allocator: mem.Allocator, java_home: []const u
     }
 
     return null;
+}
+
+/// $java --version
+/// openjdk 21.0.12 2026-07-21
+/// OpenJDK Runtime Environment (build 21.0.12+8)
+/// OpenJDK 64-Bit Server VM (build 21.0.12+8, mixed mode, sharing)
+fn parseJavaMajorVersion(output: []const u8) ?u32 {
+    const marker = "version \"";
+    const indexOfMarker = mem.indexOf(u8, output, marker) orelse return null;
+    const start = indexOfMarker + marker.len;
+    var end = start;
+    while (end < output.len and std.ascii.isDigit(output[end])) {
+        end += 1;
+    }
+    if (end == start) return null;
+    return std.fmt.parseInt(u32, output[start..end], 10) catch null;
+}
+
+fn probeJavaVersionLine(io: Io, allocator: mem.Allocator, java_command: []const u8) !?[]const u8 {
+    // `javaw.exe -version` opens a message box instead of printing; probe with
+    // the sibling `java.exe`.
+    const probe_command = if (native_os == .windows and mem.endsWith(u8, java_command, "javaw.exe"))
+        try std.fmt.allocPrint(allocator, "{s}java.exe", .{java_command[0 .. java_command.len - "javaw.exe".len]})
+    else
+        java_command;
+
+    const result = process.run(allocator, io, .{
+        .argv = &.{ probe_command, "-version" },
+    }) catch return null;
+    defer allocator.free(result.stdout);
+
+    switch (result.term) {
+        .exited => |code| {
+            if (code != 0) {
+                allocator.free(result.stderr);
+                return null;
+            }
+        },
+        else => {
+            allocator.free(result.stderr);
+            return null;
+        },
+    }
+
+    // `java -version` traditionally prints to stderr.
+    return result.stderr;
+}
+
+fn readSmallFile(io: Io, path: []const u8, buf: []u8) ?[]const u8 {
+    const file = Io.Dir.openFileAbsolute(io, path, .{}) catch return null;
+    defer file.close(io);
+    const len = file.readPositionalAll(io, buf, 0) catch return null;
+    return buf[0..len];
+}
+
+fn writeSmallFile(io: Io, path: []const u8, content: []const u8) !void {
+    const file = try Io.Dir.createFileAbsolute(io, path, .{ .truncate = true });
+    defer file.close(io);
+    var buf: [512]u8 = undefined;
+    var writer = file.writer(io, &buf);
+    try writer.interface.writeAll(content);
+    try writer.interface.flush();
+}
+
+/// Appends JDK 25+ AOT cache options (JEP 514): reuses a cache trained on a
+/// previous run when it matches the current JVM and jar, otherwise trains one.
+/// Skipped when HUSI_DISABLE_AOT_CACHE is set or the user configured any
+/// -XX:AOT option themselves. Never fails the launch.
+fn appendAotCacheOptions(
+    io: Io,
+    allocator: mem.Allocator,
+    env_map: *process.Environ.Map,
+    java_command: []const u8,
+    jar_path: []const u8,
+    config_dir: []const u8,
+    java_opts: *ArrayList([]u8),
+) !void {
+    if (env_map.get("HUSI_DISABLE_AOT_CACHE") != null) return;
+
+    for (java_opts.items) |opt| {
+        if (mem.startsWith(u8, opt, "-XX:AOT")) return;
+    }
+    for ([_][]const u8{ "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS" }) |env_name| {
+        if (env_map.get(env_name)) |value| {
+            if (mem.indexOf(u8, value, "-XX:AOT") != null) return;
+        }
+    }
+
+    const version_line_raw = (try probeJavaVersionLine(io, allocator, java_command)) orelse return;
+    defer allocator.free(version_line_raw);
+    const major = parseJavaMajorVersion(version_line_raw) orelse return;
+    if (major < 25) return;
+
+    const jar_file = Io.Dir.openFileAbsolute(io, jar_path, .{}) catch return;
+    const jar_stat = stat_block: {
+        defer jar_file.close(io);
+        break :stat_block jar_file.stat(io) catch return;
+    };
+
+    // The cache is only valid for the exact JVM build and jar it was trained
+    // on; a mismatched key triggers retraining.
+    const version_line = mem.trim(u8, version_line_raw, &std.ascii.whitespace);
+    const key = try std.fmt.allocPrint(allocator, "{s}|{d}|{d}", .{
+        version_line,
+        jar_stat.size,
+        jar_stat.mtime.nanoseconds,
+    });
+
+    const aot_dir = try std.fmt.allocPrint(allocator, "{s}/aot", .{config_dir});
+    defer allocator.free(aot_dir);
+    const cache_path = try std.fmt.allocPrint(allocator, "{s}/{s}.aot", .{ aot_dir, husi_package_name });
+    const key_path = try std.fmt.allocPrint(allocator, "{s}.key", .{cache_path});
+    defer allocator.free(key_path);
+
+    var key_buf: [1024]u8 = undefined;
+    const stored_key = readSmallFile(io, key_path, &key_buf);
+    if (stored_key != null and mem.eql(u8, stored_key.?, key) and fileExists(io, cache_path)) {
+        try java_opts.append(allocator, try std.fmt.allocPrint(allocator, "-XX:AOTCache={s}", .{cache_path}));
+        return;
+    }
+
+    // On a fresh install the config dir may not exist yet either.
+    for ([_][]const u8{ config_dir, aot_dir }) |dir| {
+        Io.Dir.createDirAbsolute(io, dir, .default_dir) catch |err| switch (err) {
+            error.PathAlreadyExists => {},
+            else => return,
+        };
+    }
+    Io.Dir.deleteFileAbsolute(io, cache_path) catch {};
+    writeSmallFile(io, key_path, key) catch return;
+    // This run doubles as the training run; the JVM writes the cache on exit.
+    try java_opts.append(allocator, try std.fmt.allocPrint(allocator, "-XX:AOTCacheOutput={s}", .{cache_path}));
 }
 
 fn selectJavaCommand(io: Io, allocator: mem.Allocator, env_map: *process.Environ.Map) ![]const u8 {
@@ -502,6 +636,10 @@ pub fn main(init: std.process.Init) !u8 {
     const java_command = selectJavaCommand(io, allocator, init.environ_map) catch |err| {
         std.debug.print("select_java_command failed: {}\n", .{err});
         return 1;
+    };
+
+    appendAotCacheOptions(io, allocator, init.environ_map, java_command, runtime.jar_path, user_config.config_dir, &java_opts) catch |err| {
+        std.debug.print("WARN: append_aot_cache_options failed: {}\n", .{err});
     };
 
     // java [java_opts...] -jar <jar> [app_args...] [passthrough args...]
@@ -790,9 +928,28 @@ test "resolveUserConfigPaths: produces expected paths" {
     try env_map.put("XDG_CONFIG_HOME", "/tmp/testconfig");
 
     const paths = try resolveUserConfigPaths(allocator, &env_map);
+    defer allocator.free(paths.config_dir);
     defer allocator.free(paths.java_opts_path);
     defer allocator.free(paths.app_args_path);
 
+    try testing.expectEqualStrings("/tmp/testconfig/husi", paths.config_dir);
     try testing.expectEqualStrings("/tmp/testconfig/husi/desktop-java-opts.conf", paths.java_opts_path);
     try testing.expectEqualStrings("/tmp/testconfig/husi/desktop-app-args.conf", paths.app_args_path);
+}
+
+test "parseJavaMajorVersion: modern openjdk output" {
+    try testing.expectEqual(@as(?u32, 25), parseJavaMajorVersion("openjdk version \"25.0.4\" 2026-07-21\nOpenJDK Runtime Environment"));
+}
+
+test "parseJavaMajorVersion: single-component version" {
+    try testing.expectEqual(@as(?u32, 21), parseJavaMajorVersion("openjdk version \"21\" 2023-09-19"));
+}
+
+test "parseJavaMajorVersion: legacy 1.8 style" {
+    try testing.expectEqual(@as(?u32, 1), parseJavaMajorVersion("java version \"1.8.0_392\""));
+}
+
+test "parseJavaMajorVersion: garbage returns null" {
+    try testing.expectEqual(@as(?u32, null), parseJavaMajorVersion("command not found"));
+    try testing.expectEqual(@as(?u32, null), parseJavaMajorVersion("version \"\""));
 }
