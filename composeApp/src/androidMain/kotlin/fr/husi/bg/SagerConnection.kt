@@ -5,19 +5,28 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.os.RemoteException
 import fr.husi.Action
 import fr.husi.Key
-import fr.husi.aidl.IServiceControl
-import fr.husi.aidl.IServiceControlStub
-import fr.husi.aidl.IServiceObserverStub
-import fr.husi.aidl.SpeedDisplayData
 import fr.husi.database.DataStore
-import fr.husi.aidl.ServiceStatus as RemoteServiceStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
 
+/**
+ * Lifecycle-only binder to :bg. State / speed / alerts arrive over gRPC via
+ * [ServiceEventMirror]; this connection exists so BIND_AUTO_CREATE starts and
+ * keeps the background process alive. QuickToggle observes
+ * [BackendState.connected] through the same connection.
+ */
 class SagerConnection(
     private var connectionId: Int,
     private var listenForDeath: Boolean = false,
+    private val mirror: ServiceEventMirror = GlobalContext.get().get(),
 ) : ServiceConnection, IBinder.DeathRecipient {
 
     companion object {
@@ -38,20 +47,8 @@ class SagerConnection(
     private var appContext: Context? = null
     private var reconnectAttempted = false
     private var binder: IBinder? = null
-    private var service: IServiceControl? = null
-    private val observer = object : IServiceObserverStub() {
-        override fun onState(status: RemoteServiceStatus) {
-            handleStatus(status)
-        }
-
-        override fun onSpeed(speed: SpeedDisplayData) {
-            updateSpeed(speed)
-        }
-
-        override fun onAlert(type: Int, message: String) {
-            BackendState.emitAlert(type, message)
-        }
-    }
+    private var scope: CoroutineScope? = null
+    private var mirrorJob: Job? = null
 
     fun updateConnectionId(id: Int) {
         connectionId = id
@@ -60,30 +57,26 @@ class SagerConnection(
     override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
         this.binder = binder
         if (listenForDeath) binder.linkToDeath(this, 0)
-        service = IServiceControlStub.asInterface(binder)
-        try {
-            service?.registerObserver(observer)
-            service?.getStatus()?.let { handleStatus(it) }
-        } catch (_: RemoteException) {
-        }
+        cancelMirror()
+        val connectionScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        scope = connectionScope
+        mirrorJob = connectionScope.launch { mirror.events.collect() }
         BackendState.setConnected(true)
         reconnectAttempted = false
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         BackendState.setConnected(false)
-        unregisterObserver()
+        cancelMirror()
         binder = null
-        service = null
         resetStatus()
         tryReconnect()
     }
 
     override fun binderDied() {
         BackendState.setConnected(false)
-        unregisterObserver()
+        cancelMirror()
         binder = null
-        service = null
         resetStatus()
         tryReconnect()
     }
@@ -108,9 +101,8 @@ class SagerConnection(
             binder?.unlinkToDeath(this, 0)
         } catch (_: NoSuchElementException) {
         }
-        unregisterObserver()
+        cancelMirror()
         binder = null
-        service = null
         BackendState.setConnected(false)
         resetStatus()
     }
@@ -120,27 +112,11 @@ class SagerConnection(
         connect(context)
     }
 
-    fun updateSpeed(speed: SpeedDisplayData?) {
-        BackendState.updateSpeed(speed?.toStats())
-    }
-
-    fun updateState(state: ServiceState, profileName: String? = null) {
-        DataStore.serviceState = state
-        BackendState.updateState(state, profileName)
-    }
-
-    private fun handleStatus(status: RemoteServiceStatus) {
-        val state = ServiceState.entries.getOrNull(status.state) ?: ServiceState.Idle
-        DataStore.serviceState = state
-        BackendState.updateState(state, status.profileName)
-    }
-
-    private fun unregisterObserver() {
-        val service = service ?: return
-        try {
-            service.unregisterObserver(observer)
-        } catch (_: RemoteException) {
-        }
+    private fun cancelMirror() {
+        mirrorJob?.cancel()
+        mirrorJob = null
+        scope?.cancel()
+        scope = null
     }
 
     private fun resetStatus() {
@@ -156,12 +132,3 @@ class SagerConnection(
         appContext.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 }
-
-private fun SpeedDisplayData.toStats() = SpeedStats(
-    txRateProxy = txRateProxy,
-    rxRateProxy = rxRateProxy,
-    txRateDirect = txRateDirect,
-    rxRateDirect = rxRateDirect,
-    txTotal = txTotal,
-    rxTotal = rxTotal,
-)

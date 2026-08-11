@@ -136,12 +136,6 @@ class AndroidPlatformInterface : PlatformInterface {
 
     override fun localDNSTransport(): LocalDNSTransport = LocalResolver
 
-    override fun onGroupSelectedChange(group: String, old: String, now: String) {
-        ServiceRegistry.baseService?.data?.proxy?.trafficLooper?.updateSelectedTag(group, old, now)
-    }
-
-    override fun onTask(taskId: String) = Unit
-
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,
         private val size: Int,

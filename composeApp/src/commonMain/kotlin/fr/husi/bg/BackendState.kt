@@ -37,11 +37,6 @@ data class ServiceStatus(
     val speed: SpeedStats? = null,
 )
 
-data class Alert(
-    val type: Int,
-    val message: String,
-)
-
 object BackendState {
     val status: StateFlow<ServiceStatus>
         field = MutableStateFlow(ServiceStatus())
@@ -49,8 +44,8 @@ object BackendState {
     val connected: StateFlow<Boolean>
         field = MutableStateFlow(false)
 
-    val alerts: SharedFlow<Alert>
-        field = MutableSharedFlow<Alert>(
+    val alerts: SharedFlow<ServiceAlert>
+        field = MutableSharedFlow<ServiceAlert>(
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST,
         )
@@ -63,8 +58,8 @@ object BackendState {
         status.value = status.value.copy(speed = speed)
     }
 
-    fun emitAlert(type: Int, message: String) {
-        alerts.tryEmit(Alert(type, message))
+    fun emitAlert(alert: ServiceAlert) {
+        alerts.tryEmit(alert)
     }
 
     fun setConnected(value: Boolean) {

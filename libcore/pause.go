@@ -1,9 +1,13 @@
 package libcore
 
 func (b *boxInstance) Pause() {
-	b.pauseManager.DevicePause()
+	if b.pauseManager != nil {
+		b.pauseManager.DevicePause()
+	}
 }
 
 func (b *boxInstance) Wake() {
-	b.pauseManager.DeviceWake()
+	if b.pauseManager != nil {
+		b.pauseManager.DeviceWake()
+	}
 }

@@ -20,9 +20,7 @@ STARTUP_WM_CLASS_PLACEHOLDER="__HUSI_STARTUP_WM_CLASS__"
 APP_URL_PLACEHOLDER="__HUSI_APP_URL__"
 MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
 URL_SCHEME_MIME_TYPES_PLACEHOLDER="__HUSI_URL_SCHEME_MIME_TYPES__"
-LAUNCHER_PATH_PLACEHOLDER="__HUSI_LAUNCHER_PATH__"
-LAUNCHER_CAPS_PLACEHOLDER="__HUSI_LAUNCHER_CAPS__"
-LAUNCHER_SETCAPS="cap_setpcap,cap_net_admin,cap_net_raw,cap_net_bind_service,cap_sys_ptrace,cap_dac_read_search=ep"
+CORE_PATH_PLACEHOLDER="__HUSI_CORE_PATH__"
 TAG_NAME=""
 TAG_EPOCH=""
 
@@ -37,16 +35,19 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--output-dir <dir>] [--pkgrel <n>]
-  $(basename "$0") --check-tools [--formats deb,rpm,pacman]
+  $(basename "$0") [--formats deb,rpm,pacman,tarball] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>] [--pkgrel <n>]
+  $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball]
 
 Description:
-  Build Linux native packages for system Java runtime from desktop uber jar via nfpm.
+  Build Linux native packages for system Java runtime from desktop uber jar via nfpm,
+  plus a relocatable tarball of the app subtree for portable / in-app daemon install.
 
 Defaults:
   --formats    deb,rpm,pacman
   --input-jar  newest matching jar under $JAR_DIR_DEFAULT
   --launcher-bin  $ROOT_DIR/launcher/zig-out/bin/launcher-linux-<x86_64|aarch64>
+  --core-bin   $ROOT_DIR/libcore/build/linux_<amd64|arm64>/husi-core
+  --core-lib   $ROOT_DIR/libcore/build/linux_<amd64|arm64>/libhusicore.so
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
 EOF
@@ -102,7 +103,9 @@ source_desktop_metadata() {
         exit 1
     fi
 
-    # shellcheck disable=SC1090
+    # Named so that shellcheck can follow it; the path is only dynamic because
+    # it is anchored at the repository root.
+    # shellcheck source=../desktop/package-metadata.sh
     source "$DESKTOP_METADATA_FILE"
 }
 
@@ -247,13 +250,13 @@ resolve_formats() {
     for item in "${items[@]}"; do
         item="$(echo "$item" | tr '[:upper:]' '[:lower:]' | xargs)"
         case "$item" in
-            deb|rpm|pacman)
+            deb|rpm|pacman|tarball)
                 ENABLED_FORMATS["$item"]=1
                 ;;
             "")
                 ;;
             *)
-                error "Unknown format '$item'. Use deb,rpm,pacman."
+                error "Unknown format '$item'. Use deb,rpm,pacman,tarball."
                 exit 1
                 ;;
         esac
@@ -266,9 +269,17 @@ resolve_formats() {
 }
 
 require_tools_for_formats() {
-    local -a tools=(awk sed find cp mkdir mktemp date xargs git nfpm)
+    local -a tools=(awk sed find cp mkdir mktemp date xargs git)
     local -a missing=()
     local tool
+
+    if [[ -n "${ENABLED_FORMATS[deb]:-}" || -n "${ENABLED_FORMATS[rpm]:-}" || -n "${ENABLED_FORMATS[pacman]:-}" ]]; then
+        tools+=(nfpm)
+    fi
+    if [[ -n "${ENABLED_FORMATS[tarball]:-}" ]]; then
+        tools+=(tar zstd)
+    fi
+
     for tool in "${tools[@]}"; do
         if ! command -v "$tool" >/dev/null 2>&1; then
             missing+=("$tool")
@@ -333,6 +344,52 @@ resolve_launcher_bin() {
     exit 1
 }
 
+resolve_core_bin() {
+    local requested="$1"
+    local default_path="$ROOT_DIR/libcore/build/${TARGET_PLATFORM}_${TARGET_ARCH}/husi-core"
+
+    if [[ -n "$requested" ]]; then
+        if [[ ! -f "$requested" ]]; then
+            error "Core host binary not found: $requested"
+            exit 1
+        fi
+        INPUT_CORE_BIN="$requested"
+        return
+    fi
+
+    if [[ -f "$default_path" ]]; then
+        INPUT_CORE_BIN="$default_path"
+        return
+    fi
+
+    error "Core host binary not found: $default_path"
+    error "Build one first: make core_desktop DESKTOP_TARGETS=${TARGET_PLATFORM}/${TARGET_ARCH}"
+    exit 1
+}
+
+resolve_core_lib() {
+    local requested="$1"
+    local default_path="$ROOT_DIR/libcore/build/${TARGET_PLATFORM}_${TARGET_ARCH}/libhusicore.so"
+
+    if [[ -n "$requested" ]]; then
+        if [[ ! -f "$requested" ]]; then
+            error "Core native library not found: $requested"
+            exit 1
+        fi
+        INPUT_CORE_LIB="$requested"
+        return
+    fi
+
+    if [[ -f "$default_path" ]]; then
+        INPUT_CORE_LIB="$default_path"
+        return
+    fi
+
+    error "Core native library not found: $default_path"
+    error "Build one first: make libcore_desktop DESKTOP_TARGETS=${TARGET_PLATFORM}/${TARGET_ARCH}"
+    exit 1
+}
+
 prepare_rootfs() {
     local rootfs="$1"
     local app_root="$rootfs/usr/lib/$PACKAGE_NAME"
@@ -341,19 +398,27 @@ prepare_rootfs() {
     local java_opts_template="$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf"
     local app_args_template="$ROOT_DIR/release/linux/desktop/desktop-app-args.conf"
     local desktop_entry_template="$ROOT_DIR/release/linux/desktop/husi.desktop"
+    local daemon_unit_template="$ROOT_DIR/release/linux/desktop/husi-daemon.service"
     local main_launcher="$bin_dir/$PACKAGE_NAME"
+    local core_path="/usr/lib/$PACKAGE_NAME/bin/husi-core"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
+    local daemon_unit_path="$rootfs/etc/systemd/system/husi-daemon.service"
     local startup_wm_class="${PACKAGE_NAME//./-}-DesktopMainKt"
 
-    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" ]]; then
+    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$daemon_unit_template" ]]; then
         error "Missing launcher templates under release/linux/desktop"
         exit 1
     fi
 
-    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps"
+    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system"
     cp "$INPUT_JAR" "$app_dir/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$main_launcher"
     chmod 755 "$main_launcher"
+    cp "$INPUT_CORE_BIN" "$bin_dir/husi-core"
+    chmod 755 "$bin_dir/husi-core"
+    # Sidecar anja library next to husi-core (N7); UI sets anja.natives.dir to this dir.
+    cp "$INPUT_CORE_LIB" "$bin_dir/libhusicore.so"
+    chmod 755 "$bin_dir/libhusicore.so"
 
     cp "$java_opts_template" "$bin_dir/desktop-java-opts.conf.template"
     cp "$app_args_template" "$bin_dir/desktop-app-args.conf.template"
@@ -371,6 +436,11 @@ prepare_rootfs() {
         "$URL_SCHEME_MIME_TYPES_PLACEHOLDER" "$URL_SCHEME_MIME_TYPES" \
         "$STARTUP_WM_CLASS_PLACEHOLDER" "$startup_wm_class"
 
+    render_template \
+        "$daemon_unit_template" \
+        "$daemon_unit_path" \
+        "$CORE_PATH_PLACEHOLDER" "$core_path"
+
     local icon_source="$ROOT_DIR/fastlane/metadata/android/en-US/images/icon.png"
     if [[ -f "$icon_source" ]]; then
         cp "$icon_source" "$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
@@ -379,40 +449,18 @@ prepare_rootfs() {
 
 prepare_script_templates() {
     local work_dir="$1"
-    local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
 
-    render_template \
-        "$ROOT_DIR/release/linux/desktop/postinstall.sh" \
-        "$work_dir/deb-postinstall.sh" \
-        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
-        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
-
-    render_template \
-        "$ROOT_DIR/release/linux/desktop/postremove.sh" \
-        "$work_dir/deb-postremove.sh" \
-        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path"
-
-    render_template \
-        "$ROOT_DIR/release/linux/desktop/posttrans.sh" \
-        "$work_dir/rpm-posttrans.sh" \
-        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
-        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
-
-    render_template \
-        "$ROOT_DIR/release/linux/desktop/postinstall.arch.sh" \
-        "$work_dir/arch-postinstall.sh" \
-        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
-        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
-
-    render_template \
-        "$ROOT_DIR/release/linux/desktop/postupgrade.arch.sh" \
-        "$work_dir/arch-postupgrade.sh" \
-        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
-        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
+    # Scripts manage the fixed unit name husi-daemon.service — no placeholders.
+    # One postremove.sh for deb/rpm/pacman; argument handling is packager-aware.
+    cp "$ROOT_DIR/release/linux/desktop/postinstall.sh" "$work_dir/deb-postinstall.sh"
+    cp "$ROOT_DIR/release/linux/desktop/postremove.sh" "$work_dir/postremove.sh"
+    cp "$ROOT_DIR/release/linux/desktop/posttrans.sh" "$work_dir/rpm-posttrans.sh"
+    cp "$ROOT_DIR/release/linux/desktop/postinstall.arch.sh" "$work_dir/arch-postinstall.sh"
+    cp "$ROOT_DIR/release/linux/desktop/postupgrade.arch.sh" "$work_dir/arch-postupgrade.sh"
 
     chmod 755 \
         "$work_dir/deb-postinstall.sh" \
-        "$work_dir/deb-postremove.sh" \
+        "$work_dir/postremove.sh" \
         "$work_dir/rpm-posttrans.sh" \
         "$work_dir/arch-postinstall.sh" \
         "$work_dir/arch-postupgrade.sh"
@@ -464,6 +512,7 @@ EOF
     write_content_entry "$config_file" "$rootfs/usr/lib/$PACKAGE_NAME" "/usr/lib/$PACKAGE_NAME" "tree"
     write_content_entry "$config_file" "../lib/$PACKAGE_NAME/bin/$PACKAGE_NAME" "/usr/bin/$PACKAGE_NAME" "symlink"
     write_content_entry "$config_file" "$rootfs/usr/share/applications/$PACKAGE_NAME.desktop" "/usr/share/applications/$PACKAGE_NAME.desktop" ""
+    write_content_entry "$config_file" "$rootfs/etc/systemd/system/husi-daemon.service" "/etc/systemd/system/husi-daemon.service" ""
 
     local icon_path="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     if [[ -f "$icon_path" ]]; then
@@ -472,19 +521,28 @@ EOF
 
 }
 
+# Weak dependencies, deliberately not hard ones: the package installs and enables
+# husi-daemon.service itself, so polkit is only needed by the Settings "install
+# daemon" button, and xdg-utils only by the links the UI opens. Neither belongs on
+# a headless system that is happy with the unit the package already dropped in.
 append_deb_nfpm_config() {
     local config_file="$1"
     local work_dir="$2"
 
     cat >>"$config_file" <<EOF
 depends:
-  - java21-runtime | openjdk-21-jre | openjdk-21-jre-headless
-  - libcap2-bin
+  # A headless JRE cannot open the Compose window, so the real headful package
+  # leads and the virtual one only trails it for third-party JDKs. Listing
+  # java21-runtime first would let apt satisfy it with a headless provider.
+  - openjdk-21-jre | java21-runtime
   - ca-certificates
   - nftables
+recommends:
+  - pkexec | policykit-1
+  - xdg-utils
 scripts:
   postinstall: $work_dir/deb-postinstall.sh
-  postremove: $work_dir/deb-postremove.sh
+  postremove: $work_dir/postremove.sh
 deb:
   arch: $DEB_ARCH
 EOF
@@ -497,9 +555,13 @@ append_rpm_nfpm_config() {
     cat >>"$config_file" <<EOF
 depends:
   - java >= 21
-  - libcap
   - ca-certificates
   - nftables
+recommends:
+  - /usr/bin/pkexec
+  - xdg-utils
+scripts:
+  postremove: $work_dir/postremove.sh
 rpm:
   arch: $RPM_ARCH
   summary: $APP_DESCRIPTION
@@ -509,6 +571,9 @@ rpm:
 EOF
 }
 
+# No weak dependencies here: nfpm's arch packager writes only depend, provides,
+# conflict and replaces, so a `recommends` block would be silently dropped rather
+# than become optdepends. polkit and xdg-utils come with every Arch desktop anyway.
 append_pacman_nfpm_config() {
     local config_file="$1"
     local work_dir="$2"
@@ -516,11 +581,11 @@ append_pacman_nfpm_config() {
     cat >>"$config_file" <<EOF
 depends:
   - java-runtime>=21
-  - libcap
   - ca-certificates
   - nftables
 scripts:
   postinstall: $work_dir/arch-postinstall.sh
+  postremove: $work_dir/postremove.sh
 archlinux:
   arch: $PACMAN_ARCH
   pkgbase: $PACKAGE_NAME
@@ -550,6 +615,9 @@ output_filename() {
             ;;
         pacman)
             echo "${PACKAGE_NAME}-${package_version}-${PKGREL}-${PACMAN_ARCH}.pkg.tar.zst"
+            ;;
+        tarball)
+            echo "${PACKAGE_NAME}-${VERSION_NAME}-linux-${TARGET_ARCH}.tar.zst"
             ;;
         *)
             error "Unknown output format '$format'."
@@ -600,9 +668,37 @@ build_with_nfpm() {
             ;;
     esac
 
-    local output_path="$OUTPUT_DIR/$(output_filename "$format" "$package_version")"
+    # Assigned separately so that set -e still sees output_filename's status:
+    # its `exit 1` only leaves the command substitution, and `local` would
+    # swallow the failure and hand nfpm a half-formed path.
+    local output_path
+    output_path="$OUTPUT_DIR/$(output_filename "$format" "$package_version")"
     nfpm package --config "$config_file" --packager "$packager" --target "$output_path"
     log "Built $format: $output_path"
+}
+
+build_tarball() {
+    local rootfs="$1"
+    local work_dir="$2"
+    local app_root="$rootfs/usr/lib/$PACKAGE_NAME"
+    local archive_name="${PACKAGE_NAME}-${VERSION_NAME}"
+    local staging_parent="$work_dir/tarball"
+    local staging="$staging_parent/$archive_name"
+    local output_path
+    output_path="$OUTPUT_DIR/$(output_filename "tarball" "$VERSION_NAME")"
+
+    if [[ ! -d "$app_root" ]]; then
+        error "Relocatable app subtree not found: $app_root"
+        exit 1
+    fi
+
+    mkdir -p "$staging"
+    cp -a "$app_root/." "$staging/"
+    find "$staging" -exec touch -d "@$TAG_EPOCH" {} +
+
+    rm -f "$output_path"
+    tar -C "$staging_parent" -cf - "$archive_name" | zstd -q -o "$output_path"
+    log "Built tarball: $output_path"
 }
 
 FORMATS="deb,rpm,pacman"
@@ -611,6 +707,8 @@ TARGET_PLATFORM=""
 TARGET_ARCH=""
 INPUT_JAR=""
 INPUT_LAUNCHER_BIN=""
+INPUT_CORE_BIN=""
+INPUT_CORE_LIB=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 PKGREL="1"
 CHECK_TOOLS=0
@@ -635,6 +733,16 @@ while [[ $# -gt 0 ]]; do
         --launcher-bin)
             require_arg "$1" "${2:-}"
             INPUT_LAUNCHER_BIN="$2"
+            shift 2
+            ;;
+        --core-bin)
+            require_arg "$1" "${2:-}"
+            INPUT_CORE_BIN="$2"
+            shift 2
+            ;;
+        --core-lib)
+            require_arg "$1" "${2:-}"
+            INPUT_CORE_LIB="$2"
             shift 2
             ;;
         -o|--output-dir)
@@ -678,6 +786,8 @@ fi
 
 resolve_input_jar "$INPUT_JAR"
 resolve_launcher_bin "$INPUT_LAUNCHER_BIN"
+resolve_core_bin "$INPUT_CORE_BIN"
+resolve_core_lib "$INPUT_CORE_LIB"
 mkdir -p "$OUTPUT_DIR"
 
 work_dir="$(mktemp -d)"
@@ -702,6 +812,10 @@ fi
 
 if [[ -n "${ENABLED_FORMATS[pacman]:-}" ]]; then
     build_with_nfpm "$rootfs" "$work_dir" "pacman"
+fi
+
+if [[ -n "${ENABLED_FORMATS[tarball]:-}" ]]; then
+    build_tarball "$rootfs" "$work_dir"
 fi
 
 log "Done. Output directory: $OUTPUT_DIR"

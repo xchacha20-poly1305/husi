@@ -1,6 +1,7 @@
 package fr.husi.ui.openconnect
 
 import fr.husi.bg.BackendState
+import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
@@ -8,14 +9,16 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openconnect.OpenConnectFormEntry
 import fr.husi.ktx.Logs
-import fr.husi.libcore.Libcore
-import fr.husi.libcore.OpenConnectAuthChallenge as LibcoreAuthChallenge
-import fr.husi.libcore.OpenConnectAuthForm as LibcoreAuthForm
-import fr.husi.libcore.OpenConnectBrowserRequest as LibcoreBrowserRequest
-import fr.husi.libcore.OpenConnectEndpointStatus as LibcoreEndpointStatus
-import fr.husi.libcore.OpenConnectTunnelInfo as LibcoreTunnelInfo
-import fr.husi.libcore.StringIterator
-import fr.husi.utils.LibcoreClientManager
+import fr.husi.proto.daemon.OpenConnectAuthChallenge
+import fr.husi.proto.daemon.OpenConnectAuthForm
+import fr.husi.proto.daemon.OpenConnectBrowserRequest
+import fr.husi.proto.daemon.OpenConnectEndpointStatus
+import fr.husi.proto.daemon.OpenConnectTunnelInfo
+import fr.husi.proto.daemon.openConnectAuthFormResponse
+import fr.husi.proto.daemon.openConnectAuthResponseSubmission
+import fr.husi.proto.daemon.openConnectBrowserCookie
+import fr.husi.proto.daemon.openConnectBrowserHeader
+import fr.husi.proto.daemon.openConnectBrowserResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.core.context.GlobalContext
 
 const val OPENCONNECT_STATE_CONNECTING = "connecting"
 const val OPENCONNECT_STATE_AUTH_PENDING = "auth-pending"
@@ -155,9 +159,10 @@ data class PendingOpenConnectAuth(
  * (the challenge stays pending in the core and remains reachable from the
  * status page) while [cancelAuthChallenge] actually aborts authentication.
  */
-class OpenConnectAuthController {
+class OpenConnectAuthController(
+    private val coreClient: CoreClient = GlobalContext.get().get(),
+) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val clientManager = LibcoreClientManager()
     private var subscriptionJob: Job? = null
 
     val endpoints: StateFlow<List<OpenConnectEndpointState>>
@@ -189,22 +194,24 @@ class OpenConnectAuthController {
 
     private fun start() {
         if (subscriptionJob != null) return
-        subscriptionJob = clientManager.subscribeOpenConnectStatus(scope) { iterator ->
-            val statuses = buildList {
-                while (iterator.hasNext()) {
-                    add(iterator.next()?.toState() ?: continue)
+        subscriptionJob = scope.launch {
+            try {
+                coreClient.subscribeOpenConnectStatus().collect { update ->
+                    endpoints.value = update.endpointsList.map { it.toState() }
                 }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logs.w("subscribe openconnect status", e)
             }
-            endpoints.value = statuses
         }
     }
 
-    private suspend fun stop() {
+    private fun stop() {
         subscriptionJob?.cancel()
         subscriptionJob = null
         endpoints.value = emptyList()
         dismissedChallenges.value = emptySet()
-        clientManager.close()
     }
 
     /** Hide the dialog for this challenge without cancelling authentication. */
@@ -220,32 +227,40 @@ class OpenConnectAuthController {
         browserResult: OpenConnectBrowserResultState?,
     ): String? = withContext(Dispatchers.IO) {
         try {
-            clientManager.withClient { client ->
-                val libcoreFormValues = formValues?.let { values ->
-                    Libcore.newOpenConnectFormValues().also { result ->
-                        for ((key, value) in values) {
-                            result.add(key, value)
-                        }
+            val submission = openConnectAuthResponseSubmission {
+                this.endpointTag = endpointTag
+                challengeID = challenge.id
+                if (formValues != null) {
+                    form = openConnectAuthFormResponse {
+                        values.putAll(formValues)
                     }
-                }
-                val libcoreBrowserResult = browserResult?.let { result ->
-                    Libcore.newOpenConnectBrowserResult(result.finalUrl).also { browser ->
-                        for ((name, value) in result.cookies) {
-                            if (value.isNotEmpty()) browser.addCookie(name, value)
+                } else if (browserResult != null) {
+                    browser = openConnectBrowserResult {
+                        finalURL = browserResult.finalUrl
+                        for ((name, value) in browserResult.cookies) {
+                            if (value.isNotEmpty()) {
+                                cookies += openConnectBrowserCookie {
+                                    this.name = name
+                                    this.value = value
+                                }
+                            }
                         }
-                        for ((name, value) in result.headers) {
-                            for (headerValue in value.lineSequence()) {
-                                if (headerValue.isNotEmpty()) browser.addHeader(name, headerValue)
+                        for ((name, value) in browserResult.headers) {
+                            val headerValues = value.lineSequence()
+                                .map { it.trim() }
+                                .filter { it.isNotEmpty() }
+                                .toList()
+                            if (headerValues.isNotEmpty()) {
+                                headers += openConnectBrowserHeader {
+                                    this.name = name
+                                    values.addAll(headerValues)
+                                }
                             }
                         }
                     }
                 }
-                client.completeOpenConnectAuthChallenge(
-                    endpointTag,
-                    challenge.id,
-                    Libcore.newOpenConnectAuthResponse(libcoreFormValues, libcoreBrowserResult),
-                )
             }
+            coreClient.submitOpenConnectAuthResponse(submission)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -313,9 +328,7 @@ class OpenConnectAuthController {
     suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String): String? =
         withContext(Dispatchers.IO) {
             try {
-                clientManager.withClient { client ->
-                    client.cancelOpenConnectAuthChallenge(endpointTag, challengeId)
-                }
+                coreClient.cancelOpenConnectAuthChallenge(endpointTag, challengeId)
                 null
             } catch (e: CancellationException) {
                 throw e
@@ -328,75 +341,56 @@ class OpenConnectAuthController {
     private fun challengeKey(endpointTag: String, challengeId: String): String = "$endpointTag\n$challengeId"
 }
 
-private fun LibcoreEndpointStatus.toState() = OpenConnectEndpointState(
-    tag = tag,
+private fun OpenConnectEndpointStatus.toState() = OpenConnectEndpointState(
+    tag = endpointTag,
     state = state,
     error = error,
-    authChallenge = authChallenge?.toState(),
-    tunnelInfo = tunnelInfo?.toState(),
+    authChallenge = if (hasAuthChallenge()) authChallenge.toState() else null,
+    tunnelInfo = if (hasTunnelInfo()) tunnelInfo.toState() else null,
 )
 
-private fun LibcoreAuthChallenge.toState() = OpenConnectAuthChallengeState(
+private fun OpenConnectAuthChallenge.toState() = OpenConnectAuthChallengeState(
     id = id,
     banner = banner,
     message = message,
     error = error,
-    form = form?.toState(),
-    browser = browser?.toState(),
+    form = if (hasForm()) form.toState() else null,
+    browser = if (hasBrowser()) browser.toState() else null,
 )
 
-private fun LibcoreAuthForm.toState(): OpenConnectAuthFormState {
-    val fields = buildList {
-        val iterator = fields
-        while (iterator.hasNext()) {
-            val field = iterator.next() ?: continue
-            val options = buildList {
-                val optionIterator = field.options
-                while (optionIterator.hasNext()) {
-                    val option = optionIterator.next() ?: continue
-                    add(OpenConnectAuthChoice(value = option.value, label = option.label))
-                }
-            }
-            add(
-                OpenConnectAuthField(
-                    submissionKey = field.submissionKey,
-                    name = field.name,
-                    label = field.label,
-                    kind = field.kind,
-                    value = field.value,
-                    options = options,
-                ),
-            )
-        }
+private fun OpenConnectAuthForm.toState(): OpenConnectAuthFormState {
+    val fields = fieldsList.map { field ->
+        OpenConnectAuthField(
+            submissionKey = field.submissionKey,
+            name = field.name,
+            label = field.label,
+            kind = field.kind,
+            value = field.value,
+            options = field.optionsList.map { option ->
+                OpenConnectAuthChoice(value = option.value, label = option.label)
+            },
+        )
     }
-    return OpenConnectAuthFormState(
-        fields = fields,
-    )
+    return OpenConnectAuthFormState(fields = fields)
 }
 
-private fun LibcoreBrowserRequest.toState() = OpenConnectBrowserRequestState(
+private fun OpenConnectBrowserRequest.toState() = OpenConnectBrowserRequestState(
     url = url,
     finalUrl = finalURL,
     cacheId = cacheID,
-    cookieNames = cookieNames.toStringList(),
-    earlyCookieNames = earlyCookieNames.toStringList(),
-    headerNames = headerNames.toStringList(),
-    callbackUrlPrefixes = callbackURLPrefixes.toStringList(),
+    cookieNames = cookieNamesList,
+    earlyCookieNames = earlyCookieNamesList,
+    headerNames = headerNamesList,
+    callbackUrlPrefixes = callbackURLPrefixesList,
 )
 
-private fun LibcoreTunnelInfo.toState() = OpenConnectTunnelInfoState(
+private fun OpenConnectTunnelInfo.toState() = OpenConnectTunnelInfoState(
     server = server,
     flavor = flavor,
     transport = transport,
-    ipv4 = iPv4.toStringList(),
-    ipv6 = iPv6.toStringList(),
-    dns = dns.toStringList(),
+    ipv4 = ipv4List,
+    ipv6 = ipv6List,
+    dns = dnsList,
     mtu = mtu,
     connectedSince = connectedSince,
 )
-
-private fun StringIterator.toStringList(): List<String> = buildList {
-    while (hasNext()) {
-        add(next())
-    }
-}

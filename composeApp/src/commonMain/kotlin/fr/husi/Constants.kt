@@ -134,16 +134,6 @@ object Key {
 
 }
 
-object AlertType {
-    const val COMMON = 0
-
-    // message: none
-    const val MISSING_PLUGIN = 1
-
-    // message: plugin name
-    const val NEED_WIFI_PERMISSION = 2
-}
-
 fun logLevelString(level: Int): String = when (level) {
     0 -> "panic"
     1 -> "fatal"

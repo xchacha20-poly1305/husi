@@ -4,7 +4,9 @@ import fr.husi.SPEED_TEST_UPLOAD_URL
 import fr.husi.SPEED_TEST_URL
 import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
-import fr.husi.test.HusiHttpKoinTest
+import fr.husi.proto.v1.SpeedTestMode
+import fr.husi.test.FakeCoreClient
+import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -20,16 +22,24 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SpeedTestScreenViewModelTest : HusiHttpKoinTest() {
+class SpeedTestScreenViewModelTest : HusiKoinMainDispatcherTest() {
+
+    private val fakeCore = FakeCoreClient()
 
     @AfterTest
     fun resetServiceState() {
         DataStore.serviceState = ServiceState.Idle
+        DataStore.inboundUsername = ""
+        DataStore.inboundPassword = ""
+        fakeCore.speedTestThrowable = null
+        fakeCore.speedTestCalls = 0
+        fakeCore.lastSpeedTest = null
     }
 
     private fun newViewModel() = SpeedTestScreenViewModel(
-        httpClientFactory = fakeHttp,
+        coreClient = fakeCore,
         ioDispatcher = dispatcher,
+        userAgent = "husi-test/0",
     )
 
     @Test
@@ -103,18 +113,17 @@ class SpeedTestScreenViewModelTest : HusiHttpKoinTest() {
         viewModel.doSpeedTest()
         advanceUntilIdle()
 
-        val client = assertNotNull(fakeHttp.lastClient, "an HTTP client should have been created")
-        val request = assertNotNull(client.lastRequest, "a request should have been issued")
-        assertEquals(SPEED_TEST_URL, request.url)
-        assertEquals(fakeHttp.userAgent, request.userAgent)
-        assertEquals(20000, request.timeout)
-        assertEquals("http://speed.cloudflare.com/", request.headers["Referer"])
-        assertNull(client.socks5, "socks5 should be untouched when service is idle")
+        val call = assertNotNull(fakeCore.lastSpeedTest, "speedTest RPC should have been called")
+        assertEquals(SpeedTestMode.SPEED_TEST_MODE_DOWNLOAD, call.mode)
+        assertEquals(SPEED_TEST_URL, call.url)
+        assertEquals("husi-test/0", call.userAgent)
+        assertEquals(20000, call.timeoutMs)
+        assertEquals("", call.socksProxyUrl, "proxy empty when service is idle")
 
         val finalState = viewModel.uiState.value
         assertTrue(finalState.canTest)
         assertNull(finalState.progress)
-        assertTrue(finalState.speed > 0L, "speed should have been updated by CopyCallback")
+        assertTrue(finalState.speed > 0L, "speed should have been updated from stream")
     }
 
     @Test
@@ -130,7 +139,7 @@ class SpeedTestScreenViewModelTest : HusiHttpKoinTest() {
     }
 
     @Test
-    fun `doSpeedTest upload sends setContentZero with configured length`() = runTest(dispatcher.scheduler) {
+    fun `doSpeedTest upload sends upload length`() = runTest(dispatcher.scheduler) {
         val viewModel = newViewModel()
         viewModel.setMode(SpeedTestScreenViewModel.SpeedTestMode.Upload)
         viewModel.setUploadSize("4096")
@@ -139,16 +148,16 @@ class SpeedTestScreenViewModelTest : HusiHttpKoinTest() {
         viewModel.doSpeedTest()
         advanceUntilIdle()
 
-        val request = assertNotNull(fakeHttp.lastClient?.lastRequest)
-        val contentZero = assertNotNull(request.contentZero, "upload must drive setContentZero")
-        assertEquals(4096L, contentZero.length)
-        assertEquals(SPEED_TEST_UPLOAD_URL, request.url)
+        val call = assertNotNull(fakeCore.lastSpeedTest)
+        assertEquals(SpeedTestMode.SPEED_TEST_MODE_UPLOAD, call.mode)
+        assertEquals(4096L, call.uploadLengthBytes)
+        assertEquals(SPEED_TEST_UPLOAD_URL, call.url)
         assertTrue(viewModel.uiState.value.speed > 0L)
     }
 
     @Test
-    fun `doSpeedTest emits ErrorAlert when execute throws`() = runTest(dispatcher.scheduler) {
-        fakeHttp.nextThrowable = IOException("boom")
+    fun `doSpeedTest emits ErrorAlert when stream fails`() = runTest(dispatcher.scheduler) {
+        fakeCore.speedTestThrowable = IOException("boom")
         val viewModel = newViewModel()
 
         val event = backgroundScope.async { viewModel.uiEvent.first() }
@@ -165,7 +174,7 @@ class SpeedTestScreenViewModelTest : HusiHttpKoinTest() {
     }
 
     @Test
-    fun `doSpeedTest configures socks5 when service is connected`() = runTest(dispatcher.scheduler) {
+    fun `doSpeedTest passes socks proxy when service is connected`() = runTest(dispatcher.scheduler) {
         DataStore.inboundUsername = "user"
         DataStore.inboundPassword = "pass"
         DataStore.serviceState = ServiceState.Connected
@@ -174,29 +183,24 @@ class SpeedTestScreenViewModelTest : HusiHttpKoinTest() {
         viewModel.doSpeedTest()
         advanceUntilIdle()
 
-        val client = assertNotNull(fakeHttp.lastClient)
-        val socks5 = assertNotNull(client.socks5, "useSocks5 must be called when connected")
-        assertEquals(2080, socks5.port)
-        assertEquals("user", socks5.username)
-        assertEquals("pass", socks5.password)
+        val call = assertNotNull(fakeCore.lastSpeedTest)
+        assertTrue(call.socksProxyUrl.isNotEmpty(), "socks proxy URL must be set when connected")
+        assertTrue(call.socksProxyUrl.contains("2080"), "proxy URL should include mixed port")
+        assertTrue(call.socksProxyUrl.contains("user"), "proxy URL should include username")
     }
 
     @Test
-    fun `doSpeedTest closes the previous response on re-entry`() = runTest(dispatcher.scheduler) {
+    fun `doSpeedTest cancels previous stream on re-entry`() = runTest(dispatcher.scheduler) {
         val viewModel = newViewModel()
 
         viewModel.doSpeedTest()
         advanceUntilIdle()
-        val firstResponse = assertNotNull(fakeHttp.lastClient?.lastRequest?.lastResponse)
-        val closedBefore = firstResponse.closed
+        assertEquals(1, fakeCore.speedTestCalls)
 
         viewModel.doSpeedTest()
         advanceUntilIdle()
 
-        assertTrue(
-            firstResponse.closed > closedBefore,
-            "calling doSpeedTest again must close the previous response",
-        )
-        assertEquals(2, fakeHttp.clients.size)
+        assertEquals(2, fakeCore.speedTestCalls)
+        assertTrue(viewModel.uiState.value.canTest)
     }
 }

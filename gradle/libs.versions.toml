@@ -29,6 +29,8 @@ processPhoenix = "3.0.0"
 fileKit = "0.14.2"
 kryo = "5.6.2"
 ini4j = "0.5.4"
+protobuf = "4.35.1"
+protobufPlugin = "0.10.0"
 junitBom = "6.1.2"
 mockk = "1.14.11"
 aboutlibraries = "15.0.4"
@@ -75,6 +77,8 @@ filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "fileKit" }
 kryo = { module = "com.esotericsoftware:kryo", version.ref = "kryo" }
 ini4j = { module = "org.ini4j:ini4j", version.ref = "ini4j" }
+protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
+protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
@@ -112,3 +116,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinGradlePlugin" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }

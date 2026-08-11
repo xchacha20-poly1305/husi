@@ -3,4 +3,22 @@
     <string name="auto_connect_summary_desktop">Launch at login and connect automatically</string>
     <string name="tun_interface_name">Tun interface name</string>
     <string name="tun_interface_name_summary">Leave empty to use sing-box default</string>
+    <string name="system_daemon">System Daemon</string>
+    <string name="install_daemon">Install daemon</string>
+    <string name="install_daemon_summary">Install the privileged system service required for TUN mode</string>
+    <string name="update_daemon">Update daemon</string>
+    <string name="update_daemon_summary">Daemon API version does not match this app. Update to restore control</string>
+    <string name="daemon_installed_summary">Installed and connected</string>
+    <string name="daemon_install_success">Daemon installed</string>
+    <string name="daemon_install_cancelled">Daemon install cancelled</string>
+    <string name="daemon_install_failed">Daemon install failed: %1$s</string>
+    <string name="daemon_install_no_elevation">Cannot start %1$s to ask for administrator privileges. Install it and try again, or run \"husi-core service install\" as root.</string>
+    <string name="start_at_boot_daemon">Restore on boot</string>
+    <string name="start_at_boot_daemon_summary">If the service was running when the machine shut down, restore it after boot</string>
+    <string name="daemon_in_use">Daemon in use by %1$s</string>
+    <string name="daemon_in_use_summary">Tap to take over or stay read-only</string>
+    <string name="daemon_takeover_title">Take over the daemon?</string>
+    <string name="daemon_takeover_message">This will disconnect %1$s\'s client. They will lose control of the running service.</string>
+    <string name="daemon_takeover">Take over</string>
+    <string name="daemon_stay_read_only">Stay read-only</string>
 </resources>

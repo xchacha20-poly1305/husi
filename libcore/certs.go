@@ -158,10 +158,7 @@ func (b *rootCABundle) Append(raw []byte) error {
 
 const typeCert = "CERTIFICATE"
 
-// GetCert try to get cert from create a connection to address with serverName as SNI.
-// mode can choose TLS or QUIC.
-// proxy is a socks5 URL for dialer.
-func GetCert(address, serverName, mode, proxy string) (string, error) {
+func getCert(address, serverName, mode, proxy string) (string, error) {
 	target := M.ParseSocksaddr(address)
 	if target.Port == 0 {
 		target.Port = 443

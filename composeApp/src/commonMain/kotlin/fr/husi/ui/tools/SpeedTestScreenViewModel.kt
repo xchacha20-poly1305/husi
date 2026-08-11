@@ -6,16 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.SPEED_TEST_UPLOAD_URL
 import fr.husi.SPEED_TEST_URL
+import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
+import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.currentSocks5
 import fr.husi.ktx.readableMessage
-import fr.husi.libcore.CopyCallback
-import fr.husi.libcore.HTTPRequest
-import fr.husi.libcore.HTTPResponse
-import fr.husi.libcore.HttpClientFactory
-import fr.husi.libcore.Libcore
-import fr.husi.libcore.LibcoreHttpClientFactory
+import fr.husi.proto.v1.SpeedTestMode as ProtoSpeedTestMode
 import fr.husi.resources.Res
 import fr.husi.resources.can_not_be_empty
 import fr.husi.resources.done
@@ -28,8 +26,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
 
 @Immutable
 internal data class SpeedTestScreenUiState(
@@ -54,8 +54,9 @@ internal sealed interface SpeedTestScreenUiEvent {
 
 @Stable
 internal class SpeedTestScreenViewModel(
-    private val httpClientFactory: HttpClientFactory = LibcoreHttpClientFactory,
+    private val coreClient: CoreClient = GlobalContext.get().get(),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val userAgent: String = USER_AGENT,
 ) : ViewModel() {
     val uiState: StateFlow<SpeedTestScreenUiState>
         field = MutableStateFlow(SpeedTestScreenUiState())
@@ -79,7 +80,6 @@ internal class SpeedTestScreenViewModel(
     }
 
     private var job: Job? = null
-    private var currentResponse: HTTPResponse? = null
 
     fun doSpeedTest() {
         cancel()
@@ -88,27 +88,54 @@ internal class SpeedTestScreenViewModel(
                 it.copy(canTest = false)
             }
             val state = uiState.value
-            when (state.mode) {
-                SpeedTestMode.Download -> downloadTest(
+            val proxy = currentSocks5()?.string.orEmpty()
+            val (mode, url, uploadLength) = when (state.mode) {
+                SpeedTestMode.Download -> Triple(
+                    ProtoSpeedTestMode.SPEED_TEST_MODE_DOWNLOAD,
                     state.downloadURL,
-                    state.timeout,
+                    0L,
                 )
 
-                SpeedTestMode.Upload -> uploadTest(
+                SpeedTestMode.Upload -> Triple(
+                    ProtoSpeedTestMode.SPEED_TEST_MODE_UPLOAD,
                     state.uploadURL,
-                    state.timeout,
                     state.uploadLength,
                 )
             }
-            uiEvent.emit(SpeedTestScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.done)))
-            uiState.update {
-                it.copy(canTest = true, progress = null)
+            try {
+                coreClient.speedTest(
+                    mode = mode,
+                    url = url,
+                    timeoutMs = state.timeout,
+                    uploadLengthBytes = uploadLength,
+                    socksProxyUrl = proxy,
+                    userAgent = userAgent,
+                ).catch { e ->
+                    if (e is CancellationException) throw e
+                    Logs.e(e)
+                    uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
+                }.collect { response ->
+                    uiState.update { current ->
+                        current.copy(
+                            speed = response.bytesPerSec,
+                            progress = response.progress.takeIf { it >= 0.0 }?.toFloat(),
+                        )
+                    }
+                }
+                uiEvent.emit(SpeedTestScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.done)))
+            } catch (_: CancellationException) {
+            } catch (e: Exception) {
+                Logs.e(e)
+                uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
+            } finally {
+                uiState.update {
+                    it.copy(canTest = true, progress = null)
+                }
             }
         }
     }
 
     private fun cancel() {
-        currentResponse?.closeQuietly()
         job?.cancel()
     }
 
@@ -120,100 +147,6 @@ internal class SpeedTestScreenViewModel(
         DataStore.speedTestTimeout = state.timeout
         cancel()
         super.onCleared()
-    }
-
-    private suspend fun downloadTest(url: String, timeout: Int) {
-        try {
-            httpClientFactory.newHttpClient()
-                .apply {
-                    if (DataStore.serviceState.connected) {
-                        useSocks5(
-                            DataStore.mixedPort,
-                            DataStore.inboundUsername,
-                            DataStore.inboundPassword,
-                        )
-                    }
-                }
-                .newRequest()
-                .apply {
-                    setURL(url)
-                    setUserAgent(httpClientFactory.userAgent)
-                    setTimeout(timeout)
-                    setReferer(url)
-                }
-                .execute()
-                .also {
-                    currentResponse = it
-                }
-                .writeTo(
-                    Libcore.DevNull,
-                    SpeedTestCopyCallback { speed, progress ->
-                        uiState.update { state ->
-                            state.copy(speed = speed, progress = progress)
-                        }
-                    },
-                )
-        } catch (_: CancellationException) {
-        } catch (e: Exception) {
-            Logs.e(e)
-            uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
-        } finally {
-            currentResponse?.closeQuietly()
-        }
-    }
-
-    private suspend fun uploadTest(url: String, timeout: Int, length: Long) {
-        try {
-            httpClientFactory.newHttpClient()
-                .apply {
-                    if (DataStore.serviceState.connected) {
-                        useSocks5(
-                            DataStore.mixedPort,
-                            DataStore.inboundUsername,
-                            DataStore.inboundPassword,
-                        )
-                    }
-                }
-                .newRequest()
-                .apply {
-                    setURL(url)
-                    setUserAgent(httpClientFactory.userAgent)
-                    setTimeout(timeout)
-                    setReferer(url)
-                    setContentZero(
-                        length,
-                        SpeedTestCopyCallback { speed, progress ->
-                            uiState.update { state ->
-                                state.copy(speed = speed, progress = progress)
-                            }
-                        },
-                    )
-                }
-                .execute()
-                .also {
-                    currentResponse = it
-                }
-        } catch (_: CancellationException) {
-        } catch (e: Exception) {
-            Logs.e(e)
-            uiEvent.emit(SpeedTestScreenUiEvent.ErrorAlert(StringOrRes.Direct(e.readableMessage)))
-        } finally {
-            currentResponse?.closeQuietly()
-        }
-    }
-
-    private fun HTTPResponse.closeQuietly() = runCatching {
-        close()
-    }
-
-    /**
-     * speed.cloudflare.com rejects requests without a same-origin Referer.
-     */
-    private fun HTTPRequest.setReferer(urlString: String) {
-        runCatching {
-            val url = httpClientFactory.parseURL(urlString)
-            setHeader("Referer", "${url.scheme}://${url.host}/")
-        }
     }
 
     enum class SpeedTestMode {
@@ -261,29 +194,5 @@ internal class SpeedTestScreenViewModel(
                 state.copy(uploadLength = size)
             }
         }
-    }
-
-    private class SpeedTestCopyCallback(val onFrameUpdate: (speed: Long, progress: Float?) -> Unit) :
-        CopyCallback {
-
-        private val start = System.nanoTime()
-        private var total: Long? = null
-        private var saved: Long = 0L
-
-        override fun setLength(length: Long) {
-            total = length
-        }
-
-        override fun update(n: Long) {
-            saved += n
-            val savedDouble = saved.toDouble()
-            val duration = (System.nanoTime() - start) / 1_000_000_000.0
-            val speed = (savedDouble / duration).toLong()
-            val progress = total?.let {
-                (savedDouble / it).toFloat()
-            }
-            onFrameUpdate(speed, progress)
-        }
-
     }
 }

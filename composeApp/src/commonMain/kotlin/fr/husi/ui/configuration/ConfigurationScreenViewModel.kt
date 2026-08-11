@@ -10,9 +10,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.Key
-import fr.husi.bg.GuardedProcessPool
+import fr.husi.bg.buildPluginSpecs
 import fr.husi.bg.initPlugins
-import fr.husi.bg.launchPlugins
 import fr.husi.database.DataStore
 import fr.husi.database.GroupManager
 import fr.husi.database.ProfileManager
@@ -33,19 +32,18 @@ import fr.husi.ktx.removeFirstMatched
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.ktx.selectByNetworkStrategy
 import fr.husi.ktx.serverAddressDomainStrategy
-import fr.husi.ktx.urlTestOptions
-import fr.husi.libcore.Client
+import fr.husi.core.CoreClient
+import fr.husi.core.urlTestOptions
 import fr.husi.libcore.Libcore
 import fr.husi.plugin.PluginNotFoundException
 import fr.husi.repository.resolveRepository
-import fr.husi.utils.closeQuietly
 import io.github.vinceglb.filekit.PlatformFile
+import org.koin.core.context.GlobalContext
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
@@ -68,7 +66,6 @@ import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipInputStream
-import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
 data class ConfigurationUiState(
@@ -124,7 +121,9 @@ enum class TestType {
 }
 
 @Stable
-class ConfigurationScreenViewModel : ViewModel() {
+class ConfigurationScreenViewModel(
+    private val coreClient: CoreClient = GlobalContext.get().get(),
+) : ViewModel() {
 
 
     val uiState: StateFlow<ConfigurationUiState>
@@ -368,28 +367,31 @@ class ConfigurationScreenViewModel : ViewModel() {
     private suspend fun urlTest(profile: ProxyEntity): TestResult {
         val testURL = DataStore.connectionTestURL
         val testTimeout = DataStore.connectionTestTimeout
-        val testOptions = urlTestOptions
-        var client: Client? = null
-        var processes: GuardedProcessPool? = null
+        val testOptions = urlTestOptions(
+            DataStore.connectionTestUnifiedDelay,
+            DataStore.connectionTestIgnoreHandshakeTime,
+        )
         val cacheFiles = ArrayList<File>()
 
         return try {
-            client = Libcore.newClient(null)
             val config = buildConfig(profile, forTest = true)
-
-            if (config.externalIndex.any { it.chain.isNotEmpty() }) {
+            // isVPN=false: standalone URL test has no protect env, matching the
+            // previous in-process path. Cert material still lands in cacheDir via
+            // hysteria/shadowquic builders and is cleaned up below.
+            val plugins = if (config.externalIndex.any { it.chain.isNotEmpty() }) {
                 val pluginConfigs = initPlugins(config, false, cacheFiles)
-                processes = GuardedProcessPool { throw it }
-                launchPlugins(config, pluginConfigs, processes, cacheFiles, false)
-                delay(500.milliseconds)
+                buildPluginSpecs(config, pluginConfigs, false)
+            } else {
+                emptyList()
             }
 
-            val result = client.newInstanceURLTest(
+            val result = coreClient.standaloneUrlTest(
                 config.config,
                 "",
                 testURL,
                 testTimeout,
                 testOptions,
+                plugins,
             )
             TestResult.Success(result)
         } catch (e: PluginNotFoundException) {
@@ -397,8 +399,6 @@ class ConfigurationScreenViewModel : ViewModel() {
         } catch (e: Exception) {
             TestResult.Failure(FailureReason.Generic(e.readableMessage))
         } finally {
-            client?.closeQuietly()
-            processes?.close(viewModelScope)
             cacheFiles.forEach { it.delete() }
         }
     }

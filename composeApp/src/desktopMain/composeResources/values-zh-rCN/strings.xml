@@ -3,4 +3,22 @@
     <string name="auto_connect_summary_desktop">登录系统时启动并自动连接</string>
     <string name="tun_interface_name">Tun 接口名称</string>
     <string name="tun_interface_name_summary">留空则使用 sing-box 默认值</string>
+    <string name="system_daemon">系统守护进程</string>
+    <string name="install_daemon">安装守护进程</string>
+    <string name="install_daemon_summary">安装 TUN 模式所需的特权系统服务</string>
+    <string name="update_daemon">更新守护进程</string>
+    <string name="update_daemon_summary">守护进程 API 版本与应用不匹配，请更新以恢复控制</string>
+    <string name="daemon_installed_summary">已安装并已连接</string>
+    <string name="daemon_install_success">守护进程已安装</string>
+    <string name="daemon_install_cancelled">已取消安装守护进程</string>
+    <string name="daemon_install_failed">守护进程安装失败：%1$s</string>
+    <string name="daemon_install_no_elevation">无法启动 %1$s 申请管理员权限。请先安装它，或以 root 身份运行 “husi-core service install”。</string>
+    <string name="start_at_boot_daemon">开机恢复</string>
+    <string name="start_at_boot_daemon_summary">若关机前服务正在运行，则在开机后恢复</string>
+    <string name="daemon_in_use">守护进程正由 %1$s 使用</string>
+    <string name="daemon_in_use_summary">点按以接管或保持只读</string>
+    <string name="daemon_takeover_title">接管守护进程？</string>
+    <string name="daemon_takeover_message">这将断开 %1$s 的客户端连接，对方将失去对正在运行服务的控制。</string>
+    <string name="daemon_takeover">接管</string>
+    <string name="daemon_stay_read_only">保持只读</string>
 </resources>

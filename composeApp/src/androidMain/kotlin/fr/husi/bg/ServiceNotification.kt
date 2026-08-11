@@ -12,7 +12,6 @@ import android.text.format.Formatter
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import fr.husi.Action
-import fr.husi.aidl.SpeedDisplayData
 import fr.husi.compose.theme.getPrimaryColor
 import fr.husi.database.DataStore
 import fr.husi.ktx.onMainDispatcher
@@ -54,7 +53,7 @@ class ServiceNotification(
 
     override fun canPostSpeed(): Boolean = listenPostSpeed
 
-    override suspend fun onSpeed(speed: SpeedDisplayData) {
+    override suspend fun onSpeed(speed: SpeedStats) {
         postNotificationSpeedUpdate(speed)
     }
 
@@ -62,7 +61,7 @@ class ServiceNotification(
         postNotificationWakeLockStatus(acquired)
     }
 
-    suspend fun postNotificationSpeedUpdate(stats: SpeedDisplayData) {
+    suspend fun postNotificationSpeedUpdate(stats: SpeedStats) {
         val context = service as Context
         useBuilder {
             if (showDirectSpeed) {

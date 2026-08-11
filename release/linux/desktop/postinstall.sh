@@ -1,4 +1,4 @@
 #!/bin/sh
 set -e
 
-setcap '__HUSI_LAUNCHER_CAPS__' '__HUSI_LAUNCHER_PATH__'
+systemctl daemon-reload && systemctl enable husi-daemon.service && systemctl restart husi-daemon.service || true

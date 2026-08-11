@@ -10,23 +10,26 @@ import androidx.lifecycle.viewModelScope
 import fr.husi.Key
 import fr.husi.TrafficSortMode
 import fr.husi.bg.DefaultNetworkListener
+import fr.husi.core.CoreClient
+import fr.husi.core.formatConnectionTime
+import fr.husi.core.isClosed
+import fr.husi.core.isNew
+import fr.husi.core.isUpdate
+import fr.husi.core.proxyDisplayName
+import fr.husi.core.urlTestOptions
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.ktx.toList
-import fr.husi.ktx.urlTestOptions
-import fr.husi.libcore.Client
-import fr.husi.libcore.ConnectionEvent
-import fr.husi.libcore.Libcore
-import fr.husi.libcore.ProxyItemIterator
-import fr.husi.utils.LibcoreClientManager
+import fr.husi.proto.daemon.ConnectionEvent
+import fr.husi.proto.daemon.ConnectionEvents
+import fr.husi.proto.daemon.Group
+import fr.husi.proto.daemon.GroupItem
 import fr.husi.utils.PackageResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -34,11 +37,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koin.core.context.GlobalContext
 import kotlin.experimental.and
 import kotlin.experimental.inv
 import kotlin.experimental.or
@@ -91,14 +94,6 @@ data class ProxySet(
     val urlTestProgress: GroupUrlTestProgress? = null,
     val isAll: Boolean = false,
 ) {
-    constructor(set: fr.husi.libcore.ProxySet) : this(
-        tag = set.tag,
-        type = set.type,
-        selectable = set.selectable,
-        selected = set.selected,
-        items = set.items.toList(),
-    )
-
     val isTesting: Boolean
         get() = urlTestProgress != null
 }
@@ -115,14 +110,6 @@ internal fun allProxySet(items: List<ProxyItem>): ProxySet {
     )
 }
 
-fun fr.husi.libcore.ProxySetIterator.toList(): List<ProxySet> {
-    return ArrayList<ProxySet>(length()).apply {
-        while (hasNext()) {
-            add(ProxySet(next()))
-        }
-    }
-}
-
 @Immutable
 data class GroupUrlTestProgress(
     val current: Int,
@@ -134,13 +121,7 @@ data class ProxyItem(
     val tag: String = "",
     val type: String = "",
     val urlTestDelay: Int = -1,
-) {
-    constructor(item: fr.husi.libcore.ProxyItem) : this(
-        tag = item.tag,
-        type = item.type,
-        urlTestDelay = item.delay,
-    )
-}
+)
 
 internal data class ProcessInfo(
     val packageName: String,
@@ -148,17 +129,10 @@ internal data class ProcessInfo(
     val icon: Any? = null,
 )
 
-fun ProxyItemIterator.toList(): List<ProxyItem> {
-    return ArrayList<ProxyItem>(length()).apply {
-        while (hasNext()) {
-            add(ProxyItem(next()))
-        }
-    }
-}
-
 @Stable
 class DashboardViewModel(
     private val loadPlatformNetworkInfo: suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>,
+    private val coreClient: CoreClient = GlobalContext.get().get(),
 ) : ViewModel() {
     val uiState: StateFlow<DashboardState>
         field = MutableStateFlow(DashboardState())
@@ -167,6 +141,8 @@ class DashboardViewModel(
 
     private val connections = LinkedHashMap<String, ConnectionDetailState>()
     private val proxySetsByTag = HashMap<String, ProxySet>()
+    private var latestGroups: List<Group> = emptyList()
+    private var latestOutbounds: List<GroupItem> = emptyList()
 
     companion object {
         private val LOOP_INTERVAL = 1000L.milliseconds
@@ -216,85 +192,116 @@ class DashboardViewModel(
         }
     }
 
-    private var job: Job? = null
-    private var subscriptionJob: Job? = null
-    private var clashModeSubscriptionJob: Job? = null
-    private val client = LibcoreClientManager()
-    private val urlTestClient = LibcoreClientManager()
+    private var statusJob: Job? = null
+    private var groupsJob: Job? = null
+    private var outboundsJob: Job? = null
+    private var connectionsJob: Job? = null
+    private var clashModeJob: Job? = null
     private val processLabelAccess = Mutex()
     private val processLabelCache = mutableMapOf<String, String>()
     private val processIconCache = mutableMapOf<String, Any>()
     private val processIconAccess = Mutex()
 
     suspend fun initialize(isConnected: Boolean) {
-        job?.cancel()
-        subscriptionJob?.cancel()
-        clashModeSubscriptionJob?.cancel()
-        client.close()
-        urlTestClient.close()
+        statusJob?.cancel()
+        groupsJob?.cancel()
+        outboundsJob?.cancel()
+        connectionsJob?.cancel()
+        clashModeJob?.cancel()
         connections.clear()
+        proxySetsByTag.clear()
+        latestGroups = emptyList()
+        latestOutbounds = emptyList()
         uiState.update { state ->
             state.copy(
                 connections = emptyList(),
                 filteredConnections = emptyList(),
+                proxySets = emptyList(),
                 selectedClashMode = "",
                 clashModes = emptyList(),
+                memory = 0,
+                goroutines = 0,
             )
         }
         if (!isConnected) return
 
-        subscriptionJob = client.subscribeConnectionEvents(viewModelScope) { event ->
-            viewModelScope.launch {
-                handleConnectionEvent(event)
-            }
-        }
-        try {
-            client.withClient { client ->
-                val iterator = client.queryConnections()
-                    ?: return@withClient
-                while (iterator.hasNext()) {
-                    val info = iterator.next() ?: continue
-                    connections[info.uuid] = info.toDetailState()
+        statusJob = viewModelScope.launch {
+            try {
+                coreClient.subscribeStatus(LOOP_INTERVAL).collect { status ->
+                    uiState.update { state ->
+                        state.copy(
+                            memory = status.memory,
+                            goroutines = status.goroutines,
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                Logs.w("subscribe status", e)
             }
-            updateConnectionsSnapshot()
-        } catch (e: Exception) {
-            Logs.w("query connections", e)
-        }
-        clashModeSubscriptionJob = client.subscribeClashMode(viewModelScope) { mode ->
-            viewModelScope.launch {
-                uiState.update { state ->
-                    state.copy(selectedClashMode = mode)
-                }
-            }
-        }
-        try {
-            val clashModes = client.withClient { client ->
-                client.queryClashModes()?.toList() ?: emptyList()
-            }
-            uiState.update { state ->
-                state.copy(clashModes = clashModes)
-            }
-        } catch (e: Exception) {
-            Logs.w("query clash modes", e)
         }
 
-        job = viewModelScope.launch {
-            while (isActive) {
-                if (!refreshStatus()) break
-                delay(LOOP_INTERVAL)
+        groupsJob = viewModelScope.launch {
+            try {
+                coreClient.subscribeGroups().collect { groups ->
+                    latestGroups = groups.groupList
+                    publishProxySets()
+                }
+            } catch (e: Exception) {
+                Logs.w("subscribe groups", e)
+            }
+        }
+
+        outboundsJob = viewModelScope.launch {
+            try {
+                coreClient.subscribeOutbounds().collect { list ->
+                    latestOutbounds = list.outboundsList
+                    publishProxySets()
+                }
+            } catch (e: Exception) {
+                Logs.w("subscribe outbounds", e)
+            }
+        }
+
+        connectionsJob = viewModelScope.launch {
+            try {
+                coreClient.subscribeConnections(LOOP_INTERVAL).collect { events ->
+                    handleConnectionEvents(events)
+                }
+            } catch (e: Exception) {
+                Logs.w("subscribe connections", e)
+            }
+        }
+
+        clashModeJob = viewModelScope.launch {
+            try {
+                val status = coreClient.getClashModeStatus()
+                uiState.update { state ->
+                    state.copy(
+                        clashModes = status.modeListList,
+                        selectedClashMode = status.currentMode,
+                    )
+                }
+            } catch (e: Exception) {
+                Logs.w("query clash modes", e)
+            }
+            try {
+                coreClient.subscribeClashMode().collect { mode ->
+                    uiState.update { state ->
+                        state.copy(selectedClashMode = mode.mode)
+                    }
+                }
+            } catch (e: Exception) {
+                Logs.w("subscribe clash mode", e)
             }
         }
     }
 
     override fun onCleared() {
-        job?.cancel()
-        subscriptionJob?.cancel()
-        clashModeSubscriptionJob?.cancel()
-        runBlocking {
-            client.close()
-            urlTestClient.close()
-        }
+        statusJob?.cancel()
+        groupsJob?.cancel()
+        outboundsJob?.cancel()
+        connectionsJob?.cancel()
+        clashModeJob?.cancel()
         runOnDefaultDispatcher {
             DefaultNetworkListener.stop(this@DashboardViewModel)
         }
@@ -406,28 +413,6 @@ class DashboardViewModel(
         }
     }
 
-    /**
-     * @return true to continue polling, false to stop.
-     */
-    private suspend fun refreshStatus(): Boolean {
-        return try {
-            client.withClient { client ->
-                uiState.update { state ->
-                    state.copy(
-                        memory = client.queryMemory(),
-                        goroutines = client.queryGoroutines(),
-                        connections = state.connections,
-                        proxySets = loadProxySets(client, state.proxySets),
-                    )
-                }
-            }
-            true
-        } catch (e: Exception) {
-            Logs.w(e)
-            false
-        }
-    }
-
     private fun buildConnections(state: DashboardState): List<ConnectionDetailState> {
         val showActive = state.showActivate
         val showClosed = state.showClosed
@@ -495,14 +480,31 @@ class DashboardViewModel(
         return null
     }
 
+    private fun handleConnectionEvents(events: ConnectionEvents) {
+        if (events.reset) {
+            connections.clear()
+            for (event in events.eventsList) {
+                if (!event.isNew()) continue
+                val connection = event.connection ?: continue
+                connections[event.id] = connection.toDetailState()
+            }
+            updateConnectionsSnapshot()
+            return
+        }
+        for (event in events.eventsList) {
+            handleConnectionEvent(event)
+        }
+    }
+
     private fun handleConnectionEvent(event: ConnectionEvent) {
-        when (event.type) {
-            Libcore.ConnectionEventNew -> {
-                connections[event.id] = event.trackerInfo!!.toDetailState()
+        when {
+            event.isNew() -> {
+                val connection = event.connection ?: return
+                connections[event.id] = connection.toDetailState()
                 updateConnectionsSnapshot()
             }
 
-            Libcore.ConnectionEventUpdate -> {
+            event.isUpdate() -> {
                 val uplinkDelta = event.uplinkDelta
                 val downlinkDelta = event.downlinkDelta
                 if (uplinkDelta == 0L && downlinkDelta == 0L) return
@@ -516,8 +518,8 @@ class DashboardViewModel(
                 updateConnectionSnapshot(updated)
             }
 
-            Libcore.ConnectionEventClosed -> {
-                val closedAt = event.closedAt
+            event.isClosed() -> {
+                val closedAt = formatConnectionTime(event.closedAt)
                 if (closedAt.isBlank()) return
                 val id = event.id
                 val current = connections[id] ?: return
@@ -581,10 +583,8 @@ class DashboardViewModel(
             || processes?.any { it.contains(query) } == true
             || uid.toString().contains(query)
 
-    private suspend fun loadProxySets(
-        client: Client,
-        olds: List<ProxySet>,
-    ): List<ProxySet> {
+    private fun publishProxySets() {
+        val olds = uiState.value.proxySets
         if (proxySetsByTag.isEmpty() && olds.isNotEmpty()) {
             for (old in olds) {
                 if (!old.isAll) {
@@ -592,14 +592,35 @@ class DashboardViewModel(
                 }
             }
         }
-        val fresh = client.queryProxySets()?.toList().orEmpty()
-        val allItems = client.queryAllProxyItems()?.toList().orEmpty()
+        val fresh = latestGroups.map { group ->
+            ProxySet(
+                tag = group.tag,
+                type = proxyDisplayName(group.type),
+                selectable = group.selectable,
+                selected = group.selected,
+                items = group.itemsList.map { item ->
+                    ProxyItem(
+                        tag = item.tag,
+                        type = proxyDisplayName(item.type),
+                        urlTestDelay = item.urlTestDelay,
+                    )
+                },
+            )
+        }
+        val allItems = latestOutbounds.map { item ->
+            ProxyItem(
+                tag = item.tag,
+                type = proxyDisplayName(item.type),
+                urlTestDelay = item.urlTestDelay,
+            )
+        }
         val allSet = allProxySet(allItems).copy(
             urlTestProgress = olds.firstOrNull { it.isAll }?.urlTestProgress,
         )
         if (fresh.isEmpty()) {
             proxySetsByTag.clear()
-            return listOf(allSet)
+            uiState.update { state -> state.copy(proxySets = listOf(allSet)) }
+            return
         }
         val freshTags = HashSet<String>(fresh.size)
         val result = buildList(fresh.size) {
@@ -621,17 +642,19 @@ class DashboardViewModel(
             }
         }
         proxySetsByTag.keys.retainAll(freshTags)
-        return buildList(result.size + 1) {
-            add(allSet)
-            addAll(result)
+        uiState.update { state ->
+            state.copy(
+                proxySets = buildList(result.size + 1) {
+                    add(allSet)
+                    addAll(result)
+                },
+            )
         }
     }
 
     fun closeConnection(uuid: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            client.withClient { client ->
-                client.closeConnection(uuid)
-            }
+            coreClient.closeConnection(uuid)
         } catch (e: Exception) {
             Logs.w(e)
         }
@@ -639,24 +662,25 @@ class DashboardViewModel(
 
     fun selectOutbound(groupName: String, tag: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            client.withClient { client ->
-                client.selectOutbound(groupName, tag)
-            }
+            coreClient.selectOutbound(groupName, tag)
         } catch (e: Exception) {
             Logs.w(e)
         }
     }
 
+    private fun testOptions() = urlTestOptions(
+        DataStore.connectionTestUnifiedDelay,
+        DataStore.connectionTestIgnoreHandshakeTime,
+    )
+
     fun urlTestForSingle(tag: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            client.withClient { client ->
-                client.urlTest(
-                    tag,
-                    DataStore.connectionTestURL,
-                    DataStore.connectionTestTimeout,
-                    urlTestOptions,
-                )
-            }
+            coreClient.urlTest(
+                tag,
+                DataStore.connectionTestURL,
+                DataStore.connectionTestTimeout,
+                testOptions(),
+            )
         } catch (e: Exception) {
             Logs.w(e)
         }
@@ -673,22 +697,20 @@ class DashboardViewModel(
         if (items.isEmpty()) return@launch
         val testURL = DataStore.connectionTestURL
         val testTimeout = DataStore.connectionTestTimeout
-        val testOptions = urlTestOptions
+        val options = testOptions()
         try {
-            urlTestClient.withClient { client ->
-                for ((index, item) in items.withIndex()) {
-                    setUrlTestProgress(
-                        id,
-                        GroupUrlTestProgress(
-                            current = index + 1,
-                            total = items.size,
-                        ),
-                    )
-                    try {
-                        client.urlTest(item.tag, testURL, testTimeout, testOptions)
-                    } catch (e: Exception) {
-                        Logs.w(e)
-                    }
+            for ((index, item) in items.withIndex()) {
+                setUrlTestProgress(
+                    id,
+                    GroupUrlTestProgress(
+                        current = index + 1,
+                        total = items.size,
+                    ),
+                )
+                try {
+                    coreClient.urlTest(item.tag, testURL, testTimeout, options)
+                } catch (e: Exception) {
+                    Logs.w(e)
                 }
             }
         } catch (e: Exception) {
@@ -700,9 +722,7 @@ class DashboardViewModel(
 
     fun resetNetwork() = viewModelScope.launch(Dispatchers.IO) {
         try {
-            client.withClient { client ->
-                client.resetNetwork()
-            }
+            coreClient.resetNetwork()
         } catch (e: Exception) {
             Logs.w(e)
         }
@@ -710,9 +730,7 @@ class DashboardViewModel(
 
     fun setClashMode(mode: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            client.withClient { client ->
-                client.setClashMode(mode)
-            }
+            coreClient.setClashMode(mode)
         } catch (e: Exception) {
             Logs.w(e)
         }

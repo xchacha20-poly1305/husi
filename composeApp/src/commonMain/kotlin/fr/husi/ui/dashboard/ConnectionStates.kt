@@ -1,9 +1,15 @@
 package fr.husi.ui.dashboard
 
 import androidx.compose.runtime.Stable
+import fr.husi.core.chainLabel
+import fr.husi.core.formatConnectionTime
+import fr.husi.core.inboundLabel
+import fr.husi.core.matchedRuleOrFinal
+import fr.husi.core.outboundLabel
+import fr.husi.core.processNames
+import fr.husi.core.processUid
 import fr.husi.ktx.emptyAsNull
-import fr.husi.ktx.toList
-import fr.husi.libcore.TrackerInfo
+import fr.husi.proto.daemon.Connection
 
 @Stable
 data class ConnectionDetailState(
@@ -29,24 +35,24 @@ data class ConnectionDetailState(
         get() = closedAt.isNotEmpty()
 }
 
-fun TrackerInfo.toDetailState(): ConnectionDetailState {
+fun Connection.toDetailState(): ConnectionDetailState {
     return ConnectionDetailState(
-        uuid = uuid,
-        inbound = inbound,
-        ipVersion = ipVersion.takeIf { it > 0 },
+        uuid = id,
+        inbound = inboundLabel(),
+        ipVersion = ipVersion.takeIf { it > 0 }?.toShort(),
         network = network,
-        uploadTotal = uploadTotal,
-        downloadTotal = downloadTotal,
-        startedAt = startedAt,
-        closedAt = closedAt,
-        src = src,
-        dst = dst,
-        host = host,
-        matchedRule = matchedRule,
-        outbound = outbound,
-        chain = chain,
+        uploadTotal = uplinkTotal,
+        downloadTotal = downlinkTotal,
+        startedAt = formatConnectionTime(createdAt),
+        closedAt = formatConnectionTime(closedAt),
+        src = source,
+        dst = destination,
+        host = domain,
+        matchedRule = matchedRuleOrFinal(),
+        outbound = outboundLabel(),
+        chain = chainLabel(),
         protocol = protocol.emptyAsNull(),
-        processes = processes?.toList()?.takeIf { it.isNotEmpty() },
-        uid = uid,
+        processes = processNames(),
+        uid = processUid(),
     )
 }

@@ -21,7 +21,7 @@ Name "${APP_NAME} ${APP_VERSION}"
 OutFile "__HUSI_OUTPUT_FILE__"
 InstallDir "$LOCALAPPDATA\Programs\${APP_NAME}"
 InstallDirRegKey HKCU "Software\${PACKAGE_NAME}\Installer" "InstallDir"
-RequestExecutionLevel user
+RequestExecutionLevel admin
 
 ; --- Version info embedded in exe ---
 VIProductVersion "__HUSI_VI_VERSION__"
@@ -81,6 +81,8 @@ FunctionEnd
 Section "$(InstallSectionName)"
     SetOutPath "$INSTDIR"
     File "/oname=${APP_NAME}.exe" "__HUSI_LAUNCHER_FILE__"
+    File "/oname=husi-core.exe" "__HUSI_CORE_FILE__"
+    File "/oname=husicore.dll" "__HUSI_CORE_LIB_FILE__"
     File "/oname=LICENSE" "__HUSI_LICENSE_FILE__"
     File "/oname=desktop-java-opts.conf.template" "__HUSI_JAVA_OPTS_FILE__"
     File "/oname=desktop-app-args.conf.template" "__HUSI_APP_ARGS_FILE__"
@@ -89,6 +91,9 @@ Section "$(InstallSectionName)"
     File "/oname=${PACKAGE_NAME}.jar" "__HUSI_JAR_FILE__"
 
     SetOutPath "$INSTDIR"
+
+    ; Install the daemon service
+    nsExec::ExecToLog '"$INSTDIR\husi-core.exe" service install'
 
     ; Uninstaller
     WriteUninstaller "$INSTDIR\uninstall.exe"
@@ -181,8 +186,13 @@ FunctionEnd
 
 ; --- Uninstall section ---
 Section "un.$(UninstallSectionName)"
+    ; Uninstall the daemon service
+    nsExec::ExecToLog '"$INSTDIR\husi-core.exe" service uninstall'
+
     ; Remove files
     Delete "$INSTDIR\${APP_NAME}.exe"
+    Delete "$INSTDIR\husi-core.exe"
+    Delete "$INSTDIR\husicore.dll"
     Delete "$INSTDIR\LICENSE"
     Delete "$INSTDIR\desktop-java-opts.conf.template"
     Delete "$INSTDIR\desktop-app-args.conf.template"

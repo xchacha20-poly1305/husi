@@ -3,4 +3,22 @@
     <string name="auto_connect_summary_desktop">登入系統時啟動並自動連線</string>
     <string name="tun_interface_name">Tun 介面名稱</string>
     <string name="tun_interface_name_summary">留空則使用 sing-box 預設值</string>
+    <string name="system_daemon">系統守護行程</string>
+    <string name="install_daemon">安裝守護行程</string>
+    <string name="install_daemon_summary">安裝 TUN 模式所需的特權系統服務</string>
+    <string name="update_daemon">更新守護行程</string>
+    <string name="update_daemon_summary">守護行程 API 版本與應用程式不符，請更新以恢復控制</string>
+    <string name="daemon_installed_summary">已安裝並已連線</string>
+    <string name="daemon_install_success">守護行程已安裝</string>
+    <string name="daemon_install_cancelled">已取消安裝守護行程</string>
+    <string name="daemon_install_failed">守護行程安裝失敗：%1$s</string>
+    <string name="daemon_install_no_elevation">無法啟動 %1$s 申請管理員權限。請先安裝它，或以 root 身分執行「husi-core service install」。</string>
+    <string name="start_at_boot_daemon">開機還原</string>
+    <string name="start_at_boot_daemon_summary">若關機前服務正在執行，則在開機後還原</string>
+    <string name="daemon_in_use">守護行程正由 %1$s 使用</string>
+    <string name="daemon_in_use_summary">點一下以接管或保持唯讀</string>
+    <string name="daemon_takeover_title">接管守護行程？</string>
+    <string name="daemon_takeover_message">這將中斷 %1$s 的用戶端連線，對方將失去對正在執行服務的控制。</string>
+    <string name="daemon_takeover">接管</string>
+    <string name="daemon_stay_read_only">保持唯讀</string>
 </resources>

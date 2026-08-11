@@ -9,6 +9,8 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.TextRange
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.core.CoreClient
+import fr.husi.core.CoreRpcException
 import fr.husi.ktx.Logs
 import fr.husi.ktx.kxs
 import fr.husi.ktx.readableMessage
@@ -25,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.StringResource
+import org.koin.core.context.GlobalContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
@@ -46,6 +49,7 @@ data class ConfigEditUiState(
 class ConfigEditViewModel(
     initialText: String,
     schema: ConfigSchema = ConfigSchema.CONFIG,
+    private val coreClient: CoreClient = GlobalContext.get().get(),
 ) : ViewModel() {
 
     val uiEvent: SharedFlow<ConfigEditUiEvent>
@@ -113,7 +117,7 @@ class ConfigEditViewModel(
             val end = selection.end
             delete(start, end)
             insert(start, insertion)
-            selection = androidx.compose.ui.text.TextRange(start + insertion.length)
+            selection = TextRange(start + insertion.length)
         }
         addToHistory(textFieldState.text.toString())
     }
@@ -134,7 +138,7 @@ class ConfigEditViewModel(
         textFieldState.edit {
             val currentPos = selection.start
             val newPos = (currentPos + offset).coerceIn(0, length)
-            selection = androidx.compose.ui.text.TextRange(newPos)
+            selection = TextRange(newPos)
         }
     }
 
@@ -219,7 +223,13 @@ class ConfigEditViewModel(
                 val jsonArray = JsonArray(listOf(singleOutbound))
                 JsonObject(mapOf("outbounds" to jsonArray)).toString()
             }
-            Libcore.checkConfig(jsonContent)
+            // ApplicationService reports parse failures as INVALID_ARGUMENT
+            // with the parser message; CoreRpcException.message carries that.
+            coreClient.checkConfig(jsonContent)
+        } catch (e: CoreRpcException) {
+            Logs.i("failed to check config", e)
+            uiEvent.emit(ConfigEditUiEvent.Alert(e.message.ifBlank { e.readableMessage }))
+            return
         } catch (e: Exception) {
             Logs.i("failed to check config", e)
             uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))

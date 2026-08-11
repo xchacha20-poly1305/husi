@@ -211,6 +211,16 @@
       ]
     },
     {
+      "matchManagers": [
+        "gradle"
+      ],
+      "groupName": "Protobuf",
+      "groupSlug": "protobuf",
+      "matchPackageNames": [
+        "com.google.protobuf{/,}**"
+      ]
+    },
+    {
       "matchPackageNames": [
         "/.*/"
       ],

@@ -128,7 +128,7 @@ jobs:
             cronet-go/naiveproxy/src/out/sysroot-build
           key: cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64_arm64-${{ env.CRONET_GO_COMMIT }}
       - name: Install system packaging tools
-        run: sudo apt-get update && sudo apt-get install -y nsis xorriso
+        run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode xorriso zstd
       - name: Cache nfpm
         id: cache-nfpm
         uses: actions/cache@v6
@@ -155,12 +155,25 @@ jobs:
         run: make libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64,windows/amd64,windows/arm64,darwin/amd64,darwin/arm64 JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
       - name: Generate about libraries metadata
         run: make aboutlibraries_go aboutlibraries_desktop
-      - name: Build desktop packages
+      - name: Setup Windows signing
+        env:
+          WINDOWS_SIGNING_P12_BASE64: ${{ secrets.WINDOWS_SIGNING_P12 }}
         run: |
-          make desktop_package_linux DESKTOP_TARGET=linux/amd64
-          make desktop_package_linux DESKTOP_TARGET=linux/arm64
-          make desktop_package_windows DESKTOP_TARGET=windows/amd64
-          make desktop_package_windows DESKTOP_TARGET=windows/arm64
+          if [ -z "$WINDOWS_SIGNING_P12_BASE64" ]; then
+            echo "No Windows signing certificate configured, building unsigned packages."
+            echo "WINDOWS_NO_SIGN=1" >> "$GITHUB_ENV"
+          else
+            echo "WINDOWS_NO_SIGN=0" >> "$GITHUB_ENV"
+          fi
+      - name: Build desktop packages
+        env:
+          WINDOWS_SIGNING_P12_BASE64: ${{ secrets.WINDOWS_SIGNING_P12 }}
+          WINDOWS_SIGNING_P12_PASSWORD: ${{ secrets.WINDOWS_SIGNING_P12_PASSWORD }}
+        run: |
+          make desktop_package_linux DESKTOP_TARGET=linux/amd64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball
+          make desktop_package_linux DESKTOP_TARGET=linux/arm64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball
+          make desktop_package_windows DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
+          make desktop_package_windows DESKTOP_TARGET=windows/arm64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
           make desktop_package_macos DESKTOP_TARGET=darwin/amd64
           make desktop_package_macos DESKTOP_TARGET=darwin/arm64
       - uses: actions/upload-artifact@v7

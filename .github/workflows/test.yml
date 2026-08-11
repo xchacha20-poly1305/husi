@@ -15,6 +15,8 @@ on:
       - launcher/**
       - libcore/**
       - library/**
+      - proto/**
+      - release/**
       - run
   pull_request:
     paths:
@@ -28,6 +30,8 @@ on:
       - launcher/**
       - libcore/**
       - library/**
+      - proto/**
+      - release/**
       - run
 
 permissions:
@@ -46,8 +50,10 @@ jobs:
       - name: Lint shell scripts
         run: |
           command -v shellcheck >/dev/null || sudo apt-get install -y shellcheck
-          shellcheck run
-          find buildScript -name '*.sh' -exec shellcheck {} +
+          # -x follows the `# shellcheck source=` directives into sourced files.
+          shellcheck -x run
+          find buildScript release -name '*.sh' -exec shellcheck -x {} +
+
   test:
     runs-on: ubuntu-26.04
     steps:
@@ -56,16 +62,25 @@ jobs:
         with:
           submodules: recursive
       - uses: ./.github/actions/load-build-versions
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-      - uses: burrunan/gradle-cache-action@v3
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
           cache-dependency-path: 'libcore/go.sum'
+      - name: Install protoc
+        run: |
+          curl -fsSL -o /tmp/protoc.zip "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          sudo unzip -o /tmp/protoc.zip -d /usr/local bin/protoc 'include/*'
+          rm /tmp/protoc.zip
+      - name: Regenerate protocol
+        run: make proto
+      - name: Check the generated tree is up to date
+        run: git diff --exit-code && test -z "$(git status --porcelain)"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: burrunan/gradle-cache-action@v3
       - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
@@ -101,13 +116,16 @@ jobs:
       - name: Test libcore
         working-directory: libcore
         run: go test -v -count=1 ./...
+      # Desktop core host is the Zig shim + anja sidecar — forbid a second Go link.
+      - name: Guard no go-built husi-core binary
+        run: make test_no_go_core_binary
       - name: Build libcore bindings
         env:
           CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
         run: |
           make libcore
-      - name: Test launcher
-        run: cd launcher && zig build test
+      - name: Test Zig projects
+        run: make test_zig
       - name: Test Kotlin
         env:
           BUILD_PLUGIN: none

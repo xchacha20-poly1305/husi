@@ -45,6 +45,41 @@ desktop_jar_name() {
     echo "libcore-desktop-${platform}-${arch}.jar"
 }
 
+# anja -libname=husicore emits these names (see anja desktopLibraryFilename).
+desktop_native_library_name() {
+    local platform="$1"
+    case "$platform" in
+        windows)
+            echo "husicore.dll"
+            ;;
+        darwin)
+            echo "libhusicore.dylib"
+            ;;
+        *)
+            echo "libhusicore.so"
+            ;;
+    esac
+}
+
+desktop_native_build_dir() {
+    local desktop_target="$1"
+    local platform="${desktop_target%%/*}"
+    local arch="${desktop_target#*/}"
+    echo "build/${platform}_${arch}"
+}
+
+read_husi_version() {
+    local properties_file="../husi.properties"
+    local version=""
+    if [ -f "$properties_file" ]; then
+        version="$(awk -F= '$1=="VERSION_NAME"{print $2; exit}' "$properties_file" | tr -d '\r')"
+    fi
+    if [ -z "$version" ]; then
+        version="dev"
+    fi
+    echo "$version"
+}
+
 remove_build_tag() {
     local build_tags="$1"
     local remove_tag="$2"
@@ -339,13 +374,12 @@ while [ "$#" -gt 0 ]; do
             echo "Missing value for --desktoptargets"
             exit 1
         fi
-        BUILD_DESKTOP=1
+        # Targets apply to --desktop (JNI jar + sidecar library).
         PLATFORM_SPECIFIED=1
         DESKTOP_TARGETS="$2"
         shift 2
         ;;
     --desktoptargets=*)
-        BUILD_DESKTOP=1
         PLATFORM_SPECIFIED=1
         DESKTOP_TARGETS="${1#*=}"
         shift
@@ -389,6 +423,12 @@ if [ "$PLATFORM_SPECIFIED" == "0" ]; then
     BUILD_ANDROID=1
 fi
 
+# --desktoptargets alone used to imply a desktop JNI jar build. Keep that when no
+# explicit product mode is selected so older invocations still work.
+if [ -n "$DESKTOP_TARGETS" ] && [ "$BUILD_DESKTOP" != "1" ] && [ "$BUILD_ANDROID" != "1" ]; then
+    BUILD_DESKTOP=1
+fi
+
 if [ "$NO_NAIVE" == "1" ]; then
     BUILD_TAGS="$(remove_build_tag "$BUILD_TAGS" "with_naive_outbound")"
 fi
@@ -397,14 +437,16 @@ fi
 go install tool
 
 box_version=$(go run ./cmd/boxversion/)
+husi_version="$(read_husi_version)"
 export CGO_ENABLED=1
 export GO386=softfloat
 
+# Stamp sing-box version + husi Version (used by coreentry / HusiCoreMain).
 ANJA_COMMON_ARGS=(
     -v
     -trimpath
     -buildvcs=false
-    -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid="
+    -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -X libcore.Version=${husi_version} -s -w -buildid="
     -javapkg="fr.husi"
 )
 
@@ -435,6 +477,7 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
     host_platform="$(go env GOOS)"
     IFS="," read -r -a desktop_target_list <<< "$DESKTOP_TARGETS"
     for desktop_target in "${desktop_target_list[@]}"; do
+        # Full tag set on the bind (N1): naive included unless NO_NAIVE=1.
         local_build_tags="$BUILD_TAGS"
         desktop_target="${desktop_target//[[:space:]]/}"
         if [ -z "$desktop_target" ]; then
@@ -444,6 +487,7 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
             desktop_target="$(resolve_host_desktop_target)"
         fi
         desktop_platform="${desktop_target%%/*}"
+        desktop_arch="${desktop_target#*/}"
         if [ "$desktop_platform" == "windows" ] && [[ ",$local_build_tags," == *",with_naive_outbound,"* ]]; then
             local_build_tags="$(add_build_tag "$local_build_tags" "with_purego")"
         fi
@@ -455,6 +499,7 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
         if [ "$desktop_platform" == "windows" ]; then
             apply_windows_toolchain_env "$desktop_target"
         elif [[ ",$local_build_tags," == *",with_naive_outbound,"* ]]; then
+            # Cronet/naive toolchain for Linux (and Darwin when needed) on the bind.
             apply_naive_toolchain_env "$desktop_target"
         elif [ "$host_platform" != "darwin" ] && [ "$desktop_platform" == "darwin" ]; then
             apply_darwin_toolchain_env "$desktop_target"
@@ -463,10 +508,33 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
         if [ -n "$JNI_INCLUDE" ]; then
             desktop_args+=("-jniinclude=$JNI_INCLUDE")
         fi
+        # One anja invocation produces the fat jar and a bare library for
+        # packaging / session colocation (N7). -libname renames gojni → husicore.
+        # -linkonly blank-imports coreentry in the generated main so HusiCoreMain
+        # is linked without bindings and without an import cycle through
+        # daemonhost → libcore.
+        natives_staging="build/natives-out"
+        natives_subdir="${desktop_platform}-${desktop_arch}"
+        rm -rf "${natives_staging}/${natives_subdir}"
+        mkdir -p "$natives_staging"
         anja bind -target=jvm \
             -desktoptargets "$desktop_target" \
+            -libname=husicore \
+            -linkonly=libcore/coreentry \
+            -nativesout "$natives_staging" \
             "${desktop_args[@]}" \
             -o "$desktop_output" . || exit 1
+        native_lib_name="$(desktop_native_library_name "$desktop_platform")"
+        native_src="${natives_staging}/${natives_subdir}/${native_lib_name}"
+        if [ ! -f "$native_src" ]; then
+            echo "anja did not emit desktop native library at $native_src" >&2
+            exit 1
+        fi
+        native_dst_dir="$(desktop_native_build_dir "$desktop_target")"
+        mkdir -p "$native_dst_dir"
+        cp -f "$native_src" "${native_dst_dir}/${native_lib_name}"
+        echo ">> Sidecar $(realpath "${native_dst_dir}/${native_lib_name}")"
+        sha256sum "${native_dst_dir}/${native_lib_name}"
         DESKTOP_OUTPUTS+=("$desktop_output")
     done
 fi

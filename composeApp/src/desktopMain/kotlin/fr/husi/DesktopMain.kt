@@ -40,19 +40,26 @@ import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.compose.theme.AppTheme
+import fr.husi.core.BridgeCoreClient
+import fr.husi.core.CoreClient
+import fr.husi.core.chainLabel
+import fr.husi.core.formatConnectionTime
+import fr.husi.core.inboundLabel
+import fr.husi.core.matchedRuleOrFinal
+import fr.husi.core.outboundLabel
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
 import fr.husi.ktx.exitApplication
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.sha256Hex
-import fr.husi.ktx.toList
-import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.platform.PlatformInfo
+import fr.husi.proto.v1.Hosting
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.resolveDesktopRepository
+import fr.husi.repository.resolvePackagedAnjaNativesDir
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
 import fr.husi.resources.close
@@ -66,13 +73,11 @@ import fr.husi.resources.stop
 import fr.husi.ui.LogLevel
 import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
-import fr.husi.utils.closeQuietly
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.add
@@ -91,13 +96,21 @@ import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import javax.swing.UIManager
 import kotlin.system.exitProcess
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import dev.nucleusframework.composenativetray.menu.api.Key as TrayKey
+
+/** Well-known UDS name under the core host dir (mirrors coresvc.Socket). */
+private const val CORE_SOCKET_NAME = "api.sock"
 
 private const val APP_NAME = "fr.husi"
 
+/** anja loads the JNI library from this directory when set (no jar-embedded fallback). */
+private const val ANJA_NATIVES_DIR_PROPERTY = "anja.natives.dir"
+
 fun main(args: Array<String>) {
     configureNucleusAppIdentity()
+    // Before any Libcore class load: packaged installs point at the sidecar library.
+    configureAnjaNativesDir()
     DesktopMain(args).main(args)
 }
 
@@ -111,6 +124,19 @@ fun main(args: Array<String>) {
 private fun configureNucleusAppIdentity() {
     System.setProperty("nucleus.app.id", APP_NAME)
     System.setProperty("nucleus.app.name", "Husi")
+}
+
+/**
+ * N4: if unset, probe the packaged layout for the anja library next to the launcher /
+ * husi-core and set `anja.natives.dir`. Found nothing → leave unset so the fat jar's
+ * embedded copy is used (dev / `gradlew run`).
+ */
+private fun configureAnjaNativesDir() {
+    if (!System.getProperty(ANJA_NATIVES_DIR_PROPERTY).isNullOrEmpty()) {
+        return
+    }
+    val nativesDir = resolvePackagedAnjaNativesDir() ?: return
+    System.setProperty(ANJA_NATIVES_DIR_PROPERTY, nativesDir.absolutePath)
 }
 
 private class DesktopMain(
@@ -192,9 +218,9 @@ private class DesktopMain(
         )
     }
 
-    /** Base path the running instance listens on; [Libcore.Socket] lives directly under it. */
+    /** Base path the core host listens on; [CORE_SOCKET_NAME] lives directly under it. */
     val socketBasePath: String
-        get() = createDesktopRepository().filesDir.invariantDirectoryPathString()
+        get() = createDesktopRepository().coreSocketBasePath
 
     override fun run() {
         currentContext.obj = this
@@ -261,9 +287,7 @@ private class DesktopMain(
 
             fun exitGracefully() {
                 runCatching {
-                    runBlocking {
-                        repository.stopService()
-                    }
+                    repository.coreHostController.shutdownHost()
                 }
                 exitApplication()
             }
@@ -389,7 +413,7 @@ private class DesktopMain(
             exitApplication()
         }
 
-        bootstrapDesktopRuntime(repository, startCommandServer = true)
+        bootstrapDesktopRuntime(repository, startCoreHost = true)
     }
 
     /**
@@ -431,15 +455,16 @@ private class DesktopMain(
     private fun runTaskMode(taskId: String): Int {
         DesktopTaskRegistry.require(taskId)
         val repository = createDesktopRepository()
-        val filesDir = repository.filesDir.invariantDirectoryPathString()
+        val socketBase = repository.coreSocketBasePath
 
-        when (checkExistingTaskInstance(filesDir, taskId)) {
+        when (checkExistingTaskInstance(socketBase, taskId)) {
             ExistingTaskDispatchResult.NotFound -> Unit
             ExistingTaskDispatchResult.Forwarded -> return 0
             ExistingTaskDispatchResult.ForwardFailed -> return 1
         }
 
-        bootstrapDesktopRuntime(repository, startCommandServer = false)
+        // Task-only processes do not spawn a core session host.
+        bootstrapDesktopRuntime(repository, startCoreHost = false)
         return try {
             runBlocking {
                 DesktopTaskRegistry.require(taskId).run()
@@ -463,7 +488,7 @@ private class DesktopMain(
 
     private fun bootstrapDesktopRuntime(
         repository: DesktopRepository,
-        startCommandServer: Boolean,
+        startCoreHost: Boolean,
     ) {
         DesktopNotificationCenter.initialize()
         DesktopTaskScheduler.initialize()
@@ -483,6 +508,7 @@ private class DesktopMain(
         }
         try {
             // First touch of the Libcore class in this process: loads the JNI library.
+            // Desktop still needs libcore for link parsing, formats, and the gRPC bridge client.
             Libcore.initCore(
                 true,
                 true,
@@ -498,10 +524,35 @@ private class DesktopMain(
         } catch (e: LinkageError) {
             warnLibcoreLoadFailureAndExit(e)
         }
-        if (startCommandServer) {
-            repository.boxService?.start()
+        if (startCoreHost) {
+            try {
+                repository.coreHostController.ensureHost()
+            } catch (e: Exception) {
+                Logs.e("failed to start core host session", e)
+                warnCoreHostFailureAndExit(e)
+            }
         }
     }
+}
+
+private fun warnCoreHostFailureAndExit(error: Exception): Nothing {
+    val title = "Failed to start core host"
+    val message = buildString {
+        appendLine("Husi could not start the out-of-process core host (husi-core).")
+        appendLine()
+        appendLine("Build it with: make core_desktop DESKTOP_TARGETS=host")
+        appendLine("or install a package that bundles husi-core next to the launcher.")
+        appendLine()
+        appendLine("Error: ${error.message ?: error::class.simpleName}")
+    }.trimEnd()
+    System.err.println("$title: $message")
+    System.err.println(error.stackTraceToString())
+    try {
+        showSelectableMessageDialog(message, title, JOptionPane.ERROR_MESSAGE)
+    } catch (dialogError: Exception) {
+        System.err.println(dialogError.message)
+    }
+    exitProcess(1)
 }
 
 /**
@@ -581,14 +632,14 @@ private enum class ExistingTaskDispatchResult {
     ForwardFailed,
 }
 
-private fun connectExistingClient(socketBasePath: String): Client? {
-    val client = Libcore.newClient(socketBasePath)
+private fun connectExistingClient(socketBasePath: String): CoreClient? {
+    val client = BridgeCoreClient(socketBasePath)
     runCatching {
-        client.hello()
+        runBlocking { client.probe() }
     }.onFailure {
         Logs.w("probe existing desktop instance", it)
         runCatching {
-            client.close()
+            runBlocking { client.close() }
         }
         return null
     }
@@ -601,19 +652,27 @@ private fun checkExistingTaskInstance(
 ): ExistingTaskDispatchResult {
     val client = connectExistingClient(socketBasePath) ?: return ExistingTaskDispatchResult.NotFound
     return try {
+        // Session mode has no UI AppHandler on the core host, so RunTask would be a
+        // silent no-op. Run the task in this process instead.
+        val hosting = runBlocking {
+            runCatching { client.getDaemonInfo().hosting }.getOrNull()
+        }
+        if (hosting == Hosting.HOSTING_SESSION || hosting == null) {
+            return ExistingTaskDispatchResult.NotFound
+        }
         if (forwardTask(client, taskId)) {
             ExistingTaskDispatchResult.Forwarded
         } else {
             ExistingTaskDispatchResult.ForwardFailed
         }
     } finally {
-        client.close()
+        runCatching { runBlocking { client.close() } }
     }
 }
 
-private fun forwardTask(client: Client, taskId: String): Boolean {
+private fun forwardTask(client: CoreClient, taskId: String): Boolean {
     return runCatching {
-        client.runTask(taskId)
+        runBlocking { client.runTask(taskId) }
     }.onFailure {
         Logs.e(it)
     }.isSuccess
@@ -646,39 +705,6 @@ private fun showSelectableMessageDialog(
     )
 }
 
-/**
- * Reads the current clash mode over a dedicated connection.
- *
- * There is no one-shot "get mode" command, but [Client.subscribeClashMode] emits the current mode
- * first. We read that first emission on a daemon thread, then close the socket to unblock the Go
- * read loop. A separate connection is used so the streaming read never interleaves with one-shot
- * queries on the caller's client.
- *
- * @return the current mode, or null if no instance is reachable or it did not emit in time.
- */
-private fun currentClashMode(socketBasePath: String): String? {
-    val client = try {
-        connectExistingClient(socketBasePath)
-    } catch (_: Throwable) {
-        null
-    } ?: return null
-    return runBlocking {
-        val firstMode = CompletableDeferred<String>()
-        val reader = launch(Dispatchers.IO) {
-            runCatching {
-                // Blocks until the socket closes; the first emission is the current mode.
-                client.subscribeClashMode { mode -> firstMode.complete(mode) }
-            }
-        }
-        try {
-            withTimeoutOrNull(2_000.milliseconds) { firstMode.await() }
-        } finally {
-            client.closeQuietly() // unblock the native read so `reader` can finish
-            reader.cancel()
-        }
-    }
-}
-
 /** Pretty-printed JSON for one-shot `--json` command output. */
 private val cliJson = Json { prettyPrint = true }
 
@@ -704,7 +730,7 @@ private abstract class ClientCommand(name: String) : CliktCommand(name) {
         echo(cliJson.encodeToString(JsonElement.serializer(), element))
     }
 
-    protected fun <T> withRunningClient(block: (Client) -> T): T {
+    protected fun <T> withRunningClient(block: suspend (CoreClient) -> T): T {
         val base = root.socketBasePath
         val client = try {
             connectExistingClient(base)
@@ -715,37 +741,35 @@ private abstract class ClientCommand(name: String) : CliktCommand(name) {
             null
         }
         if (client == null) {
-            echo("No running $APP_NAME instance (socket: $base/${Libcore.Socket}).", err = true)
+            echo("No running $APP_NAME instance (socket: $base/$CORE_SOCKET_NAME).", err = true)
             throw ProgramResult(1)
         }
         return try {
-            block(client)
+            runBlocking { block(client) }
         } finally {
-            client.closeQuietly()
+            runCatching { runBlocking { client.close() } }
         }
     }
 }
 
 private class StatusCommand : ClientCommand("status") {
     override fun run() = withRunningClient { client ->
-        val memory = client.queryMemory()
-        val goroutines = client.queryGoroutines()
-        val connections = client.queryConnections().toList()
-        val active = connections.count { it.closedAt.isEmpty() }
-        val closed = connections.size - active
-        val modes = client.queryClashModes().toList()
-        val current = currentClashMode(root.socketBasePath)
+        val status = withTimeout(CLI_STREAM_TIMEOUT) {
+            client.subscribeStatus(1.seconds).first()
+        }
+        val clash = client.getClashModeStatus()
+        val modes = clash.modeListList
+        val current = clash.currentMode
         if (json) {
             echoJson(
                 buildJsonObject {
                     put("running", true)
-                    put("memory", memory)
-                    put("memoryReadable", Libcore.formatMemoryBytes(memory))
-                    put("goroutines", goroutines)
+                    put("memory", status.memory)
+                    put("memoryReadable", Libcore.formatMemoryBytes(status.memory))
+                    put("goroutines", status.goroutines)
                     putJsonObject("connections") {
-                        put("active", active)
-                        put("closed", closed)
-                        put("total", connections.size)
+                        put("in", status.connectionsIn)
+                        put("out", status.connectionsOut)
                     }
                     putJsonObject("clashMode") {
                         put("current", current)
@@ -758,10 +782,12 @@ private class StatusCommand : ClientCommand("status") {
         echo(
             buildString {
                 appendLine("running:     yes")
-                appendLine("memory:      $memory (${Libcore.formatMemoryBytes(memory)})")
-                appendLine("goroutines:  $goroutines")
-                appendLine("connections: $active active, $closed closed")
-                append("clash mode:  ${current ?: "unknown"}")
+                appendLine("memory:      ${status.memory} (${Libcore.formatMemoryBytes(status.memory)})")
+                appendLine("goroutines:  ${status.goroutines}")
+                appendLine(
+                    "connections: ${status.connectionsIn} in, ${status.connectionsOut} out",
+                )
+                append("clash mode:  ${current.ifEmpty { "unknown" }}")
                 if (modes.isNotEmpty()) {
                     append(" (available: ${modes.joinToString(", ")})")
                 }
@@ -777,10 +803,11 @@ private class ModeCommand : ClientCommand("mode") {
     ).optional()
 
     override fun run() = withRunningClient { client ->
-        val modes = client.queryClashModes().toList()
+        val clash = client.getClashModeStatus()
+        val modes = clash.modeListList
         val target = mode
         if (target == null) {
-            val current = currentClashMode(root.socketBasePath)
+            val current = clash.currentMode
             if (json) {
                 echoJson(
                     buildJsonObject {
@@ -790,7 +817,7 @@ private class ModeCommand : ClientCommand("mode") {
                 )
                 return@withRunningClient
             }
-            echo("current:   ${current ?: "unknown"}")
+            echo("current:   ${current.ifEmpty { "unknown" }}")
             echo("available: ${modes.joinToString(", ").ifEmpty { "(none)" }}")
             return@withRunningClient
         }
@@ -826,8 +853,14 @@ private class ConnCommand : ClientCommand("conn") {
         // `conn close <uuid>` handles itself; a bare `conn` lists connections.
         if (currentContext.invokedSubcommand != null) return
         withRunningClient { client ->
-            val filtered = client.queryConnections().toList().filter { info ->
-                val isClosed = info.closedAt.isNotEmpty()
+            val snapshot = withTimeout(CLI_STREAM_TIMEOUT) {
+                client.subscribeConnections(1.seconds).first { it.reset }
+            }
+            val connections = snapshot.eventsList.mapNotNull { event ->
+                if (!event.hasConnection()) null else event.connection
+            }
+            val filtered = connections.filter { info ->
+                val isClosed = info.closedAt > 0L
                 when {
                     active && !closed -> !isClosed
                     closed && !active -> isClosed
@@ -839,24 +872,27 @@ private class ConnCommand : ClientCommand("conn") {
                     buildJsonObject {
                         putJsonArray("connections") {
                             for (info in filtered) {
+                                val startedAt = formatConnectionTime(info.createdAt)
+                                val closedAt = formatConnectionTime(info.closedAt)
+                                val chain = info.chainLabel()
                                 addJsonObject {
-                                    put("uuid", info.uuid)
+                                    put("uuid", info.id)
                                     put(
                                         "state",
-                                        if (info.closedAt.isNotEmpty()) "closed" else "active",
+                                        if (info.closedAt > 0L) "closed" else "active",
                                     )
                                     put("network", info.network)
-                                    put("src", info.src)
-                                    put("dst", info.dst)
-                                    put("host", info.host)
-                                    put("outbound", info.outbound)
-                                    put("rule", info.matchedRule)
+                                    put("src", info.source)
+                                    put("dst", info.destination)
+                                    put("host", info.domain)
+                                    put("outbound", info.outboundLabel())
+                                    put("rule", info.matchedRuleOrFinal())
                                     put("protocol", info.protocol)
-                                    put("chain", info.chain)
-                                    put("uploadTotal", info.uploadTotal)
-                                    put("downloadTotal", info.downloadTotal)
-                                    put("startedAt", info.startedAt)
-                                    put("closedAt", info.closedAt)
+                                    put("chain", chain)
+                                    put("uploadTotal", info.uplinkTotal)
+                                    put("downloadTotal", info.downlinkTotal)
+                                    put("startedAt", startedAt)
+                                    put("closedAt", closedAt)
                                 }
                             }
                         }
@@ -870,18 +906,19 @@ private class ConnCommand : ClientCommand("conn") {
                 return@withRunningClient
             }
             for (info in filtered) {
-                val state = if (info.closedAt.isNotEmpty()) "closed" else "active"
+                val state = if (info.closedAt > 0L) "closed" else "active"
+                val chain = info.chainLabel()
                 echo(
                     "%s  %-6s  %-5s  %s -> %s  host=%s  up %s  down %s%s".format(
-                        info.uuid,
+                        info.id,
                         state,
                         info.network,
-                        info.src,
-                        info.dst,
-                        info.host.ifEmpty { "-" },
-                        Libcore.formatBytes(info.uploadTotal),
-                        Libcore.formatBytes(info.downloadTotal),
-                        if (info.chain.isEmpty()) "" else "  [${info.chain}]",
+                        info.source,
+                        info.destination,
+                        info.domain.ifEmpty { "-" },
+                        Libcore.formatBytes(info.uplinkTotal),
+                        Libcore.formatBytes(info.downlinkTotal),
+                        if (chain.isEmpty()) "" else "  [$chain]",
                     ),
                 )
             }
@@ -916,7 +953,8 @@ private class LogCommand : ClientCommand("log") {
 
     override fun run() = withRunningClient { client ->
         if (clear) {
-            client.clearLog()
+            client.clearLogs()
+            Libcore.logClear()
             if (json) {
                 echoJson(buildJsonObject { put("ok", true) })
                 return@withRunningClient
@@ -924,22 +962,25 @@ private class LogCommand : ClientCommand("log") {
             echo("log cleared")
             return@withRunningClient
         }
-        // subscribeLogs replays the buffer, then streams live entries until the socket closes
-        // (e.g. Ctrl-C). In JSON mode each entry is one compact object per line (JSON Lines).
-        client.subscribeLogs { item ->
-            val level = LogLevel.entries.getOrNull(item.level)?.name ?: item.level.toString()
-            if (json) {
-                echo(
-                    cliJsonLine.encodeToString(
-                        JsonElement.serializer(),
-                        buildJsonObject {
-                            put("level", level)
-                            put("message", item.message)
-                        },
-                    ),
-                )
-            } else {
-                echo("[$level] ${item.message}")
+        // subscribeLog replays the buffer (reset batch), then streams live entries until the
+        // socket closes (e.g. Ctrl-C). In JSON mode each entry is one compact object per line.
+        client.subscribeLog().collect { batch ->
+            for (item in batch.messagesList) {
+                val level = LogLevel.entries.getOrNull(item.levelValue)?.name
+                    ?: item.levelValue.toString()
+                if (json) {
+                    echo(
+                        cliJsonLine.encodeToString(
+                            JsonElement.serializer(),
+                            buildJsonObject {
+                                put("level", level)
+                                put("message", item.message)
+                            },
+                        ),
+                    )
+                } else {
+                    echo("[$level] ${item.message}")
+                }
             }
         }
     }
@@ -958,7 +999,9 @@ private class ResetNetworkCommand : ClientCommand("reset_network") {
 
 private class MemoryCommand : ClientCommand("memory") {
     override fun run() = withRunningClient { client ->
-        val memory = client.queryMemory()
+        val memory = withTimeout(CLI_STREAM_TIMEOUT) {
+            client.subscribeStatus(1.seconds).first()
+        }.memory
         if (json) {
             echoJson(
                 buildJsonObject {
@@ -974,7 +1017,9 @@ private class MemoryCommand : ClientCommand("memory") {
 
 private class GoroutinesCommand : ClientCommand("goroutines") {
     override fun run() = withRunningClient { client ->
-        val goroutines = client.queryGoroutines()
+        val goroutines = withTimeout(CLI_STREAM_TIMEOUT) {
+            client.subscribeStatus(1.seconds).first()
+        }.goroutines
         if (json) {
             echoJson(buildJsonObject { put("goroutines", goroutines) })
             return@withRunningClient
@@ -982,6 +1027,9 @@ private class GoroutinesCommand : ClientCommand("goroutines") {
         echo(goroutines.toString())
     }
 }
+
+/** One-shot CLI stream reads must not hang forever on a broken stream (FIX F9). */
+private val CLI_STREAM_TIMEOUT = 5.seconds
 
 /**
  * Imports deep links into a running instance, or launches the GUI when none are given. This is the

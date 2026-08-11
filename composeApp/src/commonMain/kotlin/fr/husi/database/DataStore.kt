@@ -28,7 +28,9 @@ import kotlinx.coroutines.runBlocking
 
 object DataStore {
 
-    // share service state in main & bg process
+    // Per-process copy of the current service state. @Volatile does not cross
+    // processes: the UI process is fed by ServiceEventMirror, :bg by BaseService,
+    // and desktop by CoreHostController.
     @Volatile
     var serviceState = ServiceState.Idle
 

@@ -54,7 +54,8 @@ import fr.husi.compose.material3.ButtonDefaults
 import fr.husi.compose.material3.Card
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
-import fr.husi.libcore.Libcore
+import fr.husi.proto.v1.NATFiltering
+import fr.husi.proto.v1.NATMapping
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_back
 import fr.husi.resources.available
@@ -270,9 +271,9 @@ private fun StunReportContent(
                     value = if (isDoing) {
                         null
                     } else {
-                        Libcore.formatNATMapping(report.natMapping)
+                        report.mappingDisplay
                     },
-                    color = natMappingColor(report.natMapping),
+                    color = natMappingColor(report.mapping),
                 )
                 HorizontalDivider(modifier = Modifier.fillMaxWidth())
                 ResultLine(
@@ -280,9 +281,9 @@ private fun StunReportContent(
                     value = if (isDoing) {
                         null
                     } else {
-                        Libcore.formatNATFiltering(report.natFiltering)
+                        report.filteringDisplay
                     },
-                    color = natFilteringColor(report.natFiltering),
+                    color = natFilteringColor(report.filtering),
                 )
             }
         }
@@ -383,17 +384,17 @@ private fun PendingIndicator(modifier: Modifier = Modifier) {
     )
 }
 
-private fun natMappingColor(value: Int): Color = when (value) {
-    Libcore.NATMappingEndpointIndependent -> Color.Green
-    Libcore.NATMappingAddressDependent -> Color.Yellow
-    Libcore.NATMappingAddressAndPortDependent -> Color.Red
+private fun natMappingColor(value: NATMapping): Color = when (value) {
+    NATMapping.NAT_MAPPING_ENDPOINT_INDEPENDENT -> Color.Green
+    NATMapping.NAT_MAPPING_ADDRESS_DEPENDENT -> Color.Yellow
+    NATMapping.NAT_MAPPING_ADDRESS_AND_PORT_DEPENDENT -> Color.Red
     else -> Color.Unspecified
 }
 
-private fun natFilteringColor(value: Int): Color = when (value) {
-    Libcore.NATFilteringEndpointIndependent -> Color.Green
-    Libcore.NATFilteringAddressDependent -> Color.Yellow
-    Libcore.NATFilteringAddressAndPortDependent -> Color.Red
+private fun natFilteringColor(value: NATFiltering): Color = when (value) {
+    NATFiltering.NAT_FILTERING_ENDPOINT_INDEPENDENT -> Color.Green
+    NATFiltering.NAT_FILTERING_ADDRESS_DEPENDENT -> Color.Yellow
+    NATFiltering.NAT_FILTERING_ADDRESS_AND_PORT_DEPENDENT -> Color.Red
     else -> Color.Unspecified
 }
 

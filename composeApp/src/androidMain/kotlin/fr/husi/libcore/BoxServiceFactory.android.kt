@@ -1,12 +1,20 @@
 package fr.husi.libcore
 
+import fr.husi.BuildConfig
 import fr.husi.CertProvider
 import fr.husi.bg.AndroidPlatformInterface
 import fr.husi.database.DataStore
+import fr.husi.repository.resolveAndroidRepository
 
 actual fun createBoxService(isBgProcess: Boolean): Service? {
     return if (isBgProcess) {
-        Libcore.newService(AndroidPlatformInterface())
+        val service = Libcore.newService(BuildConfig.VERSION_NAME, AndroidPlatformInterface())
+        // Same parent directory StartService uses for the long-lived pool; URL
+        // tests create transient subdirs under it via pluginpool.RunWithPlugins.
+        val pluginDir = resolveAndroidRepository().noBackupFilesDir.resolve("plugin")
+        pluginDir.mkdirs()
+        service.setPluginWorkingDir(pluginDir.absolutePath)
+        service
     } else {
         null
     }

@@ -1,5 +1,6 @@
 package fr.husi.bg
 
+import com.google.protobuf.ByteString
 import fr.husi.database.DataStore
 import fr.husi.fmt.ConfigBuildResult
 import fr.husi.fmt.hysteria.HysteriaBean
@@ -15,6 +16,9 @@ import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
+import fr.husi.proto.v1.PluginProcessSpec
+import fr.husi.proto.v1.pluginFile
+import fr.husi.proto.v1.pluginProcessSpec
 import fr.husi.repository.resolveRepository
 import java.io.File
 
@@ -75,79 +79,79 @@ fun initPlugins(
     return pluginConfigs
 }
 
-fun launchPlugins(
+fun buildPluginSpecs(
     config: ConfigBuildResult,
     pluginConfigs: Map<Int, Pair<Int, String>>,
-    processes: GuardedProcessPool,
-    cacheFiles: MutableList<File>,
     isVPN: Boolean,
-) {
+): List<PluginProcessSpec> {
     val repository = resolveRepository()
-    val cacheDir = File(repository.cacheDir, "tmpcfg")
-    cacheDir.mkdirs()
     val shouldProtect = isVPN && PlatformInfo.isAndroid
+    val specs = ArrayList<PluginProcessSpec>()
 
-    val env = mutableMapOf<String, String>()
+    val sharedEnv = linkedMapOf<String, String>()
     repository.externalAssetsDir.resolve(Libcore.PluginCaFile)
         .takeIf { it.isFile }
         ?.absolutePath
-        ?.let {
-            env["SSL_CERT_FILE"] = it
-        }
+        ?.let { sharedEnv["SSL_CERT_FILE"] = it }
 
     for ((chain) in config.externalIndex) {
         chain.entries.forEach { (port, profile) ->
             val bean = profile.requireBean()
             val (_, cfg) = pluginConfigs[port] ?: return@forEach
+            val env = linkedMapOf<String, String>().apply { putAll(sharedEnv) }
 
-            when (bean) {
+            val spec = when (bean) {
                 is MieruBean -> {
-                    val configFile = File(cacheDir, "mieru_${System.currentTimeMillis()}.json")
-                    configFile.writeText(cfg)
-                    cacheFiles.add(configFile)
-                    env["MIERU_CONFIG_JSON_FILE"] = configFile.absolutePath
+                    val configName = "mieru_$port.json"
                     if (shouldProtect) {
                         env["MIERU_PROTECT_PATH"] = Libcore.ProtectPath
                     }
-                    processes.start(
-                        listOf(PluginManager.init("mieru-plugin")!!.path, "run"),
-                        env,
-                    )
+                    env["MIERU_CONFIG_JSON_FILE"] = pluginFileToken(configName)
+                    pluginProcessSpec {
+                        name = "mieru-plugin"
+                        command.add(PluginManager.init("mieru-plugin")!!.path)
+                        command.add("run")
+                        environment.putAll(env)
+                        files.add(pluginConfigFile(configName, cfg))
+                    }
                 }
 
                 is NaiveBean -> {
-                    val configFile = File(cacheDir, "naive_${System.currentTimeMillis()}.json")
-                    configFile.writeText(cfg)
-                    cacheFiles.add(configFile)
-                    processes.start(
-                        listOf(
-                            PluginManager.init("naive-plugin")!!.path,
-                            configFile.absolutePath,
-                        ),
-                        env,
-                    )
+                    val configName = "naive_$port.json"
+                    pluginProcessSpec {
+                        name = "naive-plugin"
+                        command.add(PluginManager.init("naive-plugin")!!.path)
+                        command.add(pluginFileToken(configName))
+                        environment.putAll(env)
+                        files.add(pluginConfigFile(configName, cfg))
+                    }
                 }
 
                 is HysteriaBean -> {
-                    val configFile = File(cacheDir, "hysteria_${System.currentTimeMillis()}.json")
-                    configFile.writeText(cfg)
-                    cacheFiles.add(configFile)
+                    val configName = "hysteria_$port.json"
+                    env["HYSTERIA_DISABLE_UPDATE_CHECK"] = "1"
+                    val pluginId = if (bean.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+                        "hysteria-plugin"
+                    } else {
+                        "hysteria2-plugin"
+                    }
+                    val executable = PluginManager.init(pluginId)!!.path
                     val commands = if (bean.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
                         mutableListOf(
-                            PluginManager.init("hysteria-plugin")!!.path,
+                            executable,
                             "client",
                             "--no-check",
                             "--config",
-                            configFile.absolutePath,
+                            pluginFileToken(configName),
                             "--log-level",
                             if (DataStore.logLevel > 0) "trace" else "warn",
                         )
                     } else {
                         mutableListOf(
-                            PluginManager.init("hysteria2-plugin")!!.path,
+                            executable,
                             "client",
                             "--config",
-                            configFile.absolutePath,
+                            pluginFileToken(configName),
                             "--log-level",
                             if (DataStore.logLevel > 0) "warn" else "error",
                         )
@@ -158,43 +162,53 @@ fun launchPlugins(
                     ) {
                         commands.addAll(0, listOf("su", "-c"))
                     }
-                    env["HYSTERIA_DISABLE_UPDATE_CHECK"] = "1"
-                    processes.start(
-                        commands,
-                        env,
-                    )
+                    pluginProcessSpec {
+                        name = pluginId
+                        command.addAll(commands)
+                        environment.putAll(env)
+                        files.add(pluginConfigFile(configName, cfg))
+                    }
                 }
 
                 is JuicityBean -> {
-                    val configFile = File(cacheDir, "juicity_${System.currentTimeMillis()}.json")
-                    configFile.writeText(cfg)
-                    cacheFiles.add(configFile)
+                    val configName = "juicity_$port.json"
                     env["QUIC_GO_DISABLE_GSO"] = "1"
-                    processes.start(
-                        listOf(
-                            PluginManager.init("juicity-plugin")!!.path,
-                            "run",
-                            "-c",
-                            configFile.absolutePath,
-                        ),
-                        env,
-                    )
+                    pluginProcessSpec {
+                        name = "juicity-plugin"
+                        command.add(PluginManager.init("juicity-plugin")!!.path)
+                        command.add("run")
+                        command.add("-c")
+                        command.add(pluginFileToken(configName))
+                        environment.putAll(env)
+                        files.add(pluginConfigFile(configName, cfg))
+                    }
                 }
 
                 is ShadowQUICBean -> {
-                    val configFile = File(cacheDir, "shadowquic_${System.currentTimeMillis()}.yaml")
-                    configFile.writeText(cfg)
-                    cacheFiles.add(configFile)
-                    processes.start(
-                        listOf(
-                            PluginManager.init("shadowquic-plugin")!!.path,
-                            "-c",
-                            configFile.absolutePath,
-                        ),
-                        env,
-                    )
+                    val configName = "shadowquic_$port.yaml"
+                    pluginProcessSpec {
+                        name = "shadowquic-plugin"
+                        command.add(PluginManager.init("shadowquic-plugin")!!.path)
+                        command.add("-c")
+                        command.add(pluginFileToken(configName))
+                        environment.putAll(env)
+                        files.add(pluginConfigFile(configName, cfg))
+                    }
                 }
+
+                else -> null
+            }
+            if (spec != null) {
+                specs.add(spec)
             }
         }
     }
+    return specs
+}
+
+private fun pluginFileToken(name: String): String = $$"${file:$$name}"
+
+private fun pluginConfigFile(name: String, content: String) = pluginFile {
+    this.name = name
+    this.content = ByteString.copyFromUtf8(content)
 }

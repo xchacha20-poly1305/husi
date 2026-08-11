@@ -18,15 +18,15 @@ import fr.husi.group.GroupUpdateResult
 import fr.husi.group.GroupUpdateWarning
 import fr.husi.group.GroupUpdater
 import fr.husi.group.RawUpdater
+import fr.husi.core.CoreClient
+import fr.husi.core.urlTestOptions
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
-import fr.husi.ktx.urlTestOptions
 import fr.husi.repository.Repository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
-import fr.husi.utils.LibcoreClientManager
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import org.koin.core.context.GlobalContext
 
 @Immutable
 sealed interface URLTestStatus {
@@ -76,6 +76,7 @@ sealed interface MainViewModelUiEvent {
 class MainViewModel(
     private val repository: Repository = resolveRepository(),
     private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
+    private val coreClient: CoreClient = GlobalContext.get().get(),
 ) : ViewModel() {
 
     val urlTestStatus: StateFlow<URLTestStatus>
@@ -123,13 +124,6 @@ class MainViewModel(
         }
     }
 
-    override fun onCleared() {
-        runBlocking {
-            urlTestClient.close()
-        }
-        super.onCleared()
-    }
-
     fun showSnackbar(message: StringOrRes) = viewModelScope.launch {
         uiEvent.emit(MainViewModelUiEvent.Snackbar(message))
     }
@@ -137,8 +131,6 @@ class MainViewModel(
     fun resetUrlTestStatus() {
         urlTestStatus.value = URLTestStatus.Initial
     }
-
-    private val urlTestClient = LibcoreClientManager()
 
     fun urlTest() = viewModelScope.launch(Dispatchers.IO) {
         urlTestStatus.update { status ->
@@ -152,15 +144,15 @@ class MainViewModel(
             return@launch
         }
         try {
-            var result = -1
-            urlTestClient.withClient { client ->
-                result = client.urlTest(
-                    "",
-                    DataStore.connectionTestURL,
-                    DataStore.connectionTestTimeout,
-                    urlTestOptions,
-                )
-            }
+            val result = coreClient.urlTest(
+                "",
+                DataStore.connectionTestURL,
+                DataStore.connectionTestTimeout,
+                urlTestOptions(
+                    DataStore.connectionTestUnifiedDelay,
+                    DataStore.connectionTestIgnoreHandshakeTime,
+                ),
+            )
             urlTestStatus.update { URLTestStatus.Success(result) }
         } catch (e: Exception) {
             urlTestStatus.update { URLTestStatus.Exception(e.readableMessage) }

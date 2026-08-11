@@ -44,7 +44,7 @@ import org.koin.dsl.navigation3.navigation
 internal val commonNavigationModule = module {
     scope<MainScreenScope> {
         viewModelOf(::MainViewModel)
-        viewModel { SpeedTestScreenViewModel(httpClientFactory = get()) }
+        viewModel { SpeedTestScreenViewModel(coreClient = get()) }
         scoped { (backStack: MutableList<NavKey>) ->
             Navigator(backStack)
         }

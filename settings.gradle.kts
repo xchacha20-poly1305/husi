@@ -35,6 +35,7 @@ when {
 
 include(":androidApp")
 include(":composeApp")
+include(":proto")
 include(":library:DragDropSwipeLazyColumn")
 
 rootProject.name = "husi"

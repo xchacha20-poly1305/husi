@@ -4,14 +4,17 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.core.CoreClient
 import fr.husi.ktx.Logs
 import fr.husi.ktx.currentSocks5
 import fr.husi.libcore.Libcore
+import fr.husi.proto.v1.GetCertMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
 
 @Immutable
 internal data class GetCertUiState(
@@ -39,7 +42,9 @@ internal enum class Format(val display: String) {
 }
 
 @Stable
-internal class GetCertScreenViewModel() : ViewModel() {
+internal class GetCertScreenViewModel(
+    private val coreClient: CoreClient = GlobalContext.get().get(),
+) : ViewModel() {
 
     val uiState: StateFlow<GetCertUiState>
         field = MutableStateFlow(GetCertUiState())
@@ -68,7 +73,11 @@ internal class GetCertScreenViewModel() : ViewModel() {
             it.copy(isDoing = true, cert = "", formatted = "")
         }
         try {
-            val cert = Libcore.getCert(server, serverName, protocol, proxy)
+            val mode = when (protocol) {
+                "quic" -> GetCertMode.GET_CERT_MODE_QUIC
+                else -> GetCertMode.GET_CERT_MODE_HTTPS
+            }
+            val cert = coreClient.getCert(server, serverName, mode, proxy)
             uiState.update {
                 it.copy(
                     cert = cert,

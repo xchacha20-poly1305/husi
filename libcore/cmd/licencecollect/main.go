@@ -17,7 +17,6 @@ import (
 	"strings"
 	"time"
 
-	_ "libcore" // Import dependencies
 	"libcore/cmd/internal/shared"
 
 	"github.com/sagernet/sing-box/log"
@@ -27,6 +26,8 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/xchacha20-poly1305/pkgsite-go"
+	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/module"
 )
 
 const (
@@ -34,12 +35,15 @@ const (
 	DefaultRateLimitRetryDelay = 1 * time.Minute // 60 rpm
 
 	generatedLibraryFilePrefix = "go_"
+
+	defaultGoModPath = "go.mod"
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	goModPath := flag.String("mod", defaultGoModPath, "path to the go.mod listing the modules to collect")
 	outputName := flag.String("o", "", "output")
 	outputDir := flag.String("d", "", "output directory for AboutLibraries library definitions")
 	cleanOutputDir := flag.Bool("clean", false, "remove generated library definitions from output directory before writing")
@@ -66,9 +70,9 @@ func main() {
 		output = file
 	}
 
-	buildInfo, loaded := debug.ReadBuildInfo()
-	if !loaded {
-		log.PanicContext(ctx, "failed to read build info")
+	modules, err := collectRequiredModules(*goModPath)
+	if err != nil {
+		log.PanicContext(ctx, err)
 		return
 	}
 
@@ -86,8 +90,8 @@ func main() {
 			},
 		}),
 	)
-	libraries := make([]Library, 0, len(buildInfo.Deps)+1)
-	for _, dependency := range buildInfo.Deps {
+	libraries := make([]Library, 0, len(modules))
+	for _, dependency := range modules {
 		library, err := resolveLibrary(ctx, client, dependency)
 		if err != nil {
 			log.PanicContext(ctx, err)
@@ -96,12 +100,6 @@ func main() {
 		log.InfoContext(ctx, "found ", library.Name, " with license: ", fmt.Sprint(library.Licenses))
 		libraries = append(libraries, library)
 	}
-	libraries = append(libraries, Library{
-		UniqueID: "github.com/sagernet/cronet-go",
-		Name:     "github.com/sagernet/cronet-go",
-		Website:  "https://github.com/sagernet/cronet-go",
-		Licenses: []string{LicenseGPL3OrLatter},
-	})
 	slices.SortFunc(libraries, func(a, b Library) int {
 		return cmp.Compare(a.UniqueID, b.UniqueID)
 	})
@@ -159,6 +157,30 @@ func cleanGeneratedLibraries(outputDir string) error {
 		}
 	}
 	return nil
+}
+
+func collectRequiredModules(goModPath string) ([]*debug.Module, error) {
+	content, err := os.ReadFile(goModPath)
+	if err != nil {
+		return nil, err
+	}
+	goMod, err := modfile.Parse(goModPath, content, nil)
+	if err != nil {
+		return nil, E.Cause(err, "parse ", goModPath)
+	}
+
+	modules := make([]*debug.Module, 0, len(goMod.Require))
+	for _, require := range goMod.Require {
+		const cronetGoBlob = "github.com/sagernet/cronet-go"
+		if module.MatchPrefixPatterns(cronetGoBlob, require.Mod.Path) {
+			continue
+		}
+		modules = append(modules, &debug.Module{
+			Path:    require.Mod.Path,
+			Version: require.Mod.Version,
+		})
+	}
+	return modules, nil
 }
 
 var libraryNameReplacer = strings.NewReplacer("/", "_", "\\", "_", ":", "_")

@@ -292,6 +292,7 @@ kotlin {
                 implementation(libs.filekit.dialogs.compose)
                 implementation(libs.aboutlibraries.compose.m3)
                 implementation(libs.zxing.core)
+                implementation(project(":proto"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
 
                 implementation(project.dependencies.platform(libs.koin.bom))
@@ -426,8 +427,8 @@ dependencies {
 tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
     if (this is Jar) {
         // Exclude non-target native binaries from dependency family buckets.
+        // libcore natives/** are always stripped (thin release jar); others keep only the target arch.
 
-        val nativeKeepPrefixes = desktopTarget.nativeKeepPrefixes
         val jnaNativeKeepPrefixes = desktopTarget.jnaNativeKeepPrefixes
         val composeTrayNativeKeepPrefixes = desktopTarget.composeTrayNativeKeepPrefixes
         val nucleusNativeKeepPrefixes = desktopTarget.nucleusNativeKeepPrefixes
@@ -440,7 +441,9 @@ tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
 
         eachFile {
             val entryPath = path
-            if (entryPath.startsWith("natives/") && nativeKeepPrefixes.none(entryPath::startsWith)) {
+            // Release uberjar is born thin (N7): ship the anja library as a plain
+            // file next to husi-core. Dev classpath jars stay fat (untouched here).
+            if (entryPath.startsWith("natives/")) {
                 exclude()
                 return@eachFile
             }

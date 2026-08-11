@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package husi.v1;
+
+import "daemon/started_service.proto";
+
+option go_package = "libcore/pb/husi/v1;husiv1";
+option java_multiple_files = true;
+option java_outer_classname = "DaemonProto";
+option java_package = "fr.husi.proto.v1";
+
+// DaemonService owns the lifecycle of the instance that daemon.StartedService
+// exposes. Only the desktop hostings serve it: the privileged daemon and the
+// unprivileged session child. Android keeps its own start path, because the
+// platform mandates startService, VpnService.prepare and a notification.
+//
+// sing-box's own desktop.DesktopService covers the same ground, and husi
+// deliberately does not speak it: it cannot carry husi's plugin processes or
+// pushed assets, and its generated Go lives in a main package that nothing can
+// import. The core-scoped contract is where compatibility pays, and that one
+// husi shares verbatim.
+//
+// The daemon may outlive several UI processes and serve several local users,
+// so it has an owner: the first client to claim it. Other local users are
+// refused until they take over.
+service DaemonService {
+  rpc GetDaemonInfo(GetDaemonInfoRequest) returns (GetDaemonInfoResponse);
+
+  rpc ClaimService(ClaimServiceRequest) returns (ClaimServiceResponse);
+  rpc TakeOverService(TakeOverServiceRequest) returns (TakeOverServiceResponse);
+
+  rpc StartService(StartServiceRequest) returns (StartServiceResponse);
+  rpc StopService(StopServiceRequest) returns (StopServiceResponse);
+  rpc GetClientMetadata(GetClientMetadataRequest) returns (GetClientMetadataResponse);
+  rpc SetStartAtBoot(SetStartAtBootRequest) returns (SetStartAtBootResponse);
+}
+
+message GetDaemonInfoRequest {}
+
+message GetDaemonInfoResponse {
+  string version = 1;
+  // Revision of this contract, matching CoreService.GetVersion. A client whose
+  // own revision differs blocks service control and offers a daemon update.
+  uint32 api_version = 2;
+  Hosting hosting = 3;
+  Ownership ownership = 4;
+  Capabilities capabilities = 5;
+  // Whether the daemon is configured to restore the last service on boot
+  // (StartAtBoot marker). Distinct from Capabilities.start_at_boot, which
+  // only says the host supports the feature.
+  bool start_at_boot = 6;
+}
+
+enum Hosting {
+  HOSTING_UNSPECIFIED = 0;
+  // Privileged system service, registered with systemd, launchd or the
+  // Windows service manager. Survives the UI and can restore on boot.
+  HOSTING_DAEMON = 1;
+  // Unprivileged child of the UI, which it dies with.
+  HOSTING_SESSION = 2;
+}
+
+message Ownership {
+  bool claimed = 1;
+  bool owned_by_caller = 2;
+  // Platform identifier of the owner: the numeric uid on unix, the SID on
+  // Windows. Empty while unclaimed.
+  string owner_id = 3;
+  // Human readable owner, for the conflict message the UI shows.
+  string owner_name = 4;
+}
+
+message Capabilities {
+  // False in session mode, where opening a tun device is out of reach.
+  bool tun = 1;
+  bool start_at_boot = 2;
+}
+
+message ClaimServiceRequest {}
+
+message ClaimServiceResponse {}
+
+// TakeOverService claims a daemon another user owns. The previous owner's
+// connections are dropped and the running service keeps going under the new
+// owner until it is stopped or replaced.
+message TakeOverServiceRequest {}
+
+message TakeOverServiceResponse {}
+
+message StartServiceRequest {
+  // Rendered config, pushed as content so starting never depends on the
+  // daemon reading the caller's config storage. Paths inside the config
+  // (local rule sets, custom config fragments) are owner-supplied like the
+  // rest of it: the daemon acts with owner-level trust, and cross-user
+  // protection comes from ownership authentication, not path restrictions.
+  string config = 1;
+  repeated PluginProcessSpec plugins = 2;
+  ServiceOptions options = 3;
+  ClientMetadata client_metadata = 4;
+}
+
+// PluginProcessSpec describes one protocol plugin the host spawns and
+// supervises alongside the instance. The daemon runs these with the owner
+// user's credentials, never with its own.
+//
+// Arguments and environment values may reference a file by name with the token
+// "${file:<name>}", which the host replaces with the absolute path it wrote.
+// Callers cannot know that path, since the working directory belongs to the
+// host.
+message PluginProcessSpec {
+  // Plugin identifier such as "mieru-plugin", used in logs and errors.
+  string name = 1;
+  // Executable followed by its arguments.
+  repeated string command = 2;
+  map<string, string> environment = 3;
+  // Written into the host working directory before the process starts, and
+  // removed when it stops.
+  repeated PluginFile files = 4;
+}
+
+message PluginFile {
+  // File name inside the host working directory, without a separator.
+  string name = 1;
+  bytes content = 2;
+}
+
+message ServiceOptions {
+  daemon.LogLevel log_level = 1;
+}
+
+// Which profile the running service came from. The daemon only stores it and
+// hands it back, so a UI that reconnects to a daemon it did not start knows
+// what it is looking at. Service state itself comes from sing-box's
+// daemon.StartedService.SubscribeServiceStatus, the single source of truth the
+// Kotlin state machine mirrors.
+message ClientMetadata {
+  int64 profile_id = 1;
+  string profile_name = 2;
+}
+
+message StartServiceResponse {}
+
+message StopServiceRequest {}
+
+message StopServiceResponse {}
+
+message GetClientMetadataRequest {}
+
+message GetClientMetadataResponse {
+  // What the last StartService carried, empty once the service is idle.
+  ClientMetadata client_metadata = 1;
+}
+
+message SetStartAtBootRequest {
+  // When enabled, the daemon restores the last started service on boot,
+  // provided it was running when the machine went down.
+  bool enabled = 1;
+}
+
+message SetStartAtBootResponse {}

@@ -276,6 +276,16 @@ You can select target formats:
 make desktop_package_linux LINUX_PACKAGE_FORMATS=deb,pacman
 ```
 
+Besides `deb`, `rpm` and `pacman`, there is `tarball`: the relocatable app subtree
+as a `.tar.zst`, for portable installs and for distributions the native formats do
+not cover. It is not built by default, but releases ship it. It needs `tar` and
+`zstd`, and unpacks to a directory holding the jar, the launcher, `husi-core` and
+`libhusicore.so` — run `bin/husi-core service install` from there to get the daemon.
+The native packages install and enable that daemon themselves, so only the tarball
+needs the manual step. Either way the Settings entry can do it instead, but that
+route goes through `pkexec` and so needs polkit; without it, run the command as
+root.
+
 Linux desktop data directory is `$XDG_CONFIG_HOME/husi/` if set, otherwise
 `$HOME/.config/husi/`.
 
@@ -294,7 +304,14 @@ make launcher
 
 The default packaging flow runs `make launcher` first, then `package.sh` consumes that binary.
 Zig targets musl by default for static linking; no external C toolchain is needed.
-Package install scripts call `setcap` on the launcher so capabilities can be raised to ambient set before starting the JVM.
+The launcher runs unprivileged. Privileges live in the separate `husi-core`
+daemon (`husi-core service install`; systemd / launchd / Windows SCM service
+`husi-daemon`). Without a daemon the UI falls back to an unprivileged session
+host; TUN requires the daemon.
+
+`husi-core` is a second, independent Zig project under `libcore/shim/`, built by
+`make core_desktop` and packaged alongside `libhusicore.*`. It links libc
+dynamically, unlike the static launcher, so the two are deliberately kept apart.
 
 You can preflight required tooling without producing packages:
 
@@ -356,6 +373,7 @@ Required host tools:
 * `git`
 * `python3`
 * `makensis` (NSIS)
+* `osslsigncode` (unless building with `WINDOWS_NO_SIGN=1`, see below)
 
 Default output directory:
 
@@ -368,9 +386,70 @@ Outputs:
 * `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>.zip`
 * `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>-installer.exe`
 
-The installer is a per-user NSIS installer that installs into `%LOCALAPPDATA%\Programs\Husi`,
-creates a Start Menu shortcut, and registers the configured URL schemes for the current user.
-The Windows launcher embeds an application manifest and requests administrator elevation via UAC at launch time.
+The installer is a per-user NSIS installer that installs into `%LOCALAPPDATA%\Programs\Husi`, creates a Start Menu
+shortcut, and registers the configured URL schemes for the current user. The Windows launcher is unprivileged.
+Privileges live in the `husi-core` daemon installed as a Windows service (`husi-core service install`); TUN requires the
+daemon. Without it the UI falls back to an unprivileged session host.
+
+The UI and the daemon therefore install to **two different places**, and both hold a copy of `husi-core.exe` +
+`husicore.dll`:
+
+| What                                           | Where                          | Installed by                               |
+|------------------------------------------------|--------------------------------|--------------------------------------------|
+| UI (launcher, jar, and the core pair it ships) | `%LOCALAPPDATA%\Programs\Husi` | the NSIS installer, per user, no elevation |
+| Daemon (the core pair the service runs)        | `%ProgramFiles%\husi`          | `husi-core service install`, elevated      |
+| Daemon state (snapshots, ownership)            | `%ProgramData%\husi`           | the daemon itself                          |
+
+The installer runs `husi-core.exe service install` from its own directory at the end, so the per-user copy is what seeds
+the Program Files copy — that is why the same two files exist twice. The uninstaller reverses both, calling
+`husi-core.exe service uninstall` before removing its own directory. It does not pass `--purge`, so `%ProgramData%\husi`
+survives an uninstall; remove it by hand, or run `husi-core service uninstall --purge` yourself beforehand.
+
+##### 🔏 Windows code signing
+
+Windows releases are Authenticode signed: the launcher, `husi-core.exe`,
+`husicore.dll` and the installer all carry the **same self-signed certificate**, published as [
+`release/windows/husi-signing-cert.pem`](release/windows/husi-signing-cert.pem). Its fingerprints and how to check a
+download against it are in
+[`release/windows/README.md`](release/windows/README.md).
+
+Being self-signed, it earns no SmartScreen reputation — Windows still calls the publisher unknown, and that is expected.
+The signature is there so the privileged daemon can tell that `husi-core.exe` and the `husicore.dll` it loads are the
+pair that shipped together: the shim loads that DLL by absolute path and runs it as SYSTEM, so a swapped DLL would be a
+swapped SYSTEM process. The check lives in `daemonhost.VerifyCorePairSignature` and follows sing-box's `boxdd`.
+
+**If you build Windows packages yourself, read this:**
+
+* Signing is **on by default** and packaging fails without a certificate. That is deliberate — an unsigned release
+  should never happen by accident. To build unsigned on purpose:
+
+  ```shell
+  make desktop_package_windows DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN=1
+  ```
+
+  Unsigned builds install and run fine: the daemon logs a warning and skips the pair check, because there is nothing to
+  compare.
+
+* To sign with a certificate of your own, mint a self-signed code signing certificate (see the Windows signing entry
+  in [AGENTS.md](AGENTS.md)) and point the packaging at it:
+
+  ```shell
+  export WINDOWS_SIGNING_P12=/path/to/your-signing.p12
+  export WINDOWS_SIGNING_P12_PASSWORD=...
+  make desktop_package_windows DESKTOP_TARGET=windows/amd64
+  ```
+
+  Your own certificate works fine. The daemon requires the shim and the library to share a signer, not to match any
+  particular certificate.
+
+* **Do not mix payloads from different builds.** Taking `husi-core.exe` from an official release and pairing it with a
+  `husicore.dll` you signed yourself (or the reverse) makes the daemon refuse to start. Ship whole packages.
+
+* Give your certificate a long life. The validity window is checked against the current time rather than against the
+  signature timestamp, so an expired certificate starts failing already-installed daemons.
+
+* If you redistribute your build, say so. The published fingerprint above is how users tell an official release from a
+  rebuild, and nothing in the daemon makes that distinction for them.
 
 #### 🌈 Plugins
 
@@ -382,7 +461,7 @@ Plugin name list:
 
 * `hysteria2`
 * `juicity`
-* `naive` ( Deprecated. Build official repository directly, please. )
+* `naive` (Deprecated. Build official repository directly, please. )
 * `mieru`
 * `shadowquic`
 

@@ -24,11 +24,14 @@ error() {
     echo "[package] $*" >&2
 }
 
+# shellcheck source=release/windows/codesign.sh
+source "$SCRIPT_DIR/codesign.sh"
+
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats zip,nsis] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--output-dir <dir>]
-  $(basename "$0") --check-tools [--formats zip,nsis] [--target <platform/arch>]
+  $(basename "$0") [--formats zip,nsis] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>] [--no-sign]
+  $(basename "$0") --check-tools [--formats zip,nsis] [--target <platform/arch>] [--no-sign]
 
 Description:
   Build Windows portable zip and NSIS installer packages from desktop uber jar.
@@ -37,7 +40,14 @@ Defaults:
   --formats      zip,nsis
   --input-jar    newest matching jar under $JAR_DIR_DEFAULT
   --launcher-bin $ROOT_DIR/launcher/zig-out/bin/launcher-windows-<x86_64|aarch64>.exe
+  --core-bin     $ROOT_DIR/libcore/build/windows_<amd64|arm64>/husi-core.exe
+  --core-lib     $ROOT_DIR/libcore/build/windows_<amd64|arm64>/husicore.dll
   --output-dir   $OUTPUT_DIR_DEFAULT
+
+Code signing:
+  Enabled by default. Configure the certificate through WINDOWS_SIGNING_P12
+  (or WINDOWS_SIGNING_P12_BASE64) and WINDOWS_SIGNING_P12_PASSWORD, or pass
+  --no-sign to build unsigned packages. See release/windows/codesign.sh.
 EOF
 }
 
@@ -91,7 +101,9 @@ source_desktop_metadata() {
         exit 1
     fi
 
-    # shellcheck disable=SC1090
+    # Named so that shellcheck can follow it; the path is only dynamic because
+    # it is anchored at the repository root.
+    # shellcheck source=../desktop/package-metadata.sh
     source "$DESKTOP_METADATA_FILE"
 }
 
@@ -352,13 +364,17 @@ resolve_input_jar() {
     fi
 
     local latest=""
+    local candidate=""
     local -a matches=()
     shopt -s nullglob
-    matches=("$JAR_DIR_DEFAULT"/${PACKAGE_NAME}-windows-${JAR_ARCH}-*.jar)
+    # Everything but the wildcard stays quoted, so only the glob expands.
+    matches=("$JAR_DIR_DEFAULT/${PACKAGE_NAME}-windows-${JAR_ARCH}-"*.jar)
     shopt -u nullglob
-    if [[ "${#matches[@]}" -gt 0 ]]; then
-        latest="$(ls -t "${matches[@]}" 2>/dev/null | head -n 1)"
-    fi
+    for candidate in "${matches[@]}"; do
+        if [[ -z "$latest" || "$candidate" -nt "$latest" ]]; then
+            latest="$candidate"
+        fi
+    done
     if [[ -n "$latest" ]]; then
         INPUT_JAR="$latest"
         return
@@ -392,6 +408,52 @@ resolve_launcher_bin() {
     exit 1
 }
 
+resolve_core_bin() {
+    local requested="$1"
+    local default_path="$ROOT_DIR/libcore/build/${TARGET_PLATFORM}_${TARGET_ARCH}/husi-core.exe"
+
+    if [[ -n "$requested" ]]; then
+        if [[ ! -f "$requested" ]]; then
+            error "Core host binary not found: $requested"
+            exit 1
+        fi
+        INPUT_CORE_BIN="$requested"
+        return
+    fi
+
+    if [[ -f "$default_path" ]]; then
+        INPUT_CORE_BIN="$default_path"
+        return
+    fi
+
+    error "Core host binary not found: $default_path"
+    error "Build one first: make core_desktop DESKTOP_TARGETS=${TARGET_PLATFORM}/${TARGET_ARCH}"
+    exit 1
+}
+
+resolve_core_lib() {
+    local requested="$1"
+    local default_path="$ROOT_DIR/libcore/build/${TARGET_PLATFORM}_${TARGET_ARCH}/husicore.dll"
+
+    if [[ -n "$requested" ]]; then
+        if [[ ! -f "$requested" ]]; then
+            error "Core native library not found: $requested"
+            exit 1
+        fi
+        INPUT_CORE_LIB="$requested"
+        return
+    fi
+
+    if [[ -f "$default_path" ]]; then
+        INPUT_CORE_LIB="$default_path"
+        return
+    fi
+
+    error "Core native library not found: $default_path"
+    error "Build one first: make libcore_desktop DESKTOP_TARGETS=${TARGET_PLATFORM}/${TARGET_ARCH}"
+    exit 1
+}
+
 nsis_url_scheme_install_entries() {
     local scheme
     for scheme in "${DESKTOP_URL_SCHEMES[@]}"; do
@@ -415,11 +477,18 @@ prepare_rootfs() {
     local root="$1"
     local launcher_name="$APP_NAME.exe"
     local launcher_path="$root/$launcher_name"
+    local core_path="$root/husi-core.exe"
+    local core_lib_path="$root/husicore.dll"
 
     mkdir -p "$root/app"
     cp "$INPUT_JAR" "$root/app/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$launcher_path"
     chmod 755 "$launcher_path"
+    cp "$INPUT_CORE_BIN" "$core_path"
+    chmod 755 "$core_path"
+    # Sidecar anja library next to husi-core (N7); UI sets anja.natives.dir to this dir.
+    cp "$INPUT_CORE_LIB" "$core_lib_path"
+    chmod 755 "$core_lib_path"
     cp "$WINDOWS_JAVA_OPTS_FILE" "$root/desktop-java-opts.conf.template"
     cp "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" "$root/desktop-app-args.conf.template"
     cp "$ROOT_DIR/LICENSE" "$root/LICENSE"
@@ -486,6 +555,8 @@ build_nsis() {
         "__HUSI_OUTPUT_FILE__" "$output_path" \
         "__HUSI_LICENSE_FILE__" "$ROOT_DIR/LICENSE" \
         "__HUSI_LAUNCHER_FILE__" "$INPUT_LAUNCHER_BIN" \
+        "__HUSI_CORE_FILE__" "$INPUT_CORE_BIN" \
+        "__HUSI_CORE_LIB_FILE__" "$INPUT_CORE_LIB" \
         "__HUSI_JAR_FILE__" "$INPUT_JAR" \
         "__HUSI_JAVA_OPTS_FILE__" "$WINDOWS_JAVA_OPTS_FILE" \
         "__HUSI_APP_ARGS_FILE__" "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" \
@@ -494,6 +565,10 @@ build_nsis() {
 
     rm -f "$output_path"
     "$NSIS_BIN" "$nsis_source"
+    # Sign before the timestamp is forced: signing rewrites the file.
+    if [[ "$SIGNING_ENABLED" -eq 1 ]]; then
+        sign_pe "$output_path"
+    fi
     touch_path "$output_path"
     log "Built NSIS installer: $output_path"
 }
@@ -503,6 +578,8 @@ TARGET_PLATFORM=""
 TARGET_ARCH=""
 INPUT_JAR=""
 INPUT_LAUNCHER_BIN=""
+INPUT_CORE_BIN=""
+INPUT_CORE_LIB=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 FORMATS="zip,nsis"
 CHECK_TOOLS=0
@@ -536,10 +613,24 @@ while [[ $# -gt 0 ]]; do
             INPUT_LAUNCHER_BIN="$2"
             shift 2
             ;;
+        --core-bin)
+            require_arg "$1" "${2:-}"
+            INPUT_CORE_BIN="$2"
+            shift 2
+            ;;
+        --core-lib)
+            require_arg "$1" "${2:-}"
+            INPUT_CORE_LIB="$2"
+            shift 2
+            ;;
         -o|--output-dir)
             require_arg "$1" "${2:-}"
             OUTPUT_DIR="$2"
             shift 2
+            ;;
+        --no-sign)
+            SIGNING_ENABLED=0
+            shift
             ;;
         --check-tools)
             CHECK_TOOLS=1
@@ -564,6 +655,7 @@ resolve_target
 resolve_arch
 resolve_formats "$FORMATS"
 resolve_nsis
+require_signing_tool
 require_tools
 
 if [[ "$CHECK_TOOLS" -eq 1 ]]; then
@@ -574,6 +666,8 @@ fi
 resolve_tag_epoch
 resolve_input_jar "$INPUT_JAR"
 resolve_launcher_bin "$INPUT_LAUNCHER_BIN"
+resolve_core_bin "$INPUT_CORE_BIN"
+resolve_core_lib "$INPUT_CORE_LIB"
 mkdir -p "$OUTPUT_DIR"
 
 work_dir="$(mktemp -d)"
@@ -581,6 +675,9 @@ cleanup() {
     rm -rf "$work_dir"
 }
 trap cleanup EXIT
+
+resolve_signing "$work_dir"
+sign_payloads "$work_dir"
 
 if [[ -n "${ENABLED_FORMATS[zip]:-}" ]]; then
     portable_root="$work_dir/${APP_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}"

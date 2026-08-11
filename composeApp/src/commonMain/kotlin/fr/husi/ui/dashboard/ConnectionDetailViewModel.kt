@@ -3,28 +3,31 @@ package fr.husi.ui.dashboard
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.core.CoreClient
+import fr.husi.core.formatConnectionTime
+import fr.husi.core.isClosed
+import fr.husi.core.isNew
+import fr.husi.core.isUpdate
 import fr.husi.ktx.Logs
 import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.onIoDispatcher
-import fr.husi.libcore.ConnectionEvent
-import fr.husi.libcore.Libcore
-import fr.husi.utils.LibcoreClientManager
 import fr.husi.utils.PackageResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import org.koin.core.context.GlobalContext
+import kotlin.time.Duration.Companion.seconds
 
 @Stable
 class ConnectionDetailViewModel(
-    uuid: String,
+    private val uuid: String,
+    private val coreClient: CoreClient = GlobalContext.get().get(),
 ) : ViewModel() {
 
-    private val clientManager = LibcoreClientManager()
     val connection: StateFlow<ConnectionDetailState>
-        field = MutableStateFlow(ConnectionDetailState())
+        field = MutableStateFlow(ConnectionDetailState(uuid = uuid))
 
     private var job: Job? = null
 
@@ -37,52 +40,46 @@ class ConnectionDetailViewModel(
     override fun onCleared() {
         job?.cancel()
         job = null
-        runBlocking {
-            clientManager.close()
-        }
         super.onCleared()
     }
 
     suspend fun initialize(uuid: String) {
         job?.cancel()
-        connection.value = queryConnection(uuid)
-        job = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
-            handleConnectionEvent(event)
-        }
-    }
+        connection.value = ConnectionDetailState(uuid = uuid)
+        // First reset batch is the snapshot; subsequent deltas patch the one connection.
+        job = viewModelScope.launch {
+            try {
+                coreClient.subscribeConnections(1.seconds).collect { events ->
+                    if (events.reset) {
+                        val match = events.eventsList.firstOrNull { event ->
+                            event.id == uuid && event.hasConnection()
+                        }
+                        connection.value = match?.connection?.toDetailState()
+                            ?: ConnectionDetailState(uuid = uuid)
+                        return@collect
+                    }
+                    for (event in events.eventsList) {
+                        if (event.id != uuid) continue
+                        when {
+                            event.isUpdate() -> {
+                                updateTraffic(event.uplinkDelta, event.downlinkDelta)
+                            }
 
-    private suspend fun queryConnection(uuid: String): ConnectionDetailState {
-        return try {
-            clientManager.withClient { client ->
-                val iterator = client.queryConnections()
-                    ?: return@withClient ConnectionDetailState(uuid = uuid)
-                while (iterator.hasNext()) {
-                    val info = iterator.next() ?: continue
-                    if (info.uuid == uuid) return@withClient info.toDetailState()
+                            event.isNew() -> {
+                                val tracker = event.connection ?: continue
+                                connection.value = tracker.toDetailState()
+                            }
+
+                            event.isClosed() -> {
+                                val closedAt = formatConnectionTime(event.closedAt)
+                                if (closedAt.isBlank()) continue
+                                updateClosedAt(closedAt)
+                            }
+                        }
+                    }
                 }
-                ConnectionDetailState(uuid = uuid)
-            }
-        } catch (e: Exception) {
-            Logs.w("query connection", e)
-            ConnectionDetailState(uuid = uuid)
-        }
-    }
-
-    private fun handleConnectionEvent(event: ConnectionEvent) {
-        if (event.id != connection.value.uuid) return
-        when (event.type) {
-            Libcore.ConnectionEventUpdate -> {
-                updateTraffic(event.uplinkDelta, event.downlinkDelta)
-            }
-
-            Libcore.ConnectionEventNew -> {
-                val trackerInfo = event.trackerInfo ?: return
-                connection.value = trackerInfo.toDetailState()
-            }
-
-            Libcore.ConnectionEventClosed -> {
-                if (event.closedAt.isBlank()) return
-                updateClosedAt(event.closedAt)
+            } catch (e: Exception) {
+                Logs.w("subscribe connection detail", e)
             }
         }
     }
@@ -127,9 +124,7 @@ class ConnectionDetailViewModel(
 
     fun closeConnection(uuid: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            clientManager.withClient { client ->
-                client.closeConnection(uuid)
-            }
+            coreClient.closeConnection(uuid)
         } catch (e: Exception) {
             Logs.w("close connection", e)
         }

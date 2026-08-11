@@ -107,6 +107,32 @@ func TestWriteLibrariesCleansGeneratedFilesOnly(t *testing.T) {
 	assert.Equal(t, "github.com/example/module", library.UniqueID)
 }
 
+func TestCollectModulesKeepsOriginalPathOfReplacedModule(t *testing.T) {
+	goModPath := filepath.Join(t.TempDir(), "go.mod")
+	err := os.WriteFile(goModPath, []byte(`module example.com/main
+
+go 1.26
+
+require (
+	example.com/plain v1.0.0
+	example.com/replaced v1.2.0
+)
+
+replace example.com/replaced => example.com/fork v1.2.1
+`), 0o644)
+	require.NoError(t, err)
+
+	modules, err := collectRequiredModules(goModPath)
+	require.NoError(t, err)
+	require.Len(t, modules, 2)
+
+	assert.Equal(t, "example.com/plain", modules[0].Path)
+	assert.Equal(t, "v1.0.0", modules[0].Version)
+
+	assert.Equal(t, "example.com/replaced", modules[1].Path)
+	assert.Equal(t, "v1.2.0", modules[1].Version)
+}
+
 func Test_isSingModule(t *testing.T) {
 	tests := []struct {
 		path string

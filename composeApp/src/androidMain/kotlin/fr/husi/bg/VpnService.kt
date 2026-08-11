@@ -286,7 +286,6 @@ class VpnService : BaseVpnService(),
     override fun onDestroy() {
         ServiceRegistry.vpnService = null
         super.onDestroy()
-        data.binder.close()
     }
 
     private val privateRoutes

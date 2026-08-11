@@ -13,7 +13,6 @@ import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.Socket
-import kotlin.experimental.or
 
 var URL.pathSegments: List<String>
     get() = path.split("/").filter { it.isNotBlank() }
@@ -152,15 +151,4 @@ fun InterfaceAddress.toPrefix(): String {
     } else {
         "${address.hostAddress}/${networkPrefixLength}"
     }
-}
-
-val urlTestOptions: Byte get() {
-    var options: Byte = 0
-    if (DataStore.connectionTestUnifiedDelay) {
-        options = options or Libcore.URLTestUnifiedDelay
-    }
-    if (DataStore.connectionTestIgnoreHandshakeTime) {
-        options = options or Libcore.URLTestIgnoreHandshakeTime
-    }
-    return options
 }

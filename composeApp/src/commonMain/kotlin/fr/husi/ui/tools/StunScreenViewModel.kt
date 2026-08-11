@@ -4,20 +4,24 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.core.CoreClient
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.currentSocks5
 import fr.husi.ktx.onIoDispatcher
-import fr.husi.libcore.STUNTestHandler
-import fr.husi.libcore.STUNTestReport
-import fr.husi.libcore.StunTester
+import fr.husi.ktx.readableMessage
+import fr.husi.proto.v1.NATFiltering
+import fr.husi.proto.v1.NATMapping
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
 
 @Immutable
 internal data class StunScreenUiState(
@@ -31,8 +35,10 @@ internal data class StunScreenUiState(
 internal data class StunReport(
     val externalAddress: String? = null,
     val latencyMs: Int? = null,
-    val natMapping: Int = 0,
-    val natFiltering: Int = 0,
+    val mapping: NATMapping = NATMapping.NAT_MAPPING_UNSPECIFIED,
+    val filtering: NATFiltering = NATFiltering.NAT_FILTERING_UNSPECIFIED,
+    val mappingDisplay: String = "",
+    val filteringDisplay: String = "",
     val natTypeUnsupported: Boolean = true,
 )
 
@@ -42,20 +48,22 @@ internal sealed interface StunScreenUiEvent {
 }
 
 @Stable
-internal class StunScreenViewModel : ViewModel() {
+internal class StunScreenViewModel(
+    private val coreClient: CoreClient = GlobalContext.get().get(),
+) : ViewModel() {
 
     val uiState: StateFlow<StunScreenUiState>
         field = MutableStateFlow(StunScreenUiState())
     val uiEvent: SharedFlow<StunScreenUiEvent>
         field = MutableSharedFlow()
-    private val tester = StunTester()
+    private var testJob: Job? = null
 
     init {
         initialize()
     }
 
     override fun onCleared() {
-        tester.cancel()
+        testJob?.cancel()
         super.onCleared()
     }
 
@@ -65,58 +73,51 @@ internal class StunScreenViewModel : ViewModel() {
         }
     }
 
-    fun doTest() = viewModelScope.launch(Dispatchers.IO) {
-        var server = ""
-        var proxy = ""
-        uiState.update { state ->
-            state.copy(
-                isDoing = true,
-                report = StunReport(),
-            ).also {
-                server = it.server
-                proxy = it.proxy
-            }
-        }
-        tester.start(server, proxy, handler)
-    }
-
-    private val handler = object : STUNTestHandler {
-        override fun onError(message: String) {
-            tester.cancel()
+    fun doTest() {
+        testJob?.cancel()
+        testJob = viewModelScope.launch(Dispatchers.IO) {
+            var server = ""
+            var proxy = ""
             uiState.update { state ->
-                val report = state.report
                 state.copy(
-                    isDoing = false,
-                    report = report?.copy(
-                        externalAddress = report.externalAddress ?: "-",
-                        latencyMs = report.latencyMs ?: -1,
-                    ),
-                )
-            }
-            viewModelScope.launch {
-                uiEvent.emit(StunScreenUiEvent.Alert(message))
-                onIoDispatcher {
-                    Logs.e(message)
+                    isDoing = true,
+                    report = StunReport(),
+                ).also {
+                    server = it.server
+                    proxy = it.proxy
                 }
             }
-        }
-
-        override fun onReport(report: STUNTestReport, done: Boolean) {
-            if (done) {
-                tester.cancel()
-            }
-            uiState.update { state ->
-                state.copy(
-                    isDoing = !done,
-                    report = StunReport(
-                        externalAddress = report.externalAddr.blankAsNull(),
-                        latencyMs = report.latencyMs.takeIf { it > 0 },
-                        natMapping = report.natMapping,
-                        natFiltering = report.natFiltering,
-                        natTypeUnsupported = !report.natTypeSupported,
-                    ),
-                )
-            }
+            coreClient.stunTest(server, proxy)
+                .catch { e ->
+                    uiState.update { state ->
+                        val report = state.report
+                        state.copy(
+                            isDoing = false,
+                            report = report?.copy(
+                                externalAddress = report.externalAddress ?: "-",
+                                latencyMs = report.latencyMs ?: -1,
+                            ),
+                        )
+                    }
+                    uiEvent.emit(StunScreenUiEvent.Alert(e.readableMessage))
+                    onIoDispatcher { Logs.e(e) }
+                }
+                .collect { response ->
+                    uiState.update { state ->
+                        state.copy(
+                            isDoing = !response.done,
+                            report = StunReport(
+                                externalAddress = response.externalAddress.blankAsNull(),
+                                latencyMs = response.latencyMs.takeIf { it > 0 },
+                                mapping = response.mapping,
+                                filtering = response.filtering,
+                                mappingDisplay = response.mappingDisplay,
+                                filteringDisplay = response.filteringDisplay,
+                                natTypeUnsupported = !response.natTypeSupported,
+                            ),
+                        )
+                    }
+                }
         }
     }
 
@@ -129,7 +130,8 @@ internal class StunScreenViewModel : ViewModel() {
     }
 
     fun cancel() {
-        tester.cancel()
+        testJob?.cancel()
+        testJob = null
         uiState.update { it.copy(isDoing = false) }
     }
 }

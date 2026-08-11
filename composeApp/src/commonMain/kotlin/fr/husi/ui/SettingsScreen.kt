@@ -403,6 +403,18 @@ fun SettingsScreen(
                         )
                     }
 
+                    platformDaemonOptions(
+                        showMessage = { message ->
+                            scope.launch {
+                                snackbarState.showSnackbar(
+                                    message = message,
+                                    actionLabel = resolveRepository().getString(Res.string.ok),
+                                    duration = SnackbarDuration.Short,
+                                )
+                            }
+                        },
+                    )
+
                     item { PreferenceCategory(text = { Text(stringResource(Res.string.route_options)) }) }
                     preferenceGroup {
                         RouteSettingsGroup(

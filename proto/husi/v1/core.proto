@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package husi.v1;
+
+option go_package = "libcore/pb/husi/v1;husiv1";
+option java_multiple_files = true;
+option java_outer_classname = "CoreProto";
+option java_package = "fr.husi.proto.v1";
+
+// CoreService is what husi adds to a running instance beyond the contract it
+// shares with sing-box. Everything sing-box's daemon.StartedService already
+// answers — status, log, connections, groups, clash mode, outbound selection,
+// OpenConnect authentication — is served from that schema instead, unchanged,
+// so a husi host and a sing-box host stay interchangeable on the wire.
+//
+// Every hosting serves this service alongside daemon.StartedService: the
+// desktop daemon, the desktop session child and the Android ":bg" process.
+service CoreService {
+  rpc GetVersion(GetVersionRequest) returns (GetVersionResponse);
+
+  rpc URLTest(URLTestRequest) returns (URLTestResponse);
+
+  rpc ResetNetwork(ResetNetworkRequest) returns (ResetNetworkResponse);
+
+  // SubscribeServiceEvents carries what only the host that started the service
+  // knows: husi's own lifecycle state with the profile behind it, the
+  // proxy/direct speed split derived from the built config, and the alerts the
+  // UI raises to the user. daemon.ServiceStatus answers a narrower question —
+  // whether the instance is up — and knows nothing about profiles or plugins.
+  //
+  // On Android this replaces the binder observer the UI process used to
+  // register on ":bg". Desktop hosts serve it too, and simply have no publisher.
+  rpc SubscribeServiceEvents(SubscribeServiceEventsRequest) returns (stream SubscribeServiceEventsResponse);
+}
+
+message GetVersionRequest {}
+
+// daemon.StartedService.GetVersion reports the sing-box side of the same host,
+// including the revision of sing-box's contract. This one reports husi's.
+message GetVersionResponse {
+  // Husi version of the core host, as in husi.properties.
+  string version = 1;
+  string sing_box_version = 2;
+  // Go version, platform and build tags of the core host.
+  string build_environment = 3;
+  // sing-box daemon API version (daemon.APIVersion in the pinned sing-box).
+  // Matches GetDaemonInfoResponse.api_version.
+  uint32 api_version = 4;
+}
+
+// URLTest measures one outbound, unlike daemon.StartedService.URLTest, which
+// tests a whole group through the link the config gave it. Husi lets the user
+// pick the link, the timeout and how the latency is counted, so it asks here.
+message URLTestRequest {
+  string outbound_tag = 1;
+  // Empty selects the host default test URL.
+  string link = 2;
+  int32 timeout_ms = 3;
+  URLTestOptions options = 4;
+}
+
+message URLTestResponse {
+  int32 latency_ms = 1;
+}
+
+message URLTestOptions {
+  // Count the latency from the request rather than from the connection, which
+  // hides the cost of a handshake the proxy would have paid anyway.
+  bool unified_delay = 1;
+  // Report the response time alone, leaving the handshake out entirely.
+  bool ignore_handshake_time = 2;
+}
+
+// ResetNetwork closes every connection and rebuilds the network state, which
+// is how the user recovers from a network change the host did not notice.
+message ResetNetworkRequest {}
+
+message ResetNetworkResponse {}
+
+message SubscribeServiceEventsRequest {}
+
+// The last state and the last speed are replayed on subscribe, so a UI that
+// attaches to an already running service is immediately correct.
+// Named SubscribeServiceEventsResponse (not ServiceEvent) to satisfy the
+// project's per-RPC Request/Response lint rule.
+message SubscribeServiceEventsResponse {
+  oneof event {
+    ServiceStateUpdate state = 1;
+    SpeedUpdate speed = 2;
+    ServiceAlert alert = 3;
+  }
+}
+
+message ServiceStateUpdate {
+  ServiceRunState state = 1;
+  // Display name of the profile the running service came from, empty when idle.
+  string profile_name = 2;
+}
+
+enum ServiceRunState {
+  SERVICE_RUN_STATE_UNSPECIFIED = 0;
+  SERVICE_RUN_STATE_IDLE = 1;
+  SERVICE_RUN_STATE_CONNECTING = 2;
+  SERVICE_RUN_STATE_CONNECTED = 3;
+  SERVICE_RUN_STATE_STOPPING = 4;
+  SERVICE_RUN_STATE_STOPPED = 5;
+}
+
+// Bytes per second, plus the totals of the current session. Mirrors
+// fr.husi.bg.SpeedStats; "bypass" outbound usage is not counted.
+message SpeedUpdate {
+  int64 tx_rate_proxy = 1;
+  int64 rx_rate_proxy = 2;
+  int64 tx_rate_direct = 3;
+  int64 rx_rate_direct = 4;
+  int64 tx_total = 5;
+  int64 rx_total = 6;
+}
+
+message ServiceAlert {
+  AlertKind kind = 1;
+  // Meaning depends on the kind: the message for COMMON, the plugin name for
+  // MISSING_PLUGIN, empty for NEED_WIFI_PERMISSION.
+  string message = 2;
+}
+
+enum AlertKind {
+  ALERT_KIND_UNSPECIFIED = 0;
+  ALERT_KIND_COMMON = 1;
+  ALERT_KIND_MISSING_PLUGIN = 2;
+  ALERT_KIND_NEED_WIFI_PERMISSION = 3;
+}

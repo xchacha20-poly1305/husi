@@ -1,3 +1,5 @@
+//go:build android
+
 package libcore
 
 // PlatformInterface also named "iif".
@@ -11,7 +13,4 @@ type PlatformInterface interface {
 	StartDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	CloseDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	GetInterfaces() (NetworkInterfaceIterator, error)
-
-	OnGroupSelectedChange(group, old, now string)
-	OnTask(taskID string)
 }

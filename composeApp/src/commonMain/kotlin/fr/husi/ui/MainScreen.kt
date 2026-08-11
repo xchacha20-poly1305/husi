@@ -33,10 +33,9 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import fr.husi.AlertType
-import fr.husi.bg.Alert
 import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
+import fr.husi.bg.ServiceAlert
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
 import fr.husi.compose.ScrollableDialog
@@ -247,16 +246,21 @@ private fun MainScreenContent(
         }
     }
 
-    var showServiceAlert by remember { mutableStateOf<Alert?>(null) }
+    var showServiceAlert by remember { mutableStateOf<ServiceAlert?>(null) }
 
     LaunchedEffect(Unit) {
         BackendState.alerts.collect { alert ->
-            if (alert.type == AlertType.COMMON) {
-                if (alert.message.isNotBlank()) {
-                    viewModel.showSnackbar(StringOrRes.Direct(alert.message))
+            when (alert) {
+                is ServiceAlert.Common -> {
+                    if (alert.message.isNotBlank()) {
+                        viewModel.showSnackbar(StringOrRes.Direct(alert.message))
+                    }
                 }
-            } else {
-                showServiceAlert = alert
+                is ServiceAlert.MissingPlugin,
+                is ServiceAlert.NeedWifiPermission,
+                -> {
+                    showServiceAlert = alert
+                }
             }
         }
     }
@@ -481,10 +485,9 @@ private fun MainScreenContent(
     )
 
     if (showServiceAlert != null) {
-        val alert = showServiceAlert!!
-        when (alert.type) {
-            AlertType.MISSING_PLUGIN -> {
-                val pluginName = alert.message
+        when (val alert = showServiceAlert!!) {
+            is ServiceAlert.MissingPlugin -> {
+                val pluginName = alert.pluginName
                 val plugin = PluginEntry.find(pluginName)
                 if (plugin == null) {
                     showServiceAlert = null
@@ -518,7 +521,7 @@ private fun MainScreenContent(
                 }
             }
 
-            AlertType.NEED_WIFI_PERMISSION -> {
+            is ServiceAlert.NeedWifiPermission -> {
                 AlertDialog(
                     onDismissRequest = { showServiceAlert = null },
                     confirmButton = {
@@ -537,6 +540,8 @@ private fun MainScreenContent(
                     text = { Text(stringResource(Res.string.location_permission_description)) },
                 )
             }
+
+            is ServiceAlert.Common -> Unit
         }
     }
 

@@ -26,7 +26,6 @@ pub fn build(b: *std.Build) void {
         exe.subsystem = .Windows;
         exe.root_module.addWin32ResourceFile(.{ .file = b.path("icon.rc") });
     }
-
     b.installArtifact(exe);
 
     const run_step = b.step("run", "Run the app");

@@ -1,0 +1,15 @@
+[Unit]
+Description=Husi Core Daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=__HUSI_CORE_PATH__ run
+Restart=on-failure
+RestartSec=5
+RuntimeDirectory=husi
+RuntimeDirectoryMode=0755
+StateDirectory=husi
+
+[Install]
+WantedBy=multi-user.target

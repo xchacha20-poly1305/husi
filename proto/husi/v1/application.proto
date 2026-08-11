@@ -1,0 +1,164 @@
+syntax = "proto3";
+
+package husi.v1;
+
+import "husi/v1/core.proto";
+import "husi/v1/daemon.proto";
+
+option go_package = "libcore/pb/husi/v1;husiv1";
+option java_multiple_files = true;
+option java_outer_classname = "ApplicationProto";
+option java_package = "fr.husi.proto.v1";
+
+// ApplicationService covers work that needs no running instance but does need
+// the protocol registry of the host that will run the config. Evaluating these
+// inside the UI would answer for the UI's registry, which is deliberately
+// slimmer than the core host's.
+//
+// sing-box's desktop.ApplicationService answers the same kind of question, but
+// its generated Go lives in a main package that nothing can import, and husi's
+// schema generation is driven by husi's own option codegen. So this one is
+// husi's, unlike the core-scoped contract shared with sing-box verbatim.
+//
+// Network tools (GetCert, STUN, SpeedTest) execute in the core host so they
+// share the host's protocol registry, socks path and cancellation model —
+// same placement as StandaloneURLTest (D6).
+service ApplicationService {
+  rpc CheckConfig(CheckConfigRequest) returns (CheckConfigResponse);
+  rpc GenerateSchema(GenerateSchemaRequest) returns (GenerateSchemaResponse);
+  rpc StandaloneURLTest(StandaloneURLTestRequest) returns (StandaloneURLTestResponse);
+  rpc GetCert(GetCertRequest) returns (GetCertResponse);
+  rpc STUNTest(STUNTestRequest) returns (stream STUNTestResponse);
+  rpc SpeedTest(SpeedTestRequest) returns (stream SpeedTestResponse);
+}
+
+message CheckConfigRequest {
+  string config = 1;
+}
+
+// An unusable config is reported as an INVALID_ARGUMENT error carrying the
+// parser message, so a successful response has nothing left to say.
+message CheckConfigResponse {}
+
+enum SchemaKind {
+  SCHEMA_KIND_UNSPECIFIED = 0;
+  SCHEMA_KIND_CONFIG = 1;
+  SCHEMA_KIND_OUTBOUND = 2;
+  SCHEMA_KIND_DNS_RULE = 3;
+}
+
+message GenerateSchemaRequest {
+  SchemaKind kind = 1;
+}
+
+message GenerateSchemaResponse {
+  // JSON Schema document.
+  string schema = 1;
+}
+
+// StandaloneURLTest starts a throwaway instance from config, tests through it
+// and closes it, leaving any running service untouched.
+message StandaloneURLTestRequest {
+  string config = 1;
+  // Empty selects the default outbound of the throwaway instance.
+  string outbound_tag = 2;
+  // Empty selects the host default test URL.
+  string link = 3;
+  int32 timeout_ms = 4;
+  URLTestOptions options = 5;
+  // Spawned by the host for the duration of the test, same rules and trust
+  // model as StartServiceRequest.plugins.
+  repeated PluginProcessSpec plugins = 6;
+}
+
+message StandaloneURLTestResponse {
+  int32 latency_ms = 1;
+}
+
+// Mode for GetCert: TLS via HTTPS or QUIC.
+enum GetCertMode {
+  GET_CERT_MODE_UNSPECIFIED = 0;
+  GET_CERT_MODE_HTTPS = 1;
+  GET_CERT_MODE_QUIC = 2;
+}
+
+message GetCertRequest {
+  // host:port of the peer; port defaults to 443 on the host when empty.
+  string server = 1;
+  // SNI; empty means the server address itself.
+  string server_name = 2;
+  GetCertMode mode = 3;
+  // Optional socks proxy URL (socks5://…); empty dials directly.
+  string socks_proxy_url = 4;
+}
+
+message GetCertResponse {
+  // PEM-encoded certificate chain.
+  string pem = 1;
+}
+
+// NAT mapping behaviour from a STUN test. Values mirror sing-box stun.NATMapping
+// (0 unknown, 2 endpoint-independent, 3 address-dependent, 4 address-and-port).
+enum NATMapping {
+  NAT_MAPPING_UNSPECIFIED = 0;
+  NAT_MAPPING_UNKNOWN = 1;
+  NAT_MAPPING_ENDPOINT_INDEPENDENT = 2;
+  NAT_MAPPING_ADDRESS_DEPENDENT = 3;
+  NAT_MAPPING_ADDRESS_AND_PORT_DEPENDENT = 4;
+}
+
+// NAT filtering behaviour from a STUN test. Values mirror sing-box
+// stun.NATFiltering.
+enum NATFiltering {
+  NAT_FILTERING_UNSPECIFIED = 0;
+  NAT_FILTERING_UNKNOWN = 1;
+  NAT_FILTERING_ENDPOINT_INDEPENDENT = 2;
+  NAT_FILTERING_ADDRESS_DEPENDENT = 3;
+  NAT_FILTERING_ADDRESS_AND_PORT_DEPENDENT = 4;
+}
+
+message STUNTestRequest {
+  string server = 1;
+  // Optional socks proxy URL; empty dials directly.
+  string socks_proxy_url = 2;
+}
+
+// Progress and final result of a STUN test. The stream ends after a message
+// with done=true, or with a gRPC error status.
+message STUNTestResponse {
+  string external_address = 1;
+  int32 latency_ms = 2;
+  NATMapping mapping = 3;
+  NATFiltering filtering = 4;
+  bool nat_type_supported = 5;
+  // Host-formatted display strings so the UI does not reimplement NAT labels.
+  string mapping_display = 6;
+  string filtering_display = 7;
+  bool done = 8;
+}
+
+enum SpeedTestMode {
+  SPEED_TEST_MODE_UNSPECIFIED = 0;
+  SPEED_TEST_MODE_DOWNLOAD = 1;
+  SPEED_TEST_MODE_UPLOAD = 2;
+}
+
+message SpeedTestRequest {
+  SpeedTestMode mode = 1;
+  string url = 2;
+  int32 timeout_ms = 3;
+  // Body size for upload mode; ignored for download.
+  int64 upload_length_bytes = 4;
+  // Optional socks proxy URL; empty dials directly.
+  string socks_proxy_url = 5;
+  string user_agent = 6;
+}
+
+// Throttled (~10/s) progress for a speed test. The stream ends when the
+// transfer completes or the client cancels.
+message SpeedTestResponse {
+  int64 bytes_per_sec = 1;
+  // Fraction 0..1; negative means indeterminate (unknown content length).
+  double progress = 2;
+  int64 bytes_transferred = 3;
+}

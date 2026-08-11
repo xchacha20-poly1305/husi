@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package husi.v1;
+
+option go_package = "libcore/pb/husi/v1;husiv1";
+option java_multiple_files = true;
+option java_outer_classname = "AppProto";
+option java_package = "fr.husi.proto.v1";
+
+// AppService is served by the UI process itself, on a per-user socket, and is
+// what replaces the platform callbacks the core used to make through the FFI.
+// A second launch of husi reaches the first one through it, instead of the
+// single-instance channel it used before.
+service AppService {
+  rpc ShowWindow(ShowWindowRequest) returns (ShowWindowResponse);
+  rpc DispatchDeepLinks(DispatchDeepLinksRequest) returns (DispatchDeepLinksResponse);
+  rpc RunTask(RunTaskRequest) returns (RunTaskResponse);
+}
+
+message ShowWindowRequest {}
+
+message ShowWindowResponse {}
+
+message DispatchDeepLinksRequest {
+  repeated string links = 1;
+}
+
+message DispatchDeepLinksResponse {}
+
+message RunTaskRequest {
+  // Identifier registered in DesktopTaskRegistry, such as a subscription or
+  // route asset update.
+  string task_id = 1;
+}
+
+message RunTaskResponse {}

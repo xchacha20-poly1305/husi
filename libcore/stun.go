@@ -2,102 +2,89 @@ package libcore
 
 import (
 	"context"
-	"os"
+
+	"libcore/pb/husi/v1"
 
 	"github.com/sagernet/sing-box/common/stun"
-	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
 )
 
-type StunTester struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-}
-
-type STUNTestHandler interface {
-	OnReport(report *STUNTestReport, done bool)
-	OnError(message string)
-}
-
-type STUNTestReport struct {
-	ExternalAddr     string
-	LatencyMs        int32
-	NATMapping       int32
-	NATFiltering     int32
-	NATTypeSupported bool
-}
-
-const (
-	NATMappingUnknown                 = int32(stun.NATMappingUnknown)
-	NATMappingEndpointIndependent     = int32(stun.NATMappingEndpointIndependent)
-	NATMappingAddressDependent        = int32(stun.NATMappingAddressDependent)
-	NATMappingAddressAndPortDependent = int32(stun.NATMappingAddressAndPortDependent)
-)
-
-const (
-	NATFilteringUnknown                 = int32(stun.NATFilteringUnknown)
-	NATFilteringEndpointIndependent     = int32(stun.NATFilteringEndpointIndependent)
-	NATFilteringAddressDependent        = int32(stun.NATFilteringAddressDependent)
-	NATFilteringAddressAndPortDependent = int32(stun.NATFilteringAddressAndPortDependent)
-)
-
-func (s *StunTester) Start(server, proxy string, handler STUNTestHandler) {
-	if s.ctx != nil && !common.Done(s.ctx) {
-		handler.OnError(os.ErrExist.Error())
-		return
-	}
-
-	s.ctx, s.cancel = context.WithCancel(context.Background())
+func runSTUNTest(
+	ctx context.Context,
+	server, proxy string,
+	emit func(*husiv1.STUNTestResponse) error,
+) error {
 	var dialer N.Dialer
 	if proxy != "" {
 		var err error
 		dialer, err = socks.NewClientFromURL(new(N.DefaultDialer), proxy)
 		if err != nil {
-			handler.OnError(E.Cause(err, "failed to create proxy dialer").Error())
-			return
+			return E.Cause(err, "create proxy dialer")
 		}
 	}
-	go s.start(server, dialer, handler)
-}
-
-func (s *StunTester) start(server string, dialer N.Dialer, handler STUNTestHandler) {
-	var report STUNTestReport
 	result, err := stun.Run(stun.Options{
 		Server:  server,
 		Dialer:  dialer,
-		Context: s.ctx,
+		Context: ctx,
 		OnProgress: func(progress stun.Progress) {
-			report.ExternalAddr = progress.ExternalAddr
-			report.LatencyMs = progress.LatencyMs
-			report.NATMapping = int32(progress.NATMapping)
-			report.NATFiltering = int32(progress.NATFiltering)
-			handler.OnReport(&report, false)
+			_ = emit(stunResponseFromProgress(progress, false))
 		},
 	})
 	if err != nil {
-		handler.OnError(err.Error())
-		return
+		return err
 	}
-	report.ExternalAddr = result.ExternalAddr
-	report.LatencyMs = result.LatencyMs
-	report.NATMapping = int32(result.NATMapping)
-	report.NATFiltering = int32(result.NATFiltering)
-	report.NATTypeSupported = result.NATTypeSupported
-	handler.OnReport(&report, true)
+	return emit(&husiv1.STUNTestResponse{
+		ExternalAddress:  result.ExternalAddr,
+		LatencyMs:        result.LatencyMs,
+		Mapping:          toProtoNATMapping(result.NATMapping),
+		Filtering:        toProtoNATFiltering(result.NATFiltering),
+		NatTypeSupported: result.NATTypeSupported,
+		MappingDisplay:   result.NATMapping.String(),
+		FilteringDisplay: result.NATFiltering.String(),
+		Done:             true,
+	})
 }
 
-func (s *StunTester) Cancel() {
-	if s.cancel != nil {
-		s.cancel()
+func stunResponseFromProgress(progress stun.Progress, done bool) *husiv1.STUNTestResponse {
+	return &husiv1.STUNTestResponse{
+		ExternalAddress:  progress.ExternalAddr,
+		LatencyMs:        progress.LatencyMs,
+		Mapping:          toProtoNATMapping(progress.NATMapping),
+		Filtering:        toProtoNATFiltering(progress.NATFiltering),
+		MappingDisplay:   progress.NATMapping.String(),
+		FilteringDisplay: progress.NATFiltering.String(),
+		Done:             done,
 	}
 }
 
-func FormatNATMapping(natMapping int32) string {
-	return stun.NATMapping(natMapping).String()
+func toProtoNATMapping(m stun.NATMapping) husiv1.NATMapping {
+	switch m {
+	case stun.NATMappingEndpointIndependent:
+		return husiv1.NATMapping_NAT_MAPPING_ENDPOINT_INDEPENDENT
+	case stun.NATMappingAddressDependent:
+		return husiv1.NATMapping_NAT_MAPPING_ADDRESS_DEPENDENT
+	case stun.NATMappingAddressAndPortDependent:
+		return husiv1.NATMapping_NAT_MAPPING_ADDRESS_AND_PORT_DEPENDENT
+	case stun.NATMappingUnknown:
+		return husiv1.NATMapping_NAT_MAPPING_UNKNOWN
+	default:
+		return husiv1.NATMapping_NAT_MAPPING_UNKNOWN
+	}
 }
 
-func FormatNATFiltering(natFiltering int32) string {
-	return stun.NATFiltering(natFiltering).String()
+func toProtoNATFiltering(f stun.NATFiltering) husiv1.NATFiltering {
+	switch f {
+	case stun.NATFilteringEndpointIndependent:
+		return husiv1.NATFiltering_NAT_FILTERING_ENDPOINT_INDEPENDENT
+	case stun.NATFilteringAddressDependent:
+		return husiv1.NATFiltering_NAT_FILTERING_ADDRESS_DEPENDENT
+	case stun.NATFilteringAddressAndPortDependent:
+		return husiv1.NATFiltering_NAT_FILTERING_ADDRESS_AND_PORT_DEPENDENT
+	case stun.NATFilteringUnknown:
+		return husiv1.NATFiltering_NAT_FILTERING_UNKNOWN
+	default:
+		return husiv1.NATFiltering_NAT_FILTERING_UNKNOWN
+	}
 }

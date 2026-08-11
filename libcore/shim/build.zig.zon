@@ -1,0 +1,14 @@
+.{
+    .name = .husi_core_shim,
+    .version = "0.1.0",
+    // Changing this has security and trust implications.
+    .fingerprint = 0xb46c515578a0cb75,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+    },
+}

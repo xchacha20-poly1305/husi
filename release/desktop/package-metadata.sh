@@ -1,3 +1,7 @@
+# Sourced by the packaging scripts, never executed, so it carries a shell
+# directive instead of a shebang.
+# shellcheck shell=bash
+
 APP_NAME="Husi"
 APP_NAME_ZH_CN="虎兕"
 APP_NAME_ZH_TW="虎兕"

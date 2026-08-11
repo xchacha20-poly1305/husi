@@ -4,43 +4,40 @@ import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SpeedStats
+import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
 import fr.husi.fmt.ConfigBuildResult
 import fr.husi.fmt.TAG_DIRECT
 import fr.husi.ktx.Logs
-import fr.husi.libcore.ConnectionEvent
-import fr.husi.libcore.ConnectionSubscription
-import fr.husi.libcore.Libcore
-import fr.husi.libcore.Service
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class TrafficLooper(
-    private val box: Service,
+    private val coreClient: CoreClient,
     private val config: ConfigBuildResult,
     private val scope: CoroutineScope,
     private val onSpeedUpdate: (suspend (SpeedStats) -> Unit)? = null,
 ) {
 
     private var job: Job? = null
-    private var subscription: ConnectionSubscription? = null
     private val aggregator = OutboundTrafficAggregator()
     private val idMap = mutableMapOf<Long, TrafficUpdater.TrafficLooperData>() // id to 1 data
     private val tagMap = mutableMapOf<String, TrafficUpdater.TrafficLooperData>() // tag to 1 data
-
-    private val ticks = Channel<Unit>(Channel.CONFLATED)
+    private val selectedByGroup = mutableMapOf<String, String>()
 
     suspend fun stop() {
         job?.cancel()
-        subscription?.let { sub -> runCatching { sub.close() } }
-        subscription = null
+        job = null
         if (!DataStore.profileTrafficStatistics) return
         updateDb()
         Logs.d("finally traffic post done")
@@ -67,17 +64,17 @@ class TrafficLooper(
         }
     }
 
-    private fun onConnectionEvent(event: ConnectionEvent) {
-        if (event.type == Libcore.ConnectionEventTick) {
-            ticks.trySend(Unit)
-        } else {
-            aggregator.onEvent(event)
+    internal fun ignoreByEntityId(): Map<Long, Boolean> =
+        idMap.mapValues { it.value.ignore }
+
+    internal fun seedIdMapForTest(flags: Map<Long, Boolean>) {
+        idMap.clear()
+        for ((id, ignore) in flags) {
+            idMap[id] = TrafficUpdater.TrafficLooperData(tag = "t-$id", ignore = ignore)
         }
     }
 
     private suspend fun loop() = coroutineScope {
-        // Share into this scope rather than the outer one, so that cancelling [job]
-        // in [stop] also tears down these eager collectors.
         val speedInterval = DataStore.configurationStore
             .intFlow(Key.SPEED_INTERVAL, 1000)
             .stateIn(this, SharingStarted.Eagerly, 1000)
@@ -87,13 +84,10 @@ class TrafficLooper(
         val profileTrafficStatistics = DataStore.configurationStore
             .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
             .stateIn(this, SharingStarted.Eagerly, true)
-        // update database / 10s
         val persistEveryMs = 10_000L
 
-        // for display
         val itemBypass = TrafficUpdater.TrafficLooperData(tag = TAG_DIRECT)
 
-        // initialize
         idMap.clear()
         idMap[-1] = itemBypass
         val mainID = config.tagToID[config.mainTag]
@@ -116,24 +110,44 @@ class TrafficLooper(
         val trafficUpdater = TrafficUpdater(
             aggregator = aggregator, items = idMap.values.toList(),
         )
-        box.initializeProxySet()
-        subscription = runCatching { box.subscribeConnections(::onConnectionEvent, speedInterval.value) }
-            .onFailure { Logs.w("subscribe connections", it) }
-            .getOrNull()
+
+        // Seed selected tags and track subsequent selection changes via groups stream.
+        launch {
+            coreClient.subscribeGroups().collect { groups ->
+                for (group in groups.groupList) {
+                    val previous = selectedByGroup.put(group.tag, group.selected)
+                    if (previous != null && previous != group.selected) {
+                        updateSelectedTag(group.tag, previous, group.selected)
+                    } else if (previous == null && group.selected.isNotEmpty()) {
+                        // Initial snapshot: un-ignore the actually selected member.
+                        // Empty old is a no-op on the old side of updateSelectedTag
+                        // (matches deleted InitializeProxySet OnGroupSelectedChange).
+                        updateSelectedTag(group.tag, "", group.selected)
+                    }
+                }
+            }
+        }
 
         launch {
-            speedInterval.collect { interval ->
-                subscription?.updateInterval(interval)
+            speedInterval.collectLatest { intervalMs ->
+                if (intervalMs <= 0) return@collectLatest
+                coreClient.subscribeConnections(intervalMs.milliseconds).collect { events ->
+                    aggregator.onEvents(events)
+                }
             }
         }
 
         var lastPersist = System.currentTimeMillis()
-        for (tick in ticks) {
-            if (speedInterval.value <= 0) continue
+        while (isActive) {
+            val intervalMs = speedInterval.value.toLong().coerceAtLeast(0L)
+            if (intervalMs <= 0L) {
+                delay(200.milliseconds)
+                continue
+            }
+            delay(intervalMs.milliseconds)
 
             trafficUpdater.updateAll()
 
-            // add all non-bypass to "main"
             var mainTxRate = 0L
             var mainRxRate = 0L
             var mainTx = 0L
@@ -147,7 +161,6 @@ class TrafficLooper(
                 mainRx += it.rx - it.rxBase
             }
 
-            // speed
             val speedStats = SpeedStats(
                 txRateProxy = mainTxRate,
                 rxRateProxy = mainRxRate,
@@ -157,7 +170,6 @@ class TrafficLooper(
                 rxTotal = mainRx,
             )
 
-            // Update shared speed state
             if (DataStore.serviceState == ServiceState.Connected) {
                 BackendState.updateSpeed(speedStats)
                 onSpeedUpdate?.invoke(speedStats)

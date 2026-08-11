@@ -5,6 +5,8 @@ import (
 	"context"
 	"strings"
 
+	"libcore/coresvc"
+
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/compatible"
 	"github.com/sagernet/sing-box/experimental"
@@ -48,6 +50,12 @@ func New(ctx context.Context, logFactory log.ObservableFactory, options option.C
 		c.modeList = append([]string{defaultMode}, c.modeList...)
 	}
 	c.mode = defaultMode
+	// Publish the per-instance context into the host holder when present so
+	// husi CoreService handlers (URL test, …) can reach context-registered
+	// services. No-op when the holder is absent (tests / standalone).
+	if holder := service.FromContext[*coresvc.InstanceContextHolder](ctx); holder != nil {
+		holder.Set(ctx)
+	}
 	return c, nil
 }
 
