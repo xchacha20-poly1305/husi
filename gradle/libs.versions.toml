@@ -1,5 +1,5 @@
 [versions]
-ksp = "2.3.10"
+ksp = "2.3.11"
 kotlinComposePlugin = "2.4.10"
 clikt = "5.1.0"
 composeMultiplatform = "1.11.1"
