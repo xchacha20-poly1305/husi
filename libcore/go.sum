@@ -279,8 +279,8 @@ github.com/xchacha20-poly1305/TLS-scribe v0.12.2 h1:YuR+6K8KwUfbN/CFiphL49oxllxw
 github.com/xchacha20-poly1305/TLS-scribe v0.12.2/go.mod h1:PTQP/dMHSyKVPtYo8GuQWIM/JRKDDNV+1x0hc6nLb90=
 github.com/xchacha20-poly1305/anchor v0.8.0 h1:mqLX+9iPDvBsTeVsrWhrqdzU60BaDnCyx0a/jv2AIzQ=
 github.com/xchacha20-poly1305/anchor v0.8.0/go.mod h1:qnTJ6Y4/LYa9EqPyi+LbJe+ks/BUBIM7ujzdLTK9tug=
-github.com/xchacha20-poly1305/anja v0.22.13 h1:ZPVG6PA9iPWYqv3PVJ9A85a4VSthHNT/gQ0wpbSo7BQ=
-github.com/xchacha20-poly1305/anja v0.22.13/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
+github.com/xchacha20-poly1305/anja v0.22.16 h1:l9qmqtDHCCQE8l/TngSw5wY0E26MWB/MlEa8vwpno4A=
+github.com/xchacha20-poly1305/anja v0.22.16/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
 github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
 github.com/xchacha20-poly1305/pkgsite-go v0.6.3 h1:6NAZxUYh4fmBw1P05X54v5dOV4ryEgqc5fxvjyW4scw=
