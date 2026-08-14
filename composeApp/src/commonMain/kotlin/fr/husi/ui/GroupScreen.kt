@@ -21,12 +21,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -388,7 +389,10 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
     val group = state.group
 
     var showOptionsSheet by remember { mutableStateOf(false) }
-    val optionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val optionsSheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+    )
 
     ElevatedCard(
         modifier = modifier

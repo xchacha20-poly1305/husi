@@ -22,10 +22,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -392,7 +393,10 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
 
     var showShareSheet by remember { mutableStateOf(false) }
     var showSecurityAlert by remember { mutableStateOf(false) }
-    val shareSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val shareSheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+    )
     val validateResult = if (showActions && securityAdvice) {
         bean.isInsecure()
     } else {
