@@ -1,67 +1,58 @@
 package fr.husi.compose.material3
 
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PermanentDrawerSheet
-import androidx.compose.material3.PermanentNavigationDrawer
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.WideNavigationRail
+import androidx.compose.material3.WideNavigationRailItem
+import androidx.compose.material3.WideNavigationRailValue
+import androidx.compose.material3.rememberWideNavigationRailState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.unit.dp
-
-private object PermanentDrawerStateHolder : DrawerStateHolder {
-    override val canCollapse: Boolean = false
-    override val isOpen: Boolean = true
-
-    override suspend fun open() = Unit
-
-    override suspend fun close() = Unit
-}
+import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlatformMaterialApi() {
     @Composable
-    override fun rememberDrawerStateHolder(): DrawerStateHolder =
-        remember { PermanentDrawerStateHolder }
-
-    @Composable
-    override fun NavigationDrawer(
-        drawerStateHolder: DrawerStateHolder,
-        drawerContent: @Composable () -> Unit,
+    override fun NavigationSuite(
+        items: ImmutableList<NavigationSuiteItem>,
+        showNavigation: Boolean,
         content: @Composable () -> Unit,
     ) {
-        val density = LocalDensity.current
-        val windowInfo = LocalWindowInfo.current
-        val drawerWidth = remember(windowInfo.containerSize.width, density) {
-            with(density) {
-                (windowInfo.containerSize.width.toDp() * 0.24f).coerceIn(220.dp, 320.dp)
-            }
-        }
-        PermanentNavigationDrawer(
-            drawerContent = {
-                val colorOutline = MaterialTheme.colorScheme.outline
-                PermanentDrawerSheet(
-                    modifier = Modifier
-                        .width(drawerWidth)
-                        .drawWithContent {
-                            drawContent()
-                            val strokeWidth = 2.dp.toPx()
-                            val x = size.width - strokeWidth / 2
-                            drawLine(
-                                color = colorOutline,
-                                start = Offset(x, 0f),
-                                end = Offset(x, size.height),
-                                strokeWidth = strokeWidth,
+        // Desktop windows have enough space that collapsing the rail is not worth a toggle.
+        val railState = rememberWideNavigationRailState(WideNavigationRailValue.Expanded)
+        Row(modifier = Modifier.fillMaxSize()) {
+            WideNavigationRail(
+                state = railState,
+                arrangement = Arrangement.Top,
+            ) {
+                items.forEach { item ->
+                    WideNavigationRailItem(
+                        selected = item.selected,
+                        onClick = item.onClick,
+                        icon = {
+                            Icon(
+                                imageVector = vectorResource(item.icon),
+                                contentDescription = stringResource(item.label),
                             )
                         },
-                ) {
-                    drawerContent()
+                        label = { Text(stringResource(item.label)) },
+                        railExpanded = true,
+                    )
                 }
-            },
-            content = content,
-        )
+            }
+            VerticalDivider(Modifier.fillMaxHeight())
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            ) {
+                content()
+            }
+        }
     }
 }

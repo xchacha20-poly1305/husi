@@ -30,12 +30,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
-import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
 import fr.husi.compose.CapsuleTopBar
-import fr.husi.compose.PlatformMenuIcon
-import fr.husi.compose.SagerFab
-import fr.husi.compose.StatsBar
+import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.material3.PrimaryTabRow
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
@@ -43,8 +39,9 @@ import fr.husi.compose.paddingExceptBottom
 import fr.husi.database.DataStore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
 import fr.husi.resources.backup
-import fr.husi.resources.menu
 import fr.husi.resources.menu_tools
 import fr.husi.resources.ok
 import fr.husi.resources.tools_network
@@ -65,7 +62,7 @@ private const val PAGE_DEBUG = 2
 fun ToolsScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
-    onDrawerClick: () -> Unit,
+    onBackPress: () -> Unit,
     onOpenTool: (NavRoutes.ToolsPage) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -80,8 +77,6 @@ fun ToolsScreen(
         pageCount = { 2 + if (isExpert) 1 else 0 },
     )
 
-    var bottomVisible by remember { mutableStateOf(true) }
-
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topAppBarColors = TopAppBarDefaults.topAppBarColors()
     val appBarContainerColor by animateColorAsState(
@@ -95,8 +90,6 @@ fun ToolsScreen(
     )
     val windowInsets = WindowInsets.safeDrawing
 
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
-
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -105,11 +98,13 @@ fun ToolsScreen(
             Surface(color = appBarContainerColor) {
                 Column {
                     CapsuleTopBar(
-                        navigationIcon = PlatformMenuIcon(
-                            imageVector = vectorResource(Res.drawable.menu),
-                            contentDescription = stringResource(Res.string.menu),
-                            onClick = onDrawerClick,
-                        ),
+                        navigationIcon = {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.arrow_back),
+                                contentDescription = stringResource(Res.string.back),
+                                onClick = onBackPress,
+                            )
+                        },
                         title = { Text(stringResource(Res.string.menu_tools)) },
                         windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                         scrollBehavior = scrollBehavior,
@@ -150,30 +145,6 @@ fun ToolsScreen(
             }
         },
         snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            SagerFab(
-                visible = bottomVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getStringOrRes(message),
-                            actionLabel = resolveRepository().getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = bottomVisible,
-                    mainViewModel = mainViewModel,
-                )
-            }
-        },
     ) { innerPadding ->
         val bottomPadding = innerPadding.calculateBottomPadding()
         Column(
@@ -188,13 +159,13 @@ fun ToolsScreen(
                 when (page) {
                     PAGE_NETWORK -> NetworkScreen(
                         bottomPadding = bottomPadding,
-                        onVisibleChange = { bottomVisible = it },
+                        onVisibleChange = {},
                         onOpenTool = onOpenTool,
                     )
 
                     PAGE_BACKUP -> BackupScreen(
                         bottomPadding = bottomPadding,
-                        onVisibleChange = { bottomVisible = it },
+                        onVisibleChange = {},
                         showSnackbar = { message ->
                             scope.launch {
                                 snackbarState.showSnackbar(
@@ -208,7 +179,7 @@ fun ToolsScreen(
 
                     PAGE_DEBUG -> DebugScreen(
                         bottomPadding = bottomPadding,
-                        onVisibleChange = { bottomVisible = it },
+                        onVisibleChange = {},
                         showSnackbar = { message ->
                             scope.launch {
                                 snackbarState.showSnackbar(

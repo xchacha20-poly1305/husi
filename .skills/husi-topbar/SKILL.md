@@ -20,12 +20,16 @@ choice determines which pattern to use.
 | `CapsuleSearchTopBar`     | Replacement for `AppBarWithSearch`: nav icon + search capsule + actions                                                                     |
 | `CapsuleSearchInputField` | Input field wrapper for use inside `CapsuleSearchTopBar`. Handles centered placeholder + faded leading icon in the collapsed state          |
 | `CapsuleActionButton`     | Wraps an action icon (e.g. `SimpleIconButton`) in capsule styling. Every entry inside `actions = { ... }` should be wrapped in one of these |
-| `PlatformMenuIcon`        | Cross-platform helper for `navigationIcon`: returns a menu IconButton on Android, returns null on desktop (desktop has no drawer)           |
 
 Visual contract: the capsule fills are semi-transparent (`surfaceContainer.copy(alpha = 0.75f)`)with
 a 1dp `outlineVariant` border. The topbar itself has **no background** — it floats over whatever is
 beneath. The visible "background" of the topbar comes from either an outer `Surface` (Pattern B) or
 the scrolling content showing through (Pattern A).
+
+Top-level destinations (Configuration, Dashboard, Route, Log, Settings) live in `NavigationSuite`
+(phone `NavigationBar`, desktop `WideNavigationRail`, TV drawer). Those screens pass
+`navigationIcon = null` so the capsule row collapses the nav slot. Pushed screens use a back
+`SimpleIconButton` (`arrow_back`) as `navigationIcon`.
 
 ## Long titles
 
@@ -66,11 +70,7 @@ Scaffold(
         .nestedScroll(scrollBehavior.nestedScrollConnection),
     topBar = {
         CapsuleTopBar(
-            navigationIcon = PlatformMenuIcon(
-                imageVector = vectorResource(Res.drawable.menu),
-                contentDescription = stringResource(Res.string.menu),
-                onClick = onDrawerClick,
-            ),
+            navigationIcon = null, // top-level tab
             title = { Text(stringResource(Res.string.menu_xxx)) },
             actions = {
                 CapsuleActionButton {
@@ -106,6 +106,17 @@ Key points:
   navigation/FAB area is preserved.
 - Pass `windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)` so the bottom inset
   is left to the Scaffold (used by FAB / `StatsBar`).
+- Pushed screens set `navigationIcon` to a back button:
+
+```kotlin
+navigationIcon = {
+    SimpleIconButton(
+        imageVector = vectorResource(Res.drawable.arrow_back),
+        contentDescription = stringResource(Res.string.back),
+        onClick = onBackPress,
+    )
+},
+```
 
 ## Pattern B — topbar has tabs / search bar / other non-content attached below
 
@@ -172,7 +183,7 @@ Surface(color = appBarContainerColor) {
         if (isConnectionsPage) {
             CapsuleSearchTopBar(
                 inputField = searchInputField,
-                navigationIcon = PlatformMenuIcon(...
+                navigationIcon = null,
             ),
             actions = { /* CapsuleActionButton { ... } */ },
             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -180,7 +191,7 @@ Surface(color = appBarContainerColor) {
             )
         } else {
             CapsuleTopBar(
-                navigationIcon = PlatformMenuIcon(...
+                navigationIcon = null,
             ),
             title = { Text(stringResource(Res.string.menu_dashboard)) },
             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -281,10 +292,9 @@ What does your topBar look like?
 - **Action icons look wrong / don't have the capsule background.** Every `SimpleIconButton` inside
   `actions = { ... }` must be wrapped in `CapsuleActionButton { ... }`. Don't drop bare icon buttons
   in directly.
-- **Empty slot where the nav icon should be on desktop.** Use `PlatformMenuIcon(...)` for the
-  navigation icon. It returns null on desktop, and the topbar's Row collapses that slot
-  automatically. A hand-rolled `SimpleIconButton` will produce a desktop menu button that shouldn't
-  exist.
+- **Wrong navigation icon.** Top-level tabs pass `navigationIcon = null` (the capsule row
+  collapses that slot). Pushed pages use `SimpleIconButton(arrow_back)` — see `AssetsScreen` and
+  `GroupScreen`. Do not add a hamburger; top-level switching is `NavigationSuite`.
 - **Bottom inset fighting with FAB / StatsBar.** Give the topbar
   `windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)` so the Scaffold owns the
   bottom inset. Use `innerPadding.withNavigation()` on LazyColumn `contentPadding`, or

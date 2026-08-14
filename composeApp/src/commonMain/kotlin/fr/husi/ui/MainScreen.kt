@@ -2,19 +2,7 @@
 
 package fr.husi.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -22,11 +10,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
@@ -40,12 +26,10 @@ import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
 import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.TextButton
-import fr.husi.compose.material3.DrawerItem
 import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.IconButton
-import fr.husi.compose.material3.NavigationDrawer
+import fr.husi.compose.material3.NavigationSuite
+import fr.husi.compose.material3.NavigationSuiteItem
 import fr.husi.compose.material3.Text
-import fr.husi.compose.material3.rememberDrawerStateHolder
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.restartApplication
@@ -59,38 +43,26 @@ import fr.husi.resources.access_local_network_denied
 import fr.husi.resources.action_download
 import fr.husi.resources.bug_report
 import fr.husi.resources.cancel
-import fr.husi.resources.close
-import fr.husi.resources.construction
-import fr.husi.resources.data_usage
 import fr.husi.resources.description
 import fr.husi.resources.directions
-import fr.husi.resources.document
 import fr.husi.resources.error
-import fr.husi.resources.fast_rewind
 import fr.husi.resources.have_a_nice_day
-import fr.husi.resources.info
 import fr.husi.resources.location_permission_description
 import fr.husi.resources.location_permission_title
-import fr.husi.resources.menu_about
 import fr.husi.resources.menu_configuration
 import fr.husi.resources.menu_dashboard
-import fr.husi.resources.menu_group
 import fr.husi.resources.menu_log
 import fr.husi.resources.menu_route
-import fr.husi.resources.menu_tools
 import fr.husi.resources.missing_plugin
-import fr.husi.resources.nfc
 import fr.husi.resources.no_thanks
 import fr.husi.resources.auth_later_hint
 import fr.husi.resources.ok
 import fr.husi.resources.permission_denied
-import fr.husi.resources.plugin
 import fr.husi.resources.plugin_unknown
 import fr.husi.resources.query_package_denied
 import fr.husi.resources.question_mark
 import fr.husi.resources.settings
 import fr.husi.resources.transform
-import fr.husi.resources.view_list
 import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
@@ -98,8 +70,8 @@ import fr.husi.ui.configuration.ProfileSelectSheet
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openconnect.OpenConnectAuthDialog
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -151,28 +123,20 @@ private fun MainScreenContent(
 ) {
     val permission = LocalPermissionPlatform.current
     val uriHandler = LocalUriHandler.current
-    val scope = rememberCoroutineScope()
 
     val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
     val resultBus = remember { ResultEventBus() }
-    val drawerStateHolder = rememberDrawerStateHolder()
     val navigator = remember(koinScope, backStack) {
         koinScope.get<Navigator> {
             parametersOf(backStack)
         }
     }
-    val selectedDrawerRoute = navigator.selectedDrawerRoute
+    val selectedTopLevelRoute = navigator.selectedTopLevelRoute
     val isAtStartDestination = navigator.isAtStartDestination
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     val profilePickerController = remember(koinScope) {
         koinScope.get<ProfilePickerController>()
-    }
-
-    fun closeDrawer() {
-        if (drawerStateHolder.canCollapse) {
-            scope.launch { drawerStateHolder.close() }
-        }
     }
 
     /**
@@ -221,12 +185,10 @@ private fun MainScreenContent(
 
     BackHandler(enabled = true) {
         when {
-            drawerStateHolder.canCollapse && drawerStateHolder.isOpen -> scope.launch { drawerStateHolder.close() }
-
             !isAtStartDestination -> {
                 val popped = navigator.popBackStack()
                 if (!popped) {
-                    navigator.navigateToDrawerRoute(NavRoutes.Configuration)
+                    navigator.navigateToTopLevelRoute(NavRoutes.Configuration)
                 }
             }
 
@@ -265,141 +227,41 @@ private fun MainScreenContent(
         }
     }
 
-    NavigationDrawer(
-        drawerStateHolder = drawerStateHolder,
-        drawerContent = {
-            @Composable
-            fun BuildDrawerItem(info: DrawerItemInfo) {
-                DrawerItem(
-                    info = info,
-                    closeDrawer = ::closeDrawer,
-                    selectedDrawerRoute = selectedDrawerRoute,
-                    onNavigate = navigator::navigateToDrawerRoute,
-                )
-            }
-
-            val dividerPadding = 4.dp
-            val items0 = remember {
-                persistentListOf(
-                    DrawerItemInfo(
-                        Res.string.menu_configuration,
-                        Res.drawable.description,
-                        NavRoutes.Configuration,
-                    ),
-                    DrawerItemInfo(
-                        Res.string.menu_group,
-                        Res.drawable.view_list,
-                        NavRoutes.Groups,
-                    ),
-                    DrawerItemInfo(
-                        Res.string.menu_route,
-                        Res.drawable.directions,
-                        NavRoutes.Route,
-                    ),
-                    DrawerItemInfo(
-                        Res.string.settings,
-                        Res.drawable.settings,
-                        NavRoutes.Settings,
-                    ),
-                    DrawerItemInfo(
-                        Res.string.plugin,
-                        Res.drawable.nfc,
-                        NavRoutes.Plugin,
-                    ),
-                )
-            }
-            for (info in items0) BuildDrawerItem(info)
-            HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
-            val items1 = remember {
-                persistentListOf(
-                    DrawerItemInfo(Res.string.menu_log, Res.drawable.bug_report, NavRoutes.Log),
-                    DrawerItemInfo(
-                        Res.string.menu_dashboard,
-                        Res.drawable.transform,
-                        NavRoutes.Dashboard,
-                    ),
-                    DrawerItemInfo(
-                        Res.string.menu_tools,
-                        Res.drawable.construction,
-                        NavRoutes.Tools,
-                    ),
-                )
-            }
-            for (info in items1) BuildDrawerItem(info)
-            HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
-            DrawerItem(
-                label = { Text(stringResource(Res.string.document)) },
-                selected = false,
-                onClick = {
-                    closeDrawer()
-                    uriHandler.openUri("https://github.com/xchacha20-poly1305/husi/wiki")
-                },
-                icon = {
-                    Icon(vectorResource(Res.drawable.data_usage), null)
-                },
-            )
-            BuildDrawerItem(
-                DrawerItemInfo(
-                    Res.string.menu_about,
-                    Res.drawable.info,
-                    NavRoutes.About,
-                ),
-            )
-            if (drawerStateHolder.canCollapse) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 28.dp),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    val tooltipState = rememberTooltipState()
-                    TooltipBox(
-                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
-                            TooltipAnchorPosition.Above,
-                        ),
-                        tooltip = {
-                            PlainTooltip {
-                                Text(stringResource(Res.string.close))
-                            }
-                        },
-                        state = tooltipState,
-                    ) {
-                        IconButton(
-                            onClick = ::closeDrawer,
-                            modifier = Modifier.size(56.dp),
-                        ) {
-                            Icon(
-                                imageVector = vectorResource(Res.drawable.fast_rewind),
-                                contentDescription = stringResource(Res.string.close),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp),
-                            )
-                        }
-                    }
+    val topLevelDestinations = remember {
+        persistentListOf(
+            TopLevelDestination(
+                Res.string.menu_configuration,
+                Res.drawable.description,
+                NavRoutes.Configuration,
+            ),
+            TopLevelDestination(
+                Res.string.menu_dashboard,
+                Res.drawable.transform,
+                NavRoutes.Dashboard,
+            ),
+            TopLevelDestination(Res.string.menu_route, Res.drawable.directions, NavRoutes.Route),
+            TopLevelDestination(Res.string.menu_log, Res.drawable.bug_report, NavRoutes.Log),
+            TopLevelDestination(Res.string.settings, Res.drawable.settings, NavRoutes.Settings),
+        )
+    }
+    val navigationItems = topLevelDestinations.map { destination ->
+        val selected = selectedTopLevelRoute.matchesRoute(destination.route)
+        NavigationSuiteItem(
+            label = destination.label,
+            icon = destination.icon,
+            selected = selected,
+            onClick = {
+                if (!selected) {
+                    navigator.navigateToTopLevelRoute(destination.route)
                 }
-            }
-        },
+            },
+        )
+    }.toPersistentList()
+
+    NavigationSuite(
+        items = navigationItems,
+        showNavigation = navigator.isCurrentTopLevel,
     ) {
-        fun onDrawerClick() {
-            if (!drawerStateHolder.canCollapse) {
-                return
-            }
-            scope.launch {
-                if (drawerStateHolder.isOpen) {
-                    drawerStateHolder.close()
-                } else {
-                    drawerStateHolder.open()
-                }
-            }
-        }
-
-        remember(koinScope) {
-            koinScope.get<DrawerController> {
-                parametersOf(::onDrawerClick)
-            }
-        }
-
         CompositionLocalProvider(
             LocalResultEventBus provides resultBus,
         ) {
@@ -548,36 +410,11 @@ private fun MainScreenContent(
 }
 
 @Immutable
-private data class DrawerItemInfo(
+private data class TopLevelDestination(
     val label: StringResource,
     val icon: DrawableResource,
     val route: NavRoutes,
 )
-
-@Composable
-private fun DrawerItem(
-    modifier: Modifier = Modifier,
-    info: DrawerItemInfo,
-    closeDrawer: () -> Unit,
-    selectedDrawerRoute: NavRoutes?,
-    onNavigate: (NavRoutes) -> Unit,
-) {
-    val selected = selectedDrawerRoute.matchesRoute(info.route)
-    DrawerItem(
-        label = { Text(stringResource(info.label)) },
-        selected = selected,
-        onClick = {
-            closeDrawer()
-            if (!selected) {
-                onNavigate(info.route)
-            }
-        },
-        modifier = modifier,
-        icon = {
-            Icon(vectorResource(info.icon), null)
-        },
-    )
-}
 
 private fun NavRoutes?.matchesRoute(
     route: NavRoutes,

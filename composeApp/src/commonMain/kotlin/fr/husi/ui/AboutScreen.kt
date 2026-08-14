@@ -43,19 +43,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.BuildConfig
-import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.platformCombinedClickable
-import fr.husi.compose.SagerFab
+import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
-import fr.husi.compose.StatsBar
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
@@ -68,15 +62,18 @@ import fr.husi.resources.app_name
 import fr.husi.resources.battery_charging_full
 import fr.husi.resources.build
 import fr.husi.resources.build_environment
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
 import fr.husi.resources.code
 import fr.husi.resources.copy_success
+import fr.husi.resources.data_usage
+import fr.husi.resources.document
 import fr.husi.resources.g_translate
 import fr.husi.resources.gavel
 import fr.husi.resources.github
 import fr.husi.resources.ignore_battery_optimizations
 import fr.husi.resources.ignore_battery_optimizations_sum
 import fr.husi.resources.library_music
-import fr.husi.resources.menu
 import fr.husi.resources.menu_about
 import fr.husi.resources.ok
 import fr.husi.resources.oss_licenses
@@ -96,7 +93,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun AboutScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
-    onDrawerClick: () -> Unit,
+    onBackPress: () -> Unit,
     onNavigateToLibraries: () -> Unit,
 ) {
     val clipboard = LocalClipboard.current
@@ -105,7 +102,6 @@ fun AboutScreen(
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    val scrollHideVisible by rememberScrollHideState(listState)
     var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     val displayVersion = remember(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE) {
@@ -125,8 +121,6 @@ fun AboutScreen(
     val shouldRequestBattery = rememberShouldRequestBatteryOptimizations()
     val requestIgnoreBatteryOptimizations = rememberRequestIgnoreBatteryOptimizations()
 
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
-
     fun putToClipboard(text: String) {
         scope.launch {
             clipboard.setPlainText(text)
@@ -144,40 +138,18 @@ fun AboutScreen(
         topBar = {
             SimpleTopAppBar(
                 title = { Text(stringResource(Res.string.menu_about)) },
-                navigationIcon = PlatformMenuIcon(
-                    imageVector = vectorResource(Res.drawable.menu),
-                    contentDescription = stringResource(Res.string.menu),
-                    onClick = onDrawerClick,
-                ),
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.arrow_back),
+                        contentDescription = stringResource(Res.string.back),
+                        onClick = onBackPress,
+                    )
+                },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            SagerFab(
-                visible = scrollHideVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getStringOrRes(message),
-                            actionLabel = resolveRepository().getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = scrollHideVisible,
-                    mainViewModel = mainViewModel,
-                )
-            }
-        },
     ) { innerPadding ->
         val uriHandler = LocalUriHandler.current
         val contentPadding = innerPadding.withNavigation()
@@ -294,6 +266,19 @@ fun AboutScreen(
                                 icon = { Icon(vectorResource(Res.drawable.code), null) },
                                 title = stringResource(Res.string.github),
                                 onClick = { uriHandler.openUri("https://github.com/xchacha20-poly1305/husi") },
+                            )
+                            CardItem(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                icon = {
+                                    Icon(
+                                        vectorResource(Res.drawable.data_usage),
+                                        null,
+                                    )
+                                },
+                                title = stringResource(Res.string.document),
+                                onClick = {
+                                    uriHandler.openUri("https://github.com/xchacha20-poly1305/husi/wiki")
+                                },
                             )
                             CardItem(
                                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -428,7 +413,7 @@ private fun PreviewAboutScreen() {
     AppTheme {
         AboutScreen(
             mainViewModel = mainViewModel,
-            onDrawerClick = {},
+            onBackPress = {},
             onNavigateToLibraries = {},
         )
     }

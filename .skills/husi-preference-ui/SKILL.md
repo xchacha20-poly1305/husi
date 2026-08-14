@@ -9,7 +9,10 @@ Use this skill for every setting or profile-editor preference row in `composeApp
 
 ## Structure
 
-Settings sections use a category item followed by one grouped card:
+The Settings tab is a hub of category entries that push a sub-page. Each settings
+sub-page is one `preferenceGroup` card with no category header (the topbar title
+names the section). Profile-editor screens still use a category item followed by
+one grouped card:
 
 ```kotlin
 item { PreferenceCategory(text = { Text(stringResource(Res.string.general_settings)) }) }
@@ -105,7 +108,7 @@ Before finishing, run targeted searches:
 
 ```bash
 rg -n "LazyListScope\\.(autoConnect|platformGeneralOptions|platformSecurityOptions|meteredNetworkSetting|platformRouteOptions|platformMiscOptions|disableProcessText|httpProxyBypass)" composeApp/src
-rg -n "icon = \\{\\s*Icon\\(" composeApp/src/commonMain/kotlin/fr/husi/ui/SettingsScreen.kt composeApp/src/androidMain/kotlin/fr/husi/ui/SettingsScreenPlatform.android.kt composeApp/src/desktopMain/kotlin/fr/husi/ui/SettingsScreenPlatform.desktop.kt
+rg -n "icon = \\{\\s*Icon\\(" composeApp/src/commonMain/kotlin/fr/husi/ui/settings/ composeApp/src/androidMain/kotlin/fr/husi/ui/SettingsScreenPlatform.android.kt composeApp/src/desktopMain/kotlin/fr/husi/ui/SettingsScreenPlatform.desktop.kt
 rg -n "isSystemInDarkTheme|LocalContentColor provides Color\\.White" composeApp/src/commonMain/kotlin/fr/husi/compose/Preference.kt
 rg -n "PreferenceShapes\\.(risk|credential|route)\\(\\)" composeApp/src/commonMain/kotlin/fr/husi/ui composeApp/src/commonMain/kotlin/fr/husi/compose/Preference.kt
 ```

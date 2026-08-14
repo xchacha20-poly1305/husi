@@ -19,6 +19,9 @@ import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.LocalContentColor as MaterialLocalContentColor
 import androidx.compose.material3.LocalTextStyle as MaterialLocalTextStyle
 import androidx.compose.material3.Text as MaterialText
+import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -43,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.NavigationDrawerItemDefaults
 import androidx.tv.material3.LocalContentColor as TvLocalContentColor
 import androidx.tv.material3.LocalTextStyle as TvLocalTextStyle
-import androidx.tv.material3.DrawerState as TvDrawerState
 import androidx.tv.material3.DrawerValue as TvDrawerValue
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
@@ -69,22 +71,6 @@ import androidx.tv.material3.rememberDrawerState as rememberTvDrawerState
 
 internal val LocalTvNavigationDrawerScope =
     staticCompositionLocalOf<NavigationDrawerScope?> { null }
-
-private class TVDrawerStateHolder(
-    val state: TvDrawerState,
-) : DrawerStateHolder {
-    override val canCollapse: Boolean = false
-    override val isOpen: Boolean
-        get() = state.currentValue == TvDrawerValue.Open
-
-    override suspend fun open() {
-        state.setValue(TvDrawerValue.Open)
-    }
-
-    override suspend fun close() {
-        state.setValue(TvDrawerValue.Closed)
-    }
-}
 
 internal object TvPlatformMaterialApi : PlatformMaterialApi {
     @Composable
@@ -146,22 +132,14 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
     }
 
     @Composable
-    override fun rememberDrawerStateHolder(): DrawerStateHolder {
-        val drawerState = rememberTvDrawerState(TvDrawerValue.Open)
-        return remember(drawerState) {
-            TVDrawerStateHolder(drawerState)
-        }
-    }
-
-    @Composable
-    override fun NavigationDrawer(
-        drawerStateHolder: DrawerStateHolder,
-        drawerContent: @Composable () -> Unit,
+    override fun NavigationSuite(
+        items: ImmutableList<NavigationSuiteItem>,
+        showNavigation: Boolean,
         content: @Composable () -> Unit,
     ) {
-        val tvDrawerStateHolder = drawerStateHolder as TVDrawerStateHolder
+        val drawerState = rememberTvDrawerState(TvDrawerValue.Open)
         TvNavigationDrawer(
-            drawerState = tvDrawerStateHolder.state,
+            drawerState = drawerState,
             drawerContent = { drawerValue ->
                 CompositionLocalProvider(LocalTvNavigationDrawerScope provides this) {
                     val drawerWidth = when (drawerValue) {
@@ -174,7 +152,9 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
                             .fillMaxHeight(),
                     ) {
                         Column {
-                            drawerContent()
+                            items.forEach { item ->
+                                TvNavigationSuiteItem(item)
+                            }
                         }
                     }
                 }
@@ -184,39 +164,32 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
     }
 
     @Composable
-    override fun DrawerItem(
-        label: @Composable () -> Unit,
-        selected: Boolean,
-        onClick: () -> Unit,
-        modifier: Modifier,
-        icon: @Composable (() -> Unit)?,
-    ) {
+    private fun TvNavigationSuiteItem(item: NavigationSuiteItem) {
         val tvScope = LocalTvNavigationDrawerScope.current
         if (tvScope != null) with(tvScope) {
             val focusRequester = remember { FocusRequester() }
-            LaunchedEffect(selected, hasFocus) {
-                if (selected && hasFocus) {
+            LaunchedEffect(item.selected, hasFocus) {
+                if (item.selected && hasFocus) {
                     focusRequester.requestFocus()
                 }
             }
             TvNavigationDrawerItem(
-                selected = selected,
-                onClick = onClick,
+                selected = item.selected,
+                onClick = item.onClick,
                 leadingContent = {
-                    ProvideTvMaterialBridge { icon?.invoke() }
+                    ProvideTvMaterialBridge {
+                        MaterialIcon(
+                            imageVector = vectorResource(item.icon),
+                            contentDescription = stringResource(item.label),
+                        )
+                    }
                 },
-                modifier = modifier.focusRequester(focusRequester),
+                modifier = Modifier.focusRequester(focusRequester),
             ) {
-                ProvideTvMaterialBridge { label() }
+                ProvideTvMaterialBridge {
+                    MaterialText(stringResource(item.label))
+                }
             }
-        } else {
-            standardPlatformMaterialApi().DrawerItem(
-                label = label,
-                selected = selected,
-                onClick = onClick,
-                modifier = modifier,
-                icon = icon,
-            )
         }
     }
 

@@ -3,7 +3,6 @@
     <string name="auto_connect_summary_desktop">登录系统时启动并自动连接</string>
     <string name="tun_interface_name">Tun 接口名称</string>
     <string name="tun_interface_name_summary">留空则使用 sing-box 默认值</string>
-    <string name="system_daemon">系统守护进程</string>
     <string name="install_daemon">安装守护进程</string>
     <string name="install_daemon_summary">安装 TUN 模式所需的特权系统服务</string>
     <string name="update_daemon">更新守护进程</string>

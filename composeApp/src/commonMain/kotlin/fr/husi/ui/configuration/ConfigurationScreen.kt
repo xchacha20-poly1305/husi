@@ -78,18 +78,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.ClipboardContent
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.ExpandableDropdownMenuItem
-import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab
 import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.colorForUrlTestDelay
 import fr.husi.compose.decodeQRCode
@@ -157,7 +154,7 @@ import fr.husi.resources.ecg
 import fr.husi.resources.group_order_by_delay
 import fr.husi.resources.group_order_by_name
 import fr.husi.resources.group_order_origin
-import fr.husi.resources.menu
+import fr.husi.resources.menu_group
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
 import fr.husi.resources.need_reload
@@ -174,6 +171,7 @@ import fr.husi.resources.search
 import fr.husi.resources.search_go
 import fr.husi.resources.sort_mode
 import fr.husi.resources.undo
+import fr.husi.resources.view_list
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.ui.MainViewModelUiEvent
@@ -191,7 +189,7 @@ import kotlin.reflect.KClass
 fun ConfigurationScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
-    onNavigationClick: () -> Unit,
+    onOpenGroups: () -> Unit,
     vm: ConfigurationScreenViewModel = viewModel { ConfigurationScreenViewModel() },
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
 ) {
@@ -430,16 +428,19 @@ fun ConfigurationScreen(
                 Column {
                     CapsuleSearchTopBar(
                         inputField = searchInputField,
-                        navigationIcon = PlatformMenuIcon(
-                            imageVector = vectorResource(Res.drawable.menu),
-                            contentDescription = stringResource(Res.string.menu),
-                            onClick = onNavigationClick,
-                        ),
+                        navigationIcon = null,
                         onSearchPillClick = {
                             scope.launch { searchBarState.animateToExpanded() }
                         },
                         onSearchPillLongPress = ::scrollToSelectedProxyAcrossGroups,
                         actions = {
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.view_list),
+                                contentDescription = stringResource(Res.string.menu_group),
+                                onClick = onOpenGroups,
+                            )
+                        }
                         CapsuleActionButton {
                             Box {
                                 SimpleIconButton(
@@ -658,15 +659,6 @@ fun ConfigurationScreen(
                 },
                 onSizeChanged = { fabHeight = it },
             )
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = scrollHideVisible,
-                    mainViewModel = mainViewModel,
-                )
-            }
         },
     ) { innerPadding ->
         val density = LocalDensity.current

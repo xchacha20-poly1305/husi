@@ -70,7 +70,6 @@ import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
-import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
@@ -101,7 +100,6 @@ import fr.husi.resources.copy_success
 import fr.husi.resources.descending
 import fr.husi.resources.ensure_close_all
 import fr.husi.resources.have_reset_network
-import fr.husi.resources.menu
 import fr.husi.resources.menu_dashboard
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
@@ -139,7 +137,6 @@ fun DashboardScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     openConnectController: OpenConnectAuthController,
-    onDrawerClick: () -> Unit,
     openRouteSettings: (RouteSettingsUiState) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -219,11 +216,7 @@ fun DashboardScreen(
                     if (isConnectionsPage) {
                         CapsuleSearchTopBar(
                             inputField = searchInputField,
-                            navigationIcon = PlatformMenuIcon(
-                                imageVector = vectorResource(Res.drawable.menu),
-                                contentDescription = stringResource(Res.string.menu),
-                                onClick = onDrawerClick,
-                            ),
+                            navigationIcon = null,
                             actions = {
                                 CapsuleActionButton {
                                     SimpleIconButton(
@@ -355,11 +348,7 @@ fun DashboardScreen(
                         )
                     } else {
                         CapsuleTopBar(
-                            navigationIcon = PlatformMenuIcon(
-                                imageVector = vectorResource(Res.drawable.menu),
-                                contentDescription = stringResource(Res.string.menu),
-                                onClick = onDrawerClick,
-                            ),
+                            navigationIcon = null,
                             title = { Text(stringResource(Res.string.menu_dashboard)) },
                             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,

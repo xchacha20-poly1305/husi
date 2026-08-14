@@ -65,14 +65,14 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
 import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
+
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
-import fr.husi.compose.PlatformMenuIcon
+
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.StatsBar
+
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
@@ -106,7 +106,6 @@ import fr.husi.resources.drag_indicator
 import fr.husi.resources.edit
 import fr.husi.resources.error_title
 import fr.husi.resources.layers
-import fr.husi.resources.menu
 import fr.husi.resources.menu_route
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
@@ -137,7 +136,6 @@ fun RouteScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     viewModel: RouteScreenViewModel = viewModel { RouteScreenViewModel() },
-    onDrawerClick: () -> Unit,
     openRouteSettings: (Long) -> Unit,
     openAssets: () -> Unit,
 ) {
@@ -198,11 +196,7 @@ fun RouteScreen(
         topBar = {
             CapsuleTopBar(
                 title = { Text(stringResource(Res.string.menu_route)) },
-                navigationIcon = PlatformMenuIcon(
-                    imageVector = vectorResource(Res.drawable.menu),
-                    contentDescription = stringResource(Res.string.menu),
-                    onClick = onDrawerClick,
-                ),
+                navigationIcon = null,
                 actions = {
                     CapsuleActionButton {
                         SimpleIconButton(
@@ -269,15 +263,6 @@ fun RouteScreen(
                     }
                 },
             )
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = scrollHideVisible,
-                    mainViewModel = mainViewModel,
-                )
-            }
         },
     ) { innerPadding ->
         val listContentPadding = innerPadding.withNavigation()

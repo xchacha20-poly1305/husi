@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -91,7 +90,8 @@ internal actual fun AutoConnectPreference() {
     )
 }
 
-internal actual fun LazyListScope.platformDaemonOptions(showMessage: (String) -> Unit) {
+@Composable
+internal actual fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit) {
 }
 
 @Composable

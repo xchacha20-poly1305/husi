@@ -43,25 +43,21 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
-import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.platformCombinedClickable
-import fr.husi.compose.SagerFab
+import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
-import fr.husi.compose.StatsBar
 import fr.husi.compose.material3.Text
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.restartApplication
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
-import fr.husi.resources.menu
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
 import fr.husi.resources.need_restart
 import fr.husi.resources.nfc
 import fr.husi.resources.no_plugin_found
@@ -79,17 +75,15 @@ import org.jetbrains.compose.resources.vectorResource
 fun PluginScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
-    onDrawerClick: () -> Unit,
+    onBackPress: () -> Unit,
 ) {
     val plugins by platformPluginsFlow().collectAsStateWithLifecycle(emptyList())
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    val scrollHideVisible by rememberScrollHideState(listState)
     val uriHandler = LocalUriHandler.current
     val openPluginCard = rememberOpenPluginCard()
     var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
@@ -118,40 +112,18 @@ fun PluginScreen(
         topBar = {
             SimpleTopAppBar(
                 title = { Text(stringResource(Res.string.plugin)) },
-                navigationIcon = PlatformMenuIcon(
-                    imageVector = vectorResource(Res.drawable.menu),
-                    contentDescription = stringResource(Res.string.menu),
-                    onClick = onDrawerClick,
-                ),
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.arrow_back),
+                        contentDescription = stringResource(Res.string.back),
+                        onClick = onBackPress,
+                    )
+                },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            SagerFab(
-                visible = scrollHideVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getStringOrRes(message),
-                            actionLabel = resolveRepository().getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = scrollHideVisible,
-                    mainViewModel = mainViewModel,
-                )
-            }
-        },
     ) { innerPadding ->
         ProvidePreferenceLocals {
             val contentPadding = innerPadding.withNavigation()

@@ -1,6 +1,5 @@
 package fr.husi.ui
 
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,13 +15,11 @@ import fr.husi.Key
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.TextButton
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
-import fr.husi.compose.preferenceGroup
 import fr.husi.compose.validateTunInterfaceName
 import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
@@ -55,7 +52,6 @@ import fr.husi.resources.phonelink_ring
 import fr.husi.resources.security
 import fr.husi.resources.start_at_boot_daemon
 import fr.husi.resources.start_at_boot_daemon_summary
-import fr.husi.resources.system_daemon
 import fr.husi.resources.tun_auto_redirect
 import fr.husi.resources.tun_interface_name
 import fr.husi.resources.tun_interface_name_summary
@@ -98,11 +94,9 @@ internal actual fun AutoConnectPreference() {
     )
 }
 
-internal actual fun LazyListScope.platformDaemonOptions(showMessage: (String) -> Unit) {
-    item { PreferenceCategory(text = { Text(stringResource(Res.string.system_daemon)) }) }
-    preferenceGroup {
-        DaemonOptionsGroup(showMessage = showMessage)
-    }
+@Composable
+internal actual fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit) {
+    DaemonOptionsGroup(showMessage = showMessage)
 }
 
 @Composable

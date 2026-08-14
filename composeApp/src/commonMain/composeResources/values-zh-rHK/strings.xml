@@ -119,6 +119,7 @@
     <string name="app_name">虎兕</string>
     <string name="language">語言</string>
     <string name="language_system_default">系統預設</string>
+    <string name="system_daemon">系統守護程序</string>
     <string name="quic">QUIC</string>
     <string name="openconnect_authentication">OpenConnect 驗證</string>
     <string name="clear_remembered_authentication_answers">清除已記住的驗證答案</string>

@@ -1,17 +1,16 @@
 package fr.husi.compose.material3
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Card as MaterialCard
 import androidx.compose.material3.CardDefaults as MaterialCardDefaults
 import androidx.compose.material3.Button as MaterialButton
@@ -22,6 +21,8 @@ import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.IconButtonColors as MaterialIconButtonColors
 import androidx.compose.material3.LocalTextStyle as MaterialLocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.PrimaryScrollableTabRow as MaterialPrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow as MaterialPrimaryTabRow
 import androidx.compose.material3.RadioButton as MaterialRadioButton
@@ -32,7 +33,6 @@ import androidx.compose.material3.TabRowDefaults as MaterialTabRowDefaults
 import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,18 +53,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
 import org.koin.core.context.GlobalContext
-import androidx.compose.material3.rememberDrawerState as rememberMaterialDrawerState
 
-internal interface DrawerStateHolder {
-    val canCollapse: Boolean
-    val isOpen: Boolean
-
-    suspend fun open()
-
-    suspend fun close()
-}
+@Immutable
+class NavigationSuiteItem(
+    val label: StringResource,
+    val icon: DrawableResource,
+    val selected: Boolean,
+    val onClick: () -> Unit,
+)
 
 internal interface PlatformTabRowScope {
     @Composable
@@ -80,22 +83,10 @@ internal interface PlatformTabRowScope {
 
 internal interface PlatformMaterialApi {
     @Composable
-    fun rememberDrawerStateHolder(): DrawerStateHolder
-
-    @Composable
-    fun NavigationDrawer(
-        drawerStateHolder: DrawerStateHolder,
-        drawerContent: @Composable () -> Unit,
+    fun NavigationSuite(
+        items: ImmutableList<NavigationSuiteItem>,
+        showNavigation: Boolean,
         content: @Composable () -> Unit,
-    )
-
-    @Composable
-    fun DrawerItem(
-        label: @Composable () -> Unit,
-        selected: Boolean,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
-        icon: @Composable (() -> Unit)? = null,
     )
 
     @Composable
@@ -307,64 +298,45 @@ internal val LocalPlatformTabRowScope = staticCompositionLocalOf<PlatformTabRowS
     MaterialPlatformTabRowScope
 }
 
-private class MaterialDrawerStateHolder(
-    val state: DrawerState,
-) : DrawerStateHolder {
-    override val canCollapse: Boolean = true
-    override val isOpen: Boolean
-        get() = state.isOpen
-
-    override suspend fun open() {
-        state.open()
-    }
-
-    override suspend fun close() {
-        state.close()
-    }
-}
-
 private object MaterialPlatformMaterialApi : PlatformMaterialApi {
     @Composable
-    override fun rememberDrawerStateHolder(): DrawerStateHolder {
-        val drawerState = rememberMaterialDrawerState(DrawerValue.Closed)
-        return remember(drawerState) {
-            MaterialDrawerStateHolder(drawerState)
-        }
-    }
-
-    @Composable
-    override fun NavigationDrawer(
-        drawerStateHolder: DrawerStateHolder,
-        drawerContent: @Composable () -> Unit,
+    override fun NavigationSuite(
+        items: ImmutableList<NavigationSuiteItem>,
+        showNavigation: Boolean,
         content: @Composable () -> Unit,
     ) {
-        val materialDrawerStateHolder = drawerStateHolder as MaterialDrawerStateHolder
-        ModalNavigationDrawer(
-            drawerState = materialDrawerStateHolder.state,
-            drawerContent = {
-                ModalDrawerSheet {
-                    drawerContent()
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(
+                        if (showNavigation) {
+                            Modifier.consumeWindowInsets(NavigationBarDefaults.windowInsets)
+                        } else {
+                            Modifier
+                        },
+                    ),
+            ) {
+                content()
+            }
+            AnimatedVisibility(visible = showNavigation) {
+                ShortNavigationBar {
+                    items.forEach { item ->
+                        ShortNavigationBarItem(
+                            selected = item.selected,
+                            onClick = item.onClick,
+                            icon = {
+                                MaterialIcon(
+                                    imageVector = vectorResource(item.icon),
+                                    contentDescription = stringResource(item.label),
+                                )
+                            },
+                            label = { MaterialText(stringResource(item.label)) },
+                        )
+                    }
                 }
-            },
-            content = content,
-        )
-    }
-
-    @Composable
-    override fun DrawerItem(
-        label: @Composable () -> Unit,
-        selected: Boolean,
-        onClick: () -> Unit,
-        modifier: Modifier,
-        icon: @Composable (() -> Unit)?,
-    ) {
-        NavigationDrawerItem(
-            label = label,
-            selected = selected,
-            onClick = onClick,
-            modifier = modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-            icon = icon,
-        )
+            }
+        }
     }
 
     @Composable
@@ -885,36 +857,15 @@ object CardDefaults {
 }
 
 @Composable
-internal fun rememberDrawerStateHolder(): DrawerStateHolder =
-    currentPlatformMaterialApi().rememberDrawerStateHolder()
-
-@Composable
-internal fun NavigationDrawer(
-    drawerStateHolder: DrawerStateHolder,
-    drawerContent: @Composable () -> Unit,
+fun NavigationSuite(
+    items: ImmutableList<NavigationSuiteItem>,
+    showNavigation: Boolean,
     content: @Composable () -> Unit,
 ) {
-    currentPlatformMaterialApi().NavigationDrawer(
-        drawerStateHolder = drawerStateHolder,
-        drawerContent = drawerContent,
+    currentPlatformMaterialApi().NavigationSuite(
+        items = items,
+        showNavigation = showNavigation,
         content = content,
-    )
-}
-
-@Composable
-internal fun DrawerItem(
-    label: @Composable () -> Unit,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    icon: @Composable (() -> Unit)? = null,
-) {
-    currentPlatformMaterialApi().DrawerItem(
-        label = label,
-        selected = selected,
-        onClick = onClick,
-        modifier = modifier,
-        icon = icon,
     )
 }
 

@@ -56,21 +56,15 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
 import fr.husi.GroupType
-import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
-import fr.husi.compose.SagerFab
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SheetSectionTitle
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.compose.withNavigation
 import fr.husi.database.SagerDatabase
@@ -84,6 +78,8 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
 import fr.husi.resources.action_export_clipboard
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
 import fr.husi.resources.action_export_file
 import fr.husi.resources.cancel
 import fr.husi.resources.clear_profiles
@@ -154,7 +150,7 @@ fun GroupScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     viewModel: GroupScreenViewModel = viewModel { GroupScreenViewModel() },
-    onDrawerClick: () -> Unit,
+    onBackPress: () -> Unit,
     openGroupSettings: (Long) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -214,9 +210,6 @@ fun GroupScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
     val dragDropListState = rememberDragDropSwipeLazyColumnState()
-    val scrollHideVisible by rememberScrollHideState(dragDropListState.lazyListState)
-
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier
@@ -225,11 +218,13 @@ fun GroupScreen(
         topBar = {
             CapsuleTopBar(
                 title = { Text(stringResource(Res.string.menu_group)) },
-                navigationIcon = PlatformMenuIcon(
-                    imageVector = vectorResource(Res.drawable.menu),
-                    contentDescription = stringResource(Res.string.menu),
-                    onClick = onDrawerClick,
-                ),
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.arrow_back),
+                        contentDescription = stringResource(Res.string.back),
+                        onClick = onBackPress,
+                    )
+                },
                 actions = {
                     CapsuleActionButton {
                         SimpleIconButton(
@@ -253,30 +248,6 @@ fun GroupScreen(
             )
         },
         snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            SagerFab(
-                visible = scrollHideVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getStringOrRes(message),
-                            actionLabel = resolveRepository().getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = scrollHideVisible,
-                    mainViewModel = mainViewModel,
-                )
-            }
-        },
     ) { innerPadding ->
         val contentPadding = innerPadding.withNavigation()
         Row(

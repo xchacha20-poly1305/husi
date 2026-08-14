@@ -1,6 +1,5 @@
 package fr.husi.ui
 
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.flow.Flow
@@ -43,10 +42,11 @@ internal expect fun rememberAppLanguageController(defaultTag: String): AppLangua
 internal expect fun AutoConnectPreference()
 
 /**
- * Desktop-only system-daemon category (install / update / start-at-boot).
- * Android contributes no items.
+ * Desktop-only system-daemon rows (install / update / start-at-boot).
+ * Android renders nothing; the Daemon settings page is only reachable on desktop.
  */
-internal expect fun LazyListScope.platformDaemonOptions(showMessage: (String) -> Unit)
+@Composable
+internal expect fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit)
 
 @Composable
 internal expect fun PlatformGeneralOptions(needReload: () -> Unit)

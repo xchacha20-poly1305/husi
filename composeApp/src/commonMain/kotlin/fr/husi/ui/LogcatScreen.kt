@@ -65,16 +65,16 @@ import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
+
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
-import fr.husi.compose.PlatformMenuIcon
+
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.StatsBar
+
 import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.ansiEscape
 import fr.husi.compose.fadingEdge
@@ -94,7 +94,7 @@ import fr.husi.resources.copy_all
 import fr.husi.resources.delete_sweep
 import fr.husi.resources.keyboard_arrow_down
 import fr.husi.resources.logcat
-import fr.husi.resources.menu
+
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
 import fr.husi.resources.ok
@@ -118,7 +118,6 @@ fun LogcatScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     viewModel: LogcatScreenViewModel = viewModel { LogcatScreenViewModel() },
-    onDrawerClick: () -> Unit,
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -214,11 +213,7 @@ fun LogcatScreen(
         topBar = {
             CapsuleSearchTopBar(
                 inputField = searchInputField,
-                navigationIcon = PlatformMenuIcon(
-                    imageVector = vectorResource(Res.drawable.menu),
-                    contentDescription = stringResource(Res.string.menu),
-                    onClick = onDrawerClick,
-                ),
+                navigationIcon = null,
                 actions = {
                     CapsuleActionButton {
                         SimpleIconButton(
@@ -349,15 +344,6 @@ fun LogcatScreen(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     )
                 }
-            }
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = true,
-                    mainViewModel = mainViewModel,
-                )
             }
         },
     ) { innerPadding ->

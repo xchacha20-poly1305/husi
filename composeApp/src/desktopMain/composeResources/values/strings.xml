@@ -3,7 +3,6 @@
     <string name="auto_connect_summary_desktop">Launch at login and connect automatically</string>
     <string name="tun_interface_name">Tun interface name</string>
     <string name="tun_interface_name_summary">Leave empty to use sing-box default</string>
-    <string name="system_daemon">System Daemon</string>
     <string name="install_daemon">Install daemon</string>
     <string name="install_daemon_summary">Install the privileged system service required for TUN mode</string>
     <string name="update_daemon">Update daemon</string>
