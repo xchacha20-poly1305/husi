@@ -9,7 +9,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.Key
 import fr.husi.TrafficSortMode
+import fr.husi.bg.BackendState
 import fr.husi.bg.DefaultNetworkListener
+import fr.husi.bg.SpeedStats
 import fr.husi.core.CoreClient
 import fr.husi.core.formatConnectionTime
 import fr.husi.core.isClosed
@@ -57,6 +59,12 @@ data class DashboardState(
 
     val memory: Long = 0,
     val goroutines: Int = 0,
+    val txRateProxy: Long = 0,
+    val rxRateProxy: Long = 0,
+    val txRateDirect: Long = 0,
+    val rxRateDirect: Long = 0,
+    val proxySpeedHistory: List<Float> = idleSpeedHistory(),
+    val directSpeedHistory: List<Float> = idleSpeedHistory(),
     val ipv4: String? = null,
     val ipv6: String? = null,
     val selectedClashMode: String = "",
@@ -195,6 +203,22 @@ class DashboardViewModel(
             }
             refreshNetworkInterfaces()
         }
+        viewModelScope.launch {
+            BackendState.status.collect { status ->
+                if (!status.state.connected) {
+                    resetSpeedState()
+                }
+            }
+        }
+        viewModelScope.launch {
+            BackendState.speedUpdates.collect { speed ->
+                if (!BackendState.status.value.state.connected || speed == null) {
+                    resetSpeedState()
+                    return@collect
+                }
+                appendSpeed(speed)
+            }
+        }
     }
 
     private var statusJob: Job? = null
@@ -226,9 +250,16 @@ class DashboardViewModel(
                 clashModes = emptyList(),
                 memory = 0,
                 goroutines = 0,
+                txRateProxy = 0,
+                rxRateProxy = 0,
+                txRateDirect = 0,
+                rxRateDirect = 0,
+                proxySpeedHistory = idleSpeedHistory(),
+                directSpeedHistory = idleSpeedHistory(),
             )
         }
         if (!isConnected) return
+        BackendState.status.value.speed?.let(::appendSpeed)
 
         statusJob = viewModelScope.launch {
             try {
@@ -403,6 +434,38 @@ class DashboardViewModel(
                         it
                     }
                 },
+            )
+        }
+    }
+
+    private fun appendSpeed(speed: SpeedStats) {
+        uiState.update { state ->
+            state.copy(
+                txRateProxy = speed.txRateProxy,
+                rxRateProxy = speed.rxRateProxy,
+                txRateDirect = speed.txRateDirect,
+                rxRateDirect = speed.rxRateDirect,
+                proxySpeedHistory = nextSpeedHistory(
+                    state.proxySpeedHistory,
+                    (speed.txRateProxy + speed.rxRateProxy).toFloat(),
+                ),
+                directSpeedHistory = nextSpeedHistory(
+                    state.directSpeedHistory,
+                    (speed.txRateDirect + speed.rxRateDirect).toFloat(),
+                ),
+            )
+        }
+    }
+
+    private fun resetSpeedState() {
+        uiState.update { state ->
+            state.copy(
+                txRateProxy = 0,
+                rxRateProxy = 0,
+                txRateDirect = 0,
+                rxRateDirect = 0,
+                proxySpeedHistory = idleSpeedHistory(),
+                directSpeedHistory = idleSpeedHistory(),
             )
         }
     }
@@ -771,4 +834,17 @@ class DashboardViewModel(
 
 internal fun skipGroupUrlTest(item: ProxyItem): Boolean {
     return item.type == "Direct" || item.type == "Block"
+}
+
+internal const val SPEED_HISTORY_SIZE = 30
+
+internal fun idleSpeedHistory(): List<Float> = List(SPEED_HISTORY_SIZE) { 0f }
+
+internal fun nextSpeedHistory(history: List<Float>, sample: Float): List<Float> {
+    val sized = if (history.size == SPEED_HISTORY_SIZE) {
+        history
+    } else {
+        idleSpeedHistory()
+    }
+    return sized.drop(1) + sample
 }

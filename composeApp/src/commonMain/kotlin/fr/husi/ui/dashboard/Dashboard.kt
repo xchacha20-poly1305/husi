@@ -64,7 +64,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.TrafficSortMode
 import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
@@ -72,7 +71,6 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Checkbox
 import fr.husi.compose.material3.Icon
@@ -411,15 +409,6 @@ fun DashboardScreen(
                             )
                         }
                     },
-                )
-            }
-        },
-        bottomBar = {
-            if (serviceStatus.state == ServiceState.Connected) {
-                StatsBar(
-                    status = serviceStatus,
-                    visible = bottomVisible,
-                    mainViewModel = mainViewModel,
                 )
             }
         },

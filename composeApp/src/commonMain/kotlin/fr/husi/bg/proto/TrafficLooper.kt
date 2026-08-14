@@ -78,9 +78,6 @@ class TrafficLooper(
         val speedInterval = DataStore.configurationStore
             .intFlow(Key.SPEED_INTERVAL, 1000)
             .stateIn(this, SharingStarted.Eagerly, 1000)
-        val showDirectSpeed = DataStore.configurationStore
-            .booleanFlow(Key.SHOW_DIRECT_SPEED, true)
-            .stateIn(this, SharingStarted.Eagerly, true)
         val profileTrafficStatistics = DataStore.configurationStore
             .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
             .stateIn(this, SharingStarted.Eagerly, true)
@@ -164,8 +161,8 @@ class TrafficLooper(
             val speedStats = SpeedStats(
                 txRateProxy = mainTxRate,
                 rxRateProxy = mainRxRate,
-                txRateDirect = if (showDirectSpeed.value) itemBypass.txRate else 0L,
-                rxRateDirect = if (showDirectSpeed.value) itemBypass.rxRate else 0L,
+                txRateDirect = itemBypass.txRate,
+                rxRateDirect = itemBypass.rxRate,
                 txTotal = mainTx,
                 rxTotal = mainRx,
             )

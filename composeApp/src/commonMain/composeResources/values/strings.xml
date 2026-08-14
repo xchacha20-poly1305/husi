@@ -658,6 +658,8 @@
     <string name="status_goroutines" translatable="false">Goroutines</string>
     <string name="status_memory">Memory</string>
     <string name="status_status">Status</string>
+    <string name="status_proxy">Proxy</string>
+    <string name="status_direct">Direct</string>
     <string name="disable_post_quantum">Disable post-quantum key agreement</string>
     <string name="mux_strategy">Mux Strategy</string>
     <string name="mux_number">Mux Number</string>

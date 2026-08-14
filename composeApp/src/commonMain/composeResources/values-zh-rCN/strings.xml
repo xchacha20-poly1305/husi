@@ -582,6 +582,8 @@
     <string name="traffic_connections">连接</string>
     <string name="status_memory">内存</string>
     <string name="status_status">状态</string>
+    <string name="status_proxy">代理</string>
+    <string name="status_direct">直连</string>
     <string name="disable_post_quantum">禁用后量子密钥协商</string>
     <string name="mux_strategy">多路复用策略</string>
     <string name="mux_number">多路复用数量</string>
