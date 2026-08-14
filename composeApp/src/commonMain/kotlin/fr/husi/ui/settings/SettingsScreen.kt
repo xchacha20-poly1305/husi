@@ -9,8 +9,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.husi.Key
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
@@ -22,20 +25,22 @@ import fr.husi.compose.preferenceGroup
 import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.plus
 import fr.husi.compose.withNavigation
+import fr.husi.database.DataStore
 import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
+import fr.husi.resources.backup
+import fr.husi.resources.bug_report
 import fr.husi.resources.cag_dns
 import fr.husi.resources.cag_misc
 import fr.husi.resources.cast_connected
-import fr.husi.resources.construction
 import fr.husi.resources.developer_mode
 import fr.husi.resources.dns
+import fr.husi.resources.file_export
 import fr.husi.resources.flight_takeoff
 import fr.husi.resources.general_settings
 import fr.husi.resources.inbound_settings
 import fr.husi.resources.info
 import fr.husi.resources.menu_about
-import fr.husi.resources.menu_tools
 import fr.husi.resources.more
 import fr.husi.resources.nat
 import fr.husi.resources.nfc
@@ -47,6 +52,8 @@ import fr.husi.resources.router
 import fr.husi.resources.settings
 import fr.husi.resources.system_daemon
 import fr.husi.resources.timelapse
+import fr.husi.resources.tools_network
+import fr.husi.resources.wifi
 import fr.husi.ui.NavRoutes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -58,11 +65,14 @@ import org.jetbrains.compose.resources.stringResource
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     openSettingsPage: (NavRoutes.SettingsPage.Kind) -> Unit,
-    openTools: () -> Unit,
+    openTool: (NavRoutes.ToolsPage) -> Unit,
     openPlugin: () -> Unit,
     openAbout: () -> Unit,
 ) {
     val listState = rememberLazyListState()
+    val isExpert by DataStore.configurationStore
+        .booleanFlow(Key.APP_EXPERT, false)
+        .collectAsStateWithLifecycle(false)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -174,15 +184,39 @@ fun SettingsScreen(
                     item { PreferenceCategory(text = { Text(stringResource(Res.string.more)) }) }
                     preferenceGroup {
                         Preference(
-                            title = { Text(stringResource(Res.string.menu_tools)) },
+                            title = { Text(stringResource(Res.string.tools_network)) },
                             icon = {
                                 MaskedIcon(
-                                    Res.drawable.construction,
-                                    color = IconMaskColors.IconLightOrange,
+                                    Res.drawable.wifi,
+                                    color = IconMaskColors.IconLightBlue,
                                 )
                             },
-                            onClick = openTools,
+                            onClick = { openTool(NavRoutes.ToolsPage.Network) },
                         )
+                        PreferenceDivider()
+                        Preference(
+                            title = { Text(stringResource(Res.string.backup)) },
+                            icon = {
+                                MaskedIcon(
+                                    Res.drawable.file_export,
+                                    color = IconMaskColors.IconLightYellow,
+                                )
+                            },
+                            onClick = { openTool(NavRoutes.ToolsPage.Backup) },
+                        )
+                        if (isExpert) {
+                            PreferenceDivider()
+                            Preference(
+                                title = { Text("DEBUG") },
+                                icon = {
+                                    MaskedIcon(
+                                        Res.drawable.bug_report,
+                                        color = IconMaskColors.IconCoral,
+                                    )
+                                },
+                                onClick = { openTool(NavRoutes.ToolsPage.Debug) },
+                            )
+                        }
                         PreferenceDivider()
                         Preference(
                             title = { Text(stringResource(Res.string.plugin)) },

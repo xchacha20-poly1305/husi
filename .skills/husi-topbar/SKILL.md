@@ -120,7 +120,7 @@ navigationIcon = {
 
 ## Pattern B — topbar has tabs / search bar / other non-content attached below
 
-Used by `Configuration`, `Dashboard`, `Tools`, `AbstractAppList`. The topbar + the attached element
+Used by `Configuration`, `Dashboard`, `AbstractAppList`. The topbar + the attached element
 together form a single "header block", and the whole block should change color as the user scrolls (
 smoothly lerping from `containerColor` to `scrolledContainerColor`).
 
@@ -309,7 +309,6 @@ What does your topBar look like?
 
 - Pattern A: `composeApp/src/commonMain/kotlin/fr/husi/ui/RouteScreen.kt`, `GroupScreen.kt`,
   `LogcatScreen.kt`
-- Pattern B (tabs): `composeApp/src/commonMain/kotlin/fr/husi/ui/tools/ToolsScreen.kt`
 - Pattern B (tabs + conditional search):
   `composeApp/src/commonMain/kotlin/fr/husi/ui/dashboard/Dashboard.kt`
 - Pattern B (search + tabs):

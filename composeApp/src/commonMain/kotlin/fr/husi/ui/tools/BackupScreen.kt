@@ -4,11 +4,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +22,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,7 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -34,11 +43,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Checkbox
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.withNavigation
 import fr.husi.ktx.Logs
 import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.readableMessage
@@ -48,6 +60,9 @@ import fr.husi.resources.Res
 import fr.husi.resources.action_export
 import fr.husi.resources.action_export_msg
 import fr.husi.resources.action_import_file
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
+import fr.husi.resources.backup
 import fr.husi.resources.backup_groups_and_configurations
 import fr.husi.resources.backup_import
 import fr.husi.resources.backup_import_summary
@@ -60,6 +75,8 @@ import fr.husi.resources.error_title
 import fr.husi.resources.ok
 import fr.husi.resources.question_mark
 import fr.husi.resources.share
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.StringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
@@ -78,14 +95,18 @@ import java.io.File
 @Composable
 internal fun BackupScreen(
     modifier: Modifier = Modifier,
-    topPadding: Dp = 0.dp,
-    bottomPadding: Dp = 0.dp,
+    onBackPress: () -> Unit,
     viewModel: BackupViewModel = viewModel { BackupViewModel() },
-    showSnackbar: (message: String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val shareBackupFile = rememberShareBackupFile()
+    val snackbar = LocalSnackbarEmitter.current
+    val showSnackbar: (String) -> Unit = { message ->
+        snackbar.show(StringOrRes.Direct(message))
+    }
+    val windowInsets = WindowInsets.safeDrawing
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var errorDialog by remember { mutableStateOf<String?>(null) }
@@ -141,115 +162,143 @@ internal fun BackupScreen(
         }
     }
 
-    Row(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp),
-        ) {
-            Spacer(modifier = Modifier.height(topPadding))
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CapsuleTopBar(
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.arrow_back),
+                        contentDescription = stringResource(Res.string.back),
+                        onClick = onBackPress,
+                    )
+                },
+                title = { Text(stringResource(Res.string.backup)) },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { innerPadding ->
+        val contentPadding = innerPadding.withNavigation()
+        val layoutDirection = LocalLayoutDirection.current
+        Row(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(scrollState)
+                    .padding(
+                        start = contentPadding.calculateStartPadding(layoutDirection),
+                        end = contentPadding.calculateEndPadding(layoutDirection),
+                    )
+                    .padding(horizontal = 16.dp),
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
+                Spacer(modifier = Modifier.height(contentPadding.calculateTopPadding()))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(
-                        text = stringResource(Res.string.action_export),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    CheckBoxLine(
-                        checked = uiState.backupGroupsAndConfig,
-                        onCheckedChange = { viewModel.setBackupGroupsAndConfig(it) },
-                        text = stringResource(Res.string.backup_groups_and_configurations),
-                    )
-                    CheckBoxLine(
-                        checked = uiState.backupRules,
-                        onCheckedChange = { viewModel.setBackupRules(it) },
-                        text = stringResource(Res.string.backup_rules),
-                    )
-                    CheckBoxLine(
-                        checked = uiState.backupSettings,
-                        onCheckedChange = { viewModel.setBackupSettings(it) },
-                        text = stringResource(Res.string.backup_settings),
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = { viewModel.export() },
-                        modifier = Modifier.fillMaxWidth(),
+                    Column(
+                        modifier = Modifier.padding(16.dp),
                     ) {
-                        Text(stringResource(Res.string.action_export))
-                    }
-                    if (PlatformInfo.isAndroid) {
+                        Text(
+                            text = stringResource(Res.string.action_export),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        CheckBoxLine(
+                            checked = uiState.backupGroupsAndConfig,
+                            onCheckedChange = { viewModel.setBackupGroupsAndConfig(it) },
+                            text = stringResource(Res.string.backup_groups_and_configurations),
+                        )
+                        CheckBoxLine(
+                            checked = uiState.backupRules,
+                            onCheckedChange = { viewModel.setBackupRules(it) },
+                            text = stringResource(Res.string.backup_rules),
+                        )
+                        CheckBoxLine(
+                            checked = uiState.backupSettings,
+                            onCheckedChange = { viewModel.setBackupSettings(it) },
+                            text = stringResource(Res.string.backup_settings),
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
-                            onClick = {
-                                viewModel.share(
-                                    createFile = { fileName ->
-                                        File(resolveRepository().cacheDir, fileName)
-                                    },
-                                    launch = { file ->
-                                        shareBackupFile(file)
-                                    },
-                                    onFailed = { message ->
-                                        showSnackbar(message)
-                                    },
-                                )
-                            },
+                            onClick = { viewModel.export() },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(stringResource(Res.string.share))
+                            Text(stringResource(Res.string.action_export))
+                        }
+                        if (PlatformInfo.isAndroid) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    viewModel.share(
+                                        createFile = { fileName ->
+                                            File(resolveRepository().cacheDir, fileName)
+                                        },
+                                        launch = { file ->
+                                            shareBackupFile(file)
+                                        },
+                                        onFailed = { message ->
+                                            showSnackbar(message)
+                                        },
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(stringResource(Res.string.share))
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(
-                        text = stringResource(Res.string.action_import_file),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(Res.string.backup_summary),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = {
-                            importFileLauncher.launch()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
+                    Column(
+                        modifier = Modifier.padding(16.dp),
                     ) {
-                        Text(stringResource(Res.string.action_import_file))
+                        Text(
+                            text = stringResource(Res.string.action_import_file),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(Res.string.backup_summary),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                importFileLauncher.launch()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(Res.string.action_import_file))
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(contentPadding.calculateBottomPadding()))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(modifier = Modifier.height(bottomPadding))
+            BoxedVerticalScrollbar(
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 12.dp,
+                ),
+            )
         }
-
-        BoxedVerticalScrollbar(
-            modifier = Modifier.fillMaxHeight(),
-            adapter = rememberScrollbarAdapter(scrollState = scrollState),
-            style = defaultMaterialScrollbarStyle().copy(
-                thickness = 12.dp,
-            ),
-        )
     }
 
     errorDialog?.let { error ->

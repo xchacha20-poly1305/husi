@@ -27,12 +27,14 @@ import fr.husi.ui.profile.ProfileEditorScreen
 import fr.husi.ui.profile.SIP003EditorScreen
 import fr.husi.ui.settings.SettingsPageScreen
 import fr.husi.ui.settings.SettingsScreen
+import fr.husi.ui.tools.BackupScreen
+import fr.husi.ui.tools.DebugScreen
 import fr.husi.ui.tools.GetCertScreen
+import fr.husi.ui.tools.NetworkScreen
 import fr.husi.ui.tools.RuleSetMatchScreen
 import fr.husi.ui.tools.SpeedtestScreen
 import fr.husi.ui.tools.SpeedTestScreenViewModel
 import fr.husi.ui.tools.StunScreen
-import fr.husi.ui.tools.ToolsScreen
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.module.dsl.scopedOf
@@ -91,7 +93,7 @@ internal val commonNavigationModule = module {
                 openSettingsPage = { kind ->
                     navigator.navigateTo(NavRoutes.SettingsPage(kind))
                 },
-                openTools = { navigator.navigateTo(NavRoutes.Tools) },
+                openTool = navigator::navigateTo,
                 openPlugin = { navigator.navigateTo(NavRoutes.Plugin) },
                 openAbout = { navigator.navigateTo(NavRoutes.About) },
             )
@@ -212,11 +214,25 @@ internal val commonNavigationModule = module {
             )
         }
 
-        navigation<NavRoutes.Tools> { _ ->
+        navigation<NavRoutes.ToolsPage.Network> { _ ->
             val navigator = get<Navigator>()
-            ToolsScreen(
+            NetworkScreen(
                 onBackPress = { navigator.popBackStack() },
                 onOpenTool = navigator::navigateTo,
+            )
+        }
+
+        navigation<NavRoutes.ToolsPage.Backup> { _ ->
+            val navigator = get<Navigator>()
+            BackupScreen(
+                onBackPress = { navigator.popBackStack() },
+            )
+        }
+
+        navigation<NavRoutes.ToolsPage.Debug> { _ ->
+            val navigator = get<Navigator>()
+            DebugScreen(
+                onBackPress = { navigator.popBackStack() },
             )
         }
 

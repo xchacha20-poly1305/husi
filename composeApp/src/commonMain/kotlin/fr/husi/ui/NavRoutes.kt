@@ -23,7 +23,9 @@ sealed class NavRoutes : NavKey {
                         subclass(Plugin::class, Plugin.serializer())
                         subclass(Log::class, Log.serializer())
                         subclass(Dashboard::class, Dashboard.serializer())
-                        subclass(Tools::class, Tools.serializer())
+                        subclass(ToolsPage.Network::class, ToolsPage.Network.serializer())
+                        subclass(ToolsPage.Backup::class, ToolsPage.Backup.serializer())
+                        subclass(ToolsPage.Debug::class, ToolsPage.Debug.serializer())
                         subclass(ToolsPage.Stun::class, ToolsPage.Stun.serializer())
                         subclass(ToolsPage.GetCert::class, ToolsPage.GetCert.serializer())
                         subclass(ToolsPage.VPNScanner::class, ToolsPage.VPNScanner.serializer())
@@ -82,10 +84,16 @@ sealed class NavRoutes : NavKey {
     data object Dashboard : NavRoutes()
 
     @Serializable
-    data object Tools : NavRoutes()
-
-    @Serializable
     sealed class ToolsPage : NavRoutes() {
+        @Serializable
+        data object Network : ToolsPage()
+
+        @Serializable
+        data object Backup : ToolsPage()
+
+        @Serializable
+        data object Debug : ToolsPage()
+
         @Serializable
         data object Stun : ToolsPage()
 
