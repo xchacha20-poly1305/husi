@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package fr.husi.ui
 
@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,9 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -45,7 +41,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,13 +59,11 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
-import fr.husi.bg.BackendState
 
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 
-import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
 
 import fr.husi.compose.TextButton
@@ -79,7 +72,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
-import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -89,7 +82,6 @@ import fr.husi.database.RuleEntity.Companion.OUTBOUND_BRIDGE
 import fr.husi.database.RuleEntity.Companion.OUTBOUND_DIRECT
 import fr.husi.database.RuleEntity.Companion.OUTBOUND_PROXY
 import fr.husi.fmt.SingBoxOptions
-import fr.husi.ktx.showAndDismissOld
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -126,7 +118,6 @@ import fr.husi.resources.undo
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -134,13 +125,11 @@ import org.jetbrains.compose.resources.vectorResource
 @Composable
 fun RouteScreen(
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel,
     viewModel: RouteScreenViewModel = viewModel { RouteScreenViewModel() },
     openRouteSettings: (Long) -> Unit,
     openAssets: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val snackbarState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     DisposableEffect(Unit) {
         onDispose {
             viewModel.commit()
@@ -148,38 +137,35 @@ fun RouteScreen(
     }
 
     val dragDropListState = rememberDragDropSwipeLazyColumnState()
-    val scrollHideVisible by rememberScrollHideState(dragDropListState.lazyListState)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showMoreAction by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
-    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
-
-    fun needReload() = scope.launch {
-        if (!DataStore.serviceState.started) return@launch
-        val result = snackbarState.showSnackbar(
-            message = resolveRepository().getString(Res.string.need_reload),
-            actionLabel = resolveRepository().getString(Res.string.apply),
-            duration = SnackbarDuration.Short,
-        )
-        if (result == SnackbarResult.ActionPerformed) {
-            resolveRepository().reloadService()
+    fun needReload() {
+        if (!DataStore.serviceState.started) return
+        snackbar.show(
+            StringOrRes.Res(Res.string.need_reload),
+            StringOrRes.Res(Res.string.apply),
+        ) { result ->
+            if (result == SnackbarResult.ActionPerformed) {
+                resolveRepository().reloadService()
+            }
         }
     }
 
     LaunchedEffect(uiState.pendingDeleteCount) {
         if (uiState.pendingDeleteCount > 0) {
-            val result = snackbarState.showAndDismissOld(
-                message = resolveRepository().getPluralString(
+            snackbar.show(
+                StringOrRes.PluralsRes(
                     Res.plurals.removed,
                     uiState.pendingDeleteCount,
                     uiState.pendingDeleteCount,
                 ),
-                actionLabel = resolveRepository().getString(Res.string.undo),
-                duration = SnackbarDuration.Short,
-            )
-            if (result == SnackbarResult.ActionPerformed) {
-                viewModel.undo()
+                StringOrRes.Res(Res.string.undo),
+            ) { result ->
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.undo()
+                }
             }
         }
     }
@@ -187,7 +173,6 @@ fun RouteScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
 
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier
@@ -195,7 +180,7 @@ fun RouteScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
-                title = { Text(stringResource(Res.string.menu_route)) },
+                title = null,
                 navigationIcon = null,
                 actions = {
                     CapsuleActionButton {
@@ -248,22 +233,6 @@ fun RouteScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            SagerFab(
-                visible = scrollHideVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getStringOrRes(message),
-                            actionLabel = resolveRepository().getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                },
-            )
-        },
     ) { innerPadding ->
         val listContentPadding = innerPadding.withNavigation()
         val density = LocalDensity.current
@@ -289,7 +258,7 @@ fun RouteScreen(
                         start = listContentPadding.calculateStartPadding(LocalLayoutDirection.current),
                         top = introHeightDp,
                         end = listContentPadding.calculateEndPadding(LocalLayoutDirection.current),
-                        bottom = listContentPadding.calculateBottomPadding(),
+                        bottom = listContentPadding.calculateBottomPadding() + SagerFabClearance,
                     ),
                     userScrollEnabled = true,
                     onIndicesChangedViaDragAndDrop = {
@@ -412,36 +381,6 @@ fun RouteScreen(
         },
     )
 
-    LaunchedEffect(Unit) {
-        mainViewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.Snackbar -> scope.launch {
-                    snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
-                    val result = snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = getStringOrRes(event.actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                    event.callback(result)
-                }
-
-                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
-            }
-        }
-    }
-
-    showAlertDialog?.let { dialog ->
-        MainViewModelAlertDialog(dialog) {
-            showAlertDialog = null
-        }
-    }
 }
 
 @Composable

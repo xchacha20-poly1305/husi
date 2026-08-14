@@ -3,14 +3,15 @@ package fr.husi.compose.material3
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card as MaterialCard
 import androidx.compose.material3.CardDefaults as MaterialCardDefaults
 import androidx.compose.material3.Button as MaterialButton
@@ -86,6 +87,8 @@ internal interface PlatformMaterialApi {
     fun NavigationSuite(
         items: ImmutableList<NavigationSuiteItem>,
         showNavigation: Boolean,
+        snackbarHost: @Composable () -> Unit,
+        floatingActionButton: @Composable () -> Unit,
         content: @Composable () -> Unit,
     )
 
@@ -303,38 +306,42 @@ private object MaterialPlatformMaterialApi : PlatformMaterialApi {
     override fun NavigationSuite(
         items: ImmutableList<NavigationSuiteItem>,
         showNavigation: Boolean,
+        snackbarHost: @Composable () -> Unit,
+        floatingActionButton: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .then(
-                        if (showNavigation) {
-                            Modifier.consumeWindowInsets(NavigationBarDefaults.windowInsets)
-                        } else {
-                            Modifier
-                        },
-                    ),
-            ) {
-                content()
-            }
-            AnimatedVisibility(visible = showNavigation) {
-                ShortNavigationBar {
-                    items.forEach { item ->
-                        ShortNavigationBarItem(
-                            selected = item.selected,
-                            onClick = item.onClick,
-                            icon = {
-                                MaterialIcon(
-                                    imageVector = vectorResource(item.icon),
-                                    contentDescription = stringResource(item.label),
-                                )
-                            },
-                            label = { MaterialText(stringResource(item.label)) },
-                        )
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                AnimatedVisibility(visible = showNavigation) {
+                    ShortNavigationBar {
+                        items.forEach { item ->
+                            ShortNavigationBarItem(
+                                selected = item.selected,
+                                onClick = item.onClick,
+                                icon = {
+                                    MaterialIcon(
+                                        imageVector = vectorResource(item.icon),
+                                        contentDescription = stringResource(item.label),
+                                    )
+                                },
+                                label = { MaterialText(stringResource(item.label)) },
+                            )
+                        }
                     }
                 }
+            },
+            snackbarHost = snackbarHost,
+            floatingActionButton = floatingActionButton,
+        ) { innerPadding ->
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
+            ) {
+                content()
             }
         }
     }
@@ -860,11 +867,15 @@ object CardDefaults {
 fun NavigationSuite(
     items: ImmutableList<NavigationSuiteItem>,
     showNavigation: Boolean,
+    snackbarHost: @Composable () -> Unit,
+    floatingActionButton: @Composable () -> Unit,
     content: @Composable () -> Unit,
 ) {
     currentPlatformMaterialApi().NavigationSuite(
         items = items,
         showNavigation = showNavigation,
+        snackbarHost = snackbarHost,
+        floatingActionButton = floatingActionButton,
         content = content,
     )
 }

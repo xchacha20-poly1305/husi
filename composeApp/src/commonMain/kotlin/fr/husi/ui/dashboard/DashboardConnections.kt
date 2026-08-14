@@ -55,13 +55,9 @@ internal fun DashboardConnectionsScreen(
     resolveProcessInfo: suspend (String?, Int) -> ProcessInfo?,
     closeConnection: (uuid: String) -> Unit,
     onConnectionClick: (uuid: String) -> Unit,
-    onVisibleChange: (Boolean) -> Unit,
 ) {
     val itemSpacing = 12.dp
     val listState = rememberLazyListState()
-    LaunchedEffect(Unit) {
-        onVisibleChange(true)
-    }
 
     Box(
         modifier = modifier.fillMaxSize(),

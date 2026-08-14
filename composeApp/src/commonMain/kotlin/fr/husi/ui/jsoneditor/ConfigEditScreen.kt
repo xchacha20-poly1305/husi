@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package fr.husi.ui.jsoneditor
 
 import androidx.compose.foundation.clickable
@@ -35,7 +33,6 @@ import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
 import androidx.compose.material3.HorizontalFloatingToolbar
@@ -44,8 +41,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -97,7 +92,6 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.TextButton
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.fadingEdge
@@ -105,7 +99,6 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Text
 import fr.husi.keyevent.isTypeControlPressed
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_format
 import fr.husi.resources.action_test_config
@@ -128,6 +121,8 @@ import fr.husi.resources.undo
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
 import fr.husi.results.LocalResultEventBus
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.StringOrRes
 import fr.husi.results.ResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -160,7 +155,7 @@ private fun RepeatableIconButton(
                 coroutineScope {
                     awaitEachGesture {
                         awaitFirstDown()
-                        val job = launch {
+                        val job = this@coroutineScope.launch {
                             onClick()
                             delay(initialDelay)
                             while (true) {
@@ -392,7 +387,7 @@ private fun ConfigEditScreenContent(
 ) {
     val resultBus = LocalResultEventBus.current
     var alert by remember { mutableStateOf<String?>(null) }
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { uiEvent ->
@@ -404,11 +399,7 @@ private fun ConfigEditScreenContent(
 
                 is ConfigEditUiEvent.Alert -> alert = uiEvent.message
 
-                is ConfigEditUiEvent.SnackBar -> snackbarHostState.showSnackbar(
-                    message = resolveRepository().getString(uiEvent.id),
-                    actionLabel = resolveRepository().getString(Res.string.ok),
-                    duration = SnackbarDuration.Short,
-                )
+                is ConfigEditUiEvent.SnackBar -> snackbar.show(StringOrRes.Res(uiEvent.id))
             }
         }
     }
@@ -454,8 +445,8 @@ private fun ConfigEditScreenContent(
     val outputTransformation = remember(syntaxStyles) {
         OutputTransformation {
             val text = asCharSequence().toString()
-            for (token in configJsonEngine.document(text).tokens) {
-                addStyle(syntaxStyles.getValue(token.type), token.start, token.end)
+            for ((type, start, end) in configJsonEngine.document(text).tokens) {
+                addStyle(syntaxStyles.getValue(type), start, end)
             }
         }
     }
@@ -490,7 +481,7 @@ private fun ConfigEditScreenContent(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
+
     ) { innerPadding ->
         var completionHostPosition by remember { mutableStateOf<Offset?>(null) }
         Box(

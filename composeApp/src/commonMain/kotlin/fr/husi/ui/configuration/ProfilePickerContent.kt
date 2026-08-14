@@ -2,6 +2,7 @@
 
 package fr.husi.ui.configuration
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -18,6 +19,7 @@ import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -28,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
@@ -39,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryScrollableTabRow
 import fr.husi.compose.material3.Tab
@@ -51,6 +55,9 @@ import fr.husi.resources.cancel
 import fr.husi.resources.close
 import fr.husi.resources.search
 import fr.husi.resources.search_go
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.SnackbarEmitter
+import fr.husi.ui.SnackbarEmitterEffect
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -60,7 +67,6 @@ class ProfilePickerState internal constructor(
     val viewModel: ConfigurationScreenViewModel,
     val uiState: ConfigurationUiState,
     val pagerState: PagerState,
-    val snackbarState: SnackbarHostState,
     val preSelected: Long?,
     private val onSelectGroup: (Long) -> Unit,
 ) {
@@ -82,8 +88,6 @@ fun rememberProfilePickerState(
 ): ProfilePickerState {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
-    val snackbarState = remember { SnackbarHostState() }
-
     var selectedGroup by rememberSaveable { mutableLongStateOf(DataStore.selectedGroup) }
     val pagerState = rememberPagerState(
         initialPage = uiState.groups
@@ -132,7 +136,6 @@ fun rememberProfilePickerState(
         viewModel = viewModel,
         uiState = uiState,
         pagerState = pagerState,
-        snackbarState = snackbarState,
         preSelected = preSelected,
         onSelectGroup = { selectedGroup = it },
     )
@@ -149,6 +152,9 @@ fun ProfilePickerContent(
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
     val searchBarState = rememberSearchBarState()
+    val snackbarEmitter = remember { SnackbarEmitter() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    SnackbarEmitterEffect(snackbarEmitter, snackbarHostState)
     val windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
     val searchInputField: @Composable () -> Unit = {
         CapsuleSearchInputField(
@@ -176,71 +182,78 @@ fun ProfilePickerContent(
         )
     }
 
-    Column(modifier = modifier) {
-        Column {
-            CapsuleSearchTopBar(
-                inputField = searchInputField,
-                navigationIcon = {
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.close),
-                        contentDescription = stringResource(Res.string.close),
-                        onClick = onDismiss,
+    CompositionLocalProvider(LocalSnackbarEmitter provides snackbarEmitter) {
+        Box(modifier = modifier) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Column {
+                    CapsuleSearchTopBar(
+                        inputField = searchInputField,
+                        navigationIcon = {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.close),
+                                contentDescription = stringResource(Res.string.close),
+                                onClick = onDismiss,
+                            )
+                        },
+                        windowInsets = windowInsets,
                     )
-                },
-                windowInsets = windowInsets,
-            )
 
-            if (state.hasGroups && state.uiState.groups.size > 1) {
-                PrimaryScrollableTabRow(
-                    selectedTabIndex = state.pagerState.currentPage.fastCoerceIn(
-                        0,
-                        state.uiState.groups.size - 1,
-                    ),
-                    edgePadding = 0.dp,
-                ) {
-                    state.uiState.groups.forEachIndexed { index, group ->
-                        Tab(
-                            text = { Text(group.displayName()) },
-                            selected = state.pagerState.currentPage == index,
-                            onClick = {
-                                state.selectGroup(group.id)
-                            },
-                        )
+                    if (state.hasGroups && state.uiState.groups.size > 1) {
+                        PrimaryScrollableTabRow(
+                            selectedTabIndex = state.pagerState.currentPage.fastCoerceIn(
+                                0,
+                                state.uiState.groups.size - 1,
+                            ),
+                            edgePadding = 0.dp,
+                        ) {
+                            state.uiState.groups.forEachIndexed { index, group ->
+                                Tab(
+                                    text = { Text(group.displayName()) },
+                                    selected = state.pagerState.currentPage == index,
+                                    onClick = {
+                                        state.selectGroup(group.id)
+                                    },
+                                )
+                            }
+                        }
                     }
                 }
+
+                ConfigurationContent(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    vm = state.viewModel,
+                    pagerState = state.pagerState,
+                    preSelected = state.preSelected,
+                    showActions = false,
+                    onProfileSelect = onSelected,
+                    bottomPadding = bottomPadding,
+                )
             }
+
+            ExpandedFullScreenSearchBar(
+                state = searchBarState,
+                inputField = searchInputField,
+            ) {
+                ConfigurationContent(
+                    modifier = Modifier.fillMaxSize(),
+                    vm = state.viewModel,
+                    pagerState = state.pagerState,
+                    preSelected = state.preSelected,
+                    showActions = false,
+                    onProfileSelect = { id ->
+                        scope.launch { searchBarState.animateToCollapsed() }
+                        onSelected(id)
+                    },
+                    bottomPadding = 0.dp,
+                )
+            }
+
+            SwipeableSnackbarHost(
+                snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
-
-        ConfigurationContent(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            vm = state.viewModel,
-            snackbarState = state.snackbarState,
-            pagerState = state.pagerState,
-            preSelected = state.preSelected,
-            showActions = false,
-            onProfileSelect = onSelected,
-            bottomPadding = bottomPadding,
-        )
-    }
-
-    ExpandedFullScreenSearchBar(
-        state = searchBarState,
-        inputField = searchInputField,
-    ) {
-        ConfigurationContent(
-            modifier = Modifier.fillMaxSize(),
-            vm = state.viewModel,
-            snackbarState = state.snackbarState,
-            pagerState = state.pagerState,
-            preSelected = state.preSelected,
-            showActions = false,
-            onProfileSelect = { id ->
-                scope.launch { searchBarState.animateToCollapsed() }
-                onSelected(id)
-            },
-            bottomPadding = 0.dp,
-        )
     }
 }

@@ -23,18 +23,10 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -54,7 +46,6 @@ import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.restartApplication
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_back
 import fr.husi.resources.back
@@ -66,7 +57,6 @@ import fr.husi.resources.plugin
 import fr.husi.resources.version_x
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -74,31 +64,26 @@ import org.jetbrains.compose.resources.vectorResource
 @Composable
 fun PluginScreen(
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel,
     onBackPress: () -> Unit,
 ) {
     val plugins by platformPluginsFlow().collectAsStateWithLifecycle(emptyList())
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val scope = rememberCoroutineScope()
-    val snackbarState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     val listState = rememberLazyListState()
     val uriHandler = LocalUriHandler.current
     val openPluginCard = rememberOpenPluginCard()
-    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     val isExpert by DataStore.configurationStore
         .booleanFlow(Key.APP_EXPERT, false)
         .collectAsStateWithLifecycle(false)
 
     fun needRestart() {
-        scope.launch {
-            val result = snackbarState.showSnackbar(
-                message = resolveRepository().getString(Res.string.need_restart),
-                actionLabel = resolveRepository().getString(Res.string.ok),
-                duration = SnackbarDuration.Short,
-            )
+        snackbar.show(
+            StringOrRes.Res(Res.string.need_restart),
+            StringOrRes.Res(Res.string.ok),
+        ) { result ->
             if (result == SnackbarResult.ActionPerformed) {
                 restartApplication()
             }
@@ -123,7 +108,6 @@ fun PluginScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
     ) { innerPadding ->
         ProvidePreferenceLocals {
             val contentPadding = innerPadding.withNavigation()
@@ -152,36 +136,6 @@ fun PluginScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        mainViewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.Snackbar -> scope.launch {
-                    snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
-                    val result = snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = getStringOrRes(event.actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                    event.callback(result)
-                }
-
-                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
-            }
-        }
-    }
-
-    showAlertDialog?.let { dialog ->
-        MainViewModelAlertDialog(dialog) {
-            showAlertDialog = null
-        }
-    }
 }
 
 private fun LazyListScope.installedPlugins(

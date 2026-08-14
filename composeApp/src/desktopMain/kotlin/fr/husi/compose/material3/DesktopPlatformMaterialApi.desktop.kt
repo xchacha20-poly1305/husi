@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.WideNavigationRail
 import androidx.compose.material3.WideNavigationRailItem
@@ -57,6 +60,8 @@ internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlat
     override fun NavigationSuite(
         items: ImmutableList<NavigationSuiteItem>,
         showNavigation: Boolean,
+        snackbarHost: @Composable () -> Unit,
+        floatingActionButton: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
         // Desktop windows have enough space that collapsing the rail is not worth a toggle.
@@ -64,75 +69,86 @@ internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlat
         var railWidth by remember {
             mutableStateOf(DataStore.desktopNavRailWidth.dp)
         }
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val containerWidth = maxWidth
-            fun clampWidth(width: Dp) = width.coerceIn(
-                160.dp,
-                minOf(360.dp, containerWidth * 0.45f).coerceAtLeast(160.dp),
-            )
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            snackbarHost = snackbarHost,
+            floatingActionButton = floatingActionButton,
+        ) { innerPadding ->
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+            ) {
+                val containerWidth = maxWidth
+                fun clampWidth(width: Dp) = width.coerceIn(
+                    160.dp,
+                    minOf(360.dp, containerWidth * 0.45f).coerceAtLeast(160.dp),
+                )
 
-            val displayedWidth = clampWidth(railWidth)
-            val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-            Box(modifier = Modifier.fillMaxSize()) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    WideNavigationRail(
-                        modifier = Modifier.width(displayedWidth),
-                        state = railState,
-                        arrangement = Arrangement.Top,
-                    ) {
-                        items.forEach { item ->
-                            WideNavigationRailItem(
-                                selected = item.selected,
-                                onClick = item.onClick,
-                                icon = {
-                                    Icon(
-                                        imageVector = vectorResource(item.icon),
-                                        contentDescription = stringResource(item.label),
-                                    )
-                                },
-                                label = { Text(stringResource(item.label)) },
-                                railExpanded = true,
-                            )
+                val displayedWidth = clampWidth(railWidth)
+                val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        WideNavigationRail(
+                            modifier = Modifier.width(displayedWidth),
+                            state = railState,
+                            arrangement = Arrangement.Top,
+                        ) {
+                            items.forEach { item ->
+                                WideNavigationRailItem(
+                                    selected = item.selected,
+                                    onClick = item.onClick,
+                                    icon = {
+                                        Icon(
+                                            imageVector = vectorResource(item.icon),
+                                            contentDescription = stringResource(item.label),
+                                        )
+                                    },
+                                    label = { Text(stringResource(item.label)) },
+                                    railExpanded = true,
+                                )
+                            }
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        ) {
+                            content()
                         }
                     }
-                    Box(
+                    DesktopNavRailResizeHandle(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    ) {
-                        content()
-                    }
+                            .align(
+                                if (isRtl) {
+                                    Alignment.CenterEnd
+                                } else {
+                                    Alignment.CenterStart
+                                },
+                            )
+                            .offset(
+                                x = if (isRtl) {
+                                    -(displayedWidth - 6.dp)
+                                } else {
+                                    displayedWidth - 6.dp
+                                },
+                            )
+                            .zIndex(1f),
+                        onDrag = { delta ->
+                            railWidth = clampWidth(
+                                railWidth + if (isRtl) {
+                                    -delta
+                                } else {
+                                    delta
+                                },
+                            )
+                        },
+                        onDragFinished = {
+                            DataStore.desktopNavRailWidth = railWidth.value.roundToInt()
+                        },
+                    )
                 }
-                DesktopNavRailResizeHandle(
-                    modifier = Modifier
-                        .align(
-                            if (isRtl) {
-                                Alignment.CenterEnd
-                            } else {
-                                Alignment.CenterStart
-                            },
-                        )
-                        .offset(
-                            x = if (isRtl) {
-                                -(displayedWidth - 6.dp)
-                            } else {
-                                displayedWidth - 6.dp
-                            },
-                        )
-                        .zIndex(1f),
-                    onDrag = { delta ->
-                        railWidth = clampWidth(
-                            railWidth + if (isRtl) {
-                                -delta
-                            } else {
-                                delta
-                            },
-                        )
-                    },
-                    onDragFinished = {
-                        DataStore.desktopNavRailWidth = railWidth.value.roundToInt()
-                    },
-                )
             }
         }
     }

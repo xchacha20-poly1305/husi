@@ -11,14 +11,10 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -26,7 +22,6 @@ import fr.husi.bg.Executable
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
-import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -36,7 +31,6 @@ import fr.husi.database.SagerDatabase
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.ktx.showAndDismissOld
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.apply
@@ -49,16 +43,16 @@ import fr.husi.resources.inbound_settings
 import fr.husi.resources.need_reload
 import fr.husi.resources.need_restart
 import fr.husi.resources.ntp_category
-import fr.husi.resources.ok
 import fr.husi.resources.protocol_settings
 import fr.husi.resources.route_options
 import fr.husi.resources.system_daemon
+import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.NavRoutes
+import fr.husi.ui.StringOrRes
 import fr.husi.ui.PlatformDaemonSettingsGroup
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -73,8 +67,7 @@ fun SettingsPageScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
-    val scope = rememberCoroutineScope()
-    val snackbarState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
@@ -83,30 +76,30 @@ fun SettingsPageScreen(
         }
     }
 
-    fun needReload() = scope.launch {
-        if (!DataStore.serviceState.started) return@launch
-        val result = snackbarState.showAndDismissOld(
-            message = resolveRepository().getString(Res.string.need_reload),
-            actionLabel = resolveRepository().getString(Res.string.apply),
-            duration = SnackbarDuration.Short,
-        )
-        if (result == SnackbarResult.Dismissed) return@launch
-        resolveRepository().reloadService()
+    fun needReload() {
+        if (!DataStore.serviceState.started) return
+        snackbar.show(
+            StringOrRes.Res(Res.string.need_reload),
+            StringOrRes.Res(Res.string.apply),
+        ) { result ->
+            if (result == SnackbarResult.Dismissed) return@show
+            resolveRepository().reloadService()
+        }
     }
 
-    fun needRestart() = scope.launch {
-        val result = snackbarState.showAndDismissOld(
-            message = resolveRepository().getString(Res.string.need_restart),
-            actionLabel = resolveRepository().getString(Res.string.apply),
-            duration = SnackbarDuration.Short,
-        )
-        if (result == SnackbarResult.Dismissed) return@launch
-        resolveRepository().stopService()
-        runOnDefaultDispatcher {
-            delay(500.milliseconds)
-            SagerDatabase.instance.close()
-            Executable.killAll(true)
-            restartApplication()
+    fun needRestart() {
+        snackbar.show(
+            StringOrRes.Res(Res.string.need_restart),
+            StringOrRes.Res(Res.string.apply),
+        ) { result ->
+            if (result == SnackbarResult.Dismissed) return@show
+            resolveRepository().stopService()
+            runOnDefaultDispatcher {
+                delay(500.milliseconds)
+                SagerDatabase.instance.close()
+                Executable.killAll(true)
+                restartApplication()
+            }
         }
     }
 
@@ -139,7 +132,6 @@ fun SettingsPageScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
     ) { innerPadding ->
         ProvidePreferenceLocals {
             val contentPadding = innerPadding.withNavigation()
@@ -160,13 +152,7 @@ fun SettingsPageScreen(
                             )
                             NavRoutes.SettingsPage.Kind.Daemon -> PlatformDaemonSettingsGroup(
                                 showMessage = { message ->
-                                    scope.launch {
-                                        snackbarState.showSnackbar(
-                                            message = message,
-                                            actionLabel = resolveRepository().getString(Res.string.ok),
-                                            duration = SnackbarDuration.Short,
-                                        )
-                                    }
+                                    snackbar.show(StringOrRes.Direct(message))
                                 },
                             )
                             NavRoutes.SettingsPage.Kind.Route -> RouteSettingsGroup(

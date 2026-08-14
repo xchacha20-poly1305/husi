@@ -16,14 +16,11 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.ui.NavRoutes
 import fr.husi.resources.*
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -34,15 +31,9 @@ internal fun NetworkScreen(
     modifier: Modifier = Modifier,
     topPadding: Dp = 0.dp,
     bottomPadding: Dp = 0.dp,
-    onVisibleChange: (Boolean) -> Unit,
     onOpenTool: (NavRoutes.ToolsPage) -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val visible by rememberScrollHideState(scrollState)
-
-    LaunchedEffect(visible) {
-        onVisibleChange(visible)
-    }
 
     Row(modifier = modifier.fillMaxSize()) {
         Column(

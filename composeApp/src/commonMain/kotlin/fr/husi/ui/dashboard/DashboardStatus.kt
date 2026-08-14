@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalLayoutApi::class)
-
 package fr.husi.ui.dashboard
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,12 +15,9 @@ import androidx.compose.foundation.verticalScroll
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,7 +26,6 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.compose.BoxedVerticalScrollbar
 import kotlinx.coroutines.launch
@@ -42,7 +35,6 @@ import fr.husi.ui.openconnect.OpenConnectAuthController
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun DashboardStatusScreen(
     modifier: Modifier = Modifier,
@@ -52,16 +44,10 @@ internal fun DashboardStatusScreen(
     selectClashMode: (mode: String) -> Unit,
     showError: (String) -> Unit,
     onCopySuccess: () -> Unit,
-    onVisibleChange: (Boolean) -> Unit,
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    val visible by rememberScrollHideState(scrollState)
-
-    LaunchedEffect(visible) {
-        onVisibleChange(visible)
-    }
 
     Row(modifier = modifier.fillMaxSize()) {
         Column(

@@ -22,17 +22,10 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -55,7 +48,6 @@ import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.libcore.Libcore
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.android
 import fr.husi.resources.app_name
@@ -75,7 +67,6 @@ import fr.husi.resources.ignore_battery_optimizations
 import fr.husi.resources.ignore_battery_optimizations_sum
 import fr.husi.resources.library_music
 import fr.husi.resources.menu_about
-import fr.husi.resources.ok
 import fr.husi.resources.oss_licenses
 import fr.husi.resources.project
 import fr.husi.resources.shuowenxiaozhuan_husi
@@ -87,12 +78,10 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AboutScreen(
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel,
     onBackPress: () -> Unit,
     onNavigateToLibraries: () -> Unit,
 ) {
@@ -100,9 +89,8 @@ fun AboutScreen(
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
-    val snackbarState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     val listState = rememberLazyListState()
-    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     val displayVersion = remember(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE) {
         "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
@@ -124,12 +112,7 @@ fun AboutScreen(
     fun putToClipboard(text: String) {
         scope.launch {
             clipboard.setPlainText(text)
-            val repo = resolveRepository()
-            snackbarState.showSnackbar(
-                message = repo.getString(Res.string.copy_success),
-                actionLabel = repo.getString(Res.string.ok),
-                duration = SnackbarDuration.Short,
-            )
+            snackbar.show(StringOrRes.Res(Res.string.copy_success))
         }
     }
 
@@ -149,7 +132,6 @@ fun AboutScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
     ) { innerPadding ->
         val uriHandler = LocalUriHandler.current
         val contentPadding = innerPadding.withNavigation()
@@ -217,13 +199,7 @@ fun AboutScreen(
                                 onLongClick = {
                                     val isExpert = !DataStore.isExpert
                                     DataStore.isExpert = isExpert
-                                    scope.launch {
-                                        snackbarState.showSnackbar(
-                                            message = "isExpert: $isExpert",
-                                            actionLabel = resolveRepository().getString(Res.string.ok),
-                                            duration = SnackbarDuration.Short,
-                                        )
-                                    }
+                                    snackbar.show(StringOrRes.Direct("isExpert: $isExpert"))
                                 },
                             )
 
@@ -319,36 +295,6 @@ fun AboutScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        mainViewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.Snackbar -> scope.launch {
-                    snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
-                    val result = snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = getStringOrRes(event.actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                    event.callback(result)
-                }
-
-                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
-            }
-        }
-    }
-
-    showAlertDialog?.let { dialog ->
-        MainViewModelAlertDialog(dialog) {
-            showAlertDialog = null
-        }
-    }
 }
 
 
@@ -408,11 +354,9 @@ private fun CardItem(
 @Composable
 private fun PreviewAboutScreen() {
     ensurePreviewRepository()
-    val mainViewModel = koinViewModel<MainViewModel>()
 
     AppTheme {
         AboutScreen(
-            mainViewModel = mainViewModel,
             onBackPress = {},
             onNavigateToLibraries = {},
         )

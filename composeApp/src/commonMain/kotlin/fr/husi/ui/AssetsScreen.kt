@@ -26,7 +26,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -35,9 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -77,7 +73,6 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.ktx.showAndDismissOld
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -128,7 +123,7 @@ private fun geoDir(assetsDir: File): File {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun AssetsScreen(
     onBackPress: () -> Unit,
@@ -233,7 +228,7 @@ internal fun AssetsScreen(
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     DisposableEffect(Unit) {
         onDispose {
             viewModel.commit()
@@ -250,17 +245,17 @@ internal fun AssetsScreen(
 
     LaunchedEffect(uiState.pendingDeleteCount) {
         if (uiState.pendingDeleteCount > 0) {
-            val result = snackbarHostState.showAndDismissOld(
-                message = resolveRepository().getPluralString(
+            snackbar.show(
+                StringOrRes.PluralsRes(
                     Res.plurals.removed,
                     uiState.pendingDeleteCount,
                     uiState.pendingDeleteCount,
                 ),
-                actionLabel = resolveRepository().getString(Res.string.undo),
-                duration = SnackbarDuration.Short,
-            )
-            if (result == SnackbarResult.ActionPerformed) {
-                viewModel.undo()
+                StringOrRes.Res(Res.string.undo),
+            ) { result ->
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.undo()
+                }
             }
         }
     }
@@ -268,13 +263,7 @@ internal fun AssetsScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is AssetsScreenUiEvent.Snackbar -> scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
+                is AssetsScreenUiEvent.Snackbar -> snackbar.show(event.message)
             }
         }
     }
@@ -387,7 +376,7 @@ internal fun AssetsScreen(
                 }
             }
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
+
     ) { innerPadding ->
         val listState = rememberLazyListState()
         val contentPadding = innerPadding.withNavigation()

@@ -17,7 +17,6 @@ import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +27,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.TextButton
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.database.DataStore
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.resources.*
@@ -41,15 +39,9 @@ internal fun DebugScreen(
     modifier: Modifier = Modifier,
     topPadding: Dp = 0.dp,
     bottomPadding: Dp = 0.dp,
-    onVisibleChange: (Boolean) -> Unit,
     showSnackbar: (message: String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val visible by rememberScrollHideState(scrollState)
-
-    LaunchedEffect(visible) {
-        onVisibleChange(visible)
-    }
 
     var showResetAlert by remember { mutableStateOf(false) }
     Row(modifier = modifier.fillMaxSize()) {

@@ -27,8 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -50,7 +48,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Card
@@ -69,6 +66,8 @@ import fr.husi.resources.error_title
 import fr.husi.resources.ok
 import fr.husi.resources.rule_set_match
 import fr.husi.resources.start
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.StringOrRes
 import fr.husi.ui.getStringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -82,13 +81,9 @@ internal fun RuleSetMatchScreen(
     viewModel: RuleSetMatchScreenViewModel = viewModel { RuleSetMatchScreenViewModel() },
     onBackPress: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val snackbarState = remember { SnackbarHostState() }
-
-    val stringCopySuccess = stringResource(Res.string.copy_success)
-    val stringOK = stringResource(Res.string.ok)
+    val snackbar = LocalSnackbarEmitter.current
 
     Scaffold(
         modifier = modifier
@@ -108,7 +103,6 @@ internal fun RuleSetMatchScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -119,13 +113,7 @@ internal fun RuleSetMatchScreen(
                 viewModel = viewModel,
                 modifier = Modifier.weight(1f),
                 onCopy = {
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = stringCopySuccess,
-                            actionLabel = stringOK,
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
+                    snackbar.show(StringOrRes.Res(Res.string.copy_success))
                 },
             )
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))

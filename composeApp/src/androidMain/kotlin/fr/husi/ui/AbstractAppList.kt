@@ -41,9 +41,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
@@ -77,7 +74,6 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.blankAsNull
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_copy
 import fr.husi.resources.action_import
@@ -90,7 +86,6 @@ import fr.husi.resources.copy_all
 import fr.husi.resources.copy_success
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
-import fr.husi.resources.ok
 import fr.husi.resources.search
 import fr.husi.utils.PackageCache
 import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
@@ -350,16 +345,12 @@ internal fun AppListScaffold(
     dropdownMenuItems: @Composable (onDismiss: () -> Unit) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     val clipboard = LocalClipboard.current
 
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let { message ->
-            snackbarHostState.showSnackbar(
-                message = getStringOrRes(message),
-                actionLabel = resolveRepository().getString(Res.string.ok),
-                duration = SnackbarDuration.Short,
-            )
+            snackbar.show(message)
         }
     }
 
@@ -436,11 +427,7 @@ internal fun AppListScaffold(
                                         val toExport = viewModel.export()
                                         scope.launch {
                                             clipboard.setPlainText(toExport)
-                                            snackbarHostState.showSnackbar(
-                                                message = resolveRepository().getString(Res.string.copy_success),
-                                                actionLabel = resolveRepository().getString(Res.string.ok),
-                                                duration = SnackbarDuration.Short,
-                                            )
+                                            snackbar.show(StringOrRes.Res(Res.string.copy_success))
                                         }
                                     },
                                 )
@@ -492,7 +479,6 @@ internal fun AppListScaffold(
                 }
             }
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Crossfade(
             targetState = isLoading,

@@ -33,7 +33,6 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +51,6 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Surface
 import fr.husi.compose.material3.Text
 import fr.husi.compose.platformCombinedClickable
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.resources.Res
 import fr.husi.resources.bolt
 import fr.husi.resources.connection_test
@@ -73,14 +71,8 @@ internal fun DashboardProxySetScreen(
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestForSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
-    onVisibleChange: (Boolean) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val visible by rememberScrollHideState(listState)
-
-    LaunchedEffect(visible) {
-        onVisibleChange(visible)
-    }
 
     Row(modifier = modifier.fillMaxSize()) {
         LazyColumn(
@@ -451,6 +443,5 @@ private fun PreviewProxySet() {
         selectProxy = { _, _ -> },
         urlTestForSingle = {},
         urlTestForGroup = {},
-        onVisibleChange = {},
     )
 }

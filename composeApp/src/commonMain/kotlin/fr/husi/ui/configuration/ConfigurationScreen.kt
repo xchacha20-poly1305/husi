@@ -31,9 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarValue
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
@@ -59,7 +56,6 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -77,14 +73,13 @@ import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.bg.BackendState
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.ClipboardContent
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.ExpandableDropdownMenuItem
 import fr.husi.compose.QRCodeDialog
-import fr.husi.compose.SagerFab
+import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -102,7 +97,6 @@ import fr.husi.database.displayType
 import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.ktx.showAndDismissOld
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_anytls
@@ -172,15 +166,12 @@ import fr.husi.resources.search_go
 import fr.husi.resources.sort_mode
 import fr.husi.resources.undo
 import fr.husi.resources.view_list
+import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.MainViewModel
-import fr.husi.ui.MainViewModelAlertDialog
-import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
-import fr.husi.ui.getStringOrRes
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.reflect.KClass
@@ -194,10 +185,7 @@ fun ConfigurationScreen(
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
-    val snackbarState = remember { SnackbarHostState() }
-    var scrollHideVisible by remember { mutableStateOf(true) }
-    var fabHeight by remember { mutableIntStateOf(0) }
-    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
+    val snackbar = LocalSnackbarEmitter.current
     val clipboard = LocalClipboard.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val focusManager = LocalFocusManager.current
@@ -215,22 +203,10 @@ fun ConfigurationScreen(
                     mainViewModel.importSubscription(uri)
                 },
                 onNoProxies = {
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getString(Res.string.no_proxies_found_in_file),
-                            actionLabel = getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
+                    snackbar.show(StringOrRes.Res(Res.string.no_proxies_found_in_file))
                 },
                 onError = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = message,
-                            actionLabel = getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
+                    snackbar.show(StringOrRes.Direct(message))
                 },
             )
         }
@@ -271,7 +247,6 @@ fun ConfigurationScreen(
             DataStore.selectedGroup = groupID
         }
         vm.requestFocusIfNotHave(groupID)
-        scrollHideVisible = true
     }
 
     var showAddMenu by remember { mutableStateOf(false) }
@@ -316,7 +291,6 @@ fun ConfigurationScreen(
 
     val windowInsets = WindowInsets.safeDrawing
 
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topAppBarColors = TopAppBarDefaults.topAppBarColors()
     val appBarContainerColor by animateColorAsState(
@@ -381,7 +355,7 @@ fun ConfigurationScreen(
                 is ClipboardContent.Image -> {
                     val text = onIoDispatcher { decodeQRCode(content.bitmap) }
                     if (text == null) {
-                        mainViewModel.showSnackbar(
+                        snackbar.show(
                             StringOrRes.Res(Res.string.no_proxies_found_in_clipboard),
                         )
                     } else {
@@ -643,39 +617,18 @@ fun ConfigurationScreen(
             }
             }
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            SagerFab(
-                visible = scrollHideVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getStringOrRes(message),
-                            actionLabel = resolveRepository().getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                },
-                onSizeChanged = { fabHeight = it },
-            )
-        },
     ) { innerPadding ->
-        val density = LocalDensity.current
-        val bottomPadding =
-            innerPadding.calculateBottomPadding() + with(density) { fabHeight.toDp() }
+        val bottomPadding = innerPadding.calculateBottomPadding() + SagerFabClearance
         ConfigurationContent(
             modifier = Modifier
                 .fillMaxSize()
                 .paddingExceptBottom(innerPadding),
             vm = vm,
-            snackbarState = snackbarState,
             pagerState = pagerState,
             preSelected = null,
             showActions = true,
             onProfileSelect = vm::onProfileSelect,
             bottomPadding = bottomPadding,
-            onScrollHideChange = { scrollHideVisible = it },
             onOpenProfileEditor = onOpenProfileEditor,
         )
     }
@@ -693,129 +646,69 @@ fun ConfigurationScreen(
         val childVm = currentGroup?.let { vm.childViewModels[it.id] }
         if (childVm != null) {
             val expandedScope = rememberCoroutineScope()
-            val expandedSnackbarState = remember { SnackbarHostState() }
-            Box(modifier = Modifier.fillMaxSize()) {
-                GroupHolderScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    viewModel = childVm,
-                    showActions = true,
-                    bottomPadding = 0.dp,
-                    onProfileSelect = { id ->
-                        vm.onProfileSelect(id)
+            val snackbar = LocalSnackbarEmitter.current
+            GroupHolderScreen(
+                modifier = Modifier.fillMaxSize(),
+                viewModel = childVm,
+                showActions = true,
+                bottomPadding = 0.dp,
+                onProfileSelect = { id ->
+                    vm.onProfileSelect(id)
+                    expandedScope.launch { searchBarState.animateToCollapsed() }
+                },
+                onOpenProfileEditor = onOpenProfileEditor?.let { callback ->
+                    { route ->
                         expandedScope.launch { searchBarState.animateToCollapsed() }
-                    },
-                    onOpenProfileEditor = onOpenProfileEditor?.let { callback ->
-                        { route ->
-                            expandedScope.launch { searchBarState.animateToCollapsed() }
-                            callback(route)
+                        callback(route)
+                    }
+                },
+                needReload = {
+                    if (!DataStore.serviceState.started) return@GroupHolderScreen
+                    snackbar.show(
+                        StringOrRes.Res(Res.string.need_reload),
+                        StringOrRes.Res(Res.string.apply),
+                    ) { result ->
+                        if (result == SnackbarResult.ActionPerformed) {
+                            resolveRepository().reloadService()
                         }
-                    },
-                    needReload = {
-                        expandedScope.launch {
-                            if (!DataStore.serviceState.started) return@launch
-                            val result = expandedSnackbarState.showSnackbar(
-                                message = resolveRepository().getString(Res.string.need_reload),
-                                actionLabel = resolveRepository().getString(Res.string.apply),
-                                duration = SnackbarDuration.Short,
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                resolveRepository().reloadService()
-                            }
+                    }
+                },
+                showQR = { name, url ->
+                    expandedScope.launch { searchBarState.animateToCollapsed() }
+                    // QR dialog will be shown in the parent composition
+                },
+                onCopySuccess = {
+                    snackbar.show(StringOrRes.Res(Res.string.copy_success))
+                },
+                showSnackbar = snackbar::show,
+                showUndoSnackbar = { count, onUndo ->
+                    snackbar.show(
+                        StringOrRes.PluralsRes(Res.plurals.removed, count, count),
+                        StringOrRes.Res(Res.string.undo),
+                    ) { result ->
+                        if (result == SnackbarResult.ActionPerformed) {
+                            onUndo()
                         }
-                    },
-                    showQR = { name, url ->
-                        expandedScope.launch { searchBarState.animateToCollapsed() }
-                        // QR dialog will be shown in the parent composition
-                    },
-                    onCopySuccess = {
-                        expandedScope.launch {
-                            expandedSnackbarState.showSnackbar(
-                                message = resolveRepository().getString(Res.string.copy_success),
-                                actionLabel = resolveRepository().getString(Res.string.ok),
-                                duration = SnackbarDuration.Short,
-                            )
-                        }
-                    },
-                    showSnackbar = { message ->
-                        expandedScope.launch {
-                            expandedSnackbarState.showSnackbar(
-                                message = getStringOrRes(message),
-                                actionLabel = resolveRepository().getString(Res.string.ok),
-                                duration = SnackbarDuration.Short,
-                            )
-                        }
-                    },
-                    showUndoSnackbar = { count, onUndo ->
-                        expandedScope.launch {
-                            val result = expandedSnackbarState.showAndDismissOld(
-                                message = resolveRepository().getPluralString(
-                                    Res.plurals.removed,
-                                    count,
-                                    count,
-                                ),
-                                actionLabel = resolveRepository().getString(Res.string.undo),
-                                duration = SnackbarDuration.Short,
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                onUndo()
-                            }
-                        }
-                    },
-                )
-                SwipeableSnackbarHost(
-                    expandedSnackbarState,
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
-            }
+                    }
+                },
+            )
         }
     }
 
-    LaunchedEffect(Unit) {
-        mainViewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.Snackbar -> scope.launch {
-                    snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
-                    val result = snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = getStringOrRes(event.actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                    event.callback(result)
-                }
-
-                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
-            }
-        }
-    }
-
-    showAlertDialog?.let { dialog ->
-        MainViewModelAlertDialog(dialog) {
-            showAlertDialog = null
-        }
-    }
 }
 
 @Composable
 fun ConfigurationContent(
     modifier: Modifier = Modifier,
     vm: ConfigurationScreenViewModel,
-    snackbarState: SnackbarHostState,
     pagerState: androidx.compose.foundation.pager.PagerState,
     preSelected: Long?,
     showActions: Boolean,
     onProfileSelect: (Long) -> Unit,
     bottomPadding: Dp,
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
-    onScrollHideChange: (Boolean) -> Unit = {},
 ) {
-    val scope = rememberCoroutineScope()
+    val snackbar = LocalSnackbarEmitter.current
 
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val hasGroups = uiState.groups.isNotEmpty()
@@ -867,13 +760,11 @@ fun ConfigurationContent(
                         onProfileSelect = onProfileSelect,
                         onOpenProfileEditor = onOpenProfileEditor,
                         needReload = {
-                            scope.launch {
-                                if (!DataStore.serviceState.started) return@launch
-                                val result = snackbarState.showSnackbar(
-                                    message = resolveRepository().getString(Res.string.need_reload),
-                                    actionLabel = resolveRepository().getString(Res.string.apply),
-                                    duration = SnackbarDuration.Short,
-                                )
+                            if (!DataStore.serviceState.started) return@GroupHolderScreen
+                            snackbar.show(
+                                StringOrRes.Res(Res.string.need_reload),
+                                StringOrRes.Res(Res.string.apply),
+                            ) { result ->
                                 if (result == SnackbarResult.ActionPerformed) {
                                     resolveRepository().reloadService()
                                 }
@@ -883,42 +774,17 @@ fun ConfigurationContent(
                             qrCodeInfo = name to url
                         },
                         onCopySuccess = {
-                            scope.launch {
-                                snackbarState.showSnackbar(
-                                    message = resolveRepository().getString(Res.string.copy_success),
-                                    actionLabel = resolveRepository().getString(Res.string.ok),
-                                    duration = SnackbarDuration.Short,
-                                )
-                            }
+                            snackbar.show(StringOrRes.Res(Res.string.copy_success))
                         },
-                        showSnackbar = { message ->
-                            scope.launch {
-                                snackbarState.showSnackbar(
-                                    message = getStringOrRes(message),
-                                    actionLabel = resolveRepository().getString(Res.string.ok),
-                                    duration = SnackbarDuration.Short,
-                                )
-                            }
-                        },
+                        showSnackbar = snackbar::show,
                         showUndoSnackbar = { count, onUndo ->
-                            scope.launch {
-                                val result = snackbarState.showAndDismissOld(
-                                    message = resolveRepository().getPluralString(
-                                        Res.plurals.removed,
-                                        count,
-                                        count,
-                                    ),
-                                    actionLabel = resolveRepository().getString(Res.string.undo),
-                                    duration = SnackbarDuration.Short,
-                                )
+                            snackbar.show(
+                                StringOrRes.PluralsRes(Res.plurals.removed, count, count),
+                                StringOrRes.Res(Res.string.undo),
+                            ) { result ->
                                 if (result == SnackbarResult.ActionPerformed) {
                                     onUndo()
                                 }
-                            }
-                        },
-                        onScrollHideChange = { visible ->
-                            if (pagerState.currentPage == page) {
-                                onScrollHideChange(visible)
                             }
                         },
                     )
@@ -935,11 +801,7 @@ fun ConfigurationContent(
             name = it.first,
             onDismiss = { qrCodeInfo = null },
             showSnackbar = { message ->
-                snackbarState.showSnackbar(
-                    message = message,
-                    actionLabel = resolveRepository().getString(Res.string.ok),
-                    duration = SnackbarDuration.Short,
-                )
+                snackbar.show(StringOrRes.Direct(message))
             },
         )
     }

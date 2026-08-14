@@ -14,6 +14,7 @@ import fr.husi.ui.LogcatScreen
 import fr.husi.ui.Navigator
 import fr.husi.ui.MainScreenScope
 import fr.husi.ui.MainViewModel
+import fr.husi.ui.SnackbarEmitter
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.PluginScreen
 import fr.husi.ui.ProfilePickerController
@@ -48,6 +49,7 @@ internal val commonNavigationModule = module {
             Navigator(backStack)
         }
         scopedOf(::ProfilePickerController)
+        scopedOf(::SnackbarEmitter)
 
         navigation<NavRoutes.Configuration> { _ ->
             val viewModel = koinViewModel<MainViewModel>()
@@ -72,10 +74,8 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Route> { _ ->
-            val viewModel = koinViewModel<MainViewModel>()
             val navigator = get<Navigator>()
             RouteScreen(
-                mainViewModel = viewModel,
                 openRouteSettings = { routeId ->
                     navigator.navigateTo(NavRoutes.RouteSettings(routeId = routeId))
                 },
@@ -86,10 +86,8 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Settings> { _ ->
-            val viewModel = koinViewModel<MainViewModel>()
             val navigator = get<Navigator>()
             SettingsScreen(
-                mainViewModel = viewModel,
                 openSettingsPage = { kind ->
                     navigator.navigateTo(NavRoutes.SettingsPage(kind))
                 },
@@ -109,26 +107,19 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Plugin> { _ ->
-            val viewModel = koinViewModel<MainViewModel>()
             val navigator = get<Navigator>()
             PluginScreen(
-                mainViewModel = viewModel,
                 onBackPress = { navigator.popBackStack() },
             )
         }
 
         navigation<NavRoutes.Log> { _ ->
-            val viewModel = koinViewModel<MainViewModel>()
-            LogcatScreen(
-                mainViewModel = viewModel,
-            )
+            LogcatScreen()
         }
 
         navigation<NavRoutes.Dashboard> { _ ->
-            val viewModel = koinViewModel<MainViewModel>()
             val navigator = get<Navigator>()
             DashboardScreen(
-                mainViewModel = viewModel,
                 openConnectController = get(),
                 openRouteSettings = { initialState ->
                     navigator.navigateTo(
@@ -222,10 +213,8 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Tools> { _ ->
-            val viewModel = koinViewModel<MainViewModel>()
             val navigator = get<Navigator>()
             ToolsScreen(
-                mainViewModel = viewModel,
                 onBackPress = { navigator.popBackStack() },
                 onOpenTool = navigator::navigateTo,
             )
@@ -260,10 +249,8 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.About> { _ ->
-            val viewModel = koinViewModel<MainViewModel>()
             val navigator = get<Navigator>()
             AboutScreen(
-                mainViewModel = viewModel,
                 onBackPress = { navigator.popBackStack() },
                 onNavigateToLibraries = {
                     navigator.navigateTo(NavRoutes.Libraries)

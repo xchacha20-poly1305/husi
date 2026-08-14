@@ -25,7 +25,7 @@ class MainViewModelTest : HusiKoinMainDispatcherTest() {
         val viewModel = MainViewModel()
 
         val eventDeferred = backgroundScope.async {
-            viewModel.uiEvent.first()
+            viewModel.dialogEvent.first()
         }
         val resultDeferred = backgroundScope.async {
             viewModel.confirm("confirm")
@@ -33,7 +33,7 @@ class MainViewModelTest : HusiKoinMainDispatcherTest() {
 
         advanceUntilIdle()
 
-        val event = assertIs<MainViewModelUiEvent.AlertDialog>(eventDeferred.await())
+        val event = assertIs<MainAlertDialogEvent>(eventDeferred.await())
         event.onDismiss!!.invoke()
 
         advanceUntilIdle()

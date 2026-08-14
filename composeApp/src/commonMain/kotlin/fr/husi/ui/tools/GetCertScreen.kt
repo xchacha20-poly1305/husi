@@ -24,7 +24,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
@@ -32,9 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -66,7 +62,6 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.readableMessage
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_copy
 import fr.husi.resources.arrow_back
@@ -83,6 +78,8 @@ import fr.husi.resources.protocol
 import fr.husi.resources.route_proxy
 import fr.husi.resources.sni
 import fr.husi.resources.start
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.StringOrRes
 import fr.husi.ui.ensurePreviewRepository
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -90,14 +87,13 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun GetCertScreen(
     modifier: Modifier = Modifier,
     viewModel: GetCertScreenViewModel = viewModel { GetCertScreenViewModel() },
     onBack: () -> Unit,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     val scope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -122,7 +118,6 @@ internal fun GetCertScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         GetCertContent(
             contentPadding = innerPadding.withNavigation(),
@@ -130,10 +125,7 @@ internal fun GetCertScreen(
             copyToClipboard = {
                 scope.launch {
                     clipboard.setPlainText(it)
-                    snackbarHostState.showSnackbar(
-                        message = resolveRepository().getString(Res.string.copy_success),
-                        duration = SnackbarDuration.Short,
-                    )
+                    snackbar.show(StringOrRes.Res(Res.string.copy_success))
                 }
             },
         )

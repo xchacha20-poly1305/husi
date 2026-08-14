@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import fr.husi.bg.ServiceState
 import fr.husi.repository.resolveRepository
@@ -25,13 +24,20 @@ import fr.husi.ui.StringOrRes
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
+private val FabSize = 56.dp
+
+// The margin Scaffold keeps between the floating action button and the content edge.
+private val FabMargin = 16.dp
+
+/** Bottom content padding that keeps list ends reachable above [SagerFab]. */
+val SagerFabClearance = FabSize + FabMargin
+
 @Composable
 fun SagerFab(
     modifier: Modifier = Modifier,
     visible: Boolean = true,
     state: ServiceState,
     showSnackbar: (message: StringOrRes) -> Unit,
-    onSizeChanged: ((Int) -> Unit)? = null,
 ) {
     val connector = rememberVpnServiceLauncher {
         showSnackbar(StringOrRes.Res(Res.string.vpn_permission_denied))
@@ -41,7 +47,6 @@ fun SagerFab(
         visible = visible,
         enter = scaleIn(),
         exit = scaleOut(),
-        modifier = Modifier.onSizeChanged { onSizeChanged?.invoke(it.height) },
     ) {
         FloatingActionButton(
             onClick = {
@@ -51,7 +56,7 @@ fun SagerFab(
                     connector()
                 }
             },
-            modifier = modifier.size(56.dp),
+            modifier = modifier.size(FabSize),
         ) {
             TooltipBox(
                 positionProvider = TooltipDefaults.rememberTooltipPositionProvider(

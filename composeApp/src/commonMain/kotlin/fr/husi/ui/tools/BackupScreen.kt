@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package fr.husi.ui.tools
 
 import androidx.compose.foundation.clickable
@@ -17,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,7 +39,6 @@ import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Checkbox
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
-import fr.husi.compose.rememberScrollHideState
 import fr.husi.ktx.Logs
 import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.readableMessage
@@ -84,18 +80,12 @@ internal fun BackupScreen(
     modifier: Modifier = Modifier,
     topPadding: Dp = 0.dp,
     bottomPadding: Dp = 0.dp,
-    onVisibleChange: (Boolean) -> Unit,
     viewModel: BackupViewModel = viewModel { BackupViewModel() },
     showSnackbar: (message: String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val visible by rememberScrollHideState(scrollState)
     val lifecycleOwner = LocalLifecycleOwner.current
     val shareBackupFile = rememberShareBackupFile()
-
-    LaunchedEffect(visible) {
-        onVisibleChange(visible)
-    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var errorDialog by remember { mutableStateOf<String?>(null) }

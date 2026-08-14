@@ -1,46 +1,28 @@
 package fr.husi.ui.settings
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.husi.bg.BackendState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceDivider
-import fr.husi.compose.SagerFab
-import fr.husi.compose.SimpleTopAppBar
-import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
-import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.SagerFabClearance
+import fr.husi.compose.plus
 import fr.husi.compose.withNavigation
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.cag_dns
 import fr.husi.resources.cag_misc
@@ -58,7 +40,6 @@ import fr.husi.resources.more
 import fr.husi.resources.nat
 import fr.husi.resources.nfc
 import fr.husi.resources.ntp_category
-import fr.husi.resources.ok
 import fr.husi.resources.plugin
 import fr.husi.resources.protocol_settings
 import fr.husi.resources.route_options
@@ -66,14 +47,9 @@ import fr.husi.resources.router
 import fr.husi.resources.settings
 import fr.husi.resources.system_daemon
 import fr.husi.resources.timelapse
-import fr.husi.ui.MainViewModel
-import fr.husi.ui.MainViewModelAlertDialog
-import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.NavRoutes
-import fr.husi.ui.getStringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
@@ -81,53 +57,19 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel,
     openSettingsPage: (NavRoutes.SettingsPage.Kind) -> Unit,
     openTools: () -> Unit,
     openPlugin: () -> Unit,
     openAbout: () -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val windowInsets = WindowInsets.safeDrawing
-    val scope = rememberCoroutineScope()
-    val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    val scrollHideVisible by rememberScrollHideState(listState)
-    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
-
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     Scaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            SimpleTopAppBar(
-                title = { Text(stringResource(Res.string.settings)) },
-                navigationIcon = null,
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            SagerFab(
-                visible = scrollHideVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = getStringOrRes(message),
-                            actionLabel = resolveRepository().getString(Res.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                },
-            )
-        },
+        modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
         ProvidePreferenceLocals {
-            val contentPadding = innerPadding.withNavigation()
+            val contentPadding = innerPadding.withNavigation() +
+                PaddingValues(bottom = SagerFabClearance)
             Row(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
                     state = listState,
@@ -276,37 +218,6 @@ fun SettingsScreen(
                     ),
                 )
             }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        mainViewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.Snackbar -> scope.launch {
-                    snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
-                    val result = snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = getStringOrRes(event.actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                    event.callback(result)
-                }
-
-                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
-            }
-        }
-    }
-
-    showAlertDialog?.let { dialog ->
-        MainViewModelAlertDialog(dialog) {
-            showAlertDialog = null
         }
     }
 }

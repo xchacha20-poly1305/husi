@@ -3,10 +3,13 @@ package fr.husi.compose.material3
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -44,8 +47,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.NavigationDrawerItemDefaults
-import androidx.tv.material3.LocalContentColor as TvLocalContentColor
-import androidx.tv.material3.LocalTextStyle as TvLocalTextStyle
 import androidx.tv.material3.DrawerValue as TvDrawerValue
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
@@ -55,7 +56,6 @@ import androidx.tv.material3.Button as TvButton
 import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
 import androidx.tv.material3.Checkbox as TvCheckbox
 import androidx.tv.material3.contentColorFor as tvContentColorFor
-import androidx.tv.material3.Icon as TvIcon
 import androidx.tv.material3.IconButton as TvIconButton
 import androidx.tv.material3.IconButtonDefaults as TvIconButtonDefaults
 import androidx.tv.material3.MaterialTheme as TvMaterialTheme
@@ -66,7 +66,6 @@ import androidx.tv.material3.NavigationDrawerScope
 import androidx.tv.material3.Surface as TvSurface
 import androidx.tv.material3.SurfaceDefaults as TvSurfaceDefaults
 import androidx.tv.material3.Switch as TvSwitch
-import androidx.tv.material3.Text as TvText
 import androidx.tv.material3.rememberDrawerState as rememberTvDrawerState
 
 internal val LocalTvNavigationDrawerScope =
@@ -135,32 +134,42 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
     override fun NavigationSuite(
         items: ImmutableList<NavigationSuiteItem>,
         showNavigation: Boolean,
+        snackbarHost: @Composable () -> Unit,
+        floatingActionButton: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
-        val drawerState = rememberTvDrawerState(TvDrawerValue.Open)
-        TvNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = { drawerValue ->
-                CompositionLocalProvider(LocalTvNavigationDrawerScope provides this) {
-                    val drawerWidth = when (drawerValue) {
-                        TvDrawerValue.Closed -> NavigationDrawerItemDefaults.CollapsedDrawerItemWidth
-                        TvDrawerValue.Open -> NavigationDrawerItemDefaults.ExpandedDrawerItemWidth
-                    }
-                    TvSurface(
-                        modifier = Modifier
-                            .width(drawerWidth)
-                            .fillMaxHeight(),
-                    ) {
-                        Column {
-                            items.forEach { item ->
-                                TvNavigationSuiteItem(item)
+        Scaffold(
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            snackbarHost = snackbarHost,
+            floatingActionButton = floatingActionButton,
+        ) { innerPadding ->
+            val drawerState = rememberTvDrawerState(TvDrawerValue.Open)
+            TvNavigationDrawer(
+                modifier = Modifier.padding(innerPadding),
+                drawerState = drawerState,
+                drawerContent = { drawerValue ->
+                    CompositionLocalProvider(LocalTvNavigationDrawerScope provides this) {
+                        val drawerWidth = when (drawerValue) {
+                            TvDrawerValue.Closed -> NavigationDrawerItemDefaults.CollapsedDrawerItemWidth
+                            TvDrawerValue.Open -> NavigationDrawerItemDefaults.ExpandedDrawerItemWidth
+                        }
+                        TvSurface(
+                            modifier = Modifier
+                                .width(drawerWidth)
+                                .fillMaxHeight(),
+                        ) {
+                            Column {
+                                items.forEach { item ->
+                                    TvNavigationSuiteItem(item)
+                                }
                             }
                         }
                     }
-                }
-            },
-            content = content,
-        )
+                },
+                content = content,
+            )
+        }
     }
 
     @Composable

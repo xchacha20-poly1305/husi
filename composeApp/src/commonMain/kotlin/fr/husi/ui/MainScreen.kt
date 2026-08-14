@@ -3,6 +3,7 @@
 package fr.husi.ui
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -24,7 +25,9 @@ import fr.husi.bg.Executable
 import fr.husi.bg.ServiceAlert
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
+import fr.husi.compose.SagerFab
 import fr.husi.compose.ScrollableDialog
+import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.NavigationSuite
@@ -138,6 +141,13 @@ private fun MainScreenContent(
     val profilePickerController = remember(koinScope) {
         koinScope.get<ProfilePickerController>()
     }
+    val snackbarEmitter = remember(koinScope) { koinScope.get<SnackbarEmitter>() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    SnackbarEmitterEffect(snackbarEmitter, snackbarHostState)
+    var mainDialog by remember { mutableStateOf<MainAlertDialogEvent?>(null) }
+    LaunchedEffect(viewModel) {
+        viewModel.dialogEvent.collect { mainDialog = it }
+    }
 
     /**
      * Check query packages permission for rogue vendors.
@@ -215,7 +225,7 @@ private fun MainScreenContent(
             when (alert) {
                 is ServiceAlert.Common -> {
                     if (alert.message.isNotBlank()) {
-                        viewModel.showSnackbar(StringOrRes.Direct(alert.message))
+                        snackbarEmitter.show(StringOrRes.Direct(alert.message))
                     }
                 }
                 is ServiceAlert.MissingPlugin,
@@ -261,9 +271,18 @@ private fun MainScreenContent(
     NavigationSuite(
         items = navigationItems,
         showNavigation = navigator.isCurrentTopLevel,
+        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            SagerFab(
+                visible = navigator.isCurrentTopLevel,
+                state = serviceStatus.state,
+                showSnackbar = snackbarEmitter::show,
+            )
+        },
     ) {
         CompositionLocalProvider(
             LocalResultEventBus provides resultBus,
+            LocalSnackbarEmitter provides snackbarEmitter,
         ) {
             NavDisplay(
                 backStack = backStack,
@@ -291,10 +310,10 @@ private fun MainScreenContent(
                     pending = pending,
                     controller = openConnectController,
                     showError = { message ->
-                        viewModel.showSnackbar(StringOrRes.Direct(message))
+                        snackbarEmitter.show(StringOrRes.Direct(message))
                     },
                     onDismissed = {
-                        viewModel.showSnackbar(
+                        snackbarEmitter.show(
                             StringOrRes.Res(Res.string.auth_later_hint),
                         )
                     },
@@ -314,7 +333,7 @@ private fun MainScreenContent(
         dismissButton = {
             TextButton(stringResource(Res.string.no_thanks)) {
                 showQueryPackageDeniedDialog = false
-                viewModel.showSnackbar(StringOrRes.Res(Res.string.have_a_nice_day))
+                snackbarEmitter.show(StringOrRes.Res(Res.string.have_a_nice_day))
             }
         },
         icon = {
@@ -353,7 +372,7 @@ private fun MainScreenContent(
                 val plugin = PluginEntry.find(pluginName)
                 if (plugin == null) {
                     showServiceAlert = null
-                    viewModel.showSnackbar(
+                    snackbarEmitter.show(
                         StringOrRes.ResWithParams(Res.string.plugin_unknown, pluginName),
                     )
                 } else {
@@ -407,6 +426,9 @@ private fun MainScreenContent(
         }
     }
 
+    mainDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) { mainDialog = null }
+    }
 }
 
 @Immutable
@@ -424,8 +446,8 @@ private fun NavRoutes?.matchesRoute(
 }
 
 @Composable
-fun MainViewModelAlertDialog(
-    dialog: MainViewModelUiEvent.AlertDialog,
+private fun MainViewModelAlertDialog(
+    dialog: MainAlertDialogEvent,
     onConsumed: () -> Unit,
 ) {
     ScrollableDialog(

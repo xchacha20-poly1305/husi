@@ -28,15 +28,11 @@ import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButtonMenu
-import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarValue
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
@@ -44,8 +40,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,29 +47,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.unit.max
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.bg.BackendState
-
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
-
-import fr.husi.compose.SagerFab
+import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SimpleIconButton
-
-import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.ansiEscape
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
@@ -83,7 +68,6 @@ import fr.husi.compose.material3.RadioButton
 import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.readableMessage
-import fr.husi.ktx.showAndDismissOld
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_copy
@@ -94,10 +78,8 @@ import fr.husi.resources.copy_all
 import fr.husi.resources.delete_sweep
 import fr.husi.resources.keyboard_arrow_down
 import fr.husi.resources.logcat
-
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
-import fr.husi.resources.ok
 import fr.husi.resources.pause
 import fr.husi.resources.play_arrow
 import fr.husi.resources.resume
@@ -111,24 +93,19 @@ import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import kotlin.math.max
 
 @Composable
 fun LogcatScreen(
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel,
     viewModel: LogcatScreenViewModel = viewModel { LogcatScreenViewModel() },
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
-    val snackbarState = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarEmitter.current
     val listState = rememberLazyListState()
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     var autoScroll by remember { mutableStateOf(true) }
-    var scaffoldHeightPx by remember { mutableIntStateOf(0) }
-    var fabTopPx by remember { mutableFloatStateOf(Float.NaN) }
     val isAtBottom by remember {
         derivedStateOf {
             !listState.canScrollForward
@@ -137,7 +114,7 @@ fun LogcatScreen(
 
     var expandMenu by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
-    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val queryLowerCase by remember {
         derivedStateOf { uiState.searchQuery?.lowercase() }
@@ -168,11 +145,7 @@ fun LogcatScreen(
     }
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
-            snackbarState.showAndDismissOld(
-                message = message,
-                actionLabel = resolveRepository().getString(Res.string.ok),
-                duration = SnackbarDuration.Short,
-            )
+            snackbar.show(StringOrRes.Direct(message))
         }
     }
 
@@ -215,6 +188,32 @@ fun LogcatScreen(
                 inputField = searchInputField,
                 navigationIcon = null,
                 actions = {
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(
+                                if (uiState.pause) {
+                                    Res.drawable.play_arrow
+                                } else {
+                                    Res.drawable.pause
+                                },
+                            ),
+                            contentDescription = stringResource(
+                                if (uiState.pause) Res.string.resume else Res.string.pause,
+                            ),
+                            onClick = viewModel::togglePause,
+                        )
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.keyboard_arrow_down),
+                            contentDescription = stringResource(Res.string.scroll_to_bottom),
+                            onClick = {
+                                if (uiState.logs.isNotEmpty()) scope.launch {
+                                    listState.animateScrollToItem(uiState.logs.lastIndex)
+                                }
+                            },
+                        )
+                    }
                     CapsuleActionButton {
                         SimpleIconButton(
                             imageVector = vectorResource(Res.drawable.share),
@@ -280,96 +279,16 @@ fun LogcatScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarState) },
-        floatingActionButton = {
-            Box(
-                modifier = Modifier.onGloballyPositioned { coordinates ->
-                    fabTopPx = coordinates.positionInRoot().y
-                },
-            ) {
-                FloatingActionButtonMenu(
-                    expanded = uiState.logs.isNotEmpty(),
-                    button = {
-                        SagerFab(
-                            visible = true,
-                            state = serviceStatus.state,
-                            showSnackbar = { message ->
-                                scope.launch {
-                                    snackbarState.showSnackbar(
-                                        message = getStringOrRes(message),
-                                        actionLabel = resolveRepository().getString(Res.string.ok),
-                                        duration = SnackbarDuration.Short,
-                                    )
-                                }
-                            },
-                        )
-                    },
-                ) {
-                    FloatingActionButtonMenuItem(
-                        onClick = viewModel::togglePause,
-                        text = {
-                            Text(
-                                stringResource(
-                                    if (uiState.pause) Res.string.resume else Res.string.pause,
-                                ),
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = vectorResource(
-                                    if (uiState.pause) {
-                                        Res.drawable.play_arrow
-                                    } else {
-                                        Res.drawable.pause
-                                    },
-                                ),
-                                contentDescription = null,
-                            )
-                        },
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    )
-                    FloatingActionButtonMenuItem(
-                        onClick = {
-                            scope.launch {
-                                listState.animateScrollToItem(uiState.logs.lastIndex)
-                            }
-                        },
-                        text = { Text(stringResource(Res.string.scroll_to_bottom)) },
-                        icon = {
-                            Icon(
-                                imageVector = vectorResource(Res.drawable.keyboard_arrow_down),
-                                contentDescription = null,
-                            )
-                        },
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    )
-                }
-            }
-        },
     ) { innerPadding ->
-        val density = LocalDensity.current
         val layoutDirection = LocalLayoutDirection.current
-        val innerBottomPx = with(density) { innerPadding.calculateBottomPadding().roundToPx() }
-        val fabReservedBottomPx by remember(scaffoldHeightPx, fabTopPx) {
-            derivedStateOf {
-                if (scaffoldHeightPx <= 0 || fabTopPx.isNaN()) {
-                    0
-                } else {
-                    (scaffoldHeightPx - fabTopPx.toInt()).fastCoerceAtLeast(0)
-                }
-            }
-        }
-        val bottomPaddingPx = max(innerBottomPx, fabReservedBottomPx)
         val contentPadding = PaddingValues(
             start = innerPadding.calculateStartPadding(layoutDirection),
             top = innerPadding.calculateTopPadding(),
             end = innerPadding.calculateEndPadding(layoutDirection),
-            bottom = with(density) { bottomPaddingPx.toDp() },
+            bottom = max(innerPadding.calculateBottomPadding(), SagerFabClearance),
         )
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .onSizeChanged { scaffoldHeightPx = it.height },
+            modifier = Modifier.fillMaxSize(),
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -410,37 +329,6 @@ fun LogcatScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        mainViewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.Snackbar -> scope.launch {
-                    snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
-                    val result = snackbarState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = getStringOrRes(event.actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                    event.callback(result)
-                }
-
-                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
-            }
-        }
-    }
-
-    showAlertDialog?.let { dialog ->
-        MainViewModelAlertDialog(dialog) {
-            showAlertDialog = null
-        }
-    }
-
     if (showBottomSheet) ModalBottomSheet(
         onDismissRequest = { showBottomSheet = false },
         sheetState = rememberModalBottomSheetState(
@@ -465,11 +353,7 @@ fun LogcatScreen(
                 },
             )
             ShareActionRow(scope) { e ->
-                snackbarState.showSnackbar(
-                    message = e.readableMessage,
-                    actionLabel = resolveRepository().getString(Res.string.ok),
-                    duration = SnackbarDuration.Short,
-                )
+                snackbar.show(StringOrRes.Direct(e.readableMessage))
             }
         }
     }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import fr.husi.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,9 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -37,7 +33,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,23 +48,20 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
-import fr.husi.repository.resolveRepository
+import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.ensurePreviewRepository
 import fr.husi.ui.getStringOrRes
-import kotlinx.coroutines.launch
 import fr.husi.resources.*
 import fr.husi.ui.stringOrRes
 import fr.husi.libcore.Libcore
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun SpeedtestScreen(
     modifier: Modifier = Modifier,
     viewModel: SpeedTestScreenViewModel = koinViewModel<SpeedTestScreenViewModel>(),
     onBackPress: () -> Unit,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    val snackbar = LocalSnackbarEmitter.current
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -79,13 +71,7 @@ internal fun SpeedtestScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is SpeedTestScreenUiEvent.Snackbar -> scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
+                is SpeedTestScreenUiEvent.Snackbar -> snackbar.show(event.message)
 
                 is SpeedTestScreenUiEvent.ErrorAlert -> {
                     alert = getStringOrRes(event.message)
@@ -112,7 +98,7 @@ internal fun SpeedtestScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SwipeableSnackbarHost(snackbarHostState) },
+
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -294,7 +280,6 @@ private fun PreviewSpeedtest() {
     ensurePreviewRepository()
 
     SpeedtestScreen(
-        viewModel = SpeedTestScreenViewModel(),
         onBackPress = {},
     )
 }
