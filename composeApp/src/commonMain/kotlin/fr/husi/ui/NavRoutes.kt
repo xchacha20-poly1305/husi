@@ -31,7 +31,6 @@ sealed class NavRoutes : NavKey {
                         subclass(About::class, About.serializer())
                         subclass(Libraries::class, Libraries.serializer())
                         subclass(ProfileEditor::class, ProfileEditor.serializer())
-                        subclass(ConnectionsDetail::class, ConnectionsDetail.serializer())
                         subclass(AppManager::class, AppManager.serializer())
                         subclass(Assets::class, Assets.serializer())
                         subclass(AppList::class, AppList.serializer())
@@ -100,11 +99,6 @@ sealed class NavRoutes : NavKey {
         val id: Long = -1L,
         val subscription: Boolean = false,
         val resultKey: String = "${type}-${id}-${subscription}",
-    ) : NavRoutes()
-
-    @Serializable
-    data class ConnectionsDetail(
-        val uuid: String,
     ) : NavRoutes()
 
     @Serializable

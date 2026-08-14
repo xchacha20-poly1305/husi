@@ -29,6 +29,7 @@ import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarDuration
@@ -36,6 +37,7 @@ import fr.husi.compose.SwipeableSnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -119,6 +121,7 @@ import fr.husi.resources.warning_amber
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.ui.MainViewModelUiEvent
+import fr.husi.ui.RouteSettingsUiState
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.getStringOrRes
 import fr.husi.ui.openconnect.OpenConnectAuthController
@@ -137,7 +140,7 @@ fun DashboardScreen(
     mainViewModel: MainViewModel,
     openConnectController: OpenConnectAuthController,
     onDrawerClick: () -> Unit,
-    openConnectionDetail: (uuid: String) -> Unit,
+    openRouteSettings: (RouteSettingsUiState) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
@@ -492,7 +495,7 @@ fun DashboardScreen(
                         closeConnection = { uuid ->
                             dashboardViewModel.closeConnection(uuid)
                         },
-                        openDetail = openConnectionDetail,
+                        onConnectionClick = dashboardViewModel::selectConnection,
                         onVisibleChange = { bottomVisible = it },
                     )
 
@@ -524,9 +527,27 @@ fun DashboardScreen(
             closeConnection = { uuid ->
                 dashboardViewModel.closeConnection(uuid)
             },
-            openDetail = openConnectionDetail,
+            onConnectionClick = dashboardViewModel::selectConnection,
             onVisibleChange = {},
         )
+    }
+
+    uiState.selectedConnection?.let { connection ->
+        ModalBottomSheet(
+            onDismissRequest = { dashboardViewModel.selectConnection(null) },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            ConnectionDetailSheet(
+                connection = connection,
+                resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
+                closeConnection = dashboardViewModel::closeConnection,
+                onDismiss = { dashboardViewModel.selectConnection(null) },
+                openRouteSettings = { draft ->
+                    dashboardViewModel.selectConnection(null)
+                    openRouteSettings(draft)
+                },
+            )
+        }
     }
 
     if (showResetAlert) AlertDialog(

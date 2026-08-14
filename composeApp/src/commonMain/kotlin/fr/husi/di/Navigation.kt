@@ -22,7 +22,6 @@ import fr.husi.ui.RouteScreen
 import fr.husi.ui.RouteSettingsScreen
 import fr.husi.ui.SettingsScreen
 import fr.husi.ui.configuration.ConfigurationScreen
-import fr.husi.ui.dashboard.ConnectionDetailScreen
 import fr.husi.ui.dashboard.DashboardScreen
 import fr.husi.ui.jsoneditor.ConfigEditScreen
 import fr.husi.ui.profile.ProfileEditorScreen
@@ -132,17 +131,6 @@ internal val commonNavigationModule = module {
                 mainViewModel = viewModel,
                 openConnectController = get(),
                 onDrawerClick = drawerController::toggle,
-                openConnectionDetail = { uuid ->
-                    navigator.navigateTo(NavRoutes.ConnectionsDetail(uuid = uuid))
-                },
-            )
-        }
-
-        navigation<NavRoutes.ConnectionsDetail> { route ->
-            val navigator = get<Navigator>()
-            ConnectionDetailScreen(
-                uuid = route.uuid,
-                popup = { navigator.popBackStack() },
                 openRouteSettings = { initialState ->
                     navigator.navigateTo(
                         NavRoutes.RouteSettings(

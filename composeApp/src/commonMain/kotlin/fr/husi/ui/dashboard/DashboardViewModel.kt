@@ -65,6 +65,7 @@ data class DashboardState(
 
     val connections: List<ConnectionDetailState> = emptyList(),
     val filteredConnections: List<ConnectionDetailState> = emptyList(),
+    val selectedConnection: ConnectionDetailState? = null,
 
     val proxySets: List<ProxySet> = emptyList(),
 ) {
@@ -140,6 +141,10 @@ class DashboardViewModel(
     val searchTextFieldState = TextFieldState()
 
     private val connections = LinkedHashMap<String, ConnectionDetailState>()
+
+    /** The connection whose detail sheet is open, if any. */
+    private var selectedUuid: String? = null
+
     private val proxySetsByTag = HashMap<String, ProxySet>()
     private var latestGroups: List<Group> = emptyList()
     private var latestOutbounds: List<GroupItem> = emptyList()
@@ -444,8 +449,26 @@ class DashboardViewModel(
             state.copy(
                 connections = all,
                 filteredConnections = buildFilteredConnections(all, query),
+                selectedConnection = selectedConnection(),
             )
         }
+    }
+
+    /**
+     * Opens the detail of [uuid], or closes it when null.
+     *
+     * The value comes from the unfiltered snapshot, so an open detail survives a connection
+     * being hidden by the status filter or by the search query.
+     */
+    fun selectConnection(uuid: String?) {
+        selectedUuid = uuid
+        uiState.update { state ->
+            state.copy(selectedConnection = selectedConnection())
+        }
+    }
+
+    private fun selectedConnection(): ConnectionDetailState? {
+        return selectedUuid?.let { uuid -> connections[uuid] }
     }
 
     internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {
@@ -568,7 +591,16 @@ class DashboardViewModel(
             if (newFiltered !== currentFiltered) {
                 (newFiltered as? MutableList)?.sortWith(comparator)
             }
-            state.copy(connections = newConnections, filteredConnections = newFiltered)
+            val newSelected = if (updated.uuid == selectedUuid) {
+                updated
+            } else {
+                state.selectedConnection
+            }
+            state.copy(
+                connections = newConnections,
+                filteredConnections = newFiltered,
+                selectedConnection = newSelected,
+            )
         }
     }
 
