@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.material3.PrimaryScrollableTabRow as MaterialPrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow as MaterialPrimaryTabRow
-import androidx.compose.material3.Tab as MaterialTab
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.LocalContentColor as MaterialLocalContentColor
 import androidx.compose.material3.LocalTextStyle as MaterialLocalTextStyle
@@ -34,6 +33,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -625,22 +627,24 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         override fun Tab(
             selected: Boolean,
             onClick: () -> Unit,
+            text: @Composable () -> Unit,
             modifier: Modifier,
             enabled: Boolean,
-            text: (@Composable () -> Unit)?,
-            icon: (@Composable () -> Unit)?,
+            onLongClick: (() -> Unit)?,
         ) {
-            MaterialTab(
+            LongClickTab(
                 selected = selected,
                 onClick = onClick,
-                modifier = modifier.onFocusChanged {
-                    if (it.isFocused) {
-                        onClick()
-                    }
-                },
-                enabled = enabled,
                 text = text,
-                icon = icon,
+                modifier = modifier
+                    .dpadLongPress(enabled = enabled, onLongPress = onLongClick)
+                    .onFocusChanged {
+                        if (it.isFocused) {
+                            onClick()
+                        }
+                    },
+                enabled = enabled,
+                onLongClick = onLongClick,
             )
         }
     }
@@ -651,5 +655,20 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         } else {
             Border(border = this, shape = shape)
         }
+    }
+}
+
+private fun Modifier.dpadLongPress(
+    enabled: Boolean,
+    onLongPress: (() -> Unit)?,
+): Modifier {
+    if (!enabled || onLongPress == null) return this
+    return onKeyEvent { keyEvent ->
+        val isCenterKey = keyEvent.key == Key.DirectionCenter || keyEvent.key == Key.Enter
+        if (!isCenterKey || !keyEvent.nativeKeyEvent.isLongPress) {
+            return@onKeyEvent false
+        }
+        onLongPress()
+        true
     }
 }

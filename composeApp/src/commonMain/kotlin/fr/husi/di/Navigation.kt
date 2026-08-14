@@ -59,6 +59,9 @@ internal val commonNavigationModule = module {
             ConfigurationScreen(
                 mainViewModel = viewModel,
                 onOpenGroups = { navigator.navigateTo(NavRoutes.Groups) },
+                onOpenGroupSettings = { groupId ->
+                    navigator.navigateTo(NavRoutes.GroupSettings(groupId = groupId))
+                },
                 onOpenProfileEditor = navigator::navigateTo,
             )
         }

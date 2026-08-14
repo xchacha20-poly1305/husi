@@ -181,6 +181,7 @@ fun ConfigurationScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     onOpenGroups: () -> Unit,
+    onOpenGroupSettings: (Long) -> Unit,
     vm: ConfigurationScreenViewModel = viewModel { ConfigurationScreenViewModel() },
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
 ) {
@@ -611,6 +612,7 @@ fun ConfigurationScreen(
                                     }
                                 }
                             },
+                            onLongClick = { onOpenGroupSettings(group.id) },
                         )
                     }
                 }

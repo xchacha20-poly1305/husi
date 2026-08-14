@@ -29,7 +29,6 @@ import androidx.compose.material3.PrimaryTabRow as MaterialPrimaryTabRow
 import androidx.compose.material3.RadioButton as MaterialRadioButton
 import androidx.compose.material3.Surface as MaterialSurface
 import androidx.compose.material3.Switch as MaterialSwitch
-import androidx.compose.material3.Tab as MaterialTab
 import androidx.compose.material3.TabRowDefaults as MaterialTabRowDefaults
 import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
@@ -75,10 +74,10 @@ internal interface PlatformTabRowScope {
     fun Tab(
         selected: Boolean,
         onClick: () -> Unit,
+        text: @Composable () -> Unit,
         modifier: Modifier = Modifier,
         enabled: Boolean = true,
-        text: (@Composable () -> Unit)? = null,
-        icon: (@Composable () -> Unit)? = null,
+        onLongClick: (() -> Unit)? = null,
     )
 }
 
@@ -281,18 +280,18 @@ private object MaterialPlatformTabRowScope : PlatformTabRowScope {
     override fun Tab(
         selected: Boolean,
         onClick: () -> Unit,
+        text: @Composable () -> Unit,
         modifier: Modifier,
         enabled: Boolean,
-        text: (@Composable () -> Unit)?,
-        icon: (@Composable () -> Unit)?,
+        onLongClick: (() -> Unit)?,
     ) {
-        MaterialTab(
+        LongClickTab(
             selected = selected,
             onClick = onClick,
+            text = text,
             modifier = modifier,
             enabled = enabled,
-            text = text,
-            icon = icon,
+            onLongClick = onLongClick,
         )
     }
 }
@@ -1296,17 +1295,17 @@ fun PrimaryScrollableTabRow(
 fun Tab(
     selected: Boolean,
     onClick: () -> Unit,
+    text: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: (@Composable () -> Unit)? = null,
-    icon: (@Composable () -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
 ) {
     LocalPlatformTabRowScope.current.Tab(
         selected = selected,
         onClick = onClick,
+        text = text,
         modifier = modifier,
         enabled = enabled,
-        text = text,
-        icon = icon,
+        onLongClick = onLongClick,
     )
 }
