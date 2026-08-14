@@ -399,9 +399,28 @@ compose.resources {
     packageOfResClass = "fr.husi.resources"
 }
 
+val commonAboutLibrariesDir = layout.projectDirectory.dir("src/commonMain/aboutlibraries")
+val desktopAboutLibrariesDir = layout.projectDirectory.dir("src/desktopMain/aboutlibraries")
+val desktopAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-desktop-config")
+val exportDesktopAboutLibraries = gradle.startParameter.taskNames.any { taskName ->
+    taskName.substringAfterLast(':').equals("exportLibraryDefinitionsDesktop", ignoreCase = true)
+}
+
+val mergeDesktopAboutLibraries = tasks.register<Sync>("mergeDesktopAboutLibraries") {
+    description = "Merges shared and desktop-only AboutLibraries presets."
+    from(commonAboutLibrariesDir)
+    from(desktopAboutLibrariesDir)
+    into(desktopAboutLibrariesConfig)
+}
+
 aboutLibraries {
     collect {
-        configPath = file("src/commonMain/aboutlibraries")
+        // Desktop-only presets are merged in only for exportLibraryDefinitionsDesktop.
+        configPath = if (exportDesktopAboutLibraries) {
+            desktopAboutLibrariesConfig.get().asFile
+        } else {
+            commonAboutLibrariesDir.asFile
+        }
     }
     export {
         variant = "android"
@@ -412,6 +431,10 @@ aboutLibraries {
             outputFile = file("src/desktopMain/composeResources/files/aboutlibraries.json")
         }
     }
+}
+
+tasks.named("exportLibraryDefinitionsDesktop") {
+    dependsOn(mergeDesktopAboutLibraries)
 }
 
 ksp {

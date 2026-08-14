@@ -132,6 +132,8 @@ object Key {
 
     const val RULES_FIRST_CREATE = "rulesFirstCreate"
 
+    const val DESKTOP_NAV_RAIL_WIDTH = "desktopNavRailWidth"
+
 }
 
 fun logLevelString(level: Int): String = when (level) {

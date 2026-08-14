@@ -1,0 +1,16 @@
+{
+  "uniqueId": "org.gnome:adwaita-icon-theme",
+  "artifactVersion": "50.0",
+  "name": "Adwaita Icon Theme",
+  "description": "GNOME Adwaita cursor artwork used for the desktop navigation-rail resize handle.",
+  "website": "https://gitlab.gnome.org/GNOME/adwaita-icon-theme",
+  "developers": [
+    {
+      "name": "GNOME Project",
+      "organisationUrl": "https://www.gnome.org"
+    }
+  ],
+  "licenses": [
+    "LGPL-3.0-only"
+  ]
+}

@@ -253,4 +253,6 @@ object DataStore {
 
     var rulesFirstCreate by configurationStore.boolean(Key.RULES_FIRST_CREATE)
 
+    var desktopNavRailWidth by configurationStore.int(Key.DESKTOP_NAV_RAIL_WIDTH) { 220 }
+
 }
