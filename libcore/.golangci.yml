@@ -1,27 +1,80 @@
-linters:
-  disable-all: true
-  enable:
-    - govet
-    - staticcheck
+# yaml-language-server: $schema=https://golangci-lint.run/jsonschema/golangci.jsonschema.json
+
+version: "2"
 
 run:
+  # Keep in sync with the tag list in libcore/build.sh. `with_naive_outbound` is
+  # left out on purpose: it needs a cronet-go checkout, which linting has no
+  # business downloading.
   build-tags:
     - "with_gvisor"
     - "with_quic"
     - "with_wireguard"
+    - "with_openconnect"
+    - "with_openvpn"
     - "with_utls"
-    - "with_clash_api"
-    - "with_ech"
-  go: "1.20"
 
-issues:
-  exclude-dirs:
-    - "cmd/"
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - makezero
+    - misspell
+    - staticcheck
+    - unconvert
 
-linters-settings:
-  gci:
-    custom-order: true
-    sections:
-      - standard
-      - prefix(github.com/sagernet/)
-      - default
+  # Linters we tried and rejected, so nobody has to try them again:
+  #
+  #   bodyclose  — `httpRequest.Execute` hands the live body to Kotlin as an
+  #                `HTTPResponse`; every such handover looks like a leak to it.
+  #   nilerr     — every hit was a `filepath.WalkDir` callback that swallows
+  #                per-entry errors on purpose.
+  #   unused     — one GOOS only ever sees half of the platform-split files, so
+  #                it reports the other half's helpers (`tunnelName`,
+  #                `linkFlags`, `iteratorToArray`, ...) as dead code.
+
+  settings:
+    staticcheck:
+      checks:
+        - all
+        # Naming rules that the JNI/gomobile facing surface cannot follow, and
+        # doc-comment rules we satisfy where it is worth it rather than always.
+        - -ST1000
+        - -ST1003
+        - -ST1020
+        - -ST1021
+        - -ST1022
+        # "error strings should not be capitalized" — protocol names are.
+        - -ST1005
+        # Style preferences, not defects: merging a declaration into the next
+        # assignment, and dropping an embedded field from a selector.
+        - -S1021
+        - -QF1008
+
+  exclusions:
+    generated: lax
+    paths:
+      # Generated protobuf stubs, `make proto` owns them.
+      - pb/
+      # Developer-only codegen and inspection tools, never shipped to a user.
+      - cmd/
+    rules:
+      # Closing is best-effort all over this code base: the interesting error
+      # already came from the read or the write before it.
+      - linters:
+          - errcheck
+        text: 'Error return value of `(.*\.Close|common\.Close|windows\.(CloseHandle|CertCloseStore)|.*\.Disconnect)` is not checked'
+      # Writing the version banner to a terminal that went away is not news.
+      - linters:
+          - errcheck
+        text: 'Error return value of `fmt\.Fprint(f|ln)?` is not checked'
+      # Tests are allowed to exercise deprecated APIs — that is often the point.
+      - linters:
+          - staticcheck
+        path: _test\.go
+        text: "SA1019:"
+      - linters:
+          - errcheck
+        path: _test\.go

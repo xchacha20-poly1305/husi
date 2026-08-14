@@ -111,6 +111,7 @@ func verifiedSignerCertificate(stateData windows.Handle) ([]byte, error) {
 		return nil, E.New("missing Authenticode provider certificate")
 	}
 	//goland:noinspection GoVetUnsafePointer
+	//nolint:govet // Win32 hands the chain back as a uintptr, there is no typed form to take.
 	certificateContext := (*cryptProviderCertificate)(unsafe.Pointer(providerCertificate)).certificateContext
 	if certificateContext == nil {
 		return nil, E.New("empty Authenticode signer certificate context")

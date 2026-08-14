@@ -15,6 +15,7 @@ on:
       - launcher/**
       - libcore/**
       - library/**
+      - Makefile
       - proto/**
       - release/**
       - run
@@ -30,6 +31,7 @@ on:
       - launcher/**
       - libcore/**
       - library/**
+      - Makefile
       - proto/**
       - release/**
       - run
@@ -53,6 +55,27 @@ jobs:
           # -x follows the `# shellcheck source=` directives into sourced files.
           shellcheck -x run
           find buildScript release -name '*.sh' -exec shellcheck -x {} +
+
+  lint-go:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/load-build-versions
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: 'libcore/go.sum'
+      # The Windows pass needs a cgo cross compiler to typecheck the Win32 files.
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+          cache-key: lint-go
+      - name: Install golangci-lint
+        run: make lint_go_install
+      - name: Lint libcore
+        run: make lint_go
 
   test:
     runs-on: ubuntu-26.04
