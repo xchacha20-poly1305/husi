@@ -29,7 +29,7 @@ COMMA = ,
 CORE_SHIM_GLIBC_VERSION = 2.17
 CORE_SHIM_MACOS_VERSION = 12.0
 
-.PHONY: libcore libcore_android libcore_desktop_common libcore_desktop core_desktop aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_all desktop_uberjar launcher lint_go proto proto_install test_go test_no_go_core_binary test_zig plugin generate_option
+.PHONY: libcore libcore_android libcore_desktop_common libcore_desktop core_desktop aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_all desktop_uberjar launcher lint_go proto proto_install test_go test_no_go_core_binary test_zig plugin generate_option lint_go_linux lint_go_android lint_go_windows
 
 build: libcore_android assets apk
 
@@ -182,11 +182,22 @@ proto_install:
 	@echo "protoc: install via your package manager (e.g. pacman -S protobuf)."
 	@echo "Go plugins are built from libcore/go.mod pins automatically."
 
-lint_go:
-	cd libcore/ && GOOS=android golangci-lint run ./...
+lint_go: lint_go_linux lint_go_android lint_go_windows
+
+lint_go_linux:
+	cd libcore/ && GOOS=linux golangci-lint run ./...
+
+lint_go_android:
+	cd libcore/ && GOOS=android GOARCH=arm64 golangci-lint run ./...
+
+lint_go_windows:
+	cd libcore/ && GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
+		CC="zig cc -target x86_64-windows-gnu" \
+		CXX="zig c++ -target x86_64-windows-gnu" \
+		golangci-lint run ./...
 
 lint_go_install:
-	go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
 fmt_go:
 	cd libcore/ && gofumpt -l -w .
