@@ -224,7 +224,7 @@
       "matchPackageNames": [
         "/.*/"
       ],
-      "allowedVersions": "!/.*-[Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt](\\+.*)?$/"
+      "allowedVersions": "!/[-+][Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt]/"
     },
     {
       "matchPackageNames": [
@@ -239,7 +239,7 @@
       "matchPackageNames": [
         "org.jetbrains.compose**"
       ],
-      "allowedVersions": "!/(-[Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt](\\+.*)?|\\+dev\\d+)$/"
+      "allowedVersions": "!/([-+][Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt]|\\+dev\\d+$)/"
     },
     {
       "matchManagers": [
@@ -248,7 +248,7 @@
       "matchPackageNames": [
         "org.jetbrains.kotlinx:kotlinx-datetime"
       ],
-      "allowedVersions": "!/(-[Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt](\\+.*)?|-compat)$/"
+      "allowedVersions": "!/([-+][Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt]|-compat$)/"
     }
   ]
 }
