@@ -545,6 +545,7 @@ scripts:
   postremove: $work_dir/postremove.sh
 deb:
   arch: $DEB_ARCH
+  compression: xz
 EOF
 }
 
@@ -564,6 +565,7 @@ scripts:
   postremove: $work_dir/postremove.sh
 rpm:
   arch: $RPM_ARCH
+  compression: xz
   summary: $APP_DESCRIPTION
   packager: $MAINTAINER
   scripts:
