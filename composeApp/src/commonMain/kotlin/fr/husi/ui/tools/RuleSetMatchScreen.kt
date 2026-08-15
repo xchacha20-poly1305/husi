@@ -30,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +45,8 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleTopBar
@@ -245,15 +248,31 @@ internal fun RuleSetMatchContent(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RuleSetMatchDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     onCopy: (suspend () -> Unit)? = null,
-    viewModel: RuleSetMatchScreenViewModel = viewModel(
-        key = "rule-set-match-dialog",
-    ) { RuleSetMatchScreenViewModel() },
+) {
+    // Own the store, so that dismissing the dialog also cancels a scan still running in it.
+    CompositionLocalProvider(
+        LocalViewModelStoreOwner provides rememberViewModelStoreOwner(),
+    ) {
+        RuleSetMatchDialogContent(
+            onDismissRequest = onDismissRequest,
+            modifier = modifier,
+            onCopy = onCopy,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RuleSetMatchDialogContent(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    onCopy: (suspend () -> Unit)? = null,
+    viewModel: RuleSetMatchScreenViewModel = viewModel { RuleSetMatchScreenViewModel() },
 ) {
     val density = LocalDensity.current
     val windowHeight = with(density) {

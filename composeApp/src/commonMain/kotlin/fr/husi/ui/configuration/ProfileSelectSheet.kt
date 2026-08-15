@@ -9,8 +9,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
 
 @Composable
 fun ProfileSelectSheet(
@@ -18,23 +21,29 @@ fun ProfileSelectSheet(
     onDismiss: () -> Unit,
     onSelected: (Long) -> Unit,
 ) {
-    val state = rememberProfilePickerState(preSelected = preSelected)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        ),
+    // The sheet lives outside the navigation display, so without an owner of its own its
+    // view models would be kept by the host until the whole window goes away.
+    CompositionLocalProvider(
+        LocalViewModelStoreOwner provides rememberViewModelStoreOwner(),
     ) {
-        ProfilePickerContent(
-            state = state,
-            onDismiss = onDismiss,
-            onSelected = onSelected,
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.9f),
-            bottomPadding = 0.dp,
-        )
+        val state = rememberProfilePickerState(preSelected = preSelected)
+
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = rememberBottomSheetState(
+                initialValue = SheetValue.Hidden,
+                enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+            ),
+        ) {
+            ProfilePickerContent(
+                state = state,
+                onDismiss = onDismiss,
+                onSelected = onSelected,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.9f),
+                bottomPadding = 0.dp,
+            )
+        }
     }
 }

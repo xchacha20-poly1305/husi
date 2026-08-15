@@ -1,4 +1,4 @@
-@file:OptIn(KoinExperimentalAPI::class)
+@file:OptIn(KoinExperimentalAPI::class, KoinDelicateAPI::class)
 
 package fr.husi.ui
 
@@ -15,6 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -79,16 +82,15 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import org.koin.compose.currentKoinScope
+import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 import org.koin.compose.navigation3.EntryProvider
 import org.koin.compose.navigation3.koinEntryProvider
-import org.koin.compose.scope.KoinScope
-import org.koin.compose.viewmodel.koinViewModel
+import org.koin.compose.scope.UnboundKoinScope
+import org.koin.core.annotation.KoinDelicateAPI
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.parametersOf
 import org.koin.core.scope.Scope
-import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -97,21 +99,22 @@ fun MainScreen(
     moveToBackground: () -> Unit,
     initialProcessText: String? = null,
 ) {
-    val scopeId = remember {
-        "main-screen:${Random.nextLong()}"
-    }
-    KoinScope<MainScreenScope>(scopeID = scopeId) {
-        val mainScreenScope = currentKoinScope()
-        val viewModel = koinViewModel<MainViewModel>()
-        val entryProvider = koinEntryProvider<NavKey>(scope = mainScreenScope)
-        MainScreenContent(
-            modifier = modifier,
-            viewModel = viewModel,
-            moveToBackground = moveToBackground,
-            initialProcessText = initialProcessText,
-            koinScope = mainScreenScope,
-            entryProvider = entryProvider,
-        )
+    val koin = getKoin()
+    CompositionLocalProvider(
+        LocalViewModelStoreOwner provides rememberViewModelStoreOwner(),
+    ) {
+        val mainScreenScope = viewModel { MainScreenScopeHolder(koin) }.scope
+        UnboundKoinScope(mainScreenScope) {
+            val entryProvider = koinEntryProvider<NavKey>(scope = mainScreenScope)
+            MainScreenContent(
+                modifier = modifier,
+                viewModel = mainScreenScope.get<MainViewModel>(),
+                moveToBackground = moveToBackground,
+                initialProcessText = initialProcessText,
+                koinScope = mainScreenScope,
+                entryProvider = entryProvider,
+            )
+        }
     }
 }
 

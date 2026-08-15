@@ -3,8 +3,6 @@ package fr.husi.ui
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import fr.husi.GroupType
 import fr.husi.Key
 import fr.husi.bg.DeepLinkDispatcher
@@ -24,7 +22,10 @@ import fr.husi.repository.Repository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -61,7 +62,9 @@ class MainViewModel(
     private val repository: Repository = resolveRepository(),
     private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
     private val snackbar: SnackbarEmitter = SnackbarEmitter(),
-) : ViewModel() {
+) : AutoCloseable {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     val urlTestStatus: StateFlow<URLTestStatus>
         field = MutableStateFlow<URLTestStatus>(URLTestStatus.Initial)
@@ -79,13 +82,13 @@ class MainViewModel(
     )
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             DeepLinkDispatcher.flow.collect { link ->
                 importFromUri(link)
             }
         }
 
-        viewModelScope.launch {
+        scope.launch {
             DataStore.configurationStore.keysFlow(
                 Key.PROXY_APPS,
                 Key.BYPASS_MODE,
@@ -109,7 +112,7 @@ class MainViewModel(
         urlTestStatus.value = URLTestStatus.Initial
     }
 
-    fun importFromUri(uri: String) = viewModelScope.launch {
+    fun importFromUri(uri: String) = scope.launch {
         val preview = try {
             importLinkInteractor.parseUri(uri)
         } catch (e: Exception) {
@@ -123,7 +126,7 @@ class MainViewModel(
         }
     }
 
-    fun importSubscription(uri: String) = viewModelScope.launch {
+    fun importSubscription(uri: String) = scope.launch {
         val group = try {
             importLinkInteractor.parseSubscription(uri)
         } catch (e: Exception) {
@@ -140,7 +143,7 @@ class MainViewModel(
                 title = StringOrRes.Res(Res.string.subscription_import),
                 message = StringOrRes.ResWithParams(Res.string.subscription_import_message, detail),
                 confirmButton = AlertButton(StringOrRes.Res(Res.string.ok)) {
-                    viewModelScope.launch(Dispatchers.Default) {
+                    scope.launch(Dispatchers.Default) {
                         val createdGroup = onIoDispatcher {
                             importLinkInteractor.createSubscriptionGroup(group)
                         }
@@ -165,7 +168,7 @@ class MainViewModel(
                     profiles.joinToString("\n") { it.displayName() },
                 ),
                 confirmButton = AlertButton(StringOrRes.Res(Res.string.ok)) {
-                    viewModelScope.launch(Dispatchers.IO) {
+                    scope.launch(Dispatchers.IO) {
                         importProfile(profiles)
                     }
                 },
@@ -174,7 +177,7 @@ class MainViewModel(
         )
     }
 
-    fun parseProxy(text: String?) = viewModelScope.launch {
+    fun parseProxy(text: String?) = scope.launch {
         if (text.isNullOrBlank()) {
             snackbar.show(StringOrRes.Res(Res.string.clipboard_empty))
             return@launch
@@ -188,7 +191,7 @@ class MainViewModel(
                         importSubscription(text)
                     },
                     dismissButton = AlertButton(StringOrRes.Res(Res.string.profile_import)) {
-                        viewModelScope.launch {
+                        scope.launch {
                             parseSubscription(text)
                         }
                     },
@@ -226,11 +229,11 @@ class MainViewModel(
         )
     }
 
-    fun updateSubscriptionGroup(group: ProxyGroup) = viewModelScope.launch(Dispatchers.Default) {
+    fun updateSubscriptionGroup(group: ProxyGroup) = scope.launch(Dispatchers.Default) {
         performGroupUpdate(group, true)
     }
 
-    fun updateAllSubscriptionGroups() = viewModelScope.launch(Dispatchers.Default) {
+    fun updateAllSubscriptionGroups() = scope.launch(Dispatchers.Default) {
         val groups = onIoDispatcher {
             SagerDatabase.groupDao.allGroups().first()
                 .filter { it.type == GroupType.SUBSCRIPTION }
@@ -368,6 +371,10 @@ class MainViewModel(
                 ),
             )
         }
+    }
+
+    override fun close() {
+        scope.cancel()
     }
 }
 
