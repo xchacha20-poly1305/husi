@@ -1,6 +1,8 @@
 package fr.husi.core
 
 import fr.husi.libcore.StreamHandler
+import fr.husi.proto.daemon.SubscribeConnectionsRequest
+import fr.husi.proto.daemon.SubscribeStatusRequest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -103,6 +105,34 @@ class BridgeCoreClientTest {
     }
 
     @Test
+    fun `subscribe status and connections send interval as nanoseconds`() = runTest {
+        val factory = RecordingBridgeFactory()
+        val client = newClient(factory)
+
+        backgroundScope.launch { client.subscribeStatus(1.seconds).collect() }
+        backgroundScope.launch { client.subscribeConnections(1.seconds).collect() }
+
+        val first = factory.awaitFirst()
+        awaitCondition("status and connections streams opened") { first.streamCalls.size == 2 }
+
+        val statusCall = first.streamCalls.single {
+            it.method == "/daemon.StartedService/SubscribeStatus"
+        }
+        val connectionsCall = first.streamCalls.single {
+            it.method == "/daemon.StartedService/SubscribeConnections"
+        }
+        assertEquals(
+            1.seconds.inWholeNanoseconds,
+            SubscribeStatusRequest.parseFrom(statusCall.request).interval,
+        )
+        assertEquals(
+            1.seconds.inWholeNanoseconds,
+            SubscribeConnectionsRequest.parseFrom(connectionsCall.request).interval,
+        )
+        client.close()
+    }
+
+    @Test
     fun `one-shot stream Unavailable resets shared bridge`() = runTest {
         val factory = RecordingBridgeFactory()
         val client = newClient(factory)
@@ -173,7 +203,7 @@ private class FakeCoreBridge : CoreBridge {
         handler: StreamHandler,
     ): CoreStreamCall {
         checkOpen()
-        return FakeCoreStreamCall(handler).also {
+        return FakeCoreStreamCall(method, request, handler).also {
             synchronized(streamCalls) { streamCalls += it }
         }
     }
@@ -197,6 +227,8 @@ private class FakeCoreBridge : CoreBridge {
 }
 
 private class FakeCoreStreamCall(
+    val method: String,
+    val request: ByteArray,
     private val handler: StreamHandler,
 ) : CoreStreamCall {
     private var completed = false

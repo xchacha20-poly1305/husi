@@ -402,7 +402,7 @@ class BridgeCoreClient private constructor(
 
     override fun subscribeStatus(interval: Duration): Flow<Status> {
         val request = subscribeStatusRequest {
-            this.interval = interval.inWholeMilliseconds
+            this.interval = interval.inWholeNanoseconds
         }.toByteArray()
         return stream(Methods.SUBSCRIBE_STATUS, request) { Status.parseFrom(it) }
     }
@@ -420,7 +420,7 @@ class BridgeCoreClient private constructor(
 
     override fun subscribeConnections(interval: Duration): Flow<ConnectionEvents> {
         val request = subscribeConnectionsRequest {
-            this.interval = interval.inWholeMilliseconds
+            this.interval = interval.inWholeNanoseconds
         }.toByteArray()
         return stream(Methods.SUBSCRIBE_CONNECTIONS, request) { ConnectionEvents.parseFrom(it) }
     }
