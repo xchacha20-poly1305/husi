@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package fr.husi.ui.settings
 
 import androidx.compose.foundation.background
@@ -15,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.TooltipAnchorPosition
@@ -48,6 +45,7 @@ import fr.husi.compose.theme.DEFAULT
 import fr.husi.compose.theme.themeString
 import fr.husi.compose.theme.themes
 import fr.husi.database.DataStore
+import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
@@ -63,6 +61,7 @@ import fr.husi.resources.center_focus_weak
 import fr.husi.resources.check
 import fr.husi.resources.color_lens
 import fr.husi.resources.description
+import fr.husi.resources.developer_board
 import fr.husi.resources.developer_mode
 import fr.husi.resources.disable
 import fr.husi.resources.enable
@@ -238,6 +237,9 @@ internal fun GeneralSettingsGroup(
     needRestart: () -> Unit,
 ) {
     val applyNightMode = rememberApplyNightMode()
+    val isExpertState by DataStore.configurationStore
+        .booleanFlow(Key.APP_EXPERT, false)
+        .collectAsStateWithLifecycle(false)
 
     AutoConnectPreference()
     PreferenceDivider()
@@ -546,6 +548,30 @@ internal fun GeneralSettingsGroup(
         },
         valueText = { Text(previewValue.toInt().toString()) },
     )
+    if (isExpertState) {
+        PreferenceDivider()
+        val debugListenValue by DataStore.configurationStore
+            .stringFlow(Key.DEBUG_LISTEN, "")
+            .collectAsStateWithLifecycle("")
+        TextFieldPreference(
+            value = debugListenValue,
+            onValueChange = {
+                DataStore.debugListen = it
+                needReload()
+            },
+            title = { Text("pprof listen") },
+            textToValue = { it },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.developer_board,
+                    color = IconMaskColors.IconCoral,
+                    shape = IconMaskShapes.risk(),
+                )
+            },
+            summary = { Text(contentOrUnset(debugListenValue)) },
+            valueToText = { it },
+        )
+    }
 }
 
 @Composable
