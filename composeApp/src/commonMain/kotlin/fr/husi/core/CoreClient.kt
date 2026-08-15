@@ -184,7 +184,7 @@ internal fun interface CoreStreamCall {
 
 private class JniCoreBridge(private val client: BridgeClient) : CoreBridge {
     override fun callWithTimeout(method: String, request: ByteArray, timeoutMs: Int): ByteArray =
-        client.callWithTimeout(method, request, timeoutMs)
+        client.callWithTimeout(method, request, timeoutMs) ?: ByteArray(0)
 
     override fun stream(
         method: String,

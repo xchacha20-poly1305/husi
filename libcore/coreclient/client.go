@@ -44,7 +44,11 @@ func (rawCodec) Unmarshal(data []byte, v any) error {
 	if !isBytesPtr {
 		return E.New("rawCodec: expected *[]byte")
 	}
-	*ptr = bytes.Clone(data)
+	if data != nil {
+		*ptr = bytes.Clone(data)
+	} else {
+		*ptr = []byte{}
+	}
 	return nil
 }
 
