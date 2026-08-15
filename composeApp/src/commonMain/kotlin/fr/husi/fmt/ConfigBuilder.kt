@@ -33,7 +33,6 @@ import fr.husi.fmt.SingBoxOptions.Outbound
 import fr.husi.fmt.SingBoxOptions.Outbound_DirectOptions
 import fr.husi.fmt.SingBoxOptions.Outbound_SOCKSOptions
 import fr.husi.fmt.SingBoxOptions.Rule_Default
-import fr.husi.fmt.SingBoxOptions.Rule_Logical
 import fr.husi.fmt.SingBoxOptions.User
 import fr.husi.fmt.anytls.AnyTLSBean
 import fr.husi.fmt.anytls.buildSingBoxOutboundAnyTLSBean
@@ -354,26 +353,22 @@ fun buildConfig(
                         else -> "mixed"
                     }
                     mtu = DataStore.mtu
-                    // TUN_DNS_MODE_HIJACK will not search the process,
-                    // so we should use custom rule to hijack DNS instead of auto hijack from Tun.
-                    dns_mode = SingBoxOptions.TUN_DNS_MODE_NATIVE
+                    // Hijack intercepts port 53 at the TUN layer and calls
+                    // router.HijackDNSPacket (with searchProcessInfo) directly,
+                    // bypassing route rule matching.
+                    // Fixed upstream: SagerNet/sing-box@339b1934 (codeberg husi#87)
+                    dns_mode = SingBoxOptions.TUN_DNS_MODE_HIJACK
                     applyPlatformConfig()
                     when (networkStrategy) {
                         SingBoxOptions.STRATEGY_IPV4_ONLY -> {
-                            dns_address = mutableListOf(VpnConstants.PRIVATE_VLAN4_ROUTER)
                             address = mutableListOf(VpnConstants.PRIVATE_VLAN4_CLIENT + "/28")
                         }
 
                         SingBoxOptions.STRATEGY_IPV6_ONLY -> {
-                            dns_address = mutableListOf(VpnConstants.PRIVATE_VLAN6_ROUTER)
                             address = mutableListOf(VpnConstants.PRIVATE_VLAN6_CLIENT + "/126")
                         }
 
                         else -> {
-                            dns_address = mutableListOf(
-                                VpnConstants.PRIVATE_VLAN4_ROUTER,
-                                VpnConstants.PRIVATE_VLAN6_ROUTER,
-                            )
                             address = mutableListOf(
                                 VpnConstants.PRIVATE_VLAN4_CLIENT + "/28",
                                 VpnConstants.PRIVATE_VLAN6_CLIENT + "/126",
@@ -1281,31 +1276,17 @@ fun buildConfig(
             )
 
             // built-in DNS rules
-            val builtInDNSRule = localDNSPort?.let {
-                Rule_Logical().also {
-                    it.type = SingBoxOptions.TYPE_LOGICAL
-                    it.mode = SingBoxOptions.LOGICAL_OR
-                    it.rules = mutableListOf(
-                        Rule_Default().apply {
-                            inbound = mutableListOf(TAG_DNS_IN)
-                        }.toJsonObjectKxs(),
-                        Rule_Default().apply {
-                            ip_cidr = mutableListOf(
-                                VpnConstants.PRIVATE_VLAN4_ROUTER,
-                                VpnConstants.PRIVATE_VLAN6_ROUTER,
-                            )
-                        }.toJsonObjectKxs(),
-                    )
-                    it.action = SingBoxOptions.ACTION_HIJACK_DNS
-                }.asKxsMap()
-            } ?: Rule_Default().apply {
-                ip_cidr = mutableListOf(
-                    VpnConstants.PRIVATE_VLAN4_ROUTER,
-                    VpnConstants.PRIVATE_VLAN6_ROUTER,
+            // TUN hijack mode handles port 53 automatically;
+            // only the local DNS inbound needs an explicit hijack rule.
+            localDNSPort?.let {
+                route!!.rules!!.add(
+                    0,
+                    Rule_Default().apply {
+                        inbound = mutableListOf(TAG_DNS_IN)
+                        action = SingBoxOptions.ACTION_HIJACK_DNS
+                    }.asKxsMap(),
                 )
-                action = SingBoxOptions.ACTION_HIJACK_DNS
-            }.asKxsMap()
-            route!!.rules!!.add(0, builtInDNSRule)
+            }
 
             // FakeDNS obj
             if (useFakeDns) {
