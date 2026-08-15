@@ -166,16 +166,17 @@ internal class CoreHostController(
     }
 
     /**
-     * UI process shutdown. Leaves a system daemon and its running service
-     * alone (the point of daemon mode); only kills a session child.
+     * UI process shutdown. Always stops the box instance, then detaches from
+     * a system daemon (the daemon process stays installed) or kills a
+     * session child.
      */
     fun shutdownHost() {
         runBlocking {
             access.withLock {
+                stopLocked()
                 if (connectedToDaemon) {
                     detachDaemonClientLocked()
                 } else {
-                    stopLocked()
                     closeSessionLocked()
                 }
             }
@@ -627,6 +628,13 @@ internal class CoreHostController(
     private fun changeState(state: ServiceState, profileName: String? = null) {
         DataStore.serviceState = state
         BackendState.updateState(state, profileName)
+    }
+
+    /** Test-only: pretend the shared client is attached to a live host. */
+    internal fun attachHostForTest(daemon: Boolean) {
+        connectedToDaemon = daemon
+        hostReady = true
+        publishHostState()
     }
 
     companion object {

@@ -182,8 +182,16 @@ open class FakeCoreClient : CoreClient {
         takeOverServiceThrowable?.let { throw it }
         takeOverServiceCalls += 1
     }
-    override suspend fun startService(request: StartServiceRequest) = Unit
-    override suspend fun stopService() = Unit
+    var startServiceCalls: Int = 0
+    var stopServiceCalls: Int = 0
+
+    override suspend fun startService(request: StartServiceRequest) {
+        startServiceCalls += 1
+    }
+
+    override suspend fun stopService() {
+        stopServiceCalls += 1
+    }
     override suspend fun getClientMetadata(): GetClientMetadataResponse =
         GetClientMetadataResponse.getDefaultInstance()
 
