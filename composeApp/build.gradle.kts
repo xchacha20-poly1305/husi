@@ -21,6 +21,8 @@ enum class DesktopPlatform(
     val composeDependencyId: String,
     val nativeNames: Set<String>,
     val jnaName: String,
+    /** File name anja gives the core library, see `libcore/build.sh` (`-libname=husicore`). */
+    val libcoreLibraryName: String,
 ) {
     Linux(
         id = "linux",
@@ -28,6 +30,7 @@ enum class DesktopPlatform(
         composeDependencyId = "linux",
         nativeNames = setOf("linux"),
         jnaName = "linux",
+        libcoreLibraryName = "libhusicore.so",
     ),
     Darwin(
         id = "darwin",
@@ -35,6 +38,7 @@ enum class DesktopPlatform(
         composeDependencyId = "macos",
         nativeNames = setOf("osx", "darwin"),
         jnaName = "darwin",
+        libcoreLibraryName = "libhusicore.dylib",
     ),
     Windows(
         id = "windows",
@@ -42,6 +46,7 @@ enum class DesktopPlatform(
         composeDependencyId = "windows",
         nativeNames = setOf("windows"),
         jnaName = "win32",
+        libcoreLibraryName = "husicore.dll",
     ),
     ;
 
@@ -117,6 +122,8 @@ data class DesktopTarget(
                     listOf("natives/${platformName}_${archName}/", "natives/${platformName}-${archName}/")
                 }
             }.toSet()
+    /** The single entry anja puts in the libcore jar, the one native shipped as a sidecar instead. */
+    val libcoreNativeEntry: String = "natives/${platform.id}-${arch.id}/${platform.libcoreLibraryName}"
     val jnaNativeKeepPrefixes: Set<String> =
         setOf(
             "com/sun/jna/${platform.jnaName}-${arch.jnaName}/",
@@ -452,6 +459,8 @@ tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
         // Exclude non-target native binaries from dependency family buckets.
         // libcore natives/** are always stripped (thin release jar); others keep only the target arch.
 
+        val nativeKeepPrefixes = desktopTarget.nativeKeepPrefixes
+        val libcoreNativeEntry = desktopTarget.libcoreNativeEntry
         val jnaNativeKeepPrefixes = desktopTarget.jnaNativeKeepPrefixes
         val composeTrayNativeKeepPrefixes = desktopTarget.composeTrayNativeKeepPrefixes
         val nucleusNativeKeepPrefixes = desktopTarget.nucleusNativeKeepPrefixes
@@ -464,9 +473,14 @@ tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
 
         eachFile {
             val entryPath = path
-            // Release uberjar is born thin (N7): ship the anja library as a plain
-            // file next to husi-core. Dev classpath jars stay fat (untouched here).
-            if (entryPath.startsWith("natives/")) {
+            // Keep only the target bucket of the natives/ family, and on top of that drop
+            // libcore's own native: the release uberjar is born thin (N7) and ships it as a
+            // plain file next to husi-core. Everything else here — androidx sqlite's
+            // libsqliteJni — has no sidecar. Dev classpath jars stay fat (untouched here).
+            if (
+                entryPath.startsWith("natives/") &&
+                (entryPath == libcoreNativeEntry || nativeKeepPrefixes.none(entryPath::startsWith))
+            ) {
                 exclude()
                 return@eachFile
             }

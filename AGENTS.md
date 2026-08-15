@@ -29,7 +29,7 @@ Common targets:
 | `make core_desktop DESKTOP_TARGETS=...`                     | Build the Zig `husi-core` shim (source: `libcore/shim/`) into `libcore/build/<os>_<arch>/` (next to the sidecar) |
 | `make apk` / `make apk_debug`                               | Assemble `androidApp:assembleFossRelease` / `Debug`                              |
 | `make desktop` / `make desktop_release`                     | Run Compose desktop app via `gradlew :composeApp:run[Release]`                   |
-| `make desktop_uberjar`                                      | Thin release jar (no `natives/**`); needs the `husi-core` shim **and** `libhusicore.*` next to the jar, or `husi-core` on `PATH` with the library next to that binary |
+| `make desktop_uberjar`                                      | Thin release jar (no libcore native); needs the `husi-core` shim **and** `libhusicore.*` next to the jar, or `husi-core` on `PATH` with the library next to that binary |
 | `make desktop_package[_linux/_macos/_windows]`              | Native packages under `composeApp/build/compose/packages/`                       |
 | `make launcher`                                             | Build the Zig native UI launcher from `launcher/` (used by Linux/macOS/Windows installers) |
 | `make plugin PLUGIN=<name>`                                 | Assemble plugin APK; valid names: `hysteria2 juicity naive mieru shadowquic`     |
@@ -91,7 +91,10 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
       (`libhusicore.so` / `libhusicore.dylib` / `husicore.dll`) packed into
       `libcore-desktop-<os>-<arch>.jar` under gitignored `composeApp/libs/`, and also emitted as a
       plain sidecar under `libcore/build/<os>_<arch>/`. The jar stays fat for dev (`gradlew run` /
-      tests); release uberjars strip `natives/**` and load the sidecar via `anja.natives.dir`
+      tests); release uberjars keep only the target bucket under `natives/` and additionally drop
+      `natives/<os>-<arch>/libhusicore.*` (libraries sharing that family — androidx sqlite's
+      `libsqliteJni` — have no sidecar, so only libcore's own entry goes), loading the sidecar
+      via `anja.natives.dir`
       (set early in `DesktopMain` when a packaged layout is found). The process host is a small
       Zig shim (`make core_desktop` → `husi-core`) that `dlopen`s the sibling library and calls
       `HusiCoreMain`; packaged installs ship **one** Go artifact (the library) plus that shim.

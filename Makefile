@@ -147,7 +147,7 @@ desktop_package_windows_all:
 		$(MAKE) desktop_package_windows DESKTOP_TARGET=$$desktop_target WINDOWS_NO_SIGN=$(WINDOWS_NO_SIGN) || exit $$?; \
 	done
 
-# Thin release jar (natives/** excluded). Place husi-core + libhusicore.* next to the
+# Thin release jar (the libcore native is excluded). Place husi-core + libhusicore.* next to the
 # jar (or put husi-core on PATH with the library beside that binary) before running.
 desktop_uberjar:
 	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
