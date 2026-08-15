@@ -814,6 +814,22 @@
     <string name="cancel">Cancel</string>
     <string name="search_go">Search</string>
 
+    <string name="remote_control">Remote control</string>
+    <string name="remote_server_add">Add server</string>
+    <string name="remote_server_edit">Edit server</string>
+    <string name="remote_server_url_hint">host:port or http(s)://host:port</string>
+    <string name="remote_server_url_invalid">Enter host:port or http(s)://host:port</string>
+    <string name="remote_server_secret">Secret</string>
+    <string name="remote_target">Target</string>
+    <string name="remote_target_local">Local device</string>
+    <string name="remote_target_manage">Manage servers…</string>
+    <string name="remote_empty">No remote servers yet</string>
+    <string name="remote_reconnecting">Reconnecting…</string>
+    <string name="remote_disconnect">Disconnect</string>
+    <string name="remote_test_success">Connected to %1$s</string>
+    <string name="remote_uptime">Uptime %1$s</string>
+    <string name="remote_delete_confirm">Remove this remote server?</string>
+
     <!-- security warnings -->
     <string name="warn_hysteria_legacy">The configuration (Hysteria1) is deprecated.\n\nLearn more: https://v2.hysteria.network/docs/misc/2-vs-1/</string>
     <string name="warn_insecure">The configuration (insecure) can be detected and identified, the transmission is fully visible to the censor and is not resistant to man-in-the-middle tampering with the content of the communication.</string>

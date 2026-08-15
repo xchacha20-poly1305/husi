@@ -25,6 +25,8 @@ import fr.husi.ui.dashboard.DashboardScreen
 import fr.husi.ui.jsoneditor.ConfigEditScreen
 import fr.husi.ui.profile.ProfileEditorScreen
 import fr.husi.ui.profile.SIP003EditorScreen
+import fr.husi.ui.remote.RemoteControlScreen
+import fr.husi.ui.remote.RemoteServerEditScreen
 import fr.husi.ui.settings.SettingsPageScreen
 import fr.husi.ui.settings.SettingsScreen
 import fr.husi.ui.tools.BackupScreen
@@ -99,6 +101,25 @@ internal val commonNavigationModule = module {
                 openTool = navigator::navigateTo,
                 openPlugin = { navigator.navigateTo(NavRoutes.Plugin) },
                 openAbout = { navigator.navigateTo(NavRoutes.About) },
+                openRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
+            )
+        }
+
+        navigation<NavRoutes.RemoteControl> { _ ->
+            val navigator = get<Navigator>()
+            RemoteControlScreen(
+                onBackPress = { navigator.popBackStack() },
+                onEditServer = { id ->
+                    navigator.navigateTo(NavRoutes.RemoteServerEdit(id = id))
+                },
+            )
+        }
+
+        navigation<NavRoutes.RemoteServerEdit> { route ->
+            val navigator = get<Navigator>()
+            RemoteServerEditScreen(
+                serverId = route.id,
+                onBackPress = { navigator.popBackStack() },
             )
         }
 
@@ -119,7 +140,10 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Log> { _ ->
-            LogcatScreen()
+            val navigator = get<Navigator>()
+            LogcatScreen(
+                onOpenRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
+            )
         }
 
         navigation<NavRoutes.Dashboard> { _ ->
@@ -135,6 +159,7 @@ internal val commonNavigationModule = module {
                         ),
                     )
                 },
+                onOpenRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
             )
         }
 

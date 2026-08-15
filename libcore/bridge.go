@@ -28,6 +28,14 @@ func NewBridgeClient(basePath string) (*BridgeClient, error) {
 	return &BridgeClient{client: client}, nil
 }
 
+func NewRemoteBridgeClient(serverURL, secret string) (*BridgeClient, error) {
+	client, err := coreclient.DialRemote(serverURL, secret)
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeClient{client: client}, nil
+}
+
 const defaultBridgeTimeout = 10 * time.Second
 
 func (c *BridgeClient) Call(method string, request []byte) ([]byte, error) {

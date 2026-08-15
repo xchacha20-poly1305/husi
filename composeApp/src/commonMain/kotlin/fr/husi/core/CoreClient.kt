@@ -15,6 +15,7 @@ import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
 import fr.husi.proto.daemon.OutboundList
 import fr.husi.proto.daemon.ServiceStatus
+import fr.husi.proto.daemon.StartedAt
 import fr.husi.proto.daemon.Status
 import fr.husi.proto.daemon.Version
 import fr.husi.proto.daemon.clashMode
@@ -24,6 +25,7 @@ import fr.husi.proto.daemon.selectOutboundRequest
 import fr.husi.proto.daemon.setGroupExpandRequest
 import fr.husi.proto.daemon.subscribeConnectionsRequest
 import fr.husi.proto.daemon.subscribeStatusRequest
+import fr.husi.proto.daemon.uRLTestRequest as daemonURLTestRequest
 import fr.husi.proto.v1.GenerateSchemaResponse
 import fr.husi.proto.v1.GetCertMode
 import fr.husi.proto.v1.GetCertResponse
@@ -106,6 +108,8 @@ interface CoreClient {
     suspend fun cancelOpenConnectAuthChallenge(endpointTag: String, challengeId: String)
     suspend fun getVersion(): GetVersionResponse
     suspend fun getDaemonVersion(): Version
+    suspend fun getStartedAt(): Long
+    suspend fun daemonUrlTest(outboundTag: String)
     suspend fun urlTest(
         tag: String,
         link: String,
@@ -499,6 +503,17 @@ class BridgeCoreClient private constructor(
         return Version.parseFrom(unary(Methods.GET_VERSION))
     }
 
+    override suspend fun getStartedAt(): Long {
+        return StartedAt.parseFrom(unary(Methods.GET_STARTED_AT)).startedAt
+    }
+
+    override suspend fun daemonUrlTest(outboundTag: String) {
+        unary(
+            Methods.DAEMON_URL_TEST,
+            daemonURLTestRequest { this.outboundTag = outboundTag }.toByteArray(),
+        )
+    }
+
     override suspend fun urlTest(
         tag: String,
         link: String,
@@ -723,6 +738,8 @@ class BridgeCoreClient private constructor(
 
     private object Methods {
         const val GET_VERSION = "/daemon.StartedService/GetVersion"
+        const val GET_STARTED_AT = "/daemon.StartedService/GetStartedAt"
+        const val DAEMON_URL_TEST = "/daemon.StartedService/URLTest"
         const val SUBSCRIBE_SERVICE_STATUS = "/daemon.StartedService/SubscribeServiceStatus"
         const val SUBSCRIBE_LOG = "/daemon.StartedService/SubscribeLog"
         const val GET_DEFAULT_LOG_LEVEL = "/daemon.StartedService/GetDefaultLogLevel"

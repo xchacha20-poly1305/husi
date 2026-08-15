@@ -5,7 +5,6 @@
 
 package fr.husi.ui.dashboard
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -54,10 +53,10 @@ import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.TrafficSortMode
-import fr.husi.bg.BackendState
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
+import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.SimpleIconButton
@@ -68,6 +67,7 @@ import fr.husi.compose.material3.PrimaryTabRow
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
+import fr.husi.core.remote.RemoteControlManager
 import fr.husi.resources.Res
 import fr.husi.resources.ascending
 import fr.husi.resources.by_destination
@@ -87,6 +87,7 @@ import fr.husi.resources.copy_success
 import fr.husi.resources.descending
 import fr.husi.resources.ensure_close_all
 import fr.husi.resources.have_reset_network
+import fr.husi.resources.menu_dashboard
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
 import fr.husi.resources.no_thanks
@@ -106,9 +107,12 @@ import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.RouteSettingsUiState
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.openconnect.OpenConnectAuthController
+import fr.husi.ui.remote.RemoteSessionBanner
+import fr.husi.ui.remote.RemoteTargetMenuSection
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.koinInject
 
 private const val PAGE_STATUS = 0
 private const val PAGE_CONNECTIONS = 1
@@ -119,6 +123,7 @@ fun DashboardScreen(
     modifier: Modifier = Modifier,
     openConnectController: OpenConnectAuthController,
     openRouteSettings: (RouteSettingsUiState) -> Unit,
+    onOpenRemoteControl: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarEmitter.current
@@ -129,9 +134,17 @@ fun DashboardScreen(
         pageCount = { 3 },
     )
 
+    val remoteControl = koinInject<RemoteControlManager>()
     val dashboardViewModel: DashboardViewModel =
-        viewModel { DashboardViewModel(loadPlatformNetworkInfo) }
+        viewModel {
+            DashboardViewModel(
+                loadPlatformNetworkInfo = loadPlatformNetworkInfo,
+                remoteControl = remoteControl,
+            )
+        }
     val uiState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
+    val remoteSession by remoteControl.session.collectAsStateWithLifecycle()
+    val targetConnected by remoteControl.targetConnected.collectAsStateWithLifecycle()
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -166,9 +179,8 @@ fun DashboardScreen(
     }
     val windowInsets = WindowInsets.safeDrawing
 
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
-    LaunchedEffect(serviceStatus.state.connected) {
-        dashboardViewModel.initialize(serviceStatus.state.connected)
+    LaunchedEffect(remoteSession?.server?.id, targetConnected) {
+        dashboardViewModel.initialize(targetConnected)
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topAppBarColors = TopAppBarDefaults.topAppBarColors()
@@ -193,7 +205,7 @@ fun DashboardScreen(
                         windowInsets.only(WindowInsetsSides.Top),
                     ),
                 ) {
-                    AnimatedVisibility(visible = isConnectionsPage) {
+                    if (isConnectionsPage) {
                         CapsuleSearchTopBar(
                             inputField = searchInputField,
                             navigationIcon = null,
@@ -209,12 +221,14 @@ fun DashboardScreen(
                                         onClick = { dashboardViewModel.togglePause() },
                                     )
                                 }
-                                CapsuleActionButton {
-                                    SimpleIconButton(
-                                        imageVector = vectorResource(Res.drawable.cleaning_services),
-                                        contentDescription = stringResource(Res.string.reset_connections),
-                                        onClick = { showResetAlert = true },
-                                    )
+                                if (!uiState.isRemote) {
+                                    CapsuleActionButton {
+                                        SimpleIconButton(
+                                            imageVector = vectorResource(Res.drawable.cleaning_services),
+                                            contentDescription = stringResource(Res.string.reset_connections),
+                                            onClick = { showResetAlert = true },
+                                        )
+                                    }
                                 }
                                 CapsuleActionButton {
                                     Box {
@@ -228,8 +242,14 @@ fun DashboardScreen(
                                             expanded = isOverflowMenuExpanded,
                                             onDismissRequest = { isOverflowMenuExpanded = false },
                                         ) {
+                                            RemoteTargetMenuSection(
+                                                groupIndex = 0,
+                                                groupCount = 4,
+                                                onManage = onOpenRemoteControl,
+                                                onDismiss = { isOverflowMenuExpanded = false },
+                                            )
                                             DropdownMenuGroup(
-                                                shapes = MenuDefaults.groupShape(0, 3),
+                                                shapes = MenuDefaults.groupShape(1, 4),
                                             ) {
                                                 DropdownMenuSectionHeader(stringResource(Res.string.sort))
                                                 DropdownMenuItem(
@@ -255,7 +275,7 @@ fun DashboardScreen(
                                             Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
 
                                             DropdownMenuGroup(
-                                                shapes = MenuDefaults.groupShape(1, 3),
+                                                shapes = MenuDefaults.groupShape(2, 4),
                                             ) {
                                                 DropdownMenuSectionHeader(stringResource(Res.string.sort_mode))
                                                 val sortModes = TrafficSortMode.values
@@ -289,7 +309,7 @@ fun DashboardScreen(
                                             Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
 
                                             DropdownMenuGroup(
-                                                shapes = MenuDefaults.groupShape(2, 3),
+                                                shapes = MenuDefaults.groupShape(3, 4),
                                             ) {
                                                 DropdownMenuSectionHeader(stringResource(Res.string.connection_status))
                                                 DropdownMenuItem(
@@ -326,7 +346,37 @@ fun DashboardScreen(
                             windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,
                         )
+                    } else {
+                        CapsuleTopBar(
+                            navigationIcon = null,
+                            title = { Text(stringResource(Res.string.menu_dashboard)) },
+                            actions = {
+                                CapsuleActionButton {
+                                    Box {
+                                        SimpleIconButton(
+                                            imageVector = vectorResource(Res.drawable.more_vert),
+                                            contentDescription = stringResource(Res.string.more),
+                                            onClick = { isOverflowMenuExpanded = true },
+                                        )
+                                        DropdownMenuPopup(
+                                            expanded = isOverflowMenuExpanded,
+                                            onDismissRequest = { isOverflowMenuExpanded = false },
+                                        ) {
+                                            RemoteTargetMenuSection(
+                                                groupIndex = 0,
+                                                groupCount = 1,
+                                                onManage = onOpenRemoteControl,
+                                                onDismiss = { isOverflowMenuExpanded = false },
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
+                            scrollBehavior = scrollBehavior,
+                        )
                     }
+                    RemoteSessionBanner()
 
                     PrimaryTabRow(
                         selectedTabIndex = pagerState.currentPage,

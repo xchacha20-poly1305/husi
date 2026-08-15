@@ -794,4 +794,19 @@
     <string name="ipv6" translatable="false">IPv6</string>
     <string name="connected_since">连接时间</string>
     <string name="openconnect_auth_channel">OpenConnect 身份验证</string>
+    <string name="remote_control">远程控制</string>
+    <string name="remote_server_add">添加服务器</string>
+    <string name="remote_server_edit">编辑服务器</string>
+    <string name="remote_server_url_hint">host:port 或 http(s)://host:port</string>
+    <string name="remote_server_url_invalid">请输入 host:port 或 http(s)://host:port</string>
+    <string name="remote_server_secret">密钥</string>
+    <string name="remote_target">目标</string>
+    <string name="remote_target_local">本机</string>
+    <string name="remote_target_manage">管理服务器…</string>
+    <string name="remote_empty">还没有远程服务器</string>
+    <string name="remote_reconnecting">正在重连…</string>
+    <string name="remote_disconnect">断开</string>
+    <string name="remote_test_success">已连接到 %1$s</string>
+    <string name="remote_uptime">已运行 %1$s</string>
+    <string name="remote_delete_confirm">确定删除此远程服务器？</string>
 </resources>

@@ -90,6 +90,7 @@ internal fun DashboardProxySetScreen(
             ) { proxySet ->
                 ProxySetCard(
                     proxySet = proxySet,
+                    isRemote = uiState.isRemote,
                     selectProxy = selectProxy,
                     urlTestSingle = urlTestForSingle,
                     urlTestForGroup = urlTestForGroup,
@@ -111,6 +112,7 @@ internal fun DashboardProxySetScreen(
 private fun ProxySetCard(
     modifier: Modifier = Modifier,
     proxySet: ProxySet,
+    isRemote: Boolean,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
@@ -176,25 +178,28 @@ private fun ProxySetCard(
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Surface(
-                                onClick = { urlTestForGroup(proxySet.id) },
-                                enabled = !proxySet.isTesting,
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            ) {
-                                if (urlTestProgress != null) {
-                                    Text(
-                                        text = "${urlTestProgress.current} / ${urlTestProgress.total}",
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                        style = MaterialTheme.typography.labelMedium,
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = vectorResource(Res.drawable.bolt),
-                                        contentDescription = stringResource(Res.string.connection_test),
-                                        modifier = Modifier.padding(8.dp).size(20.dp),
-                                    )
+                            val showGroupTest = !(proxySet.isAll && isRemote)
+                            if (showGroupTest) {
+                                Surface(
+                                    onClick = { urlTestForGroup(proxySet.id) },
+                                    enabled = !proxySet.isTesting,
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                ) {
+                                    if (urlTestProgress != null) {
+                                        Text(
+                                            text = "${urlTestProgress.current} / ${urlTestProgress.total}",
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                            style = MaterialTheme.typography.labelMedium,
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = vectorResource(Res.drawable.bolt),
+                                            contentDescription = stringResource(Res.string.connection_test),
+                                            modifier = Modifier.padding(8.dp).size(20.dp),
+                                        )
+                                    }
                                 }
                             }
                             SimpleIconButton(
@@ -222,7 +227,9 @@ private fun ProxySetCard(
                             Surface(
                                 modifier = Modifier.platformCombinedClickable(
                                     onClick = {},
-                                    onLongClick = { selectedProxyMenuExpanded = true },
+                                    onLongClick = {
+                                        selectedProxyMenuExpanded = true
+                                    },
                                 ),
                                 color = MaterialTheme.colorScheme.surfaceContainer,
                                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),

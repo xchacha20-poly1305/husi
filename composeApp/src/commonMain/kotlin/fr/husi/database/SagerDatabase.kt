@@ -15,8 +15,9 @@ import fr.husi.fmt.KryoConverters
         RuleEntity::class,
         AssetEntity::class,
         PluginEntity::class,
+        RemoteServerEntity::class,
     ],
-    version = 21,
+    version = 22,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3, spec = SagerDatabase_Migration_2_3::class),
@@ -37,6 +38,7 @@ import fr.husi.fmt.KryoConverters
         AutoMigration(from = 18, to = 19),
         AutoMigration(from = 19, to = 20),
         AutoMigration(from = 20, to = 21),
+        AutoMigration(from = 21, to = 22),
     ],
 )
 @TypeConverters(value = [KryoConverters::class])
@@ -52,6 +54,7 @@ abstract class SagerDatabase : RoomDatabase() {
         val rulesDao get() = instance.rulesDao()
         val assetDao get() = instance.assetDao()
         val pluginDao get() = instance.pluginDao()
+        val remoteServerDao get() = instance.remoteServerDao()
 
     }
 
@@ -60,6 +63,7 @@ abstract class SagerDatabase : RoomDatabase() {
     abstract fun rulesDao(): RuleEntity.Dao
     abstract fun assetDao(): AssetEntity.Dao
     abstract fun pluginDao(): PluginEntity.Dao
+    abstract fun remoteServerDao(): RemoteServerEntity.Dao
 
 }
 

@@ -8,6 +8,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.core.CoreClient
+import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.libcore.Libcore
@@ -32,6 +33,8 @@ data class LogcatUiState(
     val logLevel: LogLevel = LogLevel.entries[DataStore.logLevel],
     val logs: PersistentList<LogEntry> = persistentListOf(),
     val errorMessage: String? = null,
+    val connecting: Boolean = false,
+    val isRemote: Boolean = false,
 )
 
 @Immutable
@@ -61,8 +64,18 @@ fun Log.Message.toLogEntry(): LogEntry {
 
 @Stable
 class LogcatScreenViewModel(
-    private val coreClient: CoreClient = GlobalContext.get().get(),
+    coreClient: CoreClient? = null,
+    private val remoteControl: RemoteControlManager? = null,
 ) : ViewModel() {
+    private val coreClientOverride = coreClient
+
+    private val coreClient: CoreClient
+        get() = coreClientOverride
+            ?: remoteControl?.activeClient?.value
+            ?: GlobalContext.get().get()
+
+    private val isRemote: Boolean
+        get() = remoteControl?.isRemote == true
 
     private var allLogs: PersistentList<LogEntry> = persistentListOf()
     val uiState: StateFlow<LogcatUiState>
@@ -74,9 +87,6 @@ class LogcatScreenViewModel(
     private var job: Job? = null
 
     init {
-        viewModelScope.launch {
-            initialize()
-        }
         viewModelScope.launch {
             snapshotFlow { searchTextFieldState.text.toString() }
                 .drop(1)
@@ -101,10 +111,17 @@ class LogcatScreenViewModel(
         }
     }
 
-    suspend fun initialize() {
+    suspend fun initialize(isConnected: Boolean) {
         job?.cancel()
         allLogs = persistentListOf()
-        uiState.update { it.copy(logs = persistentListOf()) }
+        uiState.update {
+            it.copy(
+                logs = persistentListOf(),
+                connecting = !isConnected && isRemote,
+                isRemote = isRemote,
+            )
+        }
+        if (!isConnected) return
 
         job = viewModelScope.launch {
             try {
@@ -147,7 +164,9 @@ class LogcatScreenViewModel(
     fun clearLog() = viewModelScope.launch(Dispatchers.IO) {
         try {
             coreClient.clearLogs()
-            Libcore.logClear()
+            if (!isRemote) {
+                Libcore.logClear()
+            }
         } catch (e: Exception) {
             Logs.w("clear log", e)
         }

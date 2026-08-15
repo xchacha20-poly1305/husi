@@ -255,4 +255,6 @@ object DataStore {
 
     var desktopNavRailWidth by configurationStore.int(Key.DESKTOP_NAV_RAIL_WIDTH) { 220 }
 
+    var activeRemoteServerId by configurationStore.long(Key.ACTIVE_REMOTE_SERVER_ID)
+
 }

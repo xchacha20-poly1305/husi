@@ -76,7 +76,20 @@ open class FakeCoreClient : CoreClient {
         Unit
 
     override suspend fun getVersion(): GetVersionResponse = GetVersionResponse.getDefaultInstance()
-    override suspend fun getDaemonVersion(): Version = Version.getDefaultInstance()
+    override suspend fun getDaemonVersion(): Version = nextDaemonVersion
+    override suspend fun getStartedAt(): Long = nextStartedAt
+    override suspend fun daemonUrlTest(outboundTag: String) {
+        lastDaemonUrlTestTag = outboundTag
+        daemonUrlTestCalls += 1
+    }
+
+    var nextDaemonVersion: Version = Version.getDefaultInstance()
+    var nextStartedAt: Long = 0L
+    var lastDaemonUrlTestTag: String? = null
+    var daemonUrlTestCalls: Int = 0
+    var probeCalls: Int = 0
+    var probeThrowable: Throwable? = null
+
     override suspend fun urlTest(
         tag: String,
         link: String,
@@ -176,7 +189,11 @@ open class FakeCoreClient : CoreClient {
 
     override suspend fun setStartAtBoot(enabled: Boolean) = Unit
 
-    override suspend fun probe() = Unit
+    override suspend fun probe() {
+        probeCalls += 1
+        probeThrowable?.let { throw it }
+    }
+
     override suspend fun close() {
         closed = true
     }

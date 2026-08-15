@@ -134,6 +134,8 @@ object Key {
 
     const val DESKTOP_NAV_RAIL_WIDTH = "desktopNavRailWidth"
 
+    const val ACTIVE_REMOTE_SERVER_ID = "activeRemoteServerId"
+
 }
 
 fun logLevelString(level: Int): String = when (level) {

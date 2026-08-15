@@ -18,6 +18,7 @@ import fr.husi.core.isClosed
 import fr.husi.core.isNew
 import fr.husi.core.isUpdate
 import fr.husi.core.proxyDisplayName
+import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.urlTestOptions
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
@@ -76,6 +77,7 @@ data class DashboardState(
     val selectedConnection: ConnectionDetailState? = null,
 
     val proxySets: List<ProxySet> = emptyList(),
+    val isRemote: Boolean = false,
 ) {
     companion object {
         const val SHOW_TRACKER_ACTIVELY: Byte = 1
@@ -141,8 +143,18 @@ internal data class ProcessInfo(
 @Stable
 class DashboardViewModel(
     private val loadPlatformNetworkInfo: suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>,
-    private val coreClient: CoreClient = GlobalContext.get().get(),
+    coreClient: CoreClient? = null,
+    private val remoteControl: RemoteControlManager? = null,
 ) : ViewModel() {
+    private val coreClientOverride = coreClient
+
+    private val coreClient: CoreClient
+        get() = coreClientOverride
+            ?: remoteControl?.activeClient?.value
+            ?: GlobalContext.get().get()
+
+    private val isRemote: Boolean
+        get() = remoteControl?.isRemote == true
     val uiState: StateFlow<DashboardState>
         field = MutableStateFlow(DashboardState())
 
@@ -204,7 +216,13 @@ class DashboardViewModel(
             refreshNetworkInterfaces()
         }
         viewModelScope.launch {
+            remoteControl?.session?.collect { session ->
+                uiState.update { it.copy(isRemote = session != null) }
+            }
+        }
+        viewModelScope.launch {
             BackendState.status.collect { status ->
+                if (isRemote) return@collect
                 if (!status.state.connected) {
                     resetSpeedState()
                 }
@@ -212,6 +230,7 @@ class DashboardViewModel(
         }
         viewModelScope.launch {
             BackendState.speedUpdates.collect { speed ->
+                if (isRemote) return@collect
                 if (!BackendState.status.value.state.connected || speed == null) {
                     resetSpeedState()
                     return@collect
@@ -259,7 +278,9 @@ class DashboardViewModel(
             )
         }
         if (!isConnected) return
-        BackendState.status.value.speed?.let(::appendSpeed)
+        if (!isRemote) {
+            BackendState.status.value.speed?.let(::appendSpeed)
+        }
 
         statusJob = viewModelScope.launch {
             try {
@@ -268,6 +289,14 @@ class DashboardViewModel(
                         state.copy(
                             memory = status.memory,
                             goroutines = status.goroutines,
+                        )
+                    }
+                    if (isRemote) {
+                        appendSpeed(
+                            SpeedStats(
+                                txRateProxy = status.uplink,
+                                rxRateProxy = status.downlink,
+                            ),
                         )
                     }
                 }
@@ -535,6 +564,7 @@ class DashboardViewModel(
     }
 
     internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {
+        if (isRemote) return null
         return onIoDispatcher {
             if (process.isNullOrBlank() && uid < 0) return@onIoDispatcher null
             PackageResolver.awaitLoad()
@@ -770,12 +800,16 @@ class DashboardViewModel(
 
     fun urlTestForSingle(tag: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            coreClient.urlTest(
-                tag,
-                DataStore.connectionTestURL,
-                DataStore.connectionTestTimeout,
-                testOptions(),
-            )
+            if (isRemote) {
+                coreClient.daemonUrlTest(tag)
+            } else {
+                coreClient.urlTest(
+                    tag,
+                    DataStore.connectionTestURL,
+                    DataStore.connectionTestTimeout,
+                    testOptions(),
+                )
+            }
         } catch (e: Exception) {
             Logs.w(e)
         }
@@ -784,6 +818,15 @@ class DashboardViewModel(
     fun urlTestForGroup(id: String) = viewModelScope.launch(Dispatchers.IO) {
         val proxySet = uiState.value.proxySets.firstOrNull { it.id == id } ?: return@launch
         if (proxySet.isTesting) return@launch
+        if (isRemote) {
+            if (proxySet.isAll) return@launch
+            try {
+                coreClient.daemonUrlTest(proxySet.tag)
+            } catch (e: Exception) {
+                Logs.w(e)
+            }
+            return@launch
+        }
         val items = if (proxySet.isAll) {
             proxySet.items.filterNot(::skipGroupUrlTest)
         } else {
@@ -816,6 +859,7 @@ class DashboardViewModel(
     }
 
     fun resetNetwork() = viewModelScope.launch(Dispatchers.IO) {
+        if (isRemote) return@launch
         try {
             coreClient.resetNetwork()
         } catch (e: Exception) {

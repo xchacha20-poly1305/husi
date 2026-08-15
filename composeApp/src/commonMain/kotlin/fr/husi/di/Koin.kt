@@ -4,6 +4,9 @@ import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.core.BridgeCoreClient
 import fr.husi.core.CoreClient
+import fr.husi.core.remote.RemoteClientFactory
+import fr.husi.core.remote.RemoteControlManager
+import fr.husi.database.SagerDatabase
 import fr.husi.libcore.HttpClientFactory
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.LibcoreHttpClientFactory
@@ -27,6 +30,18 @@ private fun commonUiModule() = module {
         BridgeCoreClient(
             basePath = null,
             bridgeFactory = { Libcore.newBridgeClient(coreClientBasePath(repository)) },
+        )
+    }
+    single {
+        RemoteControlManager(
+            localClient = get(),
+            dao = SagerDatabase.remoteServerDao,
+            remoteClientFactory = RemoteClientFactory { url, secret ->
+                BridgeCoreClient(
+                    basePath = null,
+                    bridgeFactory = { Libcore.newRemoteBridgeClient(url, secret) },
+                )
+            },
         )
     }
     singleOf(::ImportLinkInteractor)

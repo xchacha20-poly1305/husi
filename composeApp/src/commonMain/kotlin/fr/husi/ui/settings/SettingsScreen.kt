@@ -45,8 +45,10 @@ import fr.husi.resources.more
 import fr.husi.resources.nat
 import fr.husi.resources.nfc
 import fr.husi.resources.ntp_category
+import fr.husi.resources.phonelink_ring
 import fr.husi.resources.plugin
 import fr.husi.resources.protocol_settings
+import fr.husi.resources.remote_control
 import fr.husi.resources.route_options
 import fr.husi.resources.router
 import fr.husi.resources.settings
@@ -68,6 +70,7 @@ fun SettingsScreen(
     openTool: (NavRoutes.ToolsPage) -> Unit,
     openPlugin: () -> Unit,
     openAbout: () -> Unit,
+    openRemoteControl: () -> Unit,
 ) {
     val listState = rememberLazyListState()
     val isExpert by DataStore.configurationStore
@@ -183,6 +186,17 @@ fun SettingsScreen(
 
                     item { PreferenceCategory(text = { Text(stringResource(Res.string.more)) }) }
                     preferenceGroup {
+                        Preference(
+                            title = { Text(stringResource(Res.string.remote_control)) },
+                            icon = {
+                                MaskedIcon(
+                                    Res.drawable.phonelink_ring,
+                                    color = IconMaskColors.IconCyan,
+                                )
+                            },
+                            onClick = openRemoteControl,
+                        )
+                        PreferenceDivider()
                         Preference(
                             title = { Text(stringResource(Res.string.tools_network)) },
                             icon = {

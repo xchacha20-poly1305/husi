@@ -2,6 +2,7 @@
 
 package fr.husi.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
@@ -46,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
@@ -68,6 +71,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.RadioButton
 import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
+import fr.husi.core.remote.RemoteControlManager
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -75,6 +79,7 @@ import fr.husi.resources.action_copy
 import fr.husi.resources.cancel
 import fr.husi.resources.clear_logcat
 import fr.husi.resources.close
+import fr.husi.resources.connecting
 import fr.husi.resources.copy_all
 import fr.husi.resources.delete_sweep
 import fr.husi.resources.keyboard_arrow_down
@@ -88,17 +93,23 @@ import fr.husi.resources.scroll_to_bottom
 import fr.husi.resources.search
 import fr.husi.resources.search_go
 import fr.husi.resources.share
+import fr.husi.ui.remote.RemoteTargetMenuSection
 import fr.husi.utils.SendLog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.koinInject
 
 @Composable
 fun LogcatScreen(
     modifier: Modifier = Modifier,
-    viewModel: LogcatScreenViewModel = viewModel { LogcatScreenViewModel() },
+    onOpenRemoteControl: () -> Unit,
+    remoteControl: RemoteControlManager = koinInject(),
+    viewModel: LogcatScreenViewModel = viewModel {
+        LogcatScreenViewModel(remoteControl = remoteControl)
+    },
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -117,6 +128,12 @@ fun LogcatScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val remoteSession by remoteControl.session.collectAsStateWithLifecycle()
+    val targetConnected by remoteControl.targetConnected.collectAsStateWithLifecycle()
+    val subscribeLogs = remoteSession == null || targetConnected
+    LaunchedEffect(remoteSession?.server?.id, subscribeLogs) {
+        viewModel.initialize(subscribeLogs)
+    }
     val queryLowerCase by remember {
         derivedStateOf { uiState.searchQuery?.lowercase() }
     }
@@ -233,8 +250,14 @@ fun LogcatScreen(
                                 expanded = expandMenu,
                                 onDismissRequest = { expandMenu = false },
                             ) {
+                                RemoteTargetMenuSection(
+                                    groupIndex = 0,
+                                    groupCount = 3,
+                                    onManage = onOpenRemoteControl,
+                                    onDismiss = { expandMenu = false },
+                                )
                                 DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(0, 2),
+                                    shapes = MenuDefaults.groupShape(1, 3),
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.clear_logcat)) },
@@ -252,7 +275,7 @@ fun LogcatScreen(
                                 Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
 
                                 DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(1, 2),
+                                    shapes = MenuDefaults.groupShape(2, 3),
                                 ) {
                                     val levels = LogLevel.entries
                                     for ((index, level) in levels.withIndex()) {
@@ -297,23 +320,40 @@ fun LogcatScreen(
                         .weight(1f)
                         .fillMaxHeight(),
                 ) {
-                    SelectionContainer {
-                        LazyColumn(
+                    if (uiState.connecting) {
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .fadingEdge(listState),
-                            state = listState,
-                            contentPadding = contentPadding,
+                                .padding(contentPadding),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            itemsIndexed(
-                                items = uiState.logs,
-                                key = { index, _ -> index },
-                                contentType = { _, _ -> 0 },
-                            ) { _, logLine ->
-                                LogCard(
-                                    logLine = logLine.message,
-                                    highlightQuery = queryLowerCase,
-                                )
+                            CircularWavyProgressIndicator()
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(Res.string.connecting),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        SelectionContainer {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .fadingEdge(listState),
+                                state = listState,
+                                contentPadding = contentPadding,
+                            ) {
+                                itemsIndexed(
+                                    items = uiState.logs,
+                                    key = { index, _ -> index },
+                                    contentType = { _, _ -> 0 },
+                                ) { _, logLine ->
+                                    LogCard(
+                                        logLine = logLine.message,
+                                        highlightQuery = queryLowerCase,
+                                    )
+                                }
                             }
                         }
                     }
