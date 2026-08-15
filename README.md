@@ -94,8 +94,12 @@ Common desktop targets:
 
 * `linux/amd64`
 * `linux/arm64`
-* `darwin/amd64`
 * `darwin/arm64`
+
+`darwin/amd64` is no longer supported and `windows/arm64` is temporarily not shipped: androidx
+sqlite-bundled has no binary for them, so the app cannot open its database there. See
+[issuetracker 495864182](https://issuetracker.google.com/issues/495864182) for `osx_x64` and
+[issuetracker 426464784](https://issuetracker.google.com/issues/426464784) for `windows_arm64`.
 
 For Linux desktop targets, the build includes `with_naive_outbound` and consults a
 [`cronet-go`](https://github.com/sagernet/cronet-go) checkout via `build-naive env`. If `CRONET_GO_ROOT` is unset,

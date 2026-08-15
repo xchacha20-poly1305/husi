@@ -150,10 +150,25 @@ data class DesktopTarget(
     override fun toString(): String = id
 
     companion object {
+        /**
+         * androidx sqlite-bundled ships no `libsqliteJni` for these, so Room cannot open the
+         * database and the app dies on startup. Each one carries its own upstream issue.
+         * `darwin/amd64` is gone for good; `windows/arm64` comes back if upstream ever builds it.
+         */
+        private val missingBundledSqlite: Map<DesktopTarget, String> =
+            mapOf(
+                DesktopTarget(platform = DesktopPlatform.Darwin, arch = DesktopArch.Amd64) to
+                    "https://issuetracker.google.com/issues/495864182",
+                DesktopTarget(platform = DesktopPlatform.Windows, arch = DesktopArch.Arm64) to
+                    "https://issuetracker.google.com/issues/426464784",
+            )
+
         val supported: Set<DesktopTarget> =
-            DesktopPlatform.entries.flatMap { platform ->
-                DesktopArch.entries.map { arch -> DesktopTarget(platform, arch) }
-            }.toSet()
+            DesktopPlatform.entries
+                .flatMap { platform ->
+                    DesktopArch.entries.map { arch -> DesktopTarget(platform, arch) }
+                }.minus(missingBundledSqlite.keys)
+                .toSet()
 
         fun parse(rawValue: String): DesktopTarget {
             val tokens = rawValue.trim().split("/", limit = 2)
@@ -161,6 +176,11 @@ data class DesktopTarget(
                 "Invalid desktopTarget '$rawValue'. Use <platform>/<arch>, e.g. linux/amd64."
             }
             val parsedTarget = DesktopTarget(platform = DesktopPlatform.parse(tokens[0]), arch = DesktopArch.parse(tokens[1]))
+            val missingSqliteIssue = missingBundledSqlite[parsedTarget]
+            require(missingSqliteIssue == null) {
+                "Desktop target '$rawValue' has no androidx sqlite-bundled binary, so the app " +
+                    "cannot open its database. See $missingSqliteIssue."
+            }
             require(parsedTarget in supported) {
                 "Unsupported desktop target '$rawValue'. Supported targets: ${supported.joinToString()}."
             }

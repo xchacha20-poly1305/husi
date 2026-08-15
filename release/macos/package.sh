@@ -9,6 +9,8 @@ DESKTOP_METADATA_FILE="$ROOT_DIR/release/desktop/package-metadata.sh"
 JAR_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/jars"
 OUTPUT_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/packages/macos"
 PREBUILT_ICON_DEFAULT="$ROOT_DIR/release/macos/desktop/icon.icns"
+# Room needs a libsqliteJni for the target, and androidx sqlite-bundled has none for osx_x64.
+DARWIN_AMD64_SQLITE_ISSUE="https://issuetracker.google.com/issues/495864182"
 PACKAGE_NAME_PLACEHOLDER="__HUSI_PACKAGE_NAME__"
 APP_NAME_PLACEHOLDER="__HUSI_APP_NAME__"
 APP_DESCRIPTION_PLACEHOLDER="__HUSI_APP_DESCRIPTION__"
@@ -42,9 +44,9 @@ Description:
 Defaults:
   --target       host darwin/<arch>
   --input-jar    newest matching jar under $JAR_DIR_DEFAULT
-  --launcher-bin $ROOT_DIR/launcher/zig-out/bin/launcher-macos-<x86_64|aarch64>
-  --core-bin     $ROOT_DIR/libcore/build/darwin_<amd64|arm64>/husi-core
-  --core-lib     $ROOT_DIR/libcore/build/darwin_<amd64|arm64>/libhusicore.dylib
+  --launcher-bin $ROOT_DIR/launcher/zig-out/bin/launcher-macos-aarch64
+  --core-bin     $ROOT_DIR/libcore/build/darwin_arm64/husi-core
+  --core-lib     $ROOT_DIR/libcore/build/darwin_arm64/libhusicore.dylib
   --output-dir   $OUTPUT_DIR_DEFAULT
   icon asset     $PREBUILT_ICON_DEFAULT
 
@@ -202,13 +204,14 @@ normalize_arch() {
     value="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
     case "$value" in
         amd64|x86_64)
-            echo "amd64"
+            error "darwin/amd64 is dropped: androidx sqlite-bundled has no osx_x64 binary, see $DARWIN_AMD64_SQLITE_ISSUE"
+            exit 1
             ;;
         arm64|aarch64)
             echo "arm64"
             ;;
         *)
-            error "Unsupported arch '$1'. Use amd64 or arm64."
+            error "Unsupported arch '$1'. Use arm64."
             exit 1
             ;;
     esac
@@ -232,10 +235,6 @@ resolve_target() {
 
 resolve_arch() {
     case "$TARGET_ARCH" in
-        amd64)
-            JAR_ARCH="x64"
-            LAUNCHER_MACHINE="x86_64"
-            ;;
         arm64)
             JAR_ARCH="arm64"
             LAUNCHER_MACHINE="aarch64"

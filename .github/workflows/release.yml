@@ -152,7 +152,10 @@ jobs:
       - name: Build desktop libcore
         env:
           CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
-        run: make libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64,windows/amd64,windows/arm64,darwin/amd64,darwin/arm64 JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
+        # windows/arm64 is temporarily out: androidx sqlite-bundled ships no windows_arm64
+        # libsqliteJni, so the app cannot open its database there.
+        # See https://issuetracker.google.com/issues/426464784
+        run: make libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64,windows/amd64,darwin/arm64 JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
       - name: Generate about libraries metadata
         run: make aboutlibraries_go aboutlibraries_desktop
       - name: Setup Windows signing
@@ -173,8 +176,8 @@ jobs:
           make desktop_package_linux DESKTOP_TARGET=linux/amd64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball
           make desktop_package_linux DESKTOP_TARGET=linux/arm64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball
           make desktop_package_windows DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
-          make desktop_package_windows DESKTOP_TARGET=windows/arm64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
-          make desktop_package_macos DESKTOP_TARGET=darwin/amd64
+          # Temporarily disabled, see the libcore step above.
+          # make desktop_package_windows DESKTOP_TARGET=windows/arm64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
           make desktop_package_macos DESKTOP_TARGET=darwin/arm64
       - uses: actions/upload-artifact@v7
         with:
