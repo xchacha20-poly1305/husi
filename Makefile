@@ -4,9 +4,14 @@ GO_PATCH_1234 = "https://github.com/golang/go/commit/59b7d40774b29bd1da1aa624f13
 CLIP = sh -c 'if [ -n "$$WAYLAND_DISPLAY" ]; then exec wl-copy; \
               elif [ -n "$$DISPLAY" ]; then exec xclip -selection clipboard; \
               else echo "No display detected (WAYLAND_DISPLAY/DISPLAY missing)"; exit 1; fi'
-DESKTOP_TARGETS_COMMON = linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64
+# androidx sqlite-bundled ships no libsqliteJni for every platform, and without it
+# Room cannot open the database. darwin/amd64 (osx_x64) is dropped for good; windows/arm64
+# is only commented out, waiting for https://issuetracker.google.com/issues/426464784.
+DARWIN_AMD64_SQLITE_ISSUE = https://issuetracker.google.com/issues/495864182
+DESKTOP_TARGETS_COMMON = linux/amd64,linux/arm64,darwin/arm64,windows/amd64
 DESKTOP_TARGETS_LINUX = linux/amd64 linux/arm64
-DESKTOP_TARGETS_WINDOWS = windows/amd64 windows/arm64
+# DESKTOP_TARGETS_WINDOWS = windows/amd64 windows/arm64
+DESKTOP_TARGETS_WINDOWS = windows/amd64
 LINUX_PACKAGE_FORMATS ?= deb,rpm,pacman
 HOST_OS = $(shell uname -s)
 DESKTOP_TARGET_GRADLE_ARG = $(if $(DESKTOP_TARGET),-PdesktopTarget=$(DESKTOP_TARGET),)
@@ -15,7 +20,7 @@ JNI_INCLUDE_SCRIPT_ARG = $(if $(JNI_INCLUDE),--jniinclude "$(JNI_INCLUDE)",)
 DARWIN_SDK_SCRIPT_ARG = $(if $(DARWIN_SDK),--darwinsdk "$(DARWIN_SDK)",)
 NO_NAIVE_SCRIPT_ARG = $(if $(filter 1,$(NO_NAIVE)),--no-naive,)
 WINDOWS_NO_SIGN_SCRIPT_ARG = $(if $(filter 1,$(WINDOWS_NO_SIGN)),--no-sign,)
-LAUNCHER_ZIG_TARGET = $(subst linux/amd64,x86_64-linux-musl,$(subst linux/arm64,aarch64-linux-musl,$(subst darwin/amd64,x86_64-macos,$(subst darwin/arm64,aarch64-macos,$(subst windows/amd64,x86_64-windows,$(subst windows/arm64,aarch64-windows,$(DESKTOP_TARGET)))))))
+LAUNCHER_ZIG_TARGET = $(subst linux/amd64,x86_64-linux-musl,$(subst linux/arm64,aarch64-linux-musl,$(subst darwin/arm64,aarch64-macos,$(subst windows/amd64,x86_64-windows,$(subst windows/arm64,aarch64-windows,$(DESKTOP_TARGET))))))
 LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TARGET),)
 
 # make expands DESKTOP_TARGETS into a single literal word, so the shell's IFS
@@ -67,8 +72,8 @@ core_desktop:
 		case "$$platform/$$arch" in \
 			linux/amd64) zig_target=x86_64-linux-gnu.$(CORE_SHIM_GLIBC_VERSION); zig_os=linux; zig_arch=x86_64; bin_name=husi-core; lib_name=libhusicore.so ;; \
 			linux/arm64) zig_target=aarch64-linux-gnu.$(CORE_SHIM_GLIBC_VERSION); zig_os=linux; zig_arch=aarch64; bin_name=husi-core; lib_name=libhusicore.so ;; \
-			darwin/amd64) zig_target=x86_64-macos.$(CORE_SHIM_MACOS_VERSION); zig_os=macos; zig_arch=x86_64; bin_name=husi-core; lib_name=libhusicore.dylib ;; \
 			darwin/arm64) zig_target=aarch64-macos.$(CORE_SHIM_MACOS_VERSION); zig_os=macos; zig_arch=aarch64; bin_name=husi-core; lib_name=libhusicore.dylib ;; \
+			darwin/amd64) echo "darwin/amd64 is dropped: androidx sqlite-bundled has no osx_x64 binary, see $(DARWIN_AMD64_SQLITE_ISSUE)"; exit 1 ;; \
 			windows/amd64) zig_target=x86_64-windows; zig_os=windows; zig_arch=x86_64; bin_name=husi-core.exe; lib_name=husicore.dll ;; \
 			windows/arm64) zig_target=aarch64-windows; zig_os=windows; zig_arch=aarch64; bin_name=husi-core.exe; lib_name=husicore.dll ;; \
 			*) echo "Unsupported DESKTOP_TARGETS entry: $$target"; exit 1 ;; \
@@ -141,8 +146,10 @@ desktop_package_windows:
 	./release/windows/package.sh $(DESKTOP_TARGET_SCRIPT_ARG) $(WINDOWS_NO_SIGN_SCRIPT_ARG)
 
 desktop_package_windows_all:
-	$(MAKE) libcore_desktop DESKTOP_TARGETS=windows/amd64,windows/arm64
-	$(MAKE) core_desktop DESKTOP_TARGETS=windows/amd64,windows/arm64
+#	$(MAKE) libcore_desktop DESKTOP_TARGETS=windows/amd64,windows/arm64
+#	$(MAKE) core_desktop DESKTOP_TARGETS=windows/amd64,windows/arm64
+	$(MAKE) libcore_desktop DESKTOP_TARGETS=windows/amd64
+	$(MAKE) core_desktop DESKTOP_TARGETS=windows/amd64
 	@for desktop_target in $(DESKTOP_TARGETS_WINDOWS); do \
 		$(MAKE) desktop_package_windows DESKTOP_TARGET=$$desktop_target WINDOWS_NO_SIGN=$(WINDOWS_NO_SIGN) || exit $$?; \
 	done
