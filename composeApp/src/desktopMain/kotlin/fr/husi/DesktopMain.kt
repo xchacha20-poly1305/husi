@@ -379,7 +379,7 @@ private class DesktopMain(
                 )
 
                 Window(
-                    onCloseRequest = ::exitGracefully,
+                    onCloseRequest = { windowVisible = false },
                     state = windowState,
                     visible = windowVisible,
                     title = appName,
