@@ -5,10 +5,13 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
 
 	_ "github.com/xchacha20-poly1305/anja"
 )
+
+const APIVersion int32 = daemon.APIVersion
 
 const ProtectPath = "protect_path"
 
