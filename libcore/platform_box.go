@@ -253,6 +253,10 @@ func (w *boxPlatformInterfaceWrapper) SendNotification(_ *adapter.Notification) 
 	return nil
 }
 
+func (w *boxPlatformInterfaceWrapper) CancelNotification(identifier string, typeID int32) error {
+	return nil
+}
+
 func (w *boxPlatformInterfaceWrapper) SystemCertificates() []string {
 	// Already set in certs.go
 	return nil

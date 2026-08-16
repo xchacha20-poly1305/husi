@@ -95,6 +95,10 @@ func (p platformInterfaceStub) SendNotification(_ *adapter.Notification) error {
 	return nil
 }
 
+func (p platformInterfaceStub) CancelNotification(_ string, _ int32) error {
+	return nil
+}
+
 func (p platformInterfaceStub) SystemCertificates() []string {
 	return nil
 }
