@@ -23,7 +23,7 @@
     <string name="connection_test_available_http">Время отклика по HTTP %1$d мс</string>
     <string name="connection_test_available">Время отклика по HTTPS %1$d мс</string>
     <string name="connection_test_testing">Тестирование…</string>
-    <string name="speed_detail">Прокси ：%1$s↑ %2$s↓\nПрямой ：%3$s↑%4$s↓</string>
+    <string name="speed_detail">Прокси：%1$s↑ %2$s↓\nНапрямую：%3$s↑%4$s↓</string>
     <string name="allow_insecure_sum">Отключить проверку сертификата. При включении этой настройки безопасность становится эквивалентной передаче данных в открытом виде</string>
     <string name="allow_insecure">Разрешить небезопасное подключение</string>
     <string name="security_settings">Настройки безопасности (TLS)</string>
@@ -775,7 +775,6 @@
     <string name="connected">Подключено</string>
     <string name="transport">Транспорт</string>
     <string name="connected_since">Подключено с</string>
-
     <string name="auth_browser_callback_hint">После завершения входа в браузере, предоставьте запрошенные данные обратного вызова.</string>
     <string name="auth_final_url">Итоговый URL</string>
     <string name="auth_response_header">Заголовок ответа</string>
@@ -798,4 +797,24 @@
     <string name="anytls_client_metadata">Метаданные клиента</string>
     <string name="auth_cookie">Cookie</string>
     <string name="anytls_client_metadata_sum">Недобросовестный прокси-провайдер использует метаданные клиента AnyTLS для блокировки пользователей. Установите это значение, чтобы противостоять дискриминации.</string>
+    <string name="system_daemon">Системный демон</string>
+    <string name="status_proxy">Прокси</string>
+    <string name="status_direct">Напрямую</string>
+    <string name="remote_control">Удаленное управление</string>
+    <string name="remote_server_add">Добавить сервер</string>
+    <string name="remote_server_edit">Редактировать сервер</string>
+    <string name="remote_server_url_hint">host:port или http(s)://host:port</string>
+    <string name="remote_server_url_invalid">Введите host:port или http(s)://host:port</string>
+    <string name="remote_server_secret">Ключ</string>
+    <string name="remote_target">Цель</string>
+    <string name="remote_target_local">Локальное устройство</string>
+    <string name="remote_target_manage">Управление серверами…</string>
+    <string name="remote_empty">Удаленных серверов пока нет</string>
+    <string name="remote_reconnecting">Переподключение…</string>
+    <string name="remote_disconnect">Отключиться</string>
+    <string name="remote_test_success">Подключено к %1$s</string>
+    <string name="remote_uptime">Аптайм %1$s</string>
+    <string name="remote_delete_confirm">Убрать этот удаленный сервер?</string>
+    <string name="hide">Скрыть</string>
+    <string name="show">Показать</string>
 </resources>
