@@ -36,7 +36,7 @@ mockk = "1.14.11"
 aboutlibraries = "15.0.4"
 androidxTv = "1.1.0"
 nucleus = "2.4.4"
-composeNativeTray = "2.0.3"
+composeNativeTray = "2.1.0"
 agp = "9.3.1"
 kotlinGradlePlugin = "2.4.10"
 
@@ -105,7 +105,7 @@ koin-compose = { module = "io.insert-koin:koin-compose" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
 koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3" }
 nucleus-composetray = { module = "dev.nucleusframework:composenativetray", version.ref = "composeNativeTray" }
-nucleus-application = { module = "dev.nucleusframework:nucleus.nucleus-application", version.ref = "nucleus" }
+nucleus-core-runtime = { module = "dev.nucleusframework:nucleus.core-runtime", version.ref = "nucleus" }
 nucleus-notification = { module = "dev.nucleusframework:nucleus.notification-common", version.ref = "nucleus" }
 nucleus-darkmode-detector = { module = "dev.nucleusframework:nucleus.darkmode-detector", version.ref = "nucleus" }
 nucleus-autolaunch = { module = "dev.nucleusframework:nucleus.autolaunch", version.ref = "nucleus" }

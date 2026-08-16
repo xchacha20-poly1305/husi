@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
@@ -23,8 +24,6 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
-import dev.nucleusframework.application.NucleusBackend
-import dev.nucleusframework.application.nucleusApplication
 import dev.nucleusframework.composenativetray.menu.api.KeyShortcut
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import dev.nucleusframework.core.runtime.SingleInstanceManager
@@ -226,17 +225,7 @@ class DesktopMain(
             DeepLinkDispatcher.emit(link)
         }
 
-        // AWT backend explicitly: the tray library links against the Tao backend, and Auto
-        // resolution would pick Tao if it ever lands on the classpath — husi's windows are
-        // plain Compose/AWT. Nucleus's built-in single instance stays off: husi drives
-        // SingleInstanceManager itself in initDesktopRuntime, before libcore bootstrap and
-        // with a payload carrying multiple deep links (the built-in path handles one URI
-        // and unconditionally restores the window).
-        nucleusApplication(
-            args = rawArgs,
-            backend = NucleusBackend.Awt,
-            enableSingleInstance = false,
-        ) {
+        application {
             val repository = resolveDesktopRepository()
             val startInBackground = background || launchedAtLogin
             var windowVisible by remember {
