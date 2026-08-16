@@ -18,16 +18,23 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import fr.husi.compose.setPlainText
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.setPlainText
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
 import fr.husi.libcore.Libcore
@@ -50,6 +57,8 @@ internal fun DashboardStatusScreen(
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    var sourceAddressesVisible by remember { mutableStateOf(false) }
+    var networkInterfacesVisible by remember { mutableStateOf(false) }
 
     Row(modifier = modifier.fillMaxSize()) {
         Column(
@@ -112,52 +121,33 @@ internal fun DashboardStatusScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = stringResource(Res.string.source_address),
-                    style = MaterialTheme.typography.titleMedium,
+                HideableSectionTitle(
+                    title = stringResource(Res.string.source_address),
+                    visible = sourceAddressesVisible,
+                    onToggleVisible = { sourceAddressesVisible = !sourceAddressesVisible },
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = "IPv4",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    val text = uiState.ipv4 ?: stringResource(Res.string.no_statistics)
-                    Text(
-                        text = text,
-                        modifier = Modifier.clickable {
-                            scope.launch {
-                                clipboard.setPlainText(text)
-                            }
-                            onCopySuccess()
-                        },
-                        fontFamily = FontFamily.Monospace,
-                        style = MaterialTheme.typography.bodySmallEmphasized,
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = "IPv6",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    val text = uiState.ipv6 ?: stringResource(Res.string.no_statistics)
-                    Text(
-                        text = text,
-                        modifier = Modifier.clickable {
-                            scope.launch {
-                                clipboard.setPlainText(text)
-                            }
-                            onCopySuccess()
-                        },
-                        fontFamily = FontFamily.Monospace,
-                        style = MaterialTheme.typography.bodySmallEmphasized,
-                    )
-                }
+                SourceAddressRow(
+                    label = "IPv4",
+                    address = uiState.ipv4,
+                    visible = sourceAddressesVisible,
+                    onCopy = { value ->
+                        scope.launch {
+                            clipboard.setPlainText(value)
+                        }
+                        onCopySuccess()
+                    },
+                )
+                SourceAddressRow(
+                    label = "IPv6",
+                    address = uiState.ipv6,
+                    visible = sourceAddressesVisible,
+                    onCopy = { value ->
+                        scope.launch {
+                            clipboard.setPlainText(value)
+                        }
+                        onCopySuccess()
+                    },
+                )
             }
         }
 
@@ -214,9 +204,10 @@ internal fun DashboardStatusScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = stringResource(Res.string.network_interfaces),
-                    style = MaterialTheme.typography.titleMedium,
+                HideableSectionTitle(
+                    title = stringResource(Res.string.network_interfaces),
+                    visible = networkInterfacesVisible,
+                    onToggleVisible = { networkInterfacesVisible = !networkInterfacesVisible },
                 )
                 SelectionContainer {
                     Column(
@@ -232,7 +223,11 @@ internal fun DashboardStatusScreen(
                                 )
                                 for (address in interfaceInfo.addresses) {
                                     Text(
-                                        text = address,
+                                        text = if (networkInterfacesVisible) {
+                                            address
+                                        } else {
+                                            maskNetworkAddress(address)
+                                        },
                                         fontFamily = FontFamily.Monospace,
                                         style = MaterialTheme.typography.bodySmall,
                                     )
@@ -253,5 +248,80 @@ internal fun DashboardStatusScreen(
                 thickness = 12.dp,
             ),
         )
+    }
+}
+
+@Composable
+private fun SourceAddressRow(
+    label: String,
+    address: String?,
+    visible: Boolean,
+    onCopy: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        val text = when {
+            address == null -> stringResource(Res.string.no_statistics)
+            visible -> address
+            else -> maskNetworkAddress(address)
+        }
+        Text(
+            text = text,
+            modifier = Modifier.clickable(enabled = address != null) {
+                onCopy(address ?: return@clickable)
+            },
+            fontFamily = FontFamily.Monospace,
+            style = MaterialTheme.typography.bodySmallEmphasized,
+        )
+    }
+}
+
+@Composable
+private fun HideableSectionTitle(
+    title: String,
+    visible: Boolean,
+    onToggleVisible: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        SimpleIconButton(
+            imageVector = vectorResource(
+                if (visible) {
+                    Res.drawable.visibility
+                } else {
+                    Res.drawable.visibility_off
+                },
+            ),
+            contentDescription = stringResource(
+                if (visible) {
+                    Res.string.hide
+                } else {
+                    Res.string.show
+                },
+            ),
+            onClick = onToggleVisible,
+        )
+    }
+}
+
+private fun maskNetworkAddress(address: String): String {
+    return if (':' in address) {
+        "*::*"
+    } else {
+        "*.*.*.*"
     }
 }

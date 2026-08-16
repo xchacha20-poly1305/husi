@@ -612,6 +612,8 @@
     <string name="idle_timeout">閒置逾時</string>
     <string name="urltest_tolerance">容差</string>
     <string name="expand">展開</string>
+    <string name="hide">隱藏</string>
+    <string name="show">顯示</string>
     <string name="selected">已選定</string>
     <string name="update_proxy_apps_when_install">安裝時自動更新代理程式</string>
     <string name="filter_regex">過濾（正規表達式）</string>
