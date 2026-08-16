@@ -2,24 +2,24 @@ package fr.husi.bg
 
 import android.content.Context
 import fr.husi.resources.Res
-import fr.husi.resources.openconnect_authentication
+import fr.husi.resources.openvpn_authentication
 import fr.husi.vpn.firstVpnAuthPending
 import kotlinx.coroutines.flow.map
 
-object OpenConnectAuthWatcher {
+object OpenVPNAuthWatcher {
 
     private val watcher = VpnAuthNotificationWatcher(
-        notificationId = 3,
-        channelId = "service-openconnect-auth",
-        title = Res.string.openconnect_authentication,
-        logLabel = "openconnect auth watcher",
+        notificationId = 4,
+        channelId = "service-openvpn-auth",
+        title = Res.string.openvpn_authentication,
+        logLabel = "openvpn auth watcher",
         pending = {
-            subscribeOpenConnectStatus().map { update ->
+            subscribeOpenVPNStatus().map { update ->
                 firstVpnAuthPending(
                     endpoints = update.endpointsList,
                     state = { it.state },
                     challengeId = { status ->
-                        status.authChallenge.takeIf { status.hasAuthChallenge() }?.id
+                        status.challenge.takeIf { status.hasChallenge() }?.id
                     },
                     tag = { it.endpointTag },
                 )

@@ -6,11 +6,6 @@ import fr.husi.proto.daemon.OpenConnectBrowserRequest
 import fr.husi.proto.daemon.OpenConnectEndpointStatus
 import fr.husi.proto.daemon.OpenConnectTunnelInfo
 
-const val OPENCONNECT_STATE_CONNECTING = "connecting"
-const val OPENCONNECT_STATE_AUTH_PENDING = "auth-pending"
-const val OPENCONNECT_STATE_CONNECTED = "connected"
-const val OPENCONNECT_STATE_ERROR = "error"
-
 const val OPENCONNECT_FIELD_TEXT = "text"
 const val OPENCONNECT_FIELD_PASSWORD = "password"
 const val OPENCONNECT_FIELD_SELECT = "select"

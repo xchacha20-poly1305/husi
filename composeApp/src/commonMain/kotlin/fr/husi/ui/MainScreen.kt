@@ -75,6 +75,8 @@ import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openconnect.OpenConnectAuthDialog
+import fr.husi.ui.openvpn.OpenVPNAuthController
+import fr.husi.ui.openvpn.OpenVPNAuthDialog
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
@@ -312,6 +314,24 @@ private fun MainScreenContent(
                 OpenConnectAuthDialog(
                     pending = pending,
                     controller = openConnectController,
+                    showError = { message ->
+                        snackbarEmitter.show(StringOrRes.Direct(message))
+                    },
+                    onDismissed = {
+                        snackbarEmitter.show(
+                            StringOrRes.Res(Res.string.auth_later_hint),
+                        )
+                    },
+                )
+            }
+
+            val openVPNController = koinInject<OpenVPNAuthController>()
+            val pendingOpenVPNAuth by openVPNController.pendingDialogAuth
+                .collectAsStateWithLifecycle()
+            pendingOpenVPNAuth?.let { pending ->
+                OpenVPNAuthDialog(
+                    pending = pending,
+                    controller = openVPNController,
                     showError = { message ->
                         snackbarEmitter.show(StringOrRes.Direct(message))
                     },

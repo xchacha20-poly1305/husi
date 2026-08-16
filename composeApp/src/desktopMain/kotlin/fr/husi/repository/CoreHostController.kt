@@ -3,6 +3,7 @@ package fr.husi.repository
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.OpenConnectAuthWatcher
+import fr.husi.bg.OpenVPNAuthWatcher
 import fr.husi.bg.ServiceAlert
 import fr.husi.bg.ServiceState
 import fr.husi.bg.buildPluginSpecs
@@ -316,6 +317,7 @@ internal class CoreHostController(
      */
     private suspend fun detachDaemonClientLocked() {
         OpenConnectAuthWatcher.stop()
+        OpenVPNAuthWatcher.stop()
         trafficLooper?.stop()
         trafficLooper = null
         runCatching { coreClient.close() }
@@ -424,6 +426,7 @@ internal class CoreHostController(
             }
             coreClient.startService(request)
             OpenConnectAuthWatcher.start()
+            OpenVPNAuthWatcher.start()
 
             trafficLooper = TrafficLooper(
                 coreClient = coreClient,
@@ -474,6 +477,7 @@ internal class CoreHostController(
 
     private suspend fun cleanupLocked() {
         OpenConnectAuthWatcher.stop()
+        OpenVPNAuthWatcher.stop()
 
         trafficLooper?.stop()
         trafficLooper = null

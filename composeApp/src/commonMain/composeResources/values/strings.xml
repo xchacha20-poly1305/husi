@@ -848,11 +848,13 @@
     <string name="latency">Latency</string>
     <string name="select_file">Select File</string>
     <string name="openconnect_authentication">OpenConnect Authentication</string>
+    <string name="openvpn_authentication">OpenVPN Authentication</string>
     <string name="clear_remembered_authentication_answers">Clear remembered authentication answers</string>
     <string name="auth_later">Later</string>
     <string name="auth_submit">Submit</string>
     <string name="auth_continue">Continue</string>
     <string name="auth_open_url">Open authentication page</string>
+    <string name="auth_response">Response</string>
     <string name="auth_browser_callback_hint">After completing sign-in in the browser, provide the requested callback data.</string>
     <string name="auth_final_url">Final URL</string>
     <string name="auth_cookie">Cookie</string>
@@ -870,5 +872,4 @@
     <string name="ipv4" translatable="false">IPv4</string>
     <string name="ipv6" translatable="false">IPv6</string>
     <string name="connected_since">Connected since</string>
-    <string name="openconnect_auth_channel">OpenConnect Authentication</string>
 </resources>

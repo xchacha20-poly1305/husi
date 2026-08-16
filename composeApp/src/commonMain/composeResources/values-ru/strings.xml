@@ -760,11 +760,13 @@
     <string name="openvpn_compression">Сжатие</string>
     <string name="openvpn_redirect_gateway">Перенаправление шлюза</string>
     <string name="openconnect_authentication">Аутентификация OpenConnect</string>
+    <string name="openvpn_authentication">Аутентификация OpenVPN</string>
     <string name="clear_remembered_authentication_answers">Очистить сохраненные аутентификационные ответы</string>
     <string name="auth_later">Позже</string>
     <string name="auth_submit">Отправить</string>
     <string name="auth_continue">Продолжить</string>
     <string name="auth_open_url">Открыть страницу аутентификации</string>
+    <string name="auth_response">Ответ</string>
     <string name="auth_verifying">Проверка…</string>
     <string name="auth_later_hint">Аутентификацию можно завершить позже в разделе Панель → Статус.</string>
     <string name="cancel_auth">Отменить аутентификацию</string>
@@ -773,7 +775,7 @@
     <string name="connected">Подключено</string>
     <string name="transport">Транспорт</string>
     <string name="connected_since">Подключено с</string>
-    <string name="openconnect_auth_channel">Аутентификация OpenConnect</string>
+
     <string name="auth_browser_callback_hint">После завершения входа в браузере, предоставьте запрошенные данные обратного вызова.</string>
     <string name="auth_final_url">Итоговый URL</string>
     <string name="auth_response_header">Заголовок ответа</string>

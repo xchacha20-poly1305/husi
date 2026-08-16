@@ -107,6 +107,7 @@ import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.RouteSettingsUiState
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.openconnect.OpenConnectAuthController
+import fr.husi.ui.openvpn.OpenVPNAuthController
 import fr.husi.ui.remote.RemoteSessionBanner
 import fr.husi.ui.remote.RemoteTargetMenuSection
 import kotlinx.coroutines.launch
@@ -122,6 +123,7 @@ private const val PAGE_PROXY_SET = 2
 fun DashboardScreen(
     modifier: Modifier = Modifier,
     openConnectController: OpenConnectAuthController,
+    openVPNController: OpenVPNAuthController,
     openRouteSettings: (RouteSettingsUiState) -> Unit,
     onOpenRemoteControl: () -> Unit,
 ) {
@@ -428,6 +430,7 @@ fun DashboardScreen(
                     PAGE_STATUS -> DashboardStatusScreen(
                         uiState = uiState,
                         openConnectController = openConnectController,
+                        openVPNController = openVPNController,
                         bottomPadding = bottomPadding,
                         selectClashMode = { dashboardViewModel.setClashMode(it) },
                         showError = { message ->

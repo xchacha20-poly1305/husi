@@ -770,11 +770,13 @@
     <string name="openvpn_control_wrap_key">控制通道密钥</string>
     <string name="openvpn_control_wrap_direction">控制通道密钥方向</string>
     <string name="openconnect_authentication">OpenConnect 身份验证</string>
+    <string name="openvpn_authentication">OpenVPN 身份验证</string>
     <string name="clear_remembered_authentication_answers">清除已记住的身份验证答案</string>
     <string name="auth_later">稍后</string>
     <string name="auth_submit">提交</string>
     <string name="auth_continue">继续</string>
     <string name="auth_open_url">打开身份验证页面</string>
+    <string name="auth_response">应答</string>
     <string name="auth_browser_callback_hint">请在浏览器中完成登录，然后填写所需的回调数据。</string>
     <string name="auth_final_url">最终 URL</string>
     <string name="auth_cookie">Cookie</string>
@@ -793,7 +795,7 @@
     <string name="ipv4" translatable="false">IPv4</string>
     <string name="ipv6" translatable="false">IPv6</string>
     <string name="connected_since">连接时间</string>
-    <string name="openconnect_auth_channel">OpenConnect 身份验证</string>
+
     <string name="remote_control">远程控制</string>
     <string name="remote_server_add">添加服务器</string>
     <string name="remote_server_edit">编辑服务器</string>

@@ -249,6 +249,7 @@ class BaseService {
             if (data.state == ServiceState.Stopping) return
             this as Service
             OpenConnectAuthWatcher.stop(this)
+            OpenVPNAuthWatcher.stop(this)
             data.notification.destroy()
             data.notification = NoopServiceNotifier
 
@@ -359,6 +360,7 @@ class BaseService {
                     startProcesses()
                     data.changeState(ServiceState.Connected)
                     OpenConnectAuthWatcher.start(this@Interface)
+                    OpenVPNAuthWatcher.start(this@Interface)
 
                     lateInit()
                 } catch (_: CancellationException) { // if the job was cancelled, it is canceller's responsibility to call stopRunner

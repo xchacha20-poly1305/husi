@@ -13,6 +13,7 @@ import fr.husi.libcore.LibcoreHttpClientFactory
 import fr.husi.repository.Repository
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.openconnect.OpenConnectAuthController
+import fr.husi.ui.openvpn.OpenVPNAuthController
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -46,6 +47,7 @@ private fun commonUiModule() = module {
     }
     singleOf(::ImportLinkInteractor)
     singleOf(::OpenConnectAuthController)
+    single { OpenVPNAuthController(coreClient = get()) }
 }
 
 /**

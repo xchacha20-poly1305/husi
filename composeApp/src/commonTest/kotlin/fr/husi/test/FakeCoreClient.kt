@@ -80,8 +80,20 @@ open class FakeCoreClient : CoreClient {
         Unit
 
     override fun subscribeOpenVPNStatus(): Flow<OpenVPNStatusUpdate> = openVPNFlow
-    override suspend fun submitOpenVPNChallengeResponse(submission: OpenVPNChallengeSubmission) = Unit
-    override suspend fun cancelOpenVPNChallenge(endpointTag: String, challengeId: String) = Unit
+    override suspend fun submitOpenVPNChallengeResponse(submission: OpenVPNChallengeSubmission) {
+        lastOpenVPNSubmission = submission
+        submitOpenVPNThrowable?.let { throw it }
+    }
+
+    override suspend fun cancelOpenVPNChallenge(endpointTag: String, challengeId: String) {
+        lastOpenVPNCancel = endpointTag to challengeId
+        cancelOpenVPNThrowable?.let { throw it }
+    }
+
+    var lastOpenVPNSubmission: OpenVPNChallengeSubmission? = null
+    var lastOpenVPNCancel: Pair<String, String>? = null
+    var submitOpenVPNThrowable: Throwable? = null
+    var cancelOpenVPNThrowable: Throwable? = null
 
     override suspend fun getVersion(): GetVersionResponse = GetVersionResponse.getDefaultInstance()
     override suspend fun getDaemonVersion(): Version = nextDaemonVersion

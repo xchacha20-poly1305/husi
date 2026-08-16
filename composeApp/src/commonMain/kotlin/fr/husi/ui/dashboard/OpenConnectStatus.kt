@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
@@ -18,8 +15,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Button
@@ -28,14 +23,10 @@ import fr.husi.ktx.formatLocalDateTime
 import fr.husi.resources.Res
 import fr.husi.resources.action_openconnect
 import fr.husi.resources.auth_open_url
-import fr.husi.resources.auth_required
 import fr.husi.resources.auth_submit
 import fr.husi.resources.cancel_auth
-import fr.husi.resources.connected
 import fr.husi.resources.connected_since
-import fr.husi.resources.connecting
 import fr.husi.resources.dns
-import fr.husi.resources.error_title
 import fr.husi.resources.ipv4
 import fr.husi.resources.ipv6
 import fr.husi.resources.mtu
@@ -44,7 +35,6 @@ import fr.husi.resources.state
 import fr.husi.resources.transport
 import fr.husi.vpn.OPENCONNECT_STATE_AUTH_PENDING
 import fr.husi.vpn.OPENCONNECT_STATE_CONNECTED
-import fr.husi.vpn.OPENCONNECT_STATE_ERROR
 import fr.husi.ui.openconnect.OpenConnectAuthChallengeContent
 import fr.husi.vpn.OpenConnectAuthChallengeState
 import fr.husi.ui.openconnect.OpenConnectAuthController
@@ -63,27 +53,17 @@ internal fun OpenConnectStatusSection(
     modifier: Modifier = Modifier,
 ) {
     val endpoints by controller.endpoints.collectAsStateWithLifecycle()
-    if (endpoints.isEmpty()) return
-
-    ElevatedCard(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = stringResource(Res.string.action_openconnect),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            for ((index, endpoint) in endpoints.withIndex()) {
-                if (index > 0) HorizontalDivider()
-                EndpointContent(
-                    endpoint = endpoint,
-                    showTag = endpoints.size > 1,
-                    controller = controller,
-                    showError = showError,
-                )
-            }
-        }
+    VpnEndpointStatusSection(
+        title = stringResource(Res.string.action_openconnect),
+        endpoints = endpoints,
+        modifier = modifier,
+    ) { endpoint, showTag ->
+        EndpointContent(
+            endpoint = endpoint,
+            showTag = showTag,
+            controller = controller,
+            showError = showError,
+        )
     }
 }
 
@@ -98,10 +78,10 @@ private fun EndpointContent(
         if (showTag) {
             Text(endpoint.tag, style = MaterialTheme.typography.titleMedium)
         }
-        InfoRow(
+        VpnStatusInfoRow(
             label = stringResource(Res.string.state),
-            value = stateText(endpoint.state),
-            color = stateColor(endpoint.state),
+            value = vpnAuthStateText(endpoint.state),
+            color = vpnAuthStateColor(endpoint.state),
         )
         if (endpoint.error.isNotEmpty()) {
             Text(
@@ -242,25 +222,25 @@ private fun AuthSection(
 private fun TunnelInfoContent(info: OpenConnectTunnelInfoState) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (info.server.isNotEmpty()) {
-            InfoRow(stringResource(Res.string.server_address), info.server)
+            VpnStatusInfoRow(stringResource(Res.string.server_address), info.server)
         }
         if (info.transport.isNotEmpty()) {
-            InfoRow(stringResource(Res.string.transport), info.transport)
+            VpnStatusInfoRow(stringResource(Res.string.transport), info.transport)
         }
         if (info.ipv4.isNotEmpty()) {
-            InfoRow(stringResource(Res.string.ipv4), info.ipv4.joinToString(", "))
+            VpnStatusInfoRow(stringResource(Res.string.ipv4), info.ipv4.joinToString(", "))
         }
         if (info.ipv6.isNotEmpty()) {
-            InfoRow(stringResource(Res.string.ipv6), info.ipv6.joinToString(", "))
+            VpnStatusInfoRow(stringResource(Res.string.ipv6), info.ipv6.joinToString(", "))
         }
         if (info.dns.isNotEmpty()) {
-            InfoRow(stringResource(Res.string.dns), info.dns.joinToString(", "))
+            VpnStatusInfoRow(stringResource(Res.string.dns), info.dns.joinToString(", "))
         }
         if (info.mtu > 0) {
-            InfoRow(stringResource(Res.string.mtu), info.mtu.toString())
+            VpnStatusInfoRow(stringResource(Res.string.mtu), info.mtu.toString())
         }
         if (info.connectedSince > 0) {
-            InfoRow(
+            VpnStatusInfoRow(
                 stringResource(Res.string.connected_since),
                 formatLocalDateTime(info.connectedSince),
             )
@@ -268,42 +248,4 @@ private fun TunnelInfoContent(info: OpenConnectTunnelInfoState) {
     }
 }
 
-@Composable
-private fun InfoRow(label: String, value: String, color: Color = Color.Unspecified) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            label,
-            modifier = Modifier.padding(end = 16.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Text(
-            text = value,
-            color = color,
-            textAlign = TextAlign.End,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    }
-}
 
-@Composable
-private fun stateText(state: String): String = stringResource(
-    when (state) {
-        OPENCONNECT_STATE_CONNECTED -> Res.string.connected
-        OPENCONNECT_STATE_AUTH_PENDING -> Res.string.auth_required
-        OPENCONNECT_STATE_ERROR -> Res.string.error_title
-        else -> Res.string.connecting
-    },
-)
-
-@Composable
-private fun stateColor(state: String): Color = when (state) {
-    OPENCONNECT_STATE_CONNECTED -> MaterialTheme.colorScheme.primary
-    OPENCONNECT_STATE_AUTH_PENDING -> MaterialTheme.colorScheme.tertiary
-    OPENCONNECT_STATE_ERROR -> MaterialTheme.colorScheme.error
-    else -> MaterialTheme.colorScheme.onSurfaceVariant
-}

@@ -1,6 +1,5 @@
 package fr.husi.ui.openconnect
 
-import fr.husi.bg.BackendState
 import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -9,7 +8,6 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openconnect.OpenConnectFormEntry
 import fr.husi.ktx.Logs
-import fr.husi.ktx.readableMessage
 import fr.husi.proto.daemon.openConnectAuthFormResponse
 import fr.husi.proto.daemon.openConnectAuthResponseSubmission
 import fr.husi.proto.daemon.openConnectBrowserCookie
@@ -20,28 +18,15 @@ import fr.husi.vpn.OPENCONNECT_STATE_AUTH_PENDING
 import fr.husi.vpn.OpenConnectAuthChallengeState
 import fr.husi.vpn.OpenConnectBrowserResultState
 import fr.husi.vpn.OpenConnectEndpointState
+import fr.husi.vpn.PendingVpnAuth
+import fr.husi.vpn.VpnAuthSession
 import fr.husi.vpn.toState
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.core.context.GlobalContext
 
-data class PendingOpenConnectAuth(
-    val endpointTag: String,
-    val challenge: OpenConnectAuthChallengeState,
-)
+typealias PendingOpenConnectAuth = PendingVpnAuth<OpenConnectAuthChallengeState>
 
 /**
  * Long-lived owner of the OpenConnect endpoint status subscription.
@@ -54,61 +39,30 @@ data class PendingOpenConnectAuth(
 class OpenConnectAuthController(
     private val coreClient: CoreClient = GlobalContext.get().get(),
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private var subscriptionJob: Job? = null
+    private val session = VpnAuthSession(
+        subscribe = {
+            coreClient.subscribeOpenConnectStatus().map { update ->
+                update.endpointsList.map { it.toState() }
+            }
+        },
+        pendingOf = { endpoint ->
+            endpoint.authChallenge?.takeIf {
+                endpoint.state == OPENCONNECT_STATE_AUTH_PENDING
+            }?.let { PendingVpnAuth(endpoint.tag, it) }
+        },
+        challengeId = { it.id },
+        logLabel = "openconnect",
+    )
 
     val endpoints: StateFlow<List<OpenConnectEndpointState>>
-        field = MutableStateFlow(emptyList())
+        get() = session.endpoints
 
-    private val dismissedChallenges = MutableStateFlow<Set<String>>(emptySet())
-
-    val pendingDialogAuth: StateFlow<PendingOpenConnectAuth?> =
-        combine(endpoints, dismissedChallenges) { endpointList, dismissed ->
-            endpointList.firstNotNullOfOrNull { endpoint ->
-                val challenge = endpoint.authChallenge?.takeIf {
-                    endpoint.state == OPENCONNECT_STATE_AUTH_PENDING &&
-                        challengeKey(endpoint.tag, it.id) !in dismissed
-                } ?: return@firstNotNullOfOrNull null
-                PendingOpenConnectAuth(endpoint.tag, challenge)
-            }
-        }.stateIn(scope, SharingStarted.Eagerly, null)
-
-    init {
-        scope.launch {
-            BackendState.status
-                .map { it.state.started }
-                .distinctUntilChanged()
-                .collect { started ->
-                    if (started) start() else stop()
-                }
-        }
-    }
-
-    private fun start() {
-        if (subscriptionJob != null) return
-        subscriptionJob = scope.launch {
-            try {
-                coreClient.subscribeOpenConnectStatus().collect { update ->
-                    endpoints.value = update.endpointsList.map { it.toState() }
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Logs.w("subscribe openconnect status", e)
-            }
-        }
-    }
-
-    private fun stop() {
-        subscriptionJob?.cancel()
-        subscriptionJob = null
-        endpoints.value = emptyList()
-        dismissedChallenges.value = emptySet()
-    }
+    val pendingDialogAuth: StateFlow<PendingOpenConnectAuth?>
+        get() = session.pendingDialogAuth
 
     /** Hide the dialog for this challenge without cancelling authentication. */
     fun dismissDialog(endpointTag: String, challengeId: String) {
-        dismissedChallenges.update { it + challengeKey(endpointTag, challengeId) }
+        session.dismissDialog(endpointTag, challengeId)
     }
 
     /** @return an error message, or null on success. */
@@ -117,8 +71,8 @@ class OpenConnectAuthController(
         challenge: OpenConnectAuthChallengeState,
         formValues: Map<String, String>?,
         browserResult: OpenConnectBrowserResultState?,
-    ): String? = withContext(Dispatchers.IO) {
-        try {
+    ): String? {
+        val error = session.perform("submit openconnect auth challenge") {
             val submission = openConnectAuthResponseSubmission {
                 this.endpointTag = endpointTag
                 challengeID = challenge.id
@@ -153,16 +107,11 @@ class OpenConnectAuthController(
                 }
             }
             coreClient.submitOpenConnectAuthResponse(submission)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Logs.w("submit openconnect auth challenge", e)
-            return@withContext e.readableMessage
+            if (challenge.form != null && formValues != null) {
+                persistFormEntries(endpointTag, challenge, formValues)
+            }
         }
-        if (challenge.form != null && formValues != null) {
-            persistFormEntries(endpointTag, challenge, formValues)
-        }
-        null
+        return error
     }
 
     /**
@@ -218,17 +167,7 @@ class OpenConnectAuthController(
 
     /** @return an error message, or null on success. */
     suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String): String? =
-        withContext(Dispatchers.IO) {
-            try {
-                coreClient.cancelOpenConnectAuthChallenge(endpointTag, challengeId)
-                null
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Logs.w("cancel openconnect auth challenge", e)
-                e.readableMessage
-            }
+        session.perform("cancel openconnect auth challenge") {
+            coreClient.cancelOpenConnectAuthChallenge(endpointTag, challengeId)
         }
-
-    private fun challengeKey(endpointTag: String, challengeId: String): String = "$endpointTag\n$challengeId"
 }

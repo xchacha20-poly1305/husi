@@ -122,11 +122,13 @@
     <string name="system_daemon">系統守護程序</string>
     <string name="quic">QUIC</string>
     <string name="openconnect_authentication">OpenConnect 驗證</string>
+    <string name="openvpn_authentication">OpenVPN 驗證</string>
     <string name="clear_remembered_authentication_answers">清除已記住的驗證答案</string>
     <string name="auth_later">稍後</string>
     <string name="auth_submit">提交</string>
     <string name="auth_continue">繼續</string>
     <string name="auth_open_url">開啟驗證頁面</string>
+    <string name="auth_response">回應</string>
     <string name="auth_browser_callback_hint">請在瀏覽器中完成登入，然後填寫所需的回呼資料。</string>
     <string name="auth_final_url">最終 URL</string>
     <string name="auth_cookie">Cookie</string>
@@ -144,5 +146,5 @@
     <string name="ipv4" translatable="false">IPv4</string>
     <string name="ipv6" translatable="false">IPv6</string>
     <string name="connected_since">連線時間</string>
-    <string name="openconnect_auth_channel">OpenConnect 驗證</string>
+
 </resources>

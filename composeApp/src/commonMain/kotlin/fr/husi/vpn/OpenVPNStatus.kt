@@ -4,11 +4,6 @@ import fr.husi.proto.daemon.OpenVPNChallenge
 import fr.husi.proto.daemon.OpenVPNEndpointStatus
 import fr.husi.proto.daemon.OpenVPNTunnelInfo
 
-const val OPENVPN_STATE_CONNECTING = "connecting"
-const val OPENVPN_STATE_AUTH_PENDING = "auth-pending"
-const val OPENVPN_STATE_CONNECTED = "connected"
-const val OPENVPN_STATE_ERROR = "error"
-
 /** Answered with a username, a password and a secret. */
 const val OPENVPN_CHALLENGE_CREDENTIALS = "credentials"
 
@@ -36,6 +31,13 @@ data class OpenVPNChallengeState(
     /** The kinds a client answers; the others are informational. */
     val answerable: Boolean
         get() = kind == OPENVPN_CHALLENGE_CREDENTIALS || kind == OPENVPN_CHALLENGE_SECRET
+}
+
+/** Remaining time until [deadline], or null when the challenge never expires. */
+fun formatOpenVPNRemaining(deadline: Long, nowEpochSeconds: Long): String? {
+    if (deadline <= 0) return null
+    val remaining = (deadline - nowEpochSeconds).coerceAtLeast(0)
+    return "${remaining / 60}:${(remaining % 60).toString().padStart(2, '0')}"
 }
 
 data class OpenVPNTunnelInfoState(

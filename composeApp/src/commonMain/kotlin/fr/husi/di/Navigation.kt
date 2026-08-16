@@ -149,6 +149,7 @@ internal val commonNavigationModule = module {
             val navigator = get<Navigator>()
             DashboardScreen(
                 openConnectController = get(),
+                openVPNController = get(),
                 openRouteSettings = { initialState ->
                     navigator.navigateTo(
                         NavRoutes.RouteSettings(
