@@ -434,6 +434,7 @@ val mergeDesktopAboutLibraries = tasks.register<Sync>("mergeDesktopAboutLibrarie
 }
 
 aboutLibraries {
+    offlineMode = true
     collect {
         // Desktop-only presets are merged in only for exportLibraryDefinitionsDesktop.
         configPath = if (exportDesktopAboutLibraries) {

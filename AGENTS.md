@@ -33,7 +33,7 @@ Common targets:
 | `make desktop_package[_linux/_macos/_windows]`              | Native packages under `composeApp/build/compose/packages/`                       |
 | `make launcher`                                             | Build the Zig native UI launcher from `launcher/` (used by Linux/macOS/Windows installers) |
 | `make plugin PLUGIN=<name>`                                 | Assemble plugin APK; valid names: `hysteria2 juicity naive mieru shadowquic`     |
-| `make aboutlibraries`                                       | Regenerate OSS license metadata (run before release)                             |
+| `make aboutlibraries`                                       | Regenerate committed OSS license JSON (Gradle plugin is offline; run before release) |
 | `make generate_option`                                      | Regenerate sing-box option mappings (boxoption); output piped through `$CLIP`    |
 | `make proto`                                                | Re-vendor sing-box schema and regenerate Go gRPC stubs under `libcore/pb/` via `protoc`       |
 | `make proto_install`                                        | Print instructions for installing `protoc`                                       |
@@ -257,6 +257,23 @@ Canonical conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it firs
   private key out of the repository.
 - `composeApp/executableSo/` is added as a JNI libs source dir for the Android app (used to bundle
   plugin executables alongside the host APK).
+- `make aboutlibraries` (`aboutlibraries_go` + `aboutlibraries_android` +
+  `aboutlibraries_desktop`) rewrites the committed OSS metadata at
+  `composeApp/src/{android,desktop}Main/composeResources/files/aboutlibraries.json`. The UI
+  loads those files at runtime; regular `make apk` / `make desktop` do not regenerate them.
+  The AboutLibraries Gradle plugin runs with `offlineMode = true` and will not download SPDX
+  license texts (or any other remote license data). Full texts are vendored as
+  `composeApp/src/commonMain/aboutlibraries/licenses/<SPDX-id>.json` (shared) and
+  `composeApp/src/desktopMain/aboutlibraries/licenses/` (desktop-only, currently the LGPLs).
+  `hash` / `spdxId` must be the SPDX id that library presets reference (e.g.
+  `GPL-3.0-or-later`). Go module presets from `libcore/cmd/licencecollect` only carry those
+  ids, no body; without a matching file here, the next export ships empty `content` and the
+  OSS screen falls back to opening the license URL. Add a new JSON when a dependency
+  introduces a license that is not already vendored and is not already present in a Maven
+  POM. `aboutlibraries_go` still talks to pkgsite — only the Gradle half is offline. Do not
+  run `exportLibraryDefinitions` and `exportLibraryDefinitionsDesktop` in one Gradle
+  invocation: `configPath` is chosen from the start-parameter task names, so both tasks would
+  share the desktop merge output.
 - `make proto` re-vendors the sing-box schema and regenerates the Go stubs for `husi/v1` only via
   `protoc` — a second copy of `daemon/started_service.proto` in the binary would panic the
   protobuf registry. The protoc plugins are pinned by the `tool` block in `libcore/go.mod` rather
