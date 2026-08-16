@@ -445,11 +445,12 @@ export CGO_ENABLED=1
 export GO386=softfloat
 
 # Stamp sing-box version + husi Version (used by coreentry / HusiCoreMain).
+anja_ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -X libcore.Version=${husi_version} -s -w -buildid="
+
 ANJA_COMMON_ARGS=(
     -v
     -trimpath
     -buildvcs=false
-    -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -X libcore.Version=${husi_version} -s -w -buildid="
     -javapkg="fr.husi"
 )
 
@@ -459,6 +460,7 @@ ANJA_ANDROID_ARGS=(
     -androidapi
     23
     "${ANJA_COMMON_ARGS[@]}"
+    -ldflags="$anja_ldflags -checklinkname=0" # https://github.com/golang/go/issues/70508
     -tags="$BUILD_TAGS"
 )
 
@@ -507,7 +509,7 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
         elif [ "$host_platform" != "darwin" ] && [ "$desktop_platform" == "darwin" ]; then
             apply_darwin_toolchain_env "$desktop_target"
         fi
-        desktop_args=("${ANJA_COMMON_ARGS[@]}" "-tags=$local_build_tags")
+        desktop_args=("${ANJA_COMMON_ARGS[@]}" "-ldflags=$anja_ldflags" "-tags=$local_build_tags")
         if [ -n "$JNI_INCLUDE" ]; then
             desktop_args+=("-jniinclude=$JNI_INCLUDE")
         fi
