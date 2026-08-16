@@ -15,7 +15,7 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.openconnect_authentication
 import fr.husi.resources.auth_required
-import fr.husi.ui.openconnect.OPENCONNECT_STATE_AUTH_PENDING
+import fr.husi.vpn.OPENCONNECT_STATE_AUTH_PENDING
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

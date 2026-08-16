@@ -2,8 +2,8 @@ package fr.husi.ui.openconnect
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.webkit.WebResourceRequest
 import android.webkit.CookieManager
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -31,6 +31,9 @@ import fr.husi.resources.auth_browser_cookie_missing
 import fr.husi.resources.auth_browser_header_unsupported_android
 import fr.husi.resources.close
 import fr.husi.resources.openconnect_authentication
+import fr.husi.vpn.OpenConnectBrowserCompletionMode
+import fr.husi.vpn.OpenConnectBrowserRequestState
+import fr.husi.vpn.OpenConnectBrowserResultState
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

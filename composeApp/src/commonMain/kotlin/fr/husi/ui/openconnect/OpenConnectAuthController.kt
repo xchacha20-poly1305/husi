@@ -9,16 +9,18 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openconnect.OpenConnectFormEntry
 import fr.husi.ktx.Logs
-import fr.husi.proto.daemon.OpenConnectAuthChallenge
-import fr.husi.proto.daemon.OpenConnectAuthForm
-import fr.husi.proto.daemon.OpenConnectBrowserRequest
-import fr.husi.proto.daemon.OpenConnectEndpointStatus
-import fr.husi.proto.daemon.OpenConnectTunnelInfo
+import fr.husi.ktx.readableMessage
 import fr.husi.proto.daemon.openConnectAuthFormResponse
 import fr.husi.proto.daemon.openConnectAuthResponseSubmission
 import fr.husi.proto.daemon.openConnectBrowserCookie
 import fr.husi.proto.daemon.openConnectBrowserHeader
 import fr.husi.proto.daemon.openConnectBrowserResult
+import fr.husi.vpn.OPENCONNECT_FIELD_PASSWORD
+import fr.husi.vpn.OPENCONNECT_STATE_AUTH_PENDING
+import fr.husi.vpn.OpenConnectAuthChallengeState
+import fr.husi.vpn.OpenConnectBrowserResultState
+import fr.husi.vpn.OpenConnectEndpointState
+import fr.husi.vpn.toState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,116 +37,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.context.GlobalContext
-
-const val OPENCONNECT_STATE_CONNECTING = "connecting"
-const val OPENCONNECT_STATE_AUTH_PENDING = "auth-pending"
-const val OPENCONNECT_STATE_CONNECTED = "connected"
-const val OPENCONNECT_STATE_ERROR = "error"
-
-data class OpenConnectAuthChoice(
-    val value: String,
-    val label: String,
-)
-
-data class OpenConnectAuthField(
-    val submissionKey: String,
-    val name: String,
-    val label: String,
-    val kind: String,
-    val value: String,
-    val options: List<OpenConnectAuthChoice>,
-)
-
-data class OpenConnectAuthFormState(
-    val fields: List<OpenConnectAuthField>,
-)
-
-data class OpenConnectBrowserRequestState(
-    val url: String,
-    val finalUrl: String,
-    val cacheId: String,
-    val cookieNames: List<String>,
-    val earlyCookieNames: List<String>,
-    val headerNames: List<String>,
-    val callbackUrlPrefixes: List<String>,
-) {
-    val completionMode: OpenConnectBrowserCompletionMode
-        get() = when {
-            callbackUrlPrefixes.isNotEmpty() && finalUrl.isEmpty() && cookieNames.isEmpty() &&
-                earlyCookieNames.isEmpty() && headerNames.isEmpty() -> OpenConnectBrowserCompletionMode.Callback
-            callbackUrlPrefixes.isEmpty() && finalUrl.isNotEmpty() && cookieNames.isNotEmpty() &&
-                headerNames.isEmpty() -> OpenConnectBrowserCompletionMode.Cookie
-            callbackUrlPrefixes.isEmpty() && finalUrl.isEmpty() && cookieNames.isEmpty() &&
-                earlyCookieNames.isEmpty() && headerNames.isNotEmpty() -> OpenConnectBrowserCompletionMode.Header
-            else -> OpenConnectBrowserCompletionMode.Invalid
-        }
-}
-
-enum class OpenConnectBrowserCompletionMode {
-    Callback,
-    Cookie,
-    Header,
-    Invalid,
-}
-
-data class OpenConnectBrowserResultState(
-    val finalUrl: String,
-    val cookies: Map<String, String>,
-    val headers: Map<String, String>,
-)
-
-internal fun OpenConnectBrowserRequestState.buildResult(
-    finalUrl: String,
-    cookies: Map<String, String>,
-    headers: Map<String, String>,
-): OpenConnectBrowserResultState {
-    if (completionMode == OpenConnectBrowserCompletionMode.Cookie) {
-        for (name in earlyCookieNames) {
-            val value = cookies[name].orEmpty()
-            if (value.isNotEmpty()) {
-                return OpenConnectBrowserResultState("", mapOf(name to value), emptyMap())
-            }
-        }
-    }
-    return when (completionMode) {
-        OpenConnectBrowserCompletionMode.Callback -> OpenConnectBrowserResultState(finalUrl, emptyMap(), emptyMap())
-        OpenConnectBrowserCompletionMode.Cookie -> OpenConnectBrowserResultState(
-            finalUrl,
-            cookies.filterKeys { it in cookieNames },
-            emptyMap(),
-        )
-        OpenConnectBrowserCompletionMode.Header -> OpenConnectBrowserResultState("", emptyMap(), headers)
-        OpenConnectBrowserCompletionMode.Invalid -> OpenConnectBrowserResultState(finalUrl, cookies, headers)
-    }
-}
-
-data class OpenConnectAuthChallengeState(
-    val id: String,
-    val banner: String,
-    val message: String,
-    val error: String,
-    val form: OpenConnectAuthFormState?,
-    val browser: OpenConnectBrowserRequestState?,
-)
-
-data class OpenConnectTunnelInfoState(
-    val server: String,
-    val flavor: String,
-    val transport: String,
-    val ipv4: List<String>,
-    val ipv6: List<String>,
-    val dns: List<String>,
-    val mtu: Int,
-    val connectedSince: Long,
-)
-
-data class OpenConnectEndpointState(
-    val tag: String,
-    val state: String,
-    val error: String,
-    val authChallenge: OpenConnectAuthChallengeState?,
-    val tunnelInfo: OpenConnectTunnelInfoState?,
-)
 
 data class PendingOpenConnectAuth(
     val endpointTag: String,
@@ -265,7 +157,7 @@ class OpenConnectAuthController(
             throw e
         } catch (e: Exception) {
             Logs.w("submit openconnect auth challenge", e)
-            return@withContext e.message ?: "submit auth challenge failed"
+            return@withContext e.readableMessage
         }
         if (challenge.form != null && formValues != null) {
             persistFormEntries(endpointTag, challenge, formValues)
@@ -284,7 +176,7 @@ class OpenConnectAuthController(
         values: Map<String, String>,
     ) {
         val newEntries = challenge.form?.fields.orEmpty().mapNotNull { field ->
-            if (field.kind == "password") return@mapNotNull null
+            if (field.kind == OPENCONNECT_FIELD_PASSWORD) return@mapNotNull null
             val value = values[field.submissionKey] ?: return@mapNotNull null
             if (value.isBlank()) return@mapNotNull null
             OpenConnectFormEntry(
@@ -334,63 +226,9 @@ class OpenConnectAuthController(
                 throw e
             } catch (e: Exception) {
                 Logs.w("cancel openconnect auth challenge", e)
-                e.message ?: "cancel auth challenge failed"
+                e.readableMessage
             }
         }
 
     private fun challengeKey(endpointTag: String, challengeId: String): String = "$endpointTag\n$challengeId"
 }
-
-private fun OpenConnectEndpointStatus.toState() = OpenConnectEndpointState(
-    tag = endpointTag,
-    state = state,
-    error = error,
-    authChallenge = if (hasAuthChallenge()) authChallenge.toState() else null,
-    tunnelInfo = if (hasTunnelInfo()) tunnelInfo.toState() else null,
-)
-
-private fun OpenConnectAuthChallenge.toState() = OpenConnectAuthChallengeState(
-    id = id,
-    banner = banner,
-    message = message,
-    error = error,
-    form = if (hasForm()) form.toState() else null,
-    browser = if (hasBrowser()) browser.toState() else null,
-)
-
-private fun OpenConnectAuthForm.toState(): OpenConnectAuthFormState {
-    val fields = fieldsList.map { field ->
-        OpenConnectAuthField(
-            submissionKey = field.submissionKey,
-            name = field.name,
-            label = field.label,
-            kind = field.kind,
-            value = field.value,
-            options = field.optionsList.map { option ->
-                OpenConnectAuthChoice(value = option.value, label = option.label)
-            },
-        )
-    }
-    return OpenConnectAuthFormState(fields = fields)
-}
-
-private fun OpenConnectBrowserRequest.toState() = OpenConnectBrowserRequestState(
-    url = url,
-    finalUrl = finalURL,
-    cacheId = cacheID,
-    cookieNames = cookieNamesList,
-    earlyCookieNames = earlyCookieNamesList,
-    headerNames = headerNamesList,
-    callbackUrlPrefixes = callbackURLPrefixesList,
-)
-
-private fun OpenConnectTunnelInfo.toState() = OpenConnectTunnelInfoState(
-    server = server,
-    flavor = flavor,
-    transport = transport,
-    ipv4 = ipv4List,
-    ipv6 = ipv6List,
-    dns = dnsList,
-    mtu = mtu,
-    connectedSince = connectedSince,
-)

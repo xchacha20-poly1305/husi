@@ -4,7 +4,9 @@ import fr.husi.fmt.SingBoxOptions
 import java.net.InetAddress
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class NetsKtTest {
 
@@ -46,5 +48,22 @@ class NetsKtTest {
 
         assertEquals(ipv4Address, addresses.selectByNetworkStrategy(SingBoxOptions.STRATEGY_IPV4_ONLY))
         assertNull(listOf(ipv6Address).selectByNetworkStrategy(SingBoxOptions.STRATEGY_IPV4_ONLY))
+    }
+
+    @Test
+    fun `isLoopbackHost accepts localhost and loopback literals`() {
+        assertTrue("localhost".isLoopbackHost())
+        assertTrue("LocalHost".isLoopbackHost())
+        assertTrue("127.0.0.1".isLoopbackHost())
+        assertTrue("127.8.8.8".isLoopbackHost())
+        assertTrue("::1".isLoopbackHost())
+        assertTrue("[::1]".isLoopbackHost())
+    }
+
+    @Test
+    fun `isLoopbackHost rejects other hosts without resolving them`() {
+        assertFalse("example.com".isLoopbackHost())
+        assertFalse("8.8.8.8".isLoopbackHost())
+        assertFalse("face.fee".isLoopbackHost())
     }
 }

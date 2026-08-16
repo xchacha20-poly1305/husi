@@ -13,6 +13,8 @@ import fr.husi.proto.daemon.Groups
 import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
+import fr.husi.proto.daemon.OpenVPNChallengeSubmission
+import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.proto.daemon.OutboundList
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.StartedAt
@@ -21,6 +23,7 @@ import fr.husi.proto.daemon.Version
 import fr.husi.proto.daemon.clashMode
 import fr.husi.proto.daemon.closeConnectionRequest
 import fr.husi.proto.daemon.openConnectAuthChallengeCancel
+import fr.husi.proto.daemon.openVPNChallengeCancel
 import fr.husi.proto.daemon.selectOutboundRequest
 import fr.husi.proto.daemon.setGroupExpandRequest
 import fr.husi.proto.daemon.subscribeConnectionsRequest
@@ -106,6 +109,9 @@ interface CoreClient {
     fun subscribeOpenConnectStatus(): Flow<OpenConnectStatusUpdate>
     suspend fun submitOpenConnectAuthResponse(submission: OpenConnectAuthResponseSubmission)
     suspend fun cancelOpenConnectAuthChallenge(endpointTag: String, challengeId: String)
+    fun subscribeOpenVPNStatus(): Flow<OpenVPNStatusUpdate>
+    suspend fun submitOpenVPNChallengeResponse(submission: OpenVPNChallengeSubmission)
+    suspend fun cancelOpenVPNChallenge(endpointTag: String, challengeId: String)
     suspend fun getVersion(): GetVersionResponse
     suspend fun getDaemonVersion(): Version
     suspend fun getStartedAt(): Long
@@ -493,6 +499,23 @@ class BridgeCoreClient private constructor(
         )
     }
 
+    override fun subscribeOpenVPNStatus(): Flow<OpenVPNStatusUpdate> =
+        stream(Methods.SUBSCRIBE_OPENVPN_STATUS) { OpenVPNStatusUpdate.parseFrom(it) }
+
+    override suspend fun submitOpenVPNChallengeResponse(submission: OpenVPNChallengeSubmission) {
+        unary(Methods.SUBMIT_OPENVPN_CHALLENGE_RESPONSE, submission.toByteArray())
+    }
+
+    override suspend fun cancelOpenVPNChallenge(endpointTag: String, challengeId: String) {
+        unary(
+            Methods.CANCEL_OPENVPN_CHALLENGE,
+            openVPNChallengeCancel {
+                this.endpointTag = endpointTag
+                challengeID = challengeId
+            }.toByteArray(),
+        )
+    }
+
     override suspend fun getVersion(): GetVersionResponse {
         return GetVersionResponse.parseFrom(
             unary(Methods.HUSI_GET_VERSION, getVersionRequest { }.toByteArray()),
@@ -760,6 +783,10 @@ class BridgeCoreClient private constructor(
             "/daemon.StartedService/SubmitOpenConnectAuthResponse"
         const val CANCEL_OPENCONNECT_AUTH_CHALLENGE =
             "/daemon.StartedService/CancelOpenConnectAuthChallenge"
+        const val SUBSCRIBE_OPENVPN_STATUS = "/daemon.StartedService/SubscribeOpenVPNStatus"
+        const val SUBMIT_OPENVPN_CHALLENGE_RESPONSE =
+            "/daemon.StartedService/SubmitOpenVPNChallengeResponse"
+        const val CANCEL_OPENVPN_CHALLENGE = "/daemon.StartedService/CancelOpenVPNChallenge"
 
         const val HUSI_GET_VERSION = "/husi.v1.CoreService/GetVersion"
         const val HUSI_URL_TEST = "/husi.v1.CoreService/URLTest"

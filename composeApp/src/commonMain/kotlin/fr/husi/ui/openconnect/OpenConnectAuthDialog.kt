@@ -24,6 +24,8 @@ import fr.husi.resources.auth_open_url
 import fr.husi.resources.auth_submit
 import fr.husi.resources.auth_verifying
 import fr.husi.resources.openconnect_authentication
+import fr.husi.vpn.OpenConnectAuthChallengeState
+import fr.husi.vpn.buildResult
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.material3.TextButton as Material3TextButton

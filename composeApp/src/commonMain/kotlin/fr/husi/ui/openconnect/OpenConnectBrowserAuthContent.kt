@@ -14,6 +14,8 @@ import fr.husi.resources.auth_browser_callback_hint
 import fr.husi.resources.auth_cookie
 import fr.husi.resources.auth_final_url
 import fr.husi.resources.auth_response_header
+import fr.husi.vpn.OpenConnectBrowserCompletionMode
+import fr.husi.vpn.OpenConnectBrowserRequestState
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

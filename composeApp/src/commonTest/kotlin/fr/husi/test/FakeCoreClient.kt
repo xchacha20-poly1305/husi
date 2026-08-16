@@ -10,6 +10,8 @@ import fr.husi.proto.daemon.Groups
 import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
+import fr.husi.proto.daemon.OpenVPNChallengeSubmission
+import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.proto.daemon.OutboundList
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.Status
@@ -44,6 +46,8 @@ open class FakeCoreClient : CoreClient {
     val logFlow = MutableSharedFlow<Log>(replay = 1, extraBufferCapacity = 16)
     val openConnectFlow =
         MutableSharedFlow<OpenConnectStatusUpdate>(replay = 1, extraBufferCapacity = 16)
+    val openVPNFlow =
+        MutableSharedFlow<OpenVPNStatusUpdate>(replay = 1, extraBufferCapacity = 16)
 
     var closed: Boolean = false
         private set
@@ -74,6 +78,10 @@ open class FakeCoreClient : CoreClient {
 
     override suspend fun cancelOpenConnectAuthChallenge(endpointTag: String, challengeId: String) =
         Unit
+
+    override fun subscribeOpenVPNStatus(): Flow<OpenVPNStatusUpdate> = openVPNFlow
+    override suspend fun submitOpenVPNChallengeResponse(submission: OpenVPNChallengeSubmission) = Unit
+    override suspend fun cancelOpenVPNChallenge(endpointTag: String, challengeId: String) = Unit
 
     override suspend fun getVersion(): GetVersionResponse = GetVersionResponse.getDefaultInstance()
     override suspend fun getDaemonVersion(): Version = nextDaemonVersion

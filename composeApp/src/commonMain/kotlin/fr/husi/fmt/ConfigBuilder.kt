@@ -116,6 +116,7 @@ const val TAG_DNS_MDNS = "dns-mdns"
 const val TAG_SERVICE_ANCHOR = "service-anchor"
 
 const val LOCALHOST4 = "127.0.0.1"
+const val LOCALHOST_NAME = "localhost"
 private const val ANCHOR_PORT = 45947
 
 // For a certain version schema, maybe we should use [typebox](https://github.com/jiang-zhexin/typebox) ?

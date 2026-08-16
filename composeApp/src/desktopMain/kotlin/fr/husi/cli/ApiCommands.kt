@@ -65,6 +65,9 @@ internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
                 } catch (e: CoreRpcException) {
                     echo(e.message, err = true)
                     throw ProgramResult(1)
+                } catch (e: VpnCliException) {
+                    echo(e.message, err = true)
+                    throw ProgramResult(1)
                 } catch (_: TimeoutCancellationException) {
                     // A wedged stream must not reach the user as a Kotlin stack trace.
                     echo("Timed out waiting for the core host to respond.", err = true)
@@ -87,6 +90,8 @@ class ApiCommand : CliktCommand("api") {
             ApiOutboundsCommand(),
             ApiGroupCommand(),
             ApiConnectionCommand(),
+            ApiOpenVPNCommand(),
+            ApiOpenConnectCommand(),
         )
     }
 

@@ -2,6 +2,8 @@ package fr.husi.ui.openconnect
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import fr.husi.vpn.OpenConnectBrowserRequestState
+import fr.husi.vpn.OpenConnectBrowserResultState
 
 @Composable
 internal expect fun PlatformOpenConnectBrowserDialog(

@@ -12,6 +12,10 @@ val isTerminal: Boolean by lazy {
 
 fun writeStderrLine(message: String) {
     if (!isTerminal) return
+    printErrorLine(message)
+}
+
+fun printErrorLine(message: String) {
     System.err.println(message)
 }
 

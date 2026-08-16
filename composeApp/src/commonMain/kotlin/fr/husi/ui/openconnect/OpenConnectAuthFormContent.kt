@@ -14,6 +14,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.DropDownSelector
 import fr.husi.compose.material3.Text
+import fr.husi.vpn.OpenConnectAuthChoice
+import fr.husi.vpn.OpenConnectAuthField
+import fr.husi.vpn.OpenConnectAuthFormState
 
 private const val FIELD_KIND_SELECT = "select"
 private const val FIELD_KIND_PASSWORD = "password"

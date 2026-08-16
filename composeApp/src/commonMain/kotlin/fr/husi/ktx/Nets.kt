@@ -4,6 +4,7 @@ import fr.husi.BuildConfig
 import fr.husi.database.DataStore
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.LOCALHOST4
+import fr.husi.fmt.LOCALHOST_NAME
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
@@ -118,6 +119,13 @@ fun String.wrapIPV6Host(): String {
     } else {
         this
     }
+}
+
+fun String.isLoopbackHost(): Boolean {
+    if (equals(LOCALHOST_NAME, ignoreCase = true)) return true
+    val literal = unwrapIPV6Host()
+    if (!literal.isIpAddress()) return false
+    return runCatching { InetAddress.getByName(literal).isLoopbackAddress }.getOrDefault(false)
 }
 
 fun AbstractBean.wrapUri(): String {

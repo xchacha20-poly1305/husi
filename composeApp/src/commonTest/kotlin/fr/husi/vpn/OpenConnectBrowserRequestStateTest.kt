@@ -1,4 +1,4 @@
-package fr.husi.ui.openconnect
+package fr.husi.vpn
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -61,14 +61,69 @@ class OpenConnectBrowserRequestStateTest {
         )
     }
 
+    @Test
+    fun `header request selects the header mode`() {
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Header,
+            request(headerNames = listOf("X-Auth")).completionMode,
+        )
+    }
+
+    @Test
+    fun `a request the core would reject is invalid`() {
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Invalid,
+            request().completionMode,
+            "no completion mode at all",
+        )
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Invalid,
+            request(url = "", callbackUrlPrefixes = listOf("http://127.0.0.1:")).completionMode,
+            "a request without its login URL",
+        )
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Invalid,
+            request(
+                finalUrl = "https://vpn.example.com/final",
+                callbackUrlPrefixes = listOf("http://127.0.0.1:"),
+            ).completionMode,
+            "two completion modes at once",
+        )
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Invalid,
+            request(callbackUrlPrefixes = listOf("http://127.0.0.1:", "http://127.0.0.1:")).completionMode,
+            "a duplicate callback prefix",
+        )
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Invalid,
+            request(cookieNames = listOf("webvpn")).completionMode,
+            "cookie mode without its final URL",
+        )
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Invalid,
+            request(
+                finalUrl = "https://vpn.example.com/final",
+                cookieNames = listOf("webvpn"),
+                earlyCookieNames = listOf("webvpn"),
+            ).completionMode,
+            "an early cookie repeated in the final cookie names",
+        )
+        assertEquals(
+            OpenConnectBrowserCompletionMode.Invalid,
+            request(headerNames = listOf("X-Auth", "x-auth")).completionMode,
+            "a duplicate header name, which HTTP compares case-insensitively",
+        )
+    }
+
     private fun request(
+        url: String = "https://login.example.com",
         finalUrl: String = "",
         cookieNames: List<String> = emptyList(),
         earlyCookieNames: List<String> = emptyList(),
         headerNames: List<String> = emptyList(),
         callbackUrlPrefixes: List<String> = emptyList(),
     ) = OpenConnectBrowserRequestState(
-        url = "https://login.example.com",
+        url = url,
         finalUrl = finalUrl,
         cacheId = "test",
         cookieNames = cookieNames,

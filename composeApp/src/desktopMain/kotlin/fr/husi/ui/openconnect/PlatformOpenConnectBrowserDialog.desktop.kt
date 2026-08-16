@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.platform.LocalUriHandler
+import fr.husi.vpn.OpenConnectBrowserRequestState
+import fr.husi.vpn.OpenConnectBrowserResultState
 
 @Composable
 internal actual fun PlatformOpenConnectBrowserDialog(
