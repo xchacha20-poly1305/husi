@@ -3,6 +3,7 @@ package fr.husi.cli
 import fr.husi.core.BridgeCoreClient
 import fr.husi.core.CoreClient
 import fr.husi.ktx.Logs
+import fr.husi.libcore.Libcore
 import kotlinx.coroutines.runBlocking
 
 fun libcoreLoadFailureMessage(error: LinkageError): String {
@@ -18,7 +19,7 @@ fun libcoreLoadFailureMessage(error: LinkageError): String {
     }.trimEnd()
 }
 
-fun connectExistingClient(socketBasePath: String): CoreClient? {
+fun connectClient(socketBasePath: String): CoreClient? {
     val client = BridgeCoreClient(socketBasePath)
     runCatching {
         runBlocking { client.probe() }
@@ -28,6 +29,20 @@ fun connectExistingClient(socketBasePath: String): CoreClient? {
             runBlocking { client.close() }
         }
         return null
+    }
+    return client
+}
+
+fun connectRemoteClient(serverURL: String, secret: String): CoreClient {
+    val client = BridgeCoreClient(
+        basePath = null,
+        bridgeFactory = { Libcore.newRemoteBridgeClient(serverURL, secret) },
+    )
+    try {
+        runBlocking { client.probe() }
+    } catch (e: Exception) {
+        runCatching { runBlocking { client.close() } }
+        throw e
     }
     return client
 }

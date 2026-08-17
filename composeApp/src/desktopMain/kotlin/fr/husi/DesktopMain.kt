@@ -37,7 +37,7 @@ import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.cli.ApiCommand
-import fr.husi.cli.connectExistingClient
+import fr.husi.cli.connectClient
 import fr.husi.cli.libcoreLoadFailureMessage
 import fr.husi.compose.theme.AppTheme
 import fr.husi.core.CoreClient
@@ -589,7 +589,7 @@ private fun checkExistingTaskInstance(
     socketBasePath: String,
     taskId: String,
 ): ExistingTaskDispatchResult {
-    val client = connectExistingClient(socketBasePath) ?: return ExistingTaskDispatchResult.NotFound
+    val client = connectClient(socketBasePath) ?: return ExistingTaskDispatchResult.NotFound
     return try {
         // Session mode has no UI AppHandler on the core host, so RunTask would be a
         // silent no-op. Run the task in this process instead.

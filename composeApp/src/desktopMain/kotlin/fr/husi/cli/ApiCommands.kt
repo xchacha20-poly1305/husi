@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -42,20 +43,46 @@ import kotlin.time.Duration.Companion.seconds
 
 internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
     protected val root by requireObject<DesktopMain>()
+    private val api: ApiCommand
+        get() = generateSequence(currentContext) { it.parent }
+            .map { it.command }
+            .filterIsInstance<ApiCommand>()
+            .first()
 
-    /** Connects to the running core host, runs [block], always closes the client. */
     protected fun <T> withClient(block: suspend (CoreClient) -> T): T {
         val base = root.socketBasePath
+        val api = api
+        val url = api.url.trim()
         val client = try {
-            connectExistingClient(base)
+            if (url.isEmpty() || url.equals("local", ignoreCase = true)) {
+                connectClient(base)
+            } else {
+                val serverURL = if (url.contains("://")) {
+                    url
+                } else {
+                    "http://$url"
+                }
+                try {
+                    connectRemoteClient(serverURL, api.secret)
+                } catch (e: Exception) {
+                    echo(
+                        "failed to connect to API service at $serverURL: ${e.message}",
+                        err = true,
+                    )
+                    throw ProgramResult(1)
+                }
+            }
         } catch (e: LinkageError) {
             echo(libcoreLoadFailureMessage(e), err = true)
             throw ProgramResult(1)
+        } catch (e: ProgramResult) {
+            throw e
         } catch (_: Exception) {
             null
         }
         if (client == null) {
-            echo("No running $APP_NAME instance (socket: $base/$CORE_SOCKET_NAME).", err = true)
+            val socket = File(base, CORE_SOCKET_NAME).path
+            echo("No running $APP_NAME instance (socket: $socket).", err = true)
             throw ProgramResult(1)
         }
         return try {
@@ -81,6 +108,18 @@ internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
 }
 
 class ApiCommand : CliktCommand("api") {
+    val url by option(
+        "--url",
+        help = "API service URL. Default: local. Env: BOX_API_URL",
+        envvar = "BOX_API_URL",
+    ).default("", defaultForHelp = "local")
+
+    val secret by option(
+        "--secret",
+        help = "API service secret. Env: BOX_API_SECRET",
+        envvar = "BOX_API_SECRET",
+    ).default("")
+
     init {
         subcommands(
             ApiStatusCommand(),
