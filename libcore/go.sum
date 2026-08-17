@@ -235,8 +235,8 @@ github.com/sagernet/quic-go v0.61.0-sing-box-mod.4 h1:XoFf8KoBEsamWo3ePlcmS/xs8B
 github.com/sagernet/quic-go v0.61.0-sing-box-mod.4/go.mod h1:hmLC8GJPp+BrpBgrgJnacvI4fZGIhasuy1ROJJ8GR4E=
 github.com/sagernet/sing v0.9.0-beta.2 h1:JZ6bF5cEobx1FjptNvSLfKXP66nU1U21AuEDnebg8u8=
 github.com/sagernet/sing v0.9.0-beta.2/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
-github.com/sagernet/sing-box v1.14.0-beta.15 h1:BNfv9aIVAsVMnltYstOXHFBiXMN9hqD2CC4cNlADTvk=
-github.com/sagernet/sing-box v1.14.0-beta.15/go.mod h1:v4rQ7DlCi3IRQhA9CN3WxJZPKE9Un6OxTfg/24Go9zc=
+github.com/sagernet/sing-box v1.14.0-beta.17 h1:9F8ZiQ8N003DTtlvkd6lKJ0FXqLiOUkUUup21rfIJMk=
+github.com/sagernet/sing-box v1.14.0-beta.17/go.mod h1:GcT/N2z9/xp/e9xYeiG75jiDc27o++KOxowUo0pQRhg=
 github.com/sagernet/sing-mux v0.3.5 h1:RHnhVEc+SFqkrK4xMygYjDwwLhzp2Bj3lztSukONfhI=
 github.com/sagernet/sing-mux v0.3.5/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-openconnect v0.0.0-20260810065514-53aa8058f8df h1:ogyC7KPTWueN7kXFhKSdHeS5/t/zBjQgAOpWjqnrMos=
@@ -255,8 +255,8 @@ github.com/sagernet/sing-snell v0.0.0-20260727093646-7cb813e07b73 h1:Iyhoka9XutV
 github.com/sagernet/sing-snell v0.0.0-20260727093646-7cb813e07b73/go.mod h1:et8Lws4f5QbOrY65DmjevHGup3mijJkhswkto6cwciM=
 github.com/sagernet/sing-tun v0.8.12-0.20260810140529-d67734281390 h1:hEBG77TGYDLDtrcfexL+OuwMGNGw18nyhdEAmag2Ia8=
 github.com/sagernet/sing-tun v0.8.12-0.20260810140529-d67734281390/go.mod h1:3EgPst7agntRO7D6GOsiZ1l9FoqdLeuWmKT5TnWkmf0=
-github.com/sagernet/sing-usbip v0.0.0-20260813125128-908a3a2fa917 h1:aTUWExMVkwFCQFTo+uFD7JCO5m7J0xGqymr94/t3eJs=
-github.com/sagernet/sing-usbip v0.0.0-20260813125128-908a3a2fa917/go.mod h1:D4CnJX3MNAAANhbQUxfIRgBdnvlTEaV7h6ojedcs+pw=
+github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca h1:5wA+IE0Fq1CGVLOgSpm0gKKZ03HzugcJ2JyhmDqeX6A=
+github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca/go.mod h1:ADAZZU85MnM91XNhd2TdZRTaIbA7RjTZuQ1KCHcUbNg=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1 h1:XkJcivBC9V4wBjiGXIXZ229aZCU1hzcbp6kSkkyQ478=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1/go.mod h1:NjhsCEWedJm7eFLyhuBgIEzwfhRmytrUoiLluxs5Sk8=
 github.com/sagernet/wireguard-go v0.0.5-0.20260810121456-c6c8a831ef70 h1:WTVgbkDDGnZqxIUnBsE9QyJz2dtSaeoh9mFwxmQqfgI=
