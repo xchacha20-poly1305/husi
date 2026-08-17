@@ -10,12 +10,15 @@ import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.ktx.applyDefaultValues
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.onDefaultDispatcher
 import fr.husi.resources.Res
 import fr.husi.resources.circular_reference
 import fr.husi.resources.circular_reference_sum
 import fr.husi.resources.duplicate_name
+import fr.husi.resources.error_title
 import fr.husi.ui.StringOrRes
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -109,6 +112,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
     }
 
     fun submitReorder(changes: List<OrderedItem<ProxyEntity>>) {
+        invalidateProfileSelection()
         val currentProfiles = uiState.value.profiles
         val changesMap = changes.associate { it.value.id to it.newIndex }
 
@@ -121,7 +125,8 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         }
     }
 
-    fun remove(index: Int) = viewModelScope.launch {
+    fun remove(index: Int) {
+        invalidateProfileSelection()
         val profiles = uiState.value.profiles.toMutableList()
         profiles.removeAt(index)
         uiState.update {
@@ -132,66 +137,70 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
     /** The profile index that is being replacing */
     var replacing = -1
 
-    fun onSelectProfile(id: Long) = viewModelScope.launch {
-        val profile = ProfileManager.getProfile(id)!!
-        if (!profile.canAdd()) {
-            emitAlert(
-                title = StringOrRes.Res(Res.string.circular_reference),
-                message = StringOrRes.Res(Res.string.circular_reference_sum),
+    private var profileSelectionJob: Job? = null
+    private var profileMutationVersion = 0L
+
+    private fun invalidateProfileSelection() {
+        profileMutationVersion++
+        profileSelectionJob?.cancel()
+        profileSelectionJob = null
+    }
+
+    fun onSelectProfile(id: Long) {
+        val replacingIndex = replacing
+        replacing = -1
+        val version = ++profileMutationVersion
+        profileSelectionJob?.cancel()
+        profileSelectionJob = viewModelScope.launch {
+            val profile = ProfileManager.getProfile(id)!!
+            if (version != profileMutationVersion) return@launch
+            val profiles = uiState.value.profiles.toMutableList()
+            if (replacingIndex >= profiles.size) return@launch
+            val otherProfiles = profiles.filterIndexed { index, _ -> index != replacingIndex }
+            if (otherProfiles.any { it.id == profile.id }) {
+                emitAlert(
+                    title = StringOrRes.Res(Res.string.duplicate_name),
+                    message = StringOrRes.Direct(profile.displayName()),
+                )
+                return@launch
+            }
+            if (!profile.canAdd(otherProfiles)) {
+                if (version != profileMutationVersion) return@launch
+                emitAlert(
+                    title = StringOrRes.Res(Res.string.circular_reference),
+                    message = StringOrRes.Res(Res.string.circular_reference_sum),
+                )
+                return@launch
+            }
+            if (version != profileMutationVersion) return@launch
+            if (replacingIndex < 0) {
+                profiles.add(profile)
+            } else {
+                profiles[replacingIndex] = profile
+            }
+            uiState.update {
+                it.copy(profiles = profiles)
+            }
+        }
+    }
+
+    private suspend fun ProxyEntity.canAdd(otherProfiles: List<ProxyEntity>): Boolean {
+        if (containsProfileReference(editingId, includeGroupProxies = false)) return false
+        for (existingProfile in otherProfiles) {
+            if (existingProfile.containsProfileReference(id, includeGroupProxies = false)) {
+                return false
+            }
+        }
+        if (
+            !isNew && groupProxiesOverlapProfileReferences(
+                groupId = proxyEntity.groupId,
+                rootProfileId = editingId,
+                memberProfiles = otherProfiles + this,
             )
-            return@launch
+        ) {
+            return false
         }
-        val profiles = uiState.value.profiles.toMutableList()
-        if (replacing < 0) {
-            if (profiles.any { it.id == profile.id }) {
-                emitAlert(
-                    title = StringOrRes.Res(Res.string.duplicate_name),
-                    message = StringOrRes.Direct(profile.displayName()),
-                )
-                return@launch
-            }
-            profiles.add(profile)
-        } else {
-            if (profiles.filterIndexed { index, _ -> index != replacing }
-                    .any { it.id == profile.id }) {
-                emitAlert(
-                    title = StringOrRes.Res(Res.string.duplicate_name),
-                    message = StringOrRes.Direct(profile.displayName()),
-                )
-                replacing = -1
-                return@launch
-            }
-            profiles[replacing] = profile
-            replacing = -1
-        }
-        uiState.update {
-            it.copy(profiles = profiles)
-        }
-    }
-
-    private fun ProxyEntity.canAdd(): Boolean {
-        if (id == editingId) return false
-
-        for (entity in uiState.value.profiles) {
-            if (testProfileContains(entity, this)) return false
-        }
-
         return true
-    }
-
-    private fun testProfileContains(profile: ProxyEntity, anotherProfile: ProxyEntity): Boolean {
-        if (profile.type != ProxyEntity.TYPE_CHAIN || anotherProfile.type != ProxyEntity.TYPE_CHAIN) return false
-        if (profile.id == anotherProfile.id) return true
-        val proxies = profile.chainBean!!.proxies
-        if (proxies.contains(anotherProfile.id)) return true
-        if (proxies.isNotEmpty()) {
-            for (entity in ProfileManager.getProfiles(proxies)) {
-                if (testProfileContains(entity, anotherProfile)) {
-                    return true
-                }
-            }
-        }
-        return false
     }
 
     override fun setCustomConfig(config: String) {
@@ -230,15 +239,147 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         uiState.update { it.copy(testTolerance = tolerance) }
     }
 
+    private var groupSelectionJob: Job? = null
+    private var groupSelectionVersion = 0L
+
+    private fun invalidateGroupSelection() {
+        groupSelectionVersion++
+        groupSelectionJob?.cancel()
+        groupSelectionJob = null
+    }
+
+    private fun validateGroupSelection(
+        groupId: Long,
+        filter: String,
+        onInvalid: () -> Unit = {},
+    ) {
+        val version = ++groupSelectionVersion
+        groupSelectionJob?.cancel()
+        groupSelectionJob = viewModelScope.launch {
+            val filterRegex = try {
+                filter.blankAsNull()?.toRegex()
+            } catch (error: IllegalArgumentException) {
+                if (version != groupSelectionVersion) return@launch
+                onInvalid()
+                emitInvalidRegex(error)
+                return@launch
+            }
+            val groupProfiles = SagerDatabase.proxyDao.getByGroup(groupId).first()
+            if (version != groupSelectionVersion) return@launch
+            val selectedProfiles = groupProfiles.filter { profile ->
+                profile.id != editingId &&
+                    filterRegex?.containsMatchIn(profile.displayName()) != false
+            }
+            for (profile in selectedProfiles) {
+                if (version != groupSelectionVersion) return@launch
+                if (profile.containsProfileReference(editingId, includeGroupProxies = false)) {
+                    if (version != groupSelectionVersion) return@launch
+                    onInvalid()
+                    emitAlert(
+                        title = StringOrRes.Res(Res.string.circular_reference),
+                        message = StringOrRes.Res(Res.string.circular_reference_sum),
+                    )
+                    return@launch
+                }
+            }
+            if (
+                !isNew && groupProxiesOverlapProfileReferences(
+                    groupId = proxyEntity.groupId,
+                    rootProfileId = editingId,
+                    memberProfiles = selectedProfiles,
+                )
+            ) {
+                if (version != groupSelectionVersion) return@launch
+                onInvalid()
+                emitAlert(
+                    title = StringOrRes.Res(Res.string.circular_reference),
+                    message = StringOrRes.Res(Res.string.circular_reference_sum),
+                )
+            }
+        }
+    }
+
     fun setCollectType(type: Int) {
+        val state = uiState.value
+        if (type != ProxySetBean.TYPE_GROUP || state.groupID <= 0L) {
+            invalidateGroupSelection()
+            uiState.update { it.copy(collectType = type) }
+            return
+        }
         uiState.update { it.copy(collectType = type) }
+        validateGroupSelection(
+            groupId = state.groupID,
+            filter = state.filterNotRegex,
+            onInvalid = {
+                uiState.update { current ->
+                    if (current.collectType == type) {
+                        current.copy(collectType = state.collectType)
+                    } else {
+                        current
+                    }
+                }
+            },
+        )
     }
 
     fun setGroupID(id: Long) {
+        val previousGroupId = uiState.value.groupID
         uiState.update { it.copy(groupID = id) }
+        validateGroupSelection(
+            groupId = id,
+            filter = uiState.value.filterNotRegex,
+            onInvalid = {
+                uiState.update { current ->
+                    if (current.groupID == id) {
+                        current.copy(groupID = previousGroupId)
+                    } else {
+                        current
+                    }
+                }
+            },
+        )
     }
 
     fun setFilterNotRegex(regex: String) {
+        val invalidRegex = regex.blankAsNull()?.let {
+            runCatching { it.toRegex() }.exceptionOrNull()
+        }
+        if (invalidRegex != null) {
+            invalidateGroupSelection()
+            viewModelScope.launch {
+                emitInvalidRegex(invalidRegex)
+            }
+            return
+        }
+
+        val state = uiState.value
+        if (state.collectType != ProxySetBean.TYPE_GROUP || state.groupID <= 0L) {
+            invalidateGroupSelection()
+            uiState.update { it.copy(filterNotRegex = regex) }
+            return
+        }
         uiState.update { it.copy(filterNotRegex = regex) }
+        validateGroupSelection(
+            groupId = state.groupID,
+            filter = regex,
+            onInvalid = {
+                uiState.update { current ->
+                    if (current.filterNotRegex == regex) {
+                        current.copy(filterNotRegex = state.filterNotRegex)
+                    } else {
+                        current
+                    }
+                }
+            },
+        )
+    }
+
+    private suspend fun emitInvalidRegex(error: Throwable) {
+        emitAlert(
+            title = StringOrRes.Res(Res.string.error_title),
+            message = StringOrRes.Direct(
+                error.message ?: "Invalid regular expression",
+            ),
+        )
     }
 }
