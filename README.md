@@ -101,29 +101,9 @@ sqlite-bundled has no binary for them, so the app cannot open its database there
 [issuetracker 495864182](https://issuetracker.google.com/issues/495864182) for `osx_x64` and
 [issuetracker 426464784](https://issuetracker.google.com/issues/426464784) for `windows_arm64`.
 
-For Linux desktop targets, the build includes `with_naive_outbound` and consults a
-[`cronet-go`](https://github.com/sagernet/cronet-go) checkout via `build-naive env`. If `CRONET_GO_ROOT` is unset,
-`libcore/build.sh` first checks `../../cronet-go`, then falls back to `$HOME/cronet-go`:
-
-```shell
-CRONET_GO_ROOT=/path/to/cronet-go make libcore
-```
-
-For Linux targets, `cronet-go` exports the naiveproxy cross-toolchain environment directly.
-For Darwin targets on a Darwin host, `libcore/build.sh` keeps `with_naive_outbound` and derives `CC`/`CXX`/`CGO_*`
-from the Chromium clang and hermetic Xcode toolchain inside the `cronet-go` checkout. If the Darwin SDK/linker tree
-is missing, the desktop build fails immediately.
-For Darwin targets on non-Darwin hosts, `libcore/build.sh` uses `zig cc` / `zig c++`, requires an explicit macOS SDK
-path via `DARWIN_SDK` or `--darwinsdk`, exports the matching `CGO_*` sysroot/library flags, keeps
-`with_naive_outbound`, and does not require a `cronet-go` checkout, so `zig` must be available in `PATH`.
-
-If `cronet-go` isn't available and you don't need the naive outbound protocol (e.g. in a restricted build
-environment), pass `NO_NAIVE=1` (or `--no-naive` to `libcore/build.sh` directly) to drop `with_naive_outbound`
-from the build tags and skip the cronet-go toolchain setup entirely:
-
-```shell
-NO_NAIVE=1 make libcore_desktop DESKTOP_TARGETS=linux/amd64
-```
+Linux desktop targets use `zig cc` / `zig c++` with a glibc 2.31 target for the `with_naive_outbound` build; the
+required prebuilt Cronet library is downloaded through Go modules, so no `cronet-go` checkout is needed. Darwin
+targets use Xcode on macOS, or Zig plus an explicit macOS SDK path via `DARWIN_SDK` or `--darwinsdk` on other hosts.
 
 Desktop Gradle builds select `composeApp/libs/libcore-desktop-<platform>-<arch>.jar` automatically from the current
 `os.name` and `os.arch`.

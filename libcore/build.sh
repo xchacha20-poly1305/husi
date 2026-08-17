@@ -83,22 +83,6 @@ read_husi_version() {
     echo "$version"
 }
 
-remove_build_tag() {
-    local build_tags="$1"
-    local remove_tag="$2"
-    local tag
-    local kept_tags=()
-    IFS="," read -r -a input_tags <<< "$build_tags"
-    for tag in "${input_tags[@]}"; do
-        if [ "$tag" == "$remove_tag" ]; then
-            continue
-        fi
-        kept_tags+=("$tag")
-    done
-    local IFS=","
-    echo "${kept_tags[*]}"
-}
-
 add_build_tag() {
     local build_tags="$1"
     local add_tag="$2"
@@ -117,45 +101,31 @@ add_build_tag() {
     echo "$build_tags,$add_tag"
 }
 
-read_gn_string_var() {
-    local file="$1"
-    local key="$2"
-    sed -n "s/^[[:space:]]*$key = \"\\([^\"]*\\)\".*/\\1/p" "$file" | head -n1
-}
-
-resolve_cronet_go_root() {
-    if [ -n "$CRONET_GO_ROOT" ]; then
-        echo "$CRONET_GO_ROOT"
-        return
-    fi
-
-    local repo_default="../../cronet-go"
-    local home_default="$HOME/cronet-go"
-
-    if [ -d "$repo_default" ]; then
-        echo "$repo_default"
-        return
-    fi
-
-    echo "$home_default"
+remove_build_tag() {
+    local build_tags="$1"
+    local remove_tag="$2"
+    local tag
+    local kept_tags=()
+    IFS="," read -r -a input_tags <<< "$build_tags"
+    for tag in "${input_tags[@]}"; do
+        if [ "$tag" != "$remove_tag" ]; then
+            kept_tags+=("$tag")
+        fi
+    done
+    local IFS=","
+    echo "${kept_tags[*]}"
 }
 
 apply_darwin_toolchain_env() {
     local desktop_target="$1"
     local host_platform
     local arch="${desktop_target#*/}"
-    local sdk_version
     local deployment_target
     local sdk_root
-    local mac_bin_path
     local clang_arch
     local zig_target
-    local cronet_go_root
-    local src_root
     local clang_bin
-    local xcode_root
-    local developer_root
-    local mac_sdk_gni
+    local clang_bin_cxx
 
     host_platform="$(go env GOOS)"
 
@@ -218,80 +188,25 @@ apply_darwin_toolchain_env() {
         return
     fi
 
-    # A macOS runner already provides the SDK and linker through Xcode. The
-    # hermetic Xcode bundle is only needed when cross-compiling from Linux.
-    if command -v xcrun >/dev/null 2>&1; then
-        sdk_root="$(xcrun --sdk macosx --show-sdk-path)"
-        clang_bin="$(xcrun --sdk macosx --find clang)"
-        clang_bin_cxx="$(xcrun --sdk macosx --find clang++)"
-        if [ -z "$sdk_root" ] || [ ! -d "$sdk_root" ] || [ ! -x "$clang_bin" ] || [ ! -x "$clang_bin_cxx" ]; then
-            echo "Unable to resolve the macOS SDK and clang toolchain with xcrun"
-            exit 1
-        fi
-        deployment_target="$EXTERNAL_MACOSX_DEPLOYMENT_TARGET"
-        if [ -z "$deployment_target" ]; then
-            deployment_target="12.0"
-        fi
-        export SDKROOT="$sdk_root"
-        export MACOSX_DEPLOYMENT_TARGET="$deployment_target"
-        export CC="$clang_bin --target=${clang_arch}-apple-macos"
-        export CXX="$clang_bin_cxx --target=${clang_arch}-apple-macos"
-        export CGO_CFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET -Wno-deprecated-declarations"
-        export CGO_CXXFLAGS="$CGO_CFLAGS"
-        export CGO_LDFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET $dead_strip_dylibs"
-        return
-    fi
-
-    cronet_go_root="$(resolve_cronet_go_root)"
-    if [ ! -d "$cronet_go_root" ]; then
-        echo "Missing cronet-go root: $cronet_go_root"
-        echo "Set CRONET_GO_ROOT or place cronet-go at ../../cronet-go or ~/cronet-go for desktop target $desktop_target."
+    if ! command -v xcrun >/dev/null 2>&1; then
+        echo "Missing Xcode command-line tools for Darwin desktop target $desktop_target"
         exit 1
     fi
-
-    src_root="$cronet_go_root/naiveproxy/src"
-    clang_bin="$src_root/third_party/llvm-build/Release+Asserts/bin"
-    xcode_root="$src_root/build/mac_files/xcode_binaries"
-    developer_root="$xcode_root/Contents/Developer"
-    mac_sdk_gni="$src_root/build/config/mac/mac_sdk.gni"
-
-    if [ ! -x "$clang_bin/clang" ] || [ ! -x "$clang_bin/clang++" ]; then
-        echo "Missing Chromium clang toolchain in $clang_bin"
-        echo "Prepare the cronet-go toolchain checkout before building desktop target $desktop_target."
+    sdk_root="$(xcrun --sdk macosx --show-sdk-path)"
+    clang_bin="$(xcrun --sdk macosx --find clang)"
+    clang_bin_cxx="$(xcrun --sdk macosx --find clang++)"
+    if [ -z "$sdk_root" ] || [ ! -d "$sdk_root" ] || [ ! -x "$clang_bin" ] || [ ! -x "$clang_bin_cxx" ]; then
+        echo "Unable to resolve the macOS SDK and clang toolchain with xcrun"
         exit 1
     fi
-    if [ ! -d "$xcode_root" ]; then
-        echo "Missing hermetic Xcode toolchain in $xcode_root"
-        echo "Prepare the Darwin SDK/linker toolchain in the cronet-go checkout before building $desktop_target."
-        exit 1
+    deployment_target="$EXTERNAL_MACOSX_DEPLOYMENT_TARGET"
+    if [ -z "$deployment_target" ]; then
+        deployment_target="12.0"
     fi
-
-    sdk_version="$(read_gn_string_var "$mac_sdk_gni" "mac_sdk_official_version")"
-    deployment_target="$(read_gn_string_var "$mac_sdk_gni" "mac_deployment_target")"
-    if [ -z "$sdk_version" ] || [ -z "$deployment_target" ]; then
-        echo "Failed to read Darwin SDK configuration from $mac_sdk_gni"
-        exit 1
-    fi
-
-    sdk_root="$developer_root/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${sdk_version}.sdk"
-    if [ ! -d "$sdk_root" ]; then
-        sdk_root="$developer_root/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-    fi
-    if [ ! -d "$sdk_root" ]; then
-        echo "Missing macOS SDK under $developer_root/Platforms/MacOSX.platform/Developer/SDKs"
-        exit 1
-    fi
-
-    mac_bin_path="$developer_root/Toolchains/XcodeDefault.xctoolchain/usr/bin"
-    if [ ! -d "$mac_bin_path" ]; then
-        echo "Missing Darwin linker toolchain path: $mac_bin_path"
-        exit 1
-    fi
-
     export SDKROOT="$sdk_root"
     export MACOSX_DEPLOYMENT_TARGET="$deployment_target"
-    export CC="$clang_bin/clang --target=${clang_arch}-apple-macos -B$mac_bin_path"
-    export CXX="$clang_bin/clang++ --target=${clang_arch}-apple-macos -B$mac_bin_path"
+    export CC="$clang_bin --target=${clang_arch}-apple-macos"
+    export CXX="$clang_bin_cxx --target=${clang_arch}-apple-macos"
     export CGO_CFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET -Wno-deprecated-declarations"
     export CGO_CXXFLAGS="$CGO_CFLAGS"
     export CGO_LDFLAGS="-isysroot $SDKROOT -mmacos-version-min=$MACOSX_DEPLOYMENT_TARGET $dead_strip_dylibs"
@@ -336,28 +251,33 @@ apply_windows_toolchain_env() {
 apply_naive_toolchain_env() {
     local desktop_target="$1"
     local platform="${desktop_target%%/*}"
+    local zig_target
+    local script_dir
     if [ "$platform" == "darwin" ]; then
         apply_darwin_toolchain_env "$desktop_target"
         return
     fi
-    local cronet_go_root
-    cronet_go_root="$(resolve_cronet_go_root)"
-    if [ ! -d "$cronet_go_root" ]; then
-        echo "Missing cronet-go root: $cronet_go_root"
-        echo "Set CRONET_GO_ROOT or place cronet-go at ../../cronet-go or ~/cronet-go for desktop target $desktop_target."
+    case "$desktop_target" in
+    linux/amd64)
+        zig_target="x86_64-linux-gnu.2.31"
+        ;;
+    linux/arm64)
+        zig_target="aarch64-linux-gnu.2.31"
+        ;;
+    *)
+        echo "Unsupported naive desktop target without cronet-go toolchain: $desktop_target"
+        exit 1
+        ;;
+    esac
+    if ! command -v zig >/dev/null 2>&1; then
+        echo "Missing zig compiler in PATH for naive desktop target $desktop_target"
         exit 1
     fi
-    local exported_env
-    if ! exported_env="$(
-        cd "$cronet_go_root" &&
-            go run ./cmd/build-naive --target="$desktop_target" env --export
-    )"; then
-        echo "Failed to load cronet-go toolchain environment for desktop target $desktop_target from $cronet_go_root"
-        exit 1
-    fi
-    if [ -n "$exported_env" ]; then
-        eval "$exported_env"
-    fi
+    export HUSI_ZIG_TARGET="$zig_target"
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
+    export CC="$script_dir/zig-cc.sh"
+    export CXX="zig c++ -target $zig_target"
+    export CGO_LDFLAGS="-fuse-ld=lld"
 }
 
 while [ "$#" -gt 0 ]; do
@@ -479,10 +399,8 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
     if [ -z "$DESKTOP_TARGETS" ]; then
         DESKTOP_TARGETS="host"
     fi
-    host_platform="$(go env GOOS)"
     IFS="," read -r -a desktop_target_list <<< "$DESKTOP_TARGETS"
     for desktop_target in "${desktop_target_list[@]}"; do
-        # Full tag set on the bind (N1): naive included unless NO_NAIVE=1.
         local_build_tags="$BUILD_TAGS"
         desktop_target="${desktop_target//[[:space:]]/}"
         if [ -z "$desktop_target" ]; then
@@ -504,10 +422,8 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
         if [ "$desktop_platform" == "windows" ]; then
             apply_windows_toolchain_env "$desktop_target"
         elif [[ ",$local_build_tags," == *",with_naive_outbound,"* ]]; then
-            # Cronet/naive toolchain for Linux (and Darwin when needed) on the bind.
+            # Cronet/naive toolchain for Linux and Darwin on the bind.
             apply_naive_toolchain_env "$desktop_target"
-        elif [ "$host_platform" != "darwin" ] && [ "$desktop_platform" == "darwin" ]; then
-            apply_darwin_toolchain_env "$desktop_target"
         fi
         desktop_args=("${ANJA_COMMON_ARGS[@]}" "-ldflags=$anja_ldflags" "-tags=$local_build_tags")
         if [ -n "$JNI_INCLUDE" ]; then

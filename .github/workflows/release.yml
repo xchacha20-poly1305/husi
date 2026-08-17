@@ -115,25 +115,6 @@ jobs:
           ref: ${{ env.MACOS_SDK_COMMIT }}
           path: macos-sdk
           sparse-checkout: MacOSX${{ env.MACOS_SDK_VERSION }}.sdk
-      - name: Checkout cronet-go
-        uses: actions/checkout@v7
-        with:
-          repository: SagerNet/cronet-go
-          ref: ${{ env.CRONET_GO_COMMIT }}
-          path: cronet-go
-          submodules: recursive
-          fetch-depth: 1
-      - name: Cache cronet toolchain
-        uses: actions/cache@v6
-        with:
-          path: |
-            cronet-go/naiveproxy/src/third_party/llvm-build
-            cronet-go/naiveproxy/src/gn/out
-            cronet-go/naiveproxy/src/chrome/build/pgo_profiles
-            cronet-go/naiveproxy/src/out/sysroot-build
-          key: cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64_arm64-${{ env.CRONET_GO_COMMIT }}
-          restore-keys: |
-            cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64-${{ env.CRONET_GO_COMMIT }}
       - name: Install system packaging tools
         run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode xorriso zstd
       - name: Cache nfpm
@@ -145,8 +126,6 @@ jobs:
       - name: Install nfpm
         if: steps.cache-nfpm.outputs.cache-hit != 'true'
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v${NFPM_VERSION}
-      - name: Prepare cronet toolchain
-        run: (cd cronet-go && go run ./cmd/build-naive --target=linux/amd64,linux/arm64 download-toolchain)
       - name: Cache route assets
         id: cache-assets
         uses: actions/cache@v6
@@ -158,8 +137,6 @@ jobs:
         if: steps.cache-assets.outputs.cache-hit != 'true'
         run: make assets
       - name: Build desktop libcore
-        env:
-          CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
         # windows/arm64 is temporarily out: androidx sqlite-bundled ships no windows_arm64
         # libsqliteJni, so the app cannot open its database there.
         # See https://issuetracker.google.com/issues/426464784

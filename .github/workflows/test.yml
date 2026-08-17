@@ -108,25 +108,6 @@ jobs:
         with:
           version: ${{ env.ZIG_VERSION }}
           cache-key: launcher-test
-      - name: Checkout cronet-go
-        uses: actions/checkout@v7
-        with:
-          repository: SagerNet/cronet-go
-          ref: ${{ env.CRONET_GO_COMMIT }}
-          path: cronet-go
-          submodules: recursive
-          fetch-depth: 1
-      - name: Cache cronet toolchain
-        uses: actions/cache@v6
-        with:
-          path: |
-            cronet-go/naiveproxy/src/third_party/llvm-build
-            cronet-go/naiveproxy/src/gn/out
-            cronet-go/naiveproxy/src/chrome/build/pgo_profiles
-            cronet-go/naiveproxy/src/out/sysroot-build
-          key: cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64-${{ env.CRONET_GO_COMMIT }}
-      - name: Prepare cronet toolchain
-        run: cd cronet-go && go run ./cmd/build-naive --target=linux/amd64 download-toolchain
       - name: Test libcore
         working-directory: libcore
         run: go test -v -count=1 ./...
@@ -135,7 +116,7 @@ jobs:
         run: make test_no_go_core_binary
       - name: Build libcore bindings
         env:
-          CRONET_GO_ROOT: ${{ github.workspace }}/cronet-go
+          NO_NAIVE: 1
         run: |
           make libcore
       - name: Test Zig projects

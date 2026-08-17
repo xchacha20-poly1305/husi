@@ -44,13 +44,8 @@ Makefile does).
 
 Cross-compiling desktop libcore: pass `JNI_INCLUDE=/path/to/jni` when JNI headers aren't
 auto-detected; for Darwin targets on non-Darwin hosts also pass `DARWIN_SDK=/path/to/MacOSX.sdk` (
-uses `zig cc`). Linux desktop builds pull in `cronet-go` for naive outbound — set `CRONET_GO_ROOT`
-if it's not in `../../cronet-go` or `$HOME/cronet-go`.
-
-In restricted environments without a `cronet-go` checkout (or without network access to fetch
-one), pass `NO_NAIVE=1` to `make libcore` / `make libcore_desktop` (or `--no-naive` to
-`libcore/build.sh` directly) to drop the `with_naive_outbound` build tag and skip the cronet-go
-toolchain setup entirely. The resulting build omits the naive outbound protocol.
+uses `zig cc`). Linux desktop builds use Zig for naive outbound, while the required prebuilt Cronet
+library is downloaded through Go modules.
 
 Desktop Gradle picks the libcore jar from `os.name`/`os.arch`; override with
 `./gradlew -p composeApp run -PdesktopTarget=linux/amd64`. A missing jar fails Gradle sync (and any
