@@ -125,15 +125,6 @@ jobs:
             cronet-go/naiveproxy/src/chrome/build/pgo_profiles
             cronet-go/naiveproxy/src/out/sysroot-build
           key: cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64-${{ env.CRONET_GO_COMMIT }}
-      - name: Cache route assets
-        id: cache-assets
-        uses: actions/cache@v6
-        with:
-          path: composeApp/src/commonMain/composeResources/files/sing-box
-          key: assets-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}
-      - name: Prepare assets
-        if: steps.cache-assets.outputs.cache-hit != 'true'
-        run: make assets
       - name: Prepare cronet toolchain
         run: cd cronet-go && go run ./cmd/build-naive --target=linux/amd64 download-toolchain
       - name: Test libcore

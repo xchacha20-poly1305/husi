@@ -34,6 +34,8 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
       - uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: release-android
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -49,7 +51,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: composeApp/src/commonMain/composeResources/files/sing-box
-          key: assets-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}
+          key: >-
+            assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/ruleset_generate/**', 'libcore/cmd/internal/shared/**', 'libcore/go.mod', 'libcore/go.sum') }}
       - name: Prepare assets
         if: steps.cache-assets.outputs.cache-hit != 'true'
         run: make assets
@@ -87,6 +90,8 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
       - uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: release-desktop
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -127,6 +132,8 @@ jobs:
             cronet-go/naiveproxy/src/chrome/build/pgo_profiles
             cronet-go/naiveproxy/src/out/sysroot-build
           key: cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64_arm64-${{ env.CRONET_GO_COMMIT }}
+          restore-keys: |
+            cronet-toolchain-${{ runner.os }}-${{ runner.arch }}-linux_amd64-${{ env.CRONET_GO_COMMIT }}
       - name: Install system packaging tools
         run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode xorriso zstd
       - name: Cache nfpm
@@ -145,7 +152,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: composeApp/src/commonMain/composeResources/files/sing-box
-          key: assets-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}
+          key: >-
+            assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/ruleset_generate/**', 'libcore/cmd/internal/shared/**', 'libcore/go.mod', 'libcore/go.sum') }}
       - name: Prepare assets
         if: steps.cache-assets.outputs.cache-hit != 'true'
         run: make assets
