@@ -359,7 +359,6 @@ kotlin {
                 implementation(libs.smali.dexlib2.get().toString()) {
                     exclude(group = "com.google.guava", module = "guava")
                 }
-                implementation(libs.guava)
 
                 implementation(libs.process.phoenix)
 

@@ -148,7 +148,7 @@ func determinePkgType(pkgName string) (string, bool) {
 		return androidVPNCoreTypeSingBox, true
 	}
 	// SagerNet use clash, too. So determines V2Ray prior to Clash.
-	if strings.Contains(pkgNameLower, "v2ray") || strings.Contains(pkgNameLower, "xray") {
+	if strings.Contains(pkgNameLower, "v2ray") || strings.Contains(pkgNameLower, "xray") || strings.Contains(pkgNameLower, "exclave-core") {
 		return androidVPNCoreTypeV2Ray, true
 	}
 	if strings.Contains(pkgNameLower, "clash") || strings.Contains(pkgNameLower, "mihomo") {
