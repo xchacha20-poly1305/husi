@@ -20,3 +20,6 @@ internal actual val localDNSSupportRaw: Boolean = true
 
 internal actual val anchorDeviceName: String
     get() = error("nope")
+
+internal actual val protectPath: String
+    get() = error("nope")

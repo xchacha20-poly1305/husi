@@ -191,6 +191,7 @@ var endpointList = []any{
 }
 
 var serviceList = []any{
+	pluginoption.ProtectServiceOptions{},
 	pluginoption.AnchorServiceOptions{},
 }
 

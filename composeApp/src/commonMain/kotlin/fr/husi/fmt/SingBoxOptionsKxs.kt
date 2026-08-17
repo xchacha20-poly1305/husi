@@ -57,6 +57,7 @@ data class MyOptionsKxs(
     val outbounds: List<JsonObject>? = null,
     val endpoints: List<JsonObject>? = null,
     val route: MyRouteOptionsKxs? = null,
+    val services: List<JsonObject>? = null,
     val experimental: ExperimentalOptions? = null,
 )
 
@@ -99,5 +100,6 @@ fun MyOptions.toKxs(): MyOptionsKxs = MyOptionsKxs(
     outbounds = outbounds?.map { it.toJsonObjectKxs() },
     endpoints = endpoints?.map { it.toJsonObjectKxs() },
     route = route?.toKxs(),
+    services = services?.map { it.toJsonObjectKxs() },
     experimental = experimental,
 )

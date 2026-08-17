@@ -2,6 +2,7 @@ package fr.husi.fmt.shadowquic
 
 import fr.husi.database.DataStore
 import fr.husi.fmt.LOCALHOST4
+import fr.husi.fmt.protectPath
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
@@ -179,7 +180,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(
                     }
                 }
                 put("gso", gso)
-                put("protect-path", if (shouldProtect) Libcore.ProtectPath else null)
+                put("protect-path", if (shouldProtect) protectPath else null)
             },
         )
         put(

@@ -10,7 +10,6 @@ import (
 
 	"libcore/oscall"
 	"libcore/procfs"
-	"libcore/protect"
 
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
@@ -55,11 +54,7 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformAutoDetectInterfaceControl() bo
 }
 
 func (w *boxPlatformInterfaceWrapper) AutoDetectInterfaceControl(fd int) error {
-	// "protect"
-	ok := w.iif.AutoDetectInterfaceControl(int32(fd))
-	if !ok {
-		_ = protect.Protect(ProtectPath, fd)
-	}
+	_ = w.iif.AutoDetectInterfaceControl(int32(fd))
 	return nil
 }
 

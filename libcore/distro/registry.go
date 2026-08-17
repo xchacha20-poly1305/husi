@@ -1,6 +1,8 @@
 package distro
 
 import (
+	"libcore/plugin/protect"
+
 	"github.com/sagernet/sing-box/adapter/certificate"
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	"github.com/sagernet/sing-box/adapter/inbound"
@@ -139,6 +141,7 @@ func registerQUICTransports(registry *dns.TransportRegistry) {
 func ServiceRegistry() *service.Registry {
 	registry := service.NewRegistry()
 
+	protect.RegisterService(registry)
 	registerAnchor(registry)
 
 	return registry

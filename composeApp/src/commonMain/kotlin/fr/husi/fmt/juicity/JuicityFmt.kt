@@ -3,6 +3,7 @@ package fr.husi.fmt.juicity
 import fr.husi.database.DataStore
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.protectPath
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.parseBoolean
@@ -49,7 +50,7 @@ fun JuicityBean.buildJuicityConfig(port: Int, shouldProtect: Boolean): String {
         "allow_insecure" to allowInsecure.takeIf { it },
         "congestion_control" to "bbr",
         "pinned_certchain_sha256" to pinSHA256.takeIf { it.isNotBlank() },
-        "protect_path" to if (shouldProtect) Libcore.ProtectPath else null,
+        "protect_path" to if (shouldProtect) protectPath else null,
         "log_level" to if (DataStore.logLevel > 0) "debug" else "error",
     ).toJsonStringKxs()
 }

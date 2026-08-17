@@ -11,6 +11,7 @@ import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.mieru.buildMieruConfig
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.naive.buildNaiveConfig
+import fr.husi.fmt.protectPath
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.libcore.Libcore
@@ -104,7 +105,7 @@ fun buildPluginSpecs(
                 is MieruBean -> {
                     val configName = "mieru_$port.json"
                     if (shouldProtect) {
-                        env["MIERU_PROTECT_PATH"] = Libcore.ProtectPath
+                        env["MIERU_PROTECT_PATH"] = protectPath
                     }
                     env["MIERU_CONFIG_JSON_FILE"] = pluginFileToken(configName)
                     pluginProcessSpec {

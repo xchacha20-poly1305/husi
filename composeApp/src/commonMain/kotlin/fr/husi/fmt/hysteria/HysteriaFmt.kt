@@ -8,6 +8,7 @@ import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.listable
 import fr.husi.fmt.parseBoxTLS
+import fr.husi.fmt.protectPath
 import fr.husi.fmt.toECHOneLine
 import fr.husi.fmt.toECHPem
 import fr.husi.ktx.JSONMap
@@ -315,7 +316,7 @@ fun HysteriaBean.buildHysteriaConfig(
                     if (shouldProtect) {
                         put(
                             "sockopts",
-                            buildMap { put("fdControlUnixSocket", Libcore.ProtectPath) },
+                            buildMap { put("fdControlUnixSocket", protectPath) },
                         )
                     }
                 }

@@ -7,7 +7,6 @@ import (
 	"libcore/pb/husi/v1"
 	"libcore/plugin/pluginoption"
 	"libcore/pluginpool"
-	"libcore/protect"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
@@ -22,7 +21,6 @@ type Service struct {
 	platformInterface  PlatformInterface
 	appHandler         coresvc.AppHandler
 	host               *coresvc.Host
-	protect            *protect.Service
 	pluginPool         *pluginpool.PluginPool
 	pluginFatalHandler PluginFatalHandler
 	// pluginWorkingDir is the parent directory for transient URL-test plugin
@@ -83,7 +81,6 @@ func (s *Service) Start() error {
 		return err
 	}
 	s.host = host
-	startProtectService(s)
 	return nil
 }
 
@@ -92,7 +89,6 @@ func (s *Service) Close() error {
 	defer s.access.Unlock()
 	s.closePluginPoolLocked()
 	return common.Close(
-		common.PtrOrNil(s.protect),
 		common.PtrOrNil(s.host),
 	)
 }

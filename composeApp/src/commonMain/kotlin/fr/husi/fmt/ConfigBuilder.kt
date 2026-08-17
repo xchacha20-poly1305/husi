@@ -111,7 +111,10 @@ const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
 const val TAG_DNS_HOSTS = "dns-hosts"
 const val TAG_DNS_MDNS = "dns-mdns"
+
+// Service
 const val TAG_SERVICE_ANCHOR = "service-anchor"
+const val TAG_SERVICE_PROTECT = "service-protect"
 
 const val LOCALHOST4 = "127.0.0.1"
 const val LOCALHOST_NAME = "localhost"
@@ -515,21 +518,37 @@ fun buildConfig(
 
         inbounds = mutableListOf()
 
-        if (!forTest && PlatformInfo.isAndroid && DataStore.allowAccess) {
-            DataStore.anchorSSID.blankAsNull()?.let { allowedSSIDs ->
-                services = mutableListOf(
-                    SingBoxOptions.Service_AnchorOptions().apply {
-                        type = TAG_SERVICE_ANCHOR
-                        tag = TAG_SERVICE_ANCHOR
-                        listen = bind
-                        listen_port = ANCHOR_PORT
-                        dns_port = localDNSPort ?: 0
-                        device_name = anchorDeviceName
-                        socks_port = DataStore.mixedPort
-                        allowed_ssids = allowedSSIDs.lines().toMutableList()
+        if (!forTest && PlatformInfo.isAndroid && !forExport) {
+            val platformServices = mutableListOf<SingBoxOptions.Service>()
+
+            if (isVPN) {
+                platformServices.add(
+                    SingBoxOptions.Service_ProtectOptions().apply {
+                        type = SingBoxOptions.TYPE_PROTECT
+                        tag = TAG_SERVICE_PROTECT
+                        path = protectPath
                     },
                 )
             }
+
+            if (DataStore.allowAccess) {
+                DataStore.anchorSSID.blankAsNull()?.let { allowedSSIDs ->
+                    platformServices.add(
+                        SingBoxOptions.Service_AnchorOptions().apply {
+                            type = SingBoxOptions.TYPE_ANCHOR
+                            tag = TAG_SERVICE_ANCHOR
+                            listen = bind
+                            listen_port = ANCHOR_PORT
+                            dns_port = localDNSPort ?: 0
+                            device_name = anchorDeviceName
+                            socks_port = DataStore.mixedPort
+                            allowed_ssids = allowedSSIDs.lines().toMutableList()
+                        },
+                    )
+                }
+            }
+
+            if (platformServices.isNotEmpty()) services = platformServices
         }
 
         if (!forTest) {

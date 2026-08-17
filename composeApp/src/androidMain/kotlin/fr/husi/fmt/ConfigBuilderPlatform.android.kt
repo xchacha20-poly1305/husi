@@ -1,6 +1,8 @@
 package fr.husi.fmt
 
 import android.os.Build
+import fr.husi.libcore.Libcore
+import fr.husi.repository.resolveAndroidRepository
 
 internal actual fun SingBoxOptions.Inbound_TunOptions.applyPlatformConfig() {
 }
@@ -10,3 +12,8 @@ internal actual val localDNSSupportRaw: Boolean
 
 internal actual val anchorDeviceName: String
     get() = Build.MODEL
+
+internal actual val protectPath: String
+    get() = resolveAndroidRepository().noBackupFilesDir
+        .resolve(Libcore.ProtectPath)
+        .absolutePath

@@ -15,6 +15,8 @@ const APIVersion int32 = daemon.APIVersion
 
 const ProtectPath = "protect_path"
 
+var protectSocketPath = ProtectPath
+
 func InitCore(shouldOperateFiles, truncateLog bool,
 	cachePath, internalAssets, externalAssets string,
 	maxLogLines int32, logLevel int32,
@@ -26,6 +28,7 @@ func InitCore(shouldOperateFiles, truncateLog bool,
 	workDir := filepath.Join(cachePath, "../no_backup")
 	_ = os.MkdirAll(workDir, 0o755)
 	_ = os.Chdir(workDir)
+	protectSocketPath = filepath.Join(workDir, ProtectPath)
 	externalAssetsPath = externalAssets
 	internalAssetsPath = internalAssets
 

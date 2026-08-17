@@ -49,6 +49,9 @@ object SingBoxOptions {
     const val TYPE_TRUST_TUNNEL = "trusttunnel"
     const val TYPE_BRIDGE = "bridge"
 
+    const val TYPE_PROTECT = "protect"
+    const val TYPE_ANCHOR = "anchor"
+
     const val TRANSPORT_WS = "ws"
     const val TRANSPORT_HTTPUPGRADE = "httpupgrade"
     const val TRANSPORT_HTTP = "http"
@@ -2361,6 +2364,12 @@ object SingBoxOptions {
         var query_type: MutableList<String>? = null
 
         @JvmField
+        var query_client_subnet: MutableList<String>? = null
+
+        @JvmField
+        var query_dnssec: Boolean? = null
+
+        @JvmField
         var network: MutableList<String>? = null
 
         @JvmField
@@ -2540,6 +2549,9 @@ object SingBoxOptions {
         var client_subnet: String? = null
 
         @JvmField
+        var remove_client_subnet: Boolean? = null
+
+        @JvmField
         var tag: String? = null
 
         // Generate note: nested type AbstractDNSRouteActionOptions
@@ -2607,6 +2619,9 @@ object SingBoxOptions {
 
         @JvmField
         var client_subnet: String? = null
+
+        @JvmField
+        var remove_client_subnet: Boolean? = null
 
         @JvmField
         var tag: String? = null
@@ -5532,6 +5547,14 @@ object SingBoxOptions {
 
         @JvmField
         var udp_timeout: Long? = null
+
+    }
+
+    @KxsSerializable
+    open class Service_ProtectOptions : Service() {
+
+        @JvmField
+        var path: String? = null
 
     }
 

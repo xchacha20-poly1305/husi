@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"libcore/coresvc"
-	"libcore/protect"
+	"libcore/plugin/protect"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing/common/control"
@@ -20,7 +20,8 @@ import (
 func ignoreProtectError() control.Func {
 	return func(network, address string, conn syscall.RawConn) error {
 		_ = control.Raw(conn, func(fd uintptr) error {
-			_ = protect.Protect(ProtectPath, int(fd))
+			// Pings run in the UI process, which has no VPN service of its own.
+			_ = protect.Protect(protectSocketPath, int(fd))
 			return nil
 		})
 		return nil

@@ -6,9 +6,10 @@ import (
 	"context"
 	"fmt"
 
-	husiv1 "libcore/pb/husi/v1"
+	"libcore/pb/husi/v1"
 	"libcore/pluginpool"
 
+	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"google.golang.org/protobuf/proto"
@@ -22,13 +23,10 @@ func (s *Service) SetPluginFatalHandler(handler PluginFatalHandler) {
 	s.pluginFatalHandler = handler
 }
 
-// StartService starts the instance described by a serialized
-// husi.v1.StartServiceRequest, spawning the plugin processes it carries into
-// pluginWorkingDir. Android is the only caller: the desktop hostings go
-// through daemonhost's DaemonService instead.
 func (s *Service) StartService(request []byte, pluginWorkingDir string) error {
 	req := &husiv1.StartServiceRequest{}
-	if err := proto.Unmarshal(request, req); err != nil {
+	err := proto.Unmarshal(request, req)
+	if err != nil {
 		return E.Cause(err, "unmarshal StartServiceRequest")
 	}
 
@@ -40,31 +38,36 @@ func (s *Service) StartService(request []byte, pluginWorkingDir string) error {
 	}
 	// Replace any previous pool before starting a new one.
 	s.closePluginPoolLocked()
-
-	var pool *pluginpool.PluginPool
-	if len(req.GetPlugins()) > 0 {
-		pool = pluginpool.NewPluginPool(pluginWorkingDir, s.handlePluginFatal)
-		if err := pool.StartAll(req.GetPlugins()); err != nil {
-			_ = pool.Close()
-			s.access.Unlock()
-			return E.Cause(err, "start plugins")
-		}
-		s.pluginPool = pool
-	}
 	s.access.Unlock()
 
-	if err := host.StartOrReload(context.Background(), req.GetConfig()); err != nil {
-		s.access.Lock()
-		s.closePluginPoolLocked()
-		s.access.Unlock()
+	err = host.StartOrReload(context.Background(), req.GetConfig())
+	if err != nil {
 		return err
+	}
+
+	if len(req.GetPlugins()) > 0 {
+		pool := pluginpool.NewPluginPool(pluginWorkingDir, s.handlePluginFatal)
+		err := pool.StartAll(req.GetPlugins())
+		if err != nil {
+			_ = pool.Close()
+			_ = host.CloseService(C.FatalStopTimeout)
+			return E.Cause(err, "start plugins")
+		}
+		s.access.Lock()
+		running := s.host != nil && s.host.HasInstance()
+		if running {
+			s.pluginPool = pool
+		}
+		s.access.Unlock()
+		if !running {
+			// Stopped while the plugins were coming up: nobody would own them.
+			_ = pool.Close()
+			return E.New("service stopped while starting plugins")
+		}
 	}
 	return nil
 }
 
-// PublishServiceEvent broadcasts a serialized husi.v1.SubscribeServiceEventsResponse
-// to every SubscribeServiceEvents subscriber. The ":bg" process is the publisher;
-// the UI process is the subscriber.
 func (s *Service) PublishServiceEvent(event []byte) error {
 	s.access.RLock()
 	host := s.host

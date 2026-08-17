@@ -8,6 +8,7 @@ import (
 	_ "unsafe"
 
 	"libcore/distro"
+	"libcore/plugin/protect"
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
@@ -102,6 +103,9 @@ func CheckConfig(configContent string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	service.MustRegister[adapter.PlatformInterface](ctx, platformInterfaceStub{})
+	service.MustRegister[protect.Protector](ctx, protect.ProtectorFunc(func(_ int) error {
+		return nil
+	}))
 	instance, err := box.New(box.Options{
 		Options: options,
 		Context: ctx,
