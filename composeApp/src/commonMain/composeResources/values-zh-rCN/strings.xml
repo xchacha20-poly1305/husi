@@ -25,14 +25,14 @@
     <string name="group_status_empty">空</string>
     <string name="group_status_empty_subscription">从未更新</string>
     <plurals name="group_status_proxies">
-        <item quantity="other">%1$d 个节点</item>
+        <item quantity="other">%1$d 个配置</item>
     </plurals>
     <plurals name="group_status_proxies_subscription">
-        <item quantity="other">%1$d 个节点 | 更新于 %2$s</item>
+        <item quantity="other">%1$d 个配置 | 更新于 %2$s</item>
     </plurals>
     <string name="group_no_difference">%1$s: 没有变化</string>
     <plurals name="group_updated">
-        <item quantity="other">%1$s: 更新了 %2$d 个节点</item>
+        <item quantity="other">%1$s: 更新了 %2$d 个配置</item>
     </plurals>
     <string name="group_show_diff">变化</string>
     <string name="group_delete_confirm_prompt">您确定要删除这个分组吗?</string>
