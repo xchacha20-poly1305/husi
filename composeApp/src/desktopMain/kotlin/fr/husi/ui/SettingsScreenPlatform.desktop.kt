@@ -112,7 +112,7 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
     var startAtBootLoaded by remember { mutableStateOf(false) }
     val foreignOwner = hostState.foreignOwner
 
-    val showStartAtBoot = hostState.isDaemon && !hostState.apiVersionMismatch
+    val showStartAtBoot = hostState.isDaemon
 
     LaunchedEffect(hostState.isDaemon, hostState.apiVersionMismatch) {
         if (!showStartAtBoot) {
@@ -136,13 +136,21 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
         title = {
             Text(
                 stringResource(
-                    if (needsUpdate) Res.string.update_daemon else Res.string.install_daemon,
+                    if (needsUpdate) {
+                        Res.string.update_daemon
+                    } else {
+                        Res.string.install_daemon
+                    },
                 ),
             )
         },
         icon = {
             MaskedIcon(
-                if (needsUpdate) Res.drawable.update else Res.drawable.security,
+                if (needsUpdate) {
+                    Res.drawable.update
+                } else {
+                    Res.drawable.security
+                },
                 color = if (needsUpdate) {
                     IconMaskColors.IconCoral
                 } else {

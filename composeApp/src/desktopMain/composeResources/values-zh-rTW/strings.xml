@@ -6,7 +6,7 @@
     <string name="install_daemon">安裝守護行程</string>
     <string name="install_daemon_summary">安裝 TUN 模式所需的特權系統服務</string>
     <string name="update_daemon">更新守護行程</string>
-    <string name="update_daemon_summary">守護行程 API 版本與應用程式不符，請更新以恢復控制</string>
+    <string name="update_daemon_summary">守護行程 API 版本與應用程式不同，可更新守護行程</string>
     <string name="daemon_installed_summary">已安裝並已連線</string>
     <string name="daemon_install_success">守護行程已安裝</string>
     <string name="daemon_install_cancelled">已取消安裝守護行程</string>

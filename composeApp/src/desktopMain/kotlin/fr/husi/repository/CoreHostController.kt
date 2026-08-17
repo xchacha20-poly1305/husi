@@ -84,9 +84,8 @@ internal class CoreHostController(
     private var triedDaemon = false
 
     /**
-     * Set when [GetDaemonInfoResponse.apiVersion] does not match the API
-     * version this UI expects. Blocks start while connected to a mismatched
-     * daemon.
+     * Set when the attached daemon's API version differs from this app.
+     * The daemon remains usable; Settings exposes an update action.
      */
     private var apiVersionMismatch = false
 
@@ -321,14 +320,12 @@ internal class CoreHostController(
 
     private fun checkApiVersion(info: GetDaemonInfoResponse) {
         val daemonVersion = info.apiVersion
-        if (daemonVersion != Libcore.APIVersion) {
-            apiVersionMismatch = true
+        apiVersionMismatch = daemonVersion != Libcore.APIVersion
+        if (apiVersionMismatch) {
             val message =
-                "Daemon version mismatch (daemon: $daemonVersion, app: ${Libcore.APIVersion}). Update required."
+                "Daemon API version differs (daemon: $daemonVersion, app: ${Libcore.APIVersion}). Update available."
             Logs.w(message)
             BackendState.emitAlert(ServiceAlert.Common(message))
-        } else {
-            apiVersionMismatch = false
         }
         publishHostState()
     }
@@ -368,13 +365,6 @@ internal class CoreHostController(
 
         try {
             ensureHostLocked()
-
-            if (apiVersionMismatch && connectedToDaemon) {
-                stopLocked(
-                    "Daemon version mismatch (daemon api != app ${Libcore.APIVersion}). Update required.",
-                )
-                return
-            }
 
             val owner = foreignOwner
             if (connectedToDaemon && owner != null) {

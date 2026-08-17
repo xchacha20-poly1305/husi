@@ -6,7 +6,7 @@
     <string name="install_daemon">安装守护进程</string>
     <string name="install_daemon_summary">安装 TUN 模式所需的特权系统服务</string>
     <string name="update_daemon">更新守护进程</string>
-    <string name="update_daemon_summary">守护进程 API 版本与应用不匹配，请更新以恢复控制</string>
+    <string name="update_daemon_summary">守护进程 API 版本与应用不同，可更新守护进程</string>
     <string name="daemon_installed_summary">已安装并已连接</string>
     <string name="daemon_install_success">守护进程已安装</string>
     <string name="daemon_install_cancelled">已取消安装守护进程</string>

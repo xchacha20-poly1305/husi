@@ -6,7 +6,7 @@
     <string name="install_daemon">Install daemon</string>
     <string name="install_daemon_summary">Install the privileged system service required for TUN mode</string>
     <string name="update_daemon">Update daemon</string>
-    <string name="update_daemon_summary">Daemon API version does not match this app. Update to restore control</string>
+    <string name="update_daemon_summary">Daemon API version differs from this app. An update is available</string>
     <string name="daemon_installed_summary">Installed and connected</string>
     <string name="daemon_install_success">Daemon installed</string>
     <string name="daemon_install_cancelled">Daemon install cancelled</string>
