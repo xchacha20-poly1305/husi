@@ -260,15 +260,50 @@ You can select target formats:
 make desktop_package_linux LINUX_PACKAGE_FORMATS=deb,pacman
 ```
 
-Besides `deb`, `rpm` and `pacman`, there is `tarball`: the relocatable app subtree
-as a `.tar.zst`, for portable installs and for distributions the native formats do
-not cover. It is not built by default, but releases ship it. It needs `tar` and
-`zstd`, and unpacks to a directory holding the jar, the launcher, `husi-core` and
-`libhusicore.so` — run `bin/husi-core service install` from there to get the daemon.
-The native packages install and enable that daemon themselves, so only the tarball
-needs the manual step. Either way the Settings entry can do it instead, but that
-route goes through `pkexec` and so needs polkit; without it, run the command as
-root.
+### Installing without root
+
+`deb`, `rpm` and `pacman` all need a package manager and therefore root. Two other
+formats do not, which is what makes husi usable on a managed machine — a lab, a
+work laptop, a school computer:
+
+`tarball` is the relocatable app subtree as a `.tar.zst`. It needs `tar` and
+`zstd` to build, and unpacks to a directory holding the jar, the launcher,
+`husi-core`, `libhusicore.so` and its own installer:
+
+```shell
+./install.sh                     # installs under ~/.local, no root anywhere
+./install.sh --with-daemon       # ... and installs the daemon too, via pkexec
+./install.sh --prefix /opt/husi  # or somewhere else entirely
+```
+
+`install.sh` copies the tree to `<prefix>/lib`, symlinks `<prefix>/bin`, and
+registers a desktop entry and icon under `$XDG_DATA_HOME` with absolute paths, so
+the application menu and the URL schemes work whether or not `<prefix>/bin` is on
+`PATH`. It leaves a matching `uninstall.sh` next to the installed tree. Without
+`--with-daemon` nothing ever asks for privileges; husi still runs as a local
+proxy, and only TUN needs the daemon, which Settings can install later.
+
+`appimage` is a single self-contained file. Unlike every other Linux format it
+bundles its own Java runtime — linked with `jlink` from the JDK modules the app
+actually uses — so it does not require a system Java 21 at all. Its glibc floor
+comes from that bundled runtime rather than from the launcher, which is static
+musl. Building one additionally needs `jlink`, `appimagetool` and an `objcopy`
+for the target architecture; cross-building also needs that architecture's JDK
+modules, since `jlink` links a runtime for the target, not for the host:
+
+```shell
+make desktop_package_linux DESKTOP_TARGET=linux/arm64 \
+    LINUX_PACKAGE_FORMATS=appimage \
+    JLINK_JMODS=/path/to/aarch64-jdk/jmods \
+    APPIMAGE_RUNTIME=/path/to/runtime-aarch64
+```
+
+Neither format is built by default, but releases ship both.
+
+The daemon is the one privileged piece in all of this. The native packages install
+and enable it themselves; everywhere else it is an explicit, optional step, either
+`--with-daemon`, the Settings entry, or `husi-core service install` as root. The
+first two go through `pkexec` and so need polkit.
 
 Linux desktop data directory is `$XDG_CONFIG_HOME/husi/` if set, otherwise
 `$HOME/.config/husi/`.

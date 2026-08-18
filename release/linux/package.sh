@@ -35,12 +35,13 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman,tarball] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>] [--pkgrel <n>]
-  $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball]
+  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>] [--pkgrel <n>] [--jdk-jmods <dir>] [--appimage-runtime <file>] [--strip-objcopy <file>]
+  $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball,appimage]
 
 Description:
   Build Linux native packages for system Java runtime from desktop uber jar via nfpm,
-  plus a relocatable tarball of the app subtree for portable / in-app daemon install.
+  plus a relocatable tarball of the app subtree carrying its own user-level installer,
+  plus an AppImage that bundles a jlink runtime and so needs no system Java at all.
 
 Defaults:
   --formats    deb,rpm,pacman
@@ -50,6 +51,17 @@ Defaults:
   --core-lib   $ROOT_DIR/libcore/build/linux_<amd64|arm64>/libhusicore.so
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
+  --jdk-jmods  \$JAVA_HOME/jmods, or the jmods beside jlink (env: JLINK_JMODS).
+               Only needed for the AppImage, and required when the target
+               architecture differs from the host: jlink then needs that
+               architecture's JDK modules.
+  --appimage-runtime
+               AppImage runtime binary for the target architecture
+               (env: APPIMAGE_RUNTIME). Left out, appimagetool picks its own.
+  --strip-objcopy
+               objcopy used to strip the bundled runtime's native libraries
+               (env: OBJCOPY). Defaults to the host objcopy, or to
+               <arch>-linux-gnu-objcopy when cross-building.
 EOF
 }
 
@@ -226,6 +238,7 @@ resolve_arch() {
             DEB_ARCH="amd64"
             RPM_ARCH="x86_64"
             PACMAN_ARCH="x86_64"
+            APPIMAGE_ARCH="x86_64"
             LAUNCHER_MACHINE="x86_64"
             ;;
         arm64)
@@ -233,6 +246,7 @@ resolve_arch() {
             DEB_ARCH="arm64"
             RPM_ARCH="aarch64"
             PACMAN_ARCH="aarch64"
+            APPIMAGE_ARCH="aarch64"
             LAUNCHER_MACHINE="aarch64"
             ;;
         *)
@@ -250,13 +264,13 @@ resolve_formats() {
     for item in "${items[@]}"; do
         item="$(echo "$item" | tr '[:upper:]' '[:lower:]' | xargs)"
         case "$item" in
-            deb|rpm|pacman|tarball)
+            deb|rpm|pacman|tarball|appimage)
                 ENABLED_FORMATS["$item"]=1
                 ;;
             "")
                 ;;
             *)
-                error "Unknown format '$item'. Use deb,rpm,pacman,tarball."
+                error "Unknown format '$item'. Use deb,rpm,pacman,tarball,appimage."
                 exit 1
                 ;;
         esac
@@ -278,6 +292,9 @@ require_tools_for_formats() {
     fi
     if [[ -n "${ENABLED_FORMATS[tarball]:-}" ]]; then
         tools+=(tar zstd)
+    fi
+    if [[ -n "${ENABLED_FORMATS[appimage]:-}" ]]; then
+        tools+=(jlink appimagetool)
     fi
 
     for tool in "${tools[@]}"; do
@@ -458,12 +475,25 @@ prepare_script_templates() {
     cp "$ROOT_DIR/release/linux/desktop/postinstall.arch.sh" "$work_dir/arch-postinstall.sh"
     cp "$ROOT_DIR/release/linux/desktop/postupgrade.arch.sh" "$work_dir/arch-postupgrade.sh"
 
+    # The tarball carries its own user-level installer: no package manager and
+    # therefore no root is involved, so these two do need the metadata baked in.
+    local script
+    for script in install uninstall; do
+        render_template \
+            "$ROOT_DIR/release/linux/desktop/$script.sh" \
+            "$work_dir/$script.sh" \
+            "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
+            "$APP_NAME_PLACEHOLDER" "$APP_NAME"
+    done
+
     chmod 755 \
         "$work_dir/deb-postinstall.sh" \
         "$work_dir/postremove.sh" \
         "$work_dir/rpm-posttrans.sh" \
         "$work_dir/arch-postinstall.sh" \
-        "$work_dir/arch-postupgrade.sh"
+        "$work_dir/arch-postupgrade.sh" \
+        "$work_dir/install.sh" \
+        "$work_dir/uninstall.sh"
 }
 
 write_content_entry() {
@@ -621,6 +651,9 @@ output_filename() {
         tarball)
             echo "${PACKAGE_NAME}-${VERSION_NAME}-linux-${TARGET_ARCH}.tar.zst"
             ;;
+        appimage)
+            echo "${PACKAGE_NAME}-${VERSION_NAME}-linux-${APPIMAGE_ARCH}.AppImage"
+            ;;
         *)
             error "Unknown output format '$format'."
             exit 1
@@ -679,6 +712,25 @@ build_with_nfpm() {
     log "Built $format: $output_path"
 }
 
+# The desktop entry and icon are already rendered for the native packages;
+# install.sh rewrites their Exec/Icon to absolute paths at install time, so no
+# second set of placeholders is needed here.
+stage_tarball_desktop_files() {
+    local rootfs="$1"
+    local staging="$2"
+    local source_entry="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
+    local source_icon="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
+
+    if [[ -f "$source_entry" ]]; then
+        mkdir -p "$staging/share/applications"
+        cp "$source_entry" "$staging/share/applications/$PACKAGE_NAME.desktop"
+    fi
+    if [[ -f "$source_icon" ]]; then
+        mkdir -p "$staging/share/icons/hicolor/512x512/apps"
+        cp "$source_icon" "$staging/share/icons/hicolor/512x512/apps/$PACKAGE_NAME.png"
+    fi
+}
+
 build_tarball() {
     local rootfs="$1"
     local work_dir="$2"
@@ -696,11 +748,185 @@ build_tarball() {
 
     mkdir -p "$staging"
     cp -a "$app_root/." "$staging/"
+    stage_tarball_desktop_files "$rootfs" "$staging"
+    cp "$work_dir/install.sh" "$work_dir/uninstall.sh" "$staging/"
+    chmod 755 "$staging/install.sh" "$staging/uninstall.sh"
     find "$staging" -exec touch -d "@$TAG_EPOCH" {} +
 
     rm -f "$output_path"
     tar -C "$staging_parent" -cf - "$archive_name" | zstd -q -o "$output_path"
     log "Built tarball: $output_path"
+}
+
+# Modules linked into the bundled runtime. Derived from
+#   jdeps --print-module-deps --ignore-missing-deps --multi-release 21 <uber jar>
+# and then widened by hand, because jdeps only sees static references:
+#   jdk.crypto.ec     TLS key agreement, reached reflectively by the JSSE provider
+#   jdk.unsupported   sun.misc.Unsafe, which Skiko and Compose Desktop reach for
+#   jdk.charsets      GBK and friends — this app has a large Chinese audience
+#   jdk.localedata    non-root locales, same reason
+#   jdk.zipfs         the ZIP filesystem provider used to read resources
+# Dropping any of these fails at runtime, not at link time, so widen rather
+# than trim when in doubt.
+APPIMAGE_JRE_MODULES="java.base,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.security.jgss,java.sql,jdk.accessibility,jdk.charsets,jdk.crypto.ec,jdk.localedata,jdk.unsupported,jdk.zipfs"
+
+# jlink needs the JDK modules of the *target* architecture, not the host's.
+resolve_jdk_jmods() {
+    local requested="$1"
+    local host_arch
+
+    if [[ -n "$requested" ]]; then
+        JDK_JMODS="$requested"
+    elif [[ -n "${JLINK_JMODS:-}" ]]; then
+        JDK_JMODS="${JLINK_JMODS}"
+    else
+        host_arch="$(normalize_arch "$(uname -m)")"
+        if [[ "$host_arch" != "$TARGET_ARCH" ]]; then
+            error "Building a $TARGET_ARCH AppImage on $host_arch needs that architecture's JDK modules."
+            error "Fetch a JDK for linux/$TARGET_ARCH and pass --jdk-jmods <jdk>/jmods (or set JLINK_JMODS)."
+            exit 1
+        fi
+        JDK_JMODS="$(default_host_jmods)"
+    fi
+
+    if [[ ! -d "$JDK_JMODS" ]]; then
+        error "JDK modules directory not found: $JDK_JMODS"
+        exit 1
+    fi
+}
+
+# jlink strips the runtime's native libraries by shelling out to objcopy, so a
+# cross-architecture build needs the binutils for that architecture.
+resolve_strip_objcopy() {
+    local requested="$1"
+    local host_arch
+
+    if [[ -n "$requested" ]]; then
+        STRIP_OBJCOPY="$requested"
+    elif [[ -n "${OBJCOPY:-}" ]]; then
+        STRIP_OBJCOPY="${OBJCOPY}"
+    else
+        host_arch="$(normalize_arch "$(uname -m)")"
+        if [[ "$host_arch" == "$TARGET_ARCH" ]]; then
+            STRIP_OBJCOPY="objcopy"
+        else
+            STRIP_OBJCOPY="${LAUNCHER_MACHINE}-linux-gnu-objcopy"
+        fi
+    fi
+
+    # jlink rejects a bare command name, so this has to resolve to a real path.
+    if command -v "$STRIP_OBJCOPY" >/dev/null 2>&1; then
+        STRIP_OBJCOPY="$(command -v "$STRIP_OBJCOPY")"
+    else
+        error "objcopy for $TARGET_ARCH not found: $STRIP_OBJCOPY"
+        error "Without it the bundled runtime keeps ~650 MB of native debug symbols."
+        error "On Debian/Ubuntu: apt-get install binutils-${LAUNCHER_MACHINE}-linux-gnu"
+        error "Or point --strip-objcopy (env: OBJCOPY) at a suitable one."
+        exit 1
+    fi
+}
+
+default_host_jmods() {
+    local jlink_path
+    local jdk_home
+
+    if [[ -n "${JAVA_HOME:-}" && -d "$JAVA_HOME/jmods" ]]; then
+        echo "$JAVA_HOME/jmods"
+        return
+    fi
+
+    jlink_path="$(command -v jlink)"
+    jdk_home="$(dirname "$(dirname "$(readlink -f "$jlink_path")")")"
+    echo "$jdk_home/jmods"
+}
+
+build_jre() {
+    local jvm_dir="$1"
+
+    rm -rf "$jvm_dir"
+    mkdir -p "$(dirname "$jvm_dir")"
+    # Split rather than the compound --strip-debug, which silently assumes the
+    # host objcopy can read the target's ELF. Native symbols are not optional
+    # to strip: libjvm.so alone carries ~650 MB of them.
+    jlink \
+        --module-path "$JDK_JMODS" \
+        --add-modules "$APPIMAGE_JRE_MODULES" \
+        --strip-java-debug-attributes \
+        --strip-native-debug-symbols "objcopy=$STRIP_OBJCOPY" \
+        --no-header-files \
+        --no-man-pages \
+        --compress=zip-6 \
+        --output "$jvm_dir"
+    log "Linked bundled runtime: $jvm_dir"
+}
+
+# AppDir layout follows the AppImage spec: AppRun, one desktop entry and one
+# icon at the root, with the real tree under usr/ so desktop-integration tools
+# (Gear Lever, appimaged) find what they expect.
+prepare_appdir() {
+    local rootfs="$1"
+    local appdir="$2"
+    local app_root="$rootfs/usr/lib/$PACKAGE_NAME"
+    local source_entry="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
+    local source_icon="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
+
+    if [[ ! -d "$app_root" ]]; then
+        error "Relocatable app subtree not found: $app_root"
+        exit 1
+    fi
+
+    rm -rf "$appdir"
+    mkdir -p "$appdir/usr/lib/$PACKAGE_NAME" "$appdir/usr/share/applications" \
+        "$appdir/usr/share/icons/hicolor/512x512/apps"
+    cp -a "$app_root/." "$appdir/usr/lib/$PACKAGE_NAME/"
+
+    render_template \
+        "$ROOT_DIR/release/linux/appimage/AppRun.sh" \
+        "$appdir/AppRun" \
+        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME"
+    chmod 755 "$appdir/AppRun"
+
+    # AppRun is the only entry point inside the image, so Exec names it rather
+    # than the launcher: JAVA_HOME has to be set before the launcher starts.
+    sed -e "s#^Exec=.*#Exec=AppRun open %u#" \
+        "$source_entry" >"$appdir/$PACKAGE_NAME.desktop"
+    cp "$appdir/$PACKAGE_NAME.desktop" "$appdir/usr/share/applications/$PACKAGE_NAME.desktop"
+
+    if [[ -f "$source_icon" ]]; then
+        cp "$source_icon" "$appdir/$PACKAGE_NAME.png"
+        cp "$source_icon" "$appdir/usr/share/icons/hicolor/512x512/apps/$PACKAGE_NAME.png"
+        ln -sf "$PACKAGE_NAME.png" "$appdir/.DirIcon"
+    fi
+}
+
+build_appimage() {
+    local rootfs="$1"
+    local work_dir="$2"
+    local appdir="$work_dir/appdir"
+    local output_path
+    local -a appimagetool_args=()
+    output_path="$OUTPUT_DIR/$(output_filename "appimage" "$VERSION_NAME")"
+
+    resolve_jdk_jmods "$JDK_JMODS_ARG"
+    resolve_strip_objcopy "$STRIP_OBJCOPY_ARG"
+    prepare_appdir "$rootfs" "$appdir"
+    build_jre "$appdir/usr/lib/jvm"
+
+    if [[ -n "$APPIMAGE_RUNTIME_ARG" ]]; then
+        if [[ ! -f "$APPIMAGE_RUNTIME_ARG" ]]; then
+            error "AppImage runtime not found: $APPIMAGE_RUNTIME_ARG"
+            exit 1
+        fi
+        appimagetool_args+=(--runtime-file "$APPIMAGE_RUNTIME_ARG")
+    fi
+
+    find "$appdir" -exec touch -d "@$TAG_EPOCH" {} +
+
+    rm -f "$output_path"
+    # --appimage-extract-and-run keeps the build host free of any FUSE requirement.
+    ARCH="$APPIMAGE_ARCH" SOURCE_DATE_EPOCH="$TAG_EPOCH" \
+        appimagetool --appimage-extract-and-run "${appimagetool_args[@]}" "$appdir" "$output_path"
+    log "Built AppImage: $output_path"
 }
 
 FORMATS="deb,rpm,pacman"
@@ -714,6 +940,11 @@ INPUT_CORE_LIB=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 PKGREL="1"
 CHECK_TOOLS=0
+JDK_JMODS_ARG=""
+JDK_JMODS=""
+APPIMAGE_RUNTIME_ARG="${APPIMAGE_RUNTIME:-}"
+STRIP_OBJCOPY_ARG=""
+STRIP_OBJCOPY=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -755,6 +986,21 @@ while [[ $# -gt 0 ]]; do
         --pkgrel)
             require_arg "$1" "${2:-}"
             PKGREL="$2"
+            shift 2
+            ;;
+        --jdk-jmods)
+            require_arg "$1" "${2:-}"
+            JDK_JMODS_ARG="$2"
+            shift 2
+            ;;
+        --appimage-runtime)
+            require_arg "$1" "${2:-}"
+            APPIMAGE_RUNTIME_ARG="$2"
+            shift 2
+            ;;
+        --strip-objcopy)
+            require_arg "$1" "${2:-}"
+            STRIP_OBJCOPY_ARG="$2"
             shift 2
             ;;
         --check-tools)
@@ -818,6 +1064,10 @@ fi
 
 if [[ -n "${ENABLED_FORMATS[tarball]:-}" ]]; then
     build_tarball "$rootfs" "$work_dir"
+fi
+
+if [[ -n "${ENABLED_FORMATS[appimage]:-}" ]]; then
+    build_appimage "$rootfs" "$work_dir"
 fi
 
 log "Done. Output directory: $OUTPUT_DIR"

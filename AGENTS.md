@@ -160,8 +160,11 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
   `plugin/<name>.sh`, `init/{env,env_ndk,version}.sh`, plus `rename.sh` for forking under a new
   package name.
 - `release/{linux,macos,windows}/package.sh` — invoked by `make desktop_package_*` after the uber
-  jar exists. Linux packaging uses `nfpm`; Windows packaging Authenticode signs its payloads via
-  `release/windows/codesign.sh`.
+  jar exists. Linux packaging uses `nfpm` for `deb`/`rpm`/`pacman`; the two root-free formats are
+  `tarball` (ships `release/linux/desktop/install.sh`, which installs under `~/.local`) and
+  `appimage` (bundles a `jlink` runtime, so it needs no system Java — `release/linux/appimage/`).
+  Windows packaging Authenticode signs its payloads via `release/windows/codesign.sh`; its NSIS
+  installer is per-user (`RequestExecutionLevel user`) and only elevates for the optional service.
 
 ## Compose UI (composeApp)
 

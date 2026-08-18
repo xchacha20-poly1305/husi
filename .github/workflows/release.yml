@@ -116,7 +116,9 @@ jobs:
           path: macos-sdk
           sparse-checkout: MacOSX${{ env.MACOS_SDK_VERSION }}.sdk
       - name: Install system packaging tools
-        run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode xorriso zstd
+        # binutils-aarch64-linux-gnu: jlink strips the arm64 AppImage runtime's
+        # native libraries through that architecture's objcopy.
+        run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode xorriso zstd binutils-aarch64-linux-gnu
       - name: Cache nfpm
         id: cache-nfpm
         uses: actions/cache@v6
@@ -126,6 +128,50 @@ jobs:
       - name: Install nfpm
         if: steps.cache-nfpm.outputs.cache-hit != 'true'
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v${NFPM_VERSION}
+      - name: Install AppImage tooling
+        run: |
+          tools="$RUNNER_TEMP/appimage"
+          mkdir -p "$tools"
+          curl -sSfL -o "$tools/appimagetool" \
+            "https://github.com/AppImage/appimagetool/releases/download/${APPIMAGETOOL_VERSION}/appimagetool-x86_64.AppImage"
+          chmod +x "$tools/appimagetool"
+          for appimage_arch in x86_64 aarch64; do
+            curl -sSfL -o "$tools/runtime-$appimage_arch" \
+              "https://github.com/AppImage/type2-runtime/releases/download/${APPIMAGE_RUNTIME_VERSION}/runtime-$appimage_arch"
+          done
+          echo "$tools" >> "$GITHUB_PATH"
+          echo "APPIMAGE_TOOLS_DIR=$tools" >> "$GITHUB_ENV"
+      - name: Resolve aarch64 JDK release
+        # Resolved before the cache so the key names an exact build: a new
+        # Temurin patch release busts it instead of being masked by a stale hit.
+        run: |
+          asset="$(curl -sSfL "https://api.adoptium.net/v3/assets/latest/${JAVA_VERSION}/hotspot?architecture=aarch64&image_type=jdk&os=linux&vendor=eclipse")"
+          release_name="$(echo "$asset" | jq -r '.[0].release_name')"
+          download_url="$(echo "$asset" | jq -r '.[0].binary.package.link')"
+          if [ -z "$release_name" ] || [ "$release_name" = "null" ]; then
+            echo "Could not resolve an aarch64 Temurin ${JAVA_VERSION} release." >&2
+            exit 1
+          fi
+          echo "AARCH64_JDK_RELEASE=$release_name" >> "$GITHUB_ENV"
+          echo "AARCH64_JDK_URL=$download_url" >> "$GITHUB_ENV"
+          echo "AARCH64_JDK_DIR=$RUNNER_TEMP/jdk-aarch64" >> "$GITHUB_ENV"
+          echo "JLINK_JMODS_AARCH64=$RUNNER_TEMP/jdk-aarch64/jmods" >> "$GITHUB_ENV"
+      - name: Cache aarch64 JDK modules
+        id: cache-jdk-aarch64
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/jdk-aarch64
+          key: jdk-aarch64-${{ env.AARCH64_JDK_RELEASE }}
+      - name: Fetch aarch64 JDK modules
+        # jlink links a runtime for the *target* architecture, so the arm64
+        # AppImage needs that architecture's jmods; the host JDK only covers amd64.
+        # Only jmods is unpacked — it is all jlink reads, and the rest of the JDK
+        # would quadruple what the cache carries.
+        if: steps.cache-jdk-aarch64.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$AARCH64_JDK_DIR"
+          curl -sSfL "$AARCH64_JDK_URL" \
+            | tar -C "$AARCH64_JDK_DIR" --strip-components=1 --wildcards -xzf - '*/jmods/*'
       - name: Cache route assets
         id: cache-assets
         uses: actions/cache@v6
@@ -158,8 +204,10 @@ jobs:
           WINDOWS_SIGNING_P12_BASE64: ${{ secrets.WINDOWS_SIGNING_P12 }}
           WINDOWS_SIGNING_P12_PASSWORD: ${{ secrets.WINDOWS_SIGNING_P12_PASSWORD }}
         run: |
-          make desktop_package_linux DESKTOP_TARGET=linux/amd64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball
-          make desktop_package_linux DESKTOP_TARGET=linux/arm64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball
+          JLINK_JMODS="$JAVA_HOME/jmods" APPIMAGE_RUNTIME="$APPIMAGE_TOOLS_DIR/runtime-x86_64" \
+            make desktop_package_linux DESKTOP_TARGET=linux/amd64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball,appimage
+          JLINK_JMODS="$JLINK_JMODS_AARCH64" APPIMAGE_RUNTIME="$APPIMAGE_TOOLS_DIR/runtime-aarch64" \
+            make desktop_package_linux DESKTOP_TARGET=linux/arm64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball,appimage
           make desktop_package_windows DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
           # Temporarily disabled, see the libcore step above.
           # make desktop_package_windows DESKTOP_TARGET=windows/arm64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
