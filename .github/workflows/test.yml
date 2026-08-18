@@ -115,8 +115,6 @@ jobs:
       - name: Guard no go-built husi-core binary
         run: make test_no_go_core_binary
       - name: Build libcore bindings
-        env:
-          NO_NAIVE: 1
         run: |
           make libcore
       - name: Test Zig projects

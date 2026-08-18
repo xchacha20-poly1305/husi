@@ -21,7 +21,6 @@ DARWIN_AMD64_SQLITE_ISSUE="https://issuetracker.google.com/issues/495864182"
 BUILD_DESKTOP=0
 BUILD_ANDROID=0
 PLATFORM_SPECIFIED=0
-NO_NAIVE="${NO_NAIVE:-0}"
 DESKTOP_TARGETS=""
 DESKTOP_OUTPUTS=()
 JNI_INCLUDE=""
@@ -101,21 +100,6 @@ add_build_tag() {
     echo "$build_tags,$add_tag"
 }
 
-remove_build_tag() {
-    local build_tags="$1"
-    local remove_tag="$2"
-    local tag
-    local kept_tags=()
-    IFS="," read -r -a input_tags <<< "$build_tags"
-    for tag in "${input_tags[@]}"; do
-        if [ "$tag" != "$remove_tag" ]; then
-            kept_tags+=("$tag")
-        fi
-    done
-    local IFS=","
-    echo "${kept_tags[*]}"
-}
-
 apply_darwin_toolchain_env() {
     local desktop_target="$1"
     local host_platform
@@ -176,7 +160,9 @@ apply_darwin_toolchain_env() {
         export SDKROOT="$DARWIN_SDKROOT"
         export CC="zig cc -target $zig_target"
         export CXX="zig c++ -target $zig_target"
-        export CGO_CFLAGS="-isysroot $SDKROOT -isystem $sdk_include_root -F$framework_root -Wno-deprecated-declarations"
+        # Same reason as the Linux naive toolchain: keep zig's UBSan runtime, and
+        # its 256 KiB thread-local signal stack, out of the shared library.
+        export CGO_CFLAGS="-isysroot $SDKROOT -isystem $sdk_include_root -F$framework_root -Wno-deprecated-declarations -fno-sanitize=undefined -fno-sanitize=integer"
         export CGO_CXXFLAGS="$CGO_CFLAGS"
         export CGO_LDFLAGS="-isysroot $SDKROOT -L$SDKROOT/usr/lib -F$framework_root $dead_strip_dylibs"
         if [ -n "$EXTERNAL_MACOSX_DEPLOYMENT_TARGET" ]; then
@@ -277,6 +263,13 @@ apply_naive_toolchain_env() {
     script_dir="$(cd "$(dirname "$0")" && pwd)"
     export CC="$script_dir/zig-cc.sh"
     export CXX="zig c++ -target $zig_target"
+    # Zig links its own UBSan runtime by default, and that runtime keeps a 256 KiB
+    # thread-local signal stack. Go marks a c-shared library DF_STATIC_TLS, so the
+    # whole thread-local block has to fit in glibc's static TLS surplus (~1.6 KiB)
+    # when the library is dlopen'd, and the load fails with
+    # "cannot allocate memory in static TLS block".
+    export CGO_CFLAGS="-O2 -fno-sanitize=undefined -fno-sanitize=integer"
+    export CGO_CXXFLAGS="$CGO_CFLAGS"
     export CGO_LDFLAGS="-fuse-ld=lld"
 }
 
@@ -331,10 +324,6 @@ while [ "$#" -gt 0 ]; do
         DARWIN_SDKROOT="${1#*=}"
         shift
         ;;
-    --no-naive)
-        NO_NAIVE=1
-        shift
-        ;;
     *)
         echo "Unknown argument: $1"
         exit 1
@@ -350,10 +339,6 @@ fi
 # explicit product mode is selected so older invocations still work.
 if [ -n "$DESKTOP_TARGETS" ] && [ "$BUILD_DESKTOP" != "1" ] && [ "$BUILD_ANDROID" != "1" ]; then
     BUILD_DESKTOP=1
-fi
-
-if [ "$NO_NAIVE" == "1" ]; then
-    BUILD_TAGS="$(remove_build_tag "$BUILD_TAGS" "with_naive_outbound")"
 fi
 
 # Just install anja & anjb if not have or version not same
