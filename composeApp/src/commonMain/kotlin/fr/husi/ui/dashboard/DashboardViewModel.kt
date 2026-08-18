@@ -24,7 +24,6 @@ import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.urlTestOptions
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
@@ -32,7 +31,6 @@ import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.GroupItem
-import fr.husi.utils.PackageResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,9 +41,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.koin.core.context.GlobalContext
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -145,12 +140,6 @@ data class ProxyItem(
     val tag: String = "",
     val type: String = "",
     val urlTestDelay: Int = -1,
-)
-
-internal data class ProcessInfo(
-    val packageName: String,
-    val label: String,
-    val icon: Any? = null,
 )
 
 @Stable
@@ -268,10 +257,7 @@ class DashboardViewModel(
     private var outboundsJob: Job? = null
     private var connectionsJob: Job? = null
     private var clashModeJob: Job? = null
-    private val processLabelAccess = Mutex()
-    private val processLabelCache = mutableMapOf<String, String>()
-    private val processIconCache = mutableMapOf<String, Any>()
-    private val processIconAccess = Mutex()
+    private val processInfoResolver = ProcessInfoResolver()
 
     suspend fun initialize(isConnected: Boolean) {
         statusJob?.cancel()
@@ -394,14 +380,7 @@ class DashboardViewModel(
             DefaultNetworkListener.stop(this@DashboardViewModel)
         }
         super.onCleared()
-        runBlocking {
-            processLabelAccess.withLock {
-                processLabelCache.clear()
-            }
-            processIconAccess.withLock {
-                processIconCache.clear()
-            }
-        }
+        processInfoResolver.clear()
     }
 
     fun togglePause() {
@@ -593,34 +572,8 @@ class DashboardViewModel(
     internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {
         if (isRemote) return null
         return onIoDispatcher {
-            if (process.isNullOrBlank() && uid < 0) return@onIoDispatcher null
-            PackageResolver.awaitLoad()
-            val packageName = resolvePackageName(process, uid) ?: return@onIoDispatcher null
-            if (!PackageResolver.isAppInstalled(packageName)) return@onIoDispatcher null
-            val label = processLabelAccess.withLock {
-                processLabelCache[packageName]
-                    ?: PackageResolver.loadAppLabel(packageName)
-                        ?.also { processLabelCache[packageName] = it }
-            } ?: return@onIoDispatcher null
-            val icon = processIconAccess.withLock {
-                processIconCache[packageName]
-                    ?: PackageResolver.loadAppIcon(packageName)
-                        ?.also { processIconCache[packageName] = it }
-            }
-            ProcessInfo(packageName = packageName, label = label, icon = icon)
+            processInfoResolver.resolve(process, uid)
         }
-    }
-
-    private fun resolvePackageName(process: String?, uid: Int): String? {
-        process.emptyAsNull()?.let { packageName ->
-            if (PackageResolver.isAppInstalled(packageName)) {
-                return packageName
-            }
-        }
-        if (uid >= 0) {
-            return PackageResolver.findPackagesForUid(uid)?.firstOrNull()
-        }
-        return null
     }
 
     private fun handleConnectionEvents(events: ConnectionEvents) {
