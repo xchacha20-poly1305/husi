@@ -31,6 +31,7 @@ Common targets:
 | `make desktop` / `make desktop_release`                     | Run Compose desktop app via `gradlew :composeApp:run[Release]`                   |
 | `make desktop_uberjar`                                      | Thin release jar (no libcore native); needs the `husi-core` shim **and** `libhusicore.*` next to the jar, or `husi-core` on `PATH` with the library next to that binary |
 | `make desktop_package[_linux/_macos/_windows]`              | Native packages under `composeApp/build/compose/packages/`                       |
+| `make desktop_package_windows_jbr DESKTOP_TARGET=...`       | Same, plus a JetBrains Runtime linked in with `jlink`, so the packages need no system Java; modules fetched by `./run lib jbr <target>` into `build/jbr/` |
 | `make launcher`                                             | Build the Zig native UI launcher from `launcher/` (used by Linux/macOS/Windows installers) |
 | `make plugin PLUGIN=<name>`                                 | Assemble plugin APK; valid names: `hysteria2 juicity naive mieru shadowquic`     |
 | `make aboutlibraries`                                       | Regenerate committed OSS license JSON (Gradle plugin is offline; run before release) |
@@ -252,7 +253,15 @@ Canonical conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it firs
   checked against it — see `release/windows/README.md` for the fingerprints. Nothing in the code
   reads that file: `VerifyCorePairSignature` compares the shim against its own library rather than
   pinning a certificate, so the published fingerprint is for humans, not for the daemon. Keep the
-  private key out of the repository.
+  private key out of the repository. The runtime bundled into the `-jbr` packages is signed by
+  JetBrains and is not re-signed here; nothing in husi checks it.
+- Bundled Java runtimes (the Linux AppImage and the Windows `-jbr` packages) are linked by `jlink`
+  from one shared module list, `release/desktop/jre-modules.sh`. `jlink` links an image for the
+  platform its modules belong to, so both are produced on the Linux release runner. The Windows
+  variant deliberately omits `--strip-native-debug-symbols` (objcopy only understands ELF) and
+  `--generate-cds-archive` (cannot be generated cross-platform). `JBR_VERSION` in
+  `buildScript/init/version.sh` has to track `JAVA_VERSION`: the host `jlink` cannot read modules
+  newer than itself.
 - `composeApp/executableSo/` is added as a JNI libs source dir for the Android app (used to bundle
   plugin executables alongside the host APK).
 - `make aboutlibraries` (`aboutlibraries_go` + `aboutlibraries_android` +

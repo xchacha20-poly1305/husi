@@ -46,6 +46,15 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
+      - name: Cache JetBrains Runtime modules
+        id: cache-jbr
+        uses: actions/cache@v6
+        with:
+          path: build/jbr
+          key: jbr-${{ env.JBR_VERSION }}-b${{ env.JBR_BUILD }}
+      - name: Fetch JetBrains Runtime modules
+        if: steps.cache-jbr.outputs.cache-hit != 'true'
+        run: ./run lib jbr windows/amd64
       - name: Cache route assets
         id: cache-assets
         uses: actions/cache@v6
@@ -209,6 +218,7 @@ jobs:
           JLINK_JMODS="$JLINK_JMODS_AARCH64" APPIMAGE_RUNTIME="$APPIMAGE_TOOLS_DIR/runtime-aarch64" \
             make desktop_package_linux DESKTOP_TARGET=linux/arm64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball,appimage
           make desktop_package_windows DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
+          make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
           # Temporarily disabled, see the libcore step above.
           # make desktop_package_windows DESKTOP_TARGET=windows/arm64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
           make desktop_package_macos DESKTOP_TARGET=darwin/arm64

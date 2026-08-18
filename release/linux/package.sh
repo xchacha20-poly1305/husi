@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 METADATA_FILE="$ROOT_DIR/husi.properties"
 DESKTOP_METADATA_FILE="$ROOT_DIR/release/desktop/package-metadata.sh"
+DESKTOP_JRE_MODULES_FILE="$ROOT_DIR/release/desktop/jre-modules.sh"
 JAR_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/jars"
 OUTPUT_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/packages/linux"
 PACKAGE_NAME_PLACEHOLDER="__HUSI_PACKAGE_NAME__"
@@ -121,6 +122,16 @@ source_desktop_metadata() {
     source "$DESKTOP_METADATA_FILE"
 }
 
+source_desktop_jre_modules() {
+    if [[ ! -f "$DESKTOP_JRE_MODULES_FILE" ]]; then
+        error "Desktop JRE module list not found: $DESKTOP_JRE_MODULES_FILE"
+        exit 1
+    fi
+
+    # shellcheck source=../desktop/jre-modules.sh
+    source "$DESKTOP_JRE_MODULES_FILE"
+}
+
 normalize_pkgrel() {
     local rel="$1"
     if [[ "$rel" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
@@ -162,6 +173,7 @@ load_metadata() {
     fi
 
     source_desktop_metadata
+    source_desktop_jre_modules
     URL_SCHEME_MIME_TYPES="$(desktop_url_scheme_mime_types)"
 }
 
@@ -758,18 +770,6 @@ build_tarball() {
     log "Built tarball: $output_path"
 }
 
-# Modules linked into the bundled runtime. Derived from
-#   jdeps --print-module-deps --ignore-missing-deps --multi-release 21 <uber jar>
-# and then widened by hand, because jdeps only sees static references:
-#   jdk.crypto.ec     TLS key agreement, reached reflectively by the JSSE provider
-#   jdk.unsupported   sun.misc.Unsafe, which Skiko and Compose Desktop reach for
-#   jdk.charsets      GBK and friends — this app has a large Chinese audience
-#   jdk.localedata    non-root locales, same reason
-#   jdk.zipfs         the ZIP filesystem provider used to read resources
-# Dropping any of these fails at runtime, not at link time, so widen rather
-# than trim when in doubt.
-APPIMAGE_JRE_MODULES="java.base,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.security.jgss,java.sql,jdk.accessibility,jdk.charsets,jdk.crypto.ec,jdk.localedata,jdk.unsupported,jdk.zipfs"
-
 # jlink needs the JDK modules of the *target* architecture, not the host's.
 resolve_jdk_jmods() {
     local requested="$1"
@@ -850,7 +850,7 @@ build_jre() {
     # to strip: libjvm.so alone carries ~650 MB of them.
     jlink \
         --module-path "$JDK_JMODS" \
-        --add-modules "$APPIMAGE_JRE_MODULES" \
+        --add-modules "$DESKTOP_JRE_MODULES_COMMON" \
         --strip-java-debug-attributes \
         --strip-native-debug-symbols "objcopy=$STRIP_OBJCOPY" \
         --no-header-files \

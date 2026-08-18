@@ -111,6 +111,9 @@ Section "$(InstallSectionName)"
 
     SetOutPath "$INSTDIR"
 
+    ; Bundled Java runtime, empty unless this is a JBR package.
+__HUSI_RUNTIME_INSTALL__
+
     Call installCoreService
 
     ; Uninstaller
@@ -248,6 +251,7 @@ Section "un.$(UninstallSectionName)"
     Delete "$INSTDIR\desktop-app-args.conf.template"
     Delete "$INSTDIR\app\${PACKAGE_NAME}.jar"
     RMDir "$INSTDIR\app"
+__HUSI_RUNTIME_UNINSTALL__
     Delete "$INSTDIR\uninstall.exe"
     Delete "$DESKTOP\${APP_NAME}.lnk"
     Delete "$DESKTOP\${APP_NAME_ZH_CN}.lnk"

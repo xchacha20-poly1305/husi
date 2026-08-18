@@ -33,7 +33,7 @@ COMMA = ,
 CORE_SHIM_GLIBC_VERSION = 2.17
 CORE_SHIM_MACOS_VERSION = 12.0
 
-.PHONY: libcore libcore_android libcore_desktop_common libcore_desktop core_desktop aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_all desktop_uberjar launcher lint_go proto proto_install test_go test_no_go_core_binary test_zig plugin generate_option lint_go_linux lint_go_android lint_go_windows
+.PHONY: libcore libcore_android libcore_desktop_common libcore_desktop core_desktop aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_jbr desktop_package_windows_all desktop_uberjar launcher lint_go proto proto_install test_go test_no_go_core_binary test_zig plugin generate_option lint_go_linux lint_go_android lint_go_windows
 
 build: libcore_android assets apk
 
@@ -144,6 +144,24 @@ desktop_package_windows:
 	$(MAKE) core_desktop DESKTOP_TARGETS=$(DESKTOP_TARGET)
 	./release/windows/package.sh $(DESKTOP_TARGET_SCRIPT_ARG) $(WINDOWS_NO_SIGN_SCRIPT_ARG)
 
+# Same inputs as desktop_package_windows, plus a JetBrains Runtime linked into
+# the packages so they need no system Java. JBR_JMODS points at the modules;
+# without it they are fetched into build/jbr/ first. The fetch script prints the
+# resolved path last, after the banner ./run puts in front of it.
+desktop_package_windows_jbr:
+	@if [ -z "$(DESKTOP_TARGET)" ]; then \
+		echo "desktop_package_windows_jbr requires DESKTOP_TARGET, e.g. make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64"; \
+		exit 1; \
+	fi
+	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	$(MAKE) launcher
+	$(MAKE) core_desktop DESKTOP_TARGETS=$(DESKTOP_TARGET)
+	jbr_jmods="$(JBR_JMODS)"; \
+	if [ -z "$$jbr_jmods" ]; then \
+		jbr_jmods="$$(./run lib jbr $(DESKTOP_TARGET) | tail -n 1)" || exit $$?; \
+	fi; \
+	./release/windows/package.sh $(DESKTOP_TARGET_SCRIPT_ARG) $(WINDOWS_NO_SIGN_SCRIPT_ARG) --jbr-jmods "$$jbr_jmods"
+
 desktop_package_windows_all:
 #	$(MAKE) libcore_desktop DESKTOP_TARGETS=windows/amd64,windows/arm64
 #	$(MAKE) core_desktop DESKTOP_TARGETS=windows/amd64,windows/arm64
@@ -151,6 +169,7 @@ desktop_package_windows_all:
 	$(MAKE) core_desktop DESKTOP_TARGETS=windows/amd64
 	@for desktop_target in $(DESKTOP_TARGETS_WINDOWS); do \
 		$(MAKE) desktop_package_windows DESKTOP_TARGET=$$desktop_target WINDOWS_NO_SIGN=$(WINDOWS_NO_SIGN) || exit $$?; \
+		$(MAKE) desktop_package_windows_jbr DESKTOP_TARGET=$$desktop_target WINDOWS_NO_SIGN=$(WINDOWS_NO_SIGN) || exit $$?; \
 	done
 
 # Thin release jar (the libcore native is excluded). Place husi-core + libhusicore.* next to the

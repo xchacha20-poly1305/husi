@@ -285,7 +285,8 @@ proxy, and only TUN needs the daemon, which Settings can install later.
 
 `appimage` is a single self-contained file. Unlike every other Linux format it
 bundles its own Java runtime — linked with `jlink` from the JDK modules the app
-actually uses — so it does not require a system Java 21 at all. Its glibc floor
+actually uses (the module list is shared with the Windows JBR packages, in
+[`release/desktop/jre-modules.sh`](release/desktop/jre-modules.sh)) — so it does not require a system Java 21 at all. Its glibc floor
 comes from that bundled runtime rather than from the launcher, which is static
 musl. Building one additionally needs `jlink`, `appimagetool` and an `objcopy`
 for the target architecture; cross-building also needs that architecture's JDK
@@ -423,6 +424,37 @@ The installer runs `husi-core.exe service install` from its own directory at the
 the Program Files copy — that is why the same two files exist twice. The uninstaller reverses both, calling
 `husi-core.exe service uninstall` before removing its own directory. It does not pass `--purge`, so `%ProgramData%\husi`
 survives an uninstall; remove it by hand, or run `husi-core service uninstall --purge` yourself beforehand.
+
+##### ☕ Packages with a bundled runtime
+
+Both of the above ask the machine for a Java 21. A second pair does not:
+
+```shell
+make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64
+```
+
+* `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>-jbr.zip`
+* `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>-jbr-installer.exe`
+
+These carry a `runtime\` directory next to the launcher, linked with `jlink` from the modules of the
+[JetBrains Runtime](https://github.com/JetBrains/JetBrainsRuntime) — the JDK IntelliJ ships, whose Skia, HiDPI and font
+rendering work is exactly what Compose Desktop wants. The launcher prefers that runtime over anything installed on the
+machine; only the `JAVA` environment variable overrides it.
+
+The modules are fetched into `build/jbr/` on demand, pinned by `JBR_VERSION` / `JBR_BUILD` in
+`buildScript/init/version.sh`. Fetch them yourself, or point the packaging at a copy you already have:
+
+```shell
+./run lib jbr windows/amd64
+make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64 JBR_JMODS=/path/to/jbrsdk/jmods
+```
+
+Building these additionally needs `jlink` on `PATH`. Its feature version has to be at least the JetBrains Runtime's —
+`jlink` cannot read modules newer than itself — which is why `JBR_VERSION` tracks `JAVA_VERSION`. Nothing else about the
+host matters: `jlink` links an image for the platform its modules belong to, so the Windows runtime is linked on the
+Linux release runner like everything else.
+
+The bundled runtime is signed by JetBrains, not by this project; the code signing below covers our own payloads only.
 
 ##### 🔏 Windows code signing
 

@@ -398,15 +398,29 @@ fn appendAotCacheOptions(
     try java_opts.append(allocator, try std.fmt.allocPrint(allocator, "-XX:AOTCacheOutput={s}", .{cache_path}));
 }
 
-fn selectJavaCommand(io: Io, allocator: mem.Allocator, env_map: *process.Environ.Map) ![]const u8 {
-    if (env_map.get("JAVA_HOME")) |java_home| {
-        if (try resolveJavaHomeCommand(io, allocator, java_home)) |bin| {
+fn resolveBundledRuntime(io: Io, allocator: mem.Allocator, runtime: RuntimePaths) !?[]const u8 {
+    for ([_][]const u8{ runtime.launcher_dir, runtime.app_root }) |root| {
+        const runtime_home = try Io.Dir.path.join(allocator, &.{ root, "runtime" });
+        defer allocator.free(runtime_home);
+        if (try resolveJavaHomeCommand(io, allocator, runtime_home)) |bin| {
             return bin;
         }
     }
+    return null;
+}
+
+fn selectJavaCommand(io: Io, allocator: mem.Allocator, env_map: *process.Environ.Map, runtime: RuntimePaths) ![]const u8 {
     if (env_map.get("JAVA")) |java_env| {
         if (java_env.len > 0) {
             return allocator.dupe(u8, java_env);
+        }
+    }
+    if (try resolveBundledRuntime(io, allocator, runtime)) |bin| {
+        return bin;
+    }
+    if (env_map.get("JAVA_HOME")) |java_home| {
+        if (try resolveJavaHomeCommand(io, allocator, java_home)) |bin| {
+            return bin;
         }
     }
     if (try resolveMacOSJavaHome(io, allocator)) |java_bin| {
@@ -449,7 +463,7 @@ pub fn main(init: std.process.Init) !u8 {
         };
     }
 
-    const java_command = selectJavaCommand(io, allocator, init.environ_map) catch |err| {
+    const java_command = selectJavaCommand(io, allocator, init.environ_map, runtime) catch |err| {
         std.debug.print("select_java_command failed: {}\n", .{err});
         return 1;
     };
@@ -768,4 +782,57 @@ test "parseJavaMajorVersion: legacy 1.8 style" {
 test "parseJavaMajorVersion: garbage returns null" {
     try testing.expectEqual(@as(?u32, null), parseJavaMajorVersion("command not found"));
     try testing.expectEqual(@as(?u32, null), parseJavaMajorVersion("version \"\""));
+}
+
+fn makeBundledRuntime(io: Io, allocator: mem.Allocator, root: []const u8) ![]u8 {
+    const bin_dir = try Io.Dir.path.join(allocator, &.{ root, "runtime", "bin" });
+    defer allocator.free(bin_dir);
+    const runtime_dir = Io.Dir.path.dirname(bin_dir).?;
+    try Io.Dir.createDirAbsolute(io, runtime_dir, .default_dir);
+    try Io.Dir.createDirAbsolute(io, bin_dir, .default_dir);
+
+    const java_name = if (native_os == .windows) "javaw.exe" else "java";
+    const java_path = try Io.Dir.path.join(allocator, &.{ bin_dir, java_name });
+    const file = try Io.Dir.createFileAbsolute(io, java_path, .{ .truncate = true });
+    file.close(io);
+    return java_path;
+}
+
+test "resolveBundledRuntime: finds the runtime next to the launcher" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    const root = try tmpDirPath(io, tmp_dir, allocator, "");
+    defer allocator.free(root);
+    const expected = try makeBundledRuntime(io, allocator, root);
+    defer allocator.free(expected);
+
+    const paths = RuntimePaths{
+        .launcher_dir = root,
+        .app_root = root,
+        .jar_path = root,
+    };
+    const result = try resolveBundledRuntime(io, allocator, paths);
+    try testing.expect(result != null);
+    defer allocator.free(result.?);
+    try testing.expectEqualStrings(expected, result.?);
+}
+
+test "resolveBundledRuntime: no bundled runtime returns null" {
+    const allocator = testing.allocator;
+    const io = testing.io;
+    var tmp_dir = testing.tmpDir(.{});
+    defer tmp_dir.cleanup();
+
+    const root = try tmpDirPath(io, tmp_dir, allocator, "");
+    defer allocator.free(root);
+
+    const paths = RuntimePaths{
+        .launcher_dir = root,
+        .app_root = root,
+        .jar_path = root,
+    };
+    try testing.expect(try resolveBundledRuntime(io, allocator, paths) == null);
 }
