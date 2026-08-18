@@ -310,6 +310,7 @@ fun ConfigurationScreen(
 
     val manualProfileEntries = remember {
         listOf(
+            Res.string.proxy_set to ProxyEntity.TYPE_PROXY_SET,
             Res.string.action_socks to ProxyEntity.TYPE_SOCKS,
             Res.string.action_http to ProxyEntity.TYPE_HTTP,
             Res.string.action_shadowsocks to ProxyEntity.TYPE_SS,
@@ -331,7 +332,6 @@ fun ConfigurationScreen(
             Res.string.action_shadowquic to ProxyEntity.TYPE_SHADOWQUIC,
             Res.string.action_trusttunnel to ProxyEntity.TYPE_TRUST_TUNNEL,
             Res.string.action_snell to ProxyEntity.TYPE_SNELL,
-            Res.string.proxy_set to ProxyEntity.TYPE_PROXY_SET,
             Res.string.custom_config to ProxyEntity.TYPE_CONFIG,
             Res.string.proxy_chain to ProxyEntity.TYPE_CHAIN,
         )
