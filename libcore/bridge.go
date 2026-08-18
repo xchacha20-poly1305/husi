@@ -1,13 +1,13 @@
 package libcore
 
 import (
+	"bytes"
 	"context"
 	"time"
 
 	"libcore/coreclient"
 	"libcore/coresvc"
 
-	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"google.golang.org/grpc/status"
@@ -95,7 +95,10 @@ type StreamCall struct {
 }
 
 func (s *StreamCall) Close() {
-	_ = common.Close(common.PtrOrNil(s.stream))
+	if s == nil || s.stream == nil {
+		return
+	}
+	s.stream.Close()
 }
 
 type streamHandlerAdapter struct {
@@ -111,7 +114,7 @@ func (a streamHandlerAdapter) OnClosed(errMessage string) {
 }
 
 func (c *BridgeClient) Stream(method string, request []byte, handler StreamHandler) (*StreamCall, error) {
-	stream, err := c.client.Stream(context.Background(), method, request, streamHandlerAdapter{handler: handler})
+	stream, err := c.client.Stream(context.Background(), method, bytes.Clone(request), streamHandlerAdapter{handler: handler})
 	if err != nil {
 		return nil, err
 	}
