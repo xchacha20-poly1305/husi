@@ -43,6 +43,7 @@ import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.hysteria.buildSingBoxOutboundHysteriaBean
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
+import fr.husi.fmt.internal.resolveMembers
 import fr.husi.fmt.internal.buildSingBoxOutboundProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.juicity.buildSingBoxOutboundJuicityBean
@@ -299,48 +300,14 @@ fun buildConfig(
                 }
 
                 is ProxySetBean -> {
-                    val beans = when (bean.type) {
-                        ProxySetBean.TYPE_LIST -> runBlocking {
-                            SagerDatabase.proxyDao.getEntities(bean.proxies)
-                        }
-
-                        ProxySetBean.TYPE_GROUP -> runBlocking {
-                            SagerDatabase.proxyDao.getByGroup(bean.groupId).first()
-                        }
-
-                        else -> throw IllegalStateException("invalid proxy set type ${bean.type}")
-                    }
-
-                    val beansMap = beans.associateBy { it.id }
-                    val regex = if (bean.type == ProxySetBean.TYPE_GROUP) {
-                        bean.groupFilterNotRegex.blankAsNull()?.toRegex()
-                    } else {
-                        null
-                    }
-                    val items = if (bean.type == ProxySetBean.TYPE_LIST) {
-                        bean.proxies.requireNoDuplicateReferences("proxy set $id")
-                        val requestedProxyIds = bean.proxies
-                        val missingProxyIds = requestedProxyIds.filterNot(beansMap::containsKey)
-                        if (missingProxyIds.isNotEmpty()) {
-                            error(
-                                "Missing proxy reference in proxy set $id: " +
-                                        missingProxyIds.joinToString(", "),
-                            )
-                        }
-                        requestedProxyIds.map { proxyId -> beansMap.getValue(proxyId) }
-                    } else {
-                        beans
+                    val memberProfiles = runBlocking {
+                        bean.resolveMembers(id, failOnMissing = true)
                     }
 
                     val memberChains = mutableListOf<ResolvedChain>()
-                    for (item in items) {
-                        // A group-backed set naturally belongs to the group it collects from.
-                        // Exclude that implicit self member, but let explicit list self references
-                        // reach the recursion guard and report a useful cycle.
-                        if (bean.type == ProxySetBean.TYPE_GROUP && item.id == id) continue
-                        if (regex?.containsMatchIn(item.displayName()) == false) continue
+                    for (member in memberProfiles) {
                         memberChains.add(
-                            item.resolveChainInternal(referencePath + id),
+                            member.resolveChainInternal(referencePath + id),
                         )
                     }
 

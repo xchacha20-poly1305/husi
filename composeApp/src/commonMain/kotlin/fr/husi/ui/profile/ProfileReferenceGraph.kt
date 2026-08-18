@@ -4,23 +4,13 @@ import fr.husi.database.ProxyEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
-import fr.husi.ktx.blankAsNull
+import fr.husi.fmt.internal.resolveMembers
 import kotlinx.coroutines.flow.first
 
 private suspend fun ProxyEntity.directProfileReferences(): List<ProxyEntity> =
     when (val bean = requireBean()) {
         is ChainBean -> SagerDatabase.proxyDao.getEntities(bean.proxies)
-        is ProxySetBean -> when (bean.type) {
-            ProxySetBean.TYPE_LIST -> SagerDatabase.proxyDao.getEntities(bean.proxies)
-            ProxySetBean.TYPE_GROUP -> {
-                val filterRegex = bean.groupFilterNotRegex.blankAsNull()?.toRegex()
-                SagerDatabase.proxyDao.getByGroup(bean.groupId).first().filter {
-                    it.id != id && filterRegex?.containsMatchIn(it.displayName()) != false
-                }
-            }
-
-            else -> emptyList()
-        }
+        is ProxySetBean -> bean.resolveMembers(id)
 
         else -> emptyList()
     }

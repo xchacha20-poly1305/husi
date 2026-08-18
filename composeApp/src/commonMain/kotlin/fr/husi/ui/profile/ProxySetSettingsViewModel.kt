@@ -26,6 +26,26 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Immutable
+internal sealed interface ProviderUiItem {
+
+    val key: Long
+
+    fun toProvider(): ProxySetBean.Provider
+
+    data class Profile(override val key: Long, val entity: ProxyEntity) : ProviderUiItem {
+        override fun toProvider() = ProxySetBean.Provider.Single(entity.id)
+    }
+
+    data class Group(
+        override val key: Long,
+        val groupID: Long,
+        val filterNotRegex: String,
+    ) : ProviderUiItem {
+        override fun toProvider() = ProxySetBean.Provider.Group(groupID, filterNotRegex)
+    }
+}
+
+@Immutable
 internal data class ProxySetUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -38,11 +58,7 @@ internal data class ProxySetUiState(
     val testIdleTimeout: String = "",
     val testTolerance: Int = 50,
 
-    val collectType: Int = ProxySetBean.TYPE_LIST,
-    val groupID: Long = -1L,
-    val filterNotRegex: String = "",
-
-    val profiles: List<ProxyEntity> = emptyList(),
+    val providers: List<ProviderUiItem> = emptyList(),
     val groups: LinkedHashMap<Long, ProxyGroup> = LinkedHashMap(),
 ) : ProfileEditorUiState
 
@@ -66,12 +82,9 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
                 testInterval = testInterval,
                 testIdleTimeout = testIdleTimeout,
                 testTolerance = testTolerance,
-                collectType = type,
-                groupID = groupId,
-                filterNotRegex = groupFilterNotRegex,
             )
         }
-        load(proxies)
+        load(providers)
     }
 
     override fun ProxySetBean.loadFromUiState() {
@@ -86,100 +99,133 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         testInterval = state.testInterval
         testIdleTimeout = state.testIdleTimeout
         testTolerance = state.testTolerance
-        type = state.collectType
-        groupId = state.groupID
-        groupFilterNotRegex = state.filterNotRegex
-        proxies = state.profiles.map { it.id }
+        providers = state.providers.map { it.toProvider() }
     }
 
-    private suspend fun load(ids: List<Long>) {
+    private var nextItemKey = 0L
+
+    private fun newItemKey() = nextItemKey++
+
+    private suspend fun load(providers: List<ProxySetBean.Provider>) {
         val groups = SagerDatabase.groupDao.allGroups().first()
         val groupMap = LinkedHashMap<Long, ProxyGroup>(groups.size)
         groups.associateByTo(groupMap) { it.id }
-        uiState.update {
-            it.copy(groups = groupMap)
-        }
-        val proxyList = ArrayList<ProxyEntity>(ids.size)
-        val profiles = ProfileManager.getProfiles(ids).associateBy { it.id }
-        onDefaultDispatcher {
-            for (id in ids) {
-                proxyList.add(profiles[id] ?: continue)
+
+        val singleIDs = providers.filterIsInstance<ProxySetBean.Provider.Single>().map { it.id }
+        val profiles = ProfileManager.getProfiles(singleIDs).associateBy { it.id }
+        val items = onDefaultDispatcher {
+            val items = ArrayList<ProviderUiItem>(providers.size)
+            for (provider in providers) {
+                when (provider) {
+                    is ProxySetBean.Provider.Single -> {
+                        val profile = profiles[provider.id] ?: continue
+                        items.add(ProviderUiItem.Profile(newItemKey(), profile))
+                    }
+
+                    is ProxySetBean.Provider.Group -> items.add(
+                        ProviderUiItem.Group(
+                            key = newItemKey(),
+                            groupID = provider.groupID,
+                            filterNotRegex = provider.filterNotRegex,
+                        ),
+                    )
+                }
             }
+            items
         }
         uiState.update {
-            it.copy(profiles = proxyList)
+            it.copy(groups = groupMap, providers = items)
         }
     }
 
-    fun submitReorder(changes: List<OrderedItem<ProxyEntity>>) {
-        invalidateProfileSelection()
-        val currentProfiles = uiState.value.profiles
-        val changesMap = changes.associate { it.value.id to it.newIndex }
+    fun submitReorder(changes: List<OrderedItem<ProviderUiItem>>) {
+        invalidateProviderMutation()
+        val current = uiState.value.providers
+        val changesMap = changes.associate { it.value.key to it.newIndex }
 
-        val reordered = currentProfiles.sortedBy { profile ->
-            changesMap[profile.id] ?: currentProfiles.indexOf(profile)
+        val reordered = current.sortedBy { item ->
+            changesMap[item.key] ?: current.indexOf(item)
         }
 
         uiState.update {
-            it.copy(profiles = reordered)
+            it.copy(providers = reordered)
         }
     }
 
     fun remove(index: Int) {
-        invalidateProfileSelection()
-        val profiles = uiState.value.profiles.toMutableList()
-        profiles.removeAt(index)
+        invalidateProviderMutation()
+        val providers = uiState.value.providers.toMutableList()
+        if (index !in providers.indices) return
+        providers.removeAt(index)
         uiState.update {
-            it.copy(profiles = profiles)
+            it.copy(providers = providers)
         }
     }
 
-    /** The profile index that is being replacing */
     var replacing = -1
 
-    private var profileSelectionJob: Job? = null
-    private var profileMutationVersion = 0L
+    private var mutationJob: Job? = null
+    private var mutationVersion = 0L
 
-    private fun invalidateProfileSelection() {
-        profileMutationVersion++
-        profileSelectionJob?.cancel()
-        profileSelectionJob = null
+    private fun invalidateProviderMutation() {
+        mutationVersion++
+        mutationJob?.cancel()
+        mutationJob = null
+    }
+
+    private suspend fun currentMemberProfiles(excludeIndex: Int): List<ProxyEntity> {
+        val providers = uiState.value.providers
+        val members = mutableListOf<ProxyEntity>()
+        for ((index, item) in providers.withIndex()) {
+            if (index == excludeIndex) continue
+            when (item) {
+                is ProviderUiItem.Profile -> members.add(item.entity)
+                is ProviderUiItem.Group -> members.addAll(item.toProvider().entities())
+            }
+        }
+        return members.distinctBy { it.id }
     }
 
     fun onSelectProfile(id: Long) {
         val replacingIndex = replacing
         replacing = -1
-        val version = ++profileMutationVersion
-        profileSelectionJob?.cancel()
-        profileSelectionJob = viewModelScope.launch {
+        val version = ++mutationVersion
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
             val profile = ProfileManager.getProfile(id)!!
-            if (version != profileMutationVersion) return@launch
-            val profiles = uiState.value.profiles.toMutableList()
-            if (replacingIndex >= profiles.size) return@launch
-            val otherProfiles = profiles.filterIndexed { index, _ -> index != replacingIndex }
-            if (otherProfiles.any { it.id == profile.id }) {
+            if (version != mutationVersion) return@launch
+            val providers = uiState.value.providers.toMutableList()
+            if (replacingIndex >= providers.size) return@launch
+            val alreadySelected = providers.filterIndexed { index, item ->
+                index != replacingIndex
+                        && item is ProviderUiItem.Profile
+                        && item.entity.id == id
+            }
+            if (alreadySelected.isNotEmpty()) {
                 emitAlert(
                     title = StringOrRes.Res(Res.string.duplicate_name),
                     message = StringOrRes.Direct(profile.displayName()),
                 )
                 return@launch
             }
+            val otherProfiles = currentMemberProfiles(replacingIndex)
             if (!profile.canAdd(otherProfiles)) {
-                if (version != profileMutationVersion) return@launch
+                if (version != mutationVersion) return@launch
                 emitAlert(
                     title = StringOrRes.Res(Res.string.circular_reference),
                     message = StringOrRes.Res(Res.string.circular_reference_sum),
                 )
                 return@launch
             }
-            if (version != profileMutationVersion) return@launch
+            if (version != mutationVersion) return@launch
             if (replacingIndex < 0) {
-                profiles.add(profile)
+                providers.add(ProviderUiItem.Profile(newItemKey(), profile))
             } else {
-                profiles[replacingIndex] = profile
+                providers[replacingIndex] =
+                    ProviderUiItem.Profile(providers[replacingIndex].key, profile)
             }
             uiState.update {
-                it.copy(profiles = profiles)
+                it.copy(providers = providers)
             }
         }
     }
@@ -239,138 +285,98 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         uiState.update { it.copy(testTolerance = tolerance) }
     }
 
-    private var groupSelectionJob: Job? = null
-    private var groupSelectionVersion = 0L
-
-    private fun invalidateGroupSelection() {
-        groupSelectionVersion++
-        groupSelectionJob?.cancel()
-        groupSelectionJob = null
+    fun addGroupProvider(groupID: Long, filterNotRegex: String) {
+        submitGroupProvider(index = -1, groupID = groupID, filterNotRegex = filterNotRegex)
     }
 
-    private fun validateGroupSelection(
-        groupId: Long,
-        filter: String,
-        onInvalid: () -> Unit = {},
-    ) {
-        val version = ++groupSelectionVersion
-        groupSelectionJob?.cancel()
-        groupSelectionJob = viewModelScope.launch {
-            val filterRegex = try {
-                filter.blankAsNull()?.toRegex()
-            } catch (error: IllegalArgumentException) {
-                if (version != groupSelectionVersion) return@launch
-                onInvalid()
+    fun setGroupProvider(index: Int, groupID: Long, filterNotRegex: String) {
+        submitGroupProvider(index = index, groupID = groupID, filterNotRegex = filterNotRegex)
+    }
+
+    private fun submitGroupProvider(index: Int, groupID: Long, filterNotRegex: String) {
+        val filterRegex = try {
+            filterNotRegex.blankAsNull()?.toRegex()
+        } catch (error: IllegalArgumentException) {
+            invalidateProviderMutation()
+            viewModelScope.launch {
                 emitInvalidRegex(error)
-                return@launch
             }
-            val groupProfiles = SagerDatabase.proxyDao.getByGroup(groupId).first()
-            if (version != groupSelectionVersion) return@launch
+            return
+        }
+
+        val duplicated = uiState.value.providers.filterIndexed { itemIndex, item ->
+            itemIndex != index && item is ProviderUiItem.Group && item.groupID == groupID
+        }
+        if (duplicated.isNotEmpty()) {
+            invalidateProviderMutation()
+            viewModelScope.launch {
+                emitAlert(
+                    title = StringOrRes.Res(Res.string.duplicate_name),
+                    message = StringOrRes.Direct(
+                        uiState.value.groups[groupID]?.displayName().orEmpty(),
+                    ),
+                )
+            }
+            return
+        }
+
+        val version = ++mutationVersion
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
+            val groupProfiles = SagerDatabase.proxyDao.getByGroup(groupID).first()
+            if (version != mutationVersion) return@launch
             val selectedProfiles = groupProfiles.filter { profile ->
                 profile.id != editingId &&
-                    filterRegex?.containsMatchIn(profile.displayName()) != false
+                        filterRegex?.containsMatchIn(profile.displayName()) != false
             }
             for (profile in selectedProfiles) {
-                if (version != groupSelectionVersion) return@launch
+                if (version != mutationVersion) return@launch
                 if (profile.containsProfileReference(editingId, includeGroupProxies = false)) {
-                    if (version != groupSelectionVersion) return@launch
-                    onInvalid()
-                    emitAlert(
-                        title = StringOrRes.Res(Res.string.circular_reference),
-                        message = StringOrRes.Res(Res.string.circular_reference_sum),
-                    )
+                    if (version != mutationVersion) return@launch
+                    emitCircularReference()
                     return@launch
                 }
             }
+            val otherProfiles = currentMemberProfiles(index)
             if (
                 !isNew && groupProxiesOverlapProfileReferences(
                     groupId = proxyEntity.groupId,
                     rootProfileId = editingId,
-                    memberProfiles = selectedProfiles,
+                    memberProfiles = otherProfiles + selectedProfiles,
                 )
             ) {
-                if (version != groupSelectionVersion) return@launch
-                onInvalid()
-                emitAlert(
-                    title = StringOrRes.Res(Res.string.circular_reference),
-                    message = StringOrRes.Res(Res.string.circular_reference_sum),
-                )
+                if (version != mutationVersion) return@launch
+                emitCircularReference()
+                return@launch
+            }
+
+            if (version != mutationVersion) return@launch
+            uiState.update { state ->
+                val providers = state.providers.toMutableList()
+                if (index in providers.indices) {
+                    providers[index] = ProviderUiItem.Group(
+                        key = providers[index].key,
+                        groupID = groupID,
+                        filterNotRegex = filterNotRegex,
+                    )
+                } else {
+                    providers.add(
+                        ProviderUiItem.Group(
+                            key = newItemKey(),
+                            groupID = groupID,
+                            filterNotRegex = filterNotRegex,
+                        ),
+                    )
+                }
+                state.copy(providers = providers)
             }
         }
     }
 
-    fun setCollectType(type: Int) {
-        val state = uiState.value
-        if (type != ProxySetBean.TYPE_GROUP || state.groupID <= 0L) {
-            invalidateGroupSelection()
-            uiState.update { it.copy(collectType = type) }
-            return
-        }
-        uiState.update { it.copy(collectType = type) }
-        validateGroupSelection(
-            groupId = state.groupID,
-            filter = state.filterNotRegex,
-            onInvalid = {
-                uiState.update { current ->
-                    if (current.collectType == type) {
-                        current.copy(collectType = state.collectType)
-                    } else {
-                        current
-                    }
-                }
-            },
-        )
-    }
-
-    fun setGroupID(id: Long) {
-        val previousGroupId = uiState.value.groupID
-        uiState.update { it.copy(groupID = id) }
-        validateGroupSelection(
-            groupId = id,
-            filter = uiState.value.filterNotRegex,
-            onInvalid = {
-                uiState.update { current ->
-                    if (current.groupID == id) {
-                        current.copy(groupID = previousGroupId)
-                    } else {
-                        current
-                    }
-                }
-            },
-        )
-    }
-
-    fun setFilterNotRegex(regex: String) {
-        val invalidRegex = regex.blankAsNull()?.let {
-            runCatching { it.toRegex() }.exceptionOrNull()
-        }
-        if (invalidRegex != null) {
-            invalidateGroupSelection()
-            viewModelScope.launch {
-                emitInvalidRegex(invalidRegex)
-            }
-            return
-        }
-
-        val state = uiState.value
-        if (state.collectType != ProxySetBean.TYPE_GROUP || state.groupID <= 0L) {
-            invalidateGroupSelection()
-            uiState.update { it.copy(filterNotRegex = regex) }
-            return
-        }
-        uiState.update { it.copy(filterNotRegex = regex) }
-        validateGroupSelection(
-            groupId = state.groupID,
-            filter = regex,
-            onInvalid = {
-                uiState.update { current ->
-                    if (current.filterNotRegex == regex) {
-                        current.copy(filterNotRegex = state.filterNotRegex)
-                    } else {
-                        current
-                    }
-                }
-            },
+    private suspend fun emitCircularReference() {
+        emitAlert(
+            title = StringOrRes.Res(Res.string.circular_reference),
+            message = StringOrRes.Res(Res.string.circular_reference_sum),
         )
     }
 

@@ -136,7 +136,7 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             advanceUntilIdle()
 
             assertCircularReference(event.await())
-            assertTrue(viewModel.uiState.value.profiles.isEmpty())
+            assertTrue(viewModel.uiState.value.providers.isEmpty())
         }
 
     @Test
@@ -151,11 +151,11 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             awaitState { viewModel.uiState.value.name == "set" }
             val event = backgroundScope.async { viewModel.uiEvent.first() }
 
-            viewModel.setGroupID(collectedGroup.id)
+            viewModel.addGroupProvider(collectedGroup.id, "")
             advanceUntilIdle()
 
             assertCircularReference(event.await())
-            assertTrue(viewModel.uiState.value.groupID != collectedGroup.id)
+            assertTrue(viewModel.uiState.value.providers.isEmpty())
         }
 
     @Test
@@ -173,11 +173,11 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             awaitState { viewModel.uiState.value.name == "set" }
             val event = backgroundScope.async { viewModel.uiEvent.first() }
 
-            viewModel.setGroupID(collectedGroup.id)
+            viewModel.addGroupProvider(collectedGroup.id, "")
             advanceUntilIdle()
 
             assertCircularReference(event.await())
-            assertTrue(viewModel.uiState.value.groupID != collectedGroup.id)
+            assertTrue(viewModel.uiState.value.providers.isEmpty())
         }
 
     @Test
@@ -192,43 +192,22 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             viewModel.initialize(editedSet.id, isSubscription = false)
             awaitState { viewModel.uiState.value.name == "set" }
 
-            viewModel.setFilterNotRegex("safe")
-            viewModel.setGroupID(collectedGroup.id)
-            advanceUntilIdle()
-            assertEquals(collectedGroup.id, viewModel.uiState.value.groupID)
+            viewModel.addGroupProvider(collectedGroup.id, "safe")
+            awaitState { viewModel.uiState.value.providers.isNotEmpty() }
+            assertEquals(
+                listOf(ProxySetBean.Provider.Group(collectedGroup.id, "safe")),
+                viewModel.uiState.value.providers.map { it.toProvider() },
+            )
 
             val event = backgroundScope.async { viewModel.uiEvent.first() }
-            viewModel.setCollectType(ProxySetBean.TYPE_GROUP)
-            advanceUntilIdle()
-            viewModel.setFilterNotRegex("")
+            viewModel.setGroupProvider(0, collectedGroup.id, "")
             advanceUntilIdle()
 
             assertCircularReference(event.await())
-            assertEquals("safe", viewModel.uiState.value.filterNotRegex)
-        }
-
-    @Test
-    fun `proxy set editor revalidates its retained group when switching collection type`() =
-        runTest(dispatcher.scheduler) {
-            val editedGroup = createGroup("edited")
-            val collectedGroup = createGroup("collected")
-            val editedSet = createProxySet(editedGroup.id, "set")
-            createChain(collectedGroup.id, "cycle", listOf(editedSet.id))
-            val viewModel = ProxySetSettingsViewModel()
-            viewModel.initialize(editedSet.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "set" }
-
-            viewModel.setFilterNotRegex("safe")
-            viewModel.setGroupID(collectedGroup.id)
-            advanceUntilIdle()
-            viewModel.setFilterNotRegex("")
-            val event = backgroundScope.async { viewModel.uiEvent.first() }
-
-            viewModel.setCollectType(ProxySetBean.TYPE_GROUP)
-            advanceUntilIdle()
-
-            assertCircularReference(event.await())
-            assertEquals(ProxySetBean.TYPE_LIST, viewModel.uiState.value.collectType)
+            assertEquals(
+                listOf(ProxySetBean.Provider.Group(collectedGroup.id, "safe")),
+                viewModel.uiState.value.providers.map { it.toProvider() },
+            )
         }
 
     @Test
@@ -241,12 +220,12 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             awaitState { viewModel.uiState.value.name == "set" }
             val event = backgroundScope.async { viewModel.uiEvent.first() }
 
-            viewModel.setFilterNotRegex("[")
+            viewModel.addGroupProvider(group.id, "[")
             advanceUntilIdle()
 
             val alert = assertIs<ProfileEditorUiEvent.Alert>(event.await())
             assertEquals(StringOrRes.Res(Res.string.error_title), alert.title)
-            assertTrue(viewModel.uiState.value.filterNotRegex.isEmpty())
+            assertTrue(viewModel.uiState.value.providers.isEmpty())
         }
 
     private suspend fun TestScope.awaitState(predicate: () -> Boolean) {
@@ -287,8 +266,7 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
         val proxySet = ProxyEntity(groupId = groupId).putBean(
             ProxySetBean().apply {
                 this.name = name
-                type = ProxySetBean.TYPE_LIST
-                this.proxies = proxies
+                this.providers = proxies.map { ProxySetBean.Provider.Single(it) }
             }.applyDefaultValues(),
         )
         proxySet.id = SagerDatabase.proxyDao.addProxy(proxySet)

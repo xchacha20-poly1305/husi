@@ -1,10 +1,17 @@
 package fr.husi.fmt.internal
 
-import kotlinx.serialization.Serializable as KxsSerializable
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.CONNECTION_TEST_URL
+import fr.husi.database.ProxyEntity
+import fr.husi.database.SagerDatabase
 import fr.husi.fmt.KryoConverters
+import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.onIoDispatcher
+import fr.husi.ktx.readList
+import fr.husi.ktx.writeList
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.Serializable as KxsSerializable
 
 @KxsSerializable
 class ProxySetBean : InternalBean() {
@@ -12,9 +19,6 @@ class ProxySetBean : InternalBean() {
     companion object {
         const val MANAGEMENT_SELECTOR = 0
         const val MANAGEMENT_URLTEST = 1
-
-        const val TYPE_LIST = 0
-        const val TYPE_GROUP = 1
 
         @JvmField
         val CREATOR = object : CREATOR<ProxySetBean>() {
@@ -28,11 +32,86 @@ class ProxySetBean : InternalBean() {
         }
     }
 
+    @KxsSerializable
+    sealed interface Provider {
+
+        companion object {
+            const val TYPE_SINGLE = 0.toByte()
+            const val TYPE_GROUP = 1.toByte()
+
+            fun deserialize(input: ByteBufferInput): Provider {
+                return when (val type = input.readByte()) {
+                    TYPE_SINGLE -> Single.deserialize(input)
+                    TYPE_GROUP -> Group.deserialize(input)
+                    else -> error("Unsupported type: $type")
+                }
+            }
+        }
+
+        val type: Byte
+
+        suspend fun entities(): List<ProxyEntity>
+
+        fun serialize(output: ByteBufferOutput) {
+            output.writeByte(type)
+        }
+
+        @KxsSerializable
+        data class Single(val id: Long) : Provider {
+            companion object {
+                fun deserialize(input: ByteBufferInput): Single {
+                    val id = input.readLong()
+                    return Single(id)
+                }
+            }
+
+            override val type: Byte get() = TYPE_SINGLE
+
+            override suspend fun entities(): List<ProxyEntity> = onIoDispatcher {
+                SagerDatabase.proxyDao.getEntities(listOf(id))
+            }
+
+            override fun serialize(output: ByteBufferOutput) {
+                super.serialize(output)
+                output.writeLong(id)
+            }
+        }
+
+        @KxsSerializable
+        data class Group(
+            val groupID: Long,
+            val filterNotRegex: String,
+        ) : Provider {
+            companion object {
+                fun deserialize(input: ByteBufferInput): Group {
+                    val groupID = input.readLong()
+                    val filterNotRegex = input.readString().orEmpty()
+                    return Group(groupID, filterNotRegex)
+                }
+            }
+
+            override val type: Byte get() = TYPE_GROUP
+
+            override suspend fun entities(): List<ProxyEntity> {
+                val filter = filterNotRegex.blankAsNull()?.toRegex()
+                val entities = onIoDispatcher {
+                    SagerDatabase.proxyDao.getByGroup(groupID).first()
+                }
+                if (filter == null) return entities
+                return entities.filter { filter.containsMatchIn(it.displayName()) }
+            }
+
+            override fun serialize(output: ByteBufferOutput) {
+                super.serialize(output)
+                output.writeLong(groupID)
+                output.writeString(filterNotRegex)
+            }
+        }
+
+    }
+
     var management: Int = MANAGEMENT_SELECTOR
-    var type: Int = TYPE_LIST
-    var proxies: List<Long> = emptyList()
-    var groupId: Long = 0L
-    var groupFilterNotRegex: String = ""
+    var providers: List<Provider> = emptyList()
 
     // Selector + URLTest
     var interruptExistConnections: Boolean = false
@@ -45,28 +124,27 @@ class ProxySetBean : InternalBean() {
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
-        if (management != MANAGEMENT_SELECTOR && management != MANAGEMENT_URLTEST) management =
-            MANAGEMENT_SELECTOR
-        if (type != TYPE_LIST && type != TYPE_GROUP) type = TYPE_LIST
+        if (management != MANAGEMENT_SELECTOR && management != MANAGEMENT_URLTEST) {
+            management = MANAGEMENT_SELECTOR
+        }
         if (testURL.isEmpty()) testURL = CONNECTION_TEST_URL
         if (testInterval.isEmpty()) testInterval = "3m"
         if (testIdleTimeout.isEmpty()) testIdleTimeout = "3m"
     }
 
     override fun displayName(): String {
-        if (name.isEmpty()) {
+        return name.ifEmpty {
             val hash = kotlin.math.abs(hashCode())
-            return when (management) {
+            when (management) {
                 MANAGEMENT_SELECTOR -> "Selector $hash"
                 MANAGEMENT_URLTEST -> "URLTest $hash"
                 else -> "Unknown $hash"
             }
         }
-        return name
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(1)
+        output.writeInt(2)
         output.writeInt(management)
         output.writeBoolean(interruptExistConnections)
         output.writeString(testURL)
@@ -74,47 +152,38 @@ class ProxySetBean : InternalBean() {
         output.writeString(testIdleTimeout)
         output.writeInt(testTolerance)
 
-        output.writeInt(type)
-        when (type) {
-            TYPE_LIST -> {
-                output.writeInt(proxies.size)
-                for (proxy in proxies) {
-                    output.writeLong(proxy)
-                }
-            }
-
-            TYPE_GROUP -> {
-                output.writeLong(groupId)
-                output.writeString(groupFilterNotRegex)
-            }
-        }
+        output.writeList(providers, Provider::serialize)
     }
 
     override fun deserialize(input: ByteBufferInput) {
         val version = input.readInt()
         management = input.readInt()
         interruptExistConnections = input.readBoolean()
-        testURL = input.readString() ?: ""
-        testInterval = input.readString() ?: ""
-        testIdleTimeout = input.readString() ?: ""
+        testURL = input.readString().orEmpty()
+        testInterval = input.readString().orEmpty()
+        testIdleTimeout = input.readString().orEmpty()
         testTolerance = input.readInt()
 
-        type = input.readInt()
-        when (type) {
-            TYPE_LIST -> {
-                val length = input.readInt()
-                val list = ArrayList<Long>(length)
-                for (i in 0 until length) {
-                    list.add(input.readLong())
+        if (version >= 2) {
+            providers = input.readList(Provider::deserialize)
+        } else {
+            val type = input.readInt()
+            providers = when (type) {
+                0 -> input.readList {
+                    val id = it.readLong()
+                    Provider.Single(id)
                 }
-                proxies = list
-            }
 
-            TYPE_GROUP -> {
-                groupId = input.readLong()
-                if (version >= 1) {
-                    groupFilterNotRegex = input.readString() ?: ""
+                1 -> {
+                    val groupID = input.readLong()
+                    var filterNotRegex = ""
+                    if (version >= 1) {
+                        filterNotRegex = input.readString().orEmpty()
+                    }
+                    listOf(Provider.Group(groupID, filterNotRegex))
                 }
+
+                else -> error("unknown legacy proxy set type $type")
             }
         }
     }

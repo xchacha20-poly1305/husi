@@ -284,7 +284,6 @@
     <string name="disable">Адключыць</string>
     <string name="auto">Аўто</string>
     <string name="enable_log">Уключыць часопіс</string>
-    <string name="list">Спіс</string>
     <string name="random">Выпадковы</string>
     <string name="probe_interval">Інтэрвал назірання балансіроўшчыка</string>
     <string name="standard">Стандарт</string>

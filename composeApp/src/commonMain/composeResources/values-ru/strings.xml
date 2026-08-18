@@ -177,7 +177,6 @@
     <string name="standard">Стандарт</string>
     <string name="probe_interval">Интервал наблюдения балансировщика</string>
     <string name="random">Случайный</string>
-    <string name="list">Список</string>
     <string name="enable_log">Включить журнал</string>
     <string name="auto">Авто</string>
     <string name="disable">Отключить</string>

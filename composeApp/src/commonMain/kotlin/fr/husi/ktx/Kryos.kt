@@ -5,33 +5,21 @@ import com.esotericsoftware.kryo.io.ByteBufferOutput
 import java.io.InputStream
 import java.io.OutputStream
 
-
 fun InputStream.byteBuffer() = ByteBufferInput(this)
 fun OutputStream.byteBuffer() = ByteBufferOutput(this)
 
-fun ByteBufferInput.readStringList(): List<String> {
-    return mutableListOf<String>().apply {
-        repeat(readInt()) {
-            add(readString())
+fun <T> ByteBufferInput.readList(deserialize: (ByteBufferInput) -> T): List<T> {
+    val size = readInt()
+    return buildList(size) {
+        repeat(size) {
+            add(deserialize(this@readList))
         }
     }
 }
 
-fun ByteBufferInput.readStringSet(): Set<String> {
-    return linkedSetOf<String>().apply {
-        repeat(readInt()) {
-            add(readString())
-        }
+fun <T> ByteBufferOutput.writeList(list: List<T>, serialize: T.(ByteBufferOutput) -> Unit) {
+    writeInt(list.size)
+    for (item in list) {
+        item.serialize(this@writeList)
     }
-}
-
-
-fun ByteBufferOutput.writeStringList(list: List<String>) {
-    writeInt(list.size)
-    for (str in list) writeString(str)
-}
-
-fun ByteBufferOutput.writeStringList(list: Set<String>) {
-    writeInt(list.size)
-    for (str in list) writeString(str)
 }

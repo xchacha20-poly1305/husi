@@ -76,8 +76,9 @@ class ConfigBuilderTest : HusiKoinTest() {
             ProxySetBean().apply {
                 name = "set-main"
                 management = ProxySetBean.MANAGEMENT_SELECTOR
-                type = ProxySetBean.TYPE_LIST
-                proxies = listOf(memberA.id, memberB.id)
+                providers = listOf(memberA.id, memberB.id).map {
+                    ProxySetBean.Provider.Single(it)
+                }
             }.applyDefaultValues(),
         )
         proxySet.id = SagerDatabase.proxyDao.addProxy(proxySet)
@@ -445,8 +446,9 @@ class ConfigBuilderTest : HusiKoinTest() {
             ProxySetBean().apply {
                 name = "set-main"
                 management = ProxySetBean.MANAGEMENT_SELECTOR
-                type = ProxySetBean.TYPE_LIST
-                proxies = listOf(memberA.id, memberB.id)
+                providers = listOf(memberA.id, memberB.id).map {
+                    ProxySetBean.Provider.Single(it)
+                }
             }.applyDefaultValues(),
         )
         proxySet.id = SagerDatabase.proxyDao.addProxy(proxySet)
@@ -709,7 +711,6 @@ class ConfigBuilderTest : HusiKoinTest() {
                 order = 1,
                 name = "landing-set",
                 proxies = emptyList(),
-                type = ProxySetBean.TYPE_GROUP,
                 collectGroupId = memberGroup.id,
             )
             val landingTail = createSocksProxy(
@@ -964,7 +965,6 @@ class ConfigBuilderTest : HusiKoinTest() {
             order = 1,
             name = "group-set",
             proxies = emptyList(),
-            type = ProxySetBean.TYPE_GROUP,
             collectGroupId = memberGroup.id,
         )
         val chain = createChain(
@@ -989,6 +989,51 @@ class ConfigBuilderTest : HusiKoinTest() {
             outbounds.single { it["tag"]?.jsonPrimitive?.content == "group-set" }["outbounds"]!!
                 .jsonArray.map { it.jsonPrimitive.content }.toSet(),
         )
+    }
+
+    @Test
+    fun `buildConfig should merge list and group proxy set sources`() = runBlocking {
+        val rootGroup = ProxyGroup(name = "root").applyDefaultValues()
+        rootGroup.id = SagerDatabase.groupDao.createGroup(rootGroup)
+        val memberGroup = ProxyGroup(name = "members").applyDefaultValues()
+        memberGroup.id = SagerDatabase.groupDao.createGroup(memberGroup)
+        val memberA = createSocksProxy(
+            groupId = memberGroup.id,
+            order = 1,
+            name = "mixed-member-a",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        val memberB = createSocksProxy(
+            groupId = memberGroup.id,
+            order = 2,
+            name = "mixed-member-b",
+            host = "2.2.2.2",
+            port = 1081,
+        )
+        val proxySet = createProxySet(
+            groupId = rootGroup.id,
+            order = 1,
+            name = "mixed-set",
+            proxies = listOf(memberB.id),
+            collectGroupId = memberGroup.id,
+        )
+        val chain = createChain(
+            groupId = rootGroup.id,
+            order = 2,
+            name = "mixed-set-chain",
+            proxies = listOf(proxySet.id),
+        )
+
+        val result = buildConfig(chain, forTest = true)
+        assertEquals(
+            listOf("mixed-member-b", "mixed-member-a"),
+            parseOutboundList(result)
+                .single { it["tag"]?.jsonPrimitive?.content == "mixed-set" }["outbounds"]!!
+                .jsonArray.map { it.jsonPrimitive.content },
+        )
+        assertEquals(1, result.tagToID.values.count { it == memberA.id })
+        assertEquals(1, result.tagToID.values.count { it == memberB.id })
     }
 
     @Test
@@ -1060,7 +1105,6 @@ class ConfigBuilderTest : HusiKoinTest() {
             order = 1,
             name = "outer-set",
             proxies = emptyList(),
-            type = ProxySetBean.TYPE_GROUP,
             collectGroupId = memberGroup.id,
         )
 
@@ -1174,7 +1218,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             name = "self-set",
             proxies = emptyList(),
         )
-        selfSet.proxySetBean!!.proxies = listOf(selfSet.id)
+        selfSet.proxySetBean!!.providers = listOf(ProxySetBean.Provider.Single(selfSet.id))
         SagerDatabase.proxyDao.updateProxy(selfSet)
 
         val selfError = assertFailsWith<IllegalStateException> {
@@ -1197,7 +1241,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             name = "mixed-chain",
             proxies = listOf(mixedSet.id),
         )
-        mixedSet.proxySetBean!!.proxies = listOf(mixedChain.id)
+        mixedSet.proxySetBean!!.providers = listOf(ProxySetBean.Provider.Single(mixedChain.id))
         SagerDatabase.proxyDao.updateProxy(mixedSet)
 
         val mixedError = assertFailsWith<IllegalStateException> {
@@ -1243,7 +1287,8 @@ class ConfigBuilderTest : HusiKoinTest() {
             name = "indirect-b",
             proxies = listOf(indirectChainA.id),
         )
-        indirectSet.proxySetBean!!.proxies = listOf(indirectChainB.id)
+        indirectSet.proxySetBean!!.providers =
+            listOf(ProxySetBean.Provider.Single(indirectChainB.id))
         SagerDatabase.proxyDao.updateProxy(indirectSet)
         indirectChainA.chainBean!!.proxies = listOf(indirectSet.id)
         SagerDatabase.proxyDao.updateProxy(indirectChainA)
@@ -1264,7 +1309,6 @@ class ConfigBuilderTest : HusiKoinTest() {
             order = 8,
             name = "collected-set",
             proxies = emptyList(),
-            type = ProxySetBean.TYPE_GROUP,
             collectGroupId = collectedGroup.id,
         )
         val collectedChainA = createChain(
@@ -1618,7 +1662,6 @@ class ConfigBuilderTest : HusiKoinTest() {
             order = 1,
             name = "group-set",
             proxies = emptyList(),
-            type = ProxySetBean.TYPE_GROUP,
             collectGroupId = memberGroup.id,
         )
 
@@ -1653,11 +1696,9 @@ class ConfigBuilderTest : HusiKoinTest() {
             order = 1,
             name = "empty-set",
             proxies = emptyList(),
-            type = ProxySetBean.TYPE_GROUP,
             collectGroupId = memberGroup.id,
+            filterNotRegex = "^does-not-match$",
         )
-        proxySet.proxySetBean!!.groupFilterNotRegex = "^does-not-match$"
-        SagerDatabase.proxyDao.updateProxy(proxySet)
         val rootChain = createChain(
             groupId = rootGroup.id,
             order = 2,
@@ -1689,11 +1730,9 @@ class ConfigBuilderTest : HusiKoinTest() {
             order = 1,
             name = "invalid-filter",
             proxies = emptyList(),
-            type = ProxySetBean.TYPE_GROUP,
             collectGroupId = memberGroup.id,
+            filterNotRegex = "[",
         )
-        proxySet.proxySetBean!!.groupFilterNotRegex = "["
-        SagerDatabase.proxyDao.updateProxy(proxySet)
 
         assertFailsWith<IllegalArgumentException> {
             buildConfig(proxySet, forTest = true)
@@ -1716,7 +1755,6 @@ class ConfigBuilderTest : HusiKoinTest() {
             order = 2,
             name = "group-set",
             proxies = emptyList(),
-            type = ProxySetBean.TYPE_GROUP,
             collectGroupId = group.id,
         )
 
@@ -2008,12 +2046,12 @@ class ConfigBuilderTest : HusiKoinTest() {
             name = "repeated-set",
             proxies = listOf(member.id, member.id),
         )
-        val repeatedSetError = assertFailsWith<IllegalStateException> {
-            buildConfig(repeatedSet, forTest = true)
-        }
+        val repeatedSetResult = buildConfig(repeatedSet, forTest = true)
         assertEquals(
-            "Duplicate proxy reference in proxy set ${repeatedSet.id}: ${member.id}",
-            repeatedSetError.message,
+            listOf("member"),
+            parseOutboundList(repeatedSetResult)
+                .single { it["tag"]?.jsonPrimitive?.content == "repeated-set" }["outbounds"]!!
+                .jsonArray.map { it.jsonPrimitive.content },
         )
 
         group.landingProxy = member.id
@@ -2571,18 +2609,23 @@ class ConfigBuilderTest : HusiKoinTest() {
         groupId: Long,
         order: Long,
         name: String,
-        proxies: List<Long>,
+        proxies: List<Long> = emptyList(),
         management: Int = ProxySetBean.MANAGEMENT_SELECTOR,
-        type: Int = ProxySetBean.TYPE_LIST,
         collectGroupId: Long = 0L,
+        filterNotRegex: String = "",
     ): ProxyEntity {
         val proxySet = ProxyEntity(groupId = groupId, userOrder = order).putBean(
             ProxySetBean().apply {
                 this.name = name
                 this.management = management
-                this.type = type
-                this.proxies = proxies
-                this.groupId = collectGroupId
+                this.providers = buildList {
+                    for (proxy in proxies) {
+                        add(ProxySetBean.Provider.Single(proxy))
+                    }
+                    if (collectGroupId > 0L) {
+                        add(ProxySetBean.Provider.Group(collectGroupId, filterNotRegex))
+                    }
+                }
             }.applyDefaultValues(),
         )
         proxySet.id = SagerDatabase.proxyDao.addProxy(proxySet)

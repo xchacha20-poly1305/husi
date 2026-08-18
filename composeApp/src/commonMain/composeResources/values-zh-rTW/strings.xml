@@ -285,7 +285,6 @@
     <string name="disable">停用</string>
     <string name="auto">自動</string>
     <string name="enable_log">啟用記錄檔</string>
-    <string name="list">列表</string>
     <string name="random">隨機</string>
     <string name="probe_interval">負載平衡器觀測間隔</string>
     <string name="standard">標準</string>

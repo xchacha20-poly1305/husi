@@ -329,7 +329,6 @@
     <string name="enable">Увімкнути</string>
     <string name="disable">Вимкнути</string>
     <string name="enable_log">Увімкнути журнал</string>
-    <string name="list">Список</string>
     <string name="probe_interval">Інтервал спостереження балансера</string>
     <string name="standard">Стандарт</string>
     <string name="connection_test">Тест підключення</string>

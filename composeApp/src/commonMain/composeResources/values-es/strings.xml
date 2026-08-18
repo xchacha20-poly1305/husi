@@ -270,7 +270,6 @@
     <string name="disable">Desactivar</string>
     <string name="auto">Automático</string>
     <string name="enable_log">Activar registro</string>
-    <string name="list">Lista</string>
     <string name="random">Aleatorio</string>
     <string name="leastPing" translatable="false">Ping</string>
     <string name="probe_interval">Intervalo de observación del equilibrador</string>
