@@ -32,14 +32,15 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.DateTimeComponents
+import kotlinx.datetime.format.format
+import kotlinx.datetime.offsetAt
 import java.io.File
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
     protected val root by requireObject<DesktopMain>()
@@ -649,15 +650,17 @@ private fun printLogBatch(
 private fun formatDelay(delay: Int): String = if (delay <= 0) "" else "$delay ms"
 
 /**
- * Go's `time.RFC3339` layout has no fractional seconds, while [DateTimeFormatter] prints them
- * whenever the instant carries any — and these timestamps are millisecond precision. Truncate so
- * the output matches sing-box.
+ * Go's `time.RFC3339` layout has no fractional seconds, while the ISO formats print them whenever
+ * the instant carries any — and these timestamps are millisecond precision. Truncate so the output
+ * matches sing-box.
  */
 internal fun formatApiTime(millis: Long): String {
     if (millis == 0L) return ""
-    return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(
-        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).truncatedTo(ChronoUnit.SECONDS),
-    )
+    val instant = Instant.fromEpochSeconds(Instant.fromEpochMilliseconds(millis).epochSeconds)
+    val offset = TimeZone.currentSystemDefault().offsetAt(instant)
+    return DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET.format {
+        setDateTimeOffset(instant, offset)
+    }
 }
 
 /** Go's `time.Duration.String()` truncated to seconds (`1h2m3s`), no spaces. */

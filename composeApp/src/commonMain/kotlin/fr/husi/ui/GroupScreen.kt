@@ -123,17 +123,23 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format.FormatStringsInDatetimeFormats
-import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.time.Instant
 
-@OptIn(FormatStringsInDatetimeFormats::class)
 private val subscriptionDateFormat = LocalDateTime.Format {
-    byUnicodePattern("yyyy-MM-dd HH:mm")
+    year()
+    char('-')
+    monthNumber()
+    char('-')
+    day()
+    char(' ')
+    hour()
+    char(':')
+    minute()
 }
 
 private fun formatSubscriptionUpdateTime(epochSeconds: Long): String {

@@ -13,8 +13,6 @@ import fr.husi.libcore.Libcore
 import fr.husi.libcore.resolveHttpClientFactory
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format.FormatStringsInDatetimeFormats
-import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,9 +25,14 @@ internal interface RemoteSource {
     fun fetchString(url: String): String
 }
 
-@OptIn(FormatStringsInDatetimeFormats::class)
 private val assetVersionFormat = LocalDateTime.Format {
-    byUnicodePattern("yyyyMMddHHmmssSSS")
+    year()
+    monthNumber()
+    day()
+    hour()
+    minute()
+    second()
+    secondFraction(fixedLength = 3)
 }
 
 internal fun routeGeoDir(externalAssetsDir: File): File {

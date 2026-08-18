@@ -1,5 +1,6 @@
 package fr.husi.bg
 
+import androidx.compose.ui.util.fastCoerceAtLeast
 import fr.husi.DesktopPaths
 import fr.husi.buildLauncherCommand
 import fr.husi.ktx.Logs
@@ -8,10 +9,13 @@ import fr.husi.platform.PlatformInfo
 import fr.husi.quoteSystemdArgument
 import fr.husi.quoteWindowsArgument
 import fr.husi.xmlEscape
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import java.io.File
 import java.nio.charset.Charset
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 internal object DesktopTaskScheduler {
     private lateinit var manager: DesktopTaskSchedulerManager
@@ -217,8 +221,8 @@ private class DesktopTaskSchedulerManager {
         launcherCommand: List<String>,
         schedule: DesktopTaskSchedule,
     ) {
-        val firstRunAt = LocalDateTime.now()
-            .plusSeconds(schedule.initialDelaySeconds.coerceAtLeast(60L))
+        val firstRunAt = (Clock.System.now() + schedule.initialDelaySeconds.fastCoerceAtLeast(60L).seconds)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
         // schtasks /sd /st parse dates per the user's locale (e.g. yyyy/M/d on zh-CN), so a fixed
         // pattern always fails on non-en-US systems. Import an XML definition instead — its
         // <StartBoundary> is ISO 8601 and locale-independent.
@@ -249,7 +253,7 @@ private class DesktopTaskSchedulerManager {
         val arguments = launcherCommand
             .drop(1)
             .joinToString(" ", transform = ::quoteWindowsArgument)
-        val startBoundary = firstRunAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        val startBoundary = LocalDateTime.Formats.ISO.format(firstRunAt)
         return """
             <?xml version="1.0" encoding="UTF-16"?>
             <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">

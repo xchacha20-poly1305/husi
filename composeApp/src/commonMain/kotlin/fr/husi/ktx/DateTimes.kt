@@ -3,20 +3,37 @@ package fr.husi.ktx
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format.FormatStringsInDatetimeFormats
-import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-@OptIn(FormatStringsInDatetimeFormats::class)
 private val fileNameDateTimeFormat = LocalDateTime.Format {
-    byUnicodePattern("yyyy-MM-dd_HH-mm-ss")
+    // yyyy-MM-dd_HH-mm-ss
+    year()
+    char('-')
+    monthNumber()
+    char('-')
+    day()
+    char('_')
+    hour()
+    char('-')
+    minute()
+    char('-')
+    second()
 }
 
-@OptIn(FormatStringsInDatetimeFormats::class)
 private val displayDateTimeFormat = LocalDateTime.Format {
-    byUnicodePattern("yyyy-MM-dd HH:mm")
+    // yyyy-MM-dd HH:mm
+    year()
+    char('-')
+    monthNumber()
+    char('-')
+    day()
+    char(' ')
+    hour()
+    char(':')
+    minute()
 }
 
 private fun nowIn(timeZone: TimeZone): LocalDateTime = Clock.System.now().toLocalDateTime(timeZone)

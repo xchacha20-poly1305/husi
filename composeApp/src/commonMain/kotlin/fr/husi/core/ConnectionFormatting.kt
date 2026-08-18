@@ -5,9 +5,11 @@ import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Connection
 import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEventType
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 /** "$name/$type" label composition previously done in Go generateBound. */
 fun formatBound(name: String, type: String): String {
@@ -37,9 +39,24 @@ fun Connection.chainLabel(): String =
  */
 fun formatConnectionTime(millis: Long): String {
     if (millis <= 0L) return ""
-    return CONNECTION_TIME_FORMAT.format(
-        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()),
-    )
+    val dateTime = Instant.fromEpochMilliseconds(millis)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+    return CONNECTION_TIME_FORMAT.format(dateTime)
+}
+
+private val CONNECTION_TIME_FORMAT = LocalDateTime.Format {
+    // yyyy-MM-dd HH:mm:ss
+    year()
+    char('-')
+    monthNumber()
+    char('-')
+    day()
+    char(' ')
+    hour()
+    char(':')
+    minute()
+    char(':')
+    second()
 }
 
 fun proxyDisplayName(type: String): String = Libcore.proxyDisplayName(type)
@@ -73,6 +90,3 @@ fun Connection.processUid(): Int {
         processInfo.processId
     }
 }
-
-private val CONNECTION_TIME_FORMAT: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
