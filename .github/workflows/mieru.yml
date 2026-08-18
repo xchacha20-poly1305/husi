@@ -73,6 +73,6 @@ jobs:
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           else
-            UPSTREAM_VERSION=$(echo "${{ github.event.inputs.tag }}" | sed -E 's/plugin-mieru-(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+            UPSTREAM_VERSION=$(echo "${{ github.ref_name }}" | sed -E 's/plugin-mieru-(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/')
             gh release create "$RELEASE_TAG" "${files[@]}" --prerelease --notes $'# :memo: Release Notes\n\nUpstream: <https://github.com/enfein/mieru/releases/tag/'"$UPSTREAM_VERSION"'>'
           fi
