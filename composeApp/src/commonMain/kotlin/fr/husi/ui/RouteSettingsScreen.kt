@@ -585,28 +585,13 @@ private fun RouteSettings(
                     summary = { Text(contentOrUnset(uiState.domains)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
-                        var showRuleSetMatchDialog by rememberSaveable {
-                            mutableStateOf(false)
-                        }
-                        Column {
-                            RuleSetAutoCompleteTextField(
-                                value = value,
-                                onValueChange = onValueChange,
-                                onOk = onOk,
-                                geoDir = geoDir,
-                            )
-                            SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.manage_search),
-                                contentDescription = stringResource(Res.string.rule_set_match),
-                                onClick = { showRuleSetMatchDialog = true },
-                            )
-                        }
-                        if (showRuleSetMatchDialog) {
-                            RuleSetMatchDialog(
-                                onDismissRequest = { showRuleSetMatchDialog = false },
-                                onCopy = onRuleSetCopy,
-                            )
-                        }
+                        RuleSetAutoCompleteTextField(
+                            value = value,
+                            onValueChange = onValueChange,
+                            onOk = onOk,
+                            geoDir = geoDir,
+                            onCopy = onRuleSetCopy,
+                        )
                     },
                 )
                 PreferenceDivider()
@@ -629,6 +614,7 @@ private fun RouteSettings(
                             onValueChange = onValueChange,
                             onOk = onOk,
                             geoDir = geoDir,
+                            onCopy = onRuleSetCopy,
                         )
                     },
                 )
@@ -1271,6 +1257,7 @@ private fun RuleSetAutoCompleteTextField(
     onValueChange: (TextFieldValue) -> Unit,
     onOk: () -> Unit,
     geoDir: File?,
+    onCopy: suspend () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var ruleSets by remember { mutableStateOf(emptyList<String>()) }
@@ -1289,29 +1276,44 @@ private fun RuleSetAutoCompleteTextField(
         ruleSets.findRuleSetSuggestions(prefix, RULE_SET_SUGGESTION_LIMIT)
     }
 
-    AutoCompleteTextField(
-        value = value,
-        onValueChange = onValueChange,
-        onOk = onOk,
-        suggestions = suggestions,
-        onChooseSuggestion = { suggestion ->
-            val line = value.selectedLine() ?: return@AutoCompleteTextField
-            val linePrefix = line.raw.substringBefore(':', missingDelimiterValue = "")
-            if (linePrefix.isBlank()) return@AutoCompleteTextField
-            val replacement = "$linePrefix:$suggestion${line.suffix}"
-            onValueChange(
-                value.copy(
-                    annotatedString = AnnotatedString(
-                        value.annotatedString.text.replaceRange(line.start, line.end, replacement),
+    var showRuleSetMatchDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    Column(modifier = modifier) {
+        AutoCompleteTextField(
+            value = value,
+            onValueChange = onValueChange,
+            onOk = onOk,
+            suggestions = suggestions,
+            onChooseSuggestion = { suggestion ->
+                val line = value.selectedLine() ?: return@AutoCompleteTextField
+                val linePrefix = line.raw.substringBefore(':', missingDelimiterValue = "")
+                if (linePrefix.isBlank()) return@AutoCompleteTextField
+                val replacement = "$linePrefix:$suggestion${line.suffix}"
+                onValueChange(
+                    value.copy(
+                        annotatedString = AnnotatedString(
+                            value.annotatedString.text.replaceRange(line.start, line.end, replacement),
+                        ),
+                        selection = TextRange(line.start + replacement.length),
+                        composition = null,
                     ),
-                    selection = TextRange(line.start + replacement.length),
-                    composition = null,
-                ),
-            )
-        },
-        modifier = modifier,
-        displaySuggestion = { it },
-    )
+                )
+            },
+            displaySuggestion = { it },
+        )
+        SimpleIconButton(
+            imageVector = vectorResource(Res.drawable.manage_search),
+            contentDescription = stringResource(Res.string.rule_set_match),
+            onClick = { showRuleSetMatchDialog = true },
+        )
+    }
+    if (showRuleSetMatchDialog) {
+        RuleSetMatchDialog(
+            onDismissRequest = { showRuleSetMatchDialog = false },
+            onCopy = onCopy,
+        )
+    }
 }
 
 // Implement a mini parser to improve performance.
