@@ -12,7 +12,6 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import fr.husi.APP_NAME
 import fr.husi.CLI_STREAM_TIMEOUT
-import fr.husi.CORE_SOCKET_NAME
 import fr.husi.DesktopMain
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreRpcException
@@ -36,7 +35,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.format.format
 import kotlinx.datetime.offsetAt
-import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -56,7 +54,7 @@ internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
         val url = api.url.trim()
         val client = try {
             if (url.isEmpty() || url.equals("local", ignoreCase = true)) {
-                connectClient(base)
+                connectExistingHost(base)
             } else {
                 val serverURL = if (url.contains("://")) {
                     url
@@ -82,8 +80,8 @@ internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
             null
         }
         if (client == null) {
-            val socket = File(base, CORE_SOCKET_NAME).path
-            echo("No running $APP_NAME instance (socket: $socket).", err = true)
+            val sockets = hostSocketPaths(base).joinToString()
+            echo("No running $APP_NAME instance (tried: $sockets).", err = true)
             throw ProgramResult(1)
         }
         return try {

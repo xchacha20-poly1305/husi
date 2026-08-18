@@ -1,6 +1,7 @@
 package fr.husi.core
 
 import fr.husi.libcore.StreamHandler
+import fr.husi.proto.daemon.Groups
 import fr.husi.proto.daemon.SubscribeConnectionsRequest
 import fr.husi.proto.daemon.SubscribeStatusRequest
 import kotlinx.coroutines.CompletableDeferred
@@ -151,6 +152,25 @@ class BridgeCoreClientTest {
         client.close()
     }
 
+    @Test
+    fun `null stream message is delivered as an all-default message`() = runTest {
+        val factory = RecordingBridgeFactory()
+        val client = newClient(factory)
+        val groups = CompletableDeferred<Groups>()
+
+        backgroundScope.launch {
+            client.subscribeGroups().collect { groups.complete(it) }
+        }
+        val first = factory.awaitFirst()
+        awaitCondition("groups stream opened") { first.streamCalls.isNotEmpty() }
+
+        // The JNI binding hands an empty protobuf message over as null.
+        first.streamCalls.single().emit(null)
+
+        assertEquals(0, groups.await().groupCount)
+        client.close()
+    }
+
     private fun newClient(factory: RecordingBridgeFactory) = BridgeCoreClient(
         createBridge = { factory(it) },
         retryDelay = 1.milliseconds,
@@ -232,6 +252,12 @@ private class FakeCoreStreamCall(
     private val handler: StreamHandler,
 ) : CoreStreamCall {
     private var completed = false
+
+    @Synchronized
+    fun emit(message: ByteArray?) {
+        if (completed) return
+        handler.onMessage(message)
+    }
 
     @Synchronized
     fun complete(errMessage: String?) {

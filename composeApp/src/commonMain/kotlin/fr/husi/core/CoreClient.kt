@@ -348,9 +348,12 @@ class BridgeCoreClient private constructor(
                     try {
                         val handler = object : StreamHandler {
                             override fun onMessage(message: ByteArray?) {
-                                if (message == null) return
+                                // A protobuf message whose fields are all default
+                                // serializes to zero bytes, which the JNI binding
+                                // hands over as null. Dropping it would hide
+                                // "no groups" or "service idle" from the UI.
                                 val parsed = try {
-                                    parse(message)
+                                    parse(message ?: EMPTY_PROTO)
                                 } catch (e: Exception) {
                                     Logs.w("core client stream parse: $method", e)
                                     return
@@ -367,6 +370,9 @@ class BridgeCoreClient private constructor(
                         val errMessage = closed.await()
                         if (!errMessage.isNullOrEmpty()) {
                             val mapped = mapBridgeError(Exception(errMessage))
+                            // Retrying in silence turns a broken stream into an
+                            // empty panel with nothing to go on.
+                            Logs.w("core client stream closed: $method", mapped)
                             resetIfConnectionFailure(client, mapped)
                         }
                     } catch (e: CancellationException) {
@@ -658,9 +664,9 @@ class BridgeCoreClient private constructor(
             val closed = CompletableDeferred<String?>()
             val handler = object : StreamHandler {
                 override fun onMessage(message: ByteArray?) {
-                    if (message == null) return
+                    // null is an all-default message; see [stream].
                     val parsed = try {
-                        parse(message)
+                        parse(message ?: EMPTY_PROTO)
                     } catch (e: Exception) {
                         Logs.w("core client one-shot parse: $method", e)
                         return

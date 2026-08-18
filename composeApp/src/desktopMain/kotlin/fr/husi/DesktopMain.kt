@@ -37,10 +37,8 @@ import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.cli.ApiCommand
-import fr.husi.cli.connectClient
 import fr.husi.cli.libcoreLoadFailureMessage
 import fr.husi.compose.theme.AppTheme
-import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
@@ -50,7 +48,6 @@ import fr.husi.ktx.sha256Hex
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.platform.PlatformInfo
-import fr.husi.proto.v1.Hosting
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.resolveDesktopRepository
 import fr.husi.repository.resolvePackagedAnjaNativesDir
@@ -72,8 +69,10 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
 import java.io.File
+import java.io.RandomAccessFile
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import javax.swing.UIManager
@@ -94,6 +93,9 @@ fun main(args: Array<String>) {
     // Before any Libcore class load: packaged installs point at the sidecar library.
     configureAnjaNativesDir()
     DesktopMain(args).main(args)
+    // Go threads that delivered a callback stay attached to the JVM as non-daemon
+    // threads, so a command that consumed a stream would otherwise never return.
+    exitProcess(0)
 }
 
 /**
@@ -131,8 +133,6 @@ class DesktopMain(
 
         private const val PREFERENCE_NODE_PROPERTY_NAME = "me.zhanghai.compose.preference.node"
         private const val PREFERENCE_NODE_NAME = "/fr/husi/preference"
-
-        private const val LOCK_ID_HASH_LENGTH = 16
     }
 
     val baseDir: File? by option(
@@ -194,9 +194,13 @@ class DesktopMain(
         )
     }
 
-    /** Base path the core host listens on; [CORE_SOCKET_NAME] lives directly under it. */
+    /**
+     * Base path of the per-user session host; [CORE_SOCKET_NAME] lives directly
+     * under it. A system daemon listens elsewhere, so callers dial through
+     * [connectExistingHost] rather than this path alone.
+     */
     val socketBasePath: String
-        get() = createDesktopRepository().coreSocketBasePath
+        get() = createDesktopRepository().sessionSocketBasePath
 
     override fun run() {
         currentContext.obj = this
@@ -398,10 +402,7 @@ class DesktopMain(
         repository: DesktopRepository,
         deepLinks: List<String>,
     ): Boolean {
-        val filesDir = repository.filesDir.invariantDirectoryPathString()
-        SingleInstanceManager.configuration = SingleInstanceManager.Configuration(
-            lockIdentifier = "$APP_NAME-${filesDir.sha256Hex().take(LOCK_ID_HASH_LENGTH)}",
-        )
+        SingleInstanceManager.configuration = singleInstanceConfiguration(repository)
         // A login auto-start finding an instance already running should stay unnoticed;
         // any other secondary launch pops the primary's window up.
         val restoreWindow = deepLinks.isNotEmpty() || !launchedAtLogin
@@ -421,12 +422,10 @@ class DesktopMain(
     private fun runTaskMode(taskId: String): Int {
         DesktopTaskRegistry.require(taskId)
         val repository = createDesktopRepository()
-        val socketBase = repository.coreSocketBasePath
 
-        when (checkExistingTaskInstance(socketBase, taskId)) {
-            ExistingTaskDispatchResult.NotFound -> Unit
-            ExistingTaskDispatchResult.Forwarded -> return 0
-            ExistingTaskDispatchResult.ForwardFailed -> return 1
+        val configuration = singleInstanceConfiguration(repository)
+        if (!many && forwardTaskToRunningInstance(configuration, taskId)) {
+            return 0
         }
 
         // Task-only processes do not spawn a core session host.
@@ -521,13 +520,96 @@ private fun warnCoreHostFailureAndExit(error: Exception): Nothing {
     exitProcess(1)
 }
 
+private const val LOCK_ID_HASH_LENGTH = 16
+
 /**
- * First line of a single-instance restore-request payload; the remaining lines are deep
- * links to import. [RESTORE_PAYLOAD_SILENT] keeps the primary's window untouched (login
- * auto-start racing an already running instance), anything else brings it to the front.
+ * Single-instance lock and restore-request file names for this data directory. The lock
+ * identifier hashes the files directory so instances started with different `-d` data
+ * directories coexist.
+ */
+private fun singleInstanceConfiguration(
+    repository: DesktopRepository,
+): SingleInstanceManager.Configuration {
+    val filesDir = repository.filesDir.invariantDirectoryPathString()
+    return SingleInstanceManager.Configuration(
+        lockIdentifier = "$APP_NAME-${filesDir.sha256Hex().take(LOCK_ID_HASH_LENGTH)}",
+    )
+}
+
+/**
+ * Hands a scheduled task to the running app, which owns the same database and settings
+ * this task would otherwise touch from a second process.
+ *
+ * The core host is the wrong messenger for this: a session host has no UI attached, and a
+ * system daemon is shared between logins, so neither can reach the app process. The
+ * single-instance lock can — it is held by the app process itself — so a task travels the
+ * same restore-request channel as a deep link.
+ *
+ * @return true when the running app took the task over.
+ */
+private fun forwardTaskToRunningInstance(
+    configuration: SingleInstanceManager.Configuration,
+    taskId: String,
+): Boolean {
+    return runningInstanceHoldsLock(configuration) && sendTaskRequest(configuration, taskId)
+}
+
+/**
+ * Probes the single-instance lock without keeping it: a task run that held the lock would
+ * make a GUI launch during that run mistake this process for the running app and exit
+ * silently.
+ */
+internal fun runningInstanceHoldsLock(
+    configuration: SingleInstanceManager.Configuration,
+): Boolean {
+    val lockFile = configuration.lockFilePath.toFile()
+    if (!lockFile.isFile) return false
+    return try {
+        RandomAccessFile(lockFile, "rw").use { file ->
+            val lock = file.channel.tryLock()
+            // Acquiring it means nobody was there to hold it.
+            lock?.release()
+            lock == null
+        }
+    } catch (e: Exception) {
+        Logs.w("probe single-instance lock", e)
+        false
+    }
+}
+
+/** Writes a [RESTORE_PAYLOAD_TASK] request for the primary instance to pick up. */
+internal fun sendTaskRequest(
+    configuration: SingleInstanceManager.Configuration,
+    taskId: String,
+): Boolean {
+    return try {
+        val payload = Files.createTempFile(configuration.lockIdentifier, ".restore_request")
+        Files.write(payload, listOf(RESTORE_PAYLOAD_TASK, taskId))
+        // Nucleus watches for a created file, so the payload has to appear complete.
+        Files.move(
+            payload,
+            configuration.restoreRequestFilePath,
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+        true
+    } catch (e: Exception) {
+        Logs.w("forward task $taskId to the running instance", e)
+        false
+    }
+}
+
+/**
+ * First line of a single-instance restore-request payload, telling the primary instance
+ * what the remaining lines are and what to do with its window.
+ *
+ * [RESTORE_PAYLOAD_RESTORE] and [RESTORE_PAYLOAD_SILENT] carry deep links to import, the
+ * latter keeping the window untouched (login auto-start racing an already running
+ * instance). [RESTORE_PAYLOAD_TASK] carries scheduled task ids and never touches the
+ * window: nobody asked for it, a timer did.
  */
 private const val RESTORE_PAYLOAD_RESTORE = "restore"
 private const val RESTORE_PAYLOAD_SILENT = "silent"
+internal const val RESTORE_PAYLOAD_TASK = "task"
 
 private fun writeRestorePayload(path: Path, restoreWindow: Boolean, deepLinks: List<String>) {
     val lines = buildList {
@@ -545,7 +627,15 @@ private fun handleRestoreRequest(path: Path) {
         Logs.w("read single-instance restore request", e)
         return
     }
-    for (link in lines.drop(1)) {
+    val payload = lines.drop(1)
+    if (lines.firstOrNull() == RESTORE_PAYLOAD_TASK) {
+        // Dispatch is asynchronous; a task must not stall the watcher thread.
+        for (taskId in payload) {
+            DesktopTaskRegistry.dispatch(taskId)
+        }
+        return
+    }
+    for (link in payload) {
         DeepLinkDispatcher.emit(link)
     }
     if (lines.firstOrNull() != RESTORE_PAYLOAD_SILENT) {
@@ -577,44 +667,6 @@ private fun registerMacOSOpenUriHandler() {
     } catch (e: Exception) {
         Logs.w("register macOS open-uri handler", e)
     }
-}
-
-private enum class ExistingTaskDispatchResult {
-    NotFound,
-    Forwarded,
-    ForwardFailed,
-}
-
-private fun checkExistingTaskInstance(
-    socketBasePath: String,
-    taskId: String,
-): ExistingTaskDispatchResult {
-    val client = connectClient(socketBasePath) ?: return ExistingTaskDispatchResult.NotFound
-    return try {
-        // Session mode has no UI AppHandler on the core host, so RunTask would be a
-        // silent no-op. Run the task in this process instead.
-        val hosting = runBlocking {
-            runCatching { client.getDaemonInfo().hosting }.getOrNull()
-        }
-        if (hosting == Hosting.HOSTING_SESSION || hosting == null) {
-            return ExistingTaskDispatchResult.NotFound
-        }
-        if (forwardTask(client, taskId)) {
-            ExistingTaskDispatchResult.Forwarded
-        } else {
-            ExistingTaskDispatchResult.ForwardFailed
-        }
-    } finally {
-        runCatching { runBlocking { client.close() } }
-    }
-}
-
-private fun forwardTask(client: CoreClient, taskId: String): Boolean {
-    return runCatching {
-        runBlocking { client.runTask(taskId) }
-    }.onFailure {
-        Logs.e(it)
-    }.isSuccess
 }
 
 private fun showSelectableMessageDialog(
