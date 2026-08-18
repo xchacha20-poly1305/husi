@@ -112,7 +112,7 @@ object DataStore {
         NetworkInterfaceStrategy.DEFAULT
     }
     var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
-    // var forcedSearchProcess by configurationStore.boolean(Key.FORCED_SEARCH_PROCESS) { false }
+    var forcedSearchProcess by configurationStore.boolean(Key.FORCED_SEARCH_PROCESS) { false }
 
     var disableTcpKeepAlive by configurationStore.boolean(Key.DISABLE_TCP_KEEP_ALIVE) { PlatformInfo.isAndroid }
     var tcpKeepAliveIdle by configurationStore.string(Key.TCP_KEEP_ALIVE_IDLE) { "5m" }

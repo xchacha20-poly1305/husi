@@ -206,7 +206,7 @@ fun buildConfig(
             if (previousTarget != null && previousTarget != link.to) {
                 error(
                     "Conflicting proxy continuation: ${link.from.describe()} -> " +
-                        "${previousTarget.describe()} and ${link.to.describe()}",
+                            "${previousTarget.describe()} and ${link.to.describe()}",
                 )
             }
             links.add(link)
@@ -285,7 +285,7 @@ fun buildConfig(
                     if (missingProxyIds.isNotEmpty()) {
                         error(
                             "Missing proxy reference in chain $id: " +
-                                missingProxyIds.joinToString(", "),
+                                    missingProxyIds.joinToString(", "),
                         )
                     }
                     val resolved = mergeResolvedChains(
@@ -324,7 +324,7 @@ fun buildConfig(
                         if (missingProxyIds.isNotEmpty()) {
                             error(
                                 "Missing proxy reference in proxy set $id: " +
-                                    missingProxyIds.joinToString(", "),
+                                        missingProxyIds.joinToString(", "),
                             )
                         }
                         requestedProxyIds.map { proxyId -> beansMap.getValue(proxyId) }
@@ -616,9 +616,12 @@ fun buildConfig(
             auto_detect_interface = true
             rules = mutableListOf()
             rule_set = mutableListOf()
-            // Forced
-            // https://github.com/SagerNet/sing-box/commit/4b1b00a4f6729a027a653f417cda0701c6a32934#diff-d66a2caeeac5651dd693f6c05456599c9896a5def2619a159e05a76786bb16c7
-            // if (!forTest && DataStore.forcedSearchProcess) find_process = true
+            // Android always searches processes through the platform interface,
+            // so this option only means something on desktop.
+            // https://github.com/SagerNet/sing-box/commit/4b1b00a4f6729a027a653f417cda0701c6a32934
+            if (!PlatformInfo.isAndroid && !forTest && DataStore.forcedSearchProcess) {
+                find_process = true
+            }
         }
 
         // returns outbound tag

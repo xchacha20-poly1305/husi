@@ -46,8 +46,11 @@ import fr.husi.resources.daemon_takeover
 import fr.husi.resources.daemon_takeover_message
 import fr.husi.resources.daemon_takeover_title
 import fr.husi.resources.flight_takeoff
+import fr.husi.resources.forced_search_process
+import fr.husi.resources.forced_search_process_summary
 import fr.husi.resources.install_daemon
 import fr.husi.resources.install_daemon_summary
+import fr.husi.resources.manage_search
 import fr.husi.resources.phonelink_ring
 import fr.husi.resources.security
 import fr.husi.resources.start_at_boot_daemon
@@ -409,6 +412,26 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
             enabled = isVpnMode,
         )
     }
+    PreferenceDivider()
+
+    val forcedSearchProcessValue by DataStore.configurationStore
+        .booleanFlow(Key.FORCED_SEARCH_PROCESS, false)
+        .collectAsStateWithLifecycle(false)
+    SwitchPreference(
+        value = forcedSearchProcessValue,
+        onValueChange = {
+            DataStore.forcedSearchProcess = it
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.forced_search_process)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.manage_search,
+                color = IconMaskColors.IconLavender,
+            )
+        },
+        summary = { Text(stringResource(Res.string.forced_search_process_summary)) },
+    )
 }
 
 @Composable

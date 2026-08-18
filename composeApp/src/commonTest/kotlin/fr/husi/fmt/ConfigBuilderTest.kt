@@ -2102,6 +2102,32 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig should force process search only on desktop`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        DataStore.forcedSearchProcess = true
+        val forcedRoute = parseRouteOptions(buildConfig(proxy))
+        if (PlatformInfo.isAndroid) {
+            assertEquals(null, forcedRoute["find_process"])
+        } else {
+            assertEquals("true", forcedRoute["find_process"]?.jsonPrimitive?.content)
+        }
+
+        DataStore.forcedSearchProcess = false
+        val defaultRoute = parseRouteOptions(buildConfig(proxy))
+        assertEquals(null, defaultRoute["find_process"])
+    }
+
+    @Test
     fun `buildConfig should migrate response-based direct DNS rules to evaluate then route`() = runBlocking {
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -2470,6 +2496,9 @@ class ConfigBuilderTest : HusiKoinTest() {
             .jsonObject["rules"]!!
             .jsonArray
             .map { it.jsonObject }
+
+    private fun parseRouteOptions(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.config).jsonObject["route"]!!.jsonObject
 
     private fun parseRouteRules(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["route"]!!
