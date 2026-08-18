@@ -86,6 +86,9 @@ import fr.husi.resources.connection_status_closed
 import fr.husi.resources.copy_success
 import fr.husi.resources.descending
 import fr.husi.resources.ensure_close_all
+import fr.husi.resources.group_order_by_delay
+import fr.husi.resources.group_order_by_name
+import fr.husi.resources.group_order_origin
 import fr.husi.resources.have_reset_network
 import fr.husi.resources.menu_dashboard
 import fr.husi.resources.more
@@ -151,6 +154,7 @@ fun DashboardScreen(
     var showResetAlert by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val isConnectionsPage = pagerState.currentPage == PAGE_CONNECTIONS
+    val isProxySetPage = pagerState.currentPage == PAGE_PROXY_SET
 
     val searchBarState = rememberSearchBarState()
     val searchTextFieldState = dashboardViewModel.searchTextFieldState
@@ -349,6 +353,7 @@ fun DashboardScreen(
                             scrollBehavior = scrollBehavior,
                         )
                     } else {
+                        val groupCount = if (isProxySetPage) 2 else 1
                         CapsuleTopBar(
                             navigationIcon = null,
                             title = { Text(stringResource(Res.string.menu_dashboard)) },
@@ -366,10 +371,36 @@ fun DashboardScreen(
                                         ) {
                                             RemoteTargetMenuSection(
                                                 groupIndex = 0,
-                                                groupCount = 1,
+                                                groupCount = groupCount,
                                                 onManage = onOpenRemoteControl,
                                                 onDismiss = { isOverflowMenuExpanded = false },
                                             )
+                                            if (isProxySetPage) {
+                                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
+                                                DropdownMenuGroup(
+                                                    shapes = MenuDefaults.groupShape(1, groupCount),
+                                                ) {
+                                                    DropdownMenuSectionHeader(stringResource(Res.string.sort_mode))
+                                                    val orders = ProxySetOrder.values
+                                                    for ((i, order) in orders.withIndex()) {
+                                                        val text = when (order) {
+                                                            ProxySetOrder.ORIGIN -> Res.string.group_order_origin
+                                                            ProxySetOrder.BY_NAME -> Res.string.group_order_by_name
+                                                            ProxySetOrder.BY_DELAY -> Res.string.group_order_by_delay
+                                                            else -> continue
+                                                        }
+                                                        DropdownMenuItem(
+                                                            selected = uiState.proxySetOrder == order,
+                                                            onClick = {
+                                                                isOverflowMenuExpanded = false
+                                                                dashboardViewModel.setProxySetOrder(order)
+                                                            },
+                                                            text = { Text(stringResource(text)) },
+                                                            shapes = MenuDefaults.itemShape(i, orders.size),
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }

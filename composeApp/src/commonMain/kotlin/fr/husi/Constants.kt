@@ -120,6 +120,7 @@ object Key {
     const val TRAFFIC_DESCENDING = "trafficDescending"
     const val TRAFFIC_SORT_MODE = "trafficSortMode"
     const val TRAFFIC_CONNECTION_QUERY = "trafficConnectionQuery"
+    const val PROXY_SET_ORDER = "proxySetOrder"
 
     const val SPEED_TEST_URL = "speedTestURL"
     const val SPEED_TEST_UPLOAD_URL = "speedTestUploadURL"

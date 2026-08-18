@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package fr.husi.ui.dashboard
 
 import androidx.compose.foundation.text.input.TextFieldState
@@ -45,6 +47,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koin.core.context.GlobalContext
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.experimental.and
 import kotlin.experimental.inv
 import kotlin.experimental.or
@@ -77,6 +81,7 @@ data class DashboardState(
     val selectedConnection: ConnectionDetailState? = null,
 
     val proxySets: List<ProxySet> = emptyList(),
+    val proxySetOrder: Int = 0,
     val isRemote: Boolean = false,
 ) {
     companion object {
@@ -93,6 +98,14 @@ data class NetworkInterfaceInfo(
     val name: String,
     val addresses: List<String>,
 )
+
+object ProxySetOrder {
+    const val ORIGIN = 0
+    const val BY_NAME = 1
+    const val BY_DELAY = 2
+
+    val values get() = listOf(ORIGIN, BY_NAME, BY_DELAY)
+}
 
 @Immutable
 data class ProxySet(
@@ -208,6 +221,16 @@ class DashboardViewModel(
                 .drop(1)
                 .distinctUntilChanged()
                 .collectLatest { updateConnectionsSnapshot() }
+        }
+        viewModelScope.launch {
+            DataStore.configurationStore.intFlow(Key.PROXY_SET_ORDER)
+                .collectLatest { order ->
+                    proxySetComparator.store(buildProxySetComparator(order))
+                    uiState.update { state ->
+                        state.copy(proxySetOrder = order)
+                    }
+                    publishProxySets()
+                }
         }
         viewModelScope.launch {
             DefaultNetworkListener.start(this@DashboardViewModel) {
@@ -429,6 +452,10 @@ class DashboardViewModel(
         } else {
             compareBy(primarySelector).thenBy(ConnectionDetailState::uuid)
         }
+    }
+
+    fun setProxySetOrder(order: Int) = viewModelScope.launch(Dispatchers.Default) {
+        DataStore.proxySetOrder = order
     }
 
     fun setQueryActivate(queryActivate: Boolean) = runOnIoDispatcher {
@@ -708,6 +735,23 @@ class DashboardViewModel(
             || processes?.any { it.contains(query) } == true
             || uid.toString().contains(query)
 
+    private var proxySetComparator = AtomicReference(buildProxySetComparator(ProxySetOrder.ORIGIN))
+
+    private fun buildProxySetComparator(order: Int): Comparator<ProxyItem>? {
+        return when (order) {
+            ProxySetOrder.BY_NAME -> compareBy { it.tag }
+            ProxySetOrder.BY_DELAY -> compareBy {
+                if (it.urlTestDelay > 0) {
+                    it.urlTestDelay
+                } else {
+                    Int.MAX_VALUE
+                }
+            }
+
+            else -> null
+        }
+    }
+
     private fun publishProxySets() {
         val olds = uiState.value.proxySets
         if (proxySetsByTag.isEmpty() && olds.isNotEmpty()) {
@@ -729,6 +773,9 @@ class DashboardViewModel(
                         type = proxyDisplayName(item.type),
                         urlTestDelay = item.urlTestDelay,
                     )
+                }.let { items ->
+                    proxySetComparator.load()?.let { items.sortedWith(it) }
+                        ?: items
                 },
             )
         }
@@ -738,6 +785,8 @@ class DashboardViewModel(
                 type = proxyDisplayName(item.type),
                 urlTestDelay = item.urlTestDelay,
             )
+        }.let { items ->
+            proxySetComparator.load()?.let { items.sortedWith(it) } ?: items
         }
         val allSet = allProxySet(allItems).copy(
             urlTestProgress = olds.firstOrNull { it.isAll }?.urlTestProgress,
