@@ -133,6 +133,14 @@ class ApiCommand : CliktCommand("api") {
         )
     }
 
+    override fun aliases() = mapOf(
+        "log" to listOf("logs"),
+        "modes" to listOf("mode"),
+        "outbound" to listOf("outbounds"),
+        "groups" to listOf("group"),
+        "connections" to listOf("connection"),
+    )
+
     override fun help(context: Context) = "API service client"
 
     override fun run() = Unit
