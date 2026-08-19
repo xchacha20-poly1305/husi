@@ -401,7 +401,7 @@ internal fun writeAuthBanner(banner: String) {
 }
 
 internal fun requireAuthTerminal(protocolName: String) {
-    if (!isTerminal) {
+    if (!authInputIsTerminal) {
         throw VpnCliException("$protocolName auth: authentication requires an interactive terminal")
     }
 }

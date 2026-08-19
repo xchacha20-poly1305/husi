@@ -472,9 +472,11 @@ private class ApiConnectionListCommand : ApiClientCommand("list") {
         )
         for (connection in connections) {
             if (connection.closedAt != 0L) continue
-            table.addRow(*Array(columns.size) { index ->
-                columns[index].value(connection, rates)
-            })
+            table.addRow(
+                *Array(columns.size) { index ->
+                    columns[index].value(connection, rates)
+                },
+            )
         }
         table.flush()
     }
@@ -646,7 +648,13 @@ private fun printLogBatch(
             if (searchQuery.isNotEmpty() && !plainMessage.lowercase().contains(searchQuery)) {
                 continue
             }
-            append(if (isTerminal) entry.message else plainMessage)
+            append(
+                if (stdoutIsTerminal) {
+                    entry.message
+                } else {
+                    plainMessage
+                },
+            )
             append('\n')
         }
     }
@@ -685,12 +693,14 @@ internal fun formatGoDuration(duration: Duration): String {
                 append(seconds)
                 append('s')
             }
+
             minutes > 0 -> {
                 append(minutes)
                 append('m')
                 append(seconds)
                 append('s')
             }
+
             else -> {
                 append(seconds)
                 append('s')

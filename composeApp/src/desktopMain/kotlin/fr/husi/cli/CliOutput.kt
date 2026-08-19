@@ -1,17 +1,21 @@
 package fr.husi.cli
 
-/**
- * [java.io.Console.isTerminal] only exists in Java 22+.
- */
-val isTerminal: Boolean by lazy {
-    val console = System.console() ?: return@lazy false
-    runCatching {
-        console.javaClass.getMethod("isTerminal").invoke(console) as Boolean
-    }.getOrDefault(true)
-}
+import fr.husi.libcore.Libcore
+
+// [java.io.Console.isTerminal] only on Java 22+ and can't separate for stdin, stdour and stderr.
+
+private const val STDIN = 0
+private const val STDOUT = 1
+private const val STDERR = 2
+
+val stdoutIsTerminal: Boolean by lazy { Libcore.isTerminal(STDOUT) }
+
+val stderrIsTerminal: Boolean by lazy { Libcore.isTerminal(STDERR) }
+
+val authInputIsTerminal: Boolean by lazy { Libcore.isTerminal(STDIN) && stderrIsTerminal }
 
 fun writeStderrLine(message: String) {
-    if (!isTerminal) return
+    if (!stderrIsTerminal) return
     printErrorLine(message)
 }
 
@@ -68,7 +72,7 @@ internal fun displayWidth(text: String): Int {
 internal class TableWriter(
     private val header: List<String>,
     private val emptyMessage: String = "",
-    private val terminal: Boolean = isTerminal,
+    private val terminal: Boolean = stdoutIsTerminal,
 ) {
     private val rows = mutableListOf<List<String>>()
 

@@ -216,7 +216,7 @@ internal object OpenVPNAuthProtocol : VpnAuthProtocol<OpenVPNEndpointState> {
         printErrorLine("  ${challenge.url}")
         printErrorLine("")
         val waitingMessage = "waiting for the server" + formatVpnRemainingSuffix(challenge.deadline)
-        if (isTerminal && prompter.promptConfirm("Open it now? [Y/n] ")) {
+        if (authInputIsTerminal && prompter.promptConfirm("Open it now? [Y/n] ")) {
             val openError = openUri(challenge.url)
             if (openError == null) {
                 printErrorLine("opened in the default browser; $waitingMessage")
