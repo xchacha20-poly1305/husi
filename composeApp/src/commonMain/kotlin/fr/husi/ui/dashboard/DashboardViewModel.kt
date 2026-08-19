@@ -33,6 +33,7 @@ import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.GroupItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
+import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.experimental.and
@@ -173,6 +175,8 @@ class DashboardViewModel(
 
     companion object {
         private val LOOP_INTERVAL = 1000L.milliseconds
+
+        private const val GROUP_URL_TEST_CONCURRENCY = 10
     }
 
     init {
@@ -839,18 +843,34 @@ class DashboardViewModel(
         val testTimeout = DataStore.connectionTestTimeout
         val options = testOptions()
         try {
-            for ((index, item) in items.withIndex()) {
-                setUrlTestProgress(
-                    id,
-                    GroupUrlTestProgress(
-                        current = index + 1,
-                        total = items.size,
-                    ),
-                )
-                try {
-                    coreClient.urlTest(item.tag, testURL, testTimeout, options)
-                } catch (e: Exception) {
-                    Logs.w(e)
+            val nextItemIndex = AtomicInt(0)
+            val finishedCount = AtomicInt(0)
+            setUrlTestProgress(id, GroupUrlTestProgress(current = 0, total = items.size))
+            coroutineScope {
+                repeat(items.size.coerceAtMost(GROUP_URL_TEST_CONCURRENCY)) {
+                    launch {
+                        while (true) {
+                            val index = nextItemIndex.fetchAndAdd(1)
+                            if (index >= items.size) break
+                            try {
+                                coreClient.urlTest(
+                                    items[index].tag,
+                                    testURL,
+                                    testTimeout,
+                                    options,
+                                )
+                            } catch (e: Exception) {
+                                Logs.w(e)
+                            }
+                            setUrlTestProgress(
+                                id,
+                                GroupUrlTestProgress(
+                                    current = finishedCount.addAndFetch(1),
+                                    total = items.size,
+                                ),
+                            )
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -884,9 +904,9 @@ internal fun skipGroupUrlTest(item: ProxyItem): Boolean {
 
 internal const val SPEED_HISTORY_SIZE = 30
 
-internal fun idleSpeedHistory(): List<Float> = List(SPEED_HISTORY_SIZE) { 0f }
+private fun idleSpeedHistory(): List<Float> = List(SPEED_HISTORY_SIZE) { 0f }
 
-internal fun nextSpeedHistory(history: List<Float>, sample: Float): List<Float> {
+private fun nextSpeedHistory(history: List<Float>, sample: Float): List<Float> {
     val sized = if (history.size == SPEED_HISTORY_SIZE) {
         history
     } else {
