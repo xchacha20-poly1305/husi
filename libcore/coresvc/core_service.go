@@ -26,10 +26,7 @@ type coreService struct {
 }
 
 func (s *coreService) GetVersion(ctx context.Context, _ *husiv1.GetVersionRequest) (*husiv1.GetVersionResponse, error) {
-	buildEnv := ""
-	if s.host.buildEnvironment != nil {
-		buildEnv = s.host.buildEnvironment()
-	}
+	buildEnv := s.host.backend.BuildEnvironment()
 	return &husiv1.GetVersionResponse{
 		Version:          s.host.version,
 		SingBoxVersion:   C.Version,

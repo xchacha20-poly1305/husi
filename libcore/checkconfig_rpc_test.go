@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box"
-	"github.com/sagernet/sing-box/option"
-	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
 	"github.com/stretchr/testify/assert"
@@ -22,6 +20,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
+
+type testHostBackend struct {
+	HostBackend
+}
+
+func (testHostBackend) BuildEnvironment() string { return "test" }
 
 func startLibcoreHost(t *testing.T) (*coresvc.Host, string) {
 	t.Helper()
@@ -39,20 +43,7 @@ func startLibcoreHost(t *testing.T) (*coresvc.Host, string) {
 		Context:     ctx,
 		Version:     "check-test",
 		LogMaxLines: 50,
-		CheckConfig: CheckConfig,
-		GenerateSchema: func(kind husiv1.SchemaKind) (string, error) {
-			switch kind {
-			case husiv1.SchemaKind_SCHEMA_KIND_CONFIG:
-				return generateSchema[option.Options]()
-			case husiv1.SchemaKind_SCHEMA_KIND_OUTBOUND:
-				return generateSchema[option.Outbound]()
-			case husiv1.SchemaKind_SCHEMA_KIND_DNS_RULE:
-				return generateSchema[option.DNSRule]()
-			default:
-				return "", E.New("unknown schema kind")
-			}
-		},
-		BuildEnvironment: func() string { return "test" },
+		Backend:     testHostBackend{},
 	})
 	require.NoError(t, err)
 	socketPath := filepath.Join(t.TempDir(), coresvc.Socket)

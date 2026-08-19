@@ -7,6 +7,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
@@ -14,7 +15,7 @@ import (
 func runSTUNTest(
 	ctx context.Context,
 	server, proxy string,
-	emit func(*husiv1.STUNTestResponse) error,
+	sender coresvc.STUNTestSender,
 ) error {
 	var dialer N.Dialer
 	if proxy != "" {
@@ -29,13 +30,13 @@ func runSTUNTest(
 		Dialer:  dialer,
 		Context: ctx,
 		OnProgress: func(progress stun.Progress) {
-			_ = emit(stunResponseFromProgress(progress, false))
+			_ = sender.Send(stunResponseFromProgress(progress, false))
 		},
 	})
 	if err != nil {
 		return err
 	}
-	return emit(&husiv1.STUNTestResponse{
+	return sender.Send(&husiv1.STUNTestResponse{
 		ExternalAddress:  result.ExternalAddr,
 		LatencyMs:        result.LatencyMs,
 		Mapping:          toProtoNATMapping(result.NATMapping),

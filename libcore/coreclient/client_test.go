@@ -23,6 +23,18 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+type stubBackend struct {
+	coresvc.UnimplementedBackend
+}
+
+func (stubBackend) CheckConfig(string) error { return nil }
+
+func (stubBackend) GenerateSchema(husiv1.SchemaKind) (string, error) {
+	return "{}", nil
+}
+
+func (stubBackend) BuildEnvironment() string { return "test" }
+
 func startHost(t *testing.T) (socketPath string, cleanup func()) {
 	t.Helper()
 	ctx := box.Context(
@@ -39,11 +51,7 @@ func startHost(t *testing.T) (socketPath string, cleanup func()) {
 		Context:     ctx,
 		Version:     "bridge-test",
 		LogMaxLines: 50,
-		CheckConfig: func(string) error { return nil },
-		GenerateSchema: func(husiv1.SchemaKind) (string, error) {
-			return "{}", nil
-		},
-		BuildEnvironment: func() string { return "test" },
+		Backend:     stubBackend{},
 	})
 	require.NoError(t, err)
 	socketPath = filepath.Join(t.TempDir(), coresvc.Socket)

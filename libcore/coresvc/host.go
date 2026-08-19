@@ -1,6 +1,7 @@
 package coresvc
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"net"
@@ -35,16 +36,9 @@ type Host struct {
 	holder  *InstanceContextHolder
 	events  *eventBroadcaster
 
-	// Optional hooks supplied by package libcore so coresvc does not import it.
-	checkConfig       func(config string) error
-	generateSchema    func(kind husiv1.SchemaKind) (string, error)
-	standaloneURLTest func(config, tag, link string, timeoutMs int32, options uint8, plugins []*husiv1.PluginProcessSpec) (int32, error)
-	getCert           func(ctx context.Context, server, serverName string, mode husiv1.GetCertMode, socksProxyURL string) (string, error)
-	stunTest          func(ctx context.Context, server, socksProxyURL string, emit func(*husiv1.STUNTestResponse) error) error
-	speedTest         func(ctx context.Context, req *husiv1.SpeedTestRequest, emit func(*husiv1.SpeedTestResponse) error) error
-	buildEnvironment  func() string
-	fileLogSink       log.PlatformWriter
-	registerExtra     func(server *grpc.Server, healthServer *health.Server)
+	backend       Backend
+	extraServices ExtraServiceRegistrar
+	fileLogSink   log.PlatformWriter
 	// serverOptions are additional grpc.ServerOption values (auth, creds).
 	serverOptions []grpc.ServerOption
 	// skipDefaultInterceptors omits the built-in locale interceptors when the
@@ -55,35 +49,17 @@ type Host struct {
 	listener net.Listener
 }
 
-type ExtraServiceRegistration func(server *grpc.Server, healthServer *health.Server)
-
 type HostOptions struct {
 	Context     context.Context
 	Version     string
 	LogMaxLines int
 	AppHandler  AppHandler
 
-	// CheckConfig evaluates whether config can construct a box. Required.
-	CheckConfig func(config string) error
-	// GenerateSchema returns a JSON Schema document for the given kind. Required.
-	GenerateSchema func(kind husiv1.SchemaKind) (string, error)
-	// StandaloneURLTest creates a throwaway instance, tests, and closes it.
-	// plugins are spawned by the host for the duration of the test only.
-	StandaloneURLTest func(config, tag, link string, timeoutMs int32, options uint8, plugins []*husiv1.PluginProcessSpec) (int32, error)
-	// GetCert fetches a TLS/QUIC certificate chain as PEM.
-	GetCert func(ctx context.Context, server, serverName string, mode husiv1.GetCertMode, socksProxyURL string) (string, error)
-	// STUNTest runs a STUN probe and streams progress via emit.
-	STUNTest func(ctx context.Context, server, socksProxyURL string, emit func(*husiv1.STUNTestResponse) error) error
-	// SpeedTest runs a download/upload and streams throttled progress via emit.
-	SpeedTest func(ctx context.Context, req *husiv1.SpeedTestRequest, emit func(*husiv1.SpeedTestResponse) error) error
-	// BuildEnvironment reports Go version and tags for GetVersion.
-	BuildEnvironment func() string
+	Backend Backend
 	// FileLogSink is attached after a successful StartOrReloadService so box
 	// logs also land in stderr.log. Optional.
-	FileLogSink log.PlatformWriter
-	// RegisterExtra is called once during Start after core services are
-	// registered, so callers can attach additional services (DaemonService).
-	RegisterExtra ExtraServiceRegistration
+	FileLogSink   log.PlatformWriter
+	ExtraServices ExtraServiceRegistrar
 	// ServerOptions are appended when creating the gRPC server (auth interceptors,
 	// transport credentials). Multiple ChainUnaryInterceptor options append.
 	ServerOptions []grpc.ServerOption
@@ -108,6 +84,7 @@ func NewHost(options HostOptions) (*Host, error) {
 		Handler:     platformHandler{},
 		LogMaxLines: logMaxLines,
 	})
+	backend := cmp.Or(options.Backend, UnimplementedBackend{})
 	h := &Host{
 		ctx:                     options.Context,
 		version:                 options.Version,
@@ -116,15 +93,9 @@ func NewHost(options HostOptions) (*Host, error) {
 		started:                 started,
 		holder:                  holder,
 		events:                  newEventBroadcaster(),
-		checkConfig:             options.CheckConfig,
-		generateSchema:          options.GenerateSchema,
-		standaloneURLTest:       options.StandaloneURLTest,
-		getCert:                 options.GetCert,
-		stunTest:                options.STUNTest,
-		speedTest:               options.SpeedTest,
-		buildEnvironment:        options.BuildEnvironment,
+		backend:                 backend,
+		extraServices:           options.ExtraServices,
 		fileLogSink:             options.FileLogSink,
-		registerExtra:           options.RegisterExtra,
 		serverOptions:           options.ServerOptions,
 		skipDefaultInterceptors: options.SkipDefaultInterceptors,
 	}
@@ -233,8 +204,8 @@ func (h *Host) StartOn(listener net.Listener) error {
 	if h.appHandler != nil {
 		healthServer.SetServingStatus(husiv1.AppService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
 	}
-	if h.registerExtra != nil {
-		h.registerExtra(server, healthServer)
+	if h.extraServices != nil {
+		h.extraServices.RegisterExtraServices(server, healthServer)
 	}
 	grpc_health_v1.RegisterHealthServer(server, healthServer)
 	reflection.Register(server)

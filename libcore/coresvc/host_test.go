@@ -41,6 +41,18 @@ func testBaseContext(t *testing.T) context.Context {
 	return ctx
 }
 
+type defaultTestBackend struct {
+	coresvc.UnimplementedBackend
+}
+
+func (defaultTestBackend) CheckConfig(string) error { return nil }
+
+func (defaultTestBackend) GenerateSchema(husiv1.SchemaKind) (string, error) {
+	return `{"type":"object"}`, nil
+}
+
+func (defaultTestBackend) BuildEnvironment() string { return "test-env" }
+
 func startTestHost(t *testing.T, opts coresvc.HostOptions) (*coresvc.Host, string) {
 	t.Helper()
 	if opts.Context == nil {
@@ -52,16 +64,8 @@ func startTestHost(t *testing.T, opts coresvc.HostOptions) (*coresvc.Host, strin
 	if opts.LogMaxLines == 0 {
 		opts.LogMaxLines = 100
 	}
-	if opts.CheckConfig == nil {
-		opts.CheckConfig = func(config string) error { return nil }
-	}
-	if opts.GenerateSchema == nil {
-		opts.GenerateSchema = func(kind husiv1.SchemaKind) (string, error) {
-			return `{"type":"object"}`, nil
-		}
-	}
-	if opts.BuildEnvironment == nil {
-		opts.BuildEnvironment = func() string { return "test-env" }
+	if opts.Backend == nil {
+		opts.Backend = defaultTestBackend{}
 	}
 	host, err := coresvc.NewHost(opts)
 	require.NoError(t, err)
@@ -137,11 +141,17 @@ func TestHostCloseAfterStartReturnsNil(t *testing.T) {
 	assert.NoError(t, host.Close())
 }
 
+type generateSchemaBackend struct {
+	coresvc.UnimplementedBackend
+}
+
+func (generateSchemaBackend) GenerateSchema(kind husiv1.SchemaKind) (string, error) {
+	return `{"kind":` + kind.String() + `}`, nil
+}
+
 func TestApplicationServiceGenerateSchema(t *testing.T) {
 	_, socketPath := startTestHost(t, coresvc.HostOptions{
-		GenerateSchema: func(kind husiv1.SchemaKind) (string, error) {
-			return `{"kind":` + kind.String() + `}`, nil
-		},
+		Backend: generateSchemaBackend{},
 	})
 	conn := dialGRPC(t, socketPath)
 	client := husiv1.NewApplicationServiceClient(conn)
@@ -159,11 +169,17 @@ func TestApplicationServiceGenerateSchema(t *testing.T) {
 	}
 }
 
+type checkConfigErrorBackend struct {
+	coresvc.UnimplementedBackend
+}
+
+func (checkConfigErrorBackend) CheckConfig(string) error {
+	return context.Canceled // any error → InvalidArgument
+}
+
 func TestApplicationServiceCheckConfigInvalid(t *testing.T) {
 	_, socketPath := startTestHost(t, coresvc.HostOptions{
-		CheckConfig: func(config string) error {
-			return context.Canceled // any error → InvalidArgument
-		},
+		Backend: checkConfigErrorBackend{},
 	})
 	conn := dialGRPC(t, socketPath)
 	client := husiv1.NewApplicationServiceClient(conn)

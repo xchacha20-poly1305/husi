@@ -13,14 +13,9 @@ import (
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/health"
-	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type DaemonHostOptions struct {
@@ -129,33 +124,14 @@ func (h *DaemonHost) Run(ctx context.Context) error {
 		ServerOptions: serverOptions,
 		// Skip default locale chain; we already installed locale+auth above.
 		SkipDefaultInterceptors: true,
-		CheckConfig:             libcore.CheckConfig,
-		GenerateSchema: func(kind husiv1.SchemaKind) (string, error) {
-			switch kind {
-			case husiv1.SchemaKind_SCHEMA_KIND_CONFIG:
-				return libcore.GenerateConfigSchema()
-			case husiv1.SchemaKind_SCHEMA_KIND_OUTBOUND:
-				return libcore.GenerateOutboundSchema()
-			case husiv1.SchemaKind_SCHEMA_KIND_DNS_RULE:
-				return libcore.GenerateDNSRuleSchema()
-			default:
-				return "", E.New("unknown schema kind: ", kind.String())
-			}
-		},
-		StandaloneURLTest: func(config, tag, link string, timeoutMs int32, options uint8, plugins []*husiv1.PluginProcessSpec) (int32, error) {
+		Backend: &pooledBackend{
+			workingDir: absDir,
 			// Same owner credential drop as StartService: plugins never run as
 			// the privileged daemon.
-			return pluginpool.RunWithPlugins(absDir, plugins, daemonSvc.pluginCredentials, func() (int32, error) {
-				return libcore.StandaloneURLTest(config, tag, link, timeoutMs, options, nil)
-			})
+			credential: daemonSvc.pluginCredentials,
 		},
-		BuildEnvironment: libcore.BuildEnvironment,
-		RegisterExtra: func(server *grpc.Server, healthServer *health.Server) {
-			husiv1.RegisterDaemonServiceServer(server, daemonSvc)
-			healthServer.SetServingStatus(husiv1.DaemonService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
-		},
+		ExtraServices: daemonSvc,
 	}
-	libcore.WireApplicationTools(&hostOpts)
 	host, err := coresvc.NewHost(hostOpts)
 	if err != nil {
 		_ = daemonSvc.plugins.Close()

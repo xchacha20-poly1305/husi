@@ -11,22 +11,16 @@ import (
 	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/sing/protocol/socks"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
-// progressMinInterval throttles SpeedTest progress events to ~10/s.
-const progressMinInterval = 100 * time.Millisecond
-
-// runSpeedTest performs a download or upload through an optional socks proxy
-// and emits throttled progress. ctx cancels the transfer (client closed stream).
-// Host-side only (ApplicationService); not part of the Kotlin FFI surface.
 func runSpeedTest(
 	ctx context.Context,
 	req *husiv1.SpeedTestRequest,
-	emit func(*husiv1.SpeedTestResponse) error,
+	sender coresvc.SpeedTestSender,
 ) error {
 	targetURL := req.GetUrl()
 	if targetURL == "" {
@@ -43,7 +37,7 @@ func runSpeedTest(
 		ResponseHeaderTimeout: timeout,
 	}
 	if proxyURL := req.GetSocksProxyUrl(); proxyURL != "" {
-		dialer, err := socks.NewClientFromURL(new(N.DefaultDialer), proxyURL)
+		dialer, err := simpleproxyurl.ProxyFromURL(ctx, proxyURL)
 		if err != nil {
 			return E.Cause(err, "create proxy dialer")
 		}
@@ -58,9 +52,9 @@ func runSpeedTest(
 
 	switch req.GetMode() {
 	case husiv1.SpeedTestMode_SPEED_TEST_MODE_DOWNLOAD:
-		return speedTestDownload(ctx, client, targetURL, req.GetUserAgent(), emit)
+		return speedTestDownload(ctx, client, targetURL, req.GetUserAgent(), sender)
 	case husiv1.SpeedTestMode_SPEED_TEST_MODE_UPLOAD:
-		return speedTestUpload(ctx, client, targetURL, req.GetUserAgent(), req.GetUploadLengthBytes(), emit)
+		return speedTestUpload(ctx, client, targetURL, req.GetUserAgent(), req.GetUploadLengthBytes(), sender)
 	default:
 		return E.New("unknown speed test mode: ", req.GetMode().String())
 	}
@@ -70,7 +64,7 @@ func speedTestDownload(
 	ctx context.Context,
 	client *http.Client,
 	targetURL, userAgent string,
-	emit func(*husiv1.SpeedTestResponse) error,
+	sender coresvc.SpeedTestSender,
 ) error {
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
 	if err != nil {
@@ -85,7 +79,7 @@ func speedTestDownload(
 	if resp.StatusCode != http.StatusOK {
 		return E.New("HTTP ", resp.Status)
 	}
-	reporter := newProgressReporter(resp.ContentLength, emit)
+	reporter := newProgressReporter(resp.ContentLength, sender)
 	defer reporter.flush()
 	reader := &callbackReader{reader: resp.Body, callback: reporter.update}
 	_, err = bufio.Copy(io.Discard, reader)
@@ -97,12 +91,12 @@ func speedTestUpload(
 	client *http.Client,
 	targetURL, userAgent string,
 	length int64,
-	emit func(*husiv1.SpeedTestResponse) error,
+	sender coresvc.SpeedTestSender,
 ) error {
 	if length < 0 {
 		return E.New("invalid upload length")
 	}
-	reporter := newProgressReporter(length, emit)
+	reporter := newProgressReporter(length, sender)
 	defer reporter.flush()
 	body := io.NopCloser(&callbackReader{
 		reader:   io.LimitReader(zeroReader{}, length),
@@ -141,15 +135,15 @@ type progressReporter struct {
 	total     int64
 	saved     int64
 	lastEmit  time.Time
-	emit      func(*husiv1.SpeedTestResponse) error
+	sender    coresvc.SpeedTestSender
 	lastError error
 }
 
-func newProgressReporter(total int64, emit func(*husiv1.SpeedTestResponse) error) *progressReporter {
+func newProgressReporter(total int64, sender coresvc.SpeedTestSender) *progressReporter {
 	return &progressReporter{
-		start: time.Now(),
-		total: total,
-		emit:  emit,
+		start:  time.Now(),
+		total:  total,
+		sender: sender,
 	}
 }
 
@@ -159,11 +153,12 @@ func (p *progressReporter) update(n int64) {
 	}
 	p.saved += n
 	now := time.Now()
+	const progressMinInterval = 100 * time.Millisecond
 	if !p.lastEmit.IsZero() && now.Sub(p.lastEmit) < progressMinInterval {
 		return
 	}
 	p.lastEmit = now
-	p.lastError = p.emit(p.snapshot())
+	p.lastError = p.sender.Send(p.snapshot())
 }
 
 func (p *progressReporter) flush() {
@@ -173,7 +168,7 @@ func (p *progressReporter) flush() {
 	if p.saved == 0 && p.total <= 0 {
 		return
 	}
-	p.lastError = p.emit(p.snapshot())
+	p.lastError = p.sender.Send(p.snapshot())
 }
 
 func (p *progressReporter) snapshot() *husiv1.SpeedTestResponse {
