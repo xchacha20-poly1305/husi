@@ -6,14 +6,13 @@ import (
 	"syscall"
 	"time"
 
-	"libcore/coresvc"
-	"libcore/plugin/protect"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
 	"github.com/xchacha20-poly1305/libping"
 )
 

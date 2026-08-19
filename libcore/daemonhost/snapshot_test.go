@@ -5,10 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"libcore/pb/husi/v1"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 func TestSnapshotRoundTrip(t *testing.T) {

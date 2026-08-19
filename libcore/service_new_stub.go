@@ -2,7 +2,7 @@
 
 package libcore
 
-import "libcore/coresvc"
+import "github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 
 func NewService(version string) *Service {
 	return &Service{

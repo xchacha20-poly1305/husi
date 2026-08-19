@@ -9,9 +9,6 @@ import (
 	"net"
 	"os"
 
-	"libcore/plugin/pluginoption"
-	"libcore/plugin/raybridge"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"
 	"github.com/sagernet/sing-box/common/dialer"
@@ -26,6 +23,8 @@ import (
 
 	"github.com/exclavenetwork/sing-juicity"
 	"github.com/gofrs/uuid/v5"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/raybridge"
 )
 
 func RegisterOutbound(registry *outbound.Registry) {

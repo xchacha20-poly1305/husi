@@ -7,8 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"libcore/plugin/pluginoption"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"
 	C "github.com/sagernet/sing-box/constant"
@@ -18,6 +16,8 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/common/uot"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 )
 
 func RegisterOutbound(registry *outbound.Registry) {

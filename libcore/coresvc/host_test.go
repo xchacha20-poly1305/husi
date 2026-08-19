@@ -8,16 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"libcore/coresvc"
-	"libcore/distro"
-	"libcore/pb/husi/v1"
-
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"

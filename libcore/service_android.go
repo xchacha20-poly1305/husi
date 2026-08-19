@@ -6,12 +6,11 @@ import (
 	"context"
 	"fmt"
 
-	"libcore/pb/husi/v1"
-	"libcore/pluginpool"
-
 	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
 	"google.golang.org/protobuf/proto"
 )
 

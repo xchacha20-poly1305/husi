@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"libcore/oscall"
-
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/oscall"
 )
 
 func LogDebug(l string) {

@@ -7,9 +7,6 @@ import (
 	"time"
 	_ "unsafe"
 
-	"libcore/distro"
-	"libcore/plugin/protect"
-
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
@@ -18,6 +15,9 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/service"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
 )
 
 func baseContext(platformInterface PlatformInterface) context.Context {

@@ -3,16 +3,16 @@ package libcore
 import (
 	"sync"
 
-	"libcore/coresvc"
-	"libcore/pb/husi/v1"
-	"libcore/plugin/pluginoption"
-	"libcore/pluginpool"
-
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
 )
 
 type Service struct {

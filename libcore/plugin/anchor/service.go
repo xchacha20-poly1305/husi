@@ -6,8 +6,6 @@ import (
 	"net"
 	"regexp"
 
-	"libcore/plugin/pluginoption"
-
 	"github.com/sagernet/sing-box/adapter"
 	boxService "github.com/sagernet/sing-box/adapter/service"
 	"github.com/sagernet/sing-box/common/listener"
@@ -21,6 +19,7 @@ import (
 
 	"github.com/xchacha20-poly1305/anchor"
 	"github.com/xchacha20-poly1305/anchor/anchorservice"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 	"go4.org/netipx"
 )
 

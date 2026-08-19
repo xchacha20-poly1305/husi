@@ -6,12 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"libcore"
-	"libcore/coresvc"
-	"libcore/distro"
-	"libcore/pb/husi/v1"
-	"libcore/pluginpool"
-
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
@@ -19,6 +13,11 @@ import (
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"

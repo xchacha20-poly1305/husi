@@ -3,12 +3,12 @@ package libcore
 import (
 	"context"
 
-	"libcore/pb/husi/v1"
-
 	"github.com/sagernet/sing-box/common/stun"
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 func runSTUNTest(

@@ -6,11 +6,10 @@ import (
 	"net"
 	"strings"
 
-	"libcore/coresvc"
-
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/tailscale/go-winio"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 )
 
 const DefaultDaemonPipePath = coresvc.DaemonPipePath

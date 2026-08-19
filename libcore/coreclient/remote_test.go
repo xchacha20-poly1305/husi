@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"libcore/coreclient"
-
 	"github.com/sagernet/sing-box/daemon"
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coreclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"

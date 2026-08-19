@@ -227,7 +227,7 @@ lint_go_install:
 fmt_go:
 	cd libcore/ && gofumpt -l -w .
 	cd libcore/ && gofmt -s -w .
-	cd libcore/ && gci write --custom-order -s standard -s localmodule -s "prefix(github.com/sagernet/)" -s "default" --skip-generated .
+	cd libcore/ && gci write --custom-order -s standard -s "prefix(github.com/sagernet/)" -s "default" --skip-generated .
 
 fmt_go_install:
 	go install -v mvdan.cc/gofumpt@latest

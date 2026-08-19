@@ -5,15 +5,14 @@ import (
 	"sync"
 	"syscall"
 
-	"libcore/coresvc"
-	"libcore/pb/husi/v1"
-	"libcore/pluginpool"
-
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

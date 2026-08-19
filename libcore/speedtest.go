@@ -8,13 +8,13 @@ import (
 	"net/url"
 	"time"
 
-	"libcore/pb/husi/v1"
-
 	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 // progressMinInterval throttles SpeedTest progress events to ~10/s.

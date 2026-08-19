@@ -6,8 +6,6 @@ import (
 	"net"
 	"os"
 
-	"libcore/plugin/pluginoption"
-
 	"github.com/sagernet/sing-box/adapter"
 	boxService "github.com/sagernet/sing-box/adapter/service"
 	"github.com/sagernet/sing-box/log"
@@ -15,6 +13,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 	"golang.org/x/sys/unix"
 )
 

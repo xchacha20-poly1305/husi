@@ -1,10 +1,10 @@
 package libcore
 
 import (
-	"libcore/coresvc"
-	"libcore/pb/husi/v1"
-
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 func WireApplicationTools(opts *coresvc.HostOptions) {

@@ -24,13 +24,13 @@ import (
 	"time"
 	"unsafe"
 
-	"libcore"
-	"libcore/daemonhost"
-
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/daemonhost"
 )
 
 // Name is the canonical process name, used as the argv0 fallback.

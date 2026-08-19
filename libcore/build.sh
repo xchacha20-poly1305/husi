@@ -426,7 +426,7 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
         anja bind -target=jvm \
             -desktoptargets "$desktop_target" \
             -libname=husicore \
-            -linkonly=libcore/coreentry \
+            -linkonly=github.com/xchacha20-poly1305/husi/libcore/v2/coreentry \
             -nativesout "$natives_staging" \
             "${desktop_args[@]}" \
             -o "$desktop_output" . || exit 1

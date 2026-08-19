@@ -5,8 +5,6 @@ import (
 	"context"
 	"strings"
 
-	"libcore/coresvc"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/compatible"
 	"github.com/sagernet/sing-box/experimental"
@@ -16,6 +14,8 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
 	"github.com/sagernet/sing/service"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 )
 
 var _ adapter.ClashServer = (*CombinedAPI)(nil)

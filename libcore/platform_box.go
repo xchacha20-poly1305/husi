@@ -8,9 +8,6 @@ import (
 	"sync"
 	"syscall"
 
-	"libcore/oscall"
-	"libcore/procfs"
-
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
@@ -20,6 +17,9 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
 	N "github.com/sagernet/sing/common/network"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/oscall"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/procfs"
 )
 
 type boxPlatformInterfaceWrapper struct {

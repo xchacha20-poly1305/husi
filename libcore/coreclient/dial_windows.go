@@ -6,9 +6,8 @@ import (
 	"context"
 	"net"
 
-	"libcore/coresvc"
-
 	"github.com/tailscale/go-winio"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 )
 
 func grpcTarget(endpoint string) string {

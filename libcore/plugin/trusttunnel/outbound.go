@@ -7,8 +7,6 @@ import (
 	"os"
 	"slices"
 
-	"libcore/plugin/pluginoption"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"
 	"github.com/sagernet/sing-box/common/dialer"
@@ -24,6 +22,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 	"github.com/xchacha20-poly1305/sing-trusttunnel"
 )
 

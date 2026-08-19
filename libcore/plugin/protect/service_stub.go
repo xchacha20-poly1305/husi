@@ -5,12 +5,12 @@ package protect
 import (
 	"context"
 
-	"libcore/plugin/pluginoption"
-
 	"github.com/sagernet/sing-box/adapter"
 	boxService "github.com/sagernet/sing-box/adapter/service"
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 )
 
 func RegisterService(registry *boxService.Registry) {

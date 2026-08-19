@@ -13,10 +13,10 @@ import (
 	"syscall"
 	"time"
 
-	"libcore/pb/husi/v1"
-
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 type ProcessCredentialFunc func() (*syscall.SysProcAttr, error)

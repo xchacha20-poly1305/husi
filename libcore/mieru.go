@@ -1,7 +1,7 @@
 package libcore
 
 import (
-	"libcore/plugin/mieruproto"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/mieruproto"
 )
 
 func DecodeMieruTrafficPattern(encoded string) (string, error) {

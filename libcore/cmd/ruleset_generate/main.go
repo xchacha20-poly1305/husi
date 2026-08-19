@@ -11,8 +11,6 @@ import (
 	"os"
 	"strings"
 
-	"libcore/cmd/internal/shared"
-
 	"github.com/sagernet/sing-box/common/geosite"
 	"github.com/sagernet/sing-box/common/srs"
 	C "github.com/sagernet/sing-box/constant"
@@ -24,6 +22,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/klauspost/compress/zstd"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/cmd/internal/shared"
 )
 
 var (

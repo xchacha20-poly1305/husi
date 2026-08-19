@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	husiv1 "libcore/pb/husi/v1"
-
 	E "github.com/sagernet/sing/common/exceptions"
+
+	husiv1 "github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 const (
