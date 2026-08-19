@@ -118,7 +118,8 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
     - `libcore/coreclient/` is the raw gRPC bridge (`Invoke`/`Stream`/`Probe` with a
       passthrough proto codec). Bound as `BridgeClient` for Kotlin.
     - `libcore/cmd/` holds `boxoption` (option codegen), `boxversion`, `licencecollect`,
-      `ruleset_generate`. `libcore/plugin/` houses Go-side plugin support: outbound adapters (
+      `ruleset_generate`, `prototrim` (the vendored-schema trimmer `make proto` runs).
+      `libcore/plugin/` houses Go-side plugin support: outbound adapters (
       `http`, `juicity`, `trusttunnel`, `vless`), plus `mieruproto` (Mieru traffic-pattern
       protobuf), `raybridge` (*ray-compatible API shim), `plugindns` (plugin DNS conn plumbing), and
       `pluginoption` (option types/constants for hooked protocols).
@@ -126,11 +127,17 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
       `protoc`.
 - `proto/` — the gRPC contract between the UI and the core host, and the single source of truth for
   it. Two trees, generated the same way but owned differently:
-    - `daemon/started_service.proto` is **vendored verbatim from the pinned sing-box** by
-      `make proto` (only Java options are injected, which never reach the wire). It is the
-      core-scoped surface — status, log, connections, groups, clash mode, OpenConnect — so husi
-      stays wire compatible with the original sing-box daemon, and the Go side reuses
-      `github.com/sagernet/sing-box/daemon` instead of regenerating it. Never edit it by hand.
+    - `daemon/started_service.proto` is **vendored from the pinned sing-box** by `make proto`
+      (only Java options are injected, which never reach the wire). It is the core-scoped
+      surface — status, log, connections, groups, clash mode, OpenConnect — so husi stays wire
+      compatible with the original sing-box daemon, and the Go side reuses
+      `github.com/sagernet/sing-box/daemon` instead of regenerating it. The copy is trimmed to
+      the RPCs husi calls, because the whole tree is compiled into JVM classes shipped in the
+      app: `buildScript/proto.sh` holds the `KEEP_STARTED_SERVICE_RPCS` allowlist (the same
+      list as the method constants in `fr.husi.core.CoreClient`) and `libcore/cmd/prototrim`
+      copies those RPCs plus every type they reach, line for line.
+      Using a new upstream RPC means adding it to that list and re-running `make proto`; an
+      allowlisted RPC that upstream renamed or dropped fails the run. Never edit it by hand.
     - `husi/v1/*.proto` is husi's own: what sing-box has no place for (plugin processes, pushed
       assets, husi's URL test knobs, schema generation).
   Both share one protoc include path for the `:proto` Gradle module, which generates the

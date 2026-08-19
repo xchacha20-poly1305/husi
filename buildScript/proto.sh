@@ -32,32 +32,46 @@ if [ -z "$SING_BOX_DIR" ] || [ ! -d "$SING_BOX_DIR" ]; then
   exit 1
 fi
 
+# The rpcs husi calls on daemon.StartedService, which is what the vendored copy
+# is trimmed down to. This is the same list as the method constants in
+# composeApp .../fr/husi/core/CoreClient.kt; using a new upstream rpc means
+# adding it here and re-running `make proto`.
+KEEP_STARTED_SERVICE_RPCS=(
+  GetVersion GetStartedAt URLTest
+  SubscribeServiceStatus SubscribeStatus
+  SubscribeLog GetDefaultLogLevel ClearLogs
+  SubscribeGroups SubscribeOutbounds SelectOutbound SetGroupExpand
+  GetClashModeStatus SubscribeClashMode SetClashMode
+  SubscribeConnections CloseConnection CloseAllConnections
+  SubscribeOpenConnectStatus SubmitOpenConnectAuthResponse CancelOpenConnectAuthChallenge
+  SubscribeOpenVPNStatus SubmitOpenVPNChallengeResponse CancelOpenVPNChallenge
+)
+
 # Husi speaks sing-box's own contract on the wire, so the core-scoped schema is
-# copied from the pinned sing-box rather than rewritten. Only Java options are
-# added: they name the generated JVM classes and never reach the wire, which is
-# what keeps a copy interchangeable with the original.
+# copied from the pinned sing-box rather than rewritten. libcore/cmd/prototrim
+# keeps only the rpcs above and the types they reach, because the whole tree is
+# compiled into JVM classes shipped in the app. Only Java options are added:
+# they name those classes and never reach the wire, which is what keeps the copy
+# interchangeable with the original.
 vendor_sing_box_proto() {
   local relative_path="$1" outer_classname="$2"
   local destination="proto/$relative_path"
+  shift 2  # What remains is the rpc allowlist.
 
   mkdir -p "$(dirname "$destination")"
   {
     echo "// Vendored from $SING_BOX_MODULE $SING_BOX_VERSION by \`make proto\`."
+    echo "// Trimmed to the RPCs husi actually calls; the rest of the upstream"
+    echo "// schema is not copied."
     echo "// Do not edit: husi is wire compatible with sing-box here, so every"
     echo "// package, message name, field number and type must stay identical."
     echo
-    awk -v classname="$outer_classname" '
-      { print }
-      /^option go_package/ {
-        print "option java_multiple_files = true;"
-        print "option java_outer_classname = \"" classname "\";"
-        print "option java_package = \"fr.husi.proto.daemon\";"
-      }
-    ' "$SING_BOX_DIR/$relative_path"
+    (cd libcore && go run ./cmd/prototrim "$SING_BOX_DIR/$relative_path" "$outer_classname" "$@")
   } >"$destination"
 }
 
-vendor_sing_box_proto daemon/started_service.proto StartedServiceProto
+vendor_sing_box_proto daemon/started_service.proto StartedServiceProto \
+  "${KEEP_STARTED_SERVICE_RPCS[@]}"
 
 export PATH="$PLUGIN_DIR:$PATH"
 
