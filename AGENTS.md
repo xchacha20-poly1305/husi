@@ -277,7 +277,9 @@ Canonical conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it firs
   ids, no body; without a matching file here, the next export ships empty `content` and the
   OSS screen falls back to opening the license URL. Add a new JSON when a dependency
   introduces a license that is not already vendored and is not already present in a Maven
-  POM. `aboutlibraries_go` still talks to pkgsite — only the Gradle half is offline. Do not
+  POM. `aboutlibraries_go` is offline too: `licencecollect` scans the license files of every
+  module in the local module cache with `github.com/google/licensecheck`, so run
+  `go mod download` in `libcore` first — it never downloads anything itself. Do not
   run `exportLibraryDefinitions` and `exportLibraryDefinitionsDesktop` in one Gradle
   invocation: `configPath` is chosen from the start-parameter task names, so both tasks would
   share the desktop merge output.

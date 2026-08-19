@@ -38,9 +38,9 @@ replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vme
 
 // cmd
 require (
+	github.com/google/licensecheck v0.3.1
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/xchacha20-poly1305/pkgsite-go v0.6.3
 	golang.org/x/mod v0.40.0
 )
 

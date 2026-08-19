@@ -96,6 +96,8 @@ github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/gopacket v1.1.19 h1:ves8RnFZPGiFnTS0uPQStjwru6uO6h+nlr9j6fL7kF8=
 github.com/google/gopacket v1.1.19/go.mod h1:iJ8V8n6KS+z2U1A8pUwu8bW5SyEMkXJB8Yo/Vo+TKTo=
+github.com/google/licensecheck v0.3.1 h1:QoxgoDkaeC4nFrtGN1jV7IPmDCHFNIVh54e5hSt6sPs=
+github.com/google/licensecheck v0.3.1/go.mod h1:ORkR35t/JjW+emNKtfJDII0zlciG9JgbT7SmsohlHmY=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8=
@@ -281,8 +283,6 @@ github.com/xchacha20-poly1305/anja v0.22.16 h1:l9qmqtDHCCQE8l/TngSw5wY0E26MWB/Ml
 github.com/xchacha20-poly1305/anja v0.22.16/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
 github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
-github.com/xchacha20-poly1305/pkgsite-go v0.6.3 h1:6NAZxUYh4fmBw1P05X54v5dOV4ryEgqc5fxvjyW4scw=
-github.com/xchacha20-poly1305/pkgsite-go v0.6.3/go.mod h1:4K6Cwk2udFqHVihAk+16GMcqyi4xGhtJ19Yl/+JX3pw=
 github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.5 h1:7NdVi8lRswN1kRsp8PckDsRPGHK1VMXkjbWp7yanQ3A=
 github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.5/go.mod h1:SoqpenmZmeeyQq1UQlrf9vHkUo4tEiSkw0C7Gi89RUw=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a h1:vEjuTXDMeO78XINy1UHJE58Un7mMwUBZYdJapnbYso4=
