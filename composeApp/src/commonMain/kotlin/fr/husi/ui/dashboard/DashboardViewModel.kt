@@ -80,6 +80,8 @@ data class DashboardState(
     val proxySets: List<ProxySet> = emptyList(),
     val proxySetOrder: Int = 0,
     val isRemote: Boolean = false,
+
+    val urlTestingTags: Map<String, Int> = emptyMap(),
 ) {
     companion object {
         const val SHOW_TRACKER_ACTIVELY: Byte = 1
@@ -169,7 +171,6 @@ class DashboardViewModel(
     /** The connection whose detail sheet is open, if any. */
     private var selectedUuid: String? = null
 
-    private val proxySetsByTag = HashMap<String, ProxySet>()
     private var latestGroups: List<Group> = emptyList()
     private var latestOutbounds: List<GroupItem> = emptyList()
 
@@ -270,7 +271,6 @@ class DashboardViewModel(
         connectionsJob?.cancel()
         clashModeJob?.cancel()
         connections.clear()
-        proxySetsByTag.clear()
         latestGroups = emptyList()
         latestOutbounds = emptyList()
         uiState.update { state ->
@@ -464,16 +464,35 @@ class DashboardViewModel(
             state.copy(
                 proxySets = state.proxySets.map {
                     if (it.id == group) {
-                        val updated = it.copy(urlTestProgress = progress)
-                        if (!it.isAll) {
-                            proxySetsByTag[it.tag] = updated
-                        }
-                        updated
+                        it.copy(urlTestProgress = progress)
                     } else {
                         it
                     }
                 },
             )
+        }
+    }
+
+    private fun markUrlTesting(tag: String, testing: Boolean) {
+        uiState.update { state ->
+            val counts = state.urlTestingTags
+            val next = (counts[tag] ?: 0) + if (testing) 1 else -1
+            state.copy(
+                urlTestingTags = if (next > 0) {
+                    counts + (tag to next)
+                } else {
+                    counts - tag
+                },
+            )
+        }
+    }
+
+    private suspend fun <T> withUrlTesting(tag: String, block: suspend () -> T): T {
+        markUrlTesting(tag, true)
+        try {
+            return block()
+        } finally {
+            markUrlTesting(tag, false)
         }
     }
 
@@ -710,70 +729,48 @@ class DashboardViewModel(
     }
 
     private fun publishProxySets() {
-        val olds = uiState.value.proxySets
-        if (proxySetsByTag.isEmpty() && olds.isNotEmpty()) {
-            for (old in olds) {
-                if (!old.isAll) {
-                    proxySetsByTag[old.tag] = old
-                }
-            }
-        }
-        val fresh = latestGroups.map { group ->
-            ProxySet(
-                tag = group.tag,
-                type = proxyDisplayName(group.type),
-                selectable = group.selectable,
-                selected = group.selected,
-                items = group.itemsList.map { item ->
-                    ProxyItem(
-                        tag = item.tag,
-                        type = proxyDisplayName(item.type),
-                        urlTestDelay = item.urlTestDelay,
-                    )
-                }.let { items ->
-                    proxySetComparator.load()?.let { items.sortedWith(it) }
-                        ?: items
-                },
-            )
-        }
-        val allItems = latestOutbounds.map { item ->
-            ProxyItem(
-                tag = item.tag,
-                type = proxyDisplayName(item.type),
-                urlTestDelay = item.urlTestDelay,
-            )
-        }.let { items ->
-            proxySetComparator.load()?.let { items.sortedWith(it) } ?: items
-        }
-        val allSet = allProxySet(allItems).copy(
-            urlTestProgress = olds.firstOrNull { it.isAll }?.urlTestProgress,
-        )
-        if (fresh.isEmpty()) {
-            proxySetsByTag.clear()
-            uiState.update { state -> state.copy(proxySets = listOf(allSet)) }
-            return
-        }
-        val freshTags = HashSet<String>(fresh.size)
-        val result = buildList(fresh.size) {
-            for (item in fresh) {
-                freshTags.add(item.tag)
-                val old = proxySetsByTag[item.tag]
-                val merged = if (old == null) {
-                    item
-                } else {
-                    item.copy(urlTestProgress = old.urlTestProgress)
-                }
-                val reused = if (old != null && merged == old) {
-                    old
-                } else {
-                    merged
-                }
-                proxySetsByTag[item.tag] = reused
-                add(reused)
-            }
-        }
-        proxySetsByTag.keys.retainAll(freshTags)
         uiState.update { state ->
+            val olds = state.proxySets
+            val comparator = proxySetComparator.load()
+            val fresh = latestGroups.map { group ->
+                ProxySet(
+                    tag = group.tag,
+                    type = proxyDisplayName(group.type),
+                    selectable = group.selectable,
+                    selected = group.selected,
+                    items = group.itemsList.map { item ->
+                        ProxyItem(
+                            tag = item.tag,
+                            type = proxyDisplayName(item.type),
+                            urlTestDelay = item.urlTestDelay,
+                        )
+                    }.let { items ->
+                        comparator?.let { items.sortedWith(it) } ?: items
+                    },
+                )
+            }
+            val allItems = latestOutbounds.map { item ->
+                ProxyItem(
+                    tag = item.tag,
+                    type = proxyDisplayName(item.type),
+                    urlTestDelay = item.urlTestDelay,
+                )
+            }.let { items ->
+                comparator?.let { items.sortedWith(it) } ?: items
+            }
+            val oldAll = olds.firstOrNull { it.isAll }
+            val freshAll = allProxySet(allItems).copy(urlTestProgress = oldAll?.urlTestProgress)
+            // Keep the previous instance while nothing changed, so the list does not recompose.
+            val allSet = oldAll?.takeIf { it == freshAll } ?: freshAll
+            if (fresh.isEmpty()) {
+                return@update state.copy(proxySets = listOf(allSet))
+            }
+            val oldsByTag = olds.filterNot { it.isAll }.associateBy { it.tag }
+            val result = fresh.map { item ->
+                val old = oldsByTag[item.tag] ?: return@map item
+                val merged = item.copy(urlTestProgress = old.urlTestProgress)
+                if (merged == old) old else merged
+            }
             state.copy(
                 proxySets = buildList(result.size + 1) {
                     add(allSet)
@@ -806,15 +803,17 @@ class DashboardViewModel(
 
     fun urlTestForSingle(tag: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            if (isRemote) {
-                coreClient.daemonUrlTest(tag)
-            } else {
-                coreClient.urlTest(
-                    tag,
-                    DataStore.connectionTestURL,
-                    DataStore.connectionTestTimeout,
-                    testOptions(),
-                )
+            withUrlTesting(tag) {
+                if (isRemote) {
+                    coreClient.daemonUrlTest(tag)
+                } else {
+                    coreClient.urlTest(
+                        tag,
+                        DataStore.connectionTestURL,
+                        DataStore.connectionTestTimeout,
+                        testOptions(),
+                    )
+                }
             }
         } catch (e: Exception) {
             Logs.w(e)
@@ -852,13 +851,16 @@ class DashboardViewModel(
                         while (true) {
                             val index = nextItemIndex.fetchAndAdd(1)
                             if (index >= items.size) break
+                            val tag = items[index].tag
                             try {
-                                coreClient.urlTest(
-                                    items[index].tag,
-                                    testURL,
-                                    testTimeout,
-                                    options,
-                                )
+                                withUrlTesting(tag) {
+                                    coreClient.urlTest(
+                                        tag,
+                                        testURL,
+                                        testTimeout,
+                                        options,
+                                    )
+                                }
                             } catch (e: Exception) {
                                 Logs.w(e)
                             }

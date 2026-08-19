@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
@@ -91,6 +92,7 @@ internal fun DashboardProxySetScreen(
                 ProxySetCard(
                     proxySet = proxySet,
                     isRemote = uiState.isRemote,
+                    urlTestingTags = uiState.urlTestingTags,
                     selectProxy = selectProxy,
                     urlTestSingle = urlTestForSingle,
                     urlTestForGroup = urlTestForGroup,
@@ -113,6 +115,7 @@ private fun ProxySetCard(
     modifier: Modifier = Modifier,
     proxySet: ProxySet,
     isRemote: Boolean,
+    urlTestingTags: Map<String, Int>,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
@@ -219,6 +222,7 @@ private fun ProxySetCard(
                     if (expanded) {
                         ProxyGrid(
                             proxySet = proxySet,
+                            urlTestingTags = urlTestingTags,
                             selectProxy = selectProxy,
                             urlTestSingle = urlTestSingle,
                         )
@@ -262,7 +266,10 @@ private fun ProxySetCard(
                                             style = MaterialTheme.typography.titleSmallEmphasized,
                                         )
                                     }
-                                    URLTestDelayText(delay = selectedDelay)
+                                    URLTestDelayText(
+                                        delay = selectedDelay,
+                                        isTesting = urlTestingTags.containsKey(proxySet.selected),
+                                    )
                                 }
                             }
                             DropdownMenu(
@@ -295,6 +302,7 @@ private const val PROXY_CARD_GAP = 8
 private fun ProxyGrid(
     modifier: Modifier = Modifier,
     proxySet: ProxySet,
+    urlTestingTags: Map<String, Int>,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestSingle: (tag: String) -> Unit,
 ) {
@@ -317,6 +325,7 @@ private fun ProxyGrid(
             ProxyCard(
                 proxy = proxy,
                 selected = proxySet.selected == proxy.tag,
+                isTesting = urlTestingTags.containsKey(proxy.tag),
                 selectable = proxySet.selectable,
                 select = { selectProxy(proxySet.tag, proxy.tag) },
                 urlTest = { urlTestSingle(proxy.tag) },
@@ -330,6 +339,7 @@ private fun ProxyCard(
     modifier: Modifier = Modifier,
     proxy: ProxyItem,
     selected: Boolean,
+    isTesting: Boolean,
     selectable: Boolean,
     select: () -> Unit,
     urlTest: () -> Unit,
@@ -386,6 +396,7 @@ private fun ProxyCard(
                 )
                 URLTestDelayText(
                     delay = proxy.urlTestDelay,
+                    isTesting = isTesting,
                 )
             }
         }
@@ -411,7 +422,16 @@ private fun ProxyCard(
 private fun URLTestDelayText(
     modifier: Modifier = Modifier,
     delay: Int,
+    isTesting: Boolean = false,
 ) {
+    if (isTesting) {
+        CircularProgressIndicator(
+            modifier = modifier.size(15.dp),
+            color = MaterialTheme.colorScheme.primary,
+            strokeWidth = 2.dp,
+        )
+        return
+    }
     Text(
         text = if (delay > 0) delay.toString() else "--",
         color = if (delay > 0) colorForUrlTestDelay(delay) else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -442,6 +462,7 @@ private fun PreviewProxySet() {
                     ),
                 ),
             ),
+            urlTestingTags = mapOf("🇺🇸 US - LAX" to 1),
         )
     }
     DashboardProxySetScreen(
