@@ -25,7 +25,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +57,7 @@ import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
+import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.database.ProxyGroup
 import fr.husi.database.displayType
 import fr.husi.fmt.internal.ProxySetBean
@@ -288,7 +288,7 @@ private fun LazyListScope.proxySetSettings(
             userScrollEnabled = false,
             onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
         ) { i, provider ->
-            val swipeState = rememberSwipeToDismissBoxState()
+            val swipeState = rememberSwipeToDismissBoxStateUnsaveable(provider.key)
             var visible by remember { mutableStateOf(true) }
             DraggableSwipeableItem(
                 modifier = Modifier.animateDraggableSwipeableItem(),

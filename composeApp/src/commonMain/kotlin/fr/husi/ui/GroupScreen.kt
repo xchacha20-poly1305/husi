@@ -24,13 +24,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +61,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.setPlainText
 import fr.husi.compose.withNavigation
 import fr.husi.database.SagerDatabase
@@ -257,14 +256,7 @@ fun GroupScreen(
                 contentPadding = contentPadding,
                 onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
             ) { _, groupState ->
-                val swipeState = rememberSwipeToDismissBoxState()
-
-                LaunchedEffect(swipeState.currentValue) {
-                    if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
-                        viewModel.undoableRemove(groupState.group.id)
-                        swipeState.snapTo(SwipeToDismissBoxValue.Settled)
-                    }
-                }
+                val swipeState = rememberSwipeToDismissBoxStateUnsaveable(groupState.group.id)
 
                 DraggableSwipeableItem(
                     modifier = Modifier.animateDraggableSwipeableItem(),
@@ -288,6 +280,7 @@ fun GroupScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
+                        onDismiss = { viewModel.undoableRemove(groupState.group.id) },
                     ) {
                         GroupCard(
                             mainViewModel = mainViewModel,

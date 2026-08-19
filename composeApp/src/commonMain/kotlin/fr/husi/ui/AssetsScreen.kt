@@ -36,9 +36,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -70,6 +68,7 @@ import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
@@ -400,20 +399,9 @@ internal fun AssetsScreen(
                         }
                     },
                 ) { asset ->
-                    val swipeState = rememberSwipeToDismissBoxState()
-
-                    if (!asset.builtIn) {
-                        LaunchedEffect(swipeState.currentValue) {
-                            if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
-                                viewModel.undoableRemove(asset.file.name)
-                                swipeState.snapTo(SwipeToDismissBoxValue.Settled)
-                            }
-                        }
-                    }
-
                     if (!asset.builtIn) {
                         SwipeToDismissBox(
-                            state = swipeState,
+                            state = rememberSwipeToDismissBoxStateUnsaveable(asset.file.name),
                             enableDismissFromStartToEnd = true,
                             enableDismissFromEndToStart = true,
                             backgroundContent = {
@@ -426,6 +414,7 @@ internal fun AssetsScreen(
                                     Icon(vectorResource(Res.drawable.delete), null)
                                 }
                             },
+                            onDismiss = { viewModel.undoableRemove(asset.file.name) },
                         ) {
                             AssetCard(
                                 asset = asset,

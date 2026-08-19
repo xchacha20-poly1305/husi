@@ -21,7 +21,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +43,7 @@ import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
+import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.ktx.contentOrUnset
@@ -152,7 +152,7 @@ private fun LazyListScope.chainSettings(
             userScrollEnabled = false,
             onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
         ) { i, profile ->
-            val swipeState = rememberSwipeToDismissBoxState()
+            val swipeState = rememberSwipeToDismissBoxStateUnsaveable(profile.id)
             var visible by remember { mutableStateOf(true) }
             DraggableSwipeableItem(
                 modifier = Modifier.animateDraggableSwipeableItem(),

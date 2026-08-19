@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import fr.husi.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.fadingEdge
+import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.theme.LogColors
 import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
@@ -77,7 +77,7 @@ internal fun DashboardConnectionsScreen(
                     key = { it.uuid },
                     contentType = { 0 },
                 ) { connection ->
-                    val swipState = rememberSwipeToDismissBoxState()
+                    val swipState = rememberSwipeToDismissBoxStateUnsaveable(connection.uuid)
                     SwipeToDismissBox(
                         state = swipState,
                         backgroundContent = {

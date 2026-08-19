@@ -31,9 +31,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -73,6 +71,7 @@ import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
 import fr.husi.compose.SagerFabClearance
+import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -266,18 +265,7 @@ fun RouteScreen(
                         needReload()
                     },
                 ) { _, rule ->
-                    val swipeState = rememberSwipeToDismissBoxState()
-
-                    // Monitor swipe state changes and perform deletion when user completes swipe gesture.
-                    // After deletion, immediately reset state to Settled to prevent re-triggering
-                    // when item is restored via undo. Without this, the preserved swipeState
-                    // (due to stable key) would cause onDismiss to fire again on recomposition.
-                    LaunchedEffect(swipeState.currentValue) {
-                        if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
-                            viewModel.undoableRemove(rule.id)
-                            swipeState.snapTo(SwipeToDismissBoxValue.Settled)
-                        }
-                    }
+                    val swipeState = rememberSwipeToDismissBoxStateUnsaveable(rule.id)
 
                     DraggableSwipeableItem(
                         modifier = Modifier.animateDraggableSwipeableItem(),
@@ -301,6 +289,7 @@ fun RouteScreen(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
+                            onDismiss = { viewModel.undoableRemove(rule.id) },
                         ) {
                             RuleCard(
                                 rule = rule,
