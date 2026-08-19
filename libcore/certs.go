@@ -19,10 +19,10 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/sing/protocol/socks"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/raybridge"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
 
 //go:linkname systemRoots crypto/x509.systemRoots
@@ -157,7 +157,7 @@ func (b *rootCABundle) Append(raw []byte) error {
 
 const typeCert = "CERTIFICATE"
 
-func getCert(address, serverName, mode, proxy string) (string, error) {
+func getCert(ctx context.Context, address, serverName, mode, proxy string) (string, error) {
 	target := M.ParseSocksaddr(address)
 	if target.Port == 0 {
 		target.Port = 443
@@ -168,7 +168,7 @@ func getCert(address, serverName, mode, proxy string) (string, error) {
 	var dialer N.Dialer = new(N.DefaultDialer)
 	if proxy != "" {
 		var err error
-		dialer, err = socks.NewClientFromURL(dialer, proxy)
+		dialer, err = simpleproxyurl.ProxyFromURL(ctx, proxy)
 		if err != nil {
 			return "", E.Cause(err, "create proxy dialer")
 		}
@@ -180,7 +180,7 @@ func getCert(address, serverName, mode, proxy string) (string, error) {
 		Dialer: dialer,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), C.ProtocolTimeouts[C.ProtocolQUIC])
+	ctx, cancel := context.WithTimeout(ctx, C.ProtocolTimeouts[C.ProtocolQUIC])
 	defer cancel()
 
 	var (

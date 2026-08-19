@@ -1,4 +1,4 @@
-package shared
+package simpleproxyurl
 
 import (
 	"cmp"
@@ -35,7 +35,7 @@ func DialerFromEnv(ctx context.Context, fallback N.Dialer) (N.Dialer, error) {
 		if raw == "" {
 			continue
 		}
-		dialer, err := proxyFromURL(ctx, raw)
+		dialer, err := ProxyFromURL(ctx, raw)
 		if err != nil {
 			errs = append(errs, E.Cause(err, "parse proxy from env: ", env))
 			continue
@@ -48,7 +48,7 @@ func DialerFromEnv(ctx context.Context, fallback N.Dialer) (N.Dialer, error) {
 	return nil, E.Cause(E.Errors(errs...), "all env failed")
 }
 
-func proxyFromURL(ctx context.Context, raw string) (N.Dialer, error) {
+func ProxyFromURL(ctx context.Context, raw string) (N.Dialer, error) {
 	u, err := url.Parse(raw)
 	if err != nil {
 		return nil, E.Cause(err, "parse URL")

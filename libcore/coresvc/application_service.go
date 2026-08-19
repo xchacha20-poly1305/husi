@@ -60,6 +60,7 @@ func (s *applicationService) GetCert(ctx context.Context, req *husiv1.GetCertReq
 		return nil, status.Error(codes.Internal, "get cert not configured")
 	}
 	pem, err := s.host.getCert(
+		ctx,
 		req.GetServer(),
 		req.GetServerName(),
 		req.GetMode(),

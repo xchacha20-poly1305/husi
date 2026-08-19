@@ -22,7 +22,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/klauspost/compress/zstd"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/cmd/internal/shared"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
 
 var (
@@ -71,7 +71,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	dialer, err := shared.DialerFromEnv(ctx, nil)
+	dialer, err := simpleproxyurl.DialerFromEnv(ctx, nil)
 	if err != nil {
 		log.WarnContext(ctx, err)
 		dialer = N.SystemDialer

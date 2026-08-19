@@ -39,7 +39,7 @@ type Host struct {
 	checkConfig       func(config string) error
 	generateSchema    func(kind husiv1.SchemaKind) (string, error)
 	standaloneURLTest func(config, tag, link string, timeoutMs int32, options uint8, plugins []*husiv1.PluginProcessSpec) (int32, error)
-	getCert           func(server, serverName string, mode husiv1.GetCertMode, socksProxyURL string) (string, error)
+	getCert           func(ctx context.Context, server, serverName string, mode husiv1.GetCertMode, socksProxyURL string) (string, error)
 	stunTest          func(ctx context.Context, server, socksProxyURL string, emit func(*husiv1.STUNTestResponse) error) error
 	speedTest         func(ctx context.Context, req *husiv1.SpeedTestRequest, emit func(*husiv1.SpeedTestResponse) error) error
 	buildEnvironment  func() string
@@ -71,7 +71,7 @@ type HostOptions struct {
 	// plugins are spawned by the host for the duration of the test only.
 	StandaloneURLTest func(config, tag, link string, timeoutMs int32, options uint8, plugins []*husiv1.PluginProcessSpec) (int32, error)
 	// GetCert fetches a TLS/QUIC certificate chain as PEM.
-	GetCert func(server, serverName string, mode husiv1.GetCertMode, socksProxyURL string) (string, error)
+	GetCert func(ctx context.Context, server, serverName string, mode husiv1.GetCertMode, socksProxyURL string) (string, error)
 	// STUNTest runs a STUN probe and streams progress via emit.
 	STUNTest func(ctx context.Context, server, socksProxyURL string, emit func(*husiv1.STUNTestResponse) error) error
 	// SpeedTest runs a download/upload and streams throttled progress via emit.

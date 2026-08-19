@@ -6,9 +6,9 @@ import (
 	"github.com/sagernet/sing-box/common/stun"
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/sing/protocol/socks"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
 
 func runSTUNTest(
@@ -19,7 +19,7 @@ func runSTUNTest(
 	var dialer N.Dialer
 	if proxy != "" {
 		var err error
-		dialer, err = socks.NewClientFromURL(new(N.DefaultDialer), proxy)
+		dialer, err = simpleproxyurl.ProxyFromURL(ctx, proxy)
 		if err != nil {
 			return E.Cause(err, "create proxy dialer")
 		}
