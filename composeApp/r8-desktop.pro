@@ -1,5 +1,12 @@
--dontobfuscate
--keepattributes SourceFile,LineNumberTable
+# Names stay. The obfuscation pass still has to run: keepattributes is a no-op
+# under -dontobfuscate, and optimize cannot rewrite Kotlin/Compose inline debug
+# tables (Composer.cache → `$this$cache$iv`). HotSpot then rejects the class;
+# Android is fine because R8 drops those tables:
+#   ClassFormatError: Duplicated LocalVariableTable attribute entry for
+#   '$this$cache$iv' in class file .../style/VariantTokensKt
+# Do not keep LocalVariableTable / LocalVariableTypeTable.
+-keep,allowshrinking,allowoptimization class ** { *; }
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
 
 -keep class fr.husi.** { *; }
 -keep class go.** { *; }
