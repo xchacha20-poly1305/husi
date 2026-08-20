@@ -219,7 +219,7 @@ This dispatches to the host-native packaging flow:
 * macOS: `make desktop_package_macos`
 * Windows/MSYS: `make desktop_package_windows`
 
-Build an **uber JAR** that runs on system Java (no bundled JRE/runtime image):
+Build a ProGuard-shrunk **uber JAR** that runs on system Java (no bundled JRE/runtime image):
 
 ```shell
 make desktop_uberjar

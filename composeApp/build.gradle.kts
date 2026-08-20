@@ -411,6 +411,9 @@ compose.desktop {
             copyright = "GPL-3.0-or-later"
             licenseFile.set(rootProject.layout.projectDirectory.file("LICENSE"))
         }
+        buildTypes.release.proguard {
+            configurationFiles.from(project.file("r8-desktop.pro"))
+        }
     }
 }
 
@@ -467,7 +470,7 @@ dependencies {
     add("kspDesktop", libs.androidx.room.compiler)
 }
 
-tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
+tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach {
     if (this is Jar) {
         // Exclude non-target native binaries from dependency family buckets.
         // libcore natives/** are always stripped (thin release jar); others keep only the target arch.

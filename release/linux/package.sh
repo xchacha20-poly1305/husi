@@ -346,7 +346,7 @@ resolve_input_jar() {
     fi
 
     error "No matching desktop jar found in $JAR_DIR_DEFAULT"
-    error "Build one first: ./gradlew -p composeApp packageUberJarForCurrentOS"
+    error "Build one first: ./gradlew -p composeApp packageReleaseUberJarForCurrentOS"
     exit 1
 }
 

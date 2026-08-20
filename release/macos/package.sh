@@ -349,7 +349,7 @@ resolve_input_jar() {
     fi
 
     error "No matching desktop jar found in $JAR_DIR_DEFAULT"
-    error "Build one first: ./gradlew -p composeApp packageUberJarForCurrentOS -PdesktopTarget=darwin/$TARGET_ARCH"
+    error "Build one first: ./gradlew -p composeApp packageReleaseUberJarForCurrentOS -PdesktopTarget=darwin/$TARGET_ARCH"
     exit 1
 }
 

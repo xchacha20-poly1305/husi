@@ -112,7 +112,7 @@ else
 endif
 
 desktop_package_linux:
-	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	BUILD_PLUGIN=none ./gradlew -p composeApp packageReleaseUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 	$(MAKE) launcher
 	$(MAKE) core_desktop DESKTOP_TARGETS=$(if $(DESKTOP_TARGET),$(DESKTOP_TARGET),host)
 	./release/linux/package.sh --formats $(LINUX_PACKAGE_FORMATS) $(DESKTOP_TARGET_SCRIPT_ARG)
@@ -129,7 +129,7 @@ desktop_package_macos:
 		echo "desktop_package_macos on non-macOS hosts requires DESKTOP_TARGET, e.g. make desktop_package_macos DESKTOP_TARGET=darwin/arm64"; \
 		exit 1; \
 	fi
-	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	BUILD_PLUGIN=none ./gradlew -p composeApp packageReleaseUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 	$(MAKE) launcher
 	$(MAKE) core_desktop DESKTOP_TARGETS=$(if $(DESKTOP_TARGET),$(DESKTOP_TARGET),host)
 	./release/macos/package.sh $(DESKTOP_TARGET_SCRIPT_ARG)
@@ -139,7 +139,7 @@ desktop_package_windows:
 		echo "desktop_package_windows requires DESKTOP_TARGET, e.g. make desktop_package_windows DESKTOP_TARGET=windows/amd64"; \
 		exit 1; \
 	fi
-	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	BUILD_PLUGIN=none ./gradlew -p composeApp packageReleaseUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 	$(MAKE) launcher
 	$(MAKE) core_desktop DESKTOP_TARGETS=$(DESKTOP_TARGET)
 	./release/windows/package.sh $(DESKTOP_TARGET_SCRIPT_ARG) $(WINDOWS_NO_SIGN_SCRIPT_ARG)
@@ -153,7 +153,7 @@ desktop_package_windows_jbr:
 		echo "desktop_package_windows_jbr requires DESKTOP_TARGET, e.g. make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64"; \
 		exit 1; \
 	fi
-	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	BUILD_PLUGIN=none ./gradlew -p composeApp packageReleaseUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 	$(MAKE) launcher
 	$(MAKE) core_desktop DESKTOP_TARGETS=$(DESKTOP_TARGET)
 	jbr_jmods="$(JBR_JMODS)"; \
@@ -172,10 +172,11 @@ desktop_package_windows_all:
 		$(MAKE) desktop_package_windows_jbr DESKTOP_TARGET=$$desktop_target WINDOWS_NO_SIGN=$(WINDOWS_NO_SIGN) || exit $$?; \
 	done
 
-# Thin release jar (the libcore native is excluded). Place husi-core + libhusicore.* next to the
-# jar (or put husi-core on PATH with the library beside that binary) before running.
+# Thin ProGuard-shrunk release jar (the libcore native is excluded). Place husi-core +
+# libhusicore.* next to the jar (or put husi-core on PATH with the library beside that binary)
+# before running.
 desktop_uberjar:
-	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	BUILD_PLUGIN=none ./gradlew packageReleaseUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 
 aboutlibraries: aboutlibraries_go aboutlibraries_android aboutlibraries_desktop
 

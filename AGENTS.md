@@ -29,7 +29,7 @@ Common targets:
 | `make core_desktop DESKTOP_TARGETS=...`                     | Build the Zig `husi-core` shim (source: `libcore/shim/`) into `libcore/build/<os>_<arch>/` (next to the sidecar) |
 | `make apk` / `make apk_debug`                               | Assemble `androidApp:assembleFossRelease` / `Debug`                              |
 | `make desktop` / `make desktop_release`                     | Run Compose desktop app via `gradlew :composeApp:run[Release]`                   |
-| `make desktop_uberjar`                                      | Thin release jar (no libcore native); needs the `husi-core` shim **and** `libhusicore.*` next to the jar, or `husi-core` on `PATH` with the library next to that binary |
+| `make desktop_uberjar`                                      | Thin ProGuard-shrunk release jar (no libcore native); needs the `husi-core` shim **and** `libhusicore.*` next to the jar, or `husi-core` on `PATH` with the library next to that binary |
 | `make desktop_package[_linux/_macos/_windows]`              | Native packages under `composeApp/build/compose/packages/`                       |
 | `make desktop_package_windows_jbr DESKTOP_TARGET=...`       | Same, plus a JetBrains Runtime linked in with `jlink`, so the packages need no system Java; modules fetched by `./run lib jbr <target>` into `build/jbr/` |
 | `make launcher`                                             | Build the Zig native UI launcher from `launcher/` (used by Linux/macOS/Windows installers) |
