@@ -1,0 +1,34 @@
+name: Gradle cache
+description: >
+  Two layers. (1) gradle-cache-action restores modules-2 / generated jars from
+  the default branch; only `dev` writes those, so tags do not create 600 MiB
+  one-shot copies. (2) Optional stable build-cache-1 snapshot, keyed by SHA,
+  so release/plugin jobs reuse compilation across tags.
+inputs:
+  read-only:
+    description: Override. Empty means write only from refs/heads/dev.
+    required: false
+    default: ''
+  save-local-build-cache:
+    description: Let gradle-cache-action snapshot build-cache-1 (test job). Forced off when build-cache-name is set.
+    required: false
+    default: 'true'
+  build-cache-name:
+    description: If set, persist ~/.gradle/caches/build-cache-1 under this prefix (release-android, release-desktop, …).
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - uses: burrunan/gradle-cache-action@v3
+      with:
+        save-maven-dependencies-cache: false
+        save-local-build-cache: ${{ inputs.build-cache-name == '' && inputs.save-local-build-cache || 'false' }}
+        read-only: ${{ inputs.read-only != '' && inputs.read-only || (github.ref != 'refs/heads/dev' && 'true' || 'false') }}
+    - if: ${{ inputs.build-cache-name != '' }}
+      uses: actions/cache@v6
+      with:
+        path: ~/.gradle/caches/build-cache-1
+        key: gradle-build-cache-${{ runner.os }}-${{ env.JAVA_VERSION }}-${{ inputs.build-cache-name }}-${{ github.sha }}
+        restore-keys: |
+          gradle-build-cache-${{ runner.os }}-${{ env.JAVA_VERSION }}-${{ inputs.build-cache-name }}-

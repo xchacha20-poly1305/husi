@@ -33,9 +33,10 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-      - uses: burrunan/gradle-cache-action@v3
+      - uses: ./.github/actions/gradle-cache
         with:
-          job-id: release-android
+          read-only: 'true'
+          build-cache-name: release-android
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -100,18 +101,19 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-      - uses: burrunan/gradle-cache-action@v3
+      - uses: ./.github/actions/gradle-cache
         with:
-          job-id: release-desktop
+          read-only: 'true'
+          build-cache-name: release-desktop
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
           cache-dependency-path: 'libcore/go.sum'
-      - uses: mlugg/setup-zig@v2
+      - uses: ./.github/actions/setup-zig
         with:
-          version: ${{ env.ZIG_VERSION }}
-          cache-key: launcher-desktop-all-targets
+          cache-name: desktop
+          cache-hash: ${{ hashFiles('launcher/**', 'libcore/shim/**') }}
       - name: Checkout JNI headers
         uses: actions/checkout@v7
         with:

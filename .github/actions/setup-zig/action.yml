@@ -1,0 +1,27 @@
+name: Setup Zig
+description: >
+  Install Zig and cache .zig-cache under a stable key. setup-zig's built-in
+  compile cache always saves as prefix+run_id, so every job uploads a full
+  100–170 MiB copy and never exact-hits.
+inputs:
+  cache-name:
+    description: Job-specific cache suffix so lint, test, and desktop do not overwrite each other
+    required: true
+  cache-hash:
+    description: Optional hash of Zig sources; omit for a fully stable key that skips save on hit
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - uses: mlugg/setup-zig@v2
+      with:
+        version: ${{ env.ZIG_VERSION }}
+        # Keep the tarball cache; we own .zig-cache below.
+        use-cache: false
+    - uses: actions/cache@v6
+      with:
+        path: .zig-cache
+        key: zig-${{ runner.os }}-${{ env.ZIG_VERSION }}-${{ inputs.cache-name }}-${{ inputs.cache-hash }}
+        restore-keys: |
+          zig-${{ runner.os }}-${{ env.ZIG_VERSION }}-${{ inputs.cache-name }}-

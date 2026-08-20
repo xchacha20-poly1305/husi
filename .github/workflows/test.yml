@@ -12,6 +12,7 @@ on:
       - buildSrc/**
       - composeApp/**
       - gradle/**
+      - gradle.properties
       - launcher/**
       - libcore/**
       - library/**
@@ -28,6 +29,7 @@ on:
       - buildSrc/**
       - composeApp/**
       - gradle/**
+      - gradle.properties
       - launcher/**
       - libcore/**
       - library/**
@@ -68,10 +70,9 @@ jobs:
           cache: true
           cache-dependency-path: 'libcore/go.sum'
       # The Windows pass needs a cgo cross compiler to typecheck the Win32 files.
-      - uses: mlugg/setup-zig@v2
+      - uses: ./.github/actions/setup-zig
         with:
-          version: ${{ env.ZIG_VERSION }}
-          cache-key: lint-go
+          cache-name: lint-go
       - name: Install golangci-lint
         run: make lint_go_install
       - name: Lint libcore
@@ -103,11 +104,11 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-      - uses: burrunan/gradle-cache-action@v3
-      - uses: mlugg/setup-zig@v2
+      - uses: ./.github/actions/gradle-cache
+      - uses: ./.github/actions/setup-zig
         with:
-          version: ${{ env.ZIG_VERSION }}
-          cache-key: launcher-test
+          cache-name: test
+          cache-hash: ${{ hashFiles('launcher/**', 'libcore/shim/**') }}
       - name: Test libcore
         working-directory: libcore
         run: go test -v -count=1 ./...
