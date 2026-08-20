@@ -9,7 +9,10 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-func appendSystemRootCAs(roots *rootCABundle, withUserTrust bool) error {
+// Android has no default SSL_CERT_{FILE,DIR} paths.
+var certFiles, certDirectories []string
+
+func appendPlatformRootCAs(roots *rootCABundle, withUserTrust bool) error {
 	// Inspired by https://github.com/ExclaveNetwork/LibExclaveCore/blob/a715e817dd2cfc585163084b19fd4bd2614fe058/ca.go#L134
 	// Workaround for https://github.com/golang/go/issues/71258
 

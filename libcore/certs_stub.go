@@ -8,6 +8,9 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-func appendSystemRootCAs(roots *rootCABundle, withUserTrust bool) error {
+// Unknown platforms have no default SSL_CERT_{FILE,DIR} paths.
+var certFiles, certDirectories []string
+
+func appendPlatformRootCAs(roots *rootCABundle, withUserTrust bool) error {
 	return E.Cause(os.ErrInvalid, "unexpected platform")
 }

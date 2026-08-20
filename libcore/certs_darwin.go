@@ -7,7 +7,10 @@ import (
 	"github.com/sagernet/sing/common/shell"
 )
 
-func appendSystemRootCAs(roots *rootCABundle, withUserTrust bool) error {
+// macOS has no default SSL_CERT_{FILE,DIR} paths.
+var certFiles, certDirectories []string
+
+func appendPlatformRootCAs(roots *rootCABundle, withUserTrust bool) error {
 	keychains := []string{"/System/Library/Keychains/SystemRootCertificates.keychain"}
 	if withUserTrust {
 		keychains = append(keychains, "/Library/Keychains/System.keychain")

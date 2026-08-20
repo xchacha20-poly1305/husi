@@ -11,7 +11,10 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func appendSystemRootCAs(roots *rootCABundle, withUserTrust bool) error {
+// Windows has no default SSL_CERT_{FILE,DIR} paths.
+var certFiles, certDirectories []string
+
+func appendPlatformRootCAs(roots *rootCABundle, withUserTrust bool) error {
 	rootStore, err := windows.UTF16PtrFromString("ROOT")
 	if err != nil {
 		return err

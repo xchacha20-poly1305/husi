@@ -1,13 +1,13 @@
 package libcore
 
 import (
-	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -29,10 +29,10 @@ func TestRootCABundleAppendBuildsPoolAndPEM(t *testing.T) {
 	block, remaining := pem.Decode(roots.pem.Bytes())
 	require.NotNil(t, block)
 	assert.Empty(t, remaining)
-	certificate, err := x509.ParseCertificate(block.Bytes)
+	_, err = x509.ParseCertificate(block.Bytes)
 	require.NoError(t, err)
-	require.Len(t, roots.pool.Subjects(), 1)
-	assert.True(t, bytes.Equal(certificate.RawSubject, roots.pool.Subjects()[0]))
+
+	assertPoolTrustsOnly(t, roots.pool, certificatePEM)
 }
 
 func TestSetupRootCA(t *testing.T) {
@@ -150,4 +150,51 @@ func TestSetupRootCAWritesPluginRootCACerts(t *testing.T) {
 			assert.Contains(t, string(certificates), "-----BEGIN CERTIFICATE-----")
 		})
 	}
+}
+
+func TestAppendSystemRootCAsHonorsCertificateEnvironment(t *testing.T) {
+	_, certificatePEM, err := aTLS.GenerateCertificate(nil, nil, time.Now, "example.com", time.Now().Add(5*time.Minute))
+	require.NoError(t, err)
+
+	certificateFile := filepath.Join(t.TempDir(), "ca.pem")
+	require.NoError(t, os.WriteFile(certificateFile, certificatePEM, os.ModePerm))
+	missingCertificateFile := filepath.Join(t.TempDir(), "missing.pem")
+
+	certificateDirectory := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(certificateDirectory, "ca.crt"), certificatePEM, os.ModePerm))
+	require.NoError(t, os.WriteFile(filepath.Join(certificateDirectory, "README"), []byte("not a certificate"), os.ModePerm))
+	emptyDirectory := t.TempDir()
+
+	tests := []struct {
+		name          string
+		certFile      string
+		certDir       string
+		wantAppearing int
+	}{
+		{name: "file", certFile: certificateFile, certDir: emptyDirectory, wantAppearing: 1},
+		{name: "directory", certFile: missingCertificateFile, certDir: certificateDirectory, wantAppearing: 1},
+		{name: "both", certFile: certificateFile, certDir: certificateDirectory, wantAppearing: 2},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Setenv(certFileEnv, test.certFile)
+			t.Setenv(certDirEnv, test.certDir)
+
+			roots := newRootCABundle()
+			require.NoError(t, appendSystemRootCAs(roots, false))
+			// The platform store must not be consulted, so the test certificate
+			// is the only one loaded, once per source it was found in.
+			assert.Equal(t, test.wantAppearing, strings.Count(roots.pem.String(), string(certificatePEM)))
+			assertPoolTrustsOnly(t, roots.pool, certificatePEM)
+		})
+	}
+}
+
+// assertPoolTrustsOnly prevents to use `(*x509.CertPool).Subjects`
+func assertPoolTrustsOnly(t *testing.T, pool *x509.CertPool, certificatePEM []byte) {
+	t.Helper()
+	expectedPool := x509.NewCertPool()
+	require.True(t, expectedPool.AppendCertsFromPEM(certificatePEM))
+	assert.True(t, pool.Equal(expectedPool))
 }

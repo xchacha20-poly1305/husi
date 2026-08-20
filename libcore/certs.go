@@ -48,6 +48,9 @@ const (
 
 // SetupRootCA updates Go trusted certs and creates the PEM bundle for external plugins.
 //
+// With [CertSystem] and [CertWithUserTrust], the SSL_CERT_FILE and SSL_CERT_DIR
+// environment variables take precedence over the platform certificate store.
+//
 // On Android, this appends externalAssetsPath/ca.pem to root CA.
 func SetupRootCA(certOption int32) {
 	// https://github.com/golang/go/blob/30b6fd60a63c738c2736e83b6a6886a032e6f269/src/crypto/x509/root.go#L31
