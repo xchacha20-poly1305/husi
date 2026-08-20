@@ -22,8 +22,6 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-// Host owns the in-process gRPC surface: sing-box's StartedService plus husi's
-// CoreService / ApplicationService / AppService, served over a local UDS.
 type Host struct {
 	access sync.Mutex
 
@@ -39,7 +37,6 @@ type Host struct {
 	backend       Backend
 	extraServices ExtraServiceRegistrar
 	fileLogSink   log.PlatformWriter
-	// serverOptions are additional grpc.ServerOption values (auth, creds).
 	serverOptions []grpc.ServerOption
 	// skipDefaultInterceptors omits the built-in locale interceptors when the
 	// caller already chains them with auth in ServerOptions.
@@ -60,8 +57,6 @@ type HostOptions struct {
 	// logs also land in stderr.log. Optional.
 	FileLogSink   log.PlatformWriter
 	ExtraServices ExtraServiceRegistrar
-	// ServerOptions are appended when creating the gRPC server (auth interceptors,
-	// transport credentials). Multiple ChainUnaryInterceptor options append.
 	ServerOptions []grpc.ServerOption
 	// SkipDefaultInterceptors skips the built-in locale interceptors. Use when
 	// ServerOptions already chain locale + auth in the desired order.
@@ -84,7 +79,7 @@ func NewHost(options HostOptions) (*Host, error) {
 		Handler:     platformHandler{},
 		LogMaxLines: logMaxLines,
 	})
-	backend := cmp.Or(options.Backend, UnimplementedBackend{})
+	backend := cmp.Or[Backend](options.Backend, UnimplementedBackend{})
 	h := &Host{
 		ctx:                     options.Context,
 		version:                 options.Version,
