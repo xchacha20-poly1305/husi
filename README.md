@@ -427,7 +427,9 @@ survives an uninstall; remove it by hand, or run `husi-core service uninstall --
 
 ##### ☕ Packages with a bundled runtime
 
-Both of the above ask the machine for a Java 21. A second pair does not:
+Both of the above ask the machine for a Java 21. A second pair does not.
+`make desktop_package_windows_jbr` still writes the thin zip and installer from
+the same signed payloads, and additionally:
 
 ```shell
 make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64

@@ -40,9 +40,11 @@ Usage:
 Description:
   Build Windows portable zip and NSIS installer packages from desktop uber jar.
 
-  With --jbr-jmods the packages additionally bundle a Java runtime, linked with
-  jlink from the JetBrains Runtime modules of the target. Those packages need no
-  system Java at all, and their file names carry a -jbr suffix.
+  Thin packages (no bundled runtime) are always written. With --jbr-jmods the
+  run also writes a second pair whose names carry a -jbr suffix and which
+  bundle a Java runtime linked with jlink from the JetBrains Runtime modules
+  of the target. Those need no system Java. Both pairs share the same signed
+  launcher, shim and core library.
 
 Defaults:
   --formats      zip,nsis
@@ -305,7 +307,9 @@ resolve_nsis() {
 }
 
 # The bundled runtime is what makes a package installable on a machine with no
-# Java at all. It is opt-in: without --jbr-jmods the packages stay thin.
+# Java at all. It is opt-in: without --jbr-jmods only the thin pair is written.
+# When the modules are present the thin pair is still written; VARIANT_SUFFIX
+# is applied per pair later, not here.
 resolve_jbr_jmods() {
     local requested="$1"
 
@@ -323,8 +327,6 @@ resolve_jbr_jmods() {
         error "Fetch them first: ./run lib jbr windows/$TARGET_ARCH"
         exit 1
     fi
-
-    VARIANT_SUFFIX="-jbr"
 }
 
 resolve_jlink() {
@@ -631,7 +633,7 @@ PY
 
 build_nsis() {
     local work_dir="$1"
-    local nsis_source="$work_dir/installer.nsi"
+    local nsis_source="$work_dir/installer${VARIANT_SUFFIX}.nsi"
     local output_path
     output_path="$OUTPUT_DIR/$(output_filename "-installer.exe")"
     local vi_version
@@ -684,6 +686,22 @@ build_nsis() {
     fi
     touch_path "$output_path"
     log "Built NSIS installer: $output_path"
+}
+
+# VARIANT_SUFFIX and RUNTIME_DIR select the pair: empty / empty for thin,
+# -jbr / the jlink tree for the bundled-runtime packages.
+emit_packages() {
+    local work_dir="$1"
+    local portable_root
+
+    if [[ -n "${ENABLED_FORMATS[zip]:-}" ]]; then
+        portable_root="$work_dir/${APP_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}${VARIANT_SUFFIX}"
+        prepare_rootfs "$portable_root"
+        build_zip "$portable_root"
+    fi
+    if [[ -n "${ENABLED_FORMATS[nsis]:-}" ]]; then
+        build_nsis "$work_dir"
+    fi
 }
 
 TARGET=""
@@ -800,18 +818,15 @@ trap cleanup EXIT
 resolve_signing "$work_dir"
 sign_payloads "$work_dir"
 
+VARIANT_SUFFIX=""
+RUNTIME_DIR=""
+emit_packages "$work_dir"
+
 if [[ -n "$JBR_JMODS_DIR" ]]; then
     RUNTIME_DIR="$work_dir/runtime"
     build_runtime "$RUNTIME_DIR"
-fi
-
-if [[ -n "${ENABLED_FORMATS[zip]:-}" ]]; then
-    portable_root="$work_dir/${APP_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}${VARIANT_SUFFIX}"
-    prepare_rootfs "$portable_root"
-    build_zip "$portable_root"
-fi
-if [[ -n "${ENABLED_FORMATS[nsis]:-}" ]]; then
-    build_nsis "$work_dir"
+    VARIANT_SUFFIX="-jbr"
+    emit_packages "$work_dir"
 fi
 
 log "Done. Output directory: $OUTPUT_DIR"

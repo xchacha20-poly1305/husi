@@ -47,15 +47,6 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-      - name: Cache JetBrains Runtime modules
-        id: cache-jbr
-        uses: actions/cache@v6
-        with:
-          path: build/jbr
-          key: jbr-${{ env.JBR_VERSION }}-b${{ env.JBR_BUILD }}
-      - name: Fetch JetBrains Runtime modules
-        if: steps.cache-jbr.outputs.cache-hit != 'true'
-        run: ./run lib jbr windows/amd64
       - name: Cache route assets
         id: cache-assets
         uses: actions/cache@v6
@@ -89,7 +80,35 @@ jobs:
           if-no-files-found: error
 
   desktop:
+    name: desktop (${{ matrix.id }})
+    # One cell per GOOS/GOARCH so ProGuard, jlink and libcore bind run in
+    # parallel instead of stacking into a single ~50 minute job. Windows thin
+    # and -jbr packages share one cell (same uberjar, one package.sh run).
     runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: linux-amd64
+            target: linux/amd64
+            package: linux
+            formats: "deb,rpm,pacman,tarball,appimage"
+            appimage_runtime: x86_64
+            apt_packages: zstd
+          - id: linux-arm64
+            target: linux/arm64
+            package: linux
+            formats: "deb,rpm,pacman,tarball,appimage"
+            appimage_runtime: aarch64
+            apt_packages: zstd binutils-aarch64-linux-gnu
+          - id: windows-amd64
+            target: windows/amd64
+            package: windows
+            apt_packages: nsis osslsigncode
+          - id: darwin-arm64
+            target: darwin/arm64
+            package: macos
+            apt_packages: xorriso
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7
@@ -112,7 +131,7 @@ jobs:
           cache-dependency-path: 'libcore/go.sum'
       - uses: ./.github/actions/setup-zig
         with:
-          cache-name: desktop
+          cache-name: desktop-${{ matrix.id }}
           cache-hash: ${{ hashFiles('launcher/**', 'libcore/shim/**') }}
       - name: Checkout JNI headers
         uses: actions/checkout@v7
@@ -122,6 +141,7 @@ jobs:
           path: jni-headers
           sparse-checkout: versions/${{ env.JNI_HEADERS_VERSION }}
       - name: Checkout macOS SDK
+        if: ${{ matrix.package == 'macos' }}
         uses: actions/checkout@v7
         with:
           repository: alexey-lysiuk/macos-sdk
@@ -129,34 +149,35 @@ jobs:
           path: macos-sdk
           sparse-checkout: MacOSX${{ env.MACOS_SDK_VERSION }}.sdk
       - name: Install system packaging tools
-        # binutils-aarch64-linux-gnu: jlink strips the arm64 AppImage runtime's
-        # native libraries through that architecture's objcopy.
-        run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode xorriso zstd binutils-aarch64-linux-gnu
+        # linux-arm64: binutils-aarch64-linux-gnu so jlink can strip the
+        # AppImage runtime's native libraries with that architecture's objcopy.
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.apt_packages }}
       - name: Cache nfpm
+        if: ${{ matrix.package == 'linux' }}
         id: cache-nfpm
         uses: actions/cache@v6
         with:
           path: ~/go/bin/nfpm
           key: nfpm-${{ runner.os }}-${{ runner.arch }}-${{ env.NFPM_VERSION }}
       - name: Install nfpm
-        if: steps.cache-nfpm.outputs.cache-hit != 'true'
+        if: ${{ matrix.package == 'linux' && steps.cache-nfpm.outputs.cache-hit != 'true' }}
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v${NFPM_VERSION}
       - name: Install AppImage tooling
+        if: ${{ matrix.package == 'linux' }}
         run: |
           tools="$RUNNER_TEMP/appimage"
           mkdir -p "$tools"
           curl -sSfL -o "$tools/appimagetool" \
             "https://github.com/AppImage/appimagetool/releases/download/${APPIMAGETOOL_VERSION}/appimagetool-x86_64.AppImage"
           chmod +x "$tools/appimagetool"
-          for appimage_arch in x86_64 aarch64; do
-            curl -sSfL -o "$tools/runtime-$appimage_arch" \
-              "https://github.com/AppImage/type2-runtime/releases/download/${APPIMAGE_RUNTIME_VERSION}/runtime-$appimage_arch"
-          done
+          curl -sSfL -o "$tools/runtime-${{ matrix.appimage_runtime }}" \
+            "https://github.com/AppImage/type2-runtime/releases/download/${APPIMAGE_RUNTIME_VERSION}/runtime-${{ matrix.appimage_runtime }}"
           echo "$tools" >> "$GITHUB_PATH"
           echo "APPIMAGE_TOOLS_DIR=$tools" >> "$GITHUB_ENV"
       - name: Resolve aarch64 JDK release
         # Resolved before the cache so the key names an exact build: a new
         # Temurin patch release busts it instead of being masked by a stale hit.
+        if: ${{ matrix.target == 'linux/arm64' }}
         run: |
           asset="$(curl -sSfL "https://api.adoptium.net/v3/assets/latest/${JAVA_VERSION}/hotspot?architecture=aarch64&image_type=jdk&os=linux&vendor=eclipse")"
           release_name="$(echo "$asset" | jq -r '.[0].release_name')"
@@ -170,6 +191,7 @@ jobs:
           echo "AARCH64_JDK_DIR=$RUNNER_TEMP/jdk-aarch64" >> "$GITHUB_ENV"
           echo "JLINK_JMODS_AARCH64=$RUNNER_TEMP/jdk-aarch64/jmods" >> "$GITHUB_ENV"
       - name: Cache aarch64 JDK modules
+        if: ${{ matrix.target == 'linux/arm64' }}
         id: cache-jdk-aarch64
         uses: actions/cache@v6
         with:
@@ -180,11 +202,23 @@ jobs:
         # AppImage needs that architecture's jmods; the host JDK only covers amd64.
         # Only jmods is unpacked — it is all jlink reads, and the rest of the JDK
         # would quadruple what the cache carries.
-        if: steps.cache-jdk-aarch64.outputs.cache-hit != 'true'
+        if: ${{ matrix.target == 'linux/arm64' && steps.cache-jdk-aarch64.outputs.cache-hit != 'true' }}
         run: |
           mkdir -p "$AARCH64_JDK_DIR"
           curl -sSfL "$AARCH64_JDK_URL" \
             | tar -C "$AARCH64_JDK_DIR" --strip-components=1 --wildcards -xzf - '*/jmods/*'
+      - name: Cache JetBrains Runtime modules
+        if: ${{ matrix.package == 'windows' }}
+        id: cache-jbr
+        uses: actions/cache@v6
+        with:
+          path: build/jbr
+          key: jbr-${{ env.JBR_VERSION }}-b${{ env.JBR_BUILD }}
+      - name: Fetch JetBrains Runtime modules
+        if: ${{ matrix.package == 'windows' }}
+        run: |
+          jmods="$(./run lib jbr ${{ matrix.target }} | tail -n 1)"
+          echo "JBR_JMODS=$jmods" >> "$GITHUB_ENV"
       - name: Cache route assets
         id: cache-assets
         uses: actions/cache@v6
@@ -199,12 +233,18 @@ jobs:
         # windows/arm64 is temporarily out: androidx sqlite-bundled ships no windows_arm64
         # libsqliteJni, so the app cannot open its database there.
         # See https://issuetracker.google.com/issues/426464784
-        run: make libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64,windows/amd64,darwin/arm64 JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
+        run: |
+          if [ "${{ matrix.package }}" = "macos" ]; then
+            make libcore_desktop DESKTOP_TARGETS="${{ matrix.target }}" JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
+          else
+            make libcore_desktop DESKTOP_TARGETS="${{ matrix.target }}" JNI_INCLUDE="$JNI_INCLUDE"
+          fi
       - name: Download Go modules
         run: cd libcore && go mod download
       - name: Generate about libraries metadata
-        run: make aboutlibraries_go aboutlibraries_desktop
+        run: make aboutlibraries_go aboutlibraries_desktop DESKTOP_TARGET="${{ matrix.target }}"
       - name: Setup Windows signing
+        if: ${{ matrix.package == 'windows' }}
         env:
           WINDOWS_SIGNING_P12_BASE64: ${{ secrets.WINDOWS_SIGNING_P12 }}
         run: |
@@ -219,18 +259,30 @@ jobs:
           WINDOWS_SIGNING_P12_BASE64: ${{ secrets.WINDOWS_SIGNING_P12 }}
           WINDOWS_SIGNING_P12_PASSWORD: ${{ secrets.WINDOWS_SIGNING_P12_PASSWORD }}
         run: |
-          JLINK_JMODS="$JAVA_HOME/jmods" APPIMAGE_RUNTIME="$APPIMAGE_TOOLS_DIR/runtime-x86_64" \
-            make desktop_package_linux DESKTOP_TARGET=linux/amd64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball,appimage
-          JLINK_JMODS="$JLINK_JMODS_AARCH64" APPIMAGE_RUNTIME="$APPIMAGE_TOOLS_DIR/runtime-aarch64" \
-            make desktop_package_linux DESKTOP_TARGET=linux/arm64 LINUX_PACKAGE_FORMATS=deb,rpm,pacman,tarball,appimage
-          make desktop_package_windows DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
-          make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
-          # Temporarily disabled, see the libcore step above.
-          # make desktop_package_windows DESKTOP_TARGET=windows/arm64 WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
-          make desktop_package_macos DESKTOP_TARGET=darwin/arm64
+          case "${{ matrix.package }}" in
+            linux)
+              if [ "${{ matrix.target }}" = "linux/arm64" ]; then
+                export JLINK_JMODS="$JLINK_JMODS_AARCH64"
+              else
+                export JLINK_JMODS="$JAVA_HOME/jmods"
+              fi
+              export APPIMAGE_RUNTIME="$APPIMAGE_TOOLS_DIR/runtime-${{ matrix.appimage_runtime }}"
+              make desktop_package_linux DESKTOP_TARGET="${{ matrix.target }}" LINUX_PACKAGE_FORMATS="${{ matrix.formats }}"
+              ;;
+            windows)
+              make desktop_package_windows_jbr DESKTOP_TARGET="${{ matrix.target }}" WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
+              ;;
+            macos)
+              make desktop_package_macos DESKTOP_TARGET="${{ matrix.target }}"
+              ;;
+            *)
+              echo "Unknown matrix.package '${{ matrix.package }}'" >&2
+              exit 1
+              ;;
+          esac
       - uses: actions/upload-artifact@v7
         with:
-          name: desktop
+          name: desktop-${{ matrix.id }}
           path: composeApp/build/compose/packages
           if-no-files-found: error
 

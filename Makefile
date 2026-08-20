@@ -144,10 +144,12 @@ desktop_package_windows:
 	$(MAKE) core_desktop DESKTOP_TARGETS=$(DESKTOP_TARGET)
 	./release/windows/package.sh $(DESKTOP_TARGET_SCRIPT_ARG) $(WINDOWS_NO_SIGN_SCRIPT_ARG)
 
-# Same inputs as desktop_package_windows, plus a JetBrains Runtime linked into
-# the packages so they need no system Java. JBR_JMODS points at the modules;
-# without it they are fetched into build/jbr/ first. The fetch script prints the
-# resolved path last, after the banner ./run puts in front of it.
+# Same inputs as desktop_package_windows. Also links a JetBrains Runtime into a
+# second pair of packages (names carry -jbr) so they need no system Java. Thin
+# zip/NSIS are still emitted from the same signed payloads. JBR_JMODS points at
+# the modules; without it they are fetched into build/jbr/ first. The fetch
+# script prints the resolved path last, after the banner ./run puts in front of
+# it.
 desktop_package_windows_jbr:
 	@if [ -z "$(DESKTOP_TARGET)" ]; then \
 		echo "desktop_package_windows_jbr requires DESKTOP_TARGET, e.g. make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64"; \
@@ -168,7 +170,6 @@ desktop_package_windows_all:
 	$(MAKE) libcore_desktop DESKTOP_TARGETS=windows/amd64
 	$(MAKE) core_desktop DESKTOP_TARGETS=windows/amd64
 	@for desktop_target in $(DESKTOP_TARGETS_WINDOWS); do \
-		$(MAKE) desktop_package_windows DESKTOP_TARGET=$$desktop_target WINDOWS_NO_SIGN=$(WINDOWS_NO_SIGN) || exit $$?; \
 		$(MAKE) desktop_package_windows_jbr DESKTOP_TARGET=$$desktop_target WINDOWS_NO_SIGN=$(WINDOWS_NO_SIGN) || exit $$?; \
 	done
 
