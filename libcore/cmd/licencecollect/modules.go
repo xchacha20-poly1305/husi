@@ -4,7 +4,6 @@ import (
 	"go/build"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 
 	E "github.com/sagernet/sing/common/exceptions"
@@ -18,7 +17,7 @@ func isCronetGoSubmodule(modulePath string) bool {
 	return strings.HasPrefix(modulePath, cronetGoModule+"/")
 }
 
-func collectRequiredModules(goModPath string) ([]*debug.Module, error) {
+func collectRequiredModules(goModPath string) ([]module.Version, error) {
 	content, err := os.ReadFile(goModPath)
 	if err != nil {
 		return nil, err
@@ -28,23 +27,33 @@ func collectRequiredModules(goModPath string) ([]*debug.Module, error) {
 		return nil, E.Cause(err, "parse ", goModPath)
 	}
 
-	replacements := make(map[module.Version]module.Version, len(goMod.Replace))
-	for _, replace := range goMod.Replace {
-		replacements[replace.Old] = replace.New
-	}
-
-	modules := make([]*debug.Module, 0, len(goMod.Require))
+	replacements := buildReplacements(goMod)
+	versions := make([]module.Version, 0, len(goMod.Require))
 	for _, require := range goMod.Require {
 		if isCronetGoSubmodule(require.Mod.Path) {
 			continue
 		}
-		dependency := &debug.Module{
-			Path:    require.Mod.Path,
-			Version: require.Mod.Version,
-		}
-		modules = append(modules, dependency)
+		versions = append(versions, resolveReplacement(require.Mod, replacements))
 	}
-	return modules, nil
+	return versions, nil
+}
+
+func buildReplacements(goMod *modfile.File) map[module.Version]module.Version {
+	replacements := make(map[module.Version]module.Version, len(goMod.Replace))
+	for _, replace := range goMod.Replace {
+		replacements[replace.Old] = replace.New
+	}
+	return replacements
+}
+
+func resolveReplacement(version module.Version, replacements map[module.Version]module.Version) module.Version {
+	if replaced, loaded := replacements[version]; loaded {
+		return replaced
+	}
+	if replaced, loaded := replacements[module.Version{Path: version.Path}]; loaded {
+		return replaced
+	}
+	return version
 }
 
 func moduleCacheDir() (string, error) {
@@ -58,21 +67,16 @@ func moduleCacheDir() (string, error) {
 	return filepath.Join(goPaths[0], "pkg", "mod"), nil
 }
 
-func sourceDir(cacheDir, mainModuleDir string, dependency *debug.Module) (string, error) {
-	target := dependency
-	if dependency.Replace != nil {
-		target = dependency.Replace
-	}
-
+func sourceDir(cacheDir, mainModuleDir string, dependency module.Version) (string, error) {
 	var dir string
-	if modfile.IsDirectoryPath(target.Path) {
-		dir = filepath.Join(mainModuleDir, filepath.FromSlash(target.Path))
+	if modfile.IsDirectoryPath(dependency.Path) {
+		dir = filepath.Join(mainModuleDir, filepath.FromSlash(dependency.Path))
 	} else {
-		escapedPath, err := module.EscapePath(target.Path)
+		escapedPath, err := module.EscapePath(dependency.Path)
 		if err != nil {
 			return "", err
 		}
-		escapedVersion, err := module.EscapeVersion(target.Version)
+		escapedVersion, err := module.EscapeVersion(dependency.Version)
 		if err != nil {
 			return "", err
 		}
@@ -81,7 +85,7 @@ func sourceDir(cacheDir, mainModuleDir string, dependency *debug.Module) (string
 
 	stat, err := os.Stat(dir)
 	if err != nil || !stat.IsDir() {
-		return "", E.New("module ", target.Path, "@", target.Version, ` is not in the module cache, run "go mod download" first: `, dir)
+		return "", E.New("module ", dependency.Path, "@", dependency.Version, ` is not in the module cache, run "go mod download" first: `, dir)
 	}
 	return dir, nil
 }

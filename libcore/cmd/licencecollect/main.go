@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"slices"
 	"strings"
 
@@ -56,7 +55,7 @@ func main() {
 		output = file
 	}
 
-	modules, err := collectRequiredModules(*goModPath)
+	versions, err := collectRequiredModules(*goModPath)
 	if err != nil {
 		log.PanicContext(ctx, err)
 		return
@@ -69,8 +68,8 @@ func main() {
 	}
 	mainModuleDir := filepath.Dir(*goModPath)
 
-	libraries := make([]Library, 0, len(modules))
-	for _, dependency := range modules {
+	libraries := make([]Library, 0, len(versions))
+	for _, dependency := range versions {
 		library, err := resolveLibrary(ctx, cacheDir, mainModuleDir, dependency)
 		if err != nil {
 			log.PanicContext(ctx, err)
@@ -144,7 +143,7 @@ func libraryFileName(outputDir string, uniqueID string) string {
 	return filepath.Join(outputDir, generatedLibraryFilePrefix+libraryNameReplacer.Replace(uniqueID)+".json")
 }
 
-func resolveLibrary(ctx context.Context, cacheDir, mainModuleDir string, dependency *debug.Module) (Library, error) {
+func resolveLibrary(ctx context.Context, cacheDir, mainModuleDir string, dependency module.Version) (Library, error) {
 	library := Library{
 		UniqueID:        dependency.Path,
 		ArtifactVersion: dependency.Version,
