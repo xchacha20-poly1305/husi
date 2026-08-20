@@ -198,8 +198,8 @@ class VpnService : BaseVpnService(),
         val proxyApps = DataStore.proxyApps
         var bypass = DataStore.bypassMode
         val workaroundSYSTEM = false /* DataStore.tunImplementation == TunImplementation.SYSTEM */
-        val needBypassRootUid = workaroundSYSTEM || data.proxy!!.config.trafficMap.values.any {
-            it[0].hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
+        val needBypassRootUid = workaroundSYSTEM || data.proxy!!.config.trafficProfiles.any {
+            it.hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
         }
 
         if (proxyApps || needBypassRootUid) {

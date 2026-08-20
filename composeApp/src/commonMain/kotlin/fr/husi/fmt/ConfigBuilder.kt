@@ -130,11 +130,20 @@ class ConfigBuildResult(
     val mainTag: String,
     var config: String,
     var externalIndex: List<IndexEntity>,
-    var trafficMap: Map<String, List<ProxyEntity>>,
+    val trafficProfiles: List<ProxyEntity>,
     val tagToID: Map<String, Long>,
+    val trafficGraph: Map<String, TrafficNode> = emptyMap(),
 ) {
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
 }
+
+data class TrafficNode(
+    /** Sub profiles */
+    val profileIDs: Set<Long>,
+    val detour: String? = null,
+    /** Tags this outbound can resolve to when it is a selector, empty otherwise. */
+    val memberTags: List<String> = emptyList(),
+)
 
 fun buildConfig(
     proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false,
@@ -149,17 +158,17 @@ fun buildConfig(
                 tagProxy,
                 bean.config,
                 listOf(),
-                mapOf(tagProxy to listOf(proxy)),
+                listOf(proxy),
                 mapOf(tagProxy to proxy.id),
             )
         }
     }
 
-    val trafficMap = HashMap<String, List<ProxyEntity>>()
+    val trafficProfiles = LinkedHashMap<Long, ProxyEntity>()
     // Rules target the root tag returned by each independently built profile or chain.
     val rootTagMap = HashMap<Long, String>()
-    // Runtime traffic accounting needs every emitted contextual tag.
     val tagToID = HashMap<String, Long>()
+    val trafficGraph = HashMap<String, TrafficNode>()
     val optionsToMerge = proxy.requireBean().customConfigJson
 
     data class ChainEntryKey(val entityId: Long, val referencePath: List<Long>)
@@ -183,6 +192,11 @@ fun buildConfig(
         val exits: List<ChainEntry> = emptyList(),
         val links: List<ChainLink> = emptyList(),
         val proxySetMembers: Map<ChainEntryKey, List<ChainEntry>> = emptyMap(),
+        /**
+         * Profiles that own hops but emit no outbound of their own, such as chains.
+         * They carry the traffic of the hops they expand to.
+         */
+        val containers: List<ChainEntry> = emptyList(),
     )
 
     fun ChainEntryKey.describe(): String = buildString {
@@ -195,6 +209,7 @@ fun buildConfig(
 
     fun mergeResolvedChains(chains: List<ResolvedChain>, connect: Boolean): ResolvedChain {
         val entries = LinkedHashMap<ChainEntryKey, ChainEntry>()
+        val containers = LinkedHashMap<ChainEntryKey, ChainEntry>()
         val links = LinkedHashSet<ChainLink>()
         val continuationByFrom = HashMap<ChainEntryKey, ChainEntryKey>()
         val proxySetMembers = LinkedHashMap<ChainEntryKey, MutableList<ChainEntry>>()
@@ -222,6 +237,9 @@ fun buildConfig(
 
             for (entry in chain.entries) {
                 entries.putIfAbsent(entry.key, entry)
+            }
+            for (container in chain.containers) {
+                containers.putIfAbsent(container.key, container)
             }
             chain.links.forEach(::addLink)
             for ((proxySet, members) in chain.proxySetMembers) {
@@ -254,6 +272,7 @@ fun buildConfig(
             exits = exits.distinctBy { it.key },
             links = links.toList(),
             proxySetMembers = proxySetMembers,
+            containers = containers.values.toList(),
         )
     }
 
@@ -296,7 +315,11 @@ fun buildConfig(
                         connect = true,
                     )
                     resolved.root ?: error("Proxy chain $id has no members")
-                    resolved
+                    // The chain emits no outbound of its own, but it earns the traffic
+                    // its hops carry, so keep it as a container of this occurrence.
+                    resolved.copy(
+                        containers = resolved.containers + ChainEntry(this, referencePath),
+                    )
                 }
 
                 is ProxySetBean -> {
@@ -326,6 +349,7 @@ fun buildConfig(
                             proxySetEntry.key to memberChains.mapNotNull { it.root }
                                 .distinctBy { it.key },
                         ),
+                        containers = members.containers,
                     )
                 }
 
@@ -600,23 +624,10 @@ fun buildConfig(
             val resolvedChain = entity.resolveChain()
             val profileList = resolvedChain.entries.map { it.copyForBuild() }
             val profileEntriesByKey = profileList.associateBy { it.key }
-            // ProxyEntity is a data class whose equality includes mutable bean state
-            // (including finalAddress/finalPort). Use the stable database id here so
-            // repeated occurrences cannot create duplicate traffic entries after one
-            // occurrence has been mapped for an external plugin.
-            val chainTrafficMap = LinkedHashMap<Long, ProxyEntity>().apply {
-                for (entry in profileList) {
-                    putIfAbsent(entry.entity.id, entry.entity)
-                }
-                putIfAbsent(entity.id, entity)
-            }
-
             var currentOutbound = mutableMapOf<String, Any?>()
             val externalChainMap = LinkedHashMap<Int, ProxyEntity>()
             externalIndexMap.add(IndexEntity(externalChainMap))
 
-            // chainTagOut: v2ray outbound tag for this chain
-            var chainTagOut = ""
             val chainTag = "c-$chainId"
 
             val isProxySet = entity.type == ProxyEntity.TYPE_PROXY_SET
@@ -891,9 +902,30 @@ fun buildConfig(
                 connectChainNode(previousEntry, currentTag)
             }
 
-            val trafficEntities = chainTrafficMap.values.toMutableList()
-            val firstChainEntity = checkNotNull(resolvedChain.root)
-            val firstChainTag = checkNotNull(reservedTags[firstChainEntity.key])
+            // Mirror the shape of what was just emitted, so traffic accounting can walk
+            // a connection back to every profile that carried it. ProxyEntity equality
+            // includes mutable bean state (finalAddress/finalPort), so profiles are
+            // collected by their stable database id.
+            val chainIDs = resolvedChain.containers.mapTo(HashSet()) { it.entity.id }
+            val detourByFrom = resolvedChain.links.associate { it.from to it.to }
+            for (entry in profileList) {
+                trafficProfiles.putIfAbsent(entry.entity.id, entry.entity)
+                val owners = entry.referencePath.filterTo(LinkedHashSet()) { it in chainIDs }
+                owners.add(entry.entity.id)
+                trafficGraph[checkNotNull(reservedTags[entry.key])] = TrafficNode(
+                    profileIDs = owners,
+                    detour = detourByFrom[entry.key]?.let { checkNotNull(reservedTags[it]) },
+                    memberTags = resolvedChain.proxySetMembers[entry.key].orEmpty().map {
+                        checkNotNull(reservedTags[it.key])
+                    },
+                )
+            }
+            for (container in resolvedChain.containers) {
+                trafficProfiles.putIfAbsent(container.entity.id, container.entity)
+            }
+            trafficProfiles.putIfAbsent(entity.id, entity)
+
+            val firstChainTag = checkNotNull(reservedTags[checkNotNull(resolvedChain.root).key])
             if (chainId == 0L) {
                 mainTag = firstChainTag
             }
@@ -902,25 +934,15 @@ fun buildConfig(
                     it.entity.id == entity.id && it.referencePath.isEmpty()
                 }
                 val proxySetTag = checkNotNull(reservedTags[proxySetEntry.key])
-                chainTagOut = proxySetTag
 
                 // Keep selector above its children.
                 val proxySetIndex = outbounds!!.indexOfLast { it["tag"] == proxySetTag }
                 if (proxySetIndex in outboundChunkStart..outbounds!!.lastIndex) {
                     outbounds!!.add(outboundChunkStart, outbounds!!.removeAt(proxySetIndex))
                 }
-
-                val mainFlowId = firstChainEntity.entity.id
-                val mainIndex = trafficEntities.indexOfFirst { it.id == mainFlowId }
-                if (mainIndex >= 0 && mainIndex != trafficEntities.lastIndex) {
-                    trafficEntities.add(trafficEntities.removeAt(mainIndex))
-                }
-            } else {
-                chainTagOut = firstChainTag
             }
 
-            trafficMap[chainTagOut] = trafficEntities
-            return chainTagOut
+            return firstChainTag
         }
 
         // build outbounds
@@ -1648,8 +1670,9 @@ fun buildConfig(
             mainTag,
             kxs.encodeToString(optionsMap.toJsonElementKxs()),
             externalIndexMap,
-            trafficMap,
+            trafficProfiles.values.toList(),
             tagToID,
+            trafficGraph,
         )
     }
 

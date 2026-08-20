@@ -93,9 +93,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals(proxySet.id, result.tagToID["set-main"])
         assertEquals(landing.id, result.tagToID["landing"])
 
-        val trafficGroup = result.trafficMap["set-main"]
-        assertNotNull(trafficGroup)
-        assertEquals(landing.id, trafficGroup.last().id)
+        assertTrue(landing.id in result.trafficProfiles.map { it.id })
 
         val root = Json.parseToJsonElement(result.config).jsonObject
         assertEquals("https://sing-box.sagernet.org/schema.json", root[$$"$schema"]?.jsonPrimitive?.content)
@@ -461,9 +459,15 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         assertEquals("landing-b", result.mainTag)
 
-        val trafficGroup = result.trafficMap["set-main"]
-        assertNotNull(trafficGroup)
-        assertEquals(landingB.id, trafficGroup.last().id)
+        assertEquals(
+            setOf(
+                memberA.id, memberB.id, proxySet.id,
+                frontA.id, frontB.id, frontChain.id,
+                landingA.id, landingB.id, landingChain.id,
+            ),
+            result.trafficProfiles.mapTo(HashSet()) { it.id },
+            "the wrapper chains earn traffic together with their hops",
+        )
 
         val outbounds = parseOutbounds(result)
         val selectorChildren =
@@ -2509,6 +2513,118 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals(
             listOf("custom-domain-set", "custom-ip-set"),
             responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun `chain traffic covers every hop and the chain itself`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val exit = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "exit",
+            host = "1.1.1.1",
+            port = 1081,
+        )
+        val entry = createSocksProxy(
+            groupId = group.id,
+            order = 2,
+            name = "entry",
+            host = "2.2.2.2",
+            port = 1082,
+        )
+        val chain = createChain(
+            groupId = group.id,
+            order = 3,
+            name = "chain",
+            proxies = listOf(exit.id, entry.id),
+        )
+
+        val result = buildConfig(chain, forTest = true)
+
+        assertEquals("entry", result.mainTag)
+        assertEquals(
+            setOf(entry.id, exit.id, chain.id),
+            result.trafficProfiles.mapTo(HashSet()) { it.id },
+        )
+        assertEquals(
+            mapOf(
+                "entry" to TrafficNode(
+                    profileIDs = setOf(entry.id, chain.id),
+                    detour = "exit",
+                ),
+                "exit" to TrafficNode(profileIDs = setOf(exit.id, chain.id)),
+            ),
+            result.trafficGraph,
+            "both hops earn traffic for the chain that owns them",
+        )
+    }
+
+    @Test
+    fun `proxy set gates every member branch by its selection`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val memberExit = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "member-exit",
+            host = "1.1.1.1",
+            port = 1081,
+        )
+        val memberEntry = createSocksProxy(
+            groupId = group.id,
+            order = 2,
+            name = "member-entry",
+            host = "2.2.2.2",
+            port = 1082,
+        )
+        val memberChain = createChain(
+            groupId = group.id,
+            order = 3,
+            name = "member-chain",
+            proxies = listOf(memberExit.id, memberEntry.id),
+        )
+        val plainMember = createSocksProxy(
+            groupId = group.id,
+            order = 4,
+            name = "plain-member",
+            host = "3.3.3.3",
+            port = 1083,
+        )
+        val proxySet = createProxySet(
+            groupId = group.id,
+            order = 5,
+            name = "set-main",
+            proxies = listOf(memberChain.id, plainMember.id),
+        )
+
+        val result = buildConfig(proxySet, forTest = true)
+
+        assertEquals("set-main", result.mainTag)
+        assertEquals(
+            setOf(proxySet.id, memberChain.id, memberEntry.id, memberExit.id, plainMember.id),
+            result.trafficProfiles.mapTo(HashSet()) { it.id },
+        )
+
+        assertEquals(
+            mapOf(
+                "set-main" to TrafficNode(
+                    profileIDs = setOf(proxySet.id),
+                    memberTags = listOf("member-entry", "plain-member"),
+                ),
+                "member-entry" to TrafficNode(
+                    profileIDs = setOf(memberEntry.id, memberChain.id),
+                    detour = "member-exit",
+                ),
+                "member-exit" to TrafficNode(
+                    profileIDs = setOf(memberExit.id, memberChain.id),
+                ),
+                "plain-member" to TrafficNode(profileIDs = setOf(plainMember.id)),
+            ),
+            result.trafficGraph,
         )
     }
 

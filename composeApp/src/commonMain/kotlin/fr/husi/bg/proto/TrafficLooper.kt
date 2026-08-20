@@ -9,7 +9,6 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
 import fr.husi.fmt.ConfigBuildResult
-import fr.husi.fmt.TAG_DIRECT
 import fr.husi.ktx.Logs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -29,11 +28,19 @@ class TrafficLooper(
     private val onSpeedUpdate: (suspend (SpeedStats) -> Unit)? = null,
 ) {
 
+    /** Lifetime totals of one profile, seeded from what the database already holds. */
+    private class ProfileTraffic(val entity: ProxyEntity) {
+        var tx = entity.tx
+        var rx = entity.rx
+    }
+
     private var job: Job? = null
-    private val aggregator = OutboundTrafficAggregator()
-    private val idMap = mutableMapOf<Long, TrafficUpdater.TrafficLooperData>() // id to 1 data
-    private val tagMap = mutableMapOf<String, TrafficUpdater.TrafficLooperData>() // tag to 1 data
-    private val selectedByGroup = mutableMapOf<String, String>()
+    private val aggregator = OutboundTrafficAggregator(config.trafficGraph)
+    private val profiles = config.trafficProfiles.associate { it.id to ProfileTraffic(it) }
+
+    /** Proxied bytes since this service started, for the session counter in the UI. */
+    private var sessionTx = 0L
+    private var sessionRx = 0L
 
     suspend fun stop() {
         job?.cancel()
@@ -47,33 +54,6 @@ class TrafficLooper(
         job = scope.launch { loop() }
     }
 
-    fun updateSelectedTag(groupName: String, old: String, new: String) {
-        val group = config.trafficMap[groupName] ?: return
-        val oldID = config.tagToID[old]
-        val newID = config.tagToID[new]
-        for (entity in group) {
-            when (entity.id) {
-                oldID -> {
-                    idMap[oldID]?.ignore = true
-                }
-
-                newID -> {
-                    idMap[newID]?.ignore = false
-                }
-            }
-        }
-    }
-
-    internal fun ignoreByEntityId(): Map<Long, Boolean> =
-        idMap.mapValues { it.value.ignore }
-
-    internal fun seedIdMapForTest(flags: Map<Long, Boolean>) {
-        idMap.clear()
-        for ((id, ignore) in flags) {
-            idMap[id] = TrafficUpdater.TrafficLooperData(tag = "t-$id", ignore = ignore)
-        }
-    }
-
     private suspend fun loop() = coroutineScope {
         val speedInterval = DataStore.configurationStore
             .intFlow(Key.SPEED_INTERVAL, 1000)
@@ -83,43 +63,10 @@ class TrafficLooper(
             .stateIn(this, SharingStarted.Eagerly, true)
         val persistEveryMs = 10_000L
 
-        val itemBypass = TrafficUpdater.TrafficLooperData(tag = TAG_DIRECT)
-
-        idMap.clear()
-        idMap[-1] = itemBypass
-        config.trafficMap.forEach { (tag, entities) ->
-            val isProxySet = entities.any { it.type == ProxyEntity.TYPE_PROXY_SET }
-            for (entity in entities) {
-                val item = TrafficUpdater.TrafficLooperData(
-                    tag = tag,
-                    rx = entity.rx,
-                    tx = entity.tx,
-                    rxBase = entity.rx,
-                    txBase = entity.tx,
-                    ignore = isProxySet && entity.type != ProxyEntity.TYPE_PROXY_SET,
-                )
-                idMap[entity.id] = item
-                tagMap[tag] = item
-                Logs.d("traffic count $tag to ${entity.id}")
-            }
-        }
-        val trafficUpdater = TrafficUpdater(
-            aggregator = aggregator, items = idMap.values.toList(),
-        )
-
-        // Seed selected tags and track subsequent selection changes via groups stream.
         launch {
             coreClient.subscribeGroups().collect { groups ->
                 for (group in groups.groupList) {
-                    val previous = selectedByGroup.put(group.tag, group.selected)
-                    if (previous != null && previous != group.selected) {
-                        updateSelectedTag(group.tag, previous, group.selected)
-                    } else if (previous == null && group.selected.isNotEmpty()) {
-                        // Initial snapshot: un-ignore the actually selected member.
-                        // Empty old is a no-op on the old side of updateSelectedTag
-                        // (matches deleted InitializeProxySet OnGroupSelectedChange).
-                        updateSelectedTag(group.tag, "", group.selected)
-                    }
+                    aggregator.updateSelection(group.tag, group.selected)
                 }
             }
         }
@@ -134,6 +81,7 @@ class TrafficLooper(
         }
 
         var lastPersist = System.currentTimeMillis()
+        var lastDrain = System.currentTimeMillis()
         while (isActive) {
             val intervalMs = speedInterval.value.toLong().coerceAtLeast(0L)
             if (intervalMs <= 0L) {
@@ -142,51 +90,48 @@ class TrafficLooper(
             }
             delay(intervalMs.milliseconds)
 
-            trafficUpdater.updateAll()
-
-            var mainTxRate = 0L
-            var mainRxRate = 0L
-            var mainTx = 0L
-            var mainRx = 0L
-            tagMap.forEach { (_, it) ->
-                if (!it.ignore) {
-                    mainTxRate += it.txRate
-                    mainRxRate += it.rxRate
-                }
-                mainTx += it.tx - it.txBase
-                mainRx += it.rx - it.rxBase
-            }
-
-            val speedStats = SpeedStats(
-                txRateProxy = mainTxRate,
-                rxRateProxy = mainRxRate,
-                txRateDirect = itemBypass.txRate,
-                rxRateDirect = itemBypass.rxRate,
-                txTotal = mainTx,
-                rxTotal = mainRx,
-            )
+            val now = System.currentTimeMillis()
+            val elapsedMs = (now - lastDrain).coerceAtLeast(1L)
+            lastDrain = now
+            val speedStats = drain(elapsedMs)
 
             if (DataStore.serviceState == ServiceState.Connected) {
                 BackendState.updateSpeed(speedStats)
                 onSpeedUpdate?.invoke(speedStats)
             }
 
-            if (profileTrafficStatistics.value) {
-                val now = System.currentTimeMillis()
-                if (now - lastPersist >= persistEveryMs) {
-                    updateDb()
-                    lastPersist = now
-                }
+            if (profileTrafficStatistics.value && now - lastPersist >= persistEveryMs) {
+                updateDb()
+                lastPersist = now
             }
         }
     }
 
+    private fun drain(elapsedMs: Long): SpeedStats {
+        val snapshot = aggregator.drain()
+        for ((id, delta) in snapshot.byProfile) {
+            val profile = profiles[id] ?: continue
+            profile.tx += delta.upload
+            profile.rx += delta.download
+        }
+        sessionTx += snapshot.proxied.upload
+        sessionRx += snapshot.proxied.download
+
+        fun bytesPerSecond(bytes: Long) = bytes * 1000 / elapsedMs
+
+        return SpeedStats(
+            txRateProxy = bytesPerSecond(snapshot.proxied.upload),
+            rxRateProxy = bytesPerSecond(snapshot.proxied.download),
+            txRateDirect = bytesPerSecond(snapshot.bypassed.upload),
+            rxRateDirect = bytesPerSecond(snapshot.bypassed.download),
+            txTotal = sessionTx,
+            rxTotal = sessionRx,
+        )
+    }
+
     private suspend fun updateDb() {
-        config.trafficMap.forEach { (_, entities) ->
-            for (entity in entities) {
-                val item = idMap[entity.id] ?: return@forEach
-                ProfileManager.updateTraffic(entity, item.tx, item.rx)
-            }
+        for (profile in profiles.values) {
+            ProfileManager.updateTraffic(profile.entity, profile.tx, profile.rx)
         }
     }
 }
