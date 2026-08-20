@@ -28,7 +28,7 @@ import (
 func testBaseContext(t *testing.T) context.Context {
 	t.Helper()
 	ctx := box.Context(
-		context.Background(),
+		t.Context(),
 		distro.InboundRegistry(),
 		distro.OutboundRegistry(),
 		distro.EndpointRegistry(),
@@ -105,7 +105,7 @@ func TestHostHealthAndGetVersion(t *testing.T) {
 	_ = host
 	conn := dialGRPC(t, socketPath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	healthClient := grpc_health_v1.NewHealthClient(conn)
@@ -129,7 +129,7 @@ func TestHostCloseAfterStartReturnsNil(t *testing.T) {
 	host, socketPath := startTestHost(t, coresvc.HostOptions{})
 	conn := dialGRPC(t, socketPath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	// A served RPC guarantees grpc.Server owns the listener, so Close must
@@ -155,7 +155,7 @@ func TestApplicationServiceGenerateSchema(t *testing.T) {
 	})
 	conn := dialGRPC(t, socketPath)
 	client := husiv1.NewApplicationServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	for _, kind := range []husiv1.SchemaKind{
@@ -183,7 +183,7 @@ func TestApplicationServiceCheckConfigInvalid(t *testing.T) {
 	})
 	conn := dialGRPC(t, socketPath)
 	client := husiv1.NewApplicationServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	_, err := client.CheckConfig(ctx, &husiv1.CheckConfigRequest{Config: "nope"})
@@ -194,7 +194,7 @@ func TestStatusStreamIdleSnapshot(t *testing.T) {
 	_, socketPath := startTestHost(t, coresvc.HostOptions{})
 	conn := dialGRPC(t, socketPath)
 	client := daemon.NewStartedServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	stream, err := client.SubscribeServiceStatus(ctx, &emptypb.Empty{})
@@ -222,12 +222,12 @@ func TestStartMinimalConfigAndURLTest(t *testing.T) {
   "log": {"level": "warn"},
   "outbounds": [{"type": "direct", "tag": "direct"}]
 }`
-	require.NoError(t, host.StartOrReload(context.Background(), config))
+	require.NoError(t, host.StartOrReload(t.Context(), config))
 	require.True(t, host.HasInstance(), "expected instance after start")
 
 	conn := dialGRPC(t, socketPath)
 	core := husiv1.NewCoreServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 	defer cancel()
 
 	resp, err := core.URLTest(ctx, &husiv1.URLTestRequest{
@@ -263,10 +263,10 @@ func TestURLTestNotFound(t *testing.T) {
   "log": {"level": "warn"},
   "outbounds": [{"type": "direct", "tag": "direct"}]
 }`
-	require.NoError(t, host.StartOrReload(context.Background(), config))
+	require.NoError(t, host.StartOrReload(t.Context(), config))
 	conn := dialGRPC(t, socketPath)
 	core := husiv1.NewCoreServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 	_, err := core.URLTest(ctx, &husiv1.URLTestRequest{
 		OutboundTag: "missing-tag",
@@ -284,7 +284,7 @@ func TestHolderStartFailThenStartOK(t *testing.T) {
 	host, socketPath := startTestHost(t, coresvc.HostOptions{})
 
 	// First start fails (invalid config).
-	require.Error(t, host.StartOrReload(context.Background(), `{not json`), "expected StartOrReload to fail on invalid config")
+	require.Error(t, host.StartOrReload(t.Context(), `{not json`), "expected StartOrReload to fail on invalid config")
 
 	// Second start succeeds; URLTest must use the fresh instance context.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
@@ -299,10 +299,10 @@ func TestHolderStartFailThenStartOK(t *testing.T) {
   "log": {"level": "warn"},
   "outbounds": [{"type": "direct", "tag": "direct"}]
 }`
-	require.NoError(t, host.StartOrReload(context.Background(), config))
+	require.NoError(t, host.StartOrReload(t.Context(), config))
 	conn := dialGRPC(t, socketPath)
 	core := husiv1.NewCoreServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 	defer cancel()
 	resp, err := core.URLTest(ctx, &husiv1.URLTestRequest{
 		OutboundTag: "direct",

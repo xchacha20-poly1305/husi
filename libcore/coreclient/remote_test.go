@@ -120,7 +120,7 @@ func TestDialRemoteProbeAndEcho(t *testing.T) {
 	require.NoError(t, err)
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 	require.NoError(t, client.Probe(ctx))
 
@@ -143,7 +143,7 @@ func TestDialRemoteWrongSecretUnauthenticated(t *testing.T) {
 	require.NoError(t, err)
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 	err = client.Probe(ctx)
 	require.Error(t, err)

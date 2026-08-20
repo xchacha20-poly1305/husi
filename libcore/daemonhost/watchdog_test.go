@@ -12,7 +12,7 @@ import (
 
 func TestWatchStdinEOFCancels(t *testing.T) {
 	reader, writer := io.Pipe()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	StartWatchdog(cancel, WatchdogOptions{
@@ -32,7 +32,7 @@ func TestWatchStdinEOFCancels(t *testing.T) {
 }
 
 func TestWatchParentPIDChangeCancels(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	var ppid atomic.Int32
@@ -66,7 +66,7 @@ func TestWatchParentPIDChangeCancels(t *testing.T) {
 }
 
 func TestWatchParentProcessGoneCancels(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	alive := atomic.Bool{}

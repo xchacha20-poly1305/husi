@@ -38,7 +38,7 @@ func (stubBackend) BuildEnvironment() string { return "test" }
 func startHost(t *testing.T) (socketPath string, cleanup func()) {
 	t.Helper()
 	ctx := box.Context(
-		context.Background(),
+		t.Context(),
 		distro.InboundRegistry(),
 		distro.OutboundRegistry(),
 		distro.EndpointRegistry(),
@@ -79,7 +79,7 @@ func TestBridgeInvokeGetVersion(t *testing.T) {
 
 	req, err := proto.Marshal(&emptypb.Empty{})
 	require.NoError(t, err)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 	respBytes, err := client.Invoke(ctx, daemon.StartedService_GetVersion_FullMethodName, req)
 	require.NoError(t, err)
@@ -112,7 +112,7 @@ func TestBridgeStreamServiceStatus(t *testing.T) {
 		},
 		onClosed: func(string) { close(done) },
 	}
-	stream, err := client.Stream(context.Background(), daemon.StartedService_SubscribeServiceStatus_FullMethodName, req, handler)
+	stream, err := client.Stream(t.Context(), daemon.StartedService_SubscribeServiceStatus_FullMethodName, req, handler)
 	require.NoError(t, err)
 	// Wait for first message.
 	deadline := time.Now().Add(3 * time.Second)
@@ -137,7 +137,7 @@ func TestProbeAgainstStoppedSocket(t *testing.T) {
 		return
 	}
 	defer client.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(t.Context(), 500*time.Millisecond)
 	defer cancel()
 	require.Error(t, client.Probe(ctx), "expected probe failure against missing socket")
 }
@@ -174,7 +174,7 @@ func TestStreamCloseReleasesGoroutine(t *testing.T) {
 			onMessage: func([]byte) {},
 			onClosed:  func(string) { close(done) },
 		}
-		stream, err := client.Stream(context.Background(), daemon.StartedService_SubscribeServiceStatus_FullMethodName, req, handler)
+		stream, err := client.Stream(t.Context(), daemon.StartedService_SubscribeServiceStatus_FullMethodName, req, handler)
 		require.NoError(t, err)
 		stream.Close()
 		select {
