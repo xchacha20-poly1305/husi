@@ -87,21 +87,20 @@ class TrafficLooper(
 
         idMap.clear()
         idMap[-1] = itemBypass
-        val mainID = config.tagToID[config.mainTag]
         config.trafficMap.forEach { (tag, entities) ->
             val isProxySet = entities.any { it.type == ProxyEntity.TYPE_PROXY_SET }
-            for (ent in entities) {
+            for (entity in entities) {
                 val item = TrafficUpdater.TrafficLooperData(
                     tag = tag,
-                    rx = ent.rx,
-                    tx = ent.tx,
-                    rxBase = ent.rx,
-                    txBase = ent.tx,
-                    ignore = isProxySet && ent.id != mainID,
+                    rx = entity.rx,
+                    tx = entity.tx,
+                    rxBase = entity.rx,
+                    txBase = entity.tx,
+                    ignore = isProxySet && entity.type != ProxyEntity.TYPE_PROXY_SET,
                 )
-                idMap[ent.id] = item
+                idMap[entity.id] = item
                 tagMap[tag] = item
-                Logs.d("traffic count $tag to ${ent.id}")
+                Logs.d("traffic count $tag to ${entity.id}")
             }
         }
         val trafficUpdater = TrafficUpdater(
