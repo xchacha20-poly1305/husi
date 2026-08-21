@@ -9,10 +9,10 @@ require (
 	github.com/klauspost/compress v1.19.2
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/sing v0.9.0-beta.2
-	github.com/sagernet/sing-box v1.14.0-beta.17
+	github.com/sagernet/sing-box v1.14.0-beta.17.0.20260821044314-712046a26d12
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140529-d67734281390
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.2
 	github.com/xchacha20-poly1305/anchor v0.8.0
@@ -55,7 +55,6 @@ require (
 	github.com/caddyserver/zerossl v0.1.5 // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/database64128/tfo-go/v2 v2.3.2 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-camellia v0.0.0-20191119043421-69a8a13fb23d // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/florianl/go-nfqueue/v2 v2.1.0 // indirect
@@ -91,9 +90,8 @@ require (
 	github.com/pion/dtls/v3 v3.1.5 // indirect
 	github.com/pion/logging v0.2.4 // indirect
 	github.com/pion/transport/v4 v4.0.2 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
+	github.com/sagernet/bbolt v0.0.0-20260821040940-d7518b45c52b // indirect
 	github.com/sagernet/cronet-go v0.0.0-20260807162344-ec9a39c5ba3b // indirect
 	github.com/sagernet/cronet-go/all v0.0.0-20260807162344-ec9a39c5ba3b // indirect
 	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20260807161529-8d42107dcdfc // indirect

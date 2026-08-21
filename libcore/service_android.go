@@ -4,7 +4,6 @@ package libcore
 
 import (
 	"context"
-	"fmt"
 
 	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -118,7 +117,7 @@ func (s *Service) ResetNetwork() {
 	if instance == nil {
 		return
 	}
-	instance.Box().Network().ResetNetwork()
+	instance.Box().Network().ResetNetwork(s.host.InstanceContext())
 }
 
 func (s *Service) NeedWIFIState() bool {
@@ -144,5 +143,5 @@ func (s *Service) handlePluginFatal(err error) {
 	if handler == nil {
 		return
 	}
-	handler.OnPluginFatal(fmt.Sprint(err))
+	handler.OnPluginFatal(err.Error())
 }

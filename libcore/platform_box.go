@@ -3,6 +3,7 @@
 package libcore
 
 import (
+	"context"
 	"net/netip"
 	"os"
 	"sync"
@@ -38,11 +39,6 @@ type boxPlatformInterfaceWrapper struct {
 }
 
 var _ adapter.PlatformInterface = (*boxPlatformInterfaceWrapper)(nil)
-
-type WIFIState interface {
-	GetSSID() string
-	GetBSSID() string
-}
 
 func (w *boxPlatformInterfaceWrapper) Initialize(networkManager adapter.NetworkManager) error {
 	w.networkManager = networkManager
@@ -154,7 +150,12 @@ func (w *boxPlatformInterfaceWrapper) RequestPermissionForWIFIState() error {
 	return nil
 }
 
-func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
+type WIFIState interface {
+	GetSSID() string
+	GetBSSID() string
+}
+
+func (w *boxPlatformInterfaceWrapper) ReadWIFIState(ctx context.Context) adapter.WIFIState {
 	wifiState := w.iif.ReadWIFIState()
 	if wifiState == nil {
 		return adapter.WIFIState{}

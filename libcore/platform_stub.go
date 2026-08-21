@@ -1,6 +1,7 @@
 package libcore
 
 import (
+	"context"
 	"net/netip"
 	"os"
 
@@ -75,7 +76,7 @@ func (p platformInterfaceStub) UsePlatformWIFIMonitor() bool {
 	return false
 }
 
-func (p platformInterfaceStub) ReadWIFIState() adapter.WIFIState {
+func (p platformInterfaceStub) ReadWIFIState(_ context.Context) adapter.WIFIState {
 	return adapter.WIFIState{}
 }
 

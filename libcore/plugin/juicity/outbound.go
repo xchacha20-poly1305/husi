@@ -31,7 +31,10 @@ func RegisterOutbound(registry *outbound.Registry) {
 	outbound.Register[pluginoption.JuicityOutboundOptions](registry, pluginoption.TypeJuicity, NewOutbound)
 }
 
-var _ adapter.Outbound = (*Outbound)(nil)
+var (
+	_ adapter.Outbound                = (*Outbound)(nil)
+	_ adapter.InterfaceUpdateListener = (*Outbound)(nil)
+)
 
 type Outbound struct {
 	outbound.Adapter
@@ -95,10 +98,6 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 	}, nil
 }
 
-func (o *Outbound) Close() error {
-	return o.client.CloseWithError(os.ErrClosed)
-}
-
 func (o *Outbound) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
 	switch network {
 	case N.NetworkTCP:
@@ -124,6 +123,14 @@ func (o *Outbound) ListenPacket(ctx context.Context, destination M.Socksaddr) (n
 	metadata.Destination = destination
 	o.logger.InfoContext(ctx, "outbound packet connection to ", destination)
 	return o.client.ListenPacket(ctx, destination)
+}
+
+func (o *Outbound) InterfaceUpdated(ctx context.Context) {
+	_ = o.client.CloseWithError(E.New("network changed"))
+}
+
+func (o *Outbound) Close() error {
+	return o.client.CloseWithError(os.ErrClosed)
 }
 
 // https://github.com/juicity/juicity/blob/412dbe43e091788c5464eb2d6e9c169bdf39f19c/cmd/client/run.go#L86-L96

@@ -28,6 +28,11 @@ func RegisterOutbound(registry *outbound.Registry) {
 	outbound.Register[pluginoption.VLESSOutboundOptions](registry, C.TypeVLESS, NewOutbound)
 }
 
+var (
+	_ adapter.Outbound                = (*Outbound)(nil)
+	_ adapter.InterfaceUpdateListener = (*Outbound)(nil)
+)
+
 type Outbound struct {
 	outbound.Adapter
 	logger          logger.ContextLogger
@@ -132,9 +137,9 @@ func (h *Outbound) MultiplexEnabled() bool {
 	return h.multiplexDialer != nil
 }
 
-func (h *Outbound) InterfaceUpdated() {
+func (h *Outbound) InterfaceUpdated(ctx context.Context) {
 	if h.transport != nil {
-		h.transport.Close()
+		_ = h.transport.Close()
 	}
 	if h.multiplexDialer != nil {
 		h.multiplexDialer.Reset()

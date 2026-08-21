@@ -11,10 +11,10 @@ import (
 	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
 
 func runSpeedTest(

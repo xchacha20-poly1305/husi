@@ -57,7 +57,7 @@ func (s *coreService) ResetNetwork(ctx context.Context, _ *husiv1.ResetNetworkRe
 	if instance == nil {
 		return nil, status.Error(codes.FailedPrecondition, "instance not created")
 	}
-	instance.Box().Network().ResetNetwork()
+	instance.Box().Network().ResetNetwork(s.host.InstanceContext())
 	return &husiv1.ResetNetworkResponse{}, nil
 }
 

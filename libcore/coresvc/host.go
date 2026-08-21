@@ -266,6 +266,10 @@ func closeWithWatchdog(closeFn func() error, timeout time.Duration) error {
 	}
 }
 
+func (h *Host) InstanceContext() context.Context {
+	return cmp.Or[context.Context](h.holder.Get(), h.ctx)
+}
+
 func (h *Host) Close() error {
 	h.access.Lock()
 	defer h.access.Unlock()

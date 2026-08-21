@@ -117,5 +117,5 @@ func (b *boxInstance) NeedWIFIState() bool {
 }
 
 func (b *boxInstance) resetNetwork() {
-	b.Network().ResetNetwork()
+	b.Network().ResetNetwork(b.ctx)
 }
