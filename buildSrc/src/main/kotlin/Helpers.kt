@@ -165,11 +165,29 @@ fun Project.setupAppCommon() {
     val pwd = requireLocalProperty("ALIAS_PASS").orNull?.ifBlank { null }
         ?: providers.environmentVariable("ALIAS_PASS").orNull
 
+    val keystoreFile = rootProject.file("release.keystore")
+
     androidApp.apply {
         if (keystorePwd != null) {
+            if (alias == null || pwd == null) {
+                error(
+                    "KEYSTORE_PASS is set but " +
+                            listOfNotNull(
+                                "ALIAS_NAME".takeIf { alias == null },
+                                "ALIAS_PASS".takeIf { pwd == null },
+                            ).joinToString(" and ") +
+                            " is missing. Set all three in local.properties or as environment variables."
+                )
+            }
+            if (!keystoreFile.isFile) {
+                error(
+                    "Signing keystore not found at ${keystoreFile.absolutePath}. " +
+                            "Replace it with your own release.keystore, see AGENTS.md."
+                )
+            }
             signingConfigs {
                 create("release") {
-                    storeFile = rootProject.file("release.keystore")
+                    storeFile = keystoreFile
                     storePassword = keystorePwd
                     keyAlias = alias
                     keyPassword = pwd
@@ -179,6 +197,21 @@ fun Project.setupAppCommon() {
                 }
             }
         } else if (requireFlavor().contains("FossRelease")) {
+            this@setupAppCommon.logger.error(
+                """
+                No signing keystore configured, aborting the FossRelease build.
+
+                A release build has to be signed. Provide these in local.properties
+                (or as environment variables) and put your keystore at
+                ${keystoreFile.absolutePath}:
+
+                    KEYSTORE_PASS=<keystore password>
+                    ALIAS_NAME=<key alias>
+                    ALIAS_PASS=<key password>
+
+                To build without signing, use a debug build instead: make apk_debug
+                """.trimIndent()
+            )
             exitProcess(0)
         }
         buildTypes {

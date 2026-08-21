@@ -221,6 +221,42 @@ val libcoreDesktopJarRequired =
         }
         desktopJarFile
     })
+val libcoreAarFile = layout.projectDirectory.file("libs/libcore.aar").asFile
+val checkLibcoreAar = tasks.register("checkLibcoreAar") {
+    description = "Fails with an explanation when the Android libcore.aar has not been built yet."
+    val aarPath = libcoreAarFile.path
+    doFirst {
+        if (!File(aarPath).isFile) {
+            error("Missing Android libcore aar '$aarPath'. Build it first: make libcore_android.")
+        }
+    }
+}
+
+
+val bundledAssetFiles = listOf("geoip.tar.zst", "geosite.tar.zst")
+val bundledAssetsDir = layout.projectDirectory.dir("src/commonMain/composeResources/files/sing-box").asFile
+val warnMissingAssets = tasks.register("warnMissingBundledAssets") {
+    description = "Warns when the geoip/geosite assets have not been downloaded yet."
+    val assetsDirPath = bundledAssetsDir.path
+    val assetFileNames = bundledAssetFiles.toList()
+    doFirst {
+        val missing = assetFileNames.filterNot { File(assetsDirPath, it).isFile }
+        if (missing.isNotEmpty()) {
+            logger.warn(
+                "Missing bundled route assets in '$assetsDirPath': ${missing.joinToString()}. " +
+                    "The app will ship without geoip/geosite rule sets; run 'make assets' to download them.",
+            )
+        }
+    }
+}
+
+tasks.matching { it.name.startsWith("compile") }.configureEach {
+    if (name.contains("Android", ignoreCase = true)) {
+        dependsOn(checkLibcoreAar)
+    }
+    dependsOn(warnMissingAssets)
+}
+
 val desktopPackageName = packageNameProvider.get().trim()
 val desktopVersion = versionNameProvider.get().trim()
 val desktopTargetFormats = emptySet<TargetFormat>()
