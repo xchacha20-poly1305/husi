@@ -24,6 +24,7 @@ import fr.husi.resources.openvpn_authentication
 import fr.husi.resources.service_proxy
 import fr.husi.resources.service_subscription
 import fr.husi.resources.service_vpn
+import fr.husi.resources.service_vpn_request
 import fr.husi.ui.MainActivity
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.PluralStringResource
@@ -166,6 +167,11 @@ open class SagerRepository(
                 "service-proxy",
                 getString(Res.string.service_proxy),
                 NotificationManager.IMPORTANCE_LOW,
+            ),
+            NotificationChannel(
+                "service-vpn-request",
+                getString(Res.string.service_vpn_request),
+                NotificationManager.IMPORTANCE_HIGH,
             ),
             NotificationChannel(
                 "service-subscription",

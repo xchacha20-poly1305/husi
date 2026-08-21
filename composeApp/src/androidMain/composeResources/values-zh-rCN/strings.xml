@@ -3,4 +3,7 @@
     <string name="auto_connect_summary">手机启动或更新后代理会自动重新连接</string>
     <string name="vpn_session_name">VPN 会话名称</string>
     <string name="vpn_session_name_summary">留空则使用应用名称</string>
+    <string name="service_vpn_request">VPN 授权请求</string>
+    <string name="vpn_permission_required">需要 VPN 授权</string>
+    <string name="vpn_permission_required_summary">点击授予 VPN 权限并启动服务。</string>
 </resources>

@@ -208,7 +208,8 @@
         <activity
             android:name="fr.husi.ui.VpnRequestActivity"
             android:excludeFromRecents="true"
-            android:taskAffinity="" />
+            android:taskAffinity=""
+            android:theme="@style/Theme.Dialog" />
         <activity
             android:name=".QuickToggleShortcut"
             android:excludeFromRecents="true"

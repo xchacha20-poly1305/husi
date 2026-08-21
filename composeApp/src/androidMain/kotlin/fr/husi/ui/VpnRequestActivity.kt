@@ -11,6 +11,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.core.content.getSystemService
 import fr.husi.Key
+import fr.husi.bg.VpnRequestNotification
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.broadcastReceiver
@@ -25,6 +26,8 @@ class VpnRequestActivity : PrivacyModeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The user is here now, so whatever asked them to come is done.
+        VpnRequestNotification.cancel(this)
         if (getSystemService<KeyguardManager>()!!.isKeyguardLocked) {
             receiver = broadcastReceiver { _, _ -> connect.launch(null) }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

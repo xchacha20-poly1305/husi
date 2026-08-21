@@ -3,4 +3,7 @@
     <string name="auto_connect_summary">Enable proxy on startup/app update if it was running before</string>
     <string name="vpn_session_name">VPN session name</string>
     <string name="vpn_session_name_summary">Leave empty to use app name</string>
+    <string name="service_vpn_request">VPN Permission Request</string>
+    <string name="vpn_permission_required">VPN permission required</string>
+    <string name="vpn_permission_required_summary">Tap to grant the VPN permission and start the service.</string>
 </resources>
