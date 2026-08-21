@@ -80,5 +80,5 @@ jobs:
             ref_name="${{ github.ref_name }}"
             UPSTREAM_VERSION="${ref_name#plugin-hysteria2-}"
             UPSTREAM_VERSION="${UPSTREAM_VERSION%-*}"
-            gh release create "$RELEASE_TAG" "${files[@]}" --prerelease --notes $'# :memo: Release Notes\n\nUpstream: https://github.com/apernet/hysteria/releases/tag/app/'"$UPSTREAM_VERSION"
+            gh release create "$RELEASE_TAG" "${files[@]}" --prerelease --notes $'# :memo: Release Notes\n\nUpstream: https://github.com/HyNetworks/hysteria/releases/tag/app/'"$UPSTREAM_VERSION"
           fi

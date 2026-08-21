@@ -36,7 +36,7 @@ enum class PluginEntry(
         Res.string.action_hysteria,
         DownloadSource(
             apk = "https://github.com/dyhkwong/Exclave/releases?q=hysteria-plugin-1",
-            binary = "https://github.com/apernet/hysteria/releases?q=v1",
+            binary = "https://github.com/HyNetworks/hysteria/releases?q=v1",
         ),
     ),
     Hysteria2(
@@ -44,7 +44,7 @@ enum class PluginEntry(
         Res.string.action_hysteria2,
         DownloadSource(
             apk = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-hysteria2",
-            binary = "https://github.com/apernet/hysteria/releases",
+            binary = "https://github.com/HyNetworks/hysteria/releases",
         ),
     ),
     Juicity(
