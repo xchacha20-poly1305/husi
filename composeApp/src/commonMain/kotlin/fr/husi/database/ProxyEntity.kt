@@ -9,11 +9,9 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.ProtocolProvider
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.Serializable
 import fr.husi.fmt.anytls.AnyTLSBean
 import fr.husi.fmt.anytls.toUri
@@ -60,6 +58,8 @@ import fr.husi.fmt.v2ray.toUriVMessVLESSTrojan
 import fr.husi.fmt.wireguard.WireGuardBean
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openvpn.OpenVPNBean
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -162,7 +162,7 @@ data class ProxyEntity(
     override fun initializeDefaultValues() {
     }
 
-    override fun serializeToBuffer(output: ByteBufferOutput) {
+    override fun serializeToBuffer(output: BinaryOutput) {
         output.writeInt(1)
 
         output.writeLong(id)
@@ -175,14 +175,14 @@ data class ProxyEntity(
         output.writeInt(ping)
         output.writeString(error)
 
-        val data = KryoConverters.serialize(requireBean())
+        val data = BeanConverters.serialize(requireBean())
         output.writeVarInt(data.size, true)
         output.writeBytes(data)
 
         output.writeBoolean(dirty)
     }
 
-    override fun deserializeFromBuffer(input: ByteBufferInput) {
+    override fun deserializeFromBuffer(input: BinaryInput) {
         val version = input.readInt()
 
         id = input.readLong()
@@ -197,7 +197,7 @@ data class ProxyEntity(
             // useless uuid
             input.readString()
         }
-        error = input.readString()
+        error = input.readNullableString()
         putByteArray(input.readBytes(input.readVarInt(true)))
 
         dirty = input.readBoolean()
@@ -206,30 +206,30 @@ data class ProxyEntity(
 
     fun putByteArray(byteArray: ByteArray) {
         when (type) {
-            TYPE_SOCKS -> socksBean = KryoConverters.socksDeserialize(byteArray)
-            TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
-            TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
-            TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
-            TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
-            TYPE_VLESS -> vlessBean = KryoConverters.vlessDeserialize(byteArray)
-            TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
-            TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
-            TYPE_NAIVE -> naiveBean = KryoConverters.naiveDeserialize(byteArray)
-            TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
-            TYPE_SSH -> sshBean = KryoConverters.sshDeserialize(byteArray)
-            TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
-            TYPE_OPENCONNECT -> openConnectBean = KryoConverters.openConnectDeserialize(byteArray)
-            TYPE_OPENVPN -> openVPNBean = KryoConverters.openVPNDeserialize(byteArray)
-            TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
-            TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
-            TYPE_DIRECT -> directBean = KryoConverters.directDeserialize(byteArray)
-            TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
-            TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
-            TYPE_SHADOWQUIC -> shadowQUICBean = KryoConverters.shadowQUICDeserialize(byteArray)
-            TYPE_PROXY_SET -> proxySetBean = KryoConverters.proxySetDeserialize(byteArray)
-            TYPE_TRUST_TUNNEL -> trustTunnelBean = KryoConverters.trustTunnelDeserialize(byteArray)
-            TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
-            TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
+            TYPE_SOCKS -> socksBean = BeanConverters.socksDeserialize(byteArray)
+            TYPE_HTTP -> httpBean = BeanConverters.httpDeserialize(byteArray)
+            TYPE_SS -> ssBean = BeanConverters.shadowsocksDeserialize(byteArray)
+            TYPE_SNELL -> snellBean = BeanConverters.snellDeserialize(byteArray)
+            TYPE_VMESS -> vmessBean = BeanConverters.vmessDeserialize(byteArray)
+            TYPE_VLESS -> vlessBean = BeanConverters.vlessDeserialize(byteArray)
+            TYPE_TROJAN -> trojanBean = BeanConverters.trojanDeserialize(byteArray)
+            TYPE_MIERU -> mieruBean = BeanConverters.mieruDeserialize(byteArray)
+            TYPE_NAIVE -> naiveBean = BeanConverters.naiveDeserialize(byteArray)
+            TYPE_HYSTERIA -> hysteriaBean = BeanConverters.hysteriaDeserialize(byteArray)
+            TYPE_SSH -> sshBean = BeanConverters.sshDeserialize(byteArray)
+            TYPE_WG -> wgBean = BeanConverters.wireguardDeserialize(byteArray)
+            TYPE_OPENCONNECT -> openConnectBean = BeanConverters.openConnectDeserialize(byteArray)
+            TYPE_OPENVPN -> openVPNBean = BeanConverters.openVPNDeserialize(byteArray)
+            TYPE_TUIC -> tuicBean = BeanConverters.tuicDeserialize(byteArray)
+            TYPE_JUICITY -> juicityBean = BeanConverters.juicityDeserialize(byteArray)
+            TYPE_DIRECT -> directBean = BeanConverters.directDeserialize(byteArray)
+            TYPE_SHADOWTLS -> shadowTLSBean = BeanConverters.shadowTLSDeserialize(byteArray)
+            TYPE_ANYTLS -> anyTLSBean = BeanConverters.anyTLSDeserialize(byteArray)
+            TYPE_SHADOWQUIC -> shadowQUICBean = BeanConverters.shadowQUICDeserialize(byteArray)
+            TYPE_PROXY_SET -> proxySetBean = BeanConverters.proxySetDeserialize(byteArray)
+            TYPE_TRUST_TUNNEL -> trustTunnelBean = BeanConverters.trustTunnelDeserialize(byteArray)
+            TYPE_CHAIN -> chainBean = BeanConverters.chainDeserialize(byteArray)
+            TYPE_CONFIG -> configBean = BeanConverters.configDeserialize(byteArray)
         }
     }
 

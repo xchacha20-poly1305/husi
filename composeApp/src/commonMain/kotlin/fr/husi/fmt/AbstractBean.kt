@@ -1,8 +1,8 @@
 package fr.husi.fmt
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.unwrapIPV6Host
 import fr.husi.ktx.wrapIPV6Host
@@ -27,10 +27,9 @@ abstract class AbstractBean : Serializable() {
     var finalPort: Int = 0
 
     open fun displayName(): String {
-        if (name.isEmpty()) {
-            return displayAddress()
+        return name.ifEmpty {
+            displayAddress()
         }
-        return name
     }
 
     open fun displayAddress(): String {
@@ -72,7 +71,7 @@ abstract class AbstractBean : Serializable() {
         finalPort = serverPort
     }
 
-    override fun serializeToBuffer(output: ByteBufferOutput) {
+    override fun serializeToBuffer(output: BinaryOutput) {
         serialize(output)
 
         output.writeInt(4)
@@ -88,7 +87,7 @@ abstract class AbstractBean : Serializable() {
         output.writeInt(serverMuxStrategy)
     }
 
-    override fun deserializeFromBuffer(input: ByteBufferInput) {
+    override fun deserializeFromBuffer(input: BinaryInput) {
         deserialize(input)
 
         val extraVersion = input.readInt()
@@ -111,13 +110,13 @@ abstract class AbstractBean : Serializable() {
         }
     }
 
-    open fun serialize(output: ByteBufferOutput) {
+    open fun serialize(output: BinaryOutput) {
         output.writeString(serverAddress)
         output.writeInt(serverPort)
     }
 
-    open fun deserialize(input: ByteBufferInput) {
-        serverAddress = input.readString() ?: ""
+    open fun deserialize(input: BinaryInput) {
+        serverAddress = input.readString()
         serverPort = input.readInt()
     }
 
@@ -126,12 +125,12 @@ abstract class AbstractBean : Serializable() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
-        return KryoConverters.serialize(this)
-            .contentEquals(KryoConverters.serialize(other as AbstractBean))
+        return BeanConverters.serialize(this)
+            .contentEquals(BeanConverters.serialize(other as AbstractBean))
     }
 
     override fun hashCode(): Int {
-        return KryoConverters.serialize(this).contentHashCode()
+        return BeanConverters.serialize(this).contentHashCode()
     }
 
     override fun toString(): String {

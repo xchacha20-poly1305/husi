@@ -2,7 +2,7 @@ package fr.husi.fmt.v2ray
 
 import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
 import fr.husi.resources.Res
 import fr.husi.resources.warn_vmess_md5_auth
@@ -52,7 +52,7 @@ class VMessBean : StandardV2RayBean() {
     }
 
     override fun clone(): VMessBean {
-        return KryoConverters.deserialize(VMessBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(VMessBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort get() = 10086

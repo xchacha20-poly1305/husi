@@ -26,7 +26,7 @@ fun AbstractBean.toUniversalLink(): String {
     val type = ProxyEntity().putBean(this).type
     link += TypeMap.reversed[type] ?: error("Type $type not found")
     link += "?"
-    link += KryoConverters.serialize(this).zlibCompress(9).b64EncodeUrlSafe()
+    link += BeanConverters.serialize(this).zlibCompress(9).b64EncodeUrlSafe()
     return link
 }
 
@@ -34,7 +34,7 @@ fun AbstractBean.toUniversalLink(): String {
 fun ProxyGroup.toUniversalLink(): String {
     var link = "husi://subscription?"
     export = true
-    link += KryoConverters.serialize(this).zlibCompress(9).b64EncodeUrlSafe()
+    link += BeanConverters.serialize(this).zlibCompress(9).b64EncodeUrlSafe()
     export = false
     return link
 }

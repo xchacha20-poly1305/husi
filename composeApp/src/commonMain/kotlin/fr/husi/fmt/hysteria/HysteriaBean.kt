@@ -1,10 +1,10 @@
 package fr.husi.fmt.hysteria
 
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.ktx.wrapIPV6Host
 import fr.husi.resources.Res
 import fr.husi.resources.warn_hysteria_legacy
@@ -112,7 +112,7 @@ class HysteriaBean : AbstractBean() {
         return ValidateResult.Secure.Continue
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(9)
         super.serialize(output)
 
@@ -168,7 +168,7 @@ class HysteriaBean : AbstractBean() {
         output.writeBoolean(disableChromeParrot)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         protocolVersion = input.readInt()
@@ -270,7 +270,7 @@ class HysteriaBean : AbstractBean() {
     }
 
     override fun clone(): HysteriaBean {
-        return KryoConverters.deserialize(HysteriaBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(HysteriaBean(), BeanConverters.serialize(this))
     }
 
 }

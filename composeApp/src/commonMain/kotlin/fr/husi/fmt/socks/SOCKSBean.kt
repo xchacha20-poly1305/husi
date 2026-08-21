@@ -1,11 +1,11 @@
 package fr.husi.fmt.socks
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
 import fr.husi.resources.warn_not_encrypted
 
@@ -72,7 +72,7 @@ class SOCKSBean : AbstractBean() {
         return ValidateResult.Insecure(Res.string.warn_not_encrypted)
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(0)
         super.serialize(output)
         output.writeInt(protocol)
@@ -81,7 +81,7 @@ class SOCKSBean : AbstractBean() {
         output.writeBoolean(udpOverTcp)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         input.readInt()
         super.deserialize(input)
         protocol = input.readInt()
@@ -91,7 +91,7 @@ class SOCKSBean : AbstractBean() {
     }
 
     override fun clone(): SOCKSBean {
-        return KryoConverters.deserialize(SOCKSBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(SOCKSBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort get() = 1080

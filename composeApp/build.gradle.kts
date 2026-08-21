@@ -347,7 +347,6 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
 
                 implementation(libs.ini4j)
-                implementation(libs.kryo)
                 implementation(libs.compose.preference)
                 implementation(libs.fastscroller.core)
                 implementation(libs.fastscroller.material3)

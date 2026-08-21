@@ -1,10 +1,10 @@
 package fr.husi.fmt.wireguard
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 
 @KxsSerializable
 class WireGuardBean : AbstractBean() {
@@ -40,7 +40,7 @@ class WireGuardBean : AbstractBean() {
         if (mtu !in 1000..65535) mtu = 1420
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(2)
         super.serialize(output)
         output.writeString(localAddress)
@@ -53,7 +53,7 @@ class WireGuardBean : AbstractBean() {
         output.writeInt(persistentKeepaliveInterval)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         localAddress = input.readString()
@@ -73,7 +73,7 @@ class WireGuardBean : AbstractBean() {
     override val canTCPing = false
 
     override fun clone(): WireGuardBean {
-        return KryoConverters.deserialize(WireGuardBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(WireGuardBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort = 51820

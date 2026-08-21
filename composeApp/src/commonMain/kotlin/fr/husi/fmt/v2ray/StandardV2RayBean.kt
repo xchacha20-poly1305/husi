@@ -1,9 +1,9 @@
 package fr.husi.fmt.v2ray
 
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.ValidateResult
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
 import fr.husi.resources.warn_insecure
 import fr.husi.resources.warn_not_encrypted
@@ -60,7 +60,7 @@ abstract class StandardV2RayBean : AbstractBean() {
         if (fragmentFallbackDelay.isEmpty()) fragmentFallbackDelay = "500ms"
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(12)
         super.serialize(output)
 
@@ -134,7 +134,7 @@ abstract class StandardV2RayBean : AbstractBean() {
         }
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         uuid = input.readString()

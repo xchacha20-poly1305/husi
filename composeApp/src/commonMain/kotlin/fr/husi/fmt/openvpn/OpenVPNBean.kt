@@ -1,10 +1,10 @@
 package fr.husi.fmt.openvpn
 
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import kotlinx.serialization.Serializable as KxsSerializable
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 
 @KxsSerializable
 class OpenVPNBean : AbstractBean() {
@@ -30,7 +30,7 @@ class OpenVPNBean : AbstractBean() {
     var redirectGateway: Boolean = false
     var mtu: Int = 1500
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(1)
         super.serialize(output)
         output.writeString(network)
@@ -57,7 +57,7 @@ class OpenVPNBean : AbstractBean() {
         output.writeString(cipher)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         network = input.readString().orEmpty()
@@ -90,7 +90,7 @@ class OpenVPNBean : AbstractBean() {
         if (network !in setOf("tcp", "udp")) network = "udp"
     }
 
-    override fun clone() = KryoConverters.deserialize(OpenVPNBean(), KryoConverters.serialize(this))
+    override fun clone() = BeanConverters.deserialize(OpenVPNBean(), BeanConverters.serialize(this))
 
     override val defaultPort get() = 1194
 }

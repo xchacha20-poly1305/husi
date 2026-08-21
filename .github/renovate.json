@@ -148,7 +148,6 @@
         "gradle"
       ],
       "matchPackageNames": [
-        "com.esotericsoftware:kryo",
         "com.jakewharton:process-phoenix",
         "org.ini4j:ini4j",
         "com.github.ajalt.clikt{/,}**",

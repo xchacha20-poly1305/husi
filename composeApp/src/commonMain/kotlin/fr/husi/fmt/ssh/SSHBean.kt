@@ -1,10 +1,10 @@
 package fr.husi.fmt.ssh
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 
 @KxsSerializable
 class SSHBean : AbstractBean() {
@@ -40,7 +40,7 @@ class SSHBean : AbstractBean() {
         if (username.isEmpty()) username = "root"
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(0)
         super.serialize(output)
         output.writeString(username)
@@ -56,7 +56,7 @@ class SSHBean : AbstractBean() {
         output.writeString(publicKey)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         input.readInt()
         super.deserialize(input)
         username = input.readString()
@@ -69,11 +69,11 @@ class SSHBean : AbstractBean() {
                 privateKeyPassphrase = input.readString()
             }
         }
-        publicKey = input.readString() ?: ""
+        publicKey = input.readString()
     }
 
     override fun clone(): SSHBean {
-        return KryoConverters.deserialize(SSHBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(SSHBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort get() = 22

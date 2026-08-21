@@ -10,7 +10,7 @@ import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.ktx.Logs
 import fr.husi.ktx.b64Decode
 import fr.husi.ktx.b64EncodeUrlSafe
@@ -28,8 +28,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -187,7 +185,7 @@ internal class BackupViewModel : ViewModel() {
             val profiles = mutableListOf<ProxyEntity>()
             for (entry in content.profiles) {
                 val data = entry.b64Decode()
-                profiles.add(KryoConverters.deserialize(ProxyEntity(), data))
+                profiles.add(BeanConverters.deserialize(ProxyEntity(), data))
             }
             onIoDispatcher {
                 SagerDatabase.proxyDao.reset()
@@ -197,7 +195,7 @@ internal class BackupViewModel : ViewModel() {
             val groups = mutableListOf<ProxyGroup>()
             for (entry in content.groups.orEmpty()) {
                 val data = entry.b64Decode()
-                groups.add(KryoConverters.deserialize(ProxyGroup(), data))
+                groups.add(BeanConverters.deserialize(ProxyGroup(), data))
             }
             onIoDispatcher {
                 SagerDatabase.groupDao.reset()
@@ -263,6 +261,6 @@ internal class BackupViewModel : ViewModel() {
     }
 
     private fun fr.husi.fmt.Serializable.toBase64Str(): String {
-        return KryoConverters.serialize(this).b64EncodeUrlSafe()
+        return BeanConverters.serialize(this).b64EncodeUrlSafe()
     }
 }

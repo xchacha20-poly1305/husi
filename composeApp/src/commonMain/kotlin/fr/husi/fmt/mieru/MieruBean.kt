@@ -1,10 +1,10 @@
 package fr.husi.fmt.mieru
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 
 @KxsSerializable
 class MieruBean : AbstractBean() {
@@ -36,7 +36,7 @@ class MieruBean : AbstractBean() {
         if (protocol.isEmpty()) protocol = PROTOCOL_TCP
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(2)
         super.serialize(output)
         output.writeString(protocol)
@@ -48,7 +48,7 @@ class MieruBean : AbstractBean() {
         output.writeString(trafficPattern)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         protocol = input.readString().uppercase()
@@ -65,6 +65,6 @@ class MieruBean : AbstractBean() {
     override val canTCPing get() = protocol == PROTOCOL_TCP
 
     override fun clone(): MieruBean {
-        return KryoConverters.deserialize(MieruBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(MieruBean(), BeanConverters.serialize(this))
     }
 }

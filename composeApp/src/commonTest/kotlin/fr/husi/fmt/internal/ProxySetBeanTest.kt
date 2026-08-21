@@ -1,9 +1,7 @@
 package fr.husi.fmt.internal
 
-import com.esotericsoftware.kryo.io.ByteBufferOutput
-import fr.husi.fmt.KryoConverters
-import fr.husi.ktx.byteBuffer
-import java.io.ByteArrayOutputStream
+import fr.husi.fmt.BeanConverters
+import fr.husi.io.BinaryOutput
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -23,7 +21,7 @@ class ProxySetBeanTest {
             )
         }
 
-        val restored = KryoConverters.proxySetDeserialize(KryoConverters.serialize(bean))!!
+        val restored = BeanConverters.proxySetDeserialize(BeanConverters.serialize(bean))!!
 
         assertEquals(bean.providers, restored.providers)
         assertEquals(bean.name, restored.name)
@@ -40,7 +38,7 @@ class ProxySetBeanTest {
             it.writeLong(5L)
         }
 
-        val bean = KryoConverters.proxySetDeserialize(bytes)!!
+        val bean = BeanConverters.proxySetDeserialize(bytes)!!
 
         assertEquals(
             listOf(ProxySetBean.Provider.Single(3L), ProxySetBean.Provider.Single(5L)),
@@ -56,7 +54,7 @@ class ProxySetBeanTest {
             it.writeString("^keep")
         }
 
-        val bean = KryoConverters.proxySetDeserialize(bytes)!!
+        val bean = BeanConverters.proxySetDeserialize(bytes)!!
 
         assertEquals(listOf(ProxySetBean.Provider.Group(13L, "^keep")), bean.providers)
     }
@@ -64,10 +62,9 @@ class ProxySetBeanTest {
     /** Writes what [ProxySetBean.serialize] used to emit, plus the shared bean tail. */
     private fun legacyProxySetBytes(
         version: Int,
-        writeMembers: (ByteBufferOutput) -> Unit,
+        writeMembers: (BinaryOutput) -> Unit,
     ): ByteArray {
-        val out = ByteArrayOutputStream()
-        val buffer = out.byteBuffer()
+        val buffer = BinaryOutput()
 
         buffer.writeInt(version)
         buffer.writeInt(ProxySetBean.MANAGEMENT_SELECTOR)
@@ -89,8 +86,6 @@ class ProxySetBeanTest {
         buffer.writeBoolean(false)
         buffer.writeInt(0)
 
-        buffer.flush()
-        buffer.close()
-        return out.toByteArray()
+        return buffer.toByteArray()
     }
 }

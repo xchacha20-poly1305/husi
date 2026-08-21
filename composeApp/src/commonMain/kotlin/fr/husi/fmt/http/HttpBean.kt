@@ -1,11 +1,11 @@
 package fr.husi.fmt.http
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.v2ray.StandardV2RayBean
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 
 @KxsSerializable
 class HttpBean : StandardV2RayBean() {
@@ -34,7 +34,7 @@ class HttpBean : StandardV2RayBean() {
         return validateTLSSettings(requireTLS = true, warnAllowInsecure = false)
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(2)
 
         // version 0
@@ -51,7 +51,7 @@ class HttpBean : StandardV2RayBean() {
         output.writeBoolean(udpOverTcp)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         username = input.readString()
@@ -67,7 +67,7 @@ class HttpBean : StandardV2RayBean() {
     }
 
     override fun clone(): HttpBean {
-        return KryoConverters.deserialize(HttpBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(HttpBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort get() = if (isTLS) 443 else 80

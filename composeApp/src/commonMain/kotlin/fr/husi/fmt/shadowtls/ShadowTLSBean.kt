@@ -1,11 +1,11 @@
 package fr.husi.fmt.shadowtls
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.v2ray.StandardV2RayBean
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
 import fr.husi.resources.warn_shadowtls_legacy
 
@@ -43,14 +43,14 @@ class ShadowTLSBean : StandardV2RayBean() {
         return ValidateResult.Secure.Continue
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(0)
         super.serialize(output)
         output.writeInt(protocolVersion)
         output.writeString(password)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         input.readInt()
         super.deserialize(input)
         protocolVersion = input.readInt()
@@ -58,7 +58,7 @@ class ShadowTLSBean : StandardV2RayBean() {
     }
 
     override fun clone(): ShadowTLSBean {
-        return KryoConverters.deserialize(ShadowTLSBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(ShadowTLSBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort get() = 443

@@ -1,11 +1,11 @@
 package fr.husi.fmt.shadowsocks
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
 import fr.husi.resources.warn_shadowsocks_stream_cipher
 
@@ -50,7 +50,7 @@ class ShadowsocksBean : AbstractBean() {
         return ValidateResult.Secure.Continue
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(2)
         super.serialize(output)
         output.writeString(method)
@@ -59,7 +59,7 @@ class ShadowsocksBean : AbstractBean() {
         output.writeBoolean(udpOverTcp)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         method = input.readString()
@@ -78,7 +78,7 @@ class ShadowsocksBean : AbstractBean() {
     }
 
     override fun clone(): ShadowsocksBean {
-        return KryoConverters.deserialize(ShadowsocksBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(ShadowsocksBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort get() = 8388

@@ -1,7 +1,7 @@
 package fr.husi.fmt.v2ray
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
 
 @KxsSerializable
@@ -33,7 +33,7 @@ class VLESSBean : StandardV2RayBean() {
     }
 
     override fun clone(): VLESSBean {
-        return KryoConverters.deserialize(VLESSBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(VLESSBean(), BeanConverters.serialize(this))
     }
 
     override val defaultPort get() = 443

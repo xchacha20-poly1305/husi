@@ -1,15 +1,15 @@
 package fr.husi.fmt.internal
 
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.CONNECTION_TEST_URL
 import fr.husi.database.ProxyEntity
 import fr.husi.database.SagerDatabase
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
+import fr.husi.io.readList
+import fr.husi.io.writeList
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.onIoDispatcher
-import fr.husi.ktx.readList
-import fr.husi.ktx.writeList
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable as KxsSerializable
 
@@ -39,7 +39,7 @@ class ProxySetBean : InternalBean() {
             const val TYPE_SINGLE = 0.toByte()
             const val TYPE_GROUP = 1.toByte()
 
-            fun deserialize(input: ByteBufferInput): Provider {
+            fun deserialize(input: BinaryInput): Provider {
                 return when (val type = input.readByte()) {
                     TYPE_SINGLE -> Single.deserialize(input)
                     TYPE_GROUP -> Group.deserialize(input)
@@ -52,14 +52,14 @@ class ProxySetBean : InternalBean() {
 
         suspend fun entities(): List<ProxyEntity>
 
-        fun serialize(output: ByteBufferOutput) {
+        fun serialize(output: BinaryOutput) {
             output.writeByte(type)
         }
 
         @KxsSerializable
         data class Single(val id: Long) : Provider {
             companion object {
-                fun deserialize(input: ByteBufferInput): Single {
+                fun deserialize(input: BinaryInput): Single {
                     val id = input.readLong()
                     return Single(id)
                 }
@@ -71,7 +71,7 @@ class ProxySetBean : InternalBean() {
                 SagerDatabase.proxyDao.getEntities(listOf(id))
             }
 
-            override fun serialize(output: ByteBufferOutput) {
+            override fun serialize(output: BinaryOutput) {
                 super.serialize(output)
                 output.writeLong(id)
             }
@@ -83,7 +83,7 @@ class ProxySetBean : InternalBean() {
             val filterNotRegex: String,
         ) : Provider {
             companion object {
-                fun deserialize(input: ByteBufferInput): Group {
+                fun deserialize(input: BinaryInput): Group {
                     val groupID = input.readLong()
                     val filterNotRegex = input.readString().orEmpty()
                     return Group(groupID, filterNotRegex)
@@ -101,7 +101,7 @@ class ProxySetBean : InternalBean() {
                 return entities.filter { filter.containsMatchIn(it.displayName()) }
             }
 
-            override fun serialize(output: ByteBufferOutput) {
+            override fun serialize(output: BinaryOutput) {
                 super.serialize(output)
                 output.writeLong(groupID)
                 output.writeString(filterNotRegex)
@@ -143,7 +143,7 @@ class ProxySetBean : InternalBean() {
         }
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(2)
         output.writeInt(management)
         output.writeBoolean(interruptExistConnections)
@@ -155,7 +155,7 @@ class ProxySetBean : InternalBean() {
         output.writeList(providers, Provider::serialize)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         management = input.readInt()
         interruptExistConnections = input.readBoolean()
@@ -189,7 +189,7 @@ class ProxySetBean : InternalBean() {
     }
 
     override fun clone(): ProxySetBean {
-        return KryoConverters.deserialize(ProxySetBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(ProxySetBean(), BeanConverters.serialize(this))
     }
 
     fun displayType(): String {

@@ -1,11 +1,11 @@
 package fr.husi.fmt.tuic
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
 import fr.husi.resources.warn_insecure
 import fr.husi.resources.warn_quic_0_rtt
@@ -74,7 +74,7 @@ class TuicBean : AbstractBean() {
         return ValidateResult.Secure.Continue
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(4)
 
         // version 0
@@ -114,7 +114,7 @@ class TuicBean : AbstractBean() {
         output.writeBoolean(disablePathMtuDiscovery)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         token = input.readString()
@@ -181,7 +181,7 @@ class TuicBean : AbstractBean() {
     override val canTCPing get() = false
 
     override fun clone(): TuicBean {
-        return KryoConverters.deserialize(TuicBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(TuicBean(), BeanConverters.serialize(this))
     }
 
 }

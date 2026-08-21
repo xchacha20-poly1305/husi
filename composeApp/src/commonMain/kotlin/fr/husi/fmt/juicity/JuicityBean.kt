@@ -1,12 +1,12 @@
 package fr.husi.fmt.juicity
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.tuic.TuicBean
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
 import fr.husi.resources.warn_insecure
 
@@ -44,7 +44,7 @@ class JuicityBean : AbstractBean() {
         return ValidateResult.Secure.Continue
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(0)
         super.serialize(output)
         output.writeString(uuid)
@@ -54,7 +54,7 @@ class JuicityBean : AbstractBean() {
         output.writeString(pinSHA256)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         input.readInt()
         super.deserialize(input)
         uuid = input.readString()
@@ -73,7 +73,7 @@ class JuicityBean : AbstractBean() {
     override val canTCPing get() = false
 
     override fun clone(): AbstractBean {
-        return KryoConverters.deserialize(TuicBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(TuicBean(), BeanConverters.serialize(this))
     }
 
 }

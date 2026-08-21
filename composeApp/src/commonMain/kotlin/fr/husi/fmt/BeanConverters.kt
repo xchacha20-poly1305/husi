@@ -1,7 +1,6 @@
 package fr.husi.fmt
 
 import androidx.room.TypeConverter
-import com.esotericsoftware.kryo.KryoException
 import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.anytls.AnyTLSBean
 import fr.husi.fmt.config.ConfigBean
@@ -27,12 +26,13 @@ import fr.husi.fmt.tuic.TuicBean
 import fr.husi.fmt.v2ray.VLESSBean
 import fr.husi.fmt.v2ray.VMessBean
 import fr.husi.fmt.wireguard.WireGuardBean
+import fr.husi.io.BinaryFormatException
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.ktx.Logs
-import fr.husi.ktx.byteBuffer
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 
-class KryoConverters {
+/** Turns the beans stored in Room `BLOB` columns into bytes and back. */
+class BeanConverters {
 
     companion object {
         private val NULL = ByteArray(0)
@@ -40,12 +40,9 @@ class KryoConverters {
         @JvmStatic
         fun serialize(bean: Serializable?): ByteArray {
             if (bean == null) return NULL
-            val out = ByteArrayOutputStream()
-            val buffer = out.byteBuffer()
-            bean.serializeToBuffer(buffer)
-            buffer.flush()
-            buffer.close()
-            return out.toByteArray()
+            val output = BinaryOutput()
+            bean.serializeToBuffer(output)
+            return output.toByteArray()
         }
 
         @TypeConverter
@@ -55,11 +52,10 @@ class KryoConverters {
         @JvmStatic
         fun <T : Serializable> deserialize(bean: T, bytes: ByteArray?): T {
             if (bytes == null) return bean
-            val input = ByteArrayInputStream(bytes)
-            val buffer = input.byteBuffer()
             try {
-                bean.deserializeFromBuffer(buffer)
-            } catch (e: KryoException) {
+                bean.deserializeFromBuffer(BinaryInput(bytes))
+            } catch (e: BinaryFormatException) {
+                // A payload written by an older husi version simply ends early; keep what it held.
                 Logs.w(e)
             }
             bean.initializeDefaultValues()

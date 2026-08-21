@@ -1,10 +1,10 @@
 package fr.husi.fmt.openconnect
 
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import kotlinx.serialization.Serializable as KxsSerializable
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 
 @KxsSerializable
 data class OpenConnectFormEntry(
@@ -14,7 +14,7 @@ data class OpenConnectFormEntry(
     val value: String = "",
 ) {
 
-    fun serialize(output: ByteBufferOutput) {
+    fun serialize(output: BinaryOutput) {
         output.writeString(formId)
         output.writeString(submissionKey)
         output.writeString(name)
@@ -22,7 +22,7 @@ data class OpenConnectFormEntry(
     }
 
     companion object {
-        fun deserialize(input: ByteBufferInput): OpenConnectFormEntry {
+        fun deserialize(input: BinaryInput): OpenConnectFormEntry {
             return OpenConnectFormEntry(
                 formId = input.readString().orEmpty(),
                 submissionKey = input.readString().orEmpty(),
@@ -59,7 +59,7 @@ class OpenConnectBean : AbstractBean() {
     /** Answers remembered from interactive authentication, replayed on reconnect. */
     var formEntries: List<OpenConnectFormEntry> = emptyList()
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(2)
         super.serialize(output)
         output.writeString(server)
@@ -91,7 +91,7 @@ class OpenConnectBean : AbstractBean() {
         output.writeString(tlsPeerFingerprint)
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         super.deserialize(input)
         server = input.readString().orEmpty()
@@ -127,5 +127,5 @@ class OpenConnectBean : AbstractBean() {
 
     override fun displayAddress() = server
 
-    override fun clone() = KryoConverters.deserialize(OpenConnectBean(), KryoConverters.serialize(this))
+    override fun clone() = BeanConverters.deserialize(OpenConnectBean(), BeanConverters.serialize(this))
 }

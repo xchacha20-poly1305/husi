@@ -6,11 +6,11 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
 import fr.husi.GroupOrder
 import fr.husi.GroupType
 import fr.husi.fmt.Serializable
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.repository.resolveRepository
@@ -38,7 +38,7 @@ data class ProxyGroup(
         subscription?.applyDefaultValues()
     }
 
-    override fun serializeToBuffer(output: ByteBufferOutput) {
+    override fun serializeToBuffer(output: BinaryOutput) {
         if (export) {
 
             output.writeInt(0)
@@ -62,11 +62,11 @@ data class ProxyGroup(
         }
     }
 
-    override fun deserializeFromBuffer(input: ByteBufferInput) {
+    override fun deserializeFromBuffer(input: BinaryInput) {
         if (export) {
             val version = input.readInt()
 
-            name = input.readString()
+            name = input.readNullableString()
             type = input.readInt()
             val subscription = SubscriptionBean()
             this.subscription = subscription
@@ -78,7 +78,7 @@ data class ProxyGroup(
             id = input.readLong()
             userOrder = input.readLong()
             ungrouped = input.readBoolean()
-            name = input.readString()
+            name = input.readNullableString()
             type = input.readInt()
 
             if (type == GroupType.SUBSCRIPTION) {

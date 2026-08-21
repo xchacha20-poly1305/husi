@@ -8,7 +8,7 @@ import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.group.GroupUpdater
 import fr.husi.ktx.b64Decode
 import fr.husi.ktx.blankAsNull
@@ -79,7 +79,7 @@ class ImportLinkInteractor {
         } else {
             val data =
                 uri.substringAfter('?', "").substringBefore('#').blankAsNull() ?: return null
-            group = KryoConverters.deserialize(
+            group = BeanConverters.deserialize(
                 ProxyGroup().apply { export = true },
                 data.b64Decode().zlibDecompress(),
             ).apply {

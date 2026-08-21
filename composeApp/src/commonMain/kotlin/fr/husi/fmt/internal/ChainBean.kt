@@ -1,9 +1,9 @@
 package fr.husi.fmt.internal
 
 import kotlinx.serialization.Serializable as KxsSerializable
-import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.esotericsoftware.kryo.io.ByteBufferOutput
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
+import fr.husi.io.BinaryInput
+import fr.husi.io.BinaryOutput
 
 @KxsSerializable
 class ChainBean : InternalBean() {
@@ -31,7 +31,7 @@ class ChainBean : InternalBean() {
         return name
     }
 
-    override fun serialize(output: ByteBufferOutput) {
+    override fun serialize(output: BinaryOutput) {
         output.writeInt(1)
         output.writeInt(proxies.size)
         for (proxy in proxies) {
@@ -39,7 +39,7 @@ class ChainBean : InternalBean() {
         }
     }
 
-    override fun deserialize(input: ByteBufferInput) {
+    override fun deserialize(input: BinaryInput) {
         val version = input.readInt()
         if (version < 1) {
             input.readString()
@@ -54,6 +54,6 @@ class ChainBean : InternalBean() {
     }
 
     override fun clone(): ChainBean {
-        return KryoConverters.deserialize(ChainBean(), KryoConverters.serialize(this))
+        return BeanConverters.deserialize(ChainBean(), BeanConverters.serialize(this))
     }
 }

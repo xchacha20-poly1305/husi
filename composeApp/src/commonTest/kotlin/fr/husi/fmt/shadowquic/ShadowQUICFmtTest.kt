@@ -2,7 +2,7 @@ package fr.husi.fmt.shadowquic
 
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import fr.husi.ktx.getObject
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
@@ -206,7 +206,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `shadowquic bean should preserve sunnyquic fields through kryo serialization`() {
+    fun `shadowquic bean should preserve sunnyquic fields through binary serialization`() {
         val source = ShadowQUICBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -224,7 +224,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
         }
 
         val restored = assertNotNull(
-            KryoConverters.shadowQUICDeserialize(KryoConverters.serialize(source)),
+            BeanConverters.shadowQUICDeserialize(BeanConverters.serialize(source)),
         )
 
         assertEquals(source.subProtocol, restored.subProtocol)

@@ -1,7 +1,7 @@
 package fr.husi.database
 
 import fr.husi.SubscriptionType
-import fr.husi.fmt.KryoConverters
+import fr.husi.fmt.BeanConverters
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -15,9 +15,9 @@ class SubscriptionBeanTest {
             ageIdentity = "AGE-SECRET-KEY-1TEST"
         }
 
-        val restored = KryoConverters.deserialize(
+        val restored = BeanConverters.deserialize(
             SubscriptionBean(),
-            KryoConverters.serialize(subscription),
+            BeanConverters.serialize(subscription),
         )
 
         assertEquals("AGE-SECRET-KEY-1TEST", restored.ageIdentity)
