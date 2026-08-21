@@ -1,6 +1,34 @@
+# Hosted Weblate: https://hosted.weblate.org/projects/husi/
+# One component per strings.xml tree. A filemask may contain only one "*"
+# (the language code). Linked components share the Git checkout of `husi`.
+
 component:
-  name: Husi
+  name: husi
   slug: husi
   project: husi
   filemask: composeApp/src/commonMain/composeResources/values-*/strings.xml
   template: composeApp/src/commonMain/composeResources/values/strings.xml
+  file_format: cmp-resource
+
+components:
+  - name: Android
+    slug: android
+    project: husi
+    repo: weblate://husi/husi
+    filemask: composeApp/src/androidMain/composeResources/values-*/strings.xml
+    template: composeApp/src/androidMain/composeResources/values/strings.xml
+    file_format: cmp-resource
+  - name: Desktop
+    slug: desktop
+    project: husi
+    repo: weblate://husi/husi
+    filemask: composeApp/src/desktopMain/composeResources/values-*/strings.xml
+    template: composeApp/src/desktopMain/composeResources/values/strings.xml
+    file_format: cmp-resource
+  - name: Android system
+    slug: android-system
+    project: husi
+    repo: weblate://husi/husi
+    filemask: composeApp/src/androidMain/res/values-*/strings.xml
+    template: composeApp/src/androidMain/res/values/strings.xml
+    file_format: aresource
