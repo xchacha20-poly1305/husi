@@ -9,8 +9,8 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
 import java.net.Inet4Address
-import java.net.InetAddress
 import java.net.Inet6Address
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.Socket
@@ -141,16 +141,15 @@ fun mkPort(): Int {
     return port
 }
 
-val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})" }
+val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (sing-box ${Libcore.versionBox()})" }
 
 /**
-Replace all version-about escapes in userAent
+ * Replace all version-about escapes in User-Agent
  */
 fun generateUserAgent(userAgent: String): String {
     if (userAgent.isBlank()) return USER_AGENT
-    return userAgent.replace("\$version_code", BuildConfig.VERSION_CODE.toString())
-        .replace("\$version", BuildConfig.VERSION_NAME)
-        .replace("\$box_version", Libcore.versionBox())
+    return userAgent.replace($$"$version", BuildConfig.VERSION_NAME)
+        .replace($$"$box_version", Libcore.versionBox())
 }
 
 fun InterfaceAddress.toPrefix(): String {
