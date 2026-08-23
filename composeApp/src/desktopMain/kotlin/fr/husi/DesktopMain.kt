@@ -238,9 +238,13 @@ class DesktopMain(
 
             val windowState = rememberWindowState(size = DpSize(1200.dp, 800.dp))
 
-            fun openWindow() {
-                windowVisible = true
-                windowState.isMinimized = false
+            // The tray library keys its native rebuild on this reference, so a fresh lambda
+            // every recomposition would re-render the icon and rebuild the menu each time.
+            val openWindow: () -> Unit = remember(windowState) {
+                {
+                    windowVisible = true
+                    windowState.isMinimized = false
+                }
             }
 
             LaunchedEffect(Unit) {
@@ -288,12 +292,20 @@ class DesktopMain(
                     .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
                     .collectAsState(Key.MODE_VPN)
 
+                fun setServiceMode(mode: String) {
+                    if (DataStore.serviceMode == mode) return
+                    DataStore.serviceMode = mode
+                    if (serviceStatus.state.canStop) {
+                        repository.reloadService()
+                    }
+                }
+
                 val textExit = stringResource(Res.string.exit)
                 val iconClose = painterResource(Res.drawable.close)
                 Tray(
                     icon = iconServiceActive,
                     tooltip = appName,
-                    primaryAction = ::openWindow,
+                    primaryAction = openWindow,
                     menuContent = {
                         Item(
                             label = serviceStatus.profileName ?: appName,
@@ -301,41 +313,31 @@ class DesktopMain(
                         ) {
                             openWindow()
                         }
-                        CheckableItem(
+                        Item(
                             label = switchText,
-                            checked = serviceStatus.state == ServiceState.Connected
-                                    || serviceStatus.state == ServiceState.Stopped
-                                    || serviceStatus.state == ServiceState.Idle,
-                            onCheckedChange = {
-                                when (serviceStatus.state) {
-                                    ServiceState.Stopped -> repository.startService()
-                                    ServiceState.Idle, ServiceState.Connected -> repository.stopService()
-                                    else -> {}
-                                }
-                            },
                             shortcut = KeyShortcut(TrayKey.Return, ctrl = true),
-                        )
+                        ) {
+                            when (serviceStatus.state) {
+                                ServiceState.Stopped -> repository.startService()
+                                ServiceState.Idle, ServiceState.Connected -> repository.stopService()
+                                else -> {}
+                            }
+                        }
                         SubMenu(
                             label = textServiceMode,
                         ) {
                             CheckableItem(
                                 label = textServiceModeProxy,
                                 checked = serviceMode == Key.MODE_PROXY,
-                                onCheckedChange = {
-                                    if (serviceMode != Key.MODE_PROXY) {
-                                        DataStore.serviceMode = Key.MODE_PROXY
-                                        repository.reloadService()
-                                    }
+                                onCheckedChange = { isSelected ->
+                                    if (isSelected) setServiceMode(Key.MODE_PROXY)
                                 },
                             )
                             CheckableItem(
                                 label = textServiceModeVpn,
                                 checked = serviceMode == Key.MODE_VPN,
-                                onCheckedChange = {
-                                    if (serviceMode != Key.MODE_VPN) {
-                                        DataStore.serviceMode = Key.MODE_VPN
-                                        repository.reloadService()
-                                    }
+                                onCheckedChange = { isSelected ->
+                                    if (isSelected) setServiceMode(Key.MODE_VPN)
                                 },
                             )
                         }

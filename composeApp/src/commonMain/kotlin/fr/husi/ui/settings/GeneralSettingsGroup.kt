@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.TunImplementation
+import fr.husi.bg.BackendState
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
@@ -313,9 +314,15 @@ internal fun GeneralSettingsGroup(
     val serviceModeValue by DataStore.configurationStore
         .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
         .collectAsStateWithLifecycle(Key.MODE_VPN)
+    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     ListPreference(
         value = serviceModeValue,
-        onValueChange = { DataStore.serviceMode = it },
+        onValueChange = { mode ->
+            DataStore.serviceMode = mode
+            if (serviceStatus.state.canStop) {
+                resolveRepository().reloadService()
+            }
+        },
         values = listOf(Key.MODE_VPN, Key.MODE_PROXY),
         title = { Text(stringResource(Res.string.service_mode)) },
         icon = {
