@@ -18,7 +18,7 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.1
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.5
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.6
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/sys v0.47.0
 	google.golang.org/grpc v1.83.0
@@ -32,9 +32,11 @@ tool (
 	google.golang.org/protobuf/cmd/protoc-gen-go
 )
 
-// replace github.com/sagernet/sing-box => ../../sing-box
-
-replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a
+replace (
+	github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.14.0-beta.17.0.20260822095506-d7cf67c64b79
+	github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a
+// github.com/sagernet/sing-box => ../../sing-box
+)
 
 // cmd
 require (

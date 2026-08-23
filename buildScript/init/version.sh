@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-GO_VERSION="1.26.6"
+GO_VERSION="1.27.0"
 JAVA_VERSION="21"
 # https://github.com/JetBrains/JetBrainsRuntime
 # Bundled into the Windows JBR packages. The feature version has to stay
