@@ -29,6 +29,7 @@ import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.URLTestOptions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.emptyFlow
 import kotlin.time.Duration
 
@@ -205,12 +206,20 @@ open class FakeCoreClient : CoreClient {
     var startServiceCalls: Int = 0
     var stopServiceCalls: Int = 0
 
+    /** Set to make [stopService] fail, standing in for an unresponsive host. */
+    var stopServiceThrowable: Throwable? = null
+
+    /** Set to make [stopService] hang, standing in for a wedged box instance. */
+    var stopServiceDelay: Duration = Duration.ZERO
+
     override suspend fun startService(request: StartServiceRequest) {
         startServiceCalls += 1
     }
 
     override suspend fun stopService() {
         stopServiceCalls += 1
+        delay(stopServiceDelay)
+        stopServiceThrowable?.let { throw it }
     }
     override suspend fun getClientMetadata(): GetClientMetadataResponse =
         GetClientMetadataResponse.getDefaultInstance()

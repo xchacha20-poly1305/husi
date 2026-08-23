@@ -312,3 +312,42 @@ func TestHolderStartFailThenStartOK(t *testing.T) {
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, resp.GetLatencyMs(), int32(0))
 }
+
+func TestHostStuckAfterCloseTimeout(t *testing.T) {
+	stuck := make(chan error, 4)
+	host, err := coresvc.NewHost(coresvc.HostOptions{
+		Context: testBaseContext(t),
+		OnStuck: func(err error) { stuck <- err },
+	})
+	require.NoError(t, err)
+	assert.False(t, host.Stuck())
+
+	hang := make(chan struct{})
+	defer close(hang)
+	err = host.CloseServiceWithWatchdogForTest(func() error {
+		<-hang
+		return nil
+	}, 50*time.Millisecond)
+	require.ErrorIs(t, err, coresvc.ErrCloseTimeout)
+	assert.True(t, host.Stuck())
+
+	select {
+	case notified := <-stuck:
+		require.ErrorIs(t, notified, coresvc.ErrCloseTimeout)
+	case <-time.After(time.Second):
+		t.Fatal("OnStuck was not called")
+	}
+
+	// Every later lifecycle call fails fast instead of queueing behind the
+	// lock the abandoned close still holds.
+	start := time.Now()
+	require.ErrorIs(t, host.CloseService(time.Hour), coresvc.ErrHostStuck)
+	require.ErrorIs(t, host.StartOrReload(t.Context(), `{}`), coresvc.ErrHostStuck)
+	assert.Less(t, time.Since(start), 5*time.Second)
+
+	select {
+	case <-stuck:
+		t.Fatal("OnStuck was called more than once")
+	case <-time.After(100 * time.Millisecond):
+	}
+}

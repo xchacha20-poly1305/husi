@@ -46,6 +46,7 @@ func (s *Service) buildHost() (*coresvc.Host, error) {
 		AppHandler:  s.appHandler,
 		Backend:     &serviceBackend{service: s},
 		FileLogSink: fileLogSink(),
+		OnStuck:     s.hostStuck,
 	}
 	return coresvc.NewHost(opts)
 }

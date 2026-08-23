@@ -112,6 +112,12 @@ func ServiceInstall(workingDir string) error {
 			return E.Cause(err, "create service")
 		}
 		created = true
+		err = configureRecoveryActions(service)
+		if err != nil {
+			_ = service.Delete()
+			_ = service.Close()
+			return err
+		}
 	}
 	defer service.Close()
 
@@ -137,6 +143,27 @@ func updateServiceConfig(service *mgr.Service, config mgr.Config, executablePath
 	currentConfig.BinaryPathName = binaryPathName
 	if err := service.UpdateConfig(currentConfig); err != nil {
 		return E.Cause(err, "update service config")
+	}
+	return configureRecoveryActions(service)
+}
+
+func configureRecoveryActions(service *mgr.Service) error {
+	const (
+		restartDelay = 5 * time.Second
+		resetPeriod  = 24 * time.Hour
+	)
+	actions := []mgr.RecoveryAction{
+		{Type: mgr.ServiceRestart, Delay: restartDelay},
+		{Type: mgr.ServiceRestart, Delay: restartDelay},
+		{Type: mgr.ServiceRestart, Delay: restartDelay},
+	}
+	err := service.SetRecoveryActions(actions, uint32(resetPeriod.Seconds()))
+	if err != nil {
+		return E.Cause(err, "set service recovery actions")
+	}
+	err = service.SetRecoveryActionsOnNonCrashFailures(true)
+	if err != nil {
+		return E.Cause(err, "set service recovery actions on non-crash failures")
 	}
 	return nil
 }

@@ -4,17 +4,29 @@ package daemonhost
 
 import (
 	"context"
+	"time"
 
+	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
+
 	"golang.org/x/sys/windows/svc"
 )
 
+const (
+	daemonStopTimeout    = 2*C.FatalStopTimeout + 10*time.Second
+	stopProgressInterval = 1 * time.Second
+	stopWaitHint         = 2 * stopProgressInterval
+	exitCodeStopTimeout  = 2
+	exitCodeRunFailed    = 1
+)
+
 func runDaemonHost(ctx context.Context, host *DaemonHost) error {
-	interactive, err := svc.IsAnInteractiveSession()
+	isService, err := svc.IsWindowsService()
 	if err != nil {
 		return E.Cause(err, "check Windows service session")
 	}
-	if interactive {
+	if !isService {
 		return host.run(ctx)
 	}
 	return runWindowsService(host)
@@ -56,7 +68,8 @@ func (s *windowsDaemonService) Execute(
 		case err := <-runResult:
 			statuses <- svc.Status{State: svc.StopPending}
 			if err != nil {
-				return true, 1
+				log.Error("daemon host exited: ", err)
+				return true, exitCodeRunFailed
 			}
 			return false, 0
 		case request := <-requests:
@@ -64,13 +77,51 @@ func (s *windowsDaemonService) Execute(
 			case svc.Interrogate:
 				statuses <- request.CurrentStatus
 			case svc.Stop, svc.Shutdown:
-				statuses <- svc.Status{State: svc.StopPending}
 				cancel()
-				if err := <-runResult; err != nil {
-					return true, 1
-				}
-				return false, 0
+				return waitForStop(runResult, requests, statuses, daemonStopTimeout)
 			}
+		}
+	}
+}
+
+func waitForStop(
+	runResult <-chan error,
+	requests <-chan svc.ChangeRequest,
+	statuses chan<- svc.Status,
+	timeout time.Duration,
+) (bool, uint32) {
+	checkPoint := uint32(1)
+	reportProgress := func() {
+		statuses <- svc.Status{
+			State:      svc.StopPending,
+			CheckPoint: checkPoint,
+			WaitHint:   uint32(stopWaitHint.Milliseconds()),
+		}
+		checkPoint++
+	}
+	reportProgress()
+
+	progress := time.NewTicker(stopProgressInterval)
+	defer progress.Stop()
+	deadline := time.After(timeout)
+
+	for {
+		select {
+		case err := <-runResult:
+			if err != nil {
+				log.Error("daemon host stopped with error: ", err)
+				return true, exitCodeRunFailed
+			}
+			return false, 0
+		case <-progress.C:
+			reportProgress()
+		case request := <-requests:
+			if request.Cmd == svc.Interrogate {
+				statuses <- request.CurrentStatus
+			}
+		case <-deadline:
+			log.Error("daemon host did not stop within ", timeout, ", exiting for service recovery")
+			return true, exitCodeStopTimeout
 		}
 	}
 }

@@ -40,6 +40,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.context.GlobalContext
 import java.io.BufferedReader
 import java.io.File
@@ -61,9 +62,16 @@ data class DaemonOwner(
     val id: String,
 )
 
+private enum class SessionTeardown {
+    Graceful,
+    Forced,
+    Immediate,
+}
+
 internal class CoreHostController(
     private val repository: DesktopRepository,
     private val resolveCoreClient: () -> CoreClient = { GlobalContext.get().get() },
+    private val resolveCoreBinary: () -> File? = ::resolveHusiCoreBinary,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val access = Mutex()
@@ -76,6 +84,12 @@ internal class CoreHostController(
     private var sessionProcess: Process? = null
     private var sessionStdin: java.io.OutputStream? = null
     private var hostReady = false
+
+    /**
+     * Set while the session child is being torn down on purpose (UI shutdown,
+     * daemon reattach), so a stop that times out does not respawn it.
+     */
+    private var discardingSession = false
 
     /** True when the shared [CoreClient] is dialing the system daemon socket. */
     private var connectedToDaemon = false
@@ -151,24 +165,31 @@ internal class CoreHostController(
         }
     }
 
-    fun stop() {
-        runExclusive { stopLocked() }
+    fun stop(): Job = runExclusive {
+        stopLocked()
     }
 
-    /**
-     * UI process shutdown. Always stops the box instance, then detaches from
-     * a system daemon (the daemon process stays installed) or kills a
-     * session child.
-     */
     fun shutdownHost() {
         runBlocking {
-            access.withLock {
-                stopLocked()
-                if (connectedToDaemon) {
-                    detachDaemonClientLocked()
-                } else {
-                    closeSessionLocked()
+            val finished = withTimeoutOrNull(SHUTDOWN_TIMEOUT) {
+                access.withLock {
+                    discardingSession = true
+                    try {
+                        stopLocked()
+                        if (connectedToDaemon) {
+                            detachDaemonClientLocked()
+                        } else {
+                            closeSessionLocked(SessionTeardown.Immediate)
+                        }
+                    } finally {
+                        discardingSession = false
+                    }
                 }
+                true
+            }
+            if (finished == null) {
+                Logs.w("core host shutdown exceeded $SHUTDOWN_TIMEOUT; abandoning the session child")
+                abandonSessionProcess()
             }
         }
     }
@@ -187,10 +208,15 @@ internal class CoreHostController(
             if (connectedToDaemon) {
                 detachDaemonClientLocked()
             } else {
-                if (hostReady && DataStore.serviceState.canStop) {
-                    stopLocked()
+                discardingSession = true
+                try {
+                    if (hostReady && DataStore.serviceState.canStop) {
+                        stopLocked()
+                    }
+                    closeSessionLocked()
+                } finally {
+                    discardingSession = false
                 }
-                closeSessionLocked()
             }
             triedDaemon = false
             apiVersionMismatch = false
@@ -233,8 +259,7 @@ internal class CoreHostController(
         if (connectedToDaemon && hostReady) {
             if (probeHost()) return
             Logs.w("daemon connection lost; falling back to session")
-            detachDaemonClientLocked()
-            triedDaemon = false
+            releaseDaemonLocked()
         }
 
         // Already on a live session — re-probe.
@@ -462,18 +487,63 @@ internal class CoreHostController(
         trafficLooper?.stop()
         trafficLooper = null
 
-        runCatching {
-            if (hostReady) {
-                coreClient.stopService()
+        if (!stopBoxLocked() && !discardingSession) {
+            // A host that will not stop keeps its ports and TUN device, so the
+            // next start would fail.
+            if (connectedToDaemon) {
+                recoverDaemonLocked()
+            } else {
+                recoverSessionLocked()
             }
-        }.onFailure {
-            Logs.w(it)
         }
 
         cacheFiles.forEach { file ->
             runCatching { file.delete() }
         }
         cacheFiles.clear()
+    }
+
+    private suspend fun stopBoxLocked(): Boolean {
+        if (!hostReady) return true
+        val acknowledged = withTimeoutOrNull(STOP_SERVICE_TIMEOUT) {
+            runCatching { coreClient.stopService() }
+                .onFailure { Logs.w(it) }
+                .isSuccess
+        }
+        if (acknowledged == null) {
+            Logs.w("StopService did not answer within $STOP_SERVICE_TIMEOUT")
+            return false
+        }
+        return acknowledged
+    }
+
+    private suspend fun recoverDaemonLocked() {
+        Logs.w("daemon host did not stop; detaching until it is replaced")
+        daemonDetaches += 1
+        runCatching {
+            releaseDaemonLocked()
+        }.onFailure {
+            Logs.w(it)
+        }
+    }
+
+    private suspend fun releaseDaemonLocked() {
+        detachDaemonClientLocked()
+        triedDaemon = false
+    }
+
+    private suspend fun recoverSessionLocked() {
+        Logs.w("core host did not stop; restarting the session")
+        sessionRestarts += 1
+        runCatching {
+            closeSessionLocked(SessionTeardown.Forced)
+            spawnSessionLocked()
+            waitForHostReady()
+            hostReady = true
+        }.onFailure {
+            // The next ensureHostLocked spawns again; stopping must not fail.
+            Logs.w(it)
+        }
     }
 
     private suspend fun spawnSessionLocked() {
@@ -486,10 +556,8 @@ internal class CoreHostController(
         publishHostState()
 
         coreDir.mkdirs()
-        val binary = resolveHusiCoreBinary()
-            ?: throw IOException(
-                "husi-core binary not found (looked in: ${describeHusiCoreSearchLocations()})",
-            )
+        val binary = resolveCoreBinary()
+            ?: throw IOException("husi-core binary not found (looked in: ${describeHusiCoreSearchLocations()})")
 
         val socketPath = coreDir.resolve("api.sock")
         if (socketPath.exists()) {
@@ -514,30 +582,36 @@ internal class CoreHostController(
         sessionProcess = process
         sessionStdin = process.outputStream
 
-        Thread({
-            try {
-                BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
-                    reader.lineSequence().forEach { line ->
-                        Logs.d("[husi-core] $line")
+        Thread(
+            {
+                try {
+                    BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
+                        reader.lineSequence().forEach { line ->
+                            Logs.d("[husi-core] $line")
+                        }
                     }
+                } catch (_: IOException) {
                 }
-            } catch (_: IOException) {
-            }
-        }, "husi-core-stderr").apply {
+            },
+            "husi-core-stderr",
+        ).apply {
             isDaemon = true
             start()
         }
 
-        Thread({
-            try {
-                BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-                    reader.lineSequence().forEach { line ->
-                        Logs.d("[husi-core] $line")
+        Thread(
+            {
+                try {
+                    BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                        reader.lineSequence().forEach { line ->
+                            Logs.d("[husi-core] $line")
+                        }
                     }
+                } catch (_: IOException) {
                 }
-            } catch (_: IOException) {
-            }
-        }, "husi-core-stdout").apply {
+            },
+            "husi-core-stdout",
+        ).apply {
             isDaemon = true
             start()
         }
@@ -550,11 +624,11 @@ internal class CoreHostController(
                     sessionProcess = null
                     sessionStdin = null
                     hostReady = false
-                }
-                if (DataStore.serviceState.canStop) {
-                    stopLocked(
-                        "${resolveRepository().getString(Res.string.service_failed)}: core host exited ($exit)",
-                    )
+                    if (DataStore.serviceState.canStop) {
+                        stopLocked(
+                            "${resolveRepository().getString(Res.string.service_failed)}: core host exited ($exit)",
+                        )
+                    }
                 }
             }
         }
@@ -581,7 +655,9 @@ internal class CoreHostController(
         }.getOrDefault(false)
     }
 
-    private suspend fun closeSessionLocked() {
+    private suspend fun closeSessionLocked(
+        teardown: SessionTeardown = SessionTeardown.Graceful,
+    ) {
         hostReady = false
         runCatching {
             GlobalContext.getOrNull()?.get<CoreClient>()?.close()
@@ -593,26 +669,46 @@ internal class CoreHostController(
 
         val process = sessionProcess
         sessionProcess = null
-        if (process != null && process.isAlive) {
-            val exited = runInterruptible(Dispatchers.IO) {
-                process.waitFor(2, TimeUnit.SECONDS)
+        if (process == null || !process.isAlive) return
+
+        if (teardown == SessionTeardown.Immediate) {
+            process.destroyForcibly()
+            return
+        }
+
+        val exited = teardown == SessionTeardown.Graceful && runInterruptible(Dispatchers.IO) {
+            process.waitFor(2, TimeUnit.SECONDS)
+        }
+        if (!exited) {
+            process.destroy()
+            val forceExited = runInterruptible(Dispatchers.IO) {
+                process.waitFor(1, TimeUnit.SECONDS)
             }
-            if (!exited) {
-                process.destroy()
-                val forceExited = runInterruptible(Dispatchers.IO) {
-                    process.waitFor(1, TimeUnit.SECONDS)
-                }
-                if (!forceExited) {
-                    process.destroyForcibly()
-                }
+            if (!forceExited) {
+                process.destroyForcibly()
             }
         }
+    }
+
+    private fun abandonSessionProcess() {
+        val process = sessionProcess ?: return
+        sessionProcess = null
+        sessionStdin = null
+        process.destroyForcibly()
     }
 
     private fun changeState(state: ServiceState, profileName: String? = null) {
         DataStore.serviceState = state
         BackendState.updateState(state, profileName)
     }
+
+    /** Test-only: how often a stuck session host had to be restarted. */
+    internal var sessionRestarts = 0
+        private set
+
+    /** Test-only: how often a stuck daemon host had to be detached. */
+    internal var daemonDetaches = 0
+        private set
 
     /** Test-only: pretend the shared client is attached to a live host. */
     internal fun attachHostForTest(daemon: Boolean) {
@@ -624,6 +720,14 @@ internal class CoreHostController(
     companion object {
         private val HOST_READY_TIMEOUT = 15.seconds
 
+        /**
+         * How long a stop may take before the session host is considered
+         * stuck. Matches the core's own close watchdog (`C.FatalStopTimeout`)
+         * and stays below the StopService RPC deadline.
+         */
+        private val STOP_SERVICE_TIMEOUT = 10.seconds
+
+        private val SHUTDOWN_TIMEOUT = 3.seconds
 
         /**
          * Parent directory of the Unix daemon UDS

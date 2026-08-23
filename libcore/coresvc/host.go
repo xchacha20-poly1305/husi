@@ -7,9 +7,11 @@ import (
 	"net"
 	"os"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -44,6 +46,9 @@ type Host struct {
 
 	server   *grpc.Server
 	listener net.Listener
+
+	stuck   atomic.Bool
+	onStuck func(error)
 }
 
 type HostOptions struct {
@@ -61,7 +66,13 @@ type HostOptions struct {
 	// SkipDefaultInterceptors skips the built-in locale interceptors. Use when
 	// ServerOptions already chain locale + auth in the desired order.
 	SkipDefaultInterceptors bool
+	OnStuck                 func(error)
 }
+
+var (
+	ErrCloseTimeout = E.New("sing-box did not close in time")
+	ErrHostStuck    = E.New("core host is stuck: sing-box never finished closing")
+)
 
 // NewHost constructs a Host. Call Start to listen; Close to tear down.
 func NewHost(options HostOptions) (*Host, error) {
@@ -93,6 +104,7 @@ func NewHost(options HostOptions) (*Host, error) {
 		fileLogSink:             options.FileLogSink,
 		serverOptions:           options.ServerOptions,
 		skipDefaultInterceptors: options.SkipDefaultInterceptors,
+		onStuck:                 options.OnStuck,
 	}
 	return h, nil
 }
@@ -218,6 +230,9 @@ func (h *Host) StartOn(listener net.Listener) error {
 }
 
 func (h *Host) StartOrReload(ctx context.Context, config string) error {
+	if h.Stuck() {
+		return ErrHostStuck
+	}
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -247,12 +262,37 @@ func (h *Host) attachFileLogSink() {
 }
 
 func (h *Host) CloseService(timeout time.Duration) error {
-	return closeWithWatchdog(h.started.CloseService, timeout)
+	return h.closeServiceWithWatchdog(h.started.CloseService, timeout)
+}
+
+func (h *Host) Stuck() bool {
+	return h.stuck.Load()
+}
+
+func (h *Host) closeServiceWithWatchdog(closeFn func() error, timeout time.Duration) error {
+	if h.Stuck() {
+		return ErrHostStuck
+	}
+	err := closeWithWatchdog(closeFn, timeout)
+	if errors.Is(err, ErrCloseTimeout) {
+		h.markStuck(err)
+	}
+	return err
+}
+
+func (h *Host) markStuck(err error) {
+	if h.stuck.Swap(true) {
+		return
+	}
+	log.Error(E.Cause(err, "core host is stuck"), ": the instance is still running and only a new process can replace it")
+	if h.onStuck != nil {
+		go h.onStuck(err)
+	}
 }
 
 func closeWithWatchdog(closeFn func() error, timeout time.Duration) error {
 	if timeout <= 0 {
-		timeout = 10 * time.Second
+		timeout = C.FatalStopTimeout
 	}
 	done := make(chan error, 1)
 	go func() {
@@ -260,7 +300,7 @@ func closeWithWatchdog(closeFn func() error, timeout time.Duration) error {
 	}()
 	select {
 	case <-time.After(timeout):
-		return E.New("sing-box did not close in time")
+		return ErrCloseTimeout
 	case err := <-done:
 		return err
 	}
@@ -278,7 +318,11 @@ func (h *Host) Close() error {
 		h.events.Close()
 	}
 	if h.started != nil {
-		_ = h.started.CloseService()
+		// Close box may hang.
+		err := h.closeServiceWithWatchdog(h.started.CloseService, C.FatalStopTimeout)
+		if errors.Is(err, ErrHostStuck) {
+			log.Warn("closing a stuck host: the running instance goes down with this process")
+		}
 		h.started.Close()
 	}
 	if h.server != nil {

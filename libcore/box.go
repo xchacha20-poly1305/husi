@@ -14,6 +14,8 @@ import (
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 )
 
 // boxInstance is the trimmed forTest path used by StandaloneURLTest. Production
@@ -103,7 +105,7 @@ func (b *boxInstance) CloseTimeout(timeout time.Duration) (err error) {
 	}()
 	select {
 	case <-time.After(timeout):
-		return E.New("sing-box did not close in time")
+		return coresvc.ErrCloseTimeout
 	case err = <-done:
 		if !b.forTest {
 			log.Info("sing-box closed in ", F.Seconds(time.Since(start).Seconds()), " s.")

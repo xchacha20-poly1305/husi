@@ -26,7 +26,7 @@ class CoreHostControllerTest {
         tempDir = createTempDirectory("husi-core-host").toFile()
         repository = DesktopRepository(tempDir)
         fakeClient = FakeCoreClient()
-        controller = CoreHostController(repository) { fakeClient }
+        controller = CoreHostController(repository, resolveCoreClient = { fakeClient })
     }
 
     @AfterTest

@@ -69,6 +69,12 @@ func (h *SessionHost) Run(ctx context.Context) error {
 	runCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	stuck := newStuckHostSignal(
+		cancel,
+		"core host is unusable, ending the session",
+		"ending the session",
+	)
+
 	hostCtx := sessionBaseContext(runCtx)
 	holder := coresvc.NewInstanceContextHolder()
 	service.MustRegister[*coresvc.InstanceContextHolder](hostCtx, holder)
@@ -87,6 +93,7 @@ func (h *SessionHost) Run(ctx context.Context) error {
 			workingDir: workingDir,
 		},
 		ExtraServices: daemonSvc,
+		OnStuck:       stuck.report,
 	}
 	host, err := coresvc.NewHost(hostOpts)
 	if err != nil {
@@ -111,7 +118,7 @@ func (h *SessionHost) Run(ctx context.Context) error {
 	_ = daemonSvc.stopLocked()
 	daemonSvc.access.Unlock()
 
-	return host.Close()
+	return stuck.exitError(host.Close())
 }
 
 func sessionBaseContext(parent context.Context) context.Context {
