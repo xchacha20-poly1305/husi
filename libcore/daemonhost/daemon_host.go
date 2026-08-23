@@ -48,6 +48,10 @@ func DefaultSocketPath() string {
 }
 
 func (h *DaemonHost) Run(ctx context.Context) error {
+	return runDaemonHost(ctx, h)
+}
+
+func (h *DaemonHost) run(ctx context.Context) error {
 	if ctx == nil {
 		return E.New("missing context")
 	}
