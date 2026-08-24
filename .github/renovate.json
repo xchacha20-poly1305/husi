@@ -50,7 +50,6 @@
         "gomod"
       ],
       "matchPackageNames": [
-        "github.com/sagernet/sing-box",
         "github.com/exclavenetwork/sing-juicity",
         "github.com/xchacha20-poly1305/TLS-scribe",
         "github.com/xchacha20-poly1305/anchor",

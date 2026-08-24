@@ -8,11 +8,11 @@ require (
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/klauspost/compress v1.19.2
 	github.com/miekg/dns v1.1.72
-	github.com/sagernet/sing v0.9.0-beta.2
-	github.com/sagernet/sing-box v1.14.0-beta.17.0.20260821044314-712046a26d12
-	github.com/sagernet/sing-tun v0.8.12-0.20260810140529-d67734281390
+	github.com/sagernet/sing v0.9.0-beta.4
+	github.com/sagernet/sing-box v1.14.0-rc.1
+	github.com/sagernet/sing-tun v0.9.0-beta.2
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.2
 	github.com/xchacha20-poly1305/anchor v0.8.0
@@ -21,7 +21,7 @@ require (
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.6
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/sys v0.47.0
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.1
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -33,7 +33,7 @@ tool (
 )
 
 replace (
-	github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.14.0-beta.17.0.20260822095506-d7cf67c64b79
+	github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.14.0-rc.1.0.20260824032629-f2d60b219eda
 	github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a
 // github.com/sagernet/sing-box => ../../sing-box
 )
@@ -93,7 +93,7 @@ require (
 	github.com/pion/logging v0.2.4 // indirect
 	github.com/pion/transport/v4 v4.0.2 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/sagernet/bbolt v0.0.0-20260821040940-d7518b45c52b // indirect
+	github.com/sagernet/bbolt v0.0.0-20260823094646-e24805439c9c // indirect
 	github.com/sagernet/cronet-go v0.0.0-20260807162344-ec9a39c5ba3b // indirect
 	github.com/sagernet/cronet-go/all v0.0.0-20260807162344-ec9a39c5ba3b // indirect
 	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20260807161529-8d42107dcdfc // indirect
@@ -129,18 +129,18 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20260727.0-sing-box-mod.1 // indirect
 	github.com/sagernet/netlink v0.0.0-20260814022025-64455d367bbf // indirect
 	github.com/sagernet/nftables v0.3.0-mod.4 // indirect
-	github.com/sagernet/quic-go v0.61.0-sing-box-mod.4 // indirect
+	github.com/sagernet/quic-go v0.61.0-sing-box-mod.5 // indirect
 	github.com/sagernet/sing-mux v0.3.5 // indirect
 	github.com/sagernet/sing-openconnect v0.0.0-20260810065514-53aa8058f8df // indirect
 	github.com/sagernet/sing-openvpn v0.0.0-20260729104525-103eb5fe5eb6 // indirect
-	github.com/sagernet/sing-quic v0.7.0-beta.2 // indirect
+	github.com/sagernet/sing-quic v0.7.0-beta.3 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1 // indirect
-	github.com/sagernet/sing-snell v0.0.0-20260727093646-7cb813e07b73 // indirect
+	github.com/sagernet/sing-snell v0.0.0-20260824011554-f8ab8029469a // indirect
 	github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
-	github.com/sagernet/wireguard-go v0.0.5-0.20260810121456-c6c8a831ef70 // indirect
+	github.com/sagernet/wireguard-go v0.0.5-0.20260823125007-8bd032a91a30 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/smallstep/pkcs7 v0.1.1 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
@@ -150,6 +150,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/net v0.58.0 // indirect
@@ -160,6 +161,5 @@ require (
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.6.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
