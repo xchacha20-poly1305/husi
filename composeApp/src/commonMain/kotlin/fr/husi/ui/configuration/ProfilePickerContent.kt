@@ -129,7 +129,6 @@ fun rememberProfilePickerState(
         if (isPageRestored) {
             selectedGroup = groupId
         }
-        viewModel.requestFocusIfNotHave(groupId)
     }
 
     return ProfilePickerState(
@@ -229,6 +228,7 @@ fun ProfilePickerContent(
                     showActions = false,
                     onProfileSelect = onSelected,
                     bottomPadding = bottomPadding,
+                    canHoldFocus = searchBarState.currentValue != SearchBarValue.Expanded,
                 )
             }
 
@@ -247,6 +247,7 @@ fun ProfilePickerContent(
                         onSelected(id)
                     },
                     bottomPadding = 0.dp,
+                    canHoldFocus = false,
                 )
             }
 

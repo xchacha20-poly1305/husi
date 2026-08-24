@@ -244,10 +244,6 @@ class ConfigurationScreenViewModel(
         childViewModels[group]?.scrollToProxy(proxyId, true)
     }
 
-    fun requestFocusIfNotHave(groupId: Long) {
-        childViewModels[groupId]?.requestFocusIfNotHave()
-    }
-
     private var testJob: Job? = null
 
     val searchTextFieldState = TextFieldState()

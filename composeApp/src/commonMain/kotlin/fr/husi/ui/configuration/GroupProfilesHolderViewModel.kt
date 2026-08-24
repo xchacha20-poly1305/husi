@@ -34,7 +34,6 @@ data class GroupProfilesHolderUiState(
     val profiles: List<ProfileItem> = emptyList(),
     val hiddenProfiles: Int = 0,
     val scrollIndex: Int? = null,
-    val shouldRequestFocus: Boolean = false,
 )
 
 @Immutable
@@ -245,14 +244,6 @@ class GroupProfilesHolderViewModel(
         }
         return profiles.getOrNull(targetIndex)?.profile?.id
             ?.takeIf { targetIndex != currentIndex }
-    }
-
-    fun requestFocusIfNotHave() {
-        uiState.update { it.copy(shouldRequestFocus = true) }
-    }
-
-    fun consumeFocusRequest() {
-        uiState.update { it.copy(shouldRequestFocus = false) }
     }
 
     fun onProfileSelected(profileId: Long) {

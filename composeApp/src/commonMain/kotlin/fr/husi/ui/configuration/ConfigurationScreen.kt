@@ -250,7 +250,6 @@ fun ConfigurationScreen(
         if (isPageRestored) {
             DataStore.selectedGroup = groupID
         }
-        vm.requestFocusIfNotHave(groupID)
     }
 
     var showAddMenu by remember { mutableStateOf(false) }
@@ -658,6 +657,7 @@ fun ConfigurationScreen(
             showActions = true,
             onProfileSelect = vm::onProfileSelect,
             bottomPadding = bottomPadding,
+            canHoldFocus = searchBarState.currentValue != SearchBarValue.Expanded,
             onOpenProfileEditor = onOpenProfileEditor,
         )
     }
@@ -681,6 +681,7 @@ fun ConfigurationScreen(
                 viewModel = childVm,
                 showActions = true,
                 bottomPadding = 0.dp,
+                canHoldFocus = false,
                 onProfileSelect = { id ->
                     vm.onProfileSelect(id)
                     expandedScope.launch { searchBarState.animateToCollapsed() }
@@ -735,6 +736,7 @@ fun ConfigurationContent(
     showActions: Boolean,
     onProfileSelect: (Long) -> Unit,
     bottomPadding: Dp,
+    canHoldFocus: Boolean,
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
 ) {
     val snackbar = LocalSnackbarEmitter.current
@@ -786,6 +788,7 @@ fun ConfigurationContent(
                         viewModel = pageViewModel,
                         showActions = showActions,
                         bottomPadding = bottomPadding,
+                        canHoldFocus = canHoldFocus && pagerState.currentPage == page,
                         onProfileSelect = onProfileSelect,
                         onOpenProfileEditor = onOpenProfileEditor,
                         needReload = {

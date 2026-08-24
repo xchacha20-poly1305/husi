@@ -3,7 +3,6 @@ package fr.husi.ui.configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,8 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -68,9 +65,11 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.colorForUrlTestDelay
 import fr.husi.compose.fadingEdge
+import fr.husi.compose.focusRestoreAnchor
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Text
+import fr.husi.compose.rememberFocusRestoreState
 import fr.husi.compose.setPlainText
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
@@ -143,6 +142,7 @@ internal fun GroupHolderScreen(
     viewModel: GroupProfilesHolderViewModel,
     bottomPadding: Dp,
     showActions: Boolean = true,
+    canHoldFocus: Boolean,
     onProfileSelect: (Long) -> Unit,
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
     needReload: () -> Unit,
@@ -178,7 +178,7 @@ internal fun GroupHolderScreen(
     val securityAdvisory by viewModel.securityAdvisory.collectAsStateWithLifecycle(true)
 
     val dragDropListState = rememberDragDropSwipeLazyColumnState()
-    val focusRequester = remember { FocusRequester() }
+    val focusRestore = rememberFocusRestoreState()
 
     LaunchedEffect(uiState.scrollIndex) {
         uiState.scrollIndex?.let { index ->
@@ -187,14 +187,9 @@ internal fun GroupHolderScreen(
         }
     }
 
-    LaunchedEffect(uiState.shouldRequestFocus) {
-        if (uiState.shouldRequestFocus) {
-            try {
-                focusRequester.requestFocus()
-            } catch (_: Exception) {
-                // non-TV environments
-            }
-            viewModel.consumeFocusRequest()
+    LaunchedEffect(canHoldFocus, focusRestore.isAttached) {
+        if (canHoldFocus) {
+            focusRestore.restore()
         }
     }
 
@@ -258,8 +253,7 @@ internal fun GroupHolderScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .focusable()
-                .focusRequester(focusRequester)
+                .focusRestoreAnchor(focusRestore, canHoldFocus)
                 .onPreviewKeyEvent { keyEvent ->
                     if (keyEvent.type != KeyEventType.KeyDown) {
                         return@onPreviewKeyEvent false
