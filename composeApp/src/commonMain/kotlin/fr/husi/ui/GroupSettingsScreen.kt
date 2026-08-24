@@ -61,13 +61,19 @@ import fr.husi.resources.apply
 import fr.husi.resources.auto_update
 import fr.husi.resources.auto_update_delay
 import fr.husi.resources.close
+import fr.husi.resources.content_copy
 import fr.husi.resources.delete
 import fr.husi.resources.delete_group_prompt
 import fr.husi.resources.delete_sweep
+import fr.husi.resources.deduplication
+import fr.husi.resources.deduplication_sum
+import fr.husi.resources.dns
 import fr.husi.resources.done
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.filter_regex
 import fr.husi.resources.flip_camera_android
+import fr.husi.resources.force_resolve
+import fr.husi.resources.force_resolve_sum
 import fr.husi.resources.grid_3x3
 import fr.husi.resources.group_basic
 import fr.husi.resources.group_name
@@ -376,6 +382,32 @@ private fun LazyListScope.groupSettings(
                 },
                 summary = { Text(contentOrUnset(uiState.subscriptionFilterNotRegex)) },
                 valueToText = { it },
+            )
+            PreferenceDivider()
+            SwitchPreference(
+                value = uiState.subscriptionForceResolve,
+                onValueChange = { viewModel.setSubscriptionForceResolve(it) },
+                title = { Text(stringResource(Res.string.force_resolve)) },
+                icon = {
+                    MaskedIcon(
+                        Res.drawable.dns,
+                        color = IconMaskColors.IconLightBlue,
+                    )
+                },
+                summary = { Text(stringResource(Res.string.force_resolve_sum)) },
+            )
+            PreferenceDivider()
+            SwitchPreference(
+                value = uiState.subscriptionDeduplication,
+                onValueChange = { viewModel.setSubscriptionDeduplication(it) },
+                title = { Text(stringResource(Res.string.deduplication)) },
+                icon = {
+                    MaskedIcon(
+                        Res.drawable.content_copy,
+                        color = IconMaskColors.IconLightOrange,
+                    )
+                },
+                summary = { Text(stringResource(Res.string.deduplication_sum)) },
             )
         }
         val supportsAge = uiState.subscriptionType == SubscriptionType.RAW
