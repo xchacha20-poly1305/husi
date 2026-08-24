@@ -2,7 +2,6 @@
 
 package fr.husi.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,14 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
@@ -36,7 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,33 +40,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ernestoyaquello.dragdropswipelazycolumn.AllowedSwipeDirections
 import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
+import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
-
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
-
+import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.SimpleIconButton
-
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
-import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
@@ -234,110 +227,99 @@ fun RouteScreen(
         },
     ) { innerPadding ->
         val listContentPadding = innerPadding.withNavigation()
-        val density = LocalDensity.current
-        var introHeightPx by remember { mutableIntStateOf(0) }
-        val introHeightDp = with(density) { introHeightPx.toDp() }
+        val layoutDirection = LocalLayoutDirection.current
+        val listItems = remember(uiState.rules) {
+            buildList(uiState.rules.size + 1) {
+                add(RouteListItem.Notification)
+                uiState.rules.forEach { add(RouteListItem.Rule(it)) }
+            }.toImmutableList()
+        }
         Row(
             modifier = Modifier.fillMaxSize(),
         ) {
-            Box(
+            DragDropSwipeLazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
-            ) {
-                DragDropSwipeLazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .fadingEdge(dragDropListState.lazyListState),
-                    state = dragDropListState,
-                    items = uiState.rules.toImmutableList(),
-                    key = { it.id },
-                    contentType = { 0 },
-                    contentPadding = PaddingValues(
-                        start = listContentPadding.calculateStartPadding(LocalLayoutDirection.current),
-                        top = introHeightDp,
-                        end = listContentPadding.calculateEndPadding(LocalLayoutDirection.current),
-                        bottom = listContentPadding.calculateBottomPadding() + SagerFabClearance,
-                    ),
-                    userScrollEnabled = true,
-                    onIndicesChangedViaDragAndDrop = {
-                        viewModel.submitReorder(it)
-                        needReload()
-                    },
-                ) { _, rule ->
-                    val swipeState = rememberSwipeToDismissBoxStateUnsaveable(rule.id)
-
-                    DraggableSwipeableItem(
-                        modifier = Modifier.animateDraggableSwipeableItem(),
-                        colors = DraggableSwipeableItemColors.createRemembered(
-                            containerBackgroundColor = Color.Transparent,
-                            containerBackgroundColorWhileDragged = Color.Transparent,
-                        ),
-                    ) {
-                        SwipeToDismissBox(
-                            state = swipeState,
-                            enableDismissFromStartToEnd = true,
-                            enableDismissFromEndToStart = true,
-                            backgroundContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 16.dp),
-                                    contentAlignment = Alignment.CenterEnd,
-                                ) {
-                                    Icon(vectorResource(Res.drawable.delete), null)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            onDismiss = { viewModel.undoableRemove(rule.id) },
-                        ) {
-                            RuleCard(
-                                rule = rule,
-                                viewModel = viewModel,
-                                onNeedReload = { needReload() },
-                                openRouteSettings = openRouteSettings,
+                    .fillMaxHeight()
+                    .fadingEdge(dragDropListState.lazyListState),
+                state = dragDropListState,
+                items = listItems,
+                key = { it.key },
+                contentType = { it::class },
+                contentPadding = PaddingValues(
+                    start = listContentPadding.calculateStartPadding(layoutDirection),
+                    top = listContentPadding.calculateTopPadding(),
+                    end = listContentPadding.calculateEndPadding(layoutDirection),
+                    bottom = listContentPadding.calculateBottomPadding() + SagerFabClearance,
+                ),
+                userScrollEnabled = true,
+                fixedTopItemCount = 1,
+                onIndicesChangedViaDragAndDrop = { ordered ->
+                    val rules = ordered.mapNotNull { item ->
+                        (item.value as? RouteListItem.Rule)?.entity
+                    }
+                    viewModel.submitReorder(
+                        rules.mapIndexed { index, entity ->
+                            OrderedItem(
+                                value = entity,
+                                initialIndex = index,
+                                newIndex = index,
                             )
+                        },
+                    )
+                    needReload()
+                },
+            ) { _, item ->
+                when (item) {
+                    is RouteListItem.Notification -> {
+                        DraggableSwipeableItem(
+                            modifier = Modifier.animateDraggableSwipeableItem(),
+                            colors = DraggableSwipeableItemColors.createRemembered(
+                                containerBackgroundColor = Color.Transparent,
+                                containerBackgroundColorWhileDragged = Color.Transparent,
+                            ),
+                            dragDropEnabled = false,
+                            allowedSwipeDirections = AllowedSwipeDirections.None,
+                        ) {
+                            RouteNotificationCard()
                         }
                     }
-                }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onSizeChanged { introHeightPx = it.height },
-                ) {
-                    OutlinedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = 4.dp,
-                                top = innerPadding.calculateTopPadding() + 4.dp,
-                                end = 4.dp,
-                                bottom = 4.dp,
+                    is RouteListItem.Rule -> {
+                        val rule = item.entity
+                        val swipeState = rememberSwipeToDismissBoxStateUnsaveable(rule.id)
+
+                        DraggableSwipeableItem(
+                            modifier = Modifier.animateDraggableSwipeableItem(),
+                            colors = DraggableSwipeableItemColors.createRemembered(
+                                containerBackgroundColor = Color.Transparent,
+                                containerBackgroundColorWhileDragged = Color.Transparent,
                             ),
-                        colors = CardDefaults.outlinedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
-                        ),
-                        elevation = CardDefaults.elevatedCardElevation(),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center,
                         ) {
-                            val uriHandler = LocalUriHandler.current
-                            Text(
-                                text = stringResource(Res.string.route_warn),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        uriHandler.openUri("https://github.com/xchacha20-poly1305/husi/wiki/Route")
-                                    },
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                            SwipeToDismissBox(
+                                state = swipeState,
+                                enableDismissFromStartToEnd = true,
+                                enableDismissFromEndToStart = true,
+                                backgroundContent = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(horizontal = 16.dp),
+                                        contentAlignment = Alignment.CenterEnd,
+                                    ) {
+                                        Icon(vectorResource(Res.drawable.delete), null)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                onDismiss = { viewModel.undoableRemove(rule.id) },
+                            ) {
+                                RuleCard(
+                                    rule = rule,
+                                    viewModel = viewModel,
+                                    onNeedReload = { needReload() },
+                                    openRouteSettings = openRouteSettings,
+                                )
+                            }
                         }
                     }
                 }
@@ -372,8 +354,46 @@ fun RouteScreen(
 
 }
 
+private sealed interface RouteListItem {
+    data object Notification : RouteListItem {
+        override val key: Any get() = "route_notification"
+    }
+
+    data class Rule(val entity: RuleEntity) : RouteListItem {
+        override val key: Any get() = entity.id
+    }
+
+    val key: Any
+
+}
+
 @Composable
-private fun DraggableSwipeableItemScope<RuleEntity>.RuleCard(
+private fun RouteNotificationCard(
+    modifier: Modifier = Modifier,
+) {
+    val uriHandler = LocalUriHandler.current
+    ElevatedCard(
+        onClick = {
+            uriHandler.openUri("https://github.com/xchacha20-poly1305/husi/wiki/Route")
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+    ) {
+        Text(
+            text = stringResource(Res.string.route_warn),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium.copy(background = Color.Transparent),
+        )
+    }
+}
+
+@Composable
+private fun DraggableSwipeableItemScope<RouteListItem>.RuleCard(
     modifier: Modifier = Modifier,
     rule: RuleEntity,
     viewModel: RouteScreenViewModel,
