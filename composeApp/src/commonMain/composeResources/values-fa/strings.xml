@@ -463,8 +463,6 @@
     <string name="no_thanks">خیر،ممنون</string>
     <string name="location_permission_background_description">در اندوید ۱۰ و بالاتر، مجوز موقعیت یابی در پس زمینه لازم است. گزینه ی تایید برای همیشه را برای دادن این مجوز انتخاب کنید.</string>
     <string name="xtls_flow">جریان (پروتکل فرعی VLESS)</string>
-    <string name="landing_proxy">پروکسی فرود آمدن</string>
-    <string name="front_proxy">پروکسی فرانت</string>
     <string name="authenticated_length">طول تایید شده</string>
     <string name="insecure_warn">مشاوره امنیتی</string>
     <string name="mux_preference">تنظیمات مالتی پلکس</string>

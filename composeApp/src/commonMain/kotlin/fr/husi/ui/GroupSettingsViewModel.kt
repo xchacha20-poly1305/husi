@@ -29,8 +29,6 @@ internal data class GroupSettingsUiState(
     val name: String = "",
     val type: Int = GroupType.BASIC,
     val order: Int = GroupOrder.ORIGIN,
-    val frontProxy: Long = -1,
-    val landingProxy: Long = -1,
 
     val subscriptionType: Int = SubscriptionType.RAW,
     val subscriptionToken: String = "",
@@ -85,8 +83,6 @@ internal class GroupSettingsViewModel(
                 name = group.name ?: "",
                 type = group.type,
                 order = group.order,
-                frontProxy = group.frontProxy,
-                landingProxy = group.landingProxy,
 
                 subscriptionType = subscription.type,
                 subscriptionToken = subscription.token,
@@ -135,8 +131,6 @@ internal class GroupSettingsViewModel(
         name = state.name.blankAsNull() ?: "My Group"
         type = state.type
         order = state.order
-        frontProxy = state.frontProxy
-        landingProxy = state.landingProxy
 
         if (type == GroupType.SUBSCRIPTION) {
             subscription = (subscription ?: SubscriptionBean().applyDefaultValues()).apply {
@@ -174,18 +168,6 @@ internal class GroupSettingsViewModel(
     fun setOrder(order: Int) = viewModelScope.launch {
         uiState.update {
             it.copy(order = order)
-        }
-    }
-
-    fun setFrontProxy(frontProxy: Long) = viewModelScope.launch {
-        uiState.update {
-            it.copy(frontProxy = frontProxy)
-        }
-    }
-
-    fun setLandingProxy(landingProxy: Long) = viewModelScope.launch {
-        uiState.update {
-            it.copy(landingProxy = landingProxy)
         }
     }
 

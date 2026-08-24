@@ -480,8 +480,6 @@
     <string name="move">移動</string>
     <string name="create_shortcut">建立快捷方式</string>
     <string name="need_restart">重新啟動應用程式以應用更改</string>
-    <string name="front_proxy">前端代理</string>
-    <string name="landing_proxy">登陸代理</string>
     <string name="resolve_server">根據IPv6策略解析伺服器位址</string>
     <string name="scan_vpn_app_introduce">檢查裝置上安裝的 VPN 及其類型。</string>
     <string name="scan_vpn_app">掃描 VPN 應用程式</string>

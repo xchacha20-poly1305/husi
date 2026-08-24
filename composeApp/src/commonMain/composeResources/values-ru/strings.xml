@@ -409,7 +409,6 @@
     <string name="move">Переместить</string>
     <string name="assets_update">Обновить геоданные</string>
     <string name="log_level">Тип журнала</string>
-    <string name="landing_proxy">Конечный прокси</string>
     <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
     <string name="menu_dashboard">Панель</string>
     <string name="action_copy">Копировать</string>
@@ -425,7 +424,6 @@
     <string name="need_restart">Перезапустите приложение для принятия изменений</string>
     <string name="share_subscription">Поделиться подпиской</string>
     <string name="protocol_version">Версия протокола</string>
-    <string name="front_proxy">Начальный прокси</string>
     <string name="reset_connections">Сброс соединений</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
     <string name="inbound_password">Пароль Mixed-прокси</string>

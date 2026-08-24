@@ -231,20 +231,11 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
     }
 
     private suspend fun ProxyEntity.canAdd(otherProfiles: List<ProxyEntity>): Boolean {
-        if (containsProfileReference(editingId, includeGroupProxies = false)) return false
+        if (containsProfileReference(editingId)) return false
         for (existingProfile in otherProfiles) {
-            if (existingProfile.containsProfileReference(id, includeGroupProxies = false)) {
+            if (existingProfile.containsProfileReference(id)) {
                 return false
             }
-        }
-        if (
-            !isNew && groupProxiesOverlapProfileReferences(
-                groupId = proxyEntity.groupId,
-                rootProfileId = editingId,
-                memberProfiles = otherProfiles + this,
-            )
-        ) {
-            return false
         }
         return true
     }
@@ -331,23 +322,11 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
             }
             for (profile in selectedProfiles) {
                 if (version != mutationVersion) return@launch
-                if (profile.containsProfileReference(editingId, includeGroupProxies = false)) {
+                if (profile.containsProfileReference(editingId)) {
                     if (version != mutationVersion) return@launch
                     emitCircularReference()
                     return@launch
                 }
-            }
-            val otherProfiles = currentMemberProfiles(index)
-            if (
-                !isNew && groupProxiesOverlapProfileReferences(
-                    groupId = proxyEntity.groupId,
-                    rootProfileId = editingId,
-                    memberProfiles = otherProfiles + selectedProfiles,
-                )
-            ) {
-                if (version != mutationVersion) return@launch
-                emitCircularReference()
-                return@launch
             }
 
             if (version != mutationVersion) return@launch

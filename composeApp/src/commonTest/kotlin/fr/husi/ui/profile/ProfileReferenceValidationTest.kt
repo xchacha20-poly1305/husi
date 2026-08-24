@@ -57,49 +57,6 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
         }
 
     @Test
-    fun `chain editor rejects a candidate whose group front references the edited chain`() =
-        runTest(dispatcher.scheduler) {
-            val group = createGroup()
-            val editedChain = createChain(group.id, "chain")
-            val frontChain = createChain(group.id, "front", listOf(editedChain.id))
-            val candidate = createChain(group.id, "candidate")
-            group.frontProxy = frontChain.id
-            SagerDatabase.groupDao.updateGroup(group)
-            val viewModel = ChainSettingsViewModel()
-            viewModel.initialize(editedChain.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "chain" }
-            val event = backgroundScope.async { viewModel.uiEvent.first() }
-
-            viewModel.onSelectProfile(candidate.id)
-            advanceUntilIdle()
-
-            assertCircularReference(event.await())
-            assertTrue(viewModel.uiState.value.profiles.isEmpty())
-        }
-
-    @Test
-    fun `chain editor rejects a candidate when group front shares a main member`() =
-        runTest(dispatcher.scheduler) {
-            val group = createGroup()
-            val shared = createSocksProxy(group.id, "shared")
-            val editedChain = createChain(group.id, "chain", listOf(shared.id))
-            val frontChain = createChain(group.id, "front", listOf(shared.id))
-            val candidate = createSocksProxy(group.id, "candidate")
-            group.frontProxy = frontChain.id
-            SagerDatabase.groupDao.updateGroup(group)
-            val viewModel = ChainSettingsViewModel()
-            viewModel.initialize(editedChain.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.profiles.map { it.id } == listOf(shared.id) }
-            val event = backgroundScope.async { viewModel.uiEvent.first() }
-
-            viewModel.onSelectProfile(candidate.id)
-            advanceUntilIdle()
-
-            assertCircularReference(event.await())
-            assertEquals(listOf(shared.id), viewModel.uiState.value.profiles.map { it.id })
-        }
-
-    @Test
     fun `chain editor allows a nested reference to an existing member`() =
         runTest(dispatcher.scheduler) {
             val group = createGroup()
@@ -146,28 +103,6 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             val collectedGroup = createGroup("collected")
             val editedSet = createProxySet(editedGroup.id, "set")
             createChain(collectedGroup.id, "chain", listOf(editedSet.id))
-            val viewModel = ProxySetSettingsViewModel()
-            viewModel.initialize(editedSet.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "set" }
-            val event = backgroundScope.async { viewModel.uiEvent.first() }
-
-            viewModel.addGroupProvider(collectedGroup.id, "")
-            advanceUntilIdle()
-
-            assertCircularReference(event.await())
-            assertTrue(viewModel.uiState.value.providers.isEmpty())
-        }
-
-    @Test
-    fun `proxy set editor rejects a collected group that overlaps its group front`() =
-        runTest(dispatcher.scheduler) {
-            val editedGroup = createGroup("edited")
-            val collectedGroup = createGroup("collected")
-            val editedSet = createProxySet(editedGroup.id, "set")
-            val shared = createSocksProxy(collectedGroup.id, "shared")
-            val front = createChain(editedGroup.id, "front", listOf(shared.id))
-            editedGroup.frontProxy = front.id
-            SagerDatabase.groupDao.updateGroup(editedGroup)
             val viewModel = ProxySetSettingsViewModel()
             viewModel.initialize(editedSet.id, isSubscription = false)
             awaitState { viewModel.uiState.value.name == "set" }

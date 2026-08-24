@@ -229,8 +229,6 @@
     <string name="domain_strategy_for_direct">Стратегія домену для Прямого</string>
     <string name="domain_strategy_for_server">Стратегія домену для Адреси сервера</string>
     <string name="need_restart">Перезавантажте застосунок для застосування змін</string>
-    <string name="front_proxy">Зовнішній проксі</string>
-    <string name="landing_proxy">Кінцевий проксі</string>
     <string name="protocol_version">Версія протоколу</string>
     <string name="test_concurrency">Число паралельних підключень</string>
     <string name="mux_type">Протокол мультиплексування</string>

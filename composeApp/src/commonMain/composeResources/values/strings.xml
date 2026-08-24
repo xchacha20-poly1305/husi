@@ -565,8 +565,6 @@
     <string name="log_level">Log Level</string>
     <string name="xtls_flow">Flow</string>
     <string name="need_restart">Restart APP to apply changes</string>
-    <string name="front_proxy">Front proxy</string>
-    <string name="landing_proxy">Landing Proxy</string>
     <string name="protocol_version">Protocol Version</string>
     <string name="snell_user_key">User Key</string>
     <string name="snell_reuse">Reuse connection</string>

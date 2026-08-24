@@ -286,7 +286,7 @@ fun buildConfig(
         }
     }
 
-    fun ProxyEntity.resolveChainInternal(referencePath: List<Long> = emptyList()): ResolvedChain {
+    fun ProxyEntity.resolveChain(referencePath: List<Long> = emptyList()): ResolvedChain {
         if (!resolvingReferences.add(id)) {
             val cycle = (resolvingReferences.dropWhile { it != id } + id).joinToString(" -> ")
             error("Circular proxy reference: $cycle")
@@ -310,7 +310,7 @@ fun buildConfig(
                     }
                     val resolved = mergeResolvedChains(
                         requestedProxyIds.map { proxyId ->
-                            beansMap.getValue(proxyId).resolveChainInternal(referencePath + id)
+                            beansMap.getValue(proxyId).resolveChain(referencePath + id)
                         },
                         connect = true,
                     )
@@ -330,7 +330,7 @@ fun buildConfig(
                     val memberChains = mutableListOf<ResolvedChain>()
                     for (member in memberProfiles) {
                         memberChains.add(
-                            member.resolveChainInternal(referencePath + id),
+                            member.resolveChain(referencePath + id),
                         )
                     }
 
@@ -365,39 +365,6 @@ fun buildConfig(
         } finally {
             resolvingReferences.remove(id)
         }
-    }
-
-    fun ProxyEntity.resolveChain(): ResolvedChain {
-        val thisGroup = runBlocking { SagerDatabase.groupDao.getById(groupId).first() }
-        val frontProxy =
-            thisGroup?.frontProxy?.let { runBlocking { SagerDatabase.proxyDao.getById(it) } }
-        val landingProxy =
-            thisGroup?.landingProxy?.let { runBlocking { SagerDatabase.proxyDao.getById(it) } }
-
-        // Group wrappers are resolved in separate calls from the main profile. Keep the
-        // occurrence isolation used by nested proxy sets, but reject a wrapper that expands an
-        // entity already present in the main subtree. Otherwise the same outbound can be emitted
-        // twice with different reference paths and bypass mergeResolvedChains' duplicate check.
-        val mainChain = resolveChainInternal()
-        val mainEntityIds = mainChain.entries.asSequence().mapTo(HashSet()) { it.entity.id }
-
-        fun resolveWrapper(wrapper: ProxyEntity?): ResolvedChain? {
-            val resolved = wrapper?.resolveChainInternal() ?: return null
-            val duplicate = resolved.entries.firstOrNull { it.entity.id in mainEntityIds }
-            if (duplicate != null) {
-                error("Duplicate proxy reference: ${duplicate.key.describe()}")
-            }
-            return resolved
-        }
-
-        return mergeResolvedChains(
-            listOfNotNull(
-                resolveWrapper(landingProxy),
-                mainChain,
-                resolveWrapper(frontProxy),
-            ),
-            connect = true,
-        )
     }
 
     val logLevel = DataStore.logLevel

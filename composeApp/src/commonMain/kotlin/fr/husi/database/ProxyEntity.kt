@@ -622,7 +622,7 @@ data class ProxyEntity(
 
         /**
          * Though UI disallow edit config when it is running,
-         * but like chain and front/landing proxy still can be edited when running.
+         * but like chain members still can be edited when running.
          * This can just update the traffic of a proxy entity when not influence other settings.
          */
         @Query(

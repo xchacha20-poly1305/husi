@@ -17,6 +17,7 @@ import fr.husi.fmt.BeanConverters
         PluginEntity::class,
         RemoteServerEntity::class,
     ],
+    // TODO remove group front and landing proxy
     version = 22,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),

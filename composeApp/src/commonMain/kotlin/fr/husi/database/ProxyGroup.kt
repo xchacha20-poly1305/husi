@@ -18,6 +18,16 @@ import kotlinx.coroutines.flow.Flow
 import fr.husi.resources.*
 import kotlinx.coroutines.runBlocking
 
+/**
+ * A group is a container of proxies.
+ * NEVER add options that re-configs proxies when building config.
+ * The options re-configs proxies leads to ambiguous: what should we do if a proxy set / chain
+ * imports proxy in other groups, while its groups also have per-group override options.
+ * Negative example: font/landing proxy, group-level uTLS fingerprint, or make a group selector.
+ *
+ * [SubscriptionBean.forceResolve] is an exception. Because it is strong coupling with subscription,
+ * and it does not modify proxies when building config.
+ */
 @Entity(tableName = "proxy_groups")
 data class ProxyGroup(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
@@ -27,6 +37,8 @@ data class ProxyGroup(
     var type: Int = GroupType.BASIC,
     var subscription: SubscriptionBean? = null,
     var order: Int = GroupOrder.ORIGIN,
+
+    // TODO remove them on next database bump
     var frontProxy: Long = -1L,
     var landingProxy: Long = -1L,
 ) : Serializable() {

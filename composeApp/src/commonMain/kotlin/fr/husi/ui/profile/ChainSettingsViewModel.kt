@@ -143,20 +143,11 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
     }
 
     private suspend fun ProxyEntity.canAdd(otherProfiles: List<ProxyEntity>): Boolean {
-        if (containsProfileReference(editingId, includeGroupProxies = false)) return false
+        if (containsProfileReference(editingId)) return false
         for (existingProfile in otherProfiles) {
-            if (existingProfile.containsProfileReference(id, includeGroupProxies = false)) {
+            if (existingProfile.containsProfileReference(id)) {
                 return false
             }
-        }
-        if (
-            !isNew && groupProxiesOverlapProfileReferences(
-                groupId = proxyEntity.groupId,
-                rootProfileId = editingId,
-                memberProfiles = otherProfiles + this,
-            )
-        ) {
-            return false
         }
         return true
     }

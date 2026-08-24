@@ -183,11 +183,9 @@ internal val commonNavigationModule = module {
 
         navigation<NavRoutes.GroupSettings> { route ->
             val navigator = get<Navigator>()
-            val profilePickerController = get<ProfilePickerController>()
             GroupSettingsScreen(
                 groupId = route.groupId,
                 onBackPress = { navigator.popBackStack() },
-                onOpenProfileSelect = profilePickerController::open,
             )
         }
 
