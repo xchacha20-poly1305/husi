@@ -61,20 +61,21 @@ make test_gradle         # ./gradlew :composeApp:allTests (JUnit5)
 make test_go             # cd libcore && go test -v -count=1 ./...
 make test_zig            # zig build test in both launcher/ and libcore/shim/
 make lint_go             # golangci-lint for linux + android + windows
-make fmt_go              # gofumpt + gofmt + gci (run before committing Go)
+make fmt_go              # golangci-lint fmt (run before committing Go)
 ```
 
 `lint_go` runs one pass per shipped GOOS, because each one only ever compiles its own half of the
 platform-split files; the individual passes are `lint_go_linux`, `lint_go_android` and
 `lint_go_windows` (the last needs `zig` on `PATH` as the cgo cross compiler). Darwin has no pass:
-sing-tun's gvisor backend does not typecheck without a full Darwin SDK. Formatting is deliberately
-left out of `libcore/.golangci.yml` — `make fmt_go` owns it, and golangci-lint's bundled `gci`
-formats imports differently enough that both would fight over the tree. CI runs `make lint_go` as
-the `lint-go` job in `.github/workflows/test.yml`.
+sing-tun's gvisor backend does not typecheck without a full Darwin SDK. `make fmt_go` runs
+`golangci-lint fmt` using the `formatters` block in `libcore/.golangci.yml` (gofumpt + gci with
+the sagernet import prefix). `golangci-lint run` reports those same formatters as issues without
+rewriting files, so lint and fmt stay on one tool. CI runs `make lint_go` as the `lint-go` job
+in `.github/workflows/test.yml`.
 
 Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`. Run a
 single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tooling once with
-`make fmt_go_install lint_go_install`.
+`make lint_go_install` (covers `fmt_go` as well).
 
 # Architecture
 

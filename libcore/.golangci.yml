@@ -78,3 +78,20 @@ linters:
       - linters:
           - errcheck
         path: _test\.go
+
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - standard
+        - prefix(github.com/sagernet/)
+        - default
+      custom-order: true
+  exclusions:
+    generated: lax
+    paths:
+      # Generated protobuf stubs, `make proto` owns them.
+      - pb/
