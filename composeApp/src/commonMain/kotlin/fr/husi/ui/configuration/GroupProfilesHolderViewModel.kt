@@ -233,6 +233,20 @@ class GroupProfilesHolderViewModel(
         }
     }
 
+    fun profileToSelect(delta: Int): Long? {
+        val profiles = uiState.value.profiles
+        if (profiles.isEmpty()) return null
+
+        val currentIndex = profiles.indexOfFirst { it.isSelected }
+        val targetIndex = if (currentIndex < 0) {
+            0
+        } else {
+            (currentIndex + delta).coerceIn(0, profiles.lastIndex)
+        }
+        return profiles.getOrNull(targetIndex)?.profile?.id
+            ?.takeIf { targetIndex != currentIndex }
+    }
+
     fun requestFocusIfNotHave() {
         uiState.update { it.copy(shouldRequestFocus = true) }
     }

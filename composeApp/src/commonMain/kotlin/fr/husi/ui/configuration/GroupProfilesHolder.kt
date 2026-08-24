@@ -3,6 +3,7 @@ package fr.husi.ui.configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -71,6 +78,7 @@ import fr.husi.database.displayType
 import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.config.ConfigBean
 import fr.husi.fmt.toUniversalLink
+import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.onMainDispatcher
@@ -144,6 +152,8 @@ internal fun GroupHolderScreen(
     showUndoSnackbar: (count: Int, onUndo: () -> Unit) -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     val resultBus = onOpenProfileEditor?.let { LocalResultEventBus.current }
     val pendingProfileEdits = remember { mutableStateListOf<PendingProfileEdit>() }
 
@@ -248,7 +258,85 @@ internal fun GroupHolderScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
+                .focusable()
                 .focusRequester(focusRequester)
+                .onPreviewKeyEvent { keyEvent ->
+                    if (keyEvent.type != KeyEventType.KeyDown) {
+                        return@onPreviewKeyEvent false
+                    }
+
+                    fun selected() = uiState.profiles.firstOrNull { it.isSelected }
+                    when {
+                        !keyEvent.isTypeControlPressed && !keyEvent.isShiftPressed &&
+                            keyEvent.key == Key.J -> {
+                            viewModel.profileToSelect(1)?.let {
+                                onProfileSelect(it)
+                                viewModel.scrollToProxy(it, false)
+                            }
+                            true
+                        }
+
+                        !keyEvent.isTypeControlPressed && !keyEvent.isShiftPressed &&
+                            keyEvent.key == Key.K -> {
+                            viewModel.profileToSelect(-1)?.let {
+                                onProfileSelect(it)
+                                viewModel.scrollToProxy(it, false)
+                            }
+                            true
+                        }
+
+                        keyEvent.isTypeControlPressed && keyEvent.key == Key.E -> {
+                            selected()?.profile?.let(::openProfileEditor)
+                            true
+                        }
+
+                        !keyEvent.isTypeControlPressed && !keyEvent.isShiftPressed &&
+                            keyEvent.key == Key.Delete -> {
+                            selected()?.profile?.id?.let(viewModel::undoableRemove)
+                            true
+                        }
+
+                        keyEvent.isTypeControlPressed && keyEvent.isShiftPressed &&
+                            keyEvent.key == Key.C -> {
+                            selected()?.profile?.takeIf { it.haveLink() }?.let { entity ->
+                                scope.launch {
+                                    clipboard.setPlainText(entity.requireBean().toUniversalLink())
+                                    onCopySuccess()
+                                }
+                            }
+                            true
+                        }
+
+                        keyEvent.isTypeControlPressed && !keyEvent.isShiftPressed &&
+                            keyEvent.key == Key.C -> {
+                            selected()?.profile?.takeIf { it.haveStandardLink() }?.let { entity ->
+                                scope.launch {
+                                    clipboard.setPlainText(entity.toStdLink())
+                                    onCopySuccess()
+                                }
+                            }
+                            true
+                        }
+
+                        keyEvent.isTypeControlPressed && keyEvent.isShiftPressed &&
+                            keyEvent.key == Key.Q -> {
+                            selected()?.profile?.takeIf { it.haveLink() }?.let { entity ->
+                                showQR(entity.displayName(), entity.requireBean().toUniversalLink())
+                            }
+                            true
+                        }
+
+                        keyEvent.isTypeControlPressed && !keyEvent.isShiftPressed &&
+                            keyEvent.key == Key.Q -> {
+                            selected()?.profile?.takeIf { it.haveStandardLink() }?.let { entity ->
+                                showQR(entity.displayName(), entity.toStdLink())
+                            }
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
                 .fadingEdge(dragDropListState.lazyListState),
             state = dragDropListState,
             items = uiState.profiles.toImmutableList(),

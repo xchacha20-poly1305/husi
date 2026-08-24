@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
@@ -86,6 +87,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.colorForUrlTestDelay
 import fr.husi.compose.decodeQRCode
 import fr.husi.compose.getFirstContent
+import fr.husi.compose.setPlainText
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryScrollableTabRow
 import fr.husi.compose.material3.Tab
@@ -95,6 +97,7 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.keyevent.isTypeControlPressed
+import fr.husi.platform.PlatformInfo
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.repository.resolveRepository
@@ -392,11 +395,35 @@ fun ConfigurationScreen(
                 if (keyEvent.type != KeyEventType.KeyDown) {
                     return@onPreviewKeyEvent false
                 }
-                if (!keyEvent.isTypeControlPressed || keyEvent.key != Key.V) {
-                    return@onPreviewKeyEvent false
+
+                val action = vm.handleKeyAction(
+                    key = keyEvent.key,
+                    isCtrl = keyEvent.isTypeControlPressed,
+                    isShift = keyEvent.isShiftPressed,
+                    isSearchActive = searchBarState.currentValue == SearchBarValue.Expanded,
+                )
+                when (action) {
+                    KeyAction.Consumed -> true
+                    KeyAction.Unhandled -> false
+
+                    KeyAction.ImportClipboard -> {
+                        importFromClipboard()
+                        true
+                    }
+
+                    is KeyAction.SwitchTab -> {
+                        val target = pagerState.currentPage + action.delta
+                        if (target in 0 until pagerState.pageCount) {
+                            scope.launch { pagerState.animateScrollToPage(target) }
+                        }
+                        true
+                    }
+
+                    KeyAction.OpenSearch -> {
+                        scope.launch { searchBarState.animateToExpanded() }
+                        true
+                    }
                 }
-                importFromClipboard()
-                true
             },
         topBar = {
             Surface(color = appBarContainerColor) {

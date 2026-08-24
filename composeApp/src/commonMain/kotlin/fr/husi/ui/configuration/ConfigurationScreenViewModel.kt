@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.input.key.Key as ComposeKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.Key
@@ -66,6 +67,15 @@ import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipInputStream
+
+@Immutable
+sealed interface KeyAction {
+    data object Consumed : KeyAction
+    data object Unhandled : KeyAction
+    data object ImportClipboard : KeyAction
+    data class SwitchTab(val delta: Int) : KeyAction
+    data object OpenSearch : KeyAction
+}
 
 @Immutable
 data class ConfigurationUiState(
@@ -141,6 +151,82 @@ class ConfigurationScreenViewModel(
 
     fun unregisterChild(groupId: Long) {
         childViewModels.remove(groupId)
+    }
+
+    fun handleKeyAction(
+        key: ComposeKey,
+        isCtrl: Boolean,
+        isShift: Boolean,
+        isSearchActive: Boolean,
+    ): KeyAction {
+        return when {
+            key == ComposeKey.Enter && !isCtrl -> {
+                if (!DataStore.serviceState.started) {
+                    resolveRepository().startService()
+                } else if (DataStore.selectedProxy != DataStore.currentProfile) {
+                    resolveRepository().reloadService()
+                }
+                KeyAction.Consumed
+            }
+
+            isCtrl && !isShift && key == ComposeKey.S -> {
+                if (DataStore.serviceState.canStop) {
+                    resolveRepository().stopService()
+                }
+                KeyAction.Consumed
+            }
+
+            key == ComposeKey.F5 -> {
+                if (DataStore.serviceState.started) {
+                    resolveRepository().reloadService()
+                }
+                KeyAction.Consumed
+            }
+
+            isCtrl && key == ComposeKey.P -> {
+                doTest(DataStore.currentGroupId(), TestType.ICMPPing)
+                KeyAction.Consumed
+            }
+
+            isCtrl && key == ComposeKey.T -> {
+                doTest(DataStore.currentGroupId(), TestType.TCPPing)
+                KeyAction.Consumed
+            }
+
+            isCtrl && key == ComposeKey.U -> {
+                doTest(DataStore.currentGroupId(), TestType.URLTest)
+                KeyAction.Consumed
+            }
+
+            key == ComposeKey.Escape -> {
+                if (uiState.value.testState != null) {
+                    cancelTest()
+                    KeyAction.Consumed
+                } else {
+                    KeyAction.Unhandled
+                }
+            }
+
+            isCtrl && key == ComposeKey.V -> KeyAction.ImportClipboard
+
+            !isSearchActive && !isCtrl && !isShift && key == ComposeKey.Slash -> {
+                KeyAction.OpenSearch
+            }
+
+            !isSearchActive && isCtrl && !isShift && key == ComposeKey.F -> {
+                KeyAction.OpenSearch
+            }
+
+            !isSearchActive && !isCtrl && key == ComposeKey.H -> {
+                KeyAction.SwitchTab(-1)
+            }
+
+            !isSearchActive && !isCtrl && key == ComposeKey.L -> {
+                KeyAction.SwitchTab(1)
+            }
+
+            else -> KeyAction.Unhandled
+        }
     }
 
     fun scrollToProxy(groupId: Long, proxyId: Long, fallbackToTop: Boolean = false) {
