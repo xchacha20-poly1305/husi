@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,9 +31,11 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.Preference
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -65,16 +66,12 @@ import fr.husi.ui.jsoneditor.ConfigSchema
 import fr.husi.ui.NavRoutes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.random.Random
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigSettingScreen(
     profileId: Long,
@@ -175,7 +172,6 @@ fun ConfigSettingScreen(
                             summary = { Text(contentOrUnset(uiState.name)) },
                             valueToText = { it },
                         )
-                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.type == ConfigBean.TYPE_OUTBOUND,
                             onValueChange = {
@@ -196,7 +192,6 @@ fun ConfigSettingScreen(
                                 )
                             },
                         )
-                        PreferenceDivider()
                         Preference(
                             title = { Text(stringResource(Res.string.custom_config)) },
                             icon = {

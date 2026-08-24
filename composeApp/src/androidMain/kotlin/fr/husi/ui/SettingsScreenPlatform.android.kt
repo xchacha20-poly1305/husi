@@ -22,8 +22,10 @@ import fr.husi.LauncherIcon
 import fr.husi.compose.HostTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
+import fr.husi.compose.TwoTargetSwitchPreference
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
@@ -66,9 +68,6 @@ import fr.husi.resources.visibility_off
 import fr.husi.resources.vpn_session_name
 import fr.husi.resources.vpn_session_name_summary
 import kotlinx.coroutines.flow.flowOf
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
-import me.zhanghai.compose.preference.TwoTargetSwitchPreference
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -114,7 +113,6 @@ internal actual fun rememberApplyNightMode(): (Int) -> Unit {
 
 @Composable
 internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
-    PreferenceDivider()
     val value by DataStore.configurationStore
         .stringFlow(Key.VPN_SESSION_NAME, "")
         .collectAsStateWithLifecycle("")
@@ -229,7 +227,6 @@ internal actual fun ProxyAppsPreferences(openAppManager: () -> Unit) {
     val updateValue by DataStore.configurationStore
         .booleanFlow(Key.UPDATE_PROXY_APPS_WHEN_INSTALL, false)
         .collectAsStateWithLifecycle(false)
-    PreferenceDivider()
     SwitchPreference(
         value = updateValue,
         onValueChange = { DataStore.updateProxyAppsWhenInstall = it },
@@ -241,12 +238,10 @@ internal actual fun ProxyAppsPreferences(openAppManager: () -> Unit) {
             )
         },
     )
-    PreferenceDivider()
 }
 
 @Composable
 internal actual fun PlatformSecurityOptions() {
-    PreferenceDivider()
     val value by DataStore.configurationStore
         .booleanFlow(Key.PRIVACY_MODE, false)
         .collectAsStateWithLifecycle(false)
@@ -263,7 +258,6 @@ internal actual fun PlatformSecurityOptions() {
 
 @Composable
 internal actual fun MeteredNetworkPreference(needReload: () -> Unit) {
-    PreferenceDivider()
     val value by DataStore.configurationStore
         .booleanFlow(Key.METERED_NETWORK, false)
         .collectAsStateWithLifecycle(false)
@@ -309,7 +303,6 @@ internal actual fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -
 
 @Composable
 internal actual fun PlatformMiscOptions(needReload: () -> Unit) {
-    PreferenceDivider()
     val value by DataStore.configurationStore
         .booleanFlow(Key.ACQUIRE_WAKE_LOCK, true)
         .collectAsStateWithLifecycle(true)
@@ -406,7 +399,6 @@ internal actual fun HideLauncherIconPreference() {
         LauncherIcon.hidden = hidden
     }
 
-    PreferenceDivider()
     SwitchPreference(
         value = value,
         onValueChange = { hide ->

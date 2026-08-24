@@ -1,13 +1,11 @@
 package fr.husi.ui
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -34,15 +31,16 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.LinkOrContentTextField
-import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
@@ -71,7 +69,6 @@ import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollba
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -214,67 +211,57 @@ internal fun AssetEditScreen(
                         ),
                     contentPadding = contentPadding,
                 ) {
-                    item("settings") {
-                        ElevatedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp),
-                        ) {
-                            Column {
-                                TextFieldPreference(
-                                    value = uiState.name,
-                                    onValueChange = { viewModel.setName(it) },
-                                    title = { Text(stringResource(Res.string.route_asset_name)) },
-                                    textToValue = { it },
-                                    icon = {
-                                        MaskedIcon(
-                                            Res.drawable.emoji_symbols,
-                                            color = IconMaskColors.IconCyan,
-                                        )
-                                    },
-                                    summary = { Text(contentOrUnset(uiState.name)) },
-                                    valueToText = { it },
+                    preferenceGroup(key = "settings") {
+                        TextFieldPreference(
+                            value = uiState.name,
+                            onValueChange = { viewModel.setName(it) },
+                            title = { Text(stringResource(Res.string.route_asset_name)) },
+                            textToValue = { it },
+                            icon = {
+                                MaskedIcon(
+                                    Res.drawable.emoji_symbols,
+                                    color = IconMaskColors.IconCyan,
                                 )
-                                PreferenceDivider()
-                                TextFieldPreference(
-                                    value = uiState.link,
-                                    onValueChange = { viewModel.setLink(it) },
-                                    title = { Text(stringResource(Res.string.url)) },
-                                    textToValue = { it },
-                                    icon = {
-                                        MaskedIcon(
-                                            Res.drawable.link,
-                                            color = IconMaskColors.IconLightBlue,
-                                        )
-                                    },
-                                    summary = { Text(contentOrUnset(uiState.link)) },
-                                    valueToText = { it },
-                                    textField = { value, onValueChange, onOk ->
-                                        LinkOrContentTextField(value, onValueChange, onOk)
-                                    },
+                            },
+                            summary = { Text(contentOrUnset(uiState.name)) },
+                            valueToText = { it },
+                        )
+                        TextFieldPreference(
+                            value = uiState.link,
+                            onValueChange = { viewModel.setLink(it) },
+                            title = { Text(stringResource(Res.string.url)) },
+                            textToValue = { it },
+                            icon = {
+                                MaskedIcon(
+                                    Res.drawable.link,
+                                    color = IconMaskColors.IconLightBlue,
                                 )
-                                PreferenceDivider()
-                                TextFieldPreference(
-                                    value = uiState.autoUpdateDelay,
-                                    onValueChange = { viewModel.setAutoUpdateDelay(it) },
-                                    title = {
-                                        Text(stringResource(Res.string.route_asset_auto_update_delay))
-                                    },
-                                    textToValue = { it.toIntOrNull() ?: 0 },
-                                    icon = {
-                                        MaskedIcon(
-                                            Res.drawable.timer,
-                                            color = IconMaskColors.IconLightOrange,
-                                        )
-                                    },
-                                    summary = { Text(uiState.autoUpdateDelay.toString()) },
-                                    valueToText = { it.toString() },
-                                    textField = { value, onValueChange, onOk ->
-                                        UIntegerTextField(value, onValueChange, onOk)
-                                    },
+                            },
+                            summary = { Text(contentOrUnset(uiState.link)) },
+                            valueToText = { it },
+                            textField = { value, onValueChange, onOk ->
+                                LinkOrContentTextField(value, onValueChange, onOk)
+                            },
+                        )
+                        TextFieldPreference(
+                            value = uiState.autoUpdateDelay,
+                            onValueChange = { viewModel.setAutoUpdateDelay(it) },
+                            title = {
+                                Text(stringResource(Res.string.route_asset_auto_update_delay))
+                            },
+                            textToValue = { it.toIntOrNull() ?: 0 },
+                            icon = {
+                                MaskedIcon(
+                                    Res.drawable.timer,
+                                    color = IconMaskColors.IconLightOrange,
                                 )
-                            }
-                        }
+                            },
+                            summary = { Text(uiState.autoUpdateDelay.toString()) },
+                            valueToText = { it.toString() },
+                            textField = { value, onValueChange, onOk ->
+                                UIntegerTextField(value, onValueChange, onOk)
+                            },
+                        )
                     }
 
                     item("bottom_padding") {

@@ -36,12 +36,14 @@ import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.LinkOrContentTextField
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.fadingEdge
@@ -108,11 +110,8 @@ import fr.husi.resources.user_agent
 import fr.husi.resources.vpn_key
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -290,7 +289,6 @@ private fun LazyListScope.groupSettings(
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         ListPreference(
             value = uiState.type,
             onValueChange = { viewModel.setType(it) },
@@ -306,7 +304,6 @@ private fun LazyListScope.groupSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(groupType(it))) },
         )
-        PreferenceDivider()
         ListPreference(
             value = uiState.order,
             onValueChange = { viewModel.setOrder(it) },
@@ -350,7 +347,6 @@ private fun LazyListScope.groupSettings(
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(stringResource(subType(it))) },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.subscriptionLink,
                 onValueChange = { viewModel.setSubscriptionLink(it) },
@@ -368,7 +364,6 @@ private fun LazyListScope.groupSettings(
                     LinkOrContentTextField(value, onValueChange, onOk)
                 },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.subscriptionFilterNotRegex,
                 onValueChange = { viewModel.setSubscriptionFilterNotRegex(it) },
@@ -383,7 +378,6 @@ private fun LazyListScope.groupSettings(
                 summary = { Text(contentOrUnset(uiState.subscriptionFilterNotRegex)) },
                 valueToText = { it },
             )
-            PreferenceDivider()
             SwitchPreference(
                 value = uiState.subscriptionForceResolve,
                 onValueChange = { viewModel.setSubscriptionForceResolve(it) },
@@ -396,7 +390,6 @@ private fun LazyListScope.groupSettings(
                 },
                 summary = { Text(stringResource(Res.string.force_resolve_sum)) },
             )
-            PreferenceDivider()
             SwitchPreference(
                 value = uiState.subscriptionDeduplication,
                 onValueChange = { viewModel.setSubscriptionDeduplication(it) },
@@ -467,7 +460,6 @@ private fun LazyListScope.groupSettings(
                 },
                 summary = { Text(stringResource(Res.string.update_when_connected_only_sum)) },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.subscriptionUserAgent,
                 onValueChange = { viewModel.setSubscriptionUserAgent(it) },
@@ -485,7 +477,6 @@ private fun LazyListScope.groupSettings(
                 },
                 valueToText = { it },
             )
-            PreferenceDivider()
             SwitchPreference(
                 value = uiState.subscriptionAutoUpdate,
                 onValueChange = { viewModel.setSubscriptionAutoUpdate(it) },
@@ -497,7 +488,6 @@ private fun LazyListScope.groupSettings(
                     )
                 },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.subscriptionUpdateDelay,
                 onValueChange = { viewModel.setSubscriptionUpdateDelay(it) },

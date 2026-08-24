@@ -1,17 +1,18 @@
 package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -67,13 +68,9 @@ import fr.husi.resources.utls_fingerprint
 import fr.husi.resources.vpn_key
 import fr.husi.resources.wb_sunny
 import fr.husi.ui.NavRoutes
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrustTunnelSettingsScreen(
     profileId: Long,
@@ -144,7 +141,6 @@ private fun LazyListScope.trustTunnelSettings(
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.port,
             onValueChange = { viewModel.setPort(it) },
@@ -162,7 +158,6 @@ private fun LazyListScope.trustTunnelSettings(
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.username,
             onValueChange = { viewModel.setUsername(it) },
@@ -174,12 +169,10 @@ private fun LazyListScope.trustTunnelSettings(
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         PasswordPreference(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },
         )
-        PreferenceDivider()
         SwitchPreference(
             value = uiState.healthCheck,
             onValueChange = { viewModel.setHealthCheck(it) },
@@ -188,7 +181,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MaskedIcon(Res.drawable.ecg, IconMaskColors.IconLightGreen)
             },
         )
-        PreferenceDivider()
         SwitchPreference(
             value = uiState.quic,
             onValueChange = { viewModel.setQuic(it) },
@@ -200,7 +192,6 @@ private fun LazyListScope.trustTunnelSettings(
                 )
             },
         )
-        PreferenceDivider()
         ListPreference(
             value = uiState.quicCongestionControl,
             values = congestionControls,
@@ -235,7 +226,6 @@ private fun LazyListScope.trustTunnelSettings(
             summary = { Text(contentOrUnset(uiState.sni)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         SwitchPreference(
             value = uiState.allowInsecure,
             onValueChange = { viewModel.setAllowInsecure(it) },
@@ -248,7 +238,6 @@ private fun LazyListScope.trustTunnelSettings(
                 )
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.alpn,
             onValueChange = { viewModel.setAlpn(it) },
@@ -263,7 +252,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.certificates,
             onValueChange = { viewModel.setCertificates(it) },
@@ -282,7 +270,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.certPublicKeySha256,
             onValueChange = { viewModel.setCertPublicKeySha256(it) },
@@ -297,7 +284,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         ListPreference(
             value = uiState.utlsFingerprint,
             values = fingerprints,
@@ -332,7 +318,6 @@ private fun LazyListScope.trustTunnelSettings(
                 summary = { Text(contentOrUnset(uiState.tlsSpoof)) },
                 valueToText = { it },
             )
-            PreferenceDivider()
             ListPreference(
                 value = uiState.tlsSpoofMethod,
                 values = tlsSpoofMethod,
@@ -361,7 +346,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MaskedIcon(Res.drawable.texture, color = IconMaskColors.IconLightBlue)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.tlsFragmentFallbackDelay,
             onValueChange = { viewModel.setTlsFragmentFallbackDelay(it) },
@@ -377,7 +361,6 @@ private fun LazyListScope.trustTunnelSettings(
                 DurationTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         SwitchPreference(
             value = uiState.tlsRecordFragment,
             onValueChange = { viewModel.setTlsRecordFragment(it) },
@@ -401,7 +384,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MaskedIcon(Res.drawable.security, IconMaskColors.IconCoral, IconMaskShapes.risk())
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.echConfig,
             onValueChange = { viewModel.setEchConfig(it) },
@@ -421,7 +403,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.echQueryServerName,
             onValueChange = { viewModel.setEchQueryServerName(it) },
@@ -458,7 +439,6 @@ private fun LazyListScope.trustTunnelSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.clientKey,
             onValueChange = { viewModel.setClientKey(it) },

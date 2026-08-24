@@ -10,8 +10,11 @@ import fr.husi.RuleProvider
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.LinkOrContentTextField
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.MultiSelectListPreference
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.contentOrUnset
@@ -47,11 +50,7 @@ import fr.husi.ui.PlatformRouteOptions
 import fr.husi.ui.ProxyAppsPreferences
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.stringOrRes
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.MultiSelectListPreference
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -70,7 +69,6 @@ internal fun RouteSettingsGroup(
         needReload = needReload,
         isVpnMode = serviceModeState == Key.MODE_VPN,
     )
-    PreferenceDivider()
 
     fun networkStrategyTextRes(value: String): StringResource = when (value) {
         "" -> Res.string.auto
@@ -99,7 +97,6 @@ internal fun RouteSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringResource(networkStrategyTextRes(it))) },
     )
-    PreferenceDivider()
 
     fun networkInterfaceStrategyTextRes(selection: Int): StringResource = when (selection) {
         NetworkInterfaceStrategy.DEFAULT -> Res.string.keep_default
@@ -133,7 +130,6 @@ internal fun RouteSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringResource(networkInterfaceStrategyTextRes(it))) },
     )
-    PreferenceDivider()
 
     val preferredInterfaces by DataStore.configurationStore
         .stringSetFlow(Key.NETWORK_PREFERRED_INTERFACES, emptySet())
@@ -160,7 +156,6 @@ internal fun RouteSettingsGroup(
         },
         valueToText = { AnnotatedString(it) },
     )
-    PreferenceDivider()
 
     val defaultDisableTcpKeepAlive = PlatformInfo.isAndroid
     val disableTcpKeepAliveValue by DataStore.configurationStore
@@ -177,7 +172,6 @@ internal fun RouteSettingsGroup(
             MaskedIcon(Res.drawable.ecg, color = IconMaskColors.IconLightGreen)
         },
     )
-    PreferenceDivider()
 
     val tcpKeepAliveIdleValue by DataStore.configurationStore
         .stringFlow(Key.TCP_KEEP_ALIVE_IDLE, "")
@@ -202,7 +196,6 @@ internal fun RouteSettingsGroup(
     ) { value, onValueChange, onOk ->
         DurationTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     val tcpKeepAliveIntervalValue by DataStore.configurationStore
         .stringFlow(Key.TCP_KEEP_ALIVE_INTERVAL_0, "")
@@ -224,7 +217,6 @@ internal fun RouteSettingsGroup(
     ) { value, onValueChange, onOk ->
         DurationTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     fun rulesProviderText(index: Int): StringOrRes = when (index) {
         RuleProvider.OFFICIAL -> StringOrRes.Res(Res.string.route_rules_official)
@@ -260,7 +252,6 @@ internal fun RouteSettingsGroup(
         valueToText = { AnnotatedString(stringOrRes(rulesProviderText(it))) },
     )
     if (rulesProviderValue == RuleProvider.CUSTOM) {
-        PreferenceDivider()
         val defaultUrl =
             "https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set"
         val customRuleProviderValue by DataStore.configurationStore

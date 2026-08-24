@@ -1,6 +1,7 @@
 package fr.husi.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,16 +16,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -36,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -56,10 +56,8 @@ import fr.husi.resources.ok
 import fr.husi.resources.password
 import fr.husi.resources.settings
 import fr.husi.resources.wifi
-import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.PreferenceCategory
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -267,26 +265,62 @@ fun <T> OrderedMultiselectPreference(
     }
 }
 
-@Composable
-fun PreferenceDivider() {
-    HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+object PreferenceGroupDefaults {
+    /** Radius of the group as a whole, matching a menu's standalone group shape. */
+    val groupShape: Shape
+        @Composable get() = MaterialTheme.shapes.large
+
+    /** Radius of a single row. Rows at the edges are rounded up by the group's clip. */
+    val itemShape: Shape
+        @Composable get() = MaterialTheme.shapes.extraSmall
+
+    val itemContainerColor: Color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainer
+
+    /** Gap that separates two rows, matching a menu's group spacing. */
+    val ItemSpacing = 2.dp
+
+    /** Arrangement for a nested column of rows, such as the body of an `AnimatedVisibility`. */
+    val itemArrangement: Arrangement.Vertical = Arrangement.spacedBy(ItemSpacing)
 }
 
+/**
+ * Container of a single preference row.
+ *
+ * Every row draws its own surface, so a group reads as separate entries the way a native Android
+ * preference group does, rather than as one card cut up by divider lines.
+ */
+@Composable
+fun PreferenceItemSurface(content: @Composable () -> Unit) {
+    Surface(
+        shape = PreferenceGroupDefaults.itemShape,
+        color = PreferenceGroupDefaults.itemContainerColor,
+        content = content,
+    )
+}
+
+/**
+ * A group of preference rows.
+ *
+ * The group only clips; it paints nothing, so the gaps between rows show the screen behind them.
+ * Clipping is also what gives the first and last row their large outer corners: the intersection
+ * of a row's small corner with the group's large one is the large corner. That keeps rows free of
+ * any position bookkeeping, which matters because group content is written with conditionals.
+ */
 fun LazyListScope.preferenceGroup(
     key: Any? = null,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     item(key = key) {
-        ElevatedCard(
+        Column(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
-        ) {
-            Column(content = content)
-        }
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .clip(PreferenceGroupDefaults.groupShape),
+            verticalArrangement = PreferenceGroupDefaults.itemArrangement,
+            content = content,
+        )
     }
 }
 
@@ -405,14 +439,6 @@ private fun PreviewCustomPreference() {
             Spacer(Modifier.height(16.dp))
 
             var password by remember { mutableStateOf("") }
-            PasswordPreference(
-                value = password,
-                onValueChange = { password = it },
-                enabled = true,
-            )
-
-            Spacer(Modifier.height(16.dp))
-
             var mapValue by remember {
                 mutableStateOf(
                     linkedMapOf(
@@ -424,23 +450,34 @@ private fun PreviewCustomPreference() {
 
             val keys = linkedSetOf("Server", "Port")
 
-            MapPreference(
-                value = mapValue,
-                keys = keys,
-                onValueChange = { mapValue = it },
-                displayKey = { it },
-                textToValue = { it },
-                title = { Text("Connection Settings") },
-                icon = {
-                    Icon(
-                        vectorResource(Res.drawable.wifi),
-                        contentDescription = null,
-                    )
-                },
-                summary = {
-                    Text(mapValue.entries.joinToString { "${it.key}: ${it.value}" })
-                },
-            )
+            Column(
+                modifier = Modifier.clip(PreferenceGroupDefaults.groupShape),
+                verticalArrangement = PreferenceGroupDefaults.itemArrangement,
+            ) {
+                PasswordPreference(
+                    value = password,
+                    onValueChange = { password = it },
+                    enabled = true,
+                )
+
+                MapPreference(
+                    value = mapValue,
+                    keys = keys,
+                    onValueChange = { mapValue = it },
+                    displayKey = { it },
+                    textToValue = { it },
+                    title = { Text("Connection Settings") },
+                    icon = {
+                        Icon(
+                            vectorResource(Res.drawable.wifi),
+                            contentDescription = null,
+                        )
+                    },
+                    summary = {
+                        Text(mapValue.entries.joinToString { "${it.key}: ${it.value}" })
+                    },
+                )
+            }
         }
     }
 }

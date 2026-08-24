@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,13 +29,15 @@ import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -68,15 +69,11 @@ import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.v2ray_transport
 import fr.husi.resources.vpn_key
 import fr.husi.results.LocalResultEventBus
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SIP003EditorScreen(
     pluginName: String,
@@ -197,7 +194,6 @@ private fun ObfsLocalForm(
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it.value) },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.obfsHost,
                 onValueChange = viewModel::setObfsHost,
@@ -245,7 +241,6 @@ private fun V2RayPluginForm(
                     )
                 },
             )
-            PreferenceDivider()
             ListPreference(
                 value = uiState.mode,
                 values = V2RayMode.entries,
@@ -261,7 +256,6 @@ private fun V2RayPluginForm(
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it.value) },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.host,
                 onValueChange = viewModel::setHost,
@@ -276,7 +270,6 @@ private fun V2RayPluginForm(
                 summary = { Text(contentOrUnset(uiState.host)) },
                 valueToText = { it },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.path,
                 onValueChange = viewModel::setPath,
@@ -291,7 +284,6 @@ private fun V2RayPluginForm(
                 summary = { Text(contentOrUnset(uiState.path)) },
                 valueToText = { it },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.mux,
                 onValueChange = viewModel::setMux,
@@ -310,7 +302,6 @@ private fun V2RayPluginForm(
                     UIntegerTextField(value, onValueChange, onOk)
                 },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.certRaw,
                 onValueChange = viewModel::setCertRaw,

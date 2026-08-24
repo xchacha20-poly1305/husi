@@ -6,6 +6,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.preferenceGroup
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
@@ -13,7 +14,6 @@ import fr.husi.resources.Res
 import fr.husi.resources.copyright
 import fr.husi.resources.custom_plugin_prefix
 import fr.husi.resources.custom_plugin_prefix_summary
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
 internal actual fun LazyListScope.platformPluginPreferences(

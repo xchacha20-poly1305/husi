@@ -25,8 +25,9 @@ import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.Preference
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -53,9 +54,7 @@ import fr.husi.resources.server_address
 import fr.husi.resources.wifi_find
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -138,7 +137,6 @@ fun RemoteServerEditScreen(
                             },
                             valueToText = { it },
                         )
-                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.url,
                             onValueChange = viewModel::setUrl,
@@ -163,7 +161,6 @@ fun RemoteServerEditScreen(
                             },
                             valueToText = { it },
                         )
-                        PreferenceDivider()
                         PasswordPreference(
                             value = uiState.secret,
                             onValueChange = viewModel::setSecret,
@@ -176,7 +173,6 @@ fun RemoteServerEditScreen(
                                 )
                             },
                         )
-                        PreferenceDivider()
                         Preference(
                             title = { Text(stringResource(Res.string.connection_test)) },
                             enabled = !uiState.testing,

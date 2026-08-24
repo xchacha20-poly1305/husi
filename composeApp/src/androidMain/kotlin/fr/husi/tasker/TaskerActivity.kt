@@ -39,6 +39,7 @@ import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.ListPreference
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -81,7 +82,6 @@ import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.ui.ComposeActivity
 import fr.husi.ui.configuration.ProfileSelectSheet
 import kotlinx.coroutines.runBlocking
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource

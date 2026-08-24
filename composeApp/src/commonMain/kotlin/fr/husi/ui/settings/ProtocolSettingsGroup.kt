@@ -7,8 +7,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.ProtocolProvider
 import fr.husi.compose.IconMaskColors
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
@@ -24,9 +25,7 @@ import fr.husi.resources.plugin
 import fr.husi.resources.provider_naive
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.stringOrRes
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -55,7 +54,6 @@ internal fun ProtocolSettingsGroup(
     ) { value, onValueChange, onOk ->
         UIntegerTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     val downloadSpeedValue by DataStore.configurationStore
         .intFlow(Key.DOWNLOAD_SPEED, 0)
@@ -76,7 +74,6 @@ internal fun ProtocolSettingsGroup(
     ) { value, onValueChange, onOk ->
         UIntegerTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     fun pluginProviderText(index: Int): StringOrRes = when (index) {
         ProtocolProvider.CORE -> StringOrRes.Direct("sing-box")
@@ -105,7 +102,6 @@ internal fun ProtocolSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringOrRes(pluginProviderText(it))) },
     )
-    PreferenceDivider()
 
     val juicityProviderValue by DataStore.configurationStore
         .intFlow(Key.PROVIDER_JUICITY, ProtocolProvider.PLUGIN)
@@ -128,7 +124,6 @@ internal fun ProtocolSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringOrRes(pluginProviderText(it))) },
     )
-    PreferenceDivider()
 
     val naiveProviderValue by DataStore.configurationStore
         .intFlow(Key.PROVIDER_NAIVE, ProtocolProvider.CORE)

@@ -8,7 +8,8 @@ import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PortTextField
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.contentOrUnset
@@ -29,8 +30,6 @@ import fr.husi.resources.port_local_dns
 import fr.husi.resources.port_proxy
 import fr.husi.resources.wifi
 import fr.husi.ui.HttpProxyBypassPreference
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -63,7 +62,6 @@ internal fun InboundSettingsGroup(
     ) { value, onValueChange, onOk ->
         PortTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     val localDnsPortValue by DataStore.configurationStore
         .stringFlow(Key.LOCAL_DNS_PORT, "0")
@@ -84,7 +82,6 @@ internal fun InboundSettingsGroup(
     ) { value, onValueChange, onOk ->
         PortTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     val appendHttpProxyValue by DataStore.configurationStore
         .booleanFlow(Key.APPEND_HTTP_PROXY, false)
@@ -108,10 +105,8 @@ internal fun InboundSettingsGroup(
             }
         },
     )
-    PreferenceDivider()
 
     HttpProxyBypassPreference(appendHttpProxyValue, needReload)
-    PreferenceDivider()
 
     val allowAccessValue by DataStore.configurationStore
         .booleanFlow(Key.ALLOW_ACCESS, false)
@@ -128,7 +123,6 @@ internal fun InboundSettingsGroup(
         },
         summary = { Text(stringResource(Res.string.allow_access_sum)) },
     )
-    PreferenceDivider()
 
     val inboundUsernameValue by DataStore.configurationStore
         .stringFlow(Key.INBOUND_USERNAME, "")
@@ -147,7 +141,6 @@ internal fun InboundSettingsGroup(
         summary = { Text(contentOrUnset(inboundUsernameValue)) },
         valueToText = { it },
     )
-    PreferenceDivider()
 
     val inboundPasswordValue by DataStore.configurationStore
         .stringFlow(Key.INBOUND_PASSWORD, "")
@@ -161,7 +154,6 @@ internal fun InboundSettingsGroup(
         title = { Text(stringResource(Res.string.inbound_password)) },
     )
     if (isExpertState) {
-        PreferenceDivider()
         val anchorSSIDValue by DataStore.configurationStore
             .stringFlow(Key.ANCHOR_SSID, "")
             .collectAsStateWithLifecycle("")

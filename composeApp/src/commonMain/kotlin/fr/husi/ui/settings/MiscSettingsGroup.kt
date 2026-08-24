@@ -13,8 +13,11 @@ import fr.husi.Key
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.LinkOrContentTextField
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.SliderPreference
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.contentOrUnset
@@ -38,11 +41,7 @@ import fr.husi.resources.timer
 import fr.husi.ui.DisableProcessTextPreference
 import fr.husi.ui.HideLauncherIconPreference
 import fr.husi.ui.PlatformMiscOptions
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.SliderPreference
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -70,7 +69,6 @@ internal fun MiscSettingsGroup(
     ) { value, onValueChange, onOk ->
         LinkOrContentTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     val connectionTestConcurrentValue by DataStore.configurationStore
         .intFlow(Key.CONNECTION_TEST_CONCURRENT, 5)
@@ -92,7 +90,6 @@ internal fun MiscSettingsGroup(
         },
         valueText = { Text(concurrentPreview.toInt().toString()) },
     )
-    PreferenceDivider()
 
     val connectionTestTimeoutValue by DataStore.configurationStore
         .intFlow(Key.CONNECTION_TEST_TIMEOUT, 3000)
@@ -111,7 +108,6 @@ internal fun MiscSettingsGroup(
         },
         valueText = { Text(timeoutPreview.toInt().toString()) },
     )
-    PreferenceDivider()
 
     val connectionTestUnifiedDelay by DataStore.configurationStore
         .booleanFlow(Key.CONNECTION_TEST_UNIFIED_DELAY, false)
@@ -127,7 +123,6 @@ internal fun MiscSettingsGroup(
             MaskedIcon(Res.drawable.timer, IconMaskColors.IconLightGreen)
         },
     )
-    PreferenceDivider()
 
     val connectionTestIgnoreHandshakeTime by DataStore.configurationStore
         .booleanFlow(Key.CONNECTION_TEST_IGNORE_HANDSHAKE_TIME, false)
@@ -144,7 +139,6 @@ internal fun MiscSettingsGroup(
         },
     )
     PlatformMiscOptions(needReload)
-    PreferenceDivider()
 
     val certProviderValue by DataStore.configurationStore
         .intFlow(Key.CERT_PROVIDER, CertProvider.MOZILLA)
@@ -181,7 +175,6 @@ internal fun MiscSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringResource(certProviderTextRes(it))) },
     )
-    PreferenceDivider()
 
     DisableProcessTextPreference()
     HideLauncherIconPreference()

@@ -3,13 +3,13 @@ package fr.husi.ui
 import androidx.compose.runtime.Composable
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.Preference
 import fr.husi.compose.material3.Text
 import fr.husi.resources.Res
 import fr.husi.resources.apps
 import fr.husi.resources.apps_message
 import fr.husi.resources.legend_toggle
 import fr.husi.resources.not_set
-import me.zhanghai.compose.preference.Preference
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 

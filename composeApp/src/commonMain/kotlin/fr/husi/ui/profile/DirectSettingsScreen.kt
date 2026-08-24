@@ -1,10 +1,10 @@
 package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
@@ -13,10 +13,8 @@ import fr.husi.resources.emoji_symbols
 import fr.husi.resources.profile_config
 import fr.husi.resources.profile_name
 import fr.husi.ui.NavRoutes
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DirectSettingsScreen(
     profileId: Long,

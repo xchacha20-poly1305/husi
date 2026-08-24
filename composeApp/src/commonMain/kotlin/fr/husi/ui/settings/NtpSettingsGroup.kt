@@ -8,7 +8,8 @@ import fr.husi.compose.DurationTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PortTextField
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.contentOrUnset
@@ -22,8 +23,6 @@ import fr.husi.resources.ntp_sum
 import fr.husi.resources.ntp_sync_interval
 import fr.husi.resources.router
 import fr.husi.resources.timelapse
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -48,7 +47,6 @@ internal fun NtpSettingsGroup(
         },
         summary = { Text(stringResource(Res.string.ntp_sum)) },
     )
-    PreferenceDivider()
 
     val ntpServerValue by DataStore.configurationStore
         .stringFlow(Key.NTP_SERVER, "time.apple.com")
@@ -68,7 +66,6 @@ internal fun NtpSettingsGroup(
         valueToText = { it },
         enabled = enableNtpValue,
     )
-    PreferenceDivider()
 
     val ntpPortValue by DataStore.configurationStore
         .intFlow(Key.NTP_PORT, 123)
@@ -93,7 +90,6 @@ internal fun NtpSettingsGroup(
     ) { value, onValueChange, onOk ->
         PortTextField(value, onValueChange, onOk)
     }
-    PreferenceDivider()
 
     val ntpIntervalValue by DataStore.configurationStore
         .stringFlow(Key.NTP_INTERVAL, "30m")

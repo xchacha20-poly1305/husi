@@ -51,13 +51,16 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.IconMaskColors
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MapPreference
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.MultiSelectListPreference
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
@@ -163,12 +166,8 @@ import fr.husi.ui.tools.RuleSetMatchDialog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.runBlocking
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.MultiSelectListPreference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.io.File
@@ -498,10 +497,8 @@ private fun RouteSettings(
                     summary = { Text(contentOrUnset(uiState.name)) },
                     valueToText = { it },
                 )
-                PreferenceDivider()
                 AppSelectPreference(uiState.packages, onSelectApps)
                 if (PlatformInfo.isAndroid) {
-                    PreferenceDivider()
                     TextFieldPreference(
                         value = uiState.packageNameRegex,
                         onValueChange = { viewModel.setPackageNameRegex(it) },
@@ -517,7 +514,6 @@ private fun RouteSettings(
                         valueToText = { it },
                     )
                 }
-                PreferenceDivider()
                 MultiSelectListPreference(
                     value = uiState.networkType,
                     onValueChange = { viewModel.setNetworkType(it) },
@@ -539,7 +535,6 @@ private fun RouteSettings(
                     },
                     valueToText = { AnnotatedString(it) },
                 )
-                PreferenceDivider()
                 ListPreference(
                     value = uiState.action,
                     onValueChange = { viewModel.setAction(it) },
@@ -594,7 +589,6 @@ private fun RouteSettings(
                         )
                     },
                 )
-                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.ip,
                     onValueChange = { viewModel.setIp(it) },
@@ -618,7 +612,6 @@ private fun RouteSettings(
                         )
                     },
                 )
-                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.port,
                     onValueChange = { viewModel.setPort(it) },
@@ -636,7 +629,6 @@ private fun RouteSettings(
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.sourcePort,
                     onValueChange = { viewModel.setSourcePort(it) },
@@ -654,7 +646,6 @@ private fun RouteSettings(
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-                PreferenceDivider()
                 MultiSelectListPreference(
                     value = uiState.network,
                     onValueChange = { viewModel.setNetwork(it) },
@@ -680,7 +671,6 @@ private fun RouteSettings(
                     },
                     valueToText = { AnnotatedString(it) },
                 )
-                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.source,
                     onValueChange = { viewModel.setSource(it) },
@@ -698,7 +688,6 @@ private fun RouteSettings(
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-                PreferenceDivider()
                 MultiSelectListPreference(
                     value = uiState.protocol,
                     onValueChange = { viewModel.setProtocol(it) },
@@ -720,7 +709,6 @@ private fun RouteSettings(
                     },
                     valueToText = { AnnotatedString(it) },
                 )
-                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.client,
                     onValueChange = { viewModel.setClient(it) },
@@ -740,7 +728,6 @@ private fun RouteSettings(
                 )
                 val showWifi = uiState.networkType.contains(SingBoxOptions.NETWORK_TYPE_WIFI)
                 if (showWifi) {
-                    PreferenceDivider()
                     TextFieldPreference(
                         value = uiState.ssid,
                         onValueChange = { viewModel.setSsid(it) },
@@ -758,7 +745,6 @@ private fun RouteSettings(
                             MultilineTextField(value, onValueChange, onOk)
                         },
                     )
-                    PreferenceDivider()
                     TextFieldPreference(
                         value = uiState.bssid,
                         onValueChange = { viewModel.setBssid(it) },
@@ -777,7 +763,6 @@ private fun RouteSettings(
                         },
                     )
                 }
-                PreferenceDivider()
                 TextFieldPreference(
                     value = uiState.clashMode,
                     onValueChange = { viewModel.setClashMode(it) },
@@ -795,7 +780,6 @@ private fun RouteSettings(
                         MultilineTextField(value, onValueChange, onOk)
                     },
                 )
-                PreferenceDivider()
                 SwitchPreference(
                     value = uiState.networkIsExpensive,
                     onValueChange = { viewModel.setNetworkIsExpensive(it) },
@@ -807,7 +791,6 @@ private fun RouteSettings(
                         )
                     },
                 )
-                PreferenceDivider()
                 MapPreference(
                     value = uiState.networkInterfaceAddress,
                     keys = LinkedHashSet(networkTypes),
@@ -952,7 +935,6 @@ private fun RouteSettings(
                             summary = { Text(contentOrUnset(uiState.overrideAddress)) },
                             valueToText = { it },
                         )
-                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.overridePort,
                             onValueChange = { viewModel.setOverridePort(it) },
@@ -969,7 +951,6 @@ private fun RouteSettings(
                                 UIntegerTextField(value, onValueChange, onOk)
                             },
                         )
-                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.tlsFragment,
                             onValueChange = { viewModel.setTlsFragment(it) },
@@ -981,7 +962,6 @@ private fun RouteSettings(
                                 )
                             },
                         )
-                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.tlsFragmentFallbackDelay,
                             onValueChange = { viewModel.setTlsFragmentFallbackDelay(it) },
@@ -999,7 +979,6 @@ private fun RouteSettings(
                                 DurationTextField(value, onValueChange, onOk)
                             },
                         )
-                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.tlsRecordFragment,
                             onValueChange = { viewModel.setTlsRecordFragment(it) },
@@ -1012,7 +991,6 @@ private fun RouteSettings(
                             },
                         )
                         if (!PlatformInfo.isAndroid) {
-                            PreferenceDivider()
                             TextFieldPreference(
                                 value = uiState.tlsSpoof,
                                 onValueChange = { viewModel.setTlsSpoof(it) },
@@ -1027,7 +1005,6 @@ private fun RouteSettings(
                                 summary = { Text(contentOrUnset(uiState.tlsSpoof)) },
                                 valueToText = { it },
                             )
-                            PreferenceDivider()
                             ListPreference(
                                 value = uiState.tlsSpoofMethod,
                                 values = tlsSpoofMethod,
@@ -1078,7 +1055,6 @@ private fun RouteSettings(
                             type = ListPreferenceType.DROPDOWN_MENU,
                             valueToText = { AnnotatedString(it) },
                         )
-                        PreferenceDivider()
                         SwitchPreference(
                             value = uiState.resolveDisableCache,
                             onValueChange = { viewModel.setResolveDisableCache(it) },
@@ -1090,7 +1066,6 @@ private fun RouteSettings(
                                 )
                             },
                         )
-                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.resolveRewriteTTL,
                             onValueChange = { viewModel.setResolveRewriteTTL(it) },
@@ -1112,7 +1087,6 @@ private fun RouteSettings(
                                 UIntegerTextField(value, onValueChange, onOk)
                             },
                         )
-                        PreferenceDivider()
                         TextFieldPreference(
                             value = uiState.resolveClientSubnet,
                             onValueChange = { viewModel.setResolveClientSubnet(it) },
@@ -1151,7 +1125,6 @@ private fun RouteSettings(
                                 DurationTextField(value, onValueChange, onOk)
                             },
                         )
-                        PreferenceDivider()
                         MultiSelectListPreference(
                             value = uiState.sniffers,
                             onValueChange = { viewModel.setSniffers(it) },

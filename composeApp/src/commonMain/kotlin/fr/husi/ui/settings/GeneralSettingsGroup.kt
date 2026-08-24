@@ -36,9 +36,13 @@ import fr.husi.TunImplementation
 import fr.husi.bg.BackendState
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.Preference
+import fr.husi.compose.SliderPreference
+import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Surface
 import fr.husi.compose.material3.Text
@@ -106,12 +110,7 @@ import fr.husi.ui.rememberApplyNightMode
 import fr.husi.ui.rememberThemeExtraColors
 import fr.husi.ui.stringOrRes
 import kotlinx.coroutines.runBlocking
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.Preference
-import me.zhanghai.compose.preference.SliderPreference
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -243,13 +242,11 @@ internal fun GeneralSettingsGroup(
         .collectAsStateWithLifecycle(false)
 
     AutoConnectPreference()
-    PreferenceDivider()
 
     ColorPickerPreference(
         key = Key.APP_THEME,
         title = { Text(stringResource(Res.string.theme)) },
     )
-    PreferenceDivider()
 
     fun nightString(index: Int): StringResource = when (index) {
         0 -> Res.string.follow_system
@@ -280,7 +277,6 @@ internal fun GeneralSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringResource(nightString(it))) },
     )
-    PreferenceDivider()
 
     fun getLanguageDisplayName(tag: String): String =
         AppLanguage.fromTag(tag)?.displayName ?: runBlocking {
@@ -303,7 +299,6 @@ internal fun GeneralSettingsGroup(
         type = ListPreferenceType.ALERT_DIALOG,
         valueToText = { AnnotatedString(getLanguageDisplayName(it)) },
     )
-    PreferenceDivider()
 
     fun serviceModeText(mode: String): StringResource = when (mode) {
         Key.MODE_VPN -> Res.string.service_mode_vpn
@@ -335,7 +330,6 @@ internal fun GeneralSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringResource(serviceModeText(it))) },
     )
-    PreferenceDivider()
 
     fun tunImplText(value: Int): String = when (value) {
         TunImplementation.GVISOR -> "gVisor"
@@ -369,7 +363,6 @@ internal fun GeneralSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(tunImplText(it)) },
     )
-    PreferenceDivider()
 
     val mtuValue by DataStore.configurationStore
         .intFlow(Key.MTU, 9000)
@@ -392,7 +385,6 @@ internal fun GeneralSettingsGroup(
         valueToText = { it.toString() },
     )
     PlatformGeneralOptions(needReload)
-    PreferenceDivider()
 
     fun speedIntervalText(ms: Int): StringOrRes = when (ms) {
         0 -> StringOrRes.Res(Res.string.disable)
@@ -424,7 +416,6 @@ internal fun GeneralSettingsGroup(
             AnnotatedString(text)
         },
     )
-    PreferenceDivider()
 
     val profileTrafficStatisticsValue by DataStore.configurationStore
         .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
@@ -442,7 +433,6 @@ internal fun GeneralSettingsGroup(
         summary = { Text(stringResource(Res.string.profile_traffic_statistics_summary)) },
         enabled = speedIntervalValue != 0,
     )
-    PreferenceDivider()
 
     val showDirectSpeedValue by DataStore.configurationStore
         .booleanFlow(Key.SHOW_DIRECT_SPEED, true)
@@ -457,7 +447,6 @@ internal fun GeneralSettingsGroup(
         summary = { Text(stringResource(Res.string.show_direct_speed_sum)) },
         enabled = speedIntervalValue != 0,
     )
-    PreferenceDivider()
 
     val alwaysShowAddressValue by DataStore.configurationStore
         .booleanFlow(Key.ALWAYS_SHOW_ADDRESS, false)
@@ -474,7 +463,6 @@ internal fun GeneralSettingsGroup(
         },
         summary = { Text(stringResource(Res.string.always_show_address_sum)) },
     )
-    PreferenceDivider()
 
     val blurredAddressValue by DataStore.configurationStore
         .booleanFlow(Key.BLURRED_ADDRESS, false)
@@ -491,7 +479,6 @@ internal fun GeneralSettingsGroup(
         },
         enabled = alwaysShowAddressValue,
     )
-    PreferenceDivider()
 
     val securityAdvisoryValue by DataStore.configurationStore
         .booleanFlow(Key.SECURITY_ADVISORY, true)
@@ -510,7 +497,6 @@ internal fun GeneralSettingsGroup(
     )
     PlatformSecurityOptions()
     MeteredNetworkPreference(needReload)
-    PreferenceDivider()
 
     val logLevelValue by DataStore.configurationStore
         .intFlow(Key.LOG_LEVEL, 3)
@@ -533,7 +519,6 @@ internal fun GeneralSettingsGroup(
         type = ListPreferenceType.ALERT_DIALOG,
         valueToText = { AnnotatedString(logLevelString(it)) },
     )
-    PreferenceDivider()
 
     val maxLogLineValue by DataStore.configurationStore
         .intFlow(Key.LOG_MAX_LINE, 1024)
@@ -556,7 +541,6 @@ internal fun GeneralSettingsGroup(
         valueText = { Text(previewValue.toInt().toString()) },
     )
     if (isExpertState) {
-        PreferenceDivider()
         val debugListenValue by DataStore.configurationStore
             .stringFlow(Key.DEBUG_LISTEN, "")
             .collectAsStateWithLifecycle("")

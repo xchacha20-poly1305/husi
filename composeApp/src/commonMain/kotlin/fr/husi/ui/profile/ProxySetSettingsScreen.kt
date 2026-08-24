@@ -49,9 +49,11 @@ import fr.husi.compose.DropDownSelector
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.ScrollableDialog
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
@@ -95,10 +97,7 @@ import fr.husi.ui.NavRoutes
 import fr.husi.ui.OpenProfilePicker
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.time.Duration.Companion.milliseconds
@@ -182,7 +181,6 @@ private fun LazyListScope.proxySetSettings(
             summary = { Text(contentOrUnset(uiState.name)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         fun managementName(management: Int) =
             when (management) {
                 ProxySetBean.MANAGEMENT_SELECTOR -> Res.string.action_selector
@@ -199,7 +197,6 @@ private fun LazyListScope.proxySetSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(managementName(it))) },
         )
-        PreferenceDivider()
         SwitchPreference(
             value = uiState.interruptExistConnections,
             onValueChange = { viewModel.setInterruptExistConnections(it) },
@@ -207,7 +204,6 @@ private fun LazyListScope.proxySetSettings(
             icon = { MaskedIcon(Res.drawable.stop, IconMaskColors.IconCoral) },
         )
         if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testURL,
                 onValueChange = { viewModel.setTestURL(it) },
@@ -223,7 +219,6 @@ private fun LazyListScope.proxySetSettings(
                 summary = { Text(contentOrUnset(uiState.testURL)) },
                 valueToText = { it },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testInterval,
                 onValueChange = { viewModel.setTestInterval(it) },
@@ -241,7 +236,6 @@ private fun LazyListScope.proxySetSettings(
                     DurationTextField(value, onValueChange, onOk)
                 },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testIdleTimeout,
                 onValueChange = { viewModel.setTestIdleTimeout(it) },
@@ -254,7 +248,6 @@ private fun LazyListScope.proxySetSettings(
                     DurationTextField(value, onValueChange, onOk)
                 },
             )
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.testTolerance,
                 onValueChange = { viewModel.setTestTolerance(it) },

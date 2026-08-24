@@ -1,7 +1,6 @@
 package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -9,7 +8,7 @@ import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -39,10 +38,8 @@ import fr.husi.resources.vpn_key
 import fr.husi.resources.wireguard_local_address
 import fr.husi.resources.wireguard_public_key
 import fr.husi.ui.NavRoutes
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WireGuardSettingsScreen(
     profileId: Long,
@@ -106,7 +103,6 @@ private fun LazyListScope.wireGuardSettings(
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.port,
             onValueChange = { viewModel.setPort(it) },
@@ -124,7 +120,6 @@ private fun LazyListScope.wireGuardSettings(
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.localAddress,
             onValueChange = { viewModel.setLocalAddress(it) },
@@ -142,7 +137,6 @@ private fun LazyListScope.wireGuardSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         PasswordPreference(
             value = uiState.privateKey,
             onValueChange = { viewModel.setPrivateKey(it) },
@@ -155,7 +149,6 @@ private fun LazyListScope.wireGuardSettings(
                 )
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.publicKey,
             onValueChange = { viewModel.setPublicKey(it) },
@@ -167,7 +160,6 @@ private fun LazyListScope.wireGuardSettings(
             summary = { Text(contentOrUnset(uiState.publicKey)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         PasswordPreference(
             value = uiState.preSharedKey,
             onValueChange = { viewModel.setPreSharedKey(it) },
@@ -180,7 +172,6 @@ private fun LazyListScope.wireGuardSettings(
                 )
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.mtu,
             onValueChange = { viewModel.setMtu(it) },
@@ -198,7 +189,6 @@ private fun LazyListScope.wireGuardSettings(
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.reserved,
             onValueChange = { viewModel.setReserved(it) },
@@ -217,7 +207,6 @@ private fun LazyListScope.wireGuardSettings(
                 MultilineTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.listenPort,
             onValueChange = { viewModel.setListenPort(it) },
@@ -235,7 +224,6 @@ private fun LazyListScope.wireGuardSettings(
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.persistentKeepaliveInterval,
             onValueChange = { viewModel.setPersistentKeepaliveInterval(it) },

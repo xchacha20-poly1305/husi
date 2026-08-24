@@ -1,16 +1,16 @@
 package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -42,13 +42,10 @@ import fr.husi.resources.traffic_pattern
 import fr.husi.resources.username
 import fr.husi.resources.vpn_key
 import fr.husi.ui.NavRoutes
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MieruSettingsScreen(
     profileId: Long,
@@ -114,7 +111,6 @@ private fun LazyListScope.mieruSettings(
             summary = { Text(contentOrUnset(uiState.address)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.port,
             onValueChange = { viewModel.setPort(it) },
@@ -132,7 +128,6 @@ private fun LazyListScope.mieruSettings(
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         ListPreference(
             value = uiState.protocol,
             values = protocols,
@@ -148,7 +143,6 @@ private fun LazyListScope.mieruSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.username,
             onValueChange = { viewModel.setUsername(it) },
@@ -160,7 +154,6 @@ private fun LazyListScope.mieruSettings(
             summary = { Text(contentOrUnset(uiState.username)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         PasswordPreference(
             value = uiState.password,
             onValueChange = { viewModel.setPassword(it) },
@@ -172,7 +165,6 @@ private fun LazyListScope.mieruSettings(
             },
         )
         if (uiState.protocol == MieruBean.PROTOCOL_UDP) {
-            PreferenceDivider()
             TextFieldPreference(
                 value = uiState.mtu,
                 onValueChange = { viewModel.setMtu(it) },
@@ -192,7 +184,6 @@ private fun LazyListScope.mieruSettings(
                 },
             )
         }
-        PreferenceDivider()
         ListPreference(
             value = uiState.muxNumber,
             values = intListN(4),
@@ -227,7 +218,6 @@ private fun LazyListScope.mieruSettings(
                 AnnotatedString(stringResource(muxSummary))
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.trafficPattern,
             onValueChange = viewModel::setTrafficPattern,

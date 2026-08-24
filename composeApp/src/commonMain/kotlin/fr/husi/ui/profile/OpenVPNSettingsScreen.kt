@@ -5,12 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
+import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.OrderedMultiselectPreference
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -59,10 +61,7 @@ import fr.husi.resources.username
 import fr.husi.resources.vpn_key
 import fr.husi.resources.wifi
 import fr.husi.ui.NavRoutes
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -153,7 +152,6 @@ private fun LazyListScope.openVPNSettings(
             summary = { Text(contentOrUnset(state.address)) },
             icon = { MaskedIcon(Res.drawable.router, IconMaskColors.IconLightBlue) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.port,
             onValueChange = viewModel::setPort,
@@ -166,7 +164,6 @@ private fun LazyListScope.openVPNSettings(
             },
             icon = { MaskedIcon(Res.drawable.directions_boat, IconMaskColors.IconLightOrange) },
         )
-        PreferenceDivider()
         ListPreference(
             value = state.network,
             onValueChange = viewModel::setNetwork,
@@ -177,7 +174,6 @@ private fun LazyListScope.openVPNSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.username,
             onValueChange = viewModel::setUsername,
@@ -187,13 +183,11 @@ private fun LazyListScope.openVPNSettings(
             summary = { Text(contentOrUnset(state.username)) },
             icon = { MaskedIcon(Res.drawable.person, IconMaskColors.IconLightGreen) },
         )
-        PreferenceDivider()
         PasswordPreference(
             value = state.password,
             onValueChange = viewModel::setPassword,
             title = { Text(stringResource(Res.string.password)) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.certificate,
             onValueChange = viewModel::setCertificate,
@@ -206,7 +200,6 @@ private fun LazyListScope.openVPNSettings(
             },
             icon = { MaskedIcon(Res.drawable.enhanced_encryption, IconMaskColors.IconLightBlue) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.clientCertificate,
             onValueChange = viewModel::setClientCertificate,
@@ -219,7 +212,6 @@ private fun LazyListScope.openVPNSettings(
             },
             icon = { MaskedIcon(Res.drawable.fingerprint, IconMaskColors.IconLavender, IconMaskShapes.credential()) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.clientKey,
             onValueChange = viewModel::setClientKey,
@@ -232,7 +224,6 @@ private fun LazyListScope.openVPNSettings(
             },
             icon = { MaskedIcon(Res.drawable.vpn_key, IconMaskColors.IconCoral, IconMaskShapes.credential()) },
         )
-        PreferenceDivider()
         OrderedMultiselectPreference(
             selected = dataCiphers,
             values = supportedDataCiphers,
@@ -242,7 +233,6 @@ private fun LazyListScope.openVPNSettings(
             icon = { MaskedIcon(Res.drawable.lock, IconMaskColors.IconLightYellow) },
             valueToText = { it },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.cipher,
             onValueChange = viewModel::setCipher,
@@ -252,7 +242,6 @@ private fun LazyListScope.openVPNSettings(
             summary = { Text(contentOrUnset(state.cipher)) },
             icon = { MaskedIcon(Res.drawable.lock, IconMaskColors.IconLightYellow) },
         )
-        PreferenceDivider()
         ListPreference(
             value = state.auth,
             onValueChange = viewModel::setAuth,
@@ -263,7 +252,6 @@ private fun LazyListScope.openVPNSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it.ifBlank { stringResource(Res.string.auto) }) },
         )
-        PreferenceDivider()
         ListPreference(
             value = state.compression,
             onValueChange = viewModel::setCompression,
@@ -274,7 +262,6 @@ private fun LazyListScope.openVPNSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it.ifBlank { stringResource(Res.string.auto) }) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.mtu,
             onValueChange = viewModel::setMtu,
@@ -287,7 +274,6 @@ private fun LazyListScope.openVPNSettings(
             },
             icon = { MaskedIcon(Res.drawable.directions_boat, IconMaskColors.IconLightOrange) },
         )
-        PreferenceDivider()
         SwitchPreference(
             value = state.redirectGateway,
             onValueChange = viewModel::setRedirectGateway,
@@ -306,7 +292,6 @@ private fun LazyListScope.openVPNSettings(
             summary = { Text(contentOrUnset(state.serverName)) },
             icon = { MaskedIcon(Res.drawable.dns, IconMaskColors.IconLightBlue) },
         )
-        PreferenceDivider()
         ListPreference(
             value = state.serverNameType,
             onValueChange = viewModel::setServerNameType,
@@ -321,7 +306,6 @@ private fun LazyListScope.openVPNSettings(
                 AnnotatedString(it.ifBlank { stringResource(Res.string.auto) })
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.peerFingerprint,
             onValueChange = viewModel::setPeerFingerprint,
@@ -331,7 +315,6 @@ private fun LazyListScope.openVPNSettings(
             summary = { Text(contentOrUnset(state.peerFingerprint)) },
             icon = { MaskedIcon(Res.drawable.fingerprint, IconMaskColors.IconLightYellow) },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.remoteCertificateKU,
             onValueChange = viewModel::setRemoteCertificateKU,
@@ -341,7 +324,6 @@ private fun LazyListScope.openVPNSettings(
             summary = { Text(contentOrUnset(state.remoteCertificateKU)) },
             icon = { MaskedIcon(Res.drawable.security, IconMaskColors.IconLightOrange) },
         )
-        PreferenceDivider()
         ListPreference(
             value = state.remoteCertificateEKU,
             onValueChange = viewModel::setRemoteCertificateEKU,
@@ -356,7 +338,6 @@ private fun LazyListScope.openVPNSettings(
                 AnnotatedString(it.ifBlank { stringResource(Res.string.auto) })
             },
         )
-        PreferenceDivider()
         ListPreference(
             value = state.controlWrapType,
             onValueChange = viewModel::setControlWrapType,
@@ -371,7 +352,6 @@ private fun LazyListScope.openVPNSettings(
                 AnnotatedString(it.ifBlank { stringResource(Res.string.auto) })
             },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = state.controlWrapKey,
             onValueChange = viewModel::setControlWrapKey,
@@ -385,7 +365,6 @@ private fun LazyListScope.openVPNSettings(
             icon = { MaskedIcon(Res.drawable.vpn_key, IconMaskColors.IconCoral, IconMaskShapes.credential()) },
         )
         if (state.controlWrapType == "tls_auth") {
-            PreferenceDivider()
             ListPreference(
                 value = state.controlWrapDirection,
                 onValueChange = viewModel::setControlWrapDirection,

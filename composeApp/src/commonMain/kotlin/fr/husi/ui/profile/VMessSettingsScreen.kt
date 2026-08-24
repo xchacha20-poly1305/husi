@@ -1,13 +1,14 @@
 package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
+import fr.husi.compose.ListPreference
 import fr.husi.compose.PreferenceCategory
-import fr.husi.compose.PreferenceDivider
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -31,13 +32,9 @@ import fr.husi.resources.uuid
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.stringOrRes
-import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VMessSettingsScreen(
     profileId: Long,
@@ -62,7 +59,6 @@ fun VMessSettingsScreen(
     }
 }
 
-
 private fun LazyListScope.vmessSettings(
     uiState: VMessUiState,
     viewModel: VMessSettingsViewModel,
@@ -81,7 +77,6 @@ private fun LazyListScope.vmessSettings(
             summary = { Text(contentOrUnset(uiState.uuid)) },
             valueToText = { it },
         )
-        PreferenceDivider()
         TextFieldPreference(
             value = uiState.alterID,
             onValueChange = { viewModel.setAlterID(it) },
@@ -99,7 +94,6 @@ private fun LazyListScope.vmessSettings(
                 UIntegerTextField(value, onValueChange, onOk)
             },
         )
-        PreferenceDivider()
         ListPreference(
             value = uiState.encryption,
             onValueChange = { viewModel.setEncryption(it) },
@@ -115,7 +109,6 @@ private fun LazyListScope.vmessSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
-        PreferenceDivider()
         fun packetEncodingName(packetEncoding: Int): StringOrRes = when (packetEncoding) {
             0 -> StringOrRes.Res(Res.string.not_set)
             1 -> StringOrRes.Direct("packetaddr")

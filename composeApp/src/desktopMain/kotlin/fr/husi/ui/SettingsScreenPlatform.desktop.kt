@@ -15,8 +15,10 @@ import fr.husi.Key
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.PreferenceDivider
+import fr.husi.compose.Preference
+import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -66,9 +68,6 @@ import fr.husi.resources.warning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.zhanghai.compose.preference.Preference
-import me.zhanghai.compose.preference.SwitchPreference
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -218,7 +217,6 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
     )
 
     if (foreignOwner != null) {
-        PreferenceDivider()
         Preference(
             title = {
                 Text(
@@ -277,7 +275,6 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
     }
 
     if (showStartAtBoot) {
-        PreferenceDivider()
         SwitchPreference(
             value = startAtBoot,
             onValueChange = { enabled ->
@@ -412,7 +409,6 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
             enabled = isVpnMode,
         )
     }
-    PreferenceDivider()
 
     val forcedSearchProcessValue by DataStore.configurationStore
         .booleanFlow(Key.FORCED_SEARCH_PROCESS, false)

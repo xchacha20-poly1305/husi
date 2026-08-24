@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -39,6 +38,7 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -58,12 +58,10 @@ import fr.husi.ui.NavRoutes
 import fr.husi.ui.OpenProfilePicker
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
-import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChainSettingsScreen(
     profileId: Long,
@@ -103,7 +101,6 @@ fun ChainSettingsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 private fun LazyListScope.chainSettings(
     uiState: ChainUiState,
     viewModel: ChainSettingsViewModel,
