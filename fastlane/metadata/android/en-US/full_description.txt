@@ -1,1 +1,2 @@
-Husi is a non-professional and recreational proxy tool integration, aiming at promoting proxy customization.
+Husi is a non-professional proxy-set-based multiplatform proxy tool set. With graphical config editor, network tools and proxy status observation.
+

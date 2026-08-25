@@ -6,7 +6,8 @@
 
 # Husi (虎兕)
 
-Husi is a non-professional and recreational proxy tool integration, aiming at promoting proxy customization.
+Husi is a non-professional proxy-set-based multiplatform proxy tool set.
+
 
 ## 🛠️ Contribution
 
