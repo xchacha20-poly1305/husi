@@ -112,7 +112,7 @@ data class ProxyGroup(
     @androidx.room.Dao
     interface Dao {
 
-        @Query("SELECT * FROM proxy_groups ORDER BY userOrder")
+        @Query("SELECT * FROM proxy_groups ORDER BY userOrder, id")
         fun allGroups(): Flow<List<ProxyGroup>>
 
         @Query("SELECT * FROM proxy_groups WHERE type = ${GroupType.SUBSCRIPTION}")
@@ -121,7 +121,7 @@ data class ProxyGroup(
         @Query("SELECT MAX(userOrder) + 1 FROM proxy_groups")
         suspend fun nextOrder(): Long?
 
-        @Query("SELECT id FROM proxy_groups ORDER BY userOrder LIMIT 1")
+        @Query("SELECT id FROM proxy_groups ORDER BY userOrder, id LIMIT 1")
         suspend fun firstGroupId(): Long?
 
         @Query("SELECT id FROM proxy_groups WHERE ungrouped = 1 LIMIT 1")

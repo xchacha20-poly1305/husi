@@ -148,13 +148,21 @@ class GroupScreenViewModel : ViewModel() {
     }
 
     fun submitReorder(changes: List<OrderedItem<GroupItemUiState>>) = runOnDefaultDispatcher {
-        val toUpdate = changes.mapNotNull { orderedItem ->
-            val newUserOrder = orderedItem.newIndex.toLong()
-            val group = orderedItem.value.group
+        if (changes.isEmpty()) return@runOnDefaultDispatcher
+
+        val reordered = uiState.value.groups.toMutableList()
+        for (change in changes) {
+            if (change.newIndex !in reordered.indices) {
+                return@runOnDefaultDispatcher
+            }
+            reordered[change.newIndex] = change.value
+        }
+
+        val toUpdate = reordered.mapIndexedNotNull { index, groupState ->
+            val newUserOrder = (index + 1).toLong()
+            val group = groupState.group
             if (group.userOrder != newUserOrder) {
-                group.copy(
-                    userOrder = newUserOrder,
-                )
+                group.copy(userOrder = newUserOrder)
             } else {
                 null
             }

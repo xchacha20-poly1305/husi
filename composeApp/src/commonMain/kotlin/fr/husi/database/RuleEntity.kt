@@ -98,7 +98,7 @@ data class RuleEntity(
          * IMPORTANT: Prefer using [ProfileManager.getRules] instead of calling this directly.
          * The wrapper handles first-time initialization of default rules (sniff, hijack_dns, etc).
          */
-        @Query("SELECT * FROM rules ORDER BY userOrder")
+        @Query("SELECT * FROM rules ORDER BY userOrder, id")
         fun allRules(): Flow<List<RuleEntity>>
 
         @Query("SELECT MAX(userOrder) + 1 FROM rules")

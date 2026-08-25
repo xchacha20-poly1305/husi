@@ -253,17 +253,16 @@ fun RouteScreen(
                     bottom = listContentPadding.calculateBottomPadding() + SagerFabClearance,
                 ),
                 userScrollEnabled = true,
-                fixedTopItemCount = 1,
+                fixedTopItemCount = RouteListItem.ROUTE_LIST_HEADER_COUNT,
                 onIndicesChangedViaDragAndDrop = { ordered ->
-                    val rules = ordered.mapNotNull { item ->
-                        (item.value as? RouteListItem.Rule)?.entity
-                    }
                     viewModel.submitReorder(
-                        rules.mapIndexed { index, entity ->
+                        ordered.mapNotNull { item ->
+                            val rule = (item.value as? RouteListItem.Rule)?.entity
+                                ?: return@mapNotNull null
                             OrderedItem(
-                                value = entity,
-                                initialIndex = index,
-                                newIndex = index,
+                                value = rule,
+                                initialIndex = item.initialIndex - RouteListItem.ROUTE_LIST_HEADER_COUNT,
+                                newIndex = item.newIndex - RouteListItem.ROUTE_LIST_HEADER_COUNT,
                             )
                         },
                     )
@@ -355,6 +354,13 @@ fun RouteScreen(
 }
 
 private sealed interface RouteListItem {
+
+    companion object {
+        const val ROUTE_LIST_HEADER_COUNT = 1
+    }
+
+    val key: Any
+
     data object Notification : RouteListItem {
         override val key: Any get() = "route_notification"
     }
@@ -362,8 +368,6 @@ private sealed interface RouteListItem {
     data class Rule(val entity: RuleEntity) : RouteListItem {
         override val key: Any get() = entity.id
     }
-
-    val key: Any
 
 }
 

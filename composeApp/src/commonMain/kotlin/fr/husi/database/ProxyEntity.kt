@@ -566,10 +566,10 @@ data class ProxyEntity(
         @Query("select * from proxy_entities")
         suspend fun getAll(): List<ProxyEntity>
 
-        @Query("SELECT id FROM proxy_entities WHERE groupId = :groupId ORDER BY userOrder")
+        @Query("SELECT id FROM proxy_entities WHERE groupId = :groupId ORDER BY userOrder, id")
         suspend fun getIdsByGroup(groupId: Long): List<Long>
 
-        @Query("SELECT * FROM proxy_entities WHERE groupId = :groupId ORDER BY userOrder")
+        @Query("SELECT * FROM proxy_entities WHERE groupId = :groupId ORDER BY userOrder, id")
         fun getByGroup(groupId: Long): Flow<List<ProxyEntity>>
 
         @Query("SELECT * FROM proxy_entities WHERE id in (:proxyIds)")

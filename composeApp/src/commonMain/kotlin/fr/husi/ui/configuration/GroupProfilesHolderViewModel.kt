@@ -34,6 +34,12 @@ data class GroupProfilesHolderUiState(
     val profiles: List<ProfileItem> = emptyList(),
     val hiddenProfiles: Int = 0,
     val scrollIndex: Int? = null,
+    /**
+     * Whether the displayed positions are the persisted user order, which is what drag-and-drop
+     * reordering writes back. A search query or a group order other than [GroupOrder.ORIGIN]
+     * makes them unrelated to it, so dragging has to stay disabled there.
+     */
+    val canReorder: Boolean = true,
 )
 
 @Immutable
@@ -114,9 +120,20 @@ class GroupProfilesHolderViewModel(
     }
 
     fun submitReordered(changes: List<OrderedItem<ProfileItem>>) = runOnDefaultDispatcher {
-        val toChange = changes.mapNotNull { orderedItem ->
-            val profile = orderedItem.value.profile
-            val newOrder = orderedItem.newIndex.toLong()
+        val state = uiState.value
+        if (changes.isEmpty() || !state.canReorder) return@runOnDefaultDispatcher
+
+        val reordered = state.profiles.toMutableList()
+        for (change in changes) {
+            if (change.newIndex !in reordered.indices) {
+                return@runOnDefaultDispatcher
+            }
+            reordered[change.newIndex] = change.value
+        }
+
+        val toChange = reordered.mapIndexedNotNull { index, item ->
+            val newOrder = (index + 1).toLong()
+            val profile = item.profile
             if (profile.userOrder != newOrder) {
                 profile.copy(userOrder = newOrder)
             } else {
@@ -164,7 +181,7 @@ class GroupProfilesHolderViewModel(
                 }
             }
 
-            else -> compareBy { it.userOrder }
+            else -> compareBy<ProxyEntity> { it.userOrder }.thenBy { it.id }
         }
         var selectedIndex = -1
         val profiles = (raw ?: onIoDispatcher {
@@ -208,6 +225,7 @@ class GroupProfilesHolderViewModel(
                 profiles = profiles,
                 hiddenProfiles = hiddenProfileIds.size,
                 scrollIndex = scrollIndex,
+                canReorder = query.isBlank() && group.order == GroupOrder.ORIGIN,
             )
         }
     }

@@ -353,6 +353,7 @@ internal fun GroupHolderScreen(
                     behindSwipeContainerBackgroundColor = Color.Transparent,
                     behindSwipeIconColor = Color.Transparent,
                 ),
+                dragDropEnabled = uiState.canReorder,
             ) {
                 ProxyCard(
                     profile = item,

@@ -77,12 +77,20 @@ class RouteScreenViewModel : ViewModel() {
     }
 
     fun submitReorder(changes: List<OrderedItem<RuleEntity>>) = runOnDefaultDispatcher {
-        val toUpdate = changes.mapNotNull { orderedItem ->
-            val newUserOrder = orderedItem.newIndex.toLong()
-            if (orderedItem.value.userOrder != newUserOrder) {
-                orderedItem.value.copy(
-                    userOrder = newUserOrder,
-                )
+        if (changes.isEmpty()) return@runOnDefaultDispatcher
+
+        val reordered = uiState.value.rules.toMutableList()
+        for (change in changes) {
+            if (change.newIndex !in reordered.indices) {
+                return@runOnDefaultDispatcher
+            }
+            reordered[change.newIndex] = change.value
+        }
+
+        val toUpdate = reordered.mapIndexedNotNull { index, rule ->
+            val newUserOrder = (index + 1).toLong()
+            if (rule.userOrder != newUserOrder) {
+                rule.copy(userOrder = newUserOrder)
             } else {
                 null
             }
