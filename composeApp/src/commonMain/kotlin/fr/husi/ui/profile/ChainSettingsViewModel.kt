@@ -114,9 +114,11 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
         val version = ++profileMutationVersion
         profileSelectionJob?.cancel()
         profileSelectionJob = viewModelScope.launch(Dispatchers.Default) {
+            val profile = withContext(Dispatchers.IO) {
+                ProfileManager.getProfile(id)!!
+            }
+            if (version != profileMutationVersion) return@launch
             uiState.update { state ->
-                val profile = ProfileManager.getProfile(id)!!
-                if (version != profileMutationVersion) return@launch
                 val profiles = state.profiles.toMutableList()
                 if (replacingIndex >= profiles.size) return@launch
                 val otherProfiles = profiles.filterIndexed { index, _ ->

@@ -33,6 +33,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -550,7 +551,12 @@ private fun RuleEntity.displayOutbound(): String {
         OUTBOUND_DIRECT -> stringResource(Res.string.route_bypass)
         OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
         OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
-        else -> ProfileManager.getProfile(outbound)?.displayName()
-            ?: stringResource(Res.string.error_title)
+        else -> {
+            val unknownProfile = stringResource(Res.string.error_title)
+            val profileName by produceState<String?>(null, outbound) {
+                value = ProfileManager.getProfile(outbound)?.displayName() ?: unknownProfile
+            }
+            profileName.orEmpty()
+        }
     }
 }

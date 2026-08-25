@@ -195,9 +195,9 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         val version = ++mutationVersion
         mutationJob?.cancel()
         mutationJob = viewModelScope.launch {
+            val profile = ProfileManager.getProfile(id)!!
+            if (version != mutationVersion) return@launch
             uiState.update { state ->
-                val profile = ProfileManager.getProfile(id)!!
-                if (version != mutationVersion) return@launch
                 val providers = state.providers.toMutableList()
                 if (replacingIndex >= providers.size) return@launch
                 val alreadySelected = providers.filterIndexed { index, item ->

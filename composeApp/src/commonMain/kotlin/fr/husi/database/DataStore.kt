@@ -67,7 +67,7 @@ object DataStore {
     fun currentGroupId(): Long {
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
         if (currentSelected > 0L) return currentSelected
-        val groupId = ProfileManager.ensureDefaultGroupId()
+        val groupId = runBlocking { ProfileManager.ensureDefaultGroupId() }
         selectedGroup = groupId
         return groupId
     }
@@ -81,8 +81,8 @@ object DataStore {
             }
         }
         if (group != null) return group
-        val groupId = ProfileManager.ensureDefaultGroupId()
         group = runBlocking {
+            val groupId = ProfileManager.ensureDefaultGroupId()
             SagerDatabase.groupDao.getById(groupId).firstOrNull()
                 ?: SagerDatabase.groupDao.allGroups().first().first()
         }
