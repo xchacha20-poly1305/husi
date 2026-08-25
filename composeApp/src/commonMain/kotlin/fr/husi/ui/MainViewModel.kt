@@ -147,6 +147,7 @@ class MainViewModel(
                         val createdGroup = onIoDispatcher {
                             importLinkInteractor.createSubscriptionGroup(group)
                         }
+                        DataStore.selectedGroup = createdGroup.id
                         performGroupUpdate(createdGroup, true)
                     }
                 },
