@@ -16,8 +16,6 @@ import fr.husi.ktx.b64Decode
 import fr.husi.ktx.b64EncodeUrlSafe
 import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.kxs
-import fr.husi.ktx.onDefaultDispatcher
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
 import java.io.File
@@ -27,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -105,7 +104,7 @@ internal class BackupViewModel : ViewModel() {
 
     fun export() = viewModelScope.launch {
         val state = uiState.value
-        val content = onIoDispatcher {
+        val content = withContext(Dispatchers.IO) {
             createBackup(state.backupGroupsAndConfig, state.backupRules, state.backupSettings)
         }
         uiState.update { state ->
@@ -150,7 +149,7 @@ internal class BackupViewModel : ViewModel() {
             val backup = kxs.decodeFromString<BackupPayload>(content)
             val version = backup.version
             if (version != BACKUP_VERSION) error("Unsupported backup version $version (expected $BACKUP_VERSION)")
-            onDefaultDispatcher {
+            withContext(Dispatchers.Default) {
                 uiState.update { state ->
                     state.copy(
                         inputResult = backup,
@@ -187,7 +186,7 @@ internal class BackupViewModel : ViewModel() {
                 val data = entry.b64Decode()
                 profiles.add(BeanConverters.deserialize(ProxyEntity(), data))
             }
-            onIoDispatcher {
+            withContext(Dispatchers.IO) {
                 SagerDatabase.proxyDao.reset()
                 SagerDatabase.proxyDao.insert(profiles)
             }
@@ -197,26 +196,26 @@ internal class BackupViewModel : ViewModel() {
                 val data = entry.b64Decode()
                 groups.add(BeanConverters.deserialize(ProxyGroup(), data))
             }
-            onIoDispatcher {
+            withContext(Dispatchers.IO) {
                 SagerDatabase.groupDao.reset()
                 SagerDatabase.groupDao.insert(groups)
             }
         }
         if (rule && content.rules != null) {
             val rules = content.rules
-            onIoDispatcher {
+            withContext(Dispatchers.IO) {
                 SagerDatabase.rulesDao.reset()
                 SagerDatabase.rulesDao.insert(rules)
             }
 
             val assets = content.assets.orEmpty()
-            onIoDispatcher {
+            withContext(Dispatchers.IO) {
                 SagerDatabase.assetDao.reset()
                 SagerDatabase.assetDao.insert(assets)
             }
         }
         if (setting && content.settings != null) {
-            onIoDispatcher {
+            withContext(Dispatchers.IO) {
                 when (val rawSettings = content.settings) {
                     is JsonArray -> {
                         importLegacySettingPairs(rawSettings)

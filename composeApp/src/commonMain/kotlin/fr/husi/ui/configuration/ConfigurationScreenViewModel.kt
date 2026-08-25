@@ -26,8 +26,6 @@ import fr.husi.group.RawUpdater
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
 import fr.husi.ktx.isIpAddress
-import fr.husi.ktx.onDefaultDispatcher
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.removeFirstMatched
 import fr.husi.ktx.runOnIoDispatcher
@@ -62,6 +60,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -233,12 +232,12 @@ class ConfigurationScreenViewModel(
         childViewModels[groupId]?.scrollToProxy(proxyId, fallbackToTop)
     }
 
-    suspend fun proxyGroupId(proxyId: Long): Long? = onIoDispatcher {
+    suspend fun proxyGroupId(proxyId: Long): Long? = withContext(Dispatchers.IO) {
         ProfileManager.getProfile(proxyId)?.groupId
     }
 
     fun scrollToProxy(proxyId: Long) = viewModelScope.launch {
-        val group = onIoDispatcher {
+        val group = withContext(Dispatchers.IO) {
             ProfileManager.getProfile(proxyId)?.groupId
         } ?: return@launch
         childViewModels[group]?.scrollToProxy(proxyId, true)
@@ -296,7 +295,7 @@ class ConfigurationScreenViewModel(
                 proxies.asFlow()
                     .flatMapMerge(concurrent) { profile ->
                         flow {
-                            val result = onIoDispatcher { performTest(profile) }
+                            val result = withContext(Dispatchers.IO) { performTest(profile) }
                             emit(ProfileTestResult(profile, result))
                         }
                     }
@@ -372,7 +371,7 @@ class ConfigurationScreenViewModel(
                 }
             }
 
-            onDefaultDispatcher {
+            withContext(Dispatchers.Default) {
                 uiState.update { state -> state.copy(testState = null) }
             }
             testErrorMessages.clear()
@@ -530,7 +529,7 @@ class ConfigurationScreenViewModel(
     }
 
     private suspend fun reloadGroups(all: List<ProxyGroup>?) {
-        val groups = (all ?: onIoDispatcher {
+        val groups = (all ?: withContext(Dispatchers.IO) {
             ProfileManager.getGroups().first()
         }).toMutableList()
         if (groups.size > 1) groups.removeFirstMatched {
@@ -554,7 +553,7 @@ class ConfigurationScreenViewModel(
     fun updateOrder(groupId: Long, order: Int) = viewModelScope.launch {
         val group = uiState.value.groups.find { it.id == groupId } ?: return@launch
         if (group.order == order) return@launch
-        onIoDispatcher {
+        withContext(Dispatchers.IO) {
             GroupManager.updateGroup(
                 group.copy(
                     order = order,
@@ -564,7 +563,7 @@ class ConfigurationScreenViewModel(
     }
 
     fun clearTrafficStatistics(groupId: Long) = viewModelScope.launch {
-        val profiles = onIoDispatcher { SagerDatabase.proxyDao.getByGroup(groupId).first() }
+        val profiles = withContext(Dispatchers.IO) { SagerDatabase.proxyDao.getByGroup(groupId).first() }
         val toClear = profiles.mapNotNull {
             if (it.tx != 0L || it.rx != 0L) {
                 it.tx = 0L
@@ -574,13 +573,13 @@ class ConfigurationScreenViewModel(
                 null
             }
         }
-        if (toClear.isNotEmpty()) onIoDispatcher {
+        if (toClear.isNotEmpty()) withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.updateProxy(toClear)
         }
     }
 
     fun clearResults(groupId: Long) = viewModelScope.launch {
-        val profiles = onIoDispatcher { SagerDatabase.proxyDao.getByGroup(groupId).first() }
+        val profiles = withContext(Dispatchers.IO) { SagerDatabase.proxyDao.getByGroup(groupId).first() }
         val toClear = profiles.mapNotNull {
             if (it.status != ProxyEntity.STATUS_INITIAL) {
                 it.status = ProxyEntity.STATUS_INITIAL
@@ -591,13 +590,13 @@ class ConfigurationScreenViewModel(
                 null
             }
         }
-        if (toClear.isNotEmpty()) onIoDispatcher {
+        if (toClear.isNotEmpty()) withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.updateProxy(toClear)
         }
     }
 
     fun deleteUnavailable(groupId: Long) = viewModelScope.launch {
-        val toDelete = onIoDispatcher {
+        val toDelete = withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.getByGroup(groupId).first().mapNotNull {
                 when (it.status) {
                     ProxyEntity.STATUS_INITIAL, ProxyEntity.STATUS_AVAILABLE -> null
@@ -625,7 +624,7 @@ class ConfigurationScreenViewModel(
     }
 
     fun removeDuplicate(groupId: Long) = viewModelScope.launch {
-        val profiles = onIoDispatcher {
+        val profiles = withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.getByGroup(groupId).first()
         }
         val uniqueProxies = LinkedHashSet<Deduplication>()

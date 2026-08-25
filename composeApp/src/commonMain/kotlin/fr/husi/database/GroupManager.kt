@@ -3,8 +3,9 @@ package fr.husi.database
 import fr.husi.GroupType
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.ktx.applyDefaultValues
-import fr.husi.ktx.onIoDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
 object GroupManager {
 
@@ -14,13 +15,13 @@ object GroupManager {
     }
 
     suspend fun rearrange(groupId: Long) {
-        val entities = onIoDispatcher {
+        val entities = withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.getByGroup(groupId).first()
         }
         for (index in entities.indices) {
             entities[index].userOrder = (index + 1).toLong()
         }
-        onIoDispatcher {
+        withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.updateProxy(entities)
         }
     }

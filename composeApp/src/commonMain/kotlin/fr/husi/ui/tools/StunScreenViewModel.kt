@@ -8,7 +8,6 @@ import fr.husi.core.CoreClient
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.currentSocks5
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.proto.v1.NATFiltering
 import fr.husi.proto.v1.NATMapping
@@ -100,7 +99,7 @@ internal class StunScreenViewModel(
                         )
                     }
                     uiEvent.emit(StunScreenUiEvent.Alert(e.readableMessage))
-                    onIoDispatcher { Logs.e(e) }
+                    Logs.e(e)
                 }
                 .collect { response ->
                     uiState.update { state ->

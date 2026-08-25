@@ -28,7 +28,6 @@ import fr.husi.compose.preferenceGroup
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.repository.resolveRepository
@@ -52,7 +51,9 @@ import fr.husi.ui.StringOrRes
 import fr.husi.ui.PlatformDaemonSettingsGroup
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -71,7 +72,7 @@ fun SettingsPageScreen(
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        onIoDispatcher {
+        withContext(Dispatchers.IO) {
             DataStore.initGlobal()
         }
     }

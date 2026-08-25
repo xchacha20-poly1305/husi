@@ -20,18 +20,19 @@ import fr.husi.database.ProxyGroup
 import fr.husi.fmt.AbstractBean
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.SubscriptionFoundException
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.resources.*
 import fr.husi.ui.ImportLinkPreview
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.StringOrRes
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 internal data class ScannerUiState(
@@ -174,7 +175,7 @@ internal class ScannerActivityViewModel(
             return
         }
         uiEvent.emit(ScannerUiEvent.Finish)
-        onIoDispatcher {
+        withContext(Dispatchers.IO) {
             importLinkInteractor.importProfiles(profiles)
         }
     }
@@ -199,7 +200,7 @@ internal class ScannerActivityViewModel(
 
     private suspend fun importSubscription(group: ProxyGroup) {
         uiEvent.emit(ScannerUiEvent.Finish)
-        onIoDispatcher {
+        withContext(Dispatchers.IO) {
             importLinkInteractor.importSubscription(group)
         }
     }

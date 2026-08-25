@@ -80,7 +80,6 @@ import fr.husi.fmt.toUniversalLink
 import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.onMainDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.readableUrlTestError
 import fr.husi.libcore.Libcore
@@ -126,7 +125,9 @@ import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import io.github.vinceglb.filekit.write
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -228,15 +229,15 @@ internal fun GroupHolderScreen(
     val exportFileLauncher = rememberFileSaverLauncher(
         dialogSettings = FileKitDialogSettings.createDefault(),
     ) { file ->
-        if (file != null) lifecycleOwner.lifecycleScope.launch {
+        if (file != null) lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 file.write(exportConfig.encodeToByteArray())
-                onMainDispatcher {
+                withContext(Dispatchers.Main) {
                     showSnackbar(StringOrRes.Res(Res.string.action_export_msg))
                 }
             } catch (e: Exception) {
                 Logs.w(e)
-                onMainDispatcher {
+                withContext(Dispatchers.Main) {
                     showSnackbar(StringOrRes.Direct(e.readableMessage))
                 }
             }

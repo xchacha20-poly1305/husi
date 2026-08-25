@@ -15,7 +15,6 @@ import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.v2ray.StandardV2RayBean
 import fr.husi.ktx.Logs
 import fr.husi.ktx.isIpAddress
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.selectByNetworkStrategy
 import fr.husi.ktx.serverAddressDomainStrategy
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class GroupUpdateWarning(
     val group: String,
@@ -179,7 +179,7 @@ abstract class GroupUpdater {
             }
         }
 
-        val exists = onIoDispatcher {
+        val exists = withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.getByGroup(proxyGroup.id).first()
         }
         val duplicate = ArrayList<String>()

@@ -24,7 +24,6 @@ import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.urlTestOptions
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.proto.daemon.ConnectionEvent
@@ -42,6 +41,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.context.GlobalContext
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.AtomicReference
@@ -594,7 +594,7 @@ class DashboardViewModel(
 
     internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {
         if (isRemote) return null
-        return onIoDispatcher {
+        return withContext(Dispatchers.IO) {
             processInfoResolver.resolve(process, uid)
         }
     }

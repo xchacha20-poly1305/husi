@@ -6,11 +6,12 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.write
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Image
 import java.awt.Desktop
@@ -72,7 +73,7 @@ actual fun encodeImageBitmapToPng(bitmap: ImageBitmap): ByteArray {
 actual suspend fun shareQRCodeImage(
     pngBytes: ByteArray,
     name: String,
-) = onIoDispatcher {
+) = withContext(Dispatchers.IO) {
     try {
         val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
         cacheDir.createDirectories()

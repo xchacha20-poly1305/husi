@@ -13,14 +13,14 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
-import fr.husi.ktx.onIoDispatcher
-import fr.husi.ktx.onMainDispatcher
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.write
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -67,7 +67,7 @@ actual fun encodeImageBitmapToPng(bitmap: ImageBitmap): ByteArray {
 actual suspend fun shareQRCodeImage(
     pngBytes: ByteArray,
     name: String,
-) = onIoDispatcher {
+) = withContext(Dispatchers.IO) {
     try {
         val context = resolveAndroidRepository().context
         val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
@@ -83,7 +83,7 @@ actual suspend fun shareQRCodeImage(
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-        onMainDispatcher {
+        withContext(Dispatchers.Main) {
             context.startActivity(
                 Intent.createChooser(
                     shareIntent,

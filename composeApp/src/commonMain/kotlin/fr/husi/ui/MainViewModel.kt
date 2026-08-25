@@ -16,7 +16,6 @@ import fr.husi.group.GroupUpdater
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.Repository
 import fr.husi.repository.resolveRepository
@@ -33,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 sealed interface URLTestStatus {
@@ -144,7 +144,7 @@ class MainViewModel(
                 message = StringOrRes.ResWithParams(Res.string.subscription_import_message, detail),
                 confirmButton = AlertButton(StringOrRes.Res(Res.string.ok)) {
                     scope.launch(Dispatchers.Default) {
-                        val createdGroup = onIoDispatcher {
+                        val createdGroup = withContext(Dispatchers.IO) {
                             importLinkInteractor.createSubscriptionGroup(group)
                         }
                         DataStore.selectedGroup = createdGroup.id
@@ -235,7 +235,7 @@ class MainViewModel(
     }
 
     fun updateAllSubscriptionGroups() = scope.launch(Dispatchers.Default) {
-        val groups = onIoDispatcher {
+        val groups = withContext(Dispatchers.IO) {
             SagerDatabase.groupDao.allGroups().first()
                 .filter { it.type == GroupType.SUBSCRIPTION }
         }

@@ -14,7 +14,6 @@ import androidx.core.app.NotificationManagerCompat
 import fr.husi.Action
 import fr.husi.compose.theme.getPrimaryColor
 import fr.husi.database.DataStore
-import fr.husi.ktx.onMainDispatcher
 import fr.husi.ktx.runOnMainDispatcher
 import fr.husi.lib.R
 import fr.husi.repository.resolveAndroidRepository
@@ -28,7 +27,9 @@ import fr.husi.resources.speed_detail
 import fr.husi.resources.stop
 import fr.husi.resources.traffic
 import fr.husi.ui.SwitchActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 /**
  * User can customize visibility of notification since Android 8.
@@ -148,7 +149,7 @@ class ServiceNotification(
     }
 
     private suspend fun useBuilder(f: (NotificationCompat.Builder) -> Unit) {
-        onMainDispatcher {
+        withContext(Dispatchers.Main) {
             f(builder)
         }
     }

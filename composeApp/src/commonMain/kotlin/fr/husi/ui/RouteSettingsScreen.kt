@@ -73,7 +73,6 @@ import fr.husi.fmt.RuleItem
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -165,7 +164,9 @@ import fr.husi.ui.profile.tlsSpoofMethod
 import fr.husi.ui.tools.RuleSetMatchDialog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
@@ -1235,7 +1236,7 @@ private fun RuleSetAutoCompleteTextField(
 ) {
     var ruleSets by remember { mutableStateOf(emptyList<String>()) }
     LaunchedEffect(geoDir) {
-        ruleSets = onIoDispatcher {
+        ruleSets = withContext(Dispatchers.IO) {
             geoDir?.listFiles()
                 ?.filter { it.isFile && it.extension == "srs" }
                 ?.map { it.nameWithoutExtension }

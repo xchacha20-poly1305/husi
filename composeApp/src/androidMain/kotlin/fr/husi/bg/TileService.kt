@@ -12,7 +12,6 @@ import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.Logs
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.lib.R
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -24,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import android.net.VpnService as BaseVpnService
 import android.service.quicksettings.TileService as BaseTileService
 
@@ -174,7 +174,7 @@ class TileService : BaseTileService() {
         scope.launch {
             val state = DataStore.serviceState
             val profileName = if (state.connected) {
-                onIoDispatcher {
+                withContext(Dispatchers.IO) {
                     val profileId = DataStore.currentProfile
                     if (profileId <= 0L) {
                         null

@@ -7,7 +7,6 @@ import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
 import fr.husi.fmt.internal.ChainBean
-import fr.husi.ktx.onDefaultDispatcher
 import fr.husi.resources.Res
 import fr.husi.resources.circular_reference
 import fr.husi.resources.circular_reference_sum
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 internal data class ChainUiState(
@@ -62,7 +62,7 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
 
     private suspend fun load(ids: List<Long>) {
         val profiles = ProfileManager.getProfiles(ids).associateBy { it.id }
-        val proxyList = onDefaultDispatcher {
+        val proxyList = withContext(Dispatchers.Default) {
             buildList(ids.size) {
                 for (id in ids) {
                     add(profiles[id] ?: continue)

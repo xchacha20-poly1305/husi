@@ -49,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
@@ -87,7 +86,6 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.colorForUrlTestDelay
 import fr.husi.compose.decodeQRCode
 import fr.husi.compose.getFirstContent
-import fr.husi.compose.setPlainText
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryScrollableTabRow
 import fr.husi.compose.material3.Tab
@@ -97,8 +95,6 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.keyevent.isTypeControlPressed
-import fr.husi.platform.PlatformInfo
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -174,7 +170,9 @@ import fr.husi.ui.MainViewModel
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.reflect.KClass
@@ -356,7 +354,7 @@ fun ConfigurationScreen(
                 is ClipboardContent.Text -> mainViewModel.parseProxy(content.text)
 
                 is ClipboardContent.Image -> {
-                    val text = onIoDispatcher { decodeQRCode(content.bitmap) }
+                    val text = withContext(Dispatchers.IO) { decodeQRCode(content.bitmap) }
                     if (text == null) {
                         snackbar.show(
                             StringOrRes.Res(Res.string.no_proxies_found_in_clipboard),

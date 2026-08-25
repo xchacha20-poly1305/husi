@@ -67,7 +67,6 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.toUniversalLink
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.formatTime
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -117,8 +116,10 @@ import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import io.github.vinceglb.filekit.write
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
@@ -612,7 +613,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                 },
                                                 onClick = {
                                                     scope.launch {
-                                                        val links = onIoDispatcher {
+                                                        val links = withContext(Dispatchers.IO) {
                                                             SagerDatabase.proxyDao
                                                                 .getByGroup(group.id)
                                                                 .first()

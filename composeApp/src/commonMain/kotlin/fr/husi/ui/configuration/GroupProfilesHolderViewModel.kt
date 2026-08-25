@@ -13,9 +13,8 @@ import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
 import fr.husi.database.displayType
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.repository.resolveRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -27,6 +26,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
@@ -140,7 +140,7 @@ class GroupProfilesHolderViewModel(
                 null
             }
         }
-        if (toChange.isNotEmpty()) onIoDispatcher {
+        if (toChange.isNotEmpty()) withContext(Dispatchers.IO) {
             ProfileManager.updateProfile(toChange)
         }
     }
@@ -184,7 +184,7 @@ class GroupProfilesHolderViewModel(
             else -> compareBy<ProxyEntity> { it.userOrder }.thenBy { it.id }
         }
         var selectedIndex = -1
-        val profiles = (raw ?: onIoDispatcher {
+        val profiles = (raw ?: withContext(Dispatchers.IO) {
             SagerDatabase.proxyDao.getByGroup(group.id).first()
         })
             .filter {
@@ -302,7 +302,7 @@ class GroupProfilesHolderViewModel(
         hiddenProfileAccess.withLock {
             hiddenProfileIds.clear()
         }
-        val profiles = onIoDispatcher { SagerDatabase.proxyDao.getByGroup(group.id).first() }
+        val profiles = withContext(Dispatchers.IO) { SagerDatabase.proxyDao.getByGroup(group.id).first() }
         reloadProfiles(profiles, false)
     }
 
@@ -314,7 +314,7 @@ class GroupProfilesHolderViewModel(
             hiddenProfileIds.clear()
             toDelete
         }
-        onIoDispatcher {
+        withContext(Dispatchers.IO) {
             ProfileManager.deleteProfiles(group.id, toDelete)
         }
     }

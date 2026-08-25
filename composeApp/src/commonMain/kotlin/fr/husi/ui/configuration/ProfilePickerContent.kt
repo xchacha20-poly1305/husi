@@ -49,7 +49,6 @@ import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.resources.Res
 import fr.husi.resources.cancel
 import fr.husi.resources.close
@@ -58,7 +57,9 @@ import fr.husi.resources.search_go
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.SnackbarEmitter
 import fr.husi.ui.SnackbarEmitterEffect
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -100,7 +101,7 @@ fun rememberProfilePickerState(
 
     LaunchedEffect(preSelected) {
         val initialProfile = preSelected ?: DataStore.selectedProxy
-        val initialGroup = onIoDispatcher {
+        val initialGroup = withContext(Dispatchers.IO) {
             initialProfile.takeIf { it > 0 }?.let { ProfileManager.getProfile(it)?.groupId }
         }
         selectedGroup = initialGroup ?: DataStore.selectedGroup

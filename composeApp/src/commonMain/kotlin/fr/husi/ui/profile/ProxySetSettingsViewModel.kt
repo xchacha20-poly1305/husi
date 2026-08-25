@@ -11,7 +11,6 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.onDefaultDispatcher
 import fr.husi.resources.Res
 import fr.husi.resources.circular_reference
 import fr.husi.resources.circular_reference_sum
@@ -21,12 +20,14 @@ import fr.husi.ui.StringOrRes
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 internal sealed interface ProviderUiItem {
@@ -116,7 +117,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
 
         val singleIDs = providers.filterIsInstance<ProxySetBean.Provider.Single>().map { it.id }
         val profiles = ProfileManager.getProfiles(singleIDs).associateBy { it.id }
-        val items = onDefaultDispatcher {
+        val items = withContext(Dispatchers.Default) {
             val items = ArrayList<ProviderUiItem>(providers.size)
             for (provider in providers) {
                 when (provider) {

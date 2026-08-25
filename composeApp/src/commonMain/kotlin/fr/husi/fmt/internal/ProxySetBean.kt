@@ -9,8 +9,9 @@ import fr.husi.io.BinaryOutput
 import fr.husi.io.readList
 import fr.husi.io.writeList
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.onIoDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable as KxsSerializable
 
 @KxsSerializable
@@ -67,7 +68,7 @@ class ProxySetBean : InternalBean() {
 
             override val type: Byte get() = TYPE_SINGLE
 
-            override suspend fun entities(): List<ProxyEntity> = onIoDispatcher {
+            override suspend fun entities(): List<ProxyEntity> = withContext(Dispatchers.IO) {
                 SagerDatabase.proxyDao.getEntities(listOf(id))
             }
 
@@ -94,7 +95,7 @@ class ProxySetBean : InternalBean() {
 
             override suspend fun entities(): List<ProxyEntity> {
                 val filter = filterNotRegex.blankAsNull()?.toRegex()
-                val entities = onIoDispatcher {
+                val entities = withContext(Dispatchers.IO) {
                     SagerDatabase.proxyDao.getByGroup(groupID).first()
                 }
                 if (filter == null) return entities

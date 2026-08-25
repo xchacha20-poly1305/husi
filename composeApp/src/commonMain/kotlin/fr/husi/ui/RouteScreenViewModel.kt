@@ -9,9 +9,9 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
-import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
@@ -49,7 +50,7 @@ class RouteScreenViewModel : ViewModel() {
     private val hiddenRules = mutableSetOf<Long>()
 
     private suspend fun reloadRules(_rules: List<RuleEntity>?) {
-        val rules = _rules ?: onIoDispatcher {
+        val rules = _rules ?: withContext(Dispatchers.IO) {
             ProfileManager.getRules().first()
         }
         hiddenRulesAccess.withLock {
@@ -95,7 +96,7 @@ class RouteScreenViewModel : ViewModel() {
                 null
             }
         }
-        if (toUpdate.isNotEmpty()) onIoDispatcher {
+        if (toUpdate.isNotEmpty()) withContext(Dispatchers.IO) {
             SagerDatabase.rulesDao.updateRules(toUpdate)
         }
     }
@@ -143,7 +144,7 @@ class RouteScreenViewModel : ViewModel() {
             hiddenRules.clear()
             toDelete
         }
-        onIoDispatcher {
+        withContext(Dispatchers.IO) {
             ProfileManager.deleteRulesByIds(toDelete)
         }
     }
