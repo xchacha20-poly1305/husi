@@ -17,7 +17,7 @@ require (
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.2
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.16
-	github.com/xchacha20-poly1305/libping v0.10.1
+	github.com/xchacha20-poly1305/libping v0.10.5
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.6
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/sys v0.47.0

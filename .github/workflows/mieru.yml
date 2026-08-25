@@ -34,7 +34,7 @@ jobs:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
       - name: Native build
         run: ./run plugin mieru
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}

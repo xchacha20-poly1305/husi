@@ -275,8 +275,8 @@ github.com/xchacha20-poly1305/anchor v0.8.0 h1:mqLX+9iPDvBsTeVsrWhrqdzU60BaDnCyx
 github.com/xchacha20-poly1305/anchor v0.8.0/go.mod h1:qnTJ6Y4/LYa9EqPyi+LbJe+ks/BUBIM7ujzdLTK9tug=
 github.com/xchacha20-poly1305/anja v0.22.16 h1:l9qmqtDHCCQE8l/TngSw5wY0E26MWB/MlEa8vwpno4A=
 github.com/xchacha20-poly1305/anja v0.22.16/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
-github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
-github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
+github.com/xchacha20-poly1305/libping v0.10.5 h1:YswEIbhL0EmIFR9FetRBjHDK62nNr5puuTdLzsZ0KvI=
+github.com/xchacha20-poly1305/libping v0.10.5/go.mod h1:SXTHinnDLUAnAaMSy3sg5Ts07EUil3XQNt40+uOzgu8=
 github.com/xchacha20-poly1305/sing-box v1.14.0-rc.1.0.20260824032629-f2d60b219eda h1:m4qF+MSPx+ANDzxHkK9CDt67tXSpyp/KZdeNus6JFnk=
 github.com/xchacha20-poly1305/sing-box v1.14.0-rc.1.0.20260824032629-f2d60b219eda/go.mod h1:9N2T9pGOwqz0Fhci07tbCAOkxg0ZIAJOR20/jPs1/io=
 github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.6 h1:EGivdgJ+rgTT/Qvv30VSiZYm6wsbshjQNLlRjeKO1Xk=
