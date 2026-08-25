@@ -84,7 +84,7 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
         "listen" to "socks://$LOCALHOST4:$port",
         "proxy" to toUri(true).replace(",", "%2C"),
         "extra-headers" to extraHeaders.takeIf { it.isNotBlank() }?.split("\n")?.joinToString("\r\n"),
-        "log" to if (DataStore.logLevel > 0) "" else null,
+        "log" to if (DataStore.logLevel.getBlocking() > 0) "" else null,
         "insecure-concurrency" to insecureConcurrency.takeIf { it > 0 },
         "tunnel-timeout" to tunnelTimeout.takeIf { it > 0 },
         "idle-timeout" to idleTimeout.takeIf { it > 0 },

@@ -174,7 +174,7 @@ class BaseService {
         }
 
         fun reload() {
-            if (DataStore.selectedProxy == 0L) {
+            if (DataStore.selectedProxy.getBlocking() == 0L) {
                 stopRunner(false, runBlocking { resolveRepository().getString(Res.string.profile_empty) })
                 return
             }
@@ -297,7 +297,7 @@ class BaseService {
                 wakeLock = null
             }
 
-            if (DataStore.acquireWakeLock) {
+            if (DataStore.acquireWakeLock.get()) {
                 acquireWakeLock()
                 data.notification.onWakeLock(true)
             } else {
@@ -312,14 +312,14 @@ class BaseService {
             val data = data
             if (data.state != ServiceState.Stopped) return Service.START_NOT_STICKY
             data.notification = createNotifier("")
-            val profile = runBlocking { SagerDatabase.proxyDao.getById(DataStore.selectedProxy) }
+            val profile = runBlocking { SagerDatabase.proxyDao.getById(DataStore.selectedProxy.getBlocking()) }
             this as Context
             if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
                 stopRunner(false, runBlocking { resolveRepository().getString(Res.string.profile_empty) })
                 return Service.START_NOT_STICKY
             }
 
-            setBootReceiverEnabled(DataStore.persistAcrossReboot)
+            setBootReceiverEnabled(DataStore.persistAcrossReboot.getBlocking())
             if (!data.closeReceiverRegistered) {
                 val filter = IntentFilter().apply {
                     addAction(Action.RELOAD)
@@ -356,7 +356,7 @@ class BaseService {
                     Executable.killAll()    // clean up old processes
                     preInit()
                     data.backend.init(profile)
-                    DataStore.currentProfile = profile.id
+                    DataStore.currentProfile.set(profile.id)
 
                     startProcesses()
                     data.changeState(ServiceState.Connected)

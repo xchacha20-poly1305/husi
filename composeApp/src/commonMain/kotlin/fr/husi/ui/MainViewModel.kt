@@ -147,7 +147,7 @@ class MainViewModel(
                         val createdGroup = withContext(Dispatchers.IO) {
                             importLinkInteractor.createSubscriptionGroup(group)
                         }
-                        DataStore.selectedGroup = createdGroup.id
+                        DataStore.selectedGroup.set(createdGroup.id)
                         performGroupUpdate(createdGroup, true)
                     }
                 },

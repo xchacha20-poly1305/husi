@@ -12,9 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.husi.Key
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.Preference
@@ -72,9 +71,7 @@ fun SettingsScreen(
     openRemoteControl: () -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val isExpert by DataStore.configurationStore
-        .booleanFlow(Key.APP_EXPERT, false)
-        .collectAsStateWithLifecycle(false)
+    val isExpert by DataStore.isExpert.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

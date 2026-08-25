@@ -200,7 +200,7 @@ internal fun GroupHolderScreen(
                 resultEventBus = bus,
                 resultKey = pending.resultKey,
             ) { updated ->
-                if (updated && pending.profileId == DataStore.selectedProxy) {
+                if (updated && pending.profileId == DataStore.selectedProxy.get()) {
                     needReload()
                 }
                 pendingProfileEdits.remove(pending)

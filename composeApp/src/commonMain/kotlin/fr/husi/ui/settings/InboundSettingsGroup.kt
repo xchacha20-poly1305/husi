@@ -2,9 +2,8 @@ package fr.husi.ui.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.husi.Key
 import fr.husi.compose.IconMaskColors
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PortTextField
@@ -36,17 +35,14 @@ import org.jetbrains.compose.resources.stringResource
 internal fun InboundSettingsGroup(
     needReload: () -> Unit,
 ) {
-    val isExpertState by DataStore.configurationStore
-        .booleanFlow(Key.APP_EXPERT, false)
-        .collectAsStateWithLifecycle(false)
+    val isExpertState by DataStore.isExpert.collectAsStateWithLifecycle()
 
-    val mixedPortValue by DataStore.configurationStore
-        .stringFlow(Key.MIXED_PORT, "2080")
-        .collectAsStateWithLifecycle("2080")
+    val mixedPort by DataStore.mixedPort.collectAsStateWithLifecycle()
+    val mixedPortValue = mixedPort.toString()
     TextFieldPreference(
         value = mixedPortValue,
         onValueChange = {
-            DataStore.mixedPort = it.toIntOrNull() ?: 2080
+            DataStore.mixedPort.setBlocking(it.toIntOrNull() ?: 2080)
             needReload()
         },
         title = { Text(stringResource(Res.string.port_proxy)) },
@@ -63,13 +59,12 @@ internal fun InboundSettingsGroup(
         PortTextField(value, onValueChange, onOk)
     }
 
-    val localDnsPortValue by DataStore.configurationStore
-        .stringFlow(Key.LOCAL_DNS_PORT, "0")
-        .collectAsStateWithLifecycle("0")
+    val localDnsPort by DataStore.localDNSPort.collectAsStateWithLifecycle()
+    val localDnsPortValue = localDnsPort.toString()
     TextFieldPreference(
         value = localDnsPortValue,
         onValueChange = {
-            DataStore.localDNSPort = it.toIntOrNull() ?: 0
+            DataStore.localDNSPort.setBlocking(it.toIntOrNull() ?: 0)
             needReload()
         },
         title = { Text(stringResource(Res.string.port_local_dns)) },
@@ -83,13 +78,11 @@ internal fun InboundSettingsGroup(
         PortTextField(value, onValueChange, onOk)
     }
 
-    val appendHttpProxyValue by DataStore.configurationStore
-        .booleanFlow(Key.APPEND_HTTP_PROXY, false)
-        .collectAsStateWithLifecycle(false)
+    val appendHttpProxyValue by DataStore.appendHttpProxy.collectAsStateWithLifecycle()
     SwitchPreference(
         value = appendHttpProxyValue,
         onValueChange = {
-            DataStore.appendHttpProxy = it
+            DataStore.appendHttpProxy.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.append_http_proxy)) },
@@ -108,13 +101,11 @@ internal fun InboundSettingsGroup(
 
     HttpProxyBypassPreference(appendHttpProxyValue, needReload)
 
-    val allowAccessValue by DataStore.configurationStore
-        .booleanFlow(Key.ALLOW_ACCESS, false)
-        .collectAsStateWithLifecycle(false)
+    val allowAccessValue by DataStore.allowAccess.collectAsStateWithLifecycle()
     SwitchPreference(
         value = allowAccessValue,
         onValueChange = {
-            DataStore.allowAccess = it
+            DataStore.allowAccess.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.allow_access)) },
@@ -124,13 +115,11 @@ internal fun InboundSettingsGroup(
         summary = { Text(stringResource(Res.string.allow_access_sum)) },
     )
 
-    val inboundUsernameValue by DataStore.configurationStore
-        .stringFlow(Key.INBOUND_USERNAME, "")
-        .collectAsStateWithLifecycle("")
+    val inboundUsernameValue by DataStore.inboundUsername.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = inboundUsernameValue,
         onValueChange = {
-            DataStore.inboundUsername = it
+            DataStore.inboundUsername.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.inbound_username)) },
@@ -142,25 +131,21 @@ internal fun InboundSettingsGroup(
         valueToText = { it },
     )
 
-    val inboundPasswordValue by DataStore.configurationStore
-        .stringFlow(Key.INBOUND_PASSWORD, "")
-        .collectAsStateWithLifecycle("")
+    val inboundPasswordValue by DataStore.inboundPassword.collectAsStateWithLifecycle()
     PasswordPreference(
         value = inboundPasswordValue,
         onValueChange = {
-            DataStore.inboundPassword = it
+            DataStore.inboundPassword.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.inbound_password)) },
     )
     if (isExpertState) {
-        val anchorSSIDValue by DataStore.configurationStore
-            .stringFlow(Key.ANCHOR_SSID, "")
-            .collectAsStateWithLifecycle("")
+        val anchorSSIDValue by DataStore.anchorSSID.collectAsStateWithLifecycle()
         TextFieldPreference(
             value = anchorSSIDValue,
             onValueChange = {
-                DataStore.anchorSSID = it
+                DataStore.anchorSSID.setBlocking(it)
                 needReload()
             },
             title = { Text("Anchor SSIDs") },

@@ -10,9 +10,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -30,10 +27,10 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
-@Suppress("MemberVisibilityCanBePrivate", "unused", "UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST")
 class DataStorePreferenceDataStore private constructor(
     private val dataStore: DataStore<Preferences>,
-) : PreferenceDataStore {
+) {
 
     companion object {
 
@@ -50,56 +47,36 @@ class DataStorePreferenceDataStore private constructor(
         }
     }
 
+    suspend fun <T> readValue(key: Preferences.Key<T>): T? = dataStore.data.first()[key]
+
+    suspend fun <T> writeValue(key: Preferences.Key<T>, value: T) {
+        dataStore.edit { it[key] = value }
+    }
+
+    fun <T> valueFlow(key: Preferences.Key<T>): Flow<T?> = dataStore.data.map { it[key] }
+
+    suspend fun <T> updateValue(
+        key: Preferences.Key<T>,
+        transform: suspend (T?) -> T,
+    ) {
+        dataStore.edit { it[key] = transform(it[key]) }
+    }
+
     internal suspend fun edit(
         transform: suspend (MutablePreferences) -> Unit,
     ) {
         dataStore.edit(transform)
     }
 
-    private val flowScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    fun getBoolean(key: String): Boolean? = runBlocking {
-        dataStore.data.first()[booleanPreferencesKey(key)]
-    }
-
-    fun getFloat(key: String): Float? = runBlocking {
-        dataStore.data.first()[floatPreferencesKey(key)]
-    }
-
-    fun getInt(key: String): Int? = runBlocking {
-        dataStore.data.first()[longPreferencesKey(key)]?.toInt()
-    }
-
-    fun getLong(key: String): Long? = runBlocking {
-        dataStore.data.first()[longPreferencesKey(key)]
-    }
+     // (put|get)String only for legacy usage. Do not use.
 
     fun getString(key: String): String? = runBlocking {
-        dataStore.data.first()[stringPreferencesKey(key)]
+        readValue(stringPreferencesKey(key))
     }
 
     fun getStringSet(key: String): Set<String>? = runBlocking {
-        dataStore.data.first()[stringSetPreferencesKey(key)]
+        readValue(stringSetPreferencesKey(key))
     }
-
-    fun booleanFlow(key: String, default: Boolean = false): Flow<Boolean> =
-        dataStore.data.map { it[booleanPreferencesKey(key)] ?: default }.distinctUntilChanged()
-
-    fun floatFlow(key: String, default: Float = 0f): Flow<Float> =
-        dataStore.data.map { it[floatPreferencesKey(key)] ?: default }.distinctUntilChanged()
-
-    fun intFlow(key: String, default: Int = 0): Flow<Int> =
-        dataStore.data.map { (it[longPreferencesKey(key)] ?: default.toLong()).toInt() }
-            .distinctUntilChanged()
-
-    fun longFlow(key: String, default: Long = 0L): Flow<Long> =
-        dataStore.data.map { it[longPreferencesKey(key)] ?: default }.distinctUntilChanged()
-
-    fun stringFlow(key: String, default: String = ""): Flow<String> =
-        dataStore.data.map { it[stringPreferencesKey(key)] ?: default }.distinctUntilChanged()
-
-    fun stringSetFlow(key: String, default: Set<String> = emptySet()): Flow<Set<String>> =
-        dataStore.data.map { it[stringSetPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
     fun keysFlow(vararg keys: String, emitInitialState: Boolean = false): Flow<Unit> {
         val keysToWatch = keys.toSet()
@@ -127,89 +104,23 @@ class DataStorePreferenceDataStore private constructor(
         }
     }
 
-    override fun getBoolean(key: String, defValue: Boolean): Boolean =
-        getBoolean(key) ?: defValue
-
-    override fun getFloat(key: String, defValue: Float): Float =
-        getFloat(key) ?: defValue
-
-    override fun getInt(key: String, defValue: Int): Int =
-        getInt(key) ?: defValue
-
-    override fun getLong(key: String, defValue: Long): Long =
-        getLong(key) ?: defValue
-
-    override fun getString(key: String, defValue: String?): String? =
-        getString(key) ?: defValue
-
-    override fun getStringSet(key: String, defValue: MutableSet<String>?): MutableSet<String>? =
-        getStringSet(key)?.toMutableSet() ?: defValue
-
-    fun putBoolean(key: String, value: Boolean?) =
-        if (value == null) remove(key) else putBoolean(key, value)
-
-    fun putFloat(key: String, value: Float?) =
-        if (value == null) remove(key) else putFloat(key, value)
-
-    fun putInt(key: String, value: Int?) =
-        if (value == null) remove(key) else putLong(key, value.toLong())
-
-    fun putLong(key: String, value: Long?) =
-        if (value == null) remove(key) else putLong(key, value)
-
-    override fun putBoolean(key: String, value: Boolean) {
-        runBlocking {
-            dataStore.edit { prefs ->
-                prefs[booleanPreferencesKey(key)] = value
-            }
-        }
-    }
-
-    override fun putFloat(key: String, value: Float) {
-        runBlocking {
-            dataStore.edit { prefs ->
-                prefs[floatPreferencesKey(key)] = value
-            }
-        }
-    }
-
-    override fun putInt(key: String, value: Int) {
-        runBlocking {
-            dataStore.edit { prefs ->
-                prefs[longPreferencesKey(key)] = value.toLong()
-            }
-        }
-    }
-
-    override fun putLong(key: String, value: Long) {
-        runBlocking {
-            dataStore.edit { prefs ->
-                prefs[longPreferencesKey(key)] = value
-            }
-        }
-    }
-
-    override fun putString(key: String, value: String?) {
+    fun putString(key: String, value: String?) {
         if (value == null) {
             remove(key)
             return
         }
         runBlocking {
-            dataStore.edit { prefs ->
-                prefs[stringPreferencesKey(key)] = value
-            }
+            writeValue(stringPreferencesKey(key), value)
         }
     }
 
-    override fun putStringSet(key: String, values: MutableSet<String>?) {
+    fun putStringSet(key: String, values: Set<String>?) {
         if (values == null) {
             remove(key)
             return
         }
         runBlocking {
-            dataStore.edit { prefs ->
-                prefs[stringSetPreferencesKey(key)] = values
-            }
+            writeValue(stringSetPreferencesKey(key), values)
         }
     }
 
@@ -359,24 +270,4 @@ class DataStorePreferenceDataStore private constructor(
         return JsonObject(map)
     }
 
-    private fun applyValueHolder(key: String, holder: JsonObject) {
-        val typeCode = holder[FIELD_TYPE]?.jsonPrimitive?.intOrNull ?: error("missing type")
-        val type = ValueType.fromJson(typeCode)
-        when (type) {
-            ValueType.BOOLEAN -> putBoolean(key, holder[FIELD_VALUE]?.jsonPrimitive?.booleanOrNull ?: false)
-            ValueType.FLOAT -> putFloat(key, holder[FIELD_VALUE]?.jsonPrimitive?.doubleOrNull?.toFloat() ?: 0f)
-            ValueType.INT -> holder[FIELD_VALUE]?.jsonPrimitive?.intOrNull?.let { putInt(key, it) }
-            ValueType.LONG -> holder[FIELD_VALUE]?.jsonPrimitive?.longOrNull?.let { putLong(key, it) }
-            ValueType.STRING -> holder[FIELD_VALUE]?.jsonPrimitive?.contentOrNull?.let { putString(key, it) }
-            ValueType.STRING_SET -> {
-                val arr = holder[FIELD_VALUE] as? JsonArray
-                val set = buildSet {
-                    if (arr != null) {
-                        for (element in arr) add(element.jsonPrimitive.content)
-                    }
-                }
-                putStringSet(key, set.toMutableSet())
-            }
-        }
-    }
 }

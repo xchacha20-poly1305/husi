@@ -7,9 +7,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.husi.Key
+import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.compose.DurationTextField
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.HostTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -52,13 +52,11 @@ import org.jetbrains.compose.resources.stringResource
 internal fun DnsSettingsGroup(
     needReload: () -> Unit,
 ) {
-    val remoteDnsValue by DataStore.configurationStore
-        .stringFlow(Key.REMOTE_DNS, "tcp://dns.google")
-        .collectAsStateWithLifecycle("tcp://dns.google")
+    val remoteDnsValue by DataStore.remoteDns.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = remoteDnsValue,
         onValueChange = {
-            DataStore.remoteDns = it
+            DataStore.remoteDns.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.remote_dns)) },
@@ -70,13 +68,11 @@ internal fun DnsSettingsGroup(
         valueToText = { it },
     )
 
-    val directDnsValue by DataStore.configurationStore
-        .stringFlow(Key.DIRECT_DNS, "local")
-        .collectAsStateWithLifecycle("local")
+    val directDnsValue by DataStore.directDns.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = directDnsValue,
         onValueChange = {
-            DataStore.directDns = it
+            DataStore.directDns.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.direct_dns)) },
@@ -88,13 +84,11 @@ internal fun DnsSettingsGroup(
         valueToText = { it },
     )
 
-    val mdnsValue by DataStore.configurationStore
-        .stringFlow(Key.MDNS, "")
-        .collectAsStateWithLifecycle("")
+    val mdnsValue by DataStore.mDNS.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = mdnsValue,
         onValueChange = {
-            DataStore.mDNS = it
+            DataStore.mDNS.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.mdns_network_interfaces)) },
@@ -106,13 +100,11 @@ internal fun DnsSettingsGroup(
         valueToText = { it },
     )
 
-    val optimisticCacheValue by DataStore.configurationStore
-        .stringFlow(Key.DNS_OPTIMISTIC_CACHE, "")
-        .collectAsStateWithLifecycle("")
+    val optimisticCacheValue by DataStore.dnsOptimisticCache.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = optimisticCacheValue,
         onValueChange = {
-            DataStore.dnsOptimisticCache = it
+            DataStore.dnsOptimisticCache.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.optimistic_cache)) },
@@ -130,11 +122,9 @@ internal fun DnsSettingsGroup(
         },
     )
 
-    val domainStrategyDirectValue by DataStore.configurationStore
-        .stringFlow(Key.DOMAIN_STRATEGY_FOR_DIRECT, "auto")
-        .collectAsStateWithLifecycle("auto")
+    val domainStrategyDirectValue by DataStore.domainStrategyForDirect.collectAsStateWithLifecycle()
     val domainStrategyValues =
-        listOf("auto", "prefer_ipv6", "prefer_ipv4", "ipv4_only", "ipv6_only")
+        listOf(DOMAIN_STRATEGY_AUTO, "prefer_ipv6", "prefer_ipv4", "ipv4_only", "ipv6_only")
     val domainStrategyEntries = listOf(
         stringResource(Res.string.auto),
         stringResource(Res.string.prefer_ipv6),
@@ -145,7 +135,7 @@ internal fun DnsSettingsGroup(
     ListPreference(
         value = domainStrategyDirectValue,
         onValueChange = {
-            DataStore.domainStrategyForDirect = it
+            DataStore.domainStrategyForDirect.setBlocking(it)
             needReload()
         },
         values = domainStrategyValues,
@@ -163,13 +153,11 @@ internal fun DnsSettingsGroup(
         },
     )
 
-    val domainStrategyServerValue by DataStore.configurationStore
-        .stringFlow(Key.DOMAIN_STRATEGY_FOR_SERVER, "auto")
-        .collectAsStateWithLifecycle("auto")
+    val domainStrategyServerValue by DataStore.domainStrategyForServer.collectAsStateWithLifecycle()
     ListPreference(
         value = domainStrategyServerValue,
         onValueChange = {
-            DataStore.domainStrategyForServer = it
+            DataStore.domainStrategyForServer.setBlocking(it)
             needReload()
         },
         values = domainStrategyValues,
@@ -187,13 +175,11 @@ internal fun DnsSettingsGroup(
         },
     )
 
-    val enableFakeDnsValue by DataStore.configurationStore
-        .booleanFlow(Key.ENABLE_FAKE_DNS, false)
-        .collectAsStateWithLifecycle(false)
+    val enableFakeDnsValue by DataStore.enableFakeDns.collectAsStateWithLifecycle()
     SwitchPreference(
         value = enableFakeDnsValue,
         onValueChange = {
-            DataStore.enableFakeDns = it
+            DataStore.enableFakeDns.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.fake_dns)) },
@@ -203,13 +189,11 @@ internal fun DnsSettingsGroup(
         summary = { Text(stringResource(Res.string.fakedns_message)) },
     )
 
-    val fakeDnsForAllValue by DataStore.configurationStore
-        .booleanFlow(Key.FAKE_DNS_FOR_ALL, false)
-        .collectAsStateWithLifecycle(false)
+    val fakeDnsForAllValue by DataStore.fakeDNSForAll.collectAsStateWithLifecycle()
     SwitchPreference(
         value = fakeDnsForAllValue,
         onValueChange = {
-            DataStore.fakeDNSForAll = it
+            DataStore.fakeDNSForAll.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.fake_dns_for_all)) },
@@ -224,13 +208,11 @@ internal fun DnsSettingsGroup(
         summary = { Text(stringResource(Res.string.fake_dns_for_all_sum)) },
     )
 
-    val fakeDnsRange4Value by DataStore.configurationStore
-        .stringFlow(Key.FAKE_DNS_RANGE_4, "198.51.100.0/24")
-        .collectAsStateWithLifecycle("198.51.100.0/24")
+    val fakeDnsRange4Value by DataStore.fakeDNSRange4.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = fakeDnsRange4Value,
         onValueChange = {
-            DataStore.fakeDNSRange4 = it
+            DataStore.fakeDNSRange4.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.fake_ip_range_4)) },
@@ -246,13 +228,11 @@ internal fun DnsSettingsGroup(
         valueToText = { it },
     )
 
-    val fakeDnsRange6Value by DataStore.configurationStore
-        .stringFlow(Key.FAKE_DNS_RANGE_6, "2001:2::/48")
-        .collectAsStateWithLifecycle("2001:2::/48")
+    val fakeDnsRange6Value by DataStore.fakeDNSRange6.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = fakeDnsRange6Value,
         onValueChange = {
-            DataStore.fakeDNSRange6 = it
+            DataStore.fakeDNSRange6.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.fake_ip_range_6)) },
@@ -268,13 +248,11 @@ internal fun DnsSettingsGroup(
         valueToText = { it },
     )
 
-    val dnsHostsValue by DataStore.configurationStore
-        .stringFlow(Key.DNS_HOSTS, "")
-        .collectAsStateWithLifecycle("")
+    val dnsHostsValue by DataStore.dnsHosts.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = dnsHostsValue,
         onValueChange = {
-            DataStore.dnsHosts = it
+            DataStore.dnsHosts.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.dns_hosts)) },

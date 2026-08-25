@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
-import fr.husi.Key
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.SagerConnection
 import fr.husi.compose.theme.AppTheme
@@ -35,8 +34,7 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
 
         serviceConnection.connect(applicationContext)
         lifecycleScope.launch(Dispatchers.IO) {
-            DataStore.configurationStore
-                .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+            DataStore.serviceMode.flow()
                 .drop(1)
                 .collect {
                     if (DataStore.serviceState.started) {

@@ -6,8 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.husi.Key
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.database.DataStore
 import fr.husi.resources.Res
 import fr.husi.resources.themes_amber
@@ -85,11 +84,7 @@ val themes = listOf(
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    val initialNightTheme = remember { DataStore.nightTheme }
-    val initialAppTheme = remember { DataStore.appTheme }
-    val nightModeValue by DataStore.configurationStore
-        .intFlow(Key.NIGHT_THEME, initialNightTheme)
-        .collectAsStateWithLifecycle(initialNightTheme)
+    val nightModeValue by DataStore.nightTheme.collectAsStateWithLifecycle()
     val systemDarkMode = rememberPlatformSystemDarkMode()
     val isDarkMode = remember(nightModeValue, systemDarkMode) {
         when (nightModeValue) {
@@ -98,9 +93,7 @@ fun AppTheme(content: @Composable () -> Unit) {
             else -> systemDarkMode
         }
     }
-    val appTheme by DataStore.configurationStore
-        .intFlow(Key.APP_THEME, initialAppTheme)
-        .collectAsStateWithLifecycle(initialAppTheme)
+    val appTheme by DataStore.appTheme.collectAsStateWithLifecycle()
     val dynamicScheme = if (appTheme == DYNAMIC) rememberDynamicColorScheme(isDarkMode) else null
     val colorScheme = remember(appTheme, isDarkMode, dynamicScheme) {
         when (appTheme) {

@@ -17,8 +17,8 @@ fun Resources.isDarkMode(mode: Int) = when (mode) {
 
 @ColorInt
 fun Context.getPrimaryColor(): Int {
-    val isDark = resources.isDarkMode(DataStore.nightTheme)
-    val theme = DataStore.appTheme
+    val isDark = resources.isDarkMode(DataStore.nightTheme.getBlocking())
+    val theme = DataStore.appTheme.getBlocking()
     if (theme == DYNAMIC && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         return ContextCompat.getColor(
             this,

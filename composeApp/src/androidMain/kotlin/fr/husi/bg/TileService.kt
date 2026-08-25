@@ -125,7 +125,7 @@ class TileService : BaseTileService() {
      * Inspired by: [WireGuard Android QuickTileService.kt](https://github.com/WireGuard/wireguard-android/blob/e7b3a3c118836e112620b1302a8ba1873ad4daac/ui/src/main/java/com/wireguard/android/QuickTileService.kt)
      */
     private fun startServiceFromTile() {
-        if (DataStore.serviceMode == Key.MODE_VPN && BaseVpnService.prepare(this) != null) {
+        if (DataStore.serviceMode.getBlocking() == Key.MODE_VPN && BaseVpnService.prepare(this) != null) {
             // Consent is missing: the foreground service start is doomed anyway, and
             // VpnService would then try to launch the consent activity from the background,
             // which Android 10 forbids. Go straight through the activity.
@@ -175,7 +175,7 @@ class TileService : BaseTileService() {
             val state = DataStore.serviceState
             val profileName = if (state.connected) {
                 withContext(Dispatchers.IO) {
-                    val profileId = DataStore.currentProfile
+                    val profileId = DataStore.currentProfile.get()
                     if (profileId <= 0L) {
                         null
                     } else {

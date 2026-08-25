@@ -197,8 +197,8 @@ fun AboutScreen(
                                 description = buildEnvironment,
                                 onClick = { putToClipboard(buildEnvironment) },
                                 onLongClick = {
-                                    val isExpert = !DataStore.isExpert
-                                    DataStore.isExpert = isExpert
+                                    val isExpert = !DataStore.isExpert.getBlocking()
+                                    DataStore.isExpert.setBlocking(isExpert)
                                     snackbar.show(StringOrRes.Direct("isExpert: $isExpert"))
                                 },
                             )

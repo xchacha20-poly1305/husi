@@ -202,7 +202,7 @@ private fun ShadowQUICBean.buildCongestionControl(): Any? {
         put(
             ShadowQUICBean.CONGESTION_CONTROL_BRUTAL,
             buildMap<String, Any?> {
-                unifyBrutalBandwidthBps(DataStore.uploadSpeed)?.let {
+                unifyBrutalBandwidthBps(DataStore.uploadSpeed.getBlocking())?.let {
                     put("bandwidth", it)
                 }
             },

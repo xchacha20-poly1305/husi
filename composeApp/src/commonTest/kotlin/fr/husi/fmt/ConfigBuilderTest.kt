@@ -40,7 +40,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig for URL test applies server domain strategy`() = runBlocking {
-        DataStore.networkStrategy = SingBoxOptions.STRATEGY_PREFER_IPV6
+        DataStore.networkStrategy.set(SingBoxOptions.STRATEGY_PREFER_IPV6)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -66,7 +66,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should keep server domain for chained outbound`() = runBlocking {
-        DataStore.domainStrategyForServer = "auto"
+        DataStore.domainStrategyForServer.set("auto")
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -100,7 +100,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should keep remote DNS domain through detour`() = runBlocking {
-        DataStore.remoteDns = "tcp://dns.example.com"
+        DataStore.remoteDns.set("tcp://dns.example.com")
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -121,7 +121,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should add mDNS server for configured interfaces`() = runBlocking {
-        DataStore.mDNS = "wlan0, eth0\nap0"
+        DataStore.mDNS.set("wlan0, eth0\nap0")
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -1426,7 +1426,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should isolate cached external profiles between chains`() = runBlocking {
-        DataStore.serviceMode = Key.MODE_VPN
+        DataStore.serviceMode.set(Key.MODE_VPN)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -1548,7 +1548,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should follow tun auto redirect setting on desktop`() = runBlocking {
-        DataStore.serviceMode = Key.MODE_VPN
+        DataStore.serviceMode.set(Key.MODE_VPN)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -1561,7 +1561,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             port = 1080,
         )
 
-        DataStore.tunAutoRedirect = true
+        DataStore.tunAutoRedirect.set(true)
         val enabledTunInbound = parseTunInbound(buildConfig(proxy))
         if (PlatformInfo.isLinux) {
             assertEquals("true", enabledTunInbound["auto_redirect"]?.jsonPrimitive?.content)
@@ -1569,14 +1569,14 @@ class ConfigBuilderTest : HusiKoinTest() {
             assertEquals(null, enabledTunInbound["auto_redirect"])
         }
 
-        DataStore.tunAutoRedirect = false
+        DataStore.tunAutoRedirect.set(false)
         val disabledTunInbound = parseTunInbound(buildConfig(proxy))
         assertEquals(null, disabledTunInbound["auto_redirect"])
     }
 
     @Test
     fun `buildConfig should forward tun interface name on desktop`() = runBlocking {
-        DataStore.serviceMode = Key.MODE_VPN
+        DataStore.serviceMode.set(Key.MODE_VPN)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -1589,11 +1589,11 @@ class ConfigBuilderTest : HusiKoinTest() {
             port = 1080,
         )
 
-        DataStore.tunInterfaceName = "tun0"
+        DataStore.tunInterfaceName.set("tun0")
         val configuredTunInbound = parseTunInbound(buildConfig(proxy))
         assertEquals("tun0", configuredTunInbound["interface_name"]?.jsonPrimitive?.content)
 
-        DataStore.tunInterfaceName = ""
+        DataStore.tunInterfaceName.set("")
         val defaultTunInbound = parseTunInbound(buildConfig(proxy))
         assertEquals(null, defaultTunInbound["interface_name"])
     }
@@ -1611,7 +1611,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             port = 1080,
         )
 
-        DataStore.forcedSearchProcess = true
+        DataStore.forcedSearchProcess.set(true)
         val forcedRoute = parseRouteOptions(buildConfig(proxy))
         if (PlatformInfo.isAndroid) {
             assertEquals(null, forcedRoute["find_process"])
@@ -1619,7 +1619,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             assertEquals("true", forcedRoute["find_process"]?.jsonPrimitive?.content)
         }
 
-        DataStore.forcedSearchProcess = false
+        DataStore.forcedSearchProcess.set(false)
         val defaultRoute = parseRouteOptions(buildConfig(proxy))
         assertEquals(null, defaultRoute["find_process"])
     }

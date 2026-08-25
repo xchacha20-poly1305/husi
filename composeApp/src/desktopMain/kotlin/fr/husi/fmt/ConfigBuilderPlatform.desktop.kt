@@ -3,15 +3,14 @@ package fr.husi.fmt
 import fr.husi.database.DataStore
 import fr.husi.ktx.blankAsNull
 import fr.husi.platform.PlatformInfo
-import java.net.InetAddress
 
 internal actual fun SingBoxOptions.Inbound_TunOptions.applyPlatformConfig() {
     auto_route = true
-    interface_name = DataStore.tunInterfaceName.blankAsNull()
-    if (DataStore.tunStrictRoute) {
+    interface_name = DataStore.tunInterfaceName.getBlocking().blankAsNull()
+    if (DataStore.tunStrictRoute.getBlocking()) {
         strict_route = true
     }
-    if (PlatformInfo.isLinux && DataStore.tunAutoRedirect) {
+    if (PlatformInfo.isLinux && DataStore.tunAutoRedirect.getBlocking()) {
         auto_redirect = true
     }
 }

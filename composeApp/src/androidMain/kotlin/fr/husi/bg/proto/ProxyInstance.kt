@@ -27,7 +27,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun buildConfig() {
         super.buildConfig()
         Logs.d(config.config)
-        if (DataStore.isExpert) Logs.d("trafficProfiles: " + config.trafficProfiles.toString())
+        if (DataStore.isExpert.getBlocking()) Logs.d("trafficProfiles: " + config.trafficProfiles.toString())
     }
 
     override suspend fun init(isVPN: Boolean) {

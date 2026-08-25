@@ -108,7 +108,7 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
     fun save() = runOnIoDispatcher {
         if (isNew) {
             val editingGroup = DataStore.selectedGroupForImport()
-            DataStore.selectedGroup = editingGroup
+            DataStore.selectedGroup.set(editingGroup)
             val bean = createBean()
             bean.loadFromUiState()
             ProfileManager.createProfile(editingGroup, bean)
@@ -131,7 +131,7 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
         val from = proxyEntity.groupId
         proxyEntity.groupId = to
         ProfileManager.updateProfile(proxyEntity)
-        DataStore.selectedGroup = to
+        DataStore.selectedGroup.set(to)
     }
 
     abstract fun setCustomConfig(config: String)

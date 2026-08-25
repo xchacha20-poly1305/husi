@@ -205,14 +205,14 @@ internal class AssetsScreenViewModel(
     }
 
     fun resetRuleSet() = viewModelScope.launch(Dispatchers.IO) {
-        if (DataStore.rulesProvider != RuleProvider.OFFICIAL) return@launch
+        if (DataStore.rulesProvider.get() != RuleProvider.OFFICIAL) return@launch
         uiState.update { it.copy(process = 0f) }
         try {
             copyBundledRuleSetAssetsIfNeeded()
             assetsDir.resolve("geoip.version.txt").delete()
             assetsDir.resolve("geosite.version.txt").delete()
             Libcore.extractAssets()
-            DataStore.routeAssetsLastUpdated = currentEpochSeconds()
+            DataStore.routeAssetsLastUpdated.set(currentEpochSeconds())
             RouteAssetUpdater.reconfigureUpdater()
         } catch (e: Exception) {
             Logs.e(e)

@@ -1,6 +1,7 @@
 package fr.husi.ktx
 
 import fr.husi.BuildConfig
+import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.database.DataStore
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.LOCALHOST4
@@ -45,13 +46,13 @@ fun currentSocks5(): URL? = if (!DataStore.serviceState.connected) {
 } else {
     Libcore.newURL("socks5").apply {
         host = LOCALHOST4
-        ports = DataStore.mixedPort.toString()
+        ports = DataStore.mixedPort.getBlocking().toString()
 
         // Avoid creating User field if not have.
-        val username = DataStore.inboundUsername
+        val username = DataStore.inboundUsername.getBlocking()
         if (username.isNotEmpty()) {
             this.username = username
-            password = DataStore.inboundPassword
+            password = DataStore.inboundPassword.getBlocking()
         }
     }
 }
@@ -61,9 +62,12 @@ fun String.isIpAddress(): Boolean {
 }
 
 fun serverAddressDomainStrategy(): String? {
+    val domainStrategy = DataStore.domainStrategyForServer.getBlocking()
+        .replace(DOMAIN_STRATEGY_AUTO, "")
+        .blankAsNull()
     return defaultOr(
-        DataStore.domainStrategyForServer.replace("auto", "").blankAsNull(),
-        { DataStore.networkStrategy.blankAsNull() },
+        domainStrategy,
+        { DataStore.networkStrategy.getBlocking().blankAsNull() },
     )
 }
 

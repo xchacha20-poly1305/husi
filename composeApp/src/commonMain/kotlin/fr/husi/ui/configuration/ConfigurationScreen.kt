@@ -216,7 +216,9 @@ fun ConfigurationScreen(
 
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val hasGroups = uiState.groups.isNotEmpty()
-    val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(DataStore.selectedGroup)
+    val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(
+        DataStore.selectedGroup.getBlocking(),
+    )
     val pagerState = rememberPagerState(
         initialPage = uiState.groups
             .indexOfFirst { it.id == selectedGroup }
@@ -246,7 +248,7 @@ fun ConfigurationScreen(
         }
         val groupID = uiState.groups[currentPage].id
         if (isPageRestored) {
-            DataStore.selectedGroup = groupID
+            DataStore.selectedGroup.set(groupID)
         }
     }
 
@@ -305,7 +307,7 @@ fun ConfigurationScreen(
     )
 
     LaunchedEffect(Unit) {
-        vm.scrollToProxy(DataStore.selectedProxy)
+        vm.scrollToProxy(DataStore.selectedProxy.get())
     }
 
     val manualProfileEntries = remember {
@@ -373,7 +375,7 @@ fun ConfigurationScreen(
         focusManager.clearFocus()
         scope.launch {
             searchBarState.animateToCollapsed()
-            val proxyId = DataStore.selectedProxy
+            val proxyId = DataStore.selectedProxy.get()
             val groupId = vm.proxyGroupId(proxyId) ?: return@launch
             val page = uiState.groups.indexOfFirst { it.id == groupId }
             if (page < 0) return@launch
@@ -511,14 +513,14 @@ fun ConfigurationScreen(
                                         text = { Text(stringResource(Res.string.clear_traffic_statistics)) },
                                         onClick = {
                                             showOverflowMenu = false
-                                            vm.clearTrafficStatistics(DataStore.selectedGroup)
+                                            vm.clearTrafficStatistics(selectedGroup)
                                         },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.remove_duplicate)) },
                                         onClick = {
                                             showOverflowMenu = false
-                                            vm.removeDuplicate(DataStore.selectedGroup)
+                                            vm.removeDuplicate(selectedGroup)
                                         },
                                     )
                                     ExpandableDropdownMenuItem(stringResource(Res.string.connection_test)) {
@@ -540,44 +542,50 @@ fun ConfigurationScreen(
                                         text = { Text(stringResource(Res.string.connection_test_icmp_ping)) },
                                         onClick = {
                                             showConnectionTestMenu = false
-                                            vm.doTest(
-                                                DataStore.currentGroupId(),
-                                                TestType.ICMPPing,
-                                            )
+                                            scope.launch {
+                                                vm.doTest(
+                                                    DataStore.currentGroupId(),
+                                                    TestType.ICMPPing,
+                                                )
+                                            }
                                         },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.connection_test_tcp_ping)) },
                                         onClick = {
                                             showConnectionTestMenu = false
-                                            vm.doTest(
-                                                DataStore.currentGroupId(),
-                                                TestType.TCPPing,
-                                            )
+                                            scope.launch {
+                                                vm.doTest(
+                                                    DataStore.currentGroupId(),
+                                                    TestType.TCPPing,
+                                                )
+                                            }
                                         },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.connection_test_url_test)) },
                                         onClick = {
                                             showConnectionTestMenu = false
-                                            vm.doTest(
-                                                DataStore.currentGroupId(),
-                                                TestType.URLTest,
-                                            )
+                                            scope.launch {
+                                                vm.doTest(
+                                                    DataStore.currentGroupId(),
+                                                    TestType.URLTest,
+                                                )
+                                            }
                                         },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.connection_test_delete_unavailable)) },
                                         onClick = {
                                             showConnectionTestMenu = false
-                                            vm.deleteUnavailable(DataStore.selectedGroup)
+                                            vm.deleteUnavailable(selectedGroup)
                                         },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.connection_test_clear_results)) },
                                         onClick = {
                                             showConnectionTestMenu = false
-                                            vm.clearResults(DataStore.selectedGroup)
+                                            vm.clearResults(selectedGroup)
                                         },
                                     )
                                 }
@@ -597,7 +605,7 @@ fun ConfigurationScreen(
                                             selected = currentOrder == i,
                                             onClick = {
                                                 showOrderMenu = false
-                                                vm.updateOrder(DataStore.selectedGroup, i)
+                                                vm.updateOrder(selectedGroup, i)
                                             },
                                             text = { Text(text = option) },
                                             shapes = MenuDefaults.itemShape(i, orders.size),
@@ -628,7 +636,7 @@ fun ConfigurationScreen(
                                     if (pagerState.currentPage == index) {
                                         vm.scrollToProxy(
                                             group.id,
-                                            DataStore.selectedProxy,
+                                            DataStore.selectedProxy.get(),
                                             fallbackToTop = true,
                                         )
                                     } else {

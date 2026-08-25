@@ -61,8 +61,8 @@ object ProfileManager {
 
     suspend fun deleteProfile(groupId: Long, profileId: Long) {
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
-        if (DataStore.selectedProxy == profileId) {
-            DataStore.selectedProxy = 0L
+        if (DataStore.selectedProxy.get() == profileId) {
+            DataStore.selectedProxy.set(0L)
         }
         if (SagerDatabase.proxyDao.countByGroup(groupId).first() > 1) {
             GroupManager.rearrange(groupId)
@@ -72,8 +72,8 @@ object ProfileManager {
     suspend fun deleteProfiles(groupId: Long, profileIDs: List<Long>) {
         if (profileIDs.isEmpty()) return
         SagerDatabase.proxyDao.deleteProxies(profileIDs)
-        if (profileIDs.contains(DataStore.selectedProxy)) {
-            DataStore.selectedProxy = 0L
+        if (profileIDs.contains(DataStore.selectedProxy.get())) {
+            DataStore.selectedProxy.set(0L)
         }
         if (SagerDatabase.proxyDao.countByGroup(groupId).first() > 1) {
             GroupManager.rearrange(groupId)
@@ -132,8 +132,8 @@ object ProfileManager {
     fun getRules(): Flow<List<RuleEntity>> {
         return SagerDatabase.rulesDao.allRules().onStart {
             val currentRules = SagerDatabase.rulesDao.allRules().first()
-            if (currentRules.isEmpty() && !DataStore.rulesFirstCreate) {
-                DataStore.rulesFirstCreate = true
+            if (currentRules.isEmpty() && !DataStore.rulesFirstCreate.get()) {
+                DataStore.rulesFirstCreate.set(true)
                 createRule(
                     RuleEntity(
                         enabled = true,

@@ -66,14 +66,14 @@ internal suspend fun updateManagedRouteAssets(
 ) {
     val destinationDir = routeGeoDir(externalAssetsDir)
     val versionFiles = routeVersionFiles(externalAssetsDir)
-    val provider = DataStore.rulesProvider
+    val provider = DataStore.rulesProvider.get()
     val updater = when (provider) {
         RuleProvider.CUSTOM -> CustomAssetUpdater(
             versionFiles = versionFiles,
             updateProgress = updateProgress,
             cacheDir = cacheDir,
             destinationDir = destinationDir,
-            links = DataStore.customRuleProvider.lines().filter { it.isNotBlank() },
+            links = DataStore.customRuleProvider.get().lines().filter { it.isNotBlank() },
         )
         RuleProvider.RUNETFREEDOM -> GithubReleaseZipUpdater(
             versionFiles = versionFiles,
@@ -101,9 +101,9 @@ internal suspend fun updateManagedRouteAssets(
 
     try {
         updater.runUpdateIfAvailable()
-        DataStore.routeAssetsLastUpdated = checkedAtSeconds
+        DataStore.routeAssetsLastUpdated.set(checkedAtSeconds)
     } catch (e: NoUpdateException) {
-        DataStore.routeAssetsLastUpdated = checkedAtSeconds
+        DataStore.routeAssetsLastUpdated.set(checkedAtSeconds)
         throw e
     }
 }
@@ -118,7 +118,11 @@ internal suspend fun updateSingleRouteAsset(
     resolveHttpClientFactory().newHttpClient().apply {
         keepAlive()
         if (DataStore.serviceState.connected) {
-            useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            useSocks5(
+                DataStore.mixedPort.get(),
+                DataStore.inboundUsername.get(),
+                DataStore.inboundPassword.get(),
+            )
         }
     }.newRequest().apply {
         setURL(asset.url)
@@ -260,7 +264,11 @@ internal abstract class AssetsUpdater(
         resolveHttpClientFactory().newHttpClient().apply {
             keepAlive()
             if (DataStore.serviceState.connected) {
-                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+                useSocks5(
+                    DataStore.mixedPort.getBlocking(),
+                    DataStore.inboundUsername.getBlocking(),
+                    DataStore.inboundPassword.getBlocking(),
+                )
             }
         }
     } else null

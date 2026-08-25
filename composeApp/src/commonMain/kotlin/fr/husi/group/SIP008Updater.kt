@@ -95,9 +95,9 @@ object SIP008Updater : GroupUpdater() {
             val response = resolveHttpClientFactory().newHttpClient().apply {
                 if (DataStore.serviceState.connected) {
                     useSocks5(
-                        DataStore.mixedPort,
-                        DataStore.inboundUsername,
-                        DataStore.inboundPassword,
+                        DataStore.mixedPort.get(),
+                        DataStore.inboundUsername.get(),
+                        DataStore.inboundPassword.get(),
                     )
                 }
                 // Strict !!!

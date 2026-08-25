@@ -154,7 +154,7 @@ class OpenConnectAuthController(
     }
 
     private suspend fun findProfile(endpointTag: String): ProxyEntity? {
-        SagerDatabase.proxyDao.getById(DataStore.currentProfile)?.let { current ->
+        SagerDatabase.proxyDao.getById(DataStore.currentProfile.get())?.let { current ->
             if (current.requireBean() is OpenConnectBean && current.displayName() == endpointTag) {
                 return current
             }

@@ -62,7 +62,7 @@ class Application : Application(),
 
         if (isMainProcess) runOnDefaultDispatcher {
             // The component state may drift from the preference, e.g. after a backup restore.
-            val hidden = DataStore.hideLauncherIcon
+            val hidden = DataStore.hideLauncherIcon.get()
             if (LauncherIcon.hidden != hidden) LauncherIcon.hidden = hidden
         }
 
@@ -79,7 +79,9 @@ class Application : Application(),
 
         // init core
         externalAssets.mkdirs()
-        if (isBgProcess && DataStore.rulesProvider == RuleProvider.OFFICIAL) {
+        val rulesProvider = DataStore.rulesProvider.getBlocking()
+        val isExpert = DataStore.isExpert.getBlocking()
+        if (isBgProcess && rulesProvider == RuleProvider.OFFICIAL) {
             runBlocking { copyBundledRuleSetAssetsIfNeeded() }
         }
         Libcore.initCore(
@@ -88,12 +90,12 @@ class Application : Application(),
             cacheDir.invariantDirectoryPathString(),
             filesDir.invariantDirectoryPathString(),
             externalAssets.invariantDirectoryPathString(),
-            DataStore.logMaxLine,
-            DataStore.logLevel,
-            DataStore.rulesProvider == 0,
-            DataStore.isExpert,
+            DataStore.logMaxLine.getBlocking(),
+            DataStore.logLevel.getBlocking(),
+            rulesProvider == 0,
+            isExpert,
         )
-        loadCA(DataStore.certProvider)
+        loadCA(DataStore.certProvider.getBlocking())
 
         if (isMainProcess) runOnDefaultDispatcher {
             runCatching {
@@ -116,7 +118,7 @@ class Application : Application(),
             repository.boxService?.start()
         }
 
-        if (DataStore.isExpert) StrictMode.setVmPolicy(
+        if (isExpert) StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder()
                 .detectLeakedSqlLiteObjects()
                 .detectLeakedClosableObjects()

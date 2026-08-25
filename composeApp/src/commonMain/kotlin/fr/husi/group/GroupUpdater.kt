@@ -84,9 +84,9 @@ abstract class GroupUpdater {
 
     private suspend fun forceResolve(profiles: List<AbstractBean>) = coroutineScope {
         val networkStrategy = serverAddressDomainStrategy().orEmpty()
-        val shouldResolveByDefaultNetwork = DataStore.enableFakeDns
+        val shouldResolveByDefaultNetwork = DataStore.enableFakeDns.get()
                 && DataStore.serviceState.started
-                && DataStore.serviceMode == Key.MODE_VPN
+                && DataStore.serviceMode.get() == Key.MODE_VPN
         val lookupDispatcher = Dispatchers.IO.limitedParallelism(5)
 
         for (profile in profiles) {

@@ -3,11 +3,11 @@ package fr.husi.ui.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.AnnotatedString
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.RuleProvider
 import fr.husi.compose.DurationTextField
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.ListPreference
@@ -18,7 +18,6 @@ import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.contentOrUnset
-import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
 import fr.husi.resources.auto
 import fr.husi.resources.construction
@@ -59,9 +58,7 @@ internal fun RouteSettingsGroup(
     needReload: () -> Unit,
     openAppManager: () -> Unit,
 ) {
-    val serviceModeState by DataStore.configurationStore
-        .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
-        .collectAsStateWithLifecycle(Key.MODE_VPN)
+    val serviceModeState by DataStore.serviceMode.collectAsStateWithLifecycle()
 
     ProxyAppsPreferences(openAppManager)
 
@@ -79,13 +76,11 @@ internal fun RouteSettingsGroup(
         else -> Res.string.auto
     }
 
-    val networkStrategyValue by DataStore.configurationStore
-        .stringFlow(Key.NETWORK_STRATEGY, "")
-        .collectAsStateWithLifecycle("")
+    val networkStrategyValue by DataStore.networkStrategy.collectAsStateWithLifecycle()
     ListPreference(
         value = networkStrategyValue,
         onValueChange = {
-            DataStore.networkStrategy = it
+            DataStore.networkStrategy.setBlocking(it)
             needReload()
         },
         values = listOf("", "prefer_ipv6", "prefer_ipv4", "ipv4_only", "ipv6_only"),
@@ -105,13 +100,11 @@ internal fun RouteSettingsGroup(
         else -> Res.string.keep_default
     }
 
-    val networkInterfaceValue by DataStore.configurationStore
-        .intFlow(Key.NETWORK_INTERFACE_STRATEGY, NetworkInterfaceStrategy.DEFAULT)
-        .collectAsStateWithLifecycle(NetworkInterfaceStrategy.DEFAULT)
+    val networkInterfaceValue by DataStore.networkInterfaceType.collectAsStateWithLifecycle()
     ListPreference(
         value = networkInterfaceValue,
         onValueChange = {
-            DataStore.networkInterfaceType = it
+            DataStore.networkInterfaceType.setBlocking(it)
             needReload()
         },
         values = listOf(
@@ -131,13 +124,11 @@ internal fun RouteSettingsGroup(
         valueToText = { AnnotatedString(stringResource(networkInterfaceStrategyTextRes(it))) },
     )
 
-    val preferredInterfaces by DataStore.configurationStore
-        .stringSetFlow(Key.NETWORK_PREFERRED_INTERFACES, emptySet())
-        .collectAsStateWithLifecycle(emptySet())
+    val preferredInterfaces by DataStore.networkPreferredInterfaces.collectAsStateWithLifecycle()
     MultiSelectListPreference(
         value = preferredInterfaces,
         onValueChange = {
-            DataStore.networkPreferredInterfaces = it
+            DataStore.networkPreferredInterfaces.setBlocking(it)
             needReload()
         },
         values = listOf("wifi", "cellular", "ethernet", "other"),
@@ -157,14 +148,11 @@ internal fun RouteSettingsGroup(
         valueToText = { AnnotatedString(it) },
     )
 
-    val defaultDisableTcpKeepAlive = PlatformInfo.isAndroid
-    val disableTcpKeepAliveValue by DataStore.configurationStore
-        .booleanFlow(Key.DISABLE_TCP_KEEP_ALIVE, defaultDisableTcpKeepAlive)
-        .collectAsStateWithLifecycle(defaultDisableTcpKeepAlive)
+    val disableTcpKeepAliveValue by DataStore.disableTcpKeepAlive.collectAsStateWithLifecycle()
     SwitchPreference(
         value = disableTcpKeepAliveValue,
         onValueChange = {
-            DataStore.disableTcpKeepAlive = it
+            DataStore.disableTcpKeepAlive.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.disable_tcp_keep_alive)) },
@@ -173,13 +161,11 @@ internal fun RouteSettingsGroup(
         },
     )
 
-    val tcpKeepAliveIdleValue by DataStore.configurationStore
-        .stringFlow(Key.TCP_KEEP_ALIVE_IDLE, "")
-        .collectAsStateWithLifecycle("")
+    val tcpKeepAliveIdleValue by DataStore.tcpKeepAliveIdle.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = tcpKeepAliveIdleValue,
         onValueChange = {
-            DataStore.tcpKeepAliveIdle = it
+            DataStore.tcpKeepAliveIdle.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.tcp_keep_alive_idle)) },
@@ -197,13 +183,11 @@ internal fun RouteSettingsGroup(
         DurationTextField(value, onValueChange, onOk)
     }
 
-    val tcpKeepAliveIntervalValue by DataStore.configurationStore
-        .stringFlow(Key.TCP_KEEP_ALIVE_INTERVAL_0, "")
-        .collectAsStateWithLifecycle("")
+    val tcpKeepAliveIntervalValue by DataStore.tcpKeepAliveInterval.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = tcpKeepAliveIntervalValue,
         onValueChange = {
-            DataStore.tcpKeepAliveInterval = it
+            DataStore.tcpKeepAliveInterval.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.tcp_keep_alive_interval)) },
@@ -227,12 +211,10 @@ internal fun RouteSettingsGroup(
         else -> StringOrRes.Res(Res.string.route_rules_official)
     }
 
-    val rulesProviderValue by DataStore.configurationStore
-        .intFlow(Key.RULES_PROVIDER, RuleProvider.OFFICIAL)
-        .collectAsStateWithLifecycle(RuleProvider.OFFICIAL)
+    val rulesProviderValue by DataStore.rulesProvider.collectAsStateWithLifecycle()
     ListPreference(
         value = rulesProviderValue,
-        onValueChange = { DataStore.rulesProvider = it },
+        onValueChange = { DataStore.rulesProvider.setBlocking(it) },
         values = listOf(
             RuleProvider.OFFICIAL,
             RuleProvider.LOYALSOLDIER,
@@ -252,14 +234,10 @@ internal fun RouteSettingsGroup(
         valueToText = { AnnotatedString(stringOrRes(rulesProviderText(it))) },
     )
     if (rulesProviderValue == RuleProvider.CUSTOM) {
-        val defaultUrl =
-            "https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set"
-        val customRuleProviderValue by DataStore.configurationStore
-            .stringFlow(Key.CUSTOM_RULE_PROVIDER, defaultUrl)
-            .collectAsStateWithLifecycle(defaultUrl)
+        val customRuleProviderValue by DataStore.customRuleProvider.collectAsStateWithLifecycle()
         TextFieldPreference(
             value = customRuleProviderValue,
-            onValueChange = { DataStore.customRuleProvider = it },
+            onValueChange = { DataStore.customRuleProvider.setBlocking(it) },
             title = { Text(stringResource(Res.string.custom_rule_provider)) },
             textToValue = { it },
             icon = {

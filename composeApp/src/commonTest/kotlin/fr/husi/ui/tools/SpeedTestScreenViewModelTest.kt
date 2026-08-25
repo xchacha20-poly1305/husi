@@ -29,8 +29,8 @@ class SpeedTestScreenViewModelTest : HusiKoinMainDispatcherTest() {
     @AfterTest
     fun resetServiceState() {
         DataStore.serviceState = ServiceState.Idle
-        DataStore.inboundUsername = ""
-        DataStore.inboundPassword = ""
+        DataStore.inboundUsername.setBlocking("")
+        DataStore.inboundPassword.setBlocking("")
         fakeCore.speedTestThrowable = null
         fakeCore.speedTestCalls = 0
         fakeCore.lastSpeedTest = null
@@ -175,8 +175,8 @@ class SpeedTestScreenViewModelTest : HusiKoinMainDispatcherTest() {
 
     @Test
     fun `doSpeedTest passes socks proxy when service is connected`() = runTest(dispatcher.scheduler) {
-        DataStore.inboundUsername = "user"
-        DataStore.inboundPassword = "pass"
+        DataStore.inboundUsername.set("user")
+        DataStore.inboundPassword.set("pass")
         DataStore.serviceState = ServiceState.Connected
         val viewModel = newViewModel()
 

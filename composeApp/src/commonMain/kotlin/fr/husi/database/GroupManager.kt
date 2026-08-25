@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 object GroupManager {
 
     suspend fun clearGroup(groupId: Long) {
-        DataStore.selectedProxy = 0L
+        DataStore.selectedProxy.set(0L)
         SagerDatabase.proxyDao.deleteAll(groupId)
     }
 

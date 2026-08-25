@@ -112,7 +112,7 @@ class ImportLinkInteractor {
         for (proxy in proxies) {
             ProfileManager.createProfile(targetId, proxy)
         }
-        DataStore.selectedGroup = targetId
+        DataStore.selectedGroup.set(targetId)
         return proxies.size
     }
 }

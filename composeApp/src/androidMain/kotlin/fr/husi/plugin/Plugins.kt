@@ -23,7 +23,7 @@ object Plugins {
     const val METADATA_KEY_EXECUTABLE_PATH = "io.nekohasekai.sagernet.plugin.executable_path"
 
     val allowedSet = HashSet<String>(
-        DataStore.customPluginPrefix.split("\n").filter {
+        DataStore.customPluginPrefix.getBlocking().split("\n").filter {
             it.isNotBlank() && it != "."
         },
     ).apply {

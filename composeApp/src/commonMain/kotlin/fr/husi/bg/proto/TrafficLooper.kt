@@ -1,6 +1,5 @@
 package fr.husi.bg.proto
 
-import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SpeedStats
@@ -45,7 +44,7 @@ class TrafficLooper(
     suspend fun stop() {
         job?.cancel()
         job = null
-        if (!DataStore.profileTrafficStatistics) return
+        if (!DataStore.profileTrafficStatistics.get()) return
         updateDb()
         Logs.d("finally traffic post done")
     }
@@ -55,12 +54,12 @@ class TrafficLooper(
     }
 
     private suspend fun loop() = coroutineScope {
-        val speedInterval = DataStore.configurationStore
-            .intFlow(Key.SPEED_INTERVAL, 1000)
-            .stateIn(this, SharingStarted.Eagerly, 1000)
-        val profileTrafficStatistics = DataStore.configurationStore
-            .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
-            .stateIn(this, SharingStarted.Eagerly, true)
+        val speedIntervalPref = DataStore.speedInterval
+        val speedInterval = speedIntervalPref.flow()
+            .stateIn(this, SharingStarted.Eagerly, speedIntervalPref.get())
+        val profileTrafficStatisticsPref = DataStore.profileTrafficStatistics
+        val profileTrafficStatistics = profileTrafficStatisticsPref.flow()
+            .stateIn(this, SharingStarted.Eagerly, profileTrafficStatisticsPref.get())
         val persistEveryMs = 10_000L
 
         launch {

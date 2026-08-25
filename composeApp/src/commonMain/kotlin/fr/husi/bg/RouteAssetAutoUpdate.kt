@@ -32,8 +32,8 @@ object RouteAssetAutoUpdatePlanner {
 
     suspend fun plan(): RouteAssetAutoUpdatePlan? {
         return plan(
-            globalAutoUpdateDelayMinutes = DataStore.routeAssetsAutoUpdateDelay,
-            globalLastUpdatedSeconds = DataStore.routeAssetsLastUpdated,
+            globalAutoUpdateDelayMinutes = DataStore.routeAssetsAutoUpdateDelay.get(),
+            globalLastUpdatedSeconds = DataStore.routeAssetsLastUpdated.get(),
             assets = loadAutoUpdateAssets(),
             nowSeconds = currentEpochSeconds(),
         )
@@ -70,7 +70,12 @@ object RouteAssetAutoUpdateRunner {
     suspend fun run(nowSeconds: Long = currentEpochSeconds()) {
         val repository = resolveRepository()
 
-        if (isManagedAssetsDue(DataStore.routeAssetsAutoUpdateDelay, DataStore.routeAssetsLastUpdated, nowSeconds)) {
+        if (isManagedAssetsDue(
+                DataStore.routeAssetsAutoUpdateDelay.get(),
+                DataStore.routeAssetsLastUpdated.get(),
+                nowSeconds,
+            )
+        ) {
             runCatching {
                 Logs.d("auto update: updating managed route assets")
                 updateManagedRouteAssets(

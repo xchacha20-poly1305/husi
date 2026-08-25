@@ -21,7 +21,7 @@ actual fun createBoxService(isBgProcess: Boolean): Service? {
 }
 
 actual fun loadCA(provider: Int) {
-    val certOption = when (DataStore.certProvider) {
+    val certOption = when (DataStore.certProvider.getBlocking()) {
         CertProvider.SYSTEM -> Libcore.CertSystem
         CertProvider.MOZILLA -> Libcore.CertMozilla
         CertProvider.SYSTEM_AND_USER -> Libcore.CertWithUserTrust

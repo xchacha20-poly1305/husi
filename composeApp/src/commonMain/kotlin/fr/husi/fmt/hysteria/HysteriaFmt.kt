@@ -246,7 +246,8 @@ fun HysteriaBean.buildHysteriaConfig(
                 if (streamReceiveWindow > 0) put("recv_window_conn", streamReceiveWindow)
                 if (connectionReceiveWindow > 0) put("recv_window", connectionReceiveWindow)
                 if (disableMtuDiscovery) put("disable_mtu_discovery", true)
-                DataStore.localDNSPort.takeIf { it > 0 }?.let {
+                val localDNSPort = DataStore.localDNSPort.getBlocking()
+                localDNSPort.takeIf { it > 0 }?.let {
                     put("resolver", "udp://127.0.0.1:$it")
                 }
                 if (hopSeconds > 0) put("hop_interval", hopSeconds)
@@ -256,8 +257,8 @@ fun HysteriaBean.buildHysteriaConfig(
         }
 
         HysteriaBean.PROTOCOL_VERSION_2 -> {
-            val uploadSpeed = DataStore.uploadSpeed
-            val downloadSpeed = DataStore.downloadSpeed
+            val uploadSpeed = DataStore.uploadSpeed.getBlocking()
+            val downloadSpeed = DataStore.downloadSpeed.getBlocking()
             var caPath: String? = null
             var certPath: String? = null
             var keyPath: String? = null
@@ -400,7 +401,7 @@ fun HysteriaBean.buildHysteriaConfig(
 }
 
 fun HysteriaBean.canUseSingBox(): Boolean {
-    if (DataStore.providerHysteria2 != ProtocolProvider.CORE) return false // Force plugin
+    if (DataStore.providerHysteria2.getBlocking() != ProtocolProvider.CORE) return false // Force plugin
     if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1
         && protocol != HysteriaBean.PROTOCOL_UDP
     ) {
@@ -481,8 +482,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     server_ports = hopPort.singStyle().toMutableList()
                 }
             }
-            up_mbps = DataStore.uploadSpeed
-            down_mbps = DataStore.downloadSpeed
+            up_mbps = DataStore.uploadSpeed.getBlocking()
+            down_mbps = DataStore.downloadSpeed.getBlocking()
             bean.obfsType.blankAsNull()?.let { obfsType ->
                 obfs = SingBoxOptions.Hysteria2Obfs().apply {
                     type = obfsType
@@ -597,7 +598,7 @@ const val DEFAULT_SPEED = 10
 
 // Just use for Hy1
 
-private fun generateDownloadSpeed(): Int = DataStore.downloadSpeed.let {
+private fun generateDownloadSpeed(): Int = DataStore.downloadSpeed.getBlocking().let {
     if (it <= 0) {
         DEFAULT_SPEED
     } else {
@@ -605,7 +606,7 @@ private fun generateDownloadSpeed(): Int = DataStore.downloadSpeed.let {
     }
 }
 
-private fun generateUploadSpeed(): Int = DataStore.uploadSpeed.let {
+private fun generateUploadSpeed(): Int = DataStore.uploadSpeed.getBlocking().let {
     if (it <= 0) {
         DEFAULT_SPEED
     } else {

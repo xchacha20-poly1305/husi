@@ -3,6 +3,7 @@ package fr.husi.database
 import fr.husi.CONNECTION_TEST_URL
 import fr.husi.CertProvider
 import fr.husi.DEFAULT_HTTP_BYPASS
+import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.GroupType
 import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
@@ -14,17 +15,16 @@ import fr.husi.TunImplementation
 import fr.husi.bg.ServiceState
 import fr.husi.compose.theme.DEFAULT
 import fr.husi.database.preference.DataStorePreferenceDataStore
+import fr.husi.database.preference.boolean
 import fr.husi.database.preference.createConfigurationDataStore
-import fr.husi.ktx.boolean
-import fr.husi.ktx.int
-import fr.husi.ktx.long
-import fr.husi.ktx.parsePort
-import fr.husi.ktx.string
-import fr.husi.ktx.stringSet
+import fr.husi.database.preference.int
+import fr.husi.database.preference.long
+import fr.husi.database.preference.port
+import fr.husi.database.preference.string
+import fr.husi.database.preference.stringSet
 import fr.husi.platform.PlatformInfo
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
 
 object DataStore {
 
@@ -59,86 +59,86 @@ object DataStore {
     }
 
     // last used, but may not be running
-    var currentProfile by configurationStore.long(Key.PROFILE_CURRENT)
+    val currentProfile = configurationStore.long(Key.PROFILE_CURRENT)
 
-    var selectedProxy by configurationStore.long(Key.PROFILE_ID)
-    var selectedGroup by configurationStore.long(Key.PROFILE_GROUP) { currentGroupId() } // "ungrouped" group id = 1
+    val selectedProxy = configurationStore.long(Key.PROFILE_ID)
+    val selectedGroup = configurationStore.long(Key.PROFILE_GROUP) {
+        ProfileManager.ensureDefaultGroupId()
+    }
 
-    fun currentGroupId(): Long {
-        val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
-        if (currentSelected > 0L) return currentSelected
-        val groupId = runBlocking { ProfileManager.ensureDefaultGroupId() }
-        selectedGroup = groupId
+    suspend fun currentGroupId(): Long {
+        val currentSelected = selectedGroup.getOrNull()
+        if (currentSelected != null && currentSelected > 0L) return currentSelected
+        val groupId = ProfileManager.ensureDefaultGroupId()
+        selectedGroup.set(groupId)
         return groupId
     }
 
-    fun currentGroup(): ProxyGroup {
-        var group: ProxyGroup? = null
-        val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
-        if (currentSelected > 0L) {
-            group = runBlocking {
-                SagerDatabase.groupDao.getById(currentSelected).firstOrNull()
-            }
+    suspend fun currentGroup(): ProxyGroup {
+        val currentSelected = selectedGroup.getOrNull()
+        if (currentSelected != null && currentSelected > 0L) {
+            val group = SagerDatabase.groupDao.getById(currentSelected).firstOrNull()
+            if (group != null) return group
         }
-        if (group != null) return group
-        group = runBlocking {
-            val groupId = ProfileManager.ensureDefaultGroupId()
-            SagerDatabase.groupDao.getById(groupId).firstOrNull()
-                ?: SagerDatabase.groupDao.allGroups().first().first()
-        }
-        selectedGroup = group.id
+        val groupId = ProfileManager.ensureDefaultGroupId()
+        val group = SagerDatabase.groupDao.getById(groupId).firstOrNull()
+            ?: SagerDatabase.groupDao.allGroups().first().first()
+        selectedGroup.set(group.id)
         return group
     }
 
-    fun selectedGroupForImport(): Long {
+    suspend fun selectedGroupForImport(): Long {
         val current = currentGroup()
         if (current.type == GroupType.BASIC) return current.id
-        val groups = runBlocking {
-            SagerDatabase.groupDao.allGroups().first()
-        }
+        val groups = SagerDatabase.groupDao.allGroups().first()
         return groups.find { it.type == GroupType.BASIC }!!.id
     }
 
-    var isExpert by configurationStore.boolean(Key.APP_EXPERT)
-    var appTheme by configurationStore.int(Key.APP_THEME) { DEFAULT }
-    var nightTheme by configurationStore.int(Key.NIGHT_THEME)
-    var appLanguage by configurationStore.string(Key.APP_LANGUAGE)
-    var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
-    var debugListen by configurationStore.string(Key.DEBUG_LISTEN)
-    var networkStrategy by configurationStore.string(Key.NETWORK_STRATEGY)
-    var anchorSSID by configurationStore.string(Key.ANCHOR_SSID)
+    val isExpert = configurationStore.boolean(Key.APP_EXPERT)
+    val appTheme = configurationStore.int(Key.APP_THEME) { DEFAULT }
+    val nightTheme = configurationStore.int(Key.NIGHT_THEME)
+    val appLanguage = configurationStore.string(Key.APP_LANGUAGE)
+    val serviceMode = configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
+    val debugListen = configurationStore.string(Key.DEBUG_LISTEN)
+    val networkStrategy = configurationStore.string(Key.NETWORK_STRATEGY)
+    val anchorSSID = configurationStore.string(Key.ANCHOR_SSID)
 
-    var networkInterfaceType by configurationStore.int(Key.NETWORK_INTERFACE_STRATEGY) {
+    val networkInterfaceType = configurationStore.int(Key.NETWORK_INTERFACE_STRATEGY) {
         NetworkInterfaceStrategy.DEFAULT
     }
-    var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
-    var forcedSearchProcess by configurationStore.boolean(Key.FORCED_SEARCH_PROCESS) { false }
+    val networkPreferredInterfaces = configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
+    val forcedSearchProcess = configurationStore.boolean(Key.FORCED_SEARCH_PROCESS) { false }
 
-    var disableTcpKeepAlive by configurationStore.boolean(Key.DISABLE_TCP_KEEP_ALIVE) { PlatformInfo.isAndroid }
-    var tcpKeepAliveIdle by configurationStore.string(Key.TCP_KEEP_ALIVE_IDLE) { "5m" }
-    var tcpKeepAliveInterval by configurationStore.string(Key.TCP_KEEP_ALIVE_INTERVAL_0) { "75s" }
-    var mtu by configurationStore.int(Key.MTU) { 9000 }
-    var vpnSessionName by configurationStore.string(Key.VPN_SESSION_NAME) { "" }
-    var tunInterfaceName by configurationStore.string(Key.TUN_INTERFACE_NAME) { "" }
-    var tunStrictRoute by configurationStore.boolean(Key.TUN_STRICT_ROUTE) { true }
-    var tunAutoRedirect by configurationStore.boolean(Key.TUN_AUTO_REDIRECT) { true }
-    var allowAppsBypassVpn by configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }
+    val disableTcpKeepAlive = configurationStore.boolean(Key.DISABLE_TCP_KEEP_ALIVE) { PlatformInfo.isAndroid }
+    val tcpKeepAliveIdle = configurationStore.string(Key.TCP_KEEP_ALIVE_IDLE) { "5m" }
+    val tcpKeepAliveInterval = configurationStore.string(Key.TCP_KEEP_ALIVE_INTERVAL_0) { "75s" }
+    val mtu = configurationStore.int(Key.MTU) { 9000 }
+    val vpnSessionName = configurationStore.string(Key.VPN_SESSION_NAME) { "" }
+    val tunInterfaceName = configurationStore.string(Key.TUN_INTERFACE_NAME) { "" }
+    val tunStrictRoute = configurationStore.boolean(Key.TUN_STRICT_ROUTE) { true }
+    val tunAutoRedirect = configurationStore.boolean(Key.TUN_AUTO_REDIRECT) { true }
+    val allowAppsBypassVpn = configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }
 
-    var bypassLan by configurationStore.boolean(Key.BYPASS_LAN) { true }
-    var inboundUsername by configurationStore.string(Key.INBOUND_USERNAME) { "" }
-    var inboundPassword by configurationStore.string(Key.INBOUND_PASSWORD) { "" }
+    val bypassLan = configurationStore.boolean(Key.BYPASS_LAN) { true }
+    val inboundUsername = configurationStore.string(Key.INBOUND_USERNAME) { "" }
+    val inboundPassword = configurationStore.string(Key.INBOUND_PASSWORD) { "" }
 
-    var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
-    var speedInterval by configurationStore.int(Key.SPEED_INTERVAL) { 1000 }
-    var showGroupInNotification by configurationStore.boolean(Key.SHOW_GROUP_IN_NOTIFICATION)
+    val allowAccess = configurationStore.boolean(Key.ALLOW_ACCESS)
+    val speedInterval = configurationStore.int(Key.SPEED_INTERVAL) { 1000 }
+    val showGroupInNotification = configurationStore.boolean(Key.SHOW_GROUP_IN_NOTIFICATION)
 
-    var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
-    var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
-    var mDNS by configurationStore.string(Key.MDNS) { "" }
-    var domainStrategyForDirect by configurationStore.string(Key.DOMAIN_STRATEGY_FOR_DIRECT)
-    var domainStrategyForServer by configurationStore.string(Key.DOMAIN_STRATEGY_FOR_SERVER)
-    var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
-    var fakeDNSForAll by configurationStore.boolean(Key.FAKE_DNS_FOR_ALL) { false }
+    val remoteDns = configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
+    val directDns = configurationStore.string(Key.DIRECT_DNS) { "local" }
+    val mDNS = configurationStore.string(Key.MDNS) { "" }
+    // Consumers strip "auto" back to an empty strategy, so it is the neutral default.
+    val domainStrategyForDirect = configurationStore.string(Key.DOMAIN_STRATEGY_FOR_DIRECT) {
+        DOMAIN_STRATEGY_AUTO
+    }
+    val domainStrategyForServer = configurationStore.string(Key.DOMAIN_STRATEGY_FOR_SERVER) {
+        DOMAIN_STRATEGY_AUTO
+    }
+    val enableFakeDns = configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
+    val fakeDNSForAll = configurationStore.boolean(Key.FAKE_DNS_FOR_ALL) { false }
 
     // https://developer.chrome.com/blog/local-network-access
     // Use the address belongs to these "local" networks
@@ -146,116 +146,91 @@ object DataStore {
     // will make permission warning in Chrome.
     // To avoid user agreeing plenty of permissions, we decide to use these new address.
     // The pre-defined IPv4 range is limited, change to whatever user like.
-    var fakeDNSRange4 by configurationStore.string(Key.FAKE_DNS_RANGE_4) { "198.51.100.0/24" }
-    var fakeDNSRange6 by configurationStore.string(Key.FAKE_DNS_RANGE_6) { "2001:2::/48" }
-    var dnsHosts by configurationStore.string(Key.DNS_HOSTS)
-    var dnsOptimisticCache by configurationStore.string(Key.DNS_OPTIMISTIC_CACHE) { "" }
+    val fakeDNSRange4 = configurationStore.string(Key.FAKE_DNS_RANGE_4) { "198.51.100.0/24" }
+    val fakeDNSRange6 = configurationStore.string(Key.FAKE_DNS_RANGE_6) { "2001:2::/48" }
+    val dnsHosts = configurationStore.string(Key.DNS_HOSTS)
+    val dnsOptimisticCache = configurationStore.string(Key.DNS_OPTIMISTIC_CACHE) { "" }
 
-    var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
-    var rulesProvider by configurationStore.int(Key.RULES_PROVIDER)
-    var customRuleProvider by configurationStore.string(Key.CUSTOM_RULE_PROVIDER)
-    var routeAssetsAutoUpdateDelay by configurationStore.int(Key.ROUTE_ASSETS_AUTO_UPDATE_DELAY) { 0 }
-    var routeAssetsLastUpdated by configurationStore.long(Key.ROUTE_ASSETS_LAST_UPDATED) { 0L }
-    var logLevel by configurationStore.int(Key.LOG_LEVEL) { 3 /* WARN */ }
-    var logMaxLine by configurationStore.int(Key.LOG_MAX_LINE) { 1024 }
-    var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
+    val securityAdvisory = configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
+    val rulesProvider = configurationStore.int(Key.RULES_PROVIDER)
+    val customRuleProvider = configurationStore.string(Key.CUSTOM_RULE_PROVIDER)
+    val routeAssetsAutoUpdateDelay = configurationStore.int(Key.ROUTE_ASSETS_AUTO_UPDATE_DELAY) { 0 }
+    val routeAssetsLastUpdated = configurationStore.long(Key.ROUTE_ASSETS_LAST_UPDATED) { 0L }
+    val logLevel = configurationStore.int(Key.LOG_LEVEL) { 3 /* WARN */ }
+    val logMaxLine = configurationStore.int(Key.LOG_MAX_LINE) { 1024 }
+    val acquireWakeLock = configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
 
-    // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
-    private val userIndex by lazy { callingUserIndex() }
-    var mixedPort: Int
-        get() = getLocalPort(Key.MIXED_PORT, 2080)
-        set(value) = saveLocalPort(Key.MIXED_PORT, value)
-    var localDNSPort: Int
-        get() = getLocalPort(Key.LOCAL_DNS_PORT, 0)
-        set(value) {
-            saveLocalPort(Key.LOCAL_DNS_PORT, value)
+    val mixedPort = configurationStore.port(Key.MIXED_PORT, 2080)
+    val localDNSPort = configurationStore.port(Key.LOCAL_DNS_PORT, 0)
+
+    suspend fun initGlobal() {
+        if (mixedPort.getOrNull() == null) {
+            mixedPort.set(mixedPort.get())
         }
-
-    fun initGlobal() {
-        if (configurationStore.getString(Key.MIXED_PORT) == null) {
-            mixedPort = mixedPort
-        }
-        if (configurationStore.getString(Key.LOCAL_DNS_PORT) == null) {
-            localDNSPort = localDNSPort
+        if (localDNSPort.getOrNull() == null) {
+            localDNSPort.set(localDNSPort.get())
         }
     }
 
-    private fun getLocalPort(key: String, default: Int): Int {
-        // 0 means "let the OS auto-assign an ephemeral port" and must stay 0
-        // regardless of the calling user; only offset non-zero defaults to
-        // avoid port collisions between multiple Android user profiles.
-        val effectiveDefault = if (default == 0) {
-            0
-        } else {
-            default + userIndex
-        }
-        return parsePort(configurationStore.getString(key), effectiveDefault)
-    }
+    val meteredNetwork = configurationStore.boolean(Key.METERED_NETWORK)
+    val proxyApps = configurationStore.boolean(Key.PROXY_APPS)
+    val updateProxyAppsWhenInstall = configurationStore.boolean(Key.UPDATE_PROXY_APPS_WHEN_INSTALL)
+    val bypassMode = configurationStore.boolean(Key.BYPASS_MODE) { true } // VPN bypass mode
 
-    private fun saveLocalPort(key: String, value: Int) {
-        configurationStore.putString(key, "$value")
-    }
+    val packages = configurationStore.stringSet(Key.PACKAGES)
+    val showDirectSpeed = configurationStore.boolean(Key.SHOW_DIRECT_SPEED) { true }
 
-    var meteredNetwork by configurationStore.boolean(Key.METERED_NETWORK)
-    var proxyApps by configurationStore.boolean(Key.PROXY_APPS)
-    var updateProxyAppsWhenInstall by configurationStore.boolean(Key.UPDATE_PROXY_APPS_WHEN_INSTALL)
-    var bypassMode by configurationStore.boolean(Key.BYPASS_MODE) { true } // VPN bypass mode
+    val persistAcrossReboot = configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
 
-    // var individual by configurationStore.string(Key.INDIVIDUAL) // old packages that split by '\n'
-    var packages by configurationStore.stringSet(Key.PACKAGES)
-    var showDirectSpeed by configurationStore.boolean(Key.SHOW_DIRECT_SPEED) { true }
+    val appendHttpProxy = configurationStore.boolean(Key.APPEND_HTTP_PROXY)
+    val httpProxyBypass = configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }
 
-    var persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
+    val connectionTestURL = configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
+    val connectionTestConcurrent = configurationStore.int(Key.CONNECTION_TEST_CONCURRENT) { 5 }
+    val connectionTestTimeout = configurationStore.int(Key.CONNECTION_TEST_TIMEOUT) { 3000 }
+    val connectionTestUnifiedDelay = configurationStore.boolean(Key.CONNECTION_TEST_UNIFIED_DELAY) { false }
+    val connectionTestIgnoreHandshakeTime = configurationStore.boolean(Key.CONNECTION_TEST_IGNORE_HANDSHAKE_TIME) { false }
 
-    var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
-    var httpProxyBypass by configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }
+    val alwaysShowAddress = configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
+    val blurredAddress = configurationStore.boolean(Key.BLURRED_ADDRESS)
+    val privacyMode = configurationStore.boolean(Key.PRIVACY_MODE) { false }
 
-    var connectionTestURL by configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
-    var connectionTestConcurrent by configurationStore.int(Key.CONNECTION_TEST_CONCURRENT) { 5 }
-    var connectionTestTimeout by configurationStore.int(Key.CONNECTION_TEST_TIMEOUT) { 3000 }
-    var connectionTestUnifiedDelay by configurationStore.boolean(Key.CONNECTION_TEST_UNIFIED_DELAY) { false }
-    var connectionTestIgnoreHandshakeTime by configurationStore.boolean(Key.CONNECTION_TEST_IGNORE_HANDSHAKE_TIME) { false }
+    val providerHysteria2 = configurationStore.int(Key.PROVIDER_HYSTERIA2) { ProtocolProvider.CORE }
+    val providerJuicity = configurationStore.int(Key.PROVIDER_JUICITY) { ProtocolProvider.PLUGIN }
+    val providerNaive = configurationStore.int(Key.PROVIDER_NAIVE) { ProtocolProvider.CORE }
 
-    var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
-    var blurredAddress by configurationStore.boolean(Key.BLURRED_ADDRESS)
-    var privacyMode by configurationStore.boolean(Key.PRIVACY_MODE) { false }
+    val tunImplementation = configurationStore.int(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
+    val profileTrafficStatistics = configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
+    val certProvider = configurationStore.int(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
+    val disableProcessText = configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
+    val hideLauncherIcon = configurationStore.boolean(Key.HIDE_LAUNCHER_ICON)
 
-    var providerHysteria2 by configurationStore.int(Key.PROVIDER_HYSTERIA2) { ProtocolProvider.CORE }
-    var providerJuicity by configurationStore.int(Key.PROVIDER_JUICITY) { ProtocolProvider.PLUGIN }
-    var providerNaive by configurationStore.int(Key.PROVIDER_NAIVE) { ProtocolProvider.CORE }
+    val trafficDescending = configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
+    val trafficSortMode = configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }
+    val trafficConnectionQuery = configurationStore.int(Key.TRAFFIC_CONNECTION_QUERY) { 1 shl 0 }
+    val proxySetOrder = configurationStore.int(Key.PROXY_SET_ORDER)
 
-    var tunImplementation by configurationStore.int(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
-    var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
-    var certProvider by configurationStore.int(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
-    var disableProcessText by configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
-    var hideLauncherIcon by configurationStore.boolean(Key.HIDE_LAUNCHER_ICON)
-
-    var trafficDescending by configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
-    var trafficSortMode by configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }
-    var trafficConnectionQuery by configurationStore.int(Key.TRAFFIC_CONNECTION_QUERY) { 1 shl 0 }
-    var proxySetOrder by configurationStore.int(Key.PROXY_SET_ORDER)
-
-    var speedTestUrl by configurationStore.string(Key.SPEED_TEST_URL) { SPEED_TEST_URL }
-    var speedTestUploadURL by configurationStore.string(Key.SPEED_TEST_UPLOAD_URL) { SPEED_TEST_UPLOAD_URL }
-    var speedTestUploadLength by configurationStore.long(Key.SPEED_TEST_UPLOAD_LENGTH) { 10 * 1024 * 1024 }
-    var speedTestTimeout by configurationStore.int(Key.SPEED_TEST_TIMEOUT) { 20000 }
+    val speedTestUrl = configurationStore.string(Key.SPEED_TEST_URL) { SPEED_TEST_URL }
+    val speedTestUploadURL = configurationStore.string(Key.SPEED_TEST_UPLOAD_URL) { SPEED_TEST_UPLOAD_URL }
+    val speedTestUploadLength = configurationStore.long(Key.SPEED_TEST_UPLOAD_LENGTH) { 10 * 1024 * 1024 }
+    val speedTestTimeout = configurationStore.int(Key.SPEED_TEST_TIMEOUT) { 20000 }
 
     // ntp
-    var ntpEnable by configurationStore.boolean(Key.ENABLE_NTP) { false }
-    var ntpAddress by configurationStore.string(Key.NTP_SERVER) { "time.apple.com" }
-    var ntpPort by configurationStore.int(Key.NTP_PORT) { 123 }
-    var ntpInterval by configurationStore.string(Key.NTP_INTERVAL) { "30m" }
+    val ntpEnable = configurationStore.boolean(Key.ENABLE_NTP) { false }
+    val ntpAddress = configurationStore.string(Key.NTP_SERVER) { "time.apple.com" }
+    val ntpPort = configurationStore.int(Key.NTP_PORT) { 123 }
+    val ntpInterval = configurationStore.string(Key.NTP_INTERVAL) { "30m" }
 
     // protocol
 
-    var uploadSpeed by configurationStore.int(Key.UPLOAD_SPEED) { 0 }
-    var downloadSpeed by configurationStore.int(Key.DOWNLOAD_SPEED) { 0 }
-    var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
+    val uploadSpeed = configurationStore.int(Key.UPLOAD_SPEED) { 0 }
+    val downloadSpeed = configurationStore.int(Key.DOWNLOAD_SPEED) { 0 }
+    val customPluginPrefix = configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
 
-    var rulesFirstCreate by configurationStore.boolean(Key.RULES_FIRST_CREATE)
+    val rulesFirstCreate = configurationStore.boolean(Key.RULES_FIRST_CREATE)
 
-    var desktopNavRailWidth by configurationStore.int(Key.DESKTOP_NAV_RAIL_WIDTH) { 220 }
+    val desktopNavRailWidth = configurationStore.int(Key.DESKTOP_NAV_RAIL_WIDTH) { 220 }
 
-    var activeRemoteServerId by configurationStore.long(Key.ACTIVE_REMOTE_SERVER_ID)
+    val activeRemoteServerId = configurationStore.long(Key.ACTIVE_REMOTE_SERVER_ID)
 
 }

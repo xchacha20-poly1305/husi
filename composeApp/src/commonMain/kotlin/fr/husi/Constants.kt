@@ -4,6 +4,10 @@ const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
 const val SPEED_TEST_URL = "http://speed.cloudflare.com/__down?bytes=20000000"
 const val SPEED_TEST_UPLOAD_URL = "http://speed.cloudflare.com/__up"
 
+// Actually no "auto" domain strategy. It is legacy "let the core decide",
+// and every consumer strips it back to an empty strategy.
+const val DOMAIN_STRATEGY_AUTO = "auto"
+
 object Key {
 
     const val DB_PUBLIC = "configuration.db"

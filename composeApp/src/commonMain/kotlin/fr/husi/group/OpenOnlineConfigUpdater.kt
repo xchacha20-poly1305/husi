@@ -122,7 +122,11 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
 
         val response = httpClientFactory.newHttpClient().apply {
             if (DataStore.serviceState.connected) {
-                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+                useSocks5(
+                    DataStore.mixedPort.get(),
+                    DataStore.inboundUsername.get(),
+                    DataStore.inboundPassword.get(),
+                )
             }
             // Strict !!!
             restrictedTLS()

@@ -93,7 +93,7 @@ class RemoteControlManager(
     }
 
     private suspend fun restore() {
-        val activeId = DataStore.activeRemoteServerId
+        val activeId = DataStore.activeRemoteServerId.get()
         if (activeId <= LOCAL_TARGET_ID) return
         val entity = dao.getById(activeId) ?: return
         enterRemote(entity.toModel())
@@ -102,7 +102,7 @@ class RemoteControlManager(
     suspend fun enterRemote(server: RemoteServer) {
         access.withLock {
             closeSessionLocked(keepActiveId = true)
-            DataStore.activeRemoteServerId = server.id
+            DataStore.activeRemoteServerId.set(server.id)
             val client = remoteClientFactory.create(server.url, server.secret)
             val next = RemoteSession(
                 server = server,
@@ -210,7 +210,7 @@ class RemoteControlManager(
         session.value = null
         activeClient.value = localClient
         if (!keepActiveId) {
-            DataStore.activeRemoteServerId = LOCAL_TARGET_ID
+            DataStore.activeRemoteServerId.set(LOCAL_TARGET_ID)
         }
         if (previous != null) {
             runCatching { previous.client.close() }

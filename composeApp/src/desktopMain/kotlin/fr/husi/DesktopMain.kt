@@ -288,13 +288,12 @@ class DesktopMain(
                 val textServiceMode = stringResource(Res.string.service_mode)
                 val textServiceModeProxy = stringResource(Res.string.service_mode_proxy)
                 val textServiceModeVpn = stringResource(Res.string.service_mode_vpn)
-                val serviceMode by DataStore.configurationStore
-                    .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                val serviceMode by DataStore.serviceMode.flow()
                     .collectAsState(Key.MODE_VPN)
 
                 fun setServiceMode(mode: String) {
-                    if (DataStore.serviceMode == mode) return
-                    DataStore.serviceMode = mode
+                    if (DataStore.serviceMode.getBlocking() == mode) return
+                    DataStore.serviceMode.setBlocking(mode)
                     if (serviceStatus.state.canStop) {
                         repository.reloadService()
                     }
@@ -371,8 +370,8 @@ class DesktopMain(
 
     private fun shouldAutoConnectOnLaunch(): Boolean {
         return launchedAtLogin
-                && DataStore.persistAcrossReboot
-                && DataStore.selectedProxy > 0L
+                && DataStore.persistAcrossReboot.getBlocking()
+                && DataStore.selectedProxy.getBlocking() > 0L
                 && !DataStore.serviceState.started
     }
 
@@ -466,7 +465,7 @@ class DesktopMain(
         val filesDir = repository.filesDir.invariantDirectoryPathString()
         val externalAssetsDir = repository.externalAssetsDir.invariantDirectoryPathString()
 
-        val rulesProvider = DataStore.rulesProvider
+        val rulesProvider = DataStore.rulesProvider.getBlocking()
         val isOfficialProvider = rulesProvider == RuleProvider.OFFICIAL
         if (isOfficialProvider) {
             runBlocking {
@@ -482,12 +481,12 @@ class DesktopMain(
                 cacheDir,
                 filesDir,
                 externalAssetsDir,
-                DataStore.logMaxLine,
-                logLevel ?: DataStore.logLevel,
+                DataStore.logMaxLine.getBlocking(),
+                logLevel ?: DataStore.logLevel.getBlocking(),
                 isOfficialProvider,
-                DataStore.isExpert,
+                DataStore.isExpert.getBlocking(),
             )
-            loadCA(DataStore.certProvider)
+            loadCA(DataStore.certProvider.getBlocking())
         } catch (e: LinkageError) {
             warnLibcoreLoadFailureAndExit(e)
         }

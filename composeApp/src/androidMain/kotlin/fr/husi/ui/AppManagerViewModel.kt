@@ -4,7 +4,6 @@ import android.content.pm.PackageManager
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
-import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.utils.AppScanner
 import kotlinx.coroutines.Job
@@ -52,8 +51,8 @@ internal class AppManagerViewModel(
     private var scanJob: Job? = null
 
     init {
-        if (!DataStore.proxyApps) {
-            DataStore.proxyApps = true
+        if (!DataStore.proxyApps.getBlocking()) {
+            DataStore.proxyApps.setBlocking(true)
         }
         uiState.update { it.copy(mode = currentProxyMode()) }
         packageManager = pm
@@ -62,7 +61,7 @@ internal class AppManagerViewModel(
             it.copy(isLoading = true, apps = emptyList())
         }
         viewModelScope.launch(singleThreadContext) {
-            DataStore.configurationStore.stringSetFlow(Key.PACKAGES).collect { packages ->
+            DataStore.packages.flow().collect { packages ->
                 proxiedUids.clear()
                 val cachedApps = cachedApps
                 for ((packageName, packageInfo) in cachedApps) {
@@ -91,21 +90,22 @@ internal class AppManagerViewModel(
     override suspend fun afterMutation() = writeToDataStore()
 
     override suspend fun applyImport(bypass: Boolean, apps: Sequence<String>) {
-        DataStore.bypassMode = bypass
+        DataStore.bypassMode.set(bypass)
         super.applyImport(bypass, apps)
     }
 
     override suspend fun afterItemClick(app: ProxiedApp, newIsProxied: Boolean) = writeToDataStore()
 
     override fun export(): String {
-        val body = DataStore.packages.joinToString("\n")
-        return "${DataStore.bypassMode}\n${body}"
+        val body = DataStore.packages.getBlocking().joinToString("\n")
+        val bypassMode = DataStore.bypassMode.getBlocking()
+        return "$bypassMode\n$body"
     }
 
     fun scanChinaApps() {
         scanJob = viewModelScope.launch(singleThreadContext) {
             val cachedApps = cachedApps
-            val bypass = DataStore.bypassMode
+            val bypass = DataStore.bypassMode.get()
             uiState.update {
                 it.copy(
                     scanned = emptyList(),
@@ -157,16 +157,18 @@ internal class AppManagerViewModel(
     }
 
     private suspend fun writeToDataStore() {
-        DataStore.packages = cachedApps.values.asSequence()
-            .filter { it.applicationInfo!!.uid in proxiedUids }
-            .map { it.packageName }
-            .toCollection(LinkedHashSet())
+        DataStore.packages.set(
+            cachedApps.values.asSequence()
+                .filter { it.applicationInfo!!.uid in proxiedUids }
+                .map { it.packageName }
+                .toCollection(LinkedHashSet()),
+        )
     }
 
     private fun currentProxyMode(): ProxyMode {
-        return if (!DataStore.proxyApps) {
+        return if (!DataStore.proxyApps.getBlocking()) {
             ProxyMode.DISABLED
-        } else if (DataStore.bypassMode) {
+        } else if (DataStore.bypassMode.getBlocking()) {
             ProxyMode.BYPASS
         } else {
             ProxyMode.PROXY
@@ -176,20 +178,20 @@ internal class AppManagerViewModel(
     fun setProxyMode(mode: ProxyMode) = viewModelScope.launch {
         when (mode) {
             ProxyMode.DISABLED -> {
-                DataStore.proxyApps = false
+                DataStore.proxyApps.set(false)
                 uiState.update { it.copy(mode = mode) }
                 uiEvent.emit(AppManagerUiEvent.Finish)
                 return@launch
             }
 
             ProxyMode.BYPASS -> {
-                DataStore.proxyApps = true
-                DataStore.bypassMode = true
+                DataStore.proxyApps.set(true)
+                DataStore.bypassMode.set(true)
             }
 
             ProxyMode.PROXY -> {
-                DataStore.proxyApps = true
-                DataStore.bypassMode = false
+                DataStore.proxyApps.set(true)
+                DataStore.bypassMode.set(false)
             }
         }
         uiState.update { it.copy(mode = mode) }

@@ -1,5 +1,6 @@
 package fr.husi.fmt
 
+import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.RuleProvider
@@ -367,7 +368,7 @@ fun buildConfig(
         }
     }
 
-    val logLevel = DataStore.logLevel
+    val logLevel = DataStore.logLevel.getBlocking()
     val extraRules = if (forTest) {
         emptyList()
     } else runBlocking {
@@ -384,20 +385,21 @@ fun buildConfig(
     val userDNSRuleList = mutableListOf<JSONMap>()
     val domainListDNSDirectForce = mutableSetOf<String>()
     val bypassDNSBeans = hashSetOf<AbstractBean>()
-    val isVPN = DataStore.serviceMode == Key.MODE_VPN
-    val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST4
-    val remoteDns = DataStore.remoteDns.split("\n")
+    val isVPN = DataStore.serviceMode.getBlocking() == Key.MODE_VPN
+    val allowAccess = DataStore.allowAccess.getBlocking()
+    val bind = if (!forTest && allowAccess) "0.0.0.0" else LOCALHOST4
+    val remoteDns = DataStore.remoteDns.getBlocking().split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
-    val directDNS = DataStore.directDns.split("\n")
+    val directDNS = DataStore.directDns.getBlocking().split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val mDNSInterfaces by lazy {
-        DataStore.mDNS.blankAsNull()?.listByLineOrComma()?.takeIf { it.isNotEmpty() }
+        DataStore.mDNS.getBlocking().blankAsNull()?.listByLineOrComma()?.takeIf { it.isNotEmpty() }
     }
-    val localDNSPort = DataStore.localDNSPort.takeIf { it > 0 }
-    val useFakeDns by lazy { !forTest && DataStore.enableFakeDns }
-    val fakeDNSForAll by lazy { useFakeDns && DataStore.fakeDNSForAll }
+    val localDNSPort = DataStore.localDNSPort.getBlocking().takeIf { it > 0 }
+    val useFakeDns by lazy { !forTest && DataStore.enableFakeDns.getBlocking() }
+    val fakeDNSForAll by lazy { useFakeDns && DataStore.fakeDNSForAll.getBlocking() }
     val dnsHosts by lazy {
-        DataStore.dnsHosts.blankAsNull()?.lineSequence()
+        DataStore.dnsHosts.getBlocking().blankAsNull()?.lineSequence()
             ?.mapNotNullTo(mutableListOf()) { line ->
                 val trimmed = line.trim()
                 // Promote the compatibility.
@@ -412,14 +414,15 @@ fun buildConfig(
             ?.takeIf { it.isNotEmpty() }
     }
     val externalIndexMap = ArrayList<IndexEntity>()
-    val networkStrategy = DataStore.networkStrategy
-    val networkInterfaceStrategy = DataStore.networkInterfaceType
-    val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
-    val defaultStrategy = DataStore.networkStrategy.blankAsNull()
+    val networkStrategy = DataStore.networkStrategy.getBlocking()
+    val networkInterfaceStrategy = DataStore.networkInterfaceType.getBlocking()
+    val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.getBlocking().toList()
+    val defaultStrategy = networkStrategy.blankAsNull()
     val serverDomainStrategy = serverAddressDomainStrategy()
-    val disableTcpKeepAlive = DataStore.disableTcpKeepAlive
-    val tcpKeepAliveIdle = DataStore.tcpKeepAliveIdle.blankAsNull()
-    val tcpKeepAliveInterval = DataStore.tcpKeepAliveInterval.blankAsNull()
+    val disableTcpKeepAlive = DataStore.disableTcpKeepAlive.getBlocking()
+    val tcpKeepAliveIdle = DataStore.tcpKeepAliveIdle.getBlocking().blankAsNull()
+    val tcpKeepAliveInterval = DataStore.tcpKeepAliveInterval.getBlocking().blankAsNull()
+    val mixedPort = DataStore.mixedPort.getBlocking()
     lateinit var mainTag: String
 
     val readableNames = mutableSetOf(TAG_DIRECT, TAG_BLOCK)
@@ -433,7 +436,7 @@ fun buildConfig(
         `$schema` = CONFIG_SCHEMA_URL
         if (!forTest) experimental = ExperimentalOptions().apply {
             if (!forExport) {
-                if (DataStore.isExpert) DataStore.debugListen.blankAsNull()?.let {
+                if (DataStore.isExpert.getBlocking()) DataStore.debugListen.getBlocking().blankAsNull()?.let {
                     debug = SingBoxOptions.DebugOptions().apply {
                         listen = it
                     }
@@ -450,11 +453,11 @@ fun buildConfig(
             level = logLevelString(logLevel)
         }
 
-        if (DataStore.ntpEnable) ntp = NTPOptions().apply {
+        if (DataStore.ntpEnable.getBlocking()) ntp = NTPOptions().apply {
             enabled = true
-            server = DataStore.ntpAddress
-            server_port = DataStore.ntpPort
-            interval = DataStore.ntpInterval
+            server = DataStore.ntpAddress.getBlocking()
+            server_port = DataStore.ntpPort.getBlocking()
+            interval = DataStore.ntpInterval.getBlocking()
 
             if (!server!!.isIpAddress()) {
                 domainListDNSDirectForce.add(server!!)
@@ -465,7 +468,7 @@ fun buildConfig(
             servers = mutableListOf()
             rules = mutableListOf()
             if (!forTest) {
-                DataStore.dnsOptimisticCache.blankAsNull()?.let { it ->
+                DataStore.dnsOptimisticCache.getBlocking().blankAsNull()?.let { it ->
                     optimistic = OptimisticDNSOptions().apply {
                         enabled = true
                         timeout = it
@@ -489,8 +492,8 @@ fun buildConfig(
                 )
             }
 
-            if (DataStore.allowAccess) {
-                DataStore.anchorSSID.blankAsNull()?.let { allowedSSIDs ->
+            if (allowAccess) {
+                DataStore.anchorSSID.getBlocking().blankAsNull()?.let { allowedSSIDs ->
                     platformServices.add(
                         SingBoxOptions.Service_AnchorOptions().apply {
                             type = SingBoxOptions.TYPE_ANCHOR
@@ -499,7 +502,7 @@ fun buildConfig(
                             listen_port = ANCHOR_PORT
                             dns_port = localDNSPort ?: 0
                             device_name = anchorDeviceName
-                            socks_port = DataStore.mixedPort
+                            socks_port = mixedPort
                             allowed_ssids = allowedSSIDs.lines().toMutableList()
                         },
                     )
@@ -514,12 +517,12 @@ fun buildConfig(
                 Inbound_TunOptions().apply {
                     type = SingBoxOptions.TYPE_TUN
                     tag = TAG_TUN
-                    stack = when (DataStore.tunImplementation) {
+                    stack = when (DataStore.tunImplementation.getBlocking()) {
                         TunImplementation.GVISOR -> "gvisor"
                         TunImplementation.SYSTEM -> "system"
                         else -> "mixed"
                     }
-                    mtu = DataStore.mtu
+                    mtu = DataStore.mtu.getBlocking()
                     // Hijack intercepts port 53 at the TUN layer and calls
                     // router.HijackDNSPacket (with searchProcessInfo) directly,
                     // bypassing route rule matching.
@@ -549,17 +552,19 @@ fun buildConfig(
                     type = SingBoxOptions.TYPE_MIXED
                     tag = TAG_MIXED
                     listen = bind
-                    listen_port = DataStore.mixedPort
+                    listen_port = mixedPort
                     if (!PlatformInfo.isAndroid) {
-                        if (DataStore.appendHttpProxy) {
+                        if (DataStore.appendHttpProxy.getBlocking()) {
                             set_system_proxy = true
                         }
                     }
-                    if (DataStore.inboundUsername.isNotBlank() || DataStore.inboundPassword.isNotBlank()) {
+                    val inboundUsername = DataStore.inboundUsername.getBlocking()
+                    val inboundPassword = DataStore.inboundPassword.getBlocking()
+                    if (inboundUsername.isNotBlank() || inboundPassword.isNotBlank()) {
                         users = mutableListOf(
                             User().apply {
-                                username = DataStore.inboundUsername
-                                password = DataStore.inboundPassword
+                                username = inboundUsername
+                                password = inboundPassword
                             },
                         )
                     }
@@ -577,7 +582,7 @@ fun buildConfig(
             // Android always searches processes through the platform interface,
             // so this option only means something on desktop.
             // https://github.com/SagerNet/sing-box/commit/4b1b00a4f6729a027a653f417cda0701c6a32934
-            if (!PlatformInfo.isAndroid && !forTest && DataStore.forcedSearchProcess) {
+            if (!PlatformInfo.isAndroid && !forTest && DataStore.forcedSearchProcess.getBlocking()) {
                 find_process = true
             }
         }
@@ -1267,7 +1272,9 @@ fun buildConfig(
                         TAG_DNS_DIRECT
                     }
                     strategy = defaultOr(
-                        DataStore.domainStrategyForDirect.replace("auto", "").blankAsNull(),
+                        DataStore.domainStrategyForDirect.getBlocking()
+                            .replace(DOMAIN_STRATEGY_AUTO, "")
+                            .blankAsNull(),
                         { defaultStrategy },
                     )
                 }
@@ -1435,12 +1442,12 @@ fun buildConfig(
                 val fakeRange4 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {
                     null
                 } else {
-                    DataStore.fakeDNSRange4.blankAsNull()
+                    DataStore.fakeDNSRange4.getBlocking().blankAsNull()
                 }
                 val fakeRange6 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV4_ONLY) {
                     null
                 } else {
-                    DataStore.fakeDNSRange6.blankAsNull()
+                    DataStore.fakeDNSRange6.getBlocking().blankAsNull()
                 }
                 dns!!.servers!!.add(
                     NewDNSServerOptions_FakeIPDNSServerOptions().apply {
@@ -1593,7 +1600,7 @@ fun buildConfig(
         if (forExport) {
             // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
             val pathPrefix = "https://raw.githubusercontent.com"
-            val provider = DataStore.rulesProvider
+            val provider = DataStore.rulesProvider.getBlocking()
 
             val normalBranch = "rule-set"
             val geoipBranch = normalBranch

@@ -11,10 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.DesktopAutoStart
-import fr.husi.Key
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.Preference
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
@@ -75,14 +75,12 @@ import org.koin.compose.koinInject
 
 @Composable
 internal actual fun AutoConnectPreference() {
-    val value by DataStore.configurationStore
-        .booleanFlow(Key.PERSIST_ACROSS_REBOOT, false)
-        .collectAsStateWithLifecycle(false)
+    val value by DataStore.persistAcrossReboot.collectAsStateWithLifecycle()
     SwitchPreference(
         value = value,
         onValueChange = {
             if (DesktopAutoStart.setEnabled(it)) {
-                DataStore.persistAcrossReboot = it
+                DataStore.persistAcrossReboot.setBlocking(it)
             }
         },
         title = { Text(stringResource(Res.string.auto_connect_desktop)) },
@@ -337,13 +335,11 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
 
 @Composable
 internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Boolean) {
-    val tunInterfaceNameValue by DataStore.configurationStore
-        .stringFlow(Key.TUN_INTERFACE_NAME, "")
-        .collectAsStateWithLifecycle("")
+    val tunInterfaceNameValue by DataStore.tunInterfaceName.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = tunInterfaceNameValue,
         onValueChange = {
-            DataStore.tunInterfaceName = it
+            DataStore.tunInterfaceName.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.tun_interface_name)) },
@@ -371,13 +367,11 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         )
     }
 
-    val strictRouteValue by DataStore.configurationStore
-        .booleanFlow(Key.TUN_STRICT_ROUTE, true)
-        .collectAsStateWithLifecycle(true)
+    val strictRouteValue by DataStore.tunStrictRoute.collectAsStateWithLifecycle()
     SwitchPreference(
         value = strictRouteValue,
         onValueChange = {
-            DataStore.tunStrictRoute = it
+            DataStore.tunStrictRoute.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.tun_strict_route)) },
@@ -390,13 +384,11 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         enabled = isVpnMode,
     )
     if (PlatformInfo.isLinux) {
-        val autoRedirectValue by DataStore.configurationStore
-            .booleanFlow(Key.TUN_AUTO_REDIRECT, true)
-            .collectAsStateWithLifecycle(true)
+        val autoRedirectValue by DataStore.tunAutoRedirect.collectAsStateWithLifecycle()
         SwitchPreference(
             value = autoRedirectValue,
             onValueChange = {
-                DataStore.tunAutoRedirect = it
+                DataStore.tunAutoRedirect.setBlocking(it)
                 needReload()
             },
             title = { Text(stringResource(Res.string.tun_auto_redirect)) },
@@ -410,13 +402,11 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         )
     }
 
-    val forcedSearchProcessValue by DataStore.configurationStore
-        .booleanFlow(Key.FORCED_SEARCH_PROCESS, false)
-        .collectAsStateWithLifecycle(false)
+    val forcedSearchProcessValue by DataStore.forcedSearchProcess.collectAsStateWithLifecycle()
     SwitchPreference(
         value = forcedSearchProcessValue,
         onValueChange = {
-            DataStore.forcedSearchProcess = it
+            DataStore.forcedSearchProcess.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.forced_search_process)) },
@@ -455,16 +445,14 @@ internal actual fun rememberThemeExtraColors(): List<Color> = emptyList()
 
 @Composable
 internal actual fun rememberAppLanguageController(defaultTag: String): AppLanguageController {
-    val flow = DataStore.configurationStore
-        .stringFlow(Key.APP_LANGUAGE, defaultTag)
-    val state by flow.collectAsStateWithLifecycle(defaultTag)
+    val state by DataStore.appLanguage.collectAsStateWithLifecycle()
     return object : AppLanguageController {
         override var value: String
             get() = state.ifBlank { defaultTag }
             set(value) {
-                DataStore.appLanguage = value
+                DataStore.appLanguage.setBlocking(value)
             }
-        override val flow = flow
+        override val flow = DataStore.appLanguage.flow()
     }
 }
 

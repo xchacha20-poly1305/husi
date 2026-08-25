@@ -37,6 +37,7 @@ import fr.husi.bg.BackendState
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.ListPreference
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.Preference
 import fr.husi.compose.SliderPreference
@@ -46,10 +47,10 @@ import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Surface
 import fr.husi.compose.material3.Text
-import fr.husi.compose.theme.DEFAULT
 import fr.husi.compose.theme.themeString
 import fr.husi.compose.theme.themes
 import fr.husi.database.DataStore
+import fr.husi.database.preference.PreferenceProxy
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.logLevelString
@@ -117,13 +118,11 @@ import org.jetbrains.compose.resources.vectorResource
 
 @Composable
 private fun ColorPickerPreference(
-    key: String,
+    proxy: PreferenceProxy<Int>,
     title: @Composable () -> Unit,
     enabled: Boolean = true,
 ) {
-    val currentTheme by DataStore.configurationStore
-        .intFlow(key, DEFAULT)
-        .collectAsStateWithLifecycle(DEFAULT)
+    val currentTheme by proxy.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
     val extraColors = rememberThemeExtraColors()
     Preference(
@@ -189,7 +188,7 @@ private fun ColorPickerPreference(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clickable {
-                                        DataStore.configurationStore.putInt(key, theme)
+                                        proxy.setBlocking(theme)
                                         showDialog = false
                                     },
                                 contentAlignment = Alignment.Center,
@@ -237,14 +236,12 @@ internal fun GeneralSettingsGroup(
     needRestart: () -> Unit,
 ) {
     val applyNightMode = rememberApplyNightMode()
-    val isExpertState by DataStore.configurationStore
-        .booleanFlow(Key.APP_EXPERT, false)
-        .collectAsStateWithLifecycle(false)
+    val isExpertState by DataStore.isExpert.collectAsStateWithLifecycle()
 
     AutoConnectPreference()
 
     ColorPickerPreference(
-        key = Key.APP_THEME,
+        proxy = DataStore.appTheme,
         title = { Text(stringResource(Res.string.theme)) },
     )
 
@@ -256,13 +253,11 @@ internal fun GeneralSettingsGroup(
         else -> Res.string.follow_system
     }
 
-    val nightValue by DataStore.configurationStore
-        .intFlow(Key.NIGHT_THEME, 0)
-        .collectAsStateWithLifecycle(0)
+    val nightValue by DataStore.nightTheme.collectAsStateWithLifecycle()
     ListPreference(
         value = nightValue,
         onValueChange = {
-            DataStore.nightTheme = it
+            DataStore.nightTheme.setBlocking(it)
             applyNightMode(it)
         },
         values = intListN(4),
@@ -306,14 +301,12 @@ internal fun GeneralSettingsGroup(
         else -> Res.string.service_mode_vpn
     }
 
-    val serviceModeValue by DataStore.configurationStore
-        .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
-        .collectAsStateWithLifecycle(Key.MODE_VPN)
+    val serviceModeValue by DataStore.serviceMode.collectAsStateWithLifecycle()
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     ListPreference(
         value = serviceModeValue,
         onValueChange = { mode ->
-            DataStore.serviceMode = mode
+            DataStore.serviceMode.setBlocking(mode)
             if (serviceStatus.state.canStop) {
                 resolveRepository().reloadService()
             }
@@ -338,13 +331,11 @@ internal fun GeneralSettingsGroup(
         else -> error("impossible")
     }
 
-    val tunValue by DataStore.configurationStore
-        .intFlow(Key.TUN_IMPLEMENTATION, TunImplementation.MIXED)
-        .collectAsStateWithLifecycle(TunImplementation.MIXED)
+    val tunValue by DataStore.tunImplementation.collectAsStateWithLifecycle()
     ListPreference(
         value = tunValue,
         onValueChange = {
-            DataStore.tunImplementation = it
+            DataStore.tunImplementation.setBlocking(it)
             needReload()
         },
         values = listOf(
@@ -364,13 +355,11 @@ internal fun GeneralSettingsGroup(
         valueToText = { AnnotatedString(tunImplText(it)) },
     )
 
-    val mtuValue by DataStore.configurationStore
-        .intFlow(Key.MTU, 9000)
-        .collectAsStateWithLifecycle(9000)
+    val mtuValue by DataStore.mtu.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = mtuValue,
         onValueChange = {
-            DataStore.mtu = it
+            DataStore.mtu.setBlocking(it)
             needReload()
         },
         title = { Text(stringResource(Res.string.mtu)) },
@@ -395,12 +384,10 @@ internal fun GeneralSettingsGroup(
         else -> StringOrRes.Direct("1s")
     }
 
-    val speedIntervalValue by DataStore.configurationStore
-        .intFlow(Key.SPEED_INTERVAL, 1000)
-        .collectAsStateWithLifecycle(1000)
+    val speedIntervalValue by DataStore.speedInterval.collectAsStateWithLifecycle()
     ListPreference(
         value = speedIntervalValue,
-        onValueChange = { DataStore.speedInterval = it },
+        onValueChange = { DataStore.speedInterval.setBlocking(it) },
         values = listOf(0, 500, 1000, 3000, 10000),
         title = { Text(stringResource(Res.string.speed_interval)) },
         icon = {
@@ -417,12 +404,10 @@ internal fun GeneralSettingsGroup(
         },
     )
 
-    val profileTrafficStatisticsValue by DataStore.configurationStore
-        .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
-        .collectAsStateWithLifecycle(true)
+    val profileTrafficStatisticsValue by DataStore.profileTrafficStatistics.collectAsStateWithLifecycle()
     SwitchPreference(
         value = profileTrafficStatisticsValue,
-        onValueChange = { DataStore.profileTrafficStatistics = it },
+        onValueChange = { DataStore.profileTrafficStatistics.setBlocking(it) },
         title = { Text(stringResource(Res.string.profile_traffic_statistics)) },
         icon = {
             MaskedIcon(
@@ -434,12 +419,10 @@ internal fun GeneralSettingsGroup(
         enabled = speedIntervalValue != 0,
     )
 
-    val showDirectSpeedValue by DataStore.configurationStore
-        .booleanFlow(Key.SHOW_DIRECT_SPEED, true)
-        .collectAsStateWithLifecycle(true)
+    val showDirectSpeedValue by DataStore.showDirectSpeed.collectAsStateWithLifecycle()
     SwitchPreference(
         value = showDirectSpeedValue,
-        onValueChange = { DataStore.showDirectSpeed = it },
+        onValueChange = { DataStore.showDirectSpeed.setBlocking(it) },
         title = { Text(stringResource(Res.string.show_direct_speed)) },
         icon = {
             MaskedIcon(Res.drawable.speed, color = IconMaskColors.IconLightPink)
@@ -448,12 +431,10 @@ internal fun GeneralSettingsGroup(
         enabled = speedIntervalValue != 0,
     )
 
-    val alwaysShowAddressValue by DataStore.configurationStore
-        .booleanFlow(Key.ALWAYS_SHOW_ADDRESS, false)
-        .collectAsStateWithLifecycle(false)
+    val alwaysShowAddressValue by DataStore.alwaysShowAddress.collectAsStateWithLifecycle()
     SwitchPreference(
         value = alwaysShowAddressValue,
-        onValueChange = { DataStore.alwaysShowAddress = it },
+        onValueChange = { DataStore.alwaysShowAddress.setBlocking(it) },
         title = { Text(stringResource(Res.string.always_show_address)) },
         icon = {
             MaskedIcon(
@@ -464,12 +445,10 @@ internal fun GeneralSettingsGroup(
         summary = { Text(stringResource(Res.string.always_show_address_sum)) },
     )
 
-    val blurredAddressValue by DataStore.configurationStore
-        .booleanFlow(Key.BLURRED_ADDRESS, false)
-        .collectAsStateWithLifecycle(false)
+    val blurredAddressValue by DataStore.blurredAddress.collectAsStateWithLifecycle()
     SwitchPreference(
         value = blurredAddressValue,
-        onValueChange = { DataStore.blurredAddress = it },
+        onValueChange = { DataStore.blurredAddress.setBlocking(it) },
         title = { Text(stringResource(Res.string.blurred_address)) },
         icon = {
             MaskedIcon(
@@ -480,12 +459,10 @@ internal fun GeneralSettingsGroup(
         enabled = alwaysShowAddressValue,
     )
 
-    val securityAdvisoryValue by DataStore.configurationStore
-        .booleanFlow(Key.SECURITY_ADVISORY, true)
-        .collectAsStateWithLifecycle(true)
+    val securityAdvisoryValue by DataStore.securityAdvisory.collectAsStateWithLifecycle()
     SwitchPreference(
         value = securityAdvisoryValue,
-        onValueChange = { DataStore.securityAdvisory = it },
+        onValueChange = { DataStore.securityAdvisory.setBlocking(it) },
         title = { Text(stringResource(Res.string.insecure_warn)) },
         icon = {
             MaskedIcon(
@@ -498,13 +475,11 @@ internal fun GeneralSettingsGroup(
     PlatformSecurityOptions()
     MeteredNetworkPreference(needReload)
 
-    val logLevelValue by DataStore.configurationStore
-        .intFlow(Key.LOG_LEVEL, 3)
-        .collectAsStateWithLifecycle(3)
+    val logLevelValue by DataStore.logLevel.collectAsStateWithLifecycle()
     ListPreference(
         value = logLevelValue,
         onValueChange = {
-            DataStore.logLevel = it
+            DataStore.logLevel.setBlocking(it)
             needRestart()
         },
         values = intListN(7),
@@ -520,13 +495,11 @@ internal fun GeneralSettingsGroup(
         valueToText = { AnnotatedString(logLevelString(it)) },
     )
 
-    val maxLogLineValue by DataStore.configurationStore
-        .intFlow(Key.LOG_MAX_LINE, 1024)
-        .collectAsStateWithLifecycle(1024)
+    val maxLogLineValue by DataStore.logMaxLine.collectAsStateWithLifecycle()
     var previewValue by remember { mutableFloatStateOf(maxLogLineValue.toFloat()) }
     SliderPreference(
         value = maxLogLineValue.toFloat(),
-        onValueChange = { DataStore.logMaxLine = it.toInt() },
+        onValueChange = { DataStore.logMaxLine.setBlocking(it.toInt()) },
         sliderValue = previewValue,
         onSliderValueChange = { previewValue = it },
         title = { Text(stringResource(Res.string.max_log_line)) },
@@ -541,13 +514,11 @@ internal fun GeneralSettingsGroup(
         valueText = { Text(previewValue.toInt().toString()) },
     )
     if (isExpertState) {
-        val debugListenValue by DataStore.configurationStore
-            .stringFlow(Key.DEBUG_LISTEN, "")
-            .collectAsStateWithLifecycle("")
+        val debugListenValue by DataStore.debugListen.collectAsStateWithLifecycle()
         TextFieldPreference(
             value = debugListenValue,
             onValueChange = {
-                DataStore.debugListen = it
+                DataStore.debugListen.setBlocking(it)
                 needReload()
             },
             title = { Text("pprof listen") },

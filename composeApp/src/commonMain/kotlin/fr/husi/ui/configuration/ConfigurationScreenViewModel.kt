@@ -10,7 +10,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.key.Key as ComposeKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.husi.Key
 import fr.husi.bg.buildPluginSpecs
 import fr.husi.bg.initPlugins
 import fr.husi.database.DataStore
@@ -138,7 +137,7 @@ class ConfigurationScreenViewModel(
     val uiState: StateFlow<ConfigurationUiState>
         field = MutableStateFlow(ConfigurationUiState())
 
-    val selectedGroup = DataStore.configurationStore.longFlow(Key.PROFILE_GROUP)
+    val selectedGroup = DataStore.selectedGroup.flow()
 
     internal val childViewModels = mutableMapOf<Long, GroupProfilesHolderViewModel>()
     private val testErrorMessages = ConcurrentHashMap<Long, String>()
@@ -162,8 +161,12 @@ class ConfigurationScreenViewModel(
             key == ComposeKey.Enter && !isCtrl -> {
                 if (!DataStore.serviceState.started) {
                     resolveRepository().startService()
-                } else if (DataStore.selectedProxy != DataStore.currentProfile) {
-                    resolveRepository().reloadService()
+                } else {
+                    val selected = DataStore.selectedProxy.getBlocking()
+                    val current = DataStore.currentProfile.getBlocking()
+                    if (selected != current) {
+                        resolveRepository().reloadService()
+                    }
                 }
                 KeyAction.Consumed
             }
@@ -183,17 +186,23 @@ class ConfigurationScreenViewModel(
             }
 
             isCtrl && key == ComposeKey.P -> {
-                doTest(DataStore.currentGroupId(), TestType.ICMPPing)
+                viewModelScope.launch {
+                    doTest(DataStore.currentGroupId(), TestType.ICMPPing)
+                }
                 KeyAction.Consumed
             }
 
             isCtrl && key == ComposeKey.T -> {
-                doTest(DataStore.currentGroupId(), TestType.TCPPing)
+                viewModelScope.launch {
+                    doTest(DataStore.currentGroupId(), TestType.TCPPing)
+                }
                 KeyAction.Consumed
             }
 
             isCtrl && key == ComposeKey.U -> {
-                doTest(DataStore.currentGroupId(), TestType.URLTest)
+                viewModelScope.launch {
+                    doTest(DataStore.currentGroupId(), TestType.URLTest)
+                }
                 KeyAction.Consumed
             }
 
@@ -275,7 +284,7 @@ class ConfigurationScreenViewModel(
             val proxies = SagerDatabase.proxyDao.getByGroup(group).first()
             val totalCount = proxies.size
             var processedCount = 0
-            val concurrent = DataStore.connectionTestConcurrent
+            val concurrent = DataStore.connectionTestConcurrent.get()
 
             if (proxies.isEmpty()) {
                 uiState.update { state -> state.copy(testState = null) }
@@ -446,11 +455,11 @@ class ConfigurationScreenViewModel(
     }
 
     private suspend fun urlTest(profile: ProxyEntity): TestResult {
-        val testURL = DataStore.connectionTestURL
-        val testTimeout = DataStore.connectionTestTimeout
+        val testURL = DataStore.connectionTestURL.get()
+        val testTimeout = DataStore.connectionTestTimeout.get()
         val testOptions = urlTestOptions(
-            DataStore.connectionTestUnifiedDelay,
-            DataStore.connectionTestIgnoreHandshakeTime,
+            DataStore.connectionTestUnifiedDelay.get(),
+            DataStore.connectionTestIgnoreHandshakeTime.get(),
         )
         val cacheFiles = ArrayList<File>()
 
@@ -491,9 +500,9 @@ class ConfigurationScreenViewModel(
         var lastSelected: Long
         var updated: Boolean
         profileAccess.withLock {
-            lastSelected = DataStore.selectedProxy
+            lastSelected = DataStore.selectedProxy.get()
             updated = new != lastSelected
-            DataStore.selectedProxy = new
+            DataStore.selectedProxy.set(new)
         }
         if (updated) {
             if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
@@ -507,7 +516,7 @@ class ConfigurationScreenViewModel(
                 resolveRepository().startService()
             }
         }
-        val groupId = DataStore.selectedGroup
+        val groupId = DataStore.selectedGroup.get()
         childViewModels[groupId]?.onProfileSelected(new)
     }
 
@@ -540,7 +549,7 @@ class ConfigurationScreenViewModel(
             val selectedId = DataStore.currentGroupId()
             val selectIndex = groups.indexOfFirst { it.id == selectedId }
             if (selectIndex < 0) {
-                DataStore.selectedGroup = groups[0].id
+                DataStore.selectedGroup.set(groups[0].id)
             }
         }
         uiState.emit(

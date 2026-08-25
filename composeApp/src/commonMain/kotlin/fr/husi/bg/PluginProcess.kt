@@ -30,7 +30,7 @@ fun initPlugins(
 ): Map<Int, Pair<Int, String>> {
     val repository = resolveRepository()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
-    val logLevel = DataStore.logLevel
+    val logLevel = DataStore.logLevel.getBlocking()
     val shouldProtect = isVPN && PlatformInfo.isAndroid
     for ((chain) in config.externalIndex) {
         chain.entries.forEach { (port, profile) ->
@@ -87,6 +87,7 @@ fun buildPluginSpecs(
 ): List<PluginProcessSpec> {
     val repository = resolveRepository()
     val shouldProtect = isVPN && PlatformInfo.isAndroid
+    val logLevel = DataStore.logLevel.getBlocking()
     val specs = ArrayList<PluginProcessSpec>()
 
     val sharedEnv = linkedMapOf<String, String>()
@@ -145,7 +146,7 @@ fun buildPluginSpecs(
                             "--config",
                             pluginFileToken(configName),
                             "--log-level",
-                            if (DataStore.logLevel > 0) "trace" else "warn",
+                            if (logLevel > 0) "trace" else "warn",
                         )
                     } else {
                         mutableListOf(
@@ -154,7 +155,7 @@ fun buildPluginSpecs(
                             "--config",
                             pluginFileToken(configName),
                             "--log-level",
-                            if (DataStore.logLevel > 0) "warn" else "error",
+                            if (logLevel > 0) "warn" else "error",
                         )
                     }
                     if (PlatformInfo.isAndroid &&

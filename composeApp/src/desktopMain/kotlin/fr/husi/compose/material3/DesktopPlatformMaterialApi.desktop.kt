@@ -67,7 +67,7 @@ internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlat
         // Desktop windows have enough space that collapsing the rail is not worth a toggle.
         val railState = rememberWideNavigationRailState(WideNavigationRailValue.Expanded)
         var railWidth by remember {
-            mutableStateOf(DataStore.desktopNavRailWidth.dp)
+            mutableStateOf(DataStore.desktopNavRailWidth.getBlocking().dp)
         }
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -145,7 +145,7 @@ internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlat
                             )
                         },
                         onDragFinished = {
-                            DataStore.desktopNavRailWidth = railWidth.value.roundToInt()
+                            DataStore.desktopNavRailWidth.setBlocking(railWidth.value.roundToInt())
                         },
                     )
                 }

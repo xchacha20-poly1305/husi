@@ -65,7 +65,7 @@ class RouteScreenViewModel : ViewModel() {
 
     fun reset() = runOnIoDispatcher {
         SagerDatabase.rulesDao.reset()
-        DataStore.rulesFirstCreate = false
+        DataStore.rulesFirstCreate.set(false)
         reloadRules(null)
     }
 

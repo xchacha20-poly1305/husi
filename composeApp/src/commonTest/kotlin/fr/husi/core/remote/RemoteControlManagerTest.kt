@@ -10,6 +10,7 @@ import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -76,7 +77,7 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
             assertEquals(RemoteSessionState.CONNECTED, manager.session.value?.state)
             assertEquals(1_700_000_000_000L, manager.session.value?.startedAt)
             assertTrue(manager.targetConnected.value)
-            assertEquals(1L, DataStore.activeRemoteServerId)
+            assertEquals(1L, DataStore.activeRemoteServerId.get())
             assertTrue(remote.probeCalls > 0)
         } finally {
             manager.close()
@@ -129,7 +130,7 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
             assertEquals(localClient, manager.activeClient.value)
             assertFalse(manager.isRemote)
             assertTrue(remote.closed)
-            assertEquals(0L, DataStore.activeRemoteServerId)
+            assertEquals(0L, DataStore.activeRemoteServerId.get())
         } finally {
             manager.close()
         }
@@ -145,15 +146,20 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
             secret = "token",
         )
         dao.insert(entity)
-        DataStore.activeRemoteServerId = 4L
+        DataStore.activeRemoteServerId.set(4L)
         val remote = FakeCoreClient()
         val manager = newManager({ _, _ -> remote })
         try {
             runCurrent()
+            // restore() reads DataStore on Dispatchers.IO, then resumes on the test
+            // dispatcher; runCurrent() alone does not wait for that hop.
+            val session = checkNotNull(
+                manager.session.first { it?.state == RemoteSessionState.CONNECTED },
+            )
 
-            assertEquals(4L, manager.session.value?.server?.id)
+            assertEquals(4L, session.server.id)
             assertEquals(remote, manager.activeClient.value)
-            assertEquals(RemoteSessionState.CONNECTED, manager.session.value?.state)
+            assertEquals(RemoteSessionState.CONNECTED, session.state)
         } finally {
             manager.close()
         }

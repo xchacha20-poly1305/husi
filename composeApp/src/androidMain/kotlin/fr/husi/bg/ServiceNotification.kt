@@ -134,7 +134,7 @@ class ServiceNotification(
         update()
     }
 
-    private val showDirectSpeed = DataStore.showDirectSpeed
+    private val showDirectSpeed = DataStore.showDirectSpeed.getBlocking()
 
     private val builder = runBlocking {
         NotificationCompat.Builder(service as Context, channel)

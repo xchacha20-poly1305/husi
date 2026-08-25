@@ -183,7 +183,7 @@ fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
             brutal = BrutalOptions().apply {
                 enabled = true
                 up_mbps = -1 // need kernel module
-                down_mbps = DataStore.downloadSpeed
+                down_mbps = DataStore.downloadSpeed.getBlocking()
             }
         } else when (bean.serverMuxStrategy) {
             MuxStrategy.MAX_CONNECTIONS -> max_connections = bean.serverMuxNumber

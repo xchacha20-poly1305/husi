@@ -55,11 +55,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.Key
 import fr.husi.RuleProvider
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.currentEpochSeconds
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
@@ -135,12 +135,8 @@ internal fun AssetsScreen(
     val viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel(assetsDir, geoDir) }
     val scope = rememberCoroutineScope()
     val activeResultKeys = remember { mutableStateListOf<String>() }
-    val rulesProvider by DataStore.configurationStore
-        .intFlow(Key.RULES_PROVIDER, RuleProvider.OFFICIAL)
-        .collectAsStateWithLifecycle(RuleProvider.OFFICIAL)
-    val routeAssetsAutoUpdateDelay by DataStore.configurationStore
-        .intFlow(Key.ROUTE_ASSETS_AUTO_UPDATE_DELAY, 0)
-        .collectAsStateWithLifecycle(0)
+    val rulesProvider by DataStore.rulesProvider.collectAsStateWithLifecycle()
+    val routeAssetsAutoUpdateDelay by DataStore.routeAssetsAutoUpdateDelay.collectAsStateWithLifecycle()
     var showAutoUpdateDelayDialog by remember { mutableStateOf(false) }
     var autoUpdateDelayValue by remember(routeAssetsAutoUpdateDelay, showAutoUpdateDelayDialog) {
         mutableStateOf(TextFieldValue(routeAssetsAutoUpdateDelay.toString()))
@@ -151,7 +147,7 @@ internal fun AssetsScreen(
         val delay = autoUpdateDelayValue.text.toIntOrNull() ?: 0
         showAutoUpdateDelayDialog = false
         scope.launch(Dispatchers.Default) {
-            DataStore.routeAssetsAutoUpdateDelay = delay
+            DataStore.routeAssetsAutoUpdateDelay.set(delay)
             RouteAssetUpdater.reconfigureUpdater()
         }
     }
@@ -218,7 +214,7 @@ internal fun AssetsScreen(
                 file.writeText("Custom")
             }
 
-            DataStore.routeAssetsLastUpdated = currentEpochSeconds()
+            DataStore.routeAssetsLastUpdated.set(currentEpochSeconds())
             RouteAssetUpdater.reconfigureUpdater()
             viewModel.refreshAssets()
         }

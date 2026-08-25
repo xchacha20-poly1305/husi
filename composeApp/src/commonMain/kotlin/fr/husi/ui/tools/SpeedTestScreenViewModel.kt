@@ -71,10 +71,11 @@ internal class SpeedTestScreenViewModel(
     fun initialize() {
         uiState.update {
             it.copy(
-                downloadURL = DataStore.speedTestUrl.blankAsNull() ?: SPEED_TEST_URL,
-                uploadURL = DataStore.speedTestUploadURL.blankAsNull() ?: SPEED_TEST_UPLOAD_URL,
-                timeout = DataStore.speedTestTimeout,
-                uploadLength = DataStore.speedTestUploadLength,
+                downloadURL = DataStore.speedTestUrl.getBlocking().blankAsNull() ?: SPEED_TEST_URL,
+                uploadURL = DataStore.speedTestUploadURL.getBlocking().blankAsNull()
+                    ?: SPEED_TEST_UPLOAD_URL,
+                timeout = DataStore.speedTestTimeout.getBlocking(),
+                uploadLength = DataStore.speedTestUploadLength.getBlocking(),
             )
         }
     }
@@ -141,10 +142,10 @@ internal class SpeedTestScreenViewModel(
 
     override fun onCleared() {
         val state = uiState.value
-        DataStore.speedTestUrl = state.downloadURL
-        DataStore.speedTestUploadURL = state.uploadURL
-        DataStore.speedTestUploadLength = state.uploadLength
-        DataStore.speedTestTimeout = state.timeout
+        DataStore.speedTestUrl.setBlocking(state.downloadURL)
+        DataStore.speedTestUploadURL.setBlocking(state.uploadURL)
+        DataStore.speedTestUploadLength.setBlocking(state.uploadLength)
+        DataStore.speedTestTimeout.setBlocking(state.timeout)
         cancel()
         super.onCleared()
     }

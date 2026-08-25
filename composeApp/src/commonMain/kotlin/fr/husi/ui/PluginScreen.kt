@@ -34,8 +34,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.husi.Key
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.platformCombinedClickable
@@ -75,9 +75,7 @@ fun PluginScreen(
     val uriHandler = LocalUriHandler.current
     val openPluginCard = rememberOpenPluginCard()
 
-    val isExpert by DataStore.configurationStore
-        .booleanFlow(Key.APP_EXPERT, false)
-        .collectAsStateWithLifecycle(false)
+    val isExpert by DataStore.isExpert.collectAsStateWithLifecycle()
 
     fun needRestart() {
         snackbar.show(

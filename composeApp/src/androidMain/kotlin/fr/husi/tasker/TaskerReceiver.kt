@@ -33,13 +33,13 @@ class TaskerReceiver : BroadcastReceiver() {
         when (settings.action) {
             TaskerBundle.ACTION_START -> {
                 var reload = false
-                if (settings.profileId > 0 && DataStore.selectedProxy != settings.profileId) {
+                if (settings.profileId > 0 && DataStore.selectedProxy.getBlocking() != settings.profileId) {
                     val profileExists = runBlocking {
                         ProfileManager.getProfile(settings.profileId) != null
                     }
                     if (profileExists) {
-                        DataStore.selectedProxy = settings.profileId
-                        reload = DataStore.currentProfile != 0L
+                        DataStore.selectedProxy.setBlocking(settings.profileId)
+                        reload = DataStore.currentProfile.getBlocking() != 0L
                     }
                 }
                 if (reload) {

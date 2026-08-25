@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import fr.husi.GroupOrder
-import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
@@ -66,12 +65,11 @@ class GroupProfilesHolderViewModel(
     val uiState: StateFlow<GroupProfilesHolderUiState>
         field = MutableStateFlow(GroupProfilesHolderUiState())
 
-    val alwaysShowAddress = DataStore.configurationStore.booleanFlow(Key.ALWAYS_SHOW_ADDRESS, false)
-    val blurredAddress = DataStore.configurationStore.booleanFlow(Key.BLURRED_ADDRESS, false)
-    val trafficStatistics =
-        DataStore.configurationStore.booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
-    val securityAdvisory = DataStore.configurationStore.booleanFlow(Key.SECURITY_ADVISORY, true)
-    val selectedProxy = DataStore.configurationStore.longFlow(Key.PROFILE_ID)
+    val alwaysShowAddress = DataStore.alwaysShowAddress.flow()
+    val blurredAddress = DataStore.blurredAddress.flow()
+    val trafficStatistics = DataStore.profileTrafficStatistics.flow()
+    val securityAdvisory = DataStore.securityAdvisory.flow()
+    val selectedProxy = DataStore.selectedProxy.flow()
 
     private var isFirstLoad = true
     private var observeJob: Job? = null
@@ -162,8 +160,8 @@ class GroupProfilesHolderViewModel(
         shouldScroll: Boolean,
     ) = hiddenProfileAccess.withLock {
         val started = DataStore.serviceState.started
-        val current = DataStore.currentProfile
-        val selected = preSelected ?: DataStore.selectedProxy
+        val current = DataStore.currentProfile.get()
+        val selected = preSelected ?: DataStore.selectedProxy.get()
 
         val comparator: Comparator<ProxyEntity> = when (group.order) {
             GroupOrder.BY_NAME -> compareBy { it.displayName() }

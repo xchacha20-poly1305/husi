@@ -147,7 +147,7 @@ internal class CoreHostController(
     fun reload() {
         runExclusive {
             when {
-                DataStore.selectedProxy == 0L -> {
+                DataStore.selectedProxy.get() == 0L -> {
                     stopLocked(resolveRepository().getString(Res.string.profile_empty))
                 }
 
@@ -379,7 +379,7 @@ internal class CoreHostController(
         val state = DataStore.serviceState
         if (state.canStop || state == ServiceState.Stopping) return
 
-        val profile = ProfileManager.getProfile(DataStore.selectedProxy)
+        val profile = ProfileManager.getProfile(DataStore.selectedProxy.get())
         if (profile == null) {
             stopLocked(resolveRepository().getString(Res.string.profile_empty))
             return
@@ -400,7 +400,7 @@ internal class CoreHostController(
                 return
             }
 
-            val isVPN = DataStore.serviceMode == Key.MODE_VPN
+            val isVPN = DataStore.serviceMode.get() == Key.MODE_VPN
             if (isVPN && !connectedToDaemon) {
                 stopLocked(
                     "TUN mode requires the system daemon. Install it via Settings or switch to proxy mode.",
@@ -440,7 +440,7 @@ internal class CoreHostController(
             )
             trafficLooper?.start()
 
-            DataStore.currentProfile = profile.id
+            DataStore.currentProfile.set(profile.id)
             runningProfileName = profile.displayNameForService()
             changeState(ServiceState.Connected, runningProfileName)
             BackendState.setConnected(true)

@@ -30,9 +30,8 @@ internal fun DesktopResourceEnvironmentFix(content: @Composable () -> Unit) {
     fixResourceEnvironment()
 
     val default = LocalComposeEnvironment.current
-    val appLanguageTag by DataStore.configurationStore
-        .stringFlow(Key.APP_LANGUAGE, "")
-        .collectAsState(DataStore.appLanguage)
+    val appLanguageTag by DataStore.appLanguage.flow()
+        .collectAsState("")
 
     CompositionLocalProvider(
         LocalComposeEnvironment provides object : ComposeEnvironment {
@@ -51,7 +50,7 @@ internal fun DesktopResourceEnvironmentFix(content: @Composable () -> Unit) {
 
 private fun desktopResourceEnvironment(): ResourceEnvironment {
     val environment = getSystemEnvironment()
-    return mapResourceEnvironment(environment, DataStore.appLanguage)
+    return mapResourceEnvironment(environment, DataStore.appLanguage.getBlocking())
 }
 
 private fun mapResourceEnvironment(

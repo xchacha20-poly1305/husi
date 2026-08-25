@@ -20,7 +20,7 @@ class SecretCodeReceiver : BroadcastReceiver() {
         runOnDefaultDispatcher {
             try {
                 LauncherIcon.hidden = false
-                DataStore.hideLauncherIcon = false
+                DataStore.hideLauncherIcon.set(false)
                 showToast(resolveRepository().getString(Res.string.launcher_icon_restored), true)
             } finally {
                 pendingResult.finish()

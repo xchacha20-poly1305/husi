@@ -237,7 +237,7 @@ data class ProxyEntity(
     fun displayAddress() = requireBean().displayAddress()
     fun displayNameForService(): String {
         val profileName = displayName()
-        val groupName = if (DataStore.showGroupInNotification) runBlocking {
+        val groupName = if (DataStore.showGroupInNotification.getBlocking()) runBlocking {
             SagerDatabase.groupDao.getById(groupId).firstOrNull()?.displayName()
         } else {
             null
@@ -341,7 +341,7 @@ data class ProxyEntity(
                     name = "profiles.txt"
                 }
 
-                val logLevel = DataStore.logLevel
+                val logLevel = DataStore.logLevel.getBlocking()
                 for ((chain) in config.externalIndex) {
                     chain.entries.forEach { (port, profile) ->
                         when (val bean = profile.requireBean()) {
@@ -387,7 +387,8 @@ data class ProxyEntity(
 
             TYPE_JUICITY -> {
                 // https://github.com/juicity/juicity/issues/140
-                !DataStore.enableFakeDns && DataStore.providerJuicity != ProtocolProvider.CORE
+                !DataStore.enableFakeDns.getBlocking() &&
+                    DataStore.providerJuicity.getBlocking() != ProtocolProvider.CORE
             }
 
             TYPE_NAIVE -> {
@@ -401,7 +402,7 @@ data class ProxyEntity(
                 if (bean.tunnelTimeout > 0 || bean.idleTimeout > 0) {
                     return true
                 }
-                DataStore.providerNaive == ProtocolProvider.PLUGIN
+                DataStore.providerNaive.getBlocking() == ProtocolProvider.PLUGIN
             }
 
             else -> false

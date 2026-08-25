@@ -12,7 +12,7 @@ import fr.husi.database.DataStore
 open class ComposeActivity : PrivacyModeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val usingNightMode = resources.isDarkMode(DataStore.nightTheme)
+        val usingNightMode = resources.isDarkMode(DataStore.nightTheme.getBlocking())
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
             // BAKLAVA and later VANILLA_ICE_CREAM have fixed this

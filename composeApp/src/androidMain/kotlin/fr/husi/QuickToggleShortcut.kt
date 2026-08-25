@@ -93,16 +93,16 @@ class QuickToggleShortcut : Activity() {
                 val state = DataStore.serviceState
                 when {
                     state.canStop -> {
-                        if (profileId == DataStore.selectedProxy || profileId == -1L) {
+                        if (profileId == DataStore.selectedProxy.get() || profileId == -1L) {
                             resolveRepository().stopService()
                         } else {
-                            DataStore.selectedProxy = profileId
+                            DataStore.selectedProxy.set(profileId)
                             resolveRepository().reloadService()
                         }
                     }
 
                     state == ServiceState.Stopped -> {
-                        if (profileId >= 0L) DataStore.selectedProxy = profileId
+                        if (profileId >= 0L) DataStore.selectedProxy.set(profileId)
                         resolveRepository().startService()
                     }
                 }

@@ -9,7 +9,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.husi.Key
 import fr.husi.TrafficSortMode
 import fr.husi.bg.BackendState
 import fr.husi.bg.DefaultNetworkListener
@@ -182,8 +181,8 @@ class DashboardViewModel(
 
     init {
         viewModelScope.launch {
-            DataStore.configurationStore.intFlow(Key.TRAFFIC_SORT_MODE).combine(
-                DataStore.configurationStore.booleanFlow(Key.TRAFFIC_DESCENDING),
+            DataStore.trafficSortMode.flow().combine(
+                DataStore.trafficDescending.flow(),
             ) { mode, isDescending ->
                 mode to isDescending
             }.collectLatest { (mode, isDescending) ->
@@ -198,10 +197,7 @@ class DashboardViewModel(
             }
         }
         viewModelScope.launch {
-            DataStore.configurationStore.intFlow(
-                Key.TRAFFIC_CONNECTION_QUERY,
-                DashboardState.SHOW_TRACKER_ACTIVELY.toInt(),
-            ).collectLatest {
+            DataStore.trafficConnectionQuery.flow().collectLatest {
                 uiState.update { state ->
                     state.copy(
                         queryOptions = it.toByte(),
@@ -217,7 +213,7 @@ class DashboardViewModel(
                 .collectLatest { updateConnectionsSnapshot() }
         }
         viewModelScope.launch {
-            DataStore.configurationStore.intFlow(Key.PROXY_SET_ORDER)
+            DataStore.proxySetOrder.flow()
                 .collectLatest { order ->
                     proxySetComparator.store(buildProxySetComparator(order))
                     uiState.update { state ->
@@ -409,11 +405,11 @@ class DashboardViewModel(
     }
 
     fun setSortDescending(descending: Boolean) = runOnIoDispatcher {
-        DataStore.trafficDescending = descending
+        DataStore.trafficDescending.set(descending)
     }
 
     fun setSortMode(mode: Int) = runOnIoDispatcher {
-        DataStore.trafficSortMode = mode
+        DataStore.trafficSortMode.set(mode)
     }
 
     private var comparator = buildComparator(TrafficSortMode.START, false)
@@ -438,25 +434,29 @@ class DashboardViewModel(
     }
 
     fun setProxySetOrder(order: Int) = viewModelScope.launch(Dispatchers.Default) {
-        DataStore.proxySetOrder = order
+        DataStore.proxySetOrder.set(order)
     }
 
     fun setQueryActivate(queryActivate: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions
-        DataStore.trafficConnectionQuery = if (queryActivate) {
-            old or DashboardState.SHOW_TRACKER_ACTIVELY
-        } else {
-            old and DashboardState.SHOW_TRACKER_ACTIVELY.inv()
-        }.toInt()
+        DataStore.trafficConnectionQuery.set(
+            if (queryActivate) {
+                old or DashboardState.SHOW_TRACKER_ACTIVELY
+            } else {
+                old and DashboardState.SHOW_TRACKER_ACTIVELY.inv()
+            }.toInt(),
+        )
     }
 
     fun setQueryClosed(queryClosed: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions
-        DataStore.trafficConnectionQuery = if (queryClosed) {
-            old or DashboardState.SHOW_TRACKER_CLOSED
-        } else {
-            old and DashboardState.SHOW_TRACKER_CLOSED.inv()
-        }.toInt()
+        DataStore.trafficConnectionQuery.set(
+            if (queryClosed) {
+                old or DashboardState.SHOW_TRACKER_CLOSED
+            } else {
+                old and DashboardState.SHOW_TRACKER_CLOSED.inv()
+            }.toInt(),
+        )
     }
 
     private fun setUrlTestProgress(group: String, progress: GroupUrlTestProgress?) {
@@ -796,9 +796,9 @@ class DashboardViewModel(
         }
     }
 
-    private fun testOptions() = urlTestOptions(
-        DataStore.connectionTestUnifiedDelay,
-        DataStore.connectionTestIgnoreHandshakeTime,
+    private suspend fun testOptions() = urlTestOptions(
+        DataStore.connectionTestUnifiedDelay.get(),
+        DataStore.connectionTestIgnoreHandshakeTime.get(),
     )
 
     fun urlTestForSingle(tag: String) = viewModelScope.launch(Dispatchers.IO) {
@@ -809,8 +809,8 @@ class DashboardViewModel(
                 } else {
                     coreClient.urlTest(
                         tag,
-                        DataStore.connectionTestURL,
-                        DataStore.connectionTestTimeout,
+                        DataStore.connectionTestURL.get(),
+                        DataStore.connectionTestTimeout.get(),
                         testOptions(),
                     )
                 }
@@ -838,8 +838,8 @@ class DashboardViewModel(
             proxySet.items.toList()
         }
         if (items.isEmpty()) return@launch
-        val testURL = DataStore.connectionTestURL
-        val testTimeout = DataStore.connectionTestTimeout
+        val testURL = DataStore.connectionTestURL.get()
+        val testTimeout = DataStore.connectionTestTimeout.get()
         val options = testOptions()
         try {
             val nextItemIndex = AtomicInt(0)

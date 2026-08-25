@@ -30,7 +30,7 @@ import org.koin.core.context.GlobalContext
 data class LogcatUiState(
     val pause: Boolean = false,
     val searchQuery: String? = null,
-    val logLevel: LogLevel = LogLevel.entries[DataStore.logLevel],
+    val logLevel: LogLevel = LogLevel.entries[DataStore.logLevel.getBlocking()],
     val logs: PersistentList<LogEntry> = persistentListOf(),
     val errorMessage: String? = null,
     val connecting: Boolean = false,
@@ -38,7 +38,7 @@ data class LogcatUiState(
 )
 
 @Immutable
-enum class LogLevel() {
+enum class LogLevel {
     PANIC,
     FATAL,
     ERROR,
@@ -80,7 +80,10 @@ class LogcatScreenViewModel(
     private var allLogs: PersistentList<LogEntry> = persistentListOf()
     val uiState: StateFlow<LogcatUiState>
         field = MutableStateFlow(
-            LogcatUiState(logLevel = LogLevel.entries.getOrNull(DataStore.logLevel) ?: LogLevel.WARN),
+            LogcatUiState(
+                logLevel = LogLevel.entries.getOrNull(DataStore.logLevel.getBlocking())
+                    ?: LogLevel.WARN,
+            ),
         )
     val searchTextFieldState = TextFieldState()
 

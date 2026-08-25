@@ -62,7 +62,7 @@ class VpnRequestActivity : PrivacyModeActivity() {
             context: Context,
             input: Void?,
         ): SynchronousResult<Boolean>? {
-            if (DataStore.serviceMode == Key.MODE_VPN) VpnService.prepare(context)?.let { intent ->
+            if (DataStore.serviceMode.getBlocking() == Key.MODE_VPN) VpnService.prepare(context)?.let { intent ->
                 cachedIntent = intent
                 return null
             }

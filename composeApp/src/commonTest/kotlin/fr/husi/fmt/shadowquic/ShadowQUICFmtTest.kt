@@ -186,7 +186,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
 
     @Test
     fun `buildShadowQUICConfig should emit brutal bandwidth in decimal bps`() {
-        DataStore.uploadSpeed = 100
+        DataStore.uploadSpeed.setBlocking(100)
 
         val bean = ShadowQUICBean().apply {
             serverAddress = "example.com"

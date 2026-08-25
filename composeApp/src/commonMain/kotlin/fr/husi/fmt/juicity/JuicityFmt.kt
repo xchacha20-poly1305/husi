@@ -51,7 +51,7 @@ fun JuicityBean.buildJuicityConfig(port: Int, shouldProtect: Boolean): String {
         "congestion_control" to "bbr",
         "pinned_certchain_sha256" to pinSHA256.takeIf { it.isNotBlank() },
         "protect_path" to if (shouldProtect) protectPath else null,
-        "log_level" to if (DataStore.logLevel > 0) "debug" else "error",
+        "log_level" to if (DataStore.logLevel.getBlocking() > 0) "debug" else "error",
     ).toJsonStringKxs()
 }
 
