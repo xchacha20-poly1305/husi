@@ -27,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -64,7 +63,6 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
-import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -84,7 +82,6 @@ import fr.husi.resources.cag_dns
 import fr.husi.resources.cancel
 import fr.husi.resources.clear_profiles_message
 import fr.husi.resources.confirm
-import fr.husi.resources.delete
 import fr.husi.resources.dns_only
 import fr.husi.resources.drag_indicator
 import fr.husi.resources.edit
@@ -286,7 +283,6 @@ fun RouteScreen(
 
                     is RouteListItem.Rule -> {
                         val rule = item.entity
-                        val swipeState = rememberSwipeToDismissBoxStateUnsaveable(rule.id)
 
                         DraggableSwipeableItem(
                             modifier = Modifier.animateDraggableSwipeableItem(),
@@ -294,31 +290,14 @@ fun RouteScreen(
                                 containerBackgroundColor = Color.Transparent,
                                 containerBackgroundColorWhileDragged = Color.Transparent,
                             ),
+                            onSwipeDismiss = { viewModel.undoableRemove(rule.id) },
                         ) {
-                            SwipeToDismissBox(
-                                state = swipeState,
-                                enableDismissFromStartToEnd = true,
-                                enableDismissFromEndToStart = true,
-                                backgroundContent = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(horizontal = 16.dp),
-                                        contentAlignment = Alignment.CenterEnd,
-                                    ) {
-                                        Icon(vectorResource(Res.drawable.delete), null)
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                onDismiss = { viewModel.undoableRemove(rule.id) },
-                            ) {
-                                RuleCard(
-                                    rule = rule,
-                                    viewModel = viewModel,
-                                    onNeedReload = { needReload() },
-                                    openRouteSettings = openRouteSettings,
-                                )
-                            }
+                            RuleCard(
+                                rule = rule,
+                                viewModel = viewModel,
+                                onNeedReload = { needReload() },
+                                openRouteSettings = openRouteSettings,
+                            )
                         }
                     }
                 }
