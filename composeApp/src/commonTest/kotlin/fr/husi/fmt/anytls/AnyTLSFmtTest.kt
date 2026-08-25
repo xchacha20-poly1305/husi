@@ -9,6 +9,7 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class AnyTLSFmtTest {
 
@@ -43,7 +44,7 @@ class AnyTLSFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundAnyTLSBean should map all supported AnyTLS and TLS fields`() {
+    fun `buildSingBoxOutboundAnyTLSBean should map all supported AnyTLS and TLS fields`() = runTest {
         val bean = AnyTLSBean().apply {
             serverAddress = "edge.example.com"
             serverPort = 10443
@@ -109,7 +110,7 @@ class AnyTLSFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundAnyTLSBean should omit nullable fields for zero and blank values`() {
+    fun `buildSingBoxOutboundAnyTLSBean should omit nullable fields for zero and blank values`() = runTest {
         val bean = AnyTLSBean().apply {
             serverAddress = "simple.example.com"
             serverPort = 443

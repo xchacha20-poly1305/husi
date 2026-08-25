@@ -16,6 +16,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class HysteriaFmtTest : HusiKoinTest() {
 
@@ -215,7 +216,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundHysteriaBean hy1 should emit new QUIC field names and drop legacy`() {
+    fun `buildSingBoxOutboundHysteriaBean hy1 should emit new QUIC field names and drop legacy`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
             serverAddress = "example.com"
@@ -247,7 +248,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundHysteriaBean hy1 should leave QUIC fields null when defaults`() {
+    fun `buildSingBoxOutboundHysteriaBean hy1 should leave QUIC fields null when defaults`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
             serverAddress = "example.com"
@@ -268,7 +269,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundHysteriaBean hy2 should emit QUIC fields`() {
+    fun `buildSingBoxOutboundHysteriaBean hy2 should emit QUIC fields`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"
@@ -383,7 +384,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `canUseSingBox should be true when hy2 obfs is gecko`() {
+    fun `canUseSingBox should be true when hy2 obfs is gecko`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             obfsType = HysteriaBean.OBFS_TYPE_GECKO
@@ -394,7 +395,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `canUseSingBox should be true when hy2 obfs is salamander`() {
+    fun `canUseSingBox should be true when hy2 obfs is salamander`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             obfsType = HysteriaBean.OBFS_TYPE_SALAMANDER
@@ -405,7 +406,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundHysteriaBean hy2 should emit gecko obfs with packet sizes`() {
+    fun `buildSingBoxOutboundHysteriaBean hy2 should emit gecko obfs with packet sizes`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"
@@ -430,7 +431,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundHysteriaBean hy2 should leave gecko sizes null for salamander`() {
+    fun `buildSingBoxOutboundHysteriaBean hy2 should leave gecko sizes null for salamander`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"
@@ -607,7 +608,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `canUseSingBox should be true when hy2 disableChromeParrot is enabled`() {
+    fun `canUseSingBox should be true when hy2 disableChromeParrot is enabled`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             disableChromeParrot = true

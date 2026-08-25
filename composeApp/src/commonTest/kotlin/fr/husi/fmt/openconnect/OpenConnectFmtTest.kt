@@ -7,13 +7,13 @@ import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class OpenConnectFmtTest {
 
     @Test
-    fun `endpoint maps authentication and TLS material`() {
+    fun `endpoint maps authentication and TLS material`() = runTest {
         val endpoint = buildSingBoxEndpointOpenConnectBean(OpenConnectBean().apply {
             server = "https://vpn.example.com"
             flavor = "anyconnect"

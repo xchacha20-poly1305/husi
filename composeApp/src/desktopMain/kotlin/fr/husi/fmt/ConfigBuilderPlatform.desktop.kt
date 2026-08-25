@@ -4,13 +4,13 @@ import fr.husi.database.DataStore
 import fr.husi.ktx.blankAsNull
 import fr.husi.platform.PlatformInfo
 
-internal actual fun SingBoxOptions.Inbound_TunOptions.applyPlatformConfig() {
+internal actual suspend fun SingBoxOptions.Inbound_TunOptions.applyPlatformConfig() {
     auto_route = true
-    interface_name = DataStore.tunInterfaceName.getBlocking().blankAsNull()
-    if (DataStore.tunStrictRoute.getBlocking()) {
+    interface_name = DataStore.tunInterfaceName.get().blankAsNull()
+    if (DataStore.tunStrictRoute.get()) {
         strict_route = true
     }
-    if (PlatformInfo.isLinux && DataStore.tunAutoRedirect.getBlocking()) {
+    if (PlatformInfo.isLinux && DataStore.tunAutoRedirect.get()) {
         auto_redirect = true
     }
 }

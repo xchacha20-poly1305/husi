@@ -5,13 +5,14 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
 
 class TrustTunnelFmtTest {
 
     // No URL test. Because already tested in sing-trusttunnel
 
     @Test
-    fun `buildSingBoxOutboundTrustTunnelBean should map all TLS and connection fields`() {
+    fun `buildSingBoxOutboundTrustTunnelBean should map all TLS and connection fields`() = runTest {
         val bean = TrustTunnelBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -69,7 +70,7 @@ class TrustTunnelFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundTrustTunnelBean should omit optional fields for default values`() {
+    fun `buildSingBoxOutboundTrustTunnelBean should omit optional fields for default values`() = runTest {
         val bean = TrustTunnelBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -88,7 +89,7 @@ class TrustTunnelFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundTrustTunnelBean should set record_fragment when only tlsRecordFragment is true`() {
+    fun `buildSingBoxOutboundTrustTunnelBean should set record_fragment when only tlsRecordFragment is true`() = runTest {
         val bean = TrustTunnelBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -104,7 +105,7 @@ class TrustTunnelFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundTrustTunnelBean should map TLS spoof fields when quic is disabled`() {
+    fun `buildSingBoxOutboundTrustTunnelBean should map TLS spoof fields when quic is disabled`() = runTest {
         val bean = TrustTunnelBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -121,7 +122,7 @@ class TrustTunnelFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundTrustTunnelBean should suppress TLS spoof fields when quic is enabled`() {
+    fun `buildSingBoxOutboundTrustTunnelBean should suppress TLS spoof fields when quic is enabled`() = runTest {
         val bean = TrustTunnelBean().apply {
             serverAddress = "example.com"
             serverPort = 443

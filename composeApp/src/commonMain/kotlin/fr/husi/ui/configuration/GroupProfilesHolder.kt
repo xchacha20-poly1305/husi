@@ -754,11 +754,13 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
                                                 )
                                             },
                                             onClick = {
-                                                runCatching {
-                                                    val data = entity.exportConfig()
-                                                    exportToFile(data.second, data.first)
-                                                }.onFailure { e ->
-                                                    showErrorAlert(e.readableMessage)
+                                                scope.launch {
+                                                    runCatching {
+                                                        val data = entity.exportConfig()
+                                                        exportToFile(data.second, data.first)
+                                                    }.onFailure { e ->
+                                                        showErrorAlert(e.readableMessage)
+                                                    }
                                                 }
                                                 showShareSheet = false
                                             },
@@ -801,8 +803,10 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
                                                     )
                                                 },
                                                 onClick = {
-                                                    val data = entity.exportOutbound()
-                                                    exportToFile(data.second, data.first)
+                                                    scope.launch {
+                                                        val data = entity.exportOutbound()
+                                                        exportToFile(data.second, data.first)
+                                                    }
                                                     showShareSheet = false
                                                 },
                                             )

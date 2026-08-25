@@ -6,6 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
 
 class JuicityFmtTest {
 
@@ -51,7 +52,7 @@ class JuicityFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundJuicityBean should map all fields`() {
+    fun `buildSingBoxOutboundJuicityBean should map all fields`() = runTest {
         val bean = JuicityBean().apply {
             serverAddress = "example.com"
             serverPort = 8443
@@ -78,7 +79,7 @@ class JuicityFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundJuicityBean should omit pin_cert_sha256 when blank`() {
+    fun `buildSingBoxOutboundJuicityBean should omit pin_cert_sha256 when blank`() = runTest {
         val bean = JuicityBean().apply {
             serverAddress = "example.com"
             serverPort = 443

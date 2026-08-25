@@ -61,13 +61,14 @@ fun String.isIpAddress(): Boolean {
     return isIPv4() || isIPv6()
 }
 
-fun serverAddressDomainStrategy(): String? {
-    val domainStrategy = DataStore.domainStrategyForServer.getBlocking()
+suspend fun serverAddressDomainStrategy(): String? {
+    val domainStrategy = DataStore.domainStrategyForServer.get()
         .replace(DOMAIN_STRATEGY_AUTO, "")
         .blankAsNull()
+    val networkStrategy = DataStore.networkStrategy.get().blankAsNull()
     return defaultOr(
         domainStrategy,
-        { DataStore.networkStrategy.getBlocking().blankAsNull() },
+        { networkStrategy },
     )
 }
 

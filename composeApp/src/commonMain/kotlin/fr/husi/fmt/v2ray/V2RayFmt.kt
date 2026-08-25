@@ -540,7 +540,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
     }
 }
 
-fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = when (bean) {
+suspend fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = when (bean) {
     is HttpBean -> Outbound_HTTPOptions().apply {
         type = SingBoxOptions.TYPE_HTTP
         server = bean.serverAddress

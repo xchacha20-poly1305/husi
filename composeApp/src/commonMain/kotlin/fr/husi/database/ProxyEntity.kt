@@ -331,7 +331,7 @@ data class ProxyEntity(
 
     private val exportName get() = "${requireBean().displayName()}.json"
 
-    fun exportConfig(): Pair<String, String> {
+    suspend fun exportConfig(): Pair<String, String> {
         return with(requireBean()) {
             StringBuilder().apply {
                 val config = buildConfig(this@ProxyEntity, forExport = true)
@@ -341,7 +341,7 @@ data class ProxyEntity(
                     name = "profiles.txt"
                 }
 
-                val logLevel = DataStore.logLevel.getBlocking()
+                val logLevel = DataStore.logLevel.get()
                 for ((chain) in config.externalIndex) {
                     chain.entries.forEach { (port, profile) ->
                         when (val bean = profile.requireBean()) {
@@ -376,9 +376,9 @@ data class ProxyEntity(
         } to exportName
     }
 
-    fun exportOutbound(): Pair<String, String> = buildSingBoxOutbound(requireBean()) to exportName
+    suspend fun exportOutbound(): Pair<String, String> = buildSingBoxOutbound(requireBean()) to exportName
 
-    fun needExternal(): Boolean {
+    suspend fun needExternal(): Boolean {
         return when (type) {
             TYPE_MIERU -> true
             TYPE_SHADOWQUIC -> true
@@ -387,8 +387,8 @@ data class ProxyEntity(
 
             TYPE_JUICITY -> {
                 // https://github.com/juicity/juicity/issues/140
-                !DataStore.enableFakeDns.getBlocking() &&
-                    DataStore.providerJuicity.getBlocking() != ProtocolProvider.CORE
+                !DataStore.enableFakeDns.get() &&
+                    DataStore.providerJuicity.get() != ProtocolProvider.CORE
             }
 
             TYPE_NAIVE -> {
@@ -402,7 +402,7 @@ data class ProxyEntity(
                 if (bean.tunnelTimeout > 0 || bean.idleTimeout > 0) {
                     return true
                 }
-                DataStore.providerNaive.getBlocking() == ProtocolProvider.PLUGIN
+                DataStore.providerNaive.get() == ProtocolProvider.PLUGIN
             }
 
             else -> false

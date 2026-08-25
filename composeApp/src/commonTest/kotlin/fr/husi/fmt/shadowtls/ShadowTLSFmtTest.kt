@@ -4,11 +4,12 @@ import fr.husi.fmt.SingBoxOptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlinx.coroutines.test.runTest
 
 class ShadowTLSFmtTest {
 
     @Test
-    fun `buildSingBoxOutboundShadowTLSBean should map type server port version and password`() {
+    fun `buildSingBoxOutboundShadowTLSBean should map type server port version and password`() = runTest {
         val bean = ShadowTLSBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -27,7 +28,7 @@ class ShadowTLSFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundShadowTLSBean should include tls options when security is tls`() {
+    fun `buildSingBoxOutboundShadowTLSBean should include tls options when security is tls`() = runTest {
         val bean = ShadowTLSBean().apply {
             serverAddress = "example.com"
             serverPort = 443

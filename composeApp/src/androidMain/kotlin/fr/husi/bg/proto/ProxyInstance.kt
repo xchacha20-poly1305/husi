@@ -24,10 +24,10 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     /** Owns the traffic looper, cancelled in [close] so nothing outlives this instance. */
     private val looperScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    override fun buildConfig() {
+    override suspend fun buildConfig() {
         super.buildConfig()
         Logs.d(config.config)
-        if (DataStore.isExpert.getBlocking()) Logs.d("trafficProfiles: " + config.trafficProfiles.toString())
+        if (DataStore.isExpert.get()) Logs.d("trafficProfiles: " + config.trafficProfiles.toString())
     }
 
     override suspend fun init(isVPN: Boolean) {

@@ -33,7 +33,7 @@ abstract class BoxInstance(
         return ::config.isInitialized
     }
 
-    protected open fun buildConfig() {
+    protected open suspend fun buildConfig() {
         config = buildConfig(profile)
     }
 

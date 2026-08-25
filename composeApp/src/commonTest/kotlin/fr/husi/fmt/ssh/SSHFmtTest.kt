@@ -4,11 +4,12 @@ import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
 
 class SSHFmtTest {
 
     @Test
-    fun `buildSingBoxOutboundSSHBean should map password auth fields`() {
+    fun `buildSingBoxOutboundSSHBean should map password auth fields`() = runTest {
         val bean = SSHBean().apply {
             serverAddress = "example.com"
             serverPort = 22
@@ -28,7 +29,7 @@ class SSHFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundSSHBean should map private key auth fields`() {
+    fun `buildSingBoxOutboundSSHBean should map private key auth fields`() = runTest {
         val bean = SSHBean().apply {
             serverAddress = "example.com"
             serverPort = 22
@@ -46,7 +47,7 @@ class SSHFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundSSHBean should set host_key when public key is not blank`() {
+    fun `buildSingBoxOutboundSSHBean should set host_key when public key is not blank`() = runTest {
         val bean = SSHBean().apply {
             serverAddress = "example.com"
             serverPort = 22

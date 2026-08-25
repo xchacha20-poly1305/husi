@@ -8,6 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class TuicFmtTest {
 
@@ -63,7 +64,7 @@ class TuicFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundTuicBean should map all fields`() {
+    fun `buildSingBoxOutboundTuicBean should map all fields`() = runTest {
         val bean = TuicBean().apply {
             serverAddress = "example.com"
             serverPort = 9443
@@ -161,7 +162,7 @@ class TuicFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundTuicBean should emit QUIC fields when set`() {
+    fun `buildSingBoxOutboundTuicBean should emit QUIC fields when set`() = runTest {
         val bean = TuicBean().apply {
             serverAddress = "example.com"
             serverPort = 9443
@@ -188,7 +189,7 @@ class TuicFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundTuicBean should leave QUIC fields null when defaults`() {
+    fun `buildSingBoxOutboundTuicBean should leave QUIC fields null when defaults`() = runTest {
         val bean = TuicBean().apply {
             serverAddress = "example.com"
             serverPort = 9443

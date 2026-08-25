@@ -14,6 +14,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class V2RayFmtTest {
 
@@ -162,7 +163,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should build vmess outbound`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should build vmess outbound`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
@@ -189,7 +190,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should map TLS spoof fields`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should map TLS spoof fields`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -210,7 +211,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should omit blank TLS spoof fields`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should omit blank TLS spoof fields`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -229,7 +230,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should build vless outbound with flow`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should build vless outbound with flow`() = runTest {
         val bean = VLESSBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -247,7 +248,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should preserve ws transport fields`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should preserve ws transport fields`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
@@ -272,7 +273,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should parse ws early data settings from path query`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should parse ws early data settings from path query`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
@@ -289,7 +290,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should preserve blank ws path`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should preserve blank ws path`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
@@ -306,7 +307,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should strip only ed from path with many query params`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should strip only ed from path with many query params`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
@@ -329,7 +330,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should let explicit wsMaxEarlyData override path query`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should let explicit wsMaxEarlyData override path query`() = runTest {
         val bean = VMessBean().apply {
             serverAddress = "example.com"
             serverPort = 10086
@@ -348,7 +349,7 @@ class V2RayFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundStandardV2RayBean should build trojan outbound`() {
+    fun `buildSingBoxOutboundStandardV2RayBean should build trojan outbound`() = runTest {
         val bean = TrojanBean().apply {
             serverAddress = "example.com"
             serverPort = 443

@@ -5,11 +5,12 @@ import fr.husi.fmt.SingBoxOptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlinx.coroutines.test.runTest
 
 class ProxySetFmtTest {
 
     @Test
-    fun `buildSingBoxOutboundProxySetBean should build selector outbound`() {
+    fun `buildSingBoxOutboundProxySetBean should build selector outbound`() = runTest {
         val bean = ProxySetBean().apply {
             management = ProxySetBean.MANAGEMENT_SELECTOR
             interruptExistConnections = true
@@ -25,7 +26,7 @@ class ProxySetFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundProxySetBean should build urltest outbound`() {
+    fun `buildSingBoxOutboundProxySetBean should build urltest outbound`() = runTest {
         val bean = ProxySetBean().apply {
             management = ProxySetBean.MANAGEMENT_URLTEST
             testURL = FmtTestConstant.URLTEST_URL

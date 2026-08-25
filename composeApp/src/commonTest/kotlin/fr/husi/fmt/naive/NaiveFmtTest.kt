@@ -10,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
 
 class NaiveFmtTest : HusiKoinTest() {
 
@@ -39,7 +40,7 @@ class NaiveFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundNaiveBean should map https proto fields`() {
+    fun `buildSingBoxOutboundNaiveBean should map https proto fields`() = runTest {
         val bean = NaiveBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -66,7 +67,7 @@ class NaiveFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundNaiveBean should set quic fields for quic proto`() {
+    fun `buildSingBoxOutboundNaiveBean should set quic fields for quic proto`() = runTest {
         val bean = NaiveBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -83,7 +84,7 @@ class NaiveFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildSingBoxOutboundNaiveBean should omit insecure_concurrency when zero`() {
+    fun `buildSingBoxOutboundNaiveBean should omit insecure_concurrency when zero`() = runTest {
         val bean = NaiveBean().apply {
             serverAddress = "example.com"
             serverPort = 443

@@ -5,6 +5,7 @@ import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
 
 class ShadowsocksFmtTest {
 
@@ -74,7 +75,7 @@ class ShadowsocksFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundShadowsocksBean should map method password server and plugin`() {
+    fun `buildSingBoxOutboundShadowsocksBean should map method password server and plugin`() = runTest {
         val bean = ShadowsocksBean().apply {
             serverAddress = "example.com"
             serverPort = 8388
@@ -95,7 +96,7 @@ class ShadowsocksFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundShadowsocksBean should omit plugin fields when plugin is blank`() {
+    fun `buildSingBoxOutboundShadowsocksBean should omit plugin fields when plugin is blank`() = runTest {
         val bean = ShadowsocksBean().apply {
             serverAddress = "example.com"
             serverPort = 8388

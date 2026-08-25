@@ -10,11 +10,12 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.test.runTest
 
 class OpenVPNFmtTest {
 
     @Test
-    fun `endpoint maps transport authentication and TLS material`() {
+    fun `endpoint maps transport authentication and TLS material`() = runTest {
         val endpoint = buildSingBoxEndpointOpenVPNBean(OpenVPNBean().apply {
             serverAddress = "vpn.example.com"
             serverPort = 443

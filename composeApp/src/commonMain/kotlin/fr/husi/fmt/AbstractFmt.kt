@@ -136,7 +136,7 @@ fun AbstractBean.toJsonStringKxs(): String = when (this) {
     else -> error("impossible bean type: ${this.javaClass.simpleName}")
 }
 
-fun buildSingBoxOutbound(bean: AbstractBean): String = when (bean) {
+suspend fun buildSingBoxOutbound(bean: AbstractBean): String = when (bean) {
     is ConfigBean -> bean.config // What if full config?
     is DirectBean -> kxs.encodeToString(buildSingBoxOutboundDirectBean(bean).apply { tag = bean.name })
     is StandardV2RayBean ->
@@ -165,7 +165,7 @@ fun buildSingBoxOutbound(bean: AbstractBean): String = when (bean) {
     else -> error("invalid bean: ${bean.javaClass.simpleName}")
 }
 
-fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
+suspend fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
     if (!bean.serverMux) return null
 
     return OutboundMultiplexOptions().apply {
@@ -183,7 +183,7 @@ fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
             brutal = BrutalOptions().apply {
                 enabled = true
                 up_mbps = -1 // need kernel module
-                down_mbps = DataStore.downloadSpeed.getBlocking()
+                down_mbps = DataStore.downloadSpeed.get()
             }
         } else when (bean.serverMuxStrategy) {
             MuxStrategy.MAX_CONNECTIONS -> max_connections = bean.serverMuxNumber

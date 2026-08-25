@@ -7,11 +7,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
 
 class SnellFmtTest {
 
     @Test
-    fun `buildSingBoxOutboundSnellBean should map v4 fields`() {
+    fun `buildSingBoxOutboundSnellBean should map v4 fields`() = runTest {
         val bean = SnellBean().apply {
             serverAddress = "snell.example.com"
             serverPort = 8443
@@ -38,7 +39,7 @@ class SnellFmtTest {
     }
 
     @Test
-    fun `buildSingBoxOutboundSnellBean should map v6 mode and omit false reuse`() {
+    fun `buildSingBoxOutboundSnellBean should map v6 mode and omit false reuse`() = runTest {
         val bean = SnellBean().apply {
             serverAddress = "snell.example.com"
             serverPort = 443

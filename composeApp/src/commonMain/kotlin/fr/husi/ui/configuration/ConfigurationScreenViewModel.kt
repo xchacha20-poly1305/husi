@@ -441,7 +441,7 @@ class ConfigurationScreenViewModel(
         }
     }
 
-    private fun resolvePingAddress(serverAddress: String): String? {
+    private suspend fun resolvePingAddress(serverAddress: String): String? {
         if (serverAddress.isIpAddress()) return serverAddress
 
         return try {
