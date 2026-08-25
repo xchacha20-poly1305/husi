@@ -16,6 +16,7 @@ LINUX_PACKAGE_FORMATS ?= deb,rpm,pacman
 HOST_OS = $(shell uname -s)
 DESKTOP_TARGET_GRADLE_ARG = $(if $(DESKTOP_TARGET),-PdesktopTarget=$(DESKTOP_TARGET),)
 DESKTOP_TARGET_SCRIPT_ARG = $(if $(DESKTOP_TARGET),--target $(DESKTOP_TARGET),)
+DESKTOP_APP_ARGS = $(if $(strip $(ARGS)),--args="$(ARGS)",)
 JNI_INCLUDE_SCRIPT_ARG = $(if $(JNI_INCLUDE),--jniinclude "$(JNI_INCLUDE)",)
 DARWIN_SDK_SCRIPT_ARG = $(if $(DARWIN_SDK),--darwinsdk "$(DARWIN_SDK)",)
 WINDOWS_NO_SIGN_SCRIPT_ARG = $(if $(filter 1,$(WINDOWS_NO_SIGN)),--no-sign,)
@@ -94,10 +95,10 @@ core_desktop:
 	done
 
 desktop:
-	BUILD_PLUGIN=none ./gradlew -p composeApp run
+	BUILD_PLUGIN=none ./gradlew -p composeApp run $(DESKTOP_APP_ARGS)
 
 desktop_release:
-	BUILD_PLUGIN=none ./gradlew -p composeApp runRelease
+	BUILD_PLUGIN=none ./gradlew -p composeApp runRelease $(DESKTOP_APP_ARGS)
 
 desktop_package:
 ifeq ($(HOST_OS),Linux)
