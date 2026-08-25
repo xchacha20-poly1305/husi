@@ -412,7 +412,7 @@ object IconMaskShapes {
     fun credential(): Shape = MaterialShapes.Slanted.toShape()
 
     @Composable
-    fun route(): Shape = MaterialShapes.Triangle.toShape()
+    fun route(): Shape = MaterialShapes.Cookie4Sided.toShape()
 }
 
 @Suppress("MutableCollectionMutableState")
