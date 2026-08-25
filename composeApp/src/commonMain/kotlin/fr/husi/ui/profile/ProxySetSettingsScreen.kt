@@ -1,18 +1,14 @@
 package fr.husi.ui.profile
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -22,11 +18,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ernestoyaquello.dragdropswipelazycolumn.AllowedSwipeDirections
 import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
@@ -59,7 +53,6 @@ import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
-import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.database.ProxyGroup
 import fr.husi.database.displayType
 import fr.husi.fmt.internal.ProxySetBean
@@ -75,6 +68,7 @@ import fr.husi.resources.cancel
 import fr.husi.resources.cast_connected
 import fr.husi.resources.connection_test_url
 import fr.husi.resources.delete
+import fr.husi.resources.drag_indicator
 import fr.husi.resources.edit
 import fr.husi.resources.emoji_emotions
 import fr.husi.resources.emoji_symbols
@@ -95,12 +89,9 @@ import fr.husi.resources.urltest_tolerance
 import fr.husi.resources.widgets
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.OpenProfilePicker
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.delay
 import me.zhanghai.compose.preference.ListPreferenceType
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import kotlin.time.Duration.Companion.milliseconds
 
 private data class GroupProviderEdit(val index: Int, val item: ProviderUiItem.Group?)
 
@@ -275,14 +266,12 @@ private fun LazyListScope.proxySetSettings(
                 ?: 480.dp
         DragDropSwipeLazyColumn(
             modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight),
-            items = uiState.providers.toImmutableList(),
+            items = uiState.providers,
             key = { it.key },
             contentType = { 0 },
             userScrollEnabled = false,
             onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
         ) { i, provider ->
-            val swipeState = rememberSwipeToDismissBoxStateUnsaveable(provider.key)
-            var visible by remember { mutableStateOf(true) }
             DraggableSwipeableItem(
                 modifier = Modifier.animateDraggableSwipeableItem(),
                 colors =
@@ -290,65 +279,32 @@ private fun LazyListScope.proxySetSettings(
                         containerBackgroundColor = Color.Transparent,
                         containerBackgroundColorWhileDragged = Color.Transparent,
                     ),
+                allowedSwipeDirections = AllowedSwipeDirections.None,
             ) {
-                AnimatedVisibility(
-                    visible = visible,
-                    exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(),
-                ) {
-                    SwipeToDismissBox(
-                        state = swipeState,
-                        enableDismissFromStartToEnd = true,
-                        enableDismissFromEndToStart = true,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.CenterEnd,
-                            ) {
-                                Icon(vectorResource(Res.drawable.delete), null)
-                            }
-                        },
-                        onDismiss = { value ->
-                            when (value) {
-                                SwipeToDismissBoxValue.StartToEnd,
-                                SwipeToDismissBoxValue.EndToStart,
-                                    -> visible = false
-
-                                else -> {}
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .dragDropModifier(),
-                    ) {
-                        when (provider) {
-                            is ProviderUiItem.Profile -> {
-                                val profile = provider.entity
-                                ProxySetSourceCard(
-                                    title = profile.displayName(),
-                                    summary = profile.displayType(),
-                                    onEdit = {
-                                        onReplaceProfile(i, provider.entity.id)
-                                    },
-                                    onRemove = {
-                                        viewModel.remove(i)
-                                    },
-                                )
-                            }
-
-                            is ProviderUiItem.Group -> ProxySetGroupCard(
-                                group = uiState.groups[provider.groupID],
-                                filterNotRegex = provider.filterNotRegex,
-                                onEdit = { onEditGroup(i, provider) },
-                                onRemove = { viewModel.remove(i) },
-                            )
-                        }
+                val dragHandleModifier = Modifier.dragDropModifier()
+                when (provider) {
+                    is ProviderUiItem.Profile -> {
+                        val profile = provider.entity
+                        ProxySetSourceCard(
+                            title = profile.displayName(),
+                            summary = profile.displayType(),
+                            onEdit = {
+                                onReplaceProfile(i, provider.entity.id)
+                            },
+                            onRemove = {
+                                viewModel.remove(i)
+                            },
+                            dragHandleModifier = dragHandleModifier,
+                        )
                     }
-                }
-            }
-            LaunchedEffect(visible) {
-                if (!visible) {
-                    delay(220.milliseconds)
-                    viewModel.remove(i)
+
+                    is ProviderUiItem.Group -> ProxySetGroupCard(
+                        group = uiState.groups[provider.groupID],
+                        filterNotRegex = provider.filterNotRegex,
+                        onEdit = { onEditGroup(i, provider) },
+                        onRemove = { viewModel.remove(i) },
+                        dragHandleModifier = dragHandleModifier,
+                    )
                 }
             }
         }
@@ -361,7 +317,7 @@ private fun AddSourceCard(onAddProfile: () -> Unit, onAddGroup: () -> Unit) {
     Box {
         ElevatedCard(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth().padding(4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             colors =
                 CardDefaults.cardColors(
@@ -460,12 +416,16 @@ private fun ProxySetGroupCard(
     filterNotRegex: String,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
+    dragHandleModifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     ProxySetSourceCard(
         title = group?.displayName() ?: stringResource(Res.string.not_set),
         summary = stringResource(Res.string.filter_regex) + ": " + contentOrUnset(filterNotRegex),
         onEdit = onEdit,
         onRemove = onRemove,
+        dragHandleModifier = dragHandleModifier,
+        modifier = modifier,
     )
 }
 
@@ -475,15 +435,27 @@ private fun ProxySetSourceCard(
     summary: String,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
+    dragHandleModifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
+            Icon(
+                imageVector = vectorResource(Res.drawable.drag_indicator),
+                contentDescription = "Drag to reorder",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(40.dp)
+                    .padding(8.dp)
+                    .then(dragHandleModifier),
+            )
             Column(modifier = Modifier.weight(1f).padding(vertical = 4.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 0.dp, end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -518,7 +490,7 @@ private fun ProxySetSourceCard(
 
                 Text(
                     text = summary,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.outline,
                 )

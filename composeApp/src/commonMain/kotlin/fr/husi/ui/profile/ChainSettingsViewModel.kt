@@ -13,6 +13,10 @@ import fr.husi.resources.circular_reference
 import fr.husi.resources.circular_reference_sum
 import fr.husi.resources.duplicate_name
 import fr.husi.ui.StringOrRes
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +29,7 @@ internal data class ChainUiState(
     override val customOutbound: String = "",
 
     val name: String = "",
-    val profiles: List<ProxyEntity> = emptyList(),
+    val profiles: ImmutableList<ProxyEntity> = persistentListOf(),
 ) : ProfileEditorUiState
 
 @Stable
@@ -57,38 +61,38 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
     }
 
     private suspend fun load(ids: List<Long>) {
-        val proxyList = ArrayList<ProxyEntity>(ids.size)
         val profiles = ProfileManager.getProfiles(ids).associateBy { it.id }
-        onDefaultDispatcher {
-            for (id in ids) {
-                proxyList.add(profiles[id] ?: continue)
+        val proxyList = onDefaultDispatcher {
+            buildList(ids.size) {
+                for (id in ids) {
+                    add(profiles[id] ?: continue)
+                }
             }
         }
-        uiState.update {
-            it.copy(profiles = proxyList)
+        uiState.update { state ->
+            state.copy(profiles = proxyList.toImmutableList())
         }
     }
 
     fun submitReorder(changes: List<OrderedItem<ProxyEntity>>) {
         invalidateProfileSelection()
-        val currentProfiles = uiState.value.profiles
-        val changesMap = changes.associate { it.value.id to it.newIndex }
 
-        val reordered = currentProfiles.sortedBy { profile ->
-            changesMap[profile.id] ?: currentProfiles.indexOf(profile)
-        }
-
-        uiState.update {
-            it.copy(profiles = reordered)
+        uiState.update { state ->
+            val currentProfiles = state.profiles
+            val changesMap = changes.associate { it.value.id to it.newIndex }
+            val reordered = currentProfiles.sortedBy { profile ->
+                changesMap[profile.id] ?: currentProfiles.indexOf(profile)
+            }
+            state.copy(profiles = reordered.toImmutableList())
         }
     }
 
     fun remove(index: Int) {
         invalidateProfileSelection()
-        val profiles = uiState.value.profiles.toMutableList()
-        profiles.removeAt(index)
-        uiState.update {
-            it.copy(profiles = profiles)
+        uiState.update { state ->
+            val profiles = state.profiles.toMutableList()
+            profiles.removeAt(index)
+            state.copy(profiles = profiles.toImmutableList())
         }
     }
 
@@ -109,35 +113,37 @@ internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
         replacing = -1
         val version = ++profileMutationVersion
         profileSelectionJob?.cancel()
-        profileSelectionJob = viewModelScope.launch {
-            val profile = ProfileManager.getProfile(id)!!
-            if (version != profileMutationVersion) return@launch
-            val profiles = uiState.value.profiles.toMutableList()
-            if (replacingIndex >= profiles.size) return@launch
-            val otherProfiles = profiles.filterIndexed { index, _ -> index != replacingIndex }
-            if (otherProfiles.any { it.id == profile.id }) {
-                emitAlert(
-                    title = StringOrRes.Res(Res.string.duplicate_name),
-                    message = StringOrRes.Direct(profile.displayName()),
-                )
-                return@launch
-            }
-            if (!profile.canAdd(otherProfiles)) {
+        profileSelectionJob = viewModelScope.launch(Dispatchers.Default) {
+            uiState.update { state ->
+                val profile = ProfileManager.getProfile(id)!!
                 if (version != profileMutationVersion) return@launch
-                emitAlert(
-                    title = StringOrRes.Res(Res.string.circular_reference),
-                    message = StringOrRes.Res(Res.string.circular_reference_sum),
-                )
-                return@launch
-            }
-            if (version != profileMutationVersion) return@launch
-            if (replacingIndex < 0) {
-                profiles.add(profile)
-            } else {
-                profiles[replacingIndex] = profile
-            }
-            uiState.update {
-                it.copy(profiles = profiles)
+                val profiles = state.profiles.toMutableList()
+                if (replacingIndex >= profiles.size) return@launch
+                val otherProfiles = profiles.filterIndexed { index, _ ->
+                    index != replacingIndex
+                }
+                if (otherProfiles.any { it.id == profile.id }) {
+                    emitAlert(
+                        title = StringOrRes.Res(Res.string.duplicate_name),
+                        message = StringOrRes.Direct(profile.displayName()),
+                    )
+                    return@launch
+                }
+                if (!profile.canAdd(otherProfiles)) {
+                    if (version != profileMutationVersion) return@launch
+                    emitAlert(
+                        title = StringOrRes.Res(Res.string.circular_reference),
+                        message = StringOrRes.Res(Res.string.circular_reference_sum),
+                    )
+                    return@launch
+                }
+                if (version != profileMutationVersion) return@launch
+                if (replacingIndex < 0) {
+                    profiles.add(profile)
+                } else {
+                    profiles[replacingIndex] = profile
+                }
+                state.copy(profiles = profiles.toImmutableList())
             }
         }
     }

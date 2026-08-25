@@ -79,10 +79,10 @@ object ProfileManager {
         }
     }
 
-    fun getProfiles(profileIds: List<Long>): List<ProxyEntity> {
+    suspend fun getProfiles(profileIds: List<Long>): List<ProxyEntity> {
         if (profileIds.isEmpty()) return listOf()
         return try {
-            runBlocking { SagerDatabase.proxyDao.getEntities(profileIds) }
+            SagerDatabase.proxyDao.getEntities(profileIds)
         } catch (e: SQLiteException) {
             throw IOException(e)
         }
