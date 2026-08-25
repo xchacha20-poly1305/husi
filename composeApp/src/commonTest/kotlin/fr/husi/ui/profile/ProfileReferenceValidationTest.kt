@@ -46,7 +46,9 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             val candidateSet = createProxySet(group.id, "set", listOf(editedChain.id))
             val viewModel = ChainSettingsViewModel()
             viewModel.initialize(editedChain.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "chain" }
+            awaitState("Chain editor did not finish initializing") {
+                viewModel.uiState.value.name == "chain"
+            }
             val event = backgroundScope.async { viewModel.uiEvent.first() }
 
             viewModel.onSelectProfile(candidateSet.id)
@@ -65,10 +67,12 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             val nested = createChain(group.id, "nested", listOf(shared.id))
             val viewModel = ChainSettingsViewModel()
             viewModel.initialize(editedChain.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.profiles.map { it.id } == listOf(shared.id) }
+            awaitState("Chain editor did not load existing members") {
+                viewModel.uiState.value.profiles.map { it.id } == listOf(shared.id)
+            }
 
             viewModel.onSelectProfile(nested.id)
-            awaitState {
+            awaitState("Nested chain was not added") {
                 viewModel.uiState.value.profiles.map { it.id } == listOf(shared.id, nested.id)
             }
 
@@ -86,7 +90,7 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             val candidateChain = createChain(group.id, "chain", listOf(editedSet.id))
             val viewModel = ProxySetSettingsViewModel()
             viewModel.initialize(editedSet.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "set" }
+            awaitProxySetInitialized(viewModel)
             val event = backgroundScope.async { viewModel.uiEvent.first() }
 
             viewModel.onSelectProfile(candidateChain.id)
@@ -105,7 +109,7 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             createChain(collectedGroup.id, "chain", listOf(editedSet.id))
             val viewModel = ProxySetSettingsViewModel()
             viewModel.initialize(editedSet.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "set" }
+            awaitProxySetInitialized(viewModel)
             val event = backgroundScope.async { viewModel.uiEvent.first() }
 
             viewModel.addGroupProvider(collectedGroup.id, "")
@@ -125,24 +129,23 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             createChain(collectedGroup.id, "safe")
             val viewModel = ProxySetSettingsViewModel()
             viewModel.initialize(editedSet.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "set" }
+            awaitProxySetInitialized(viewModel)
 
             viewModel.addGroupProvider(collectedGroup.id, "safe")
-            awaitState { viewModel.uiState.value.providers.isNotEmpty() }
-            assertEquals(
-                listOf(ProxySetBean.Provider.Group(collectedGroup.id, "safe")),
-                viewModel.uiState.value.providers.map { it.toProvider() },
+            val safeProvider = listOf(
+                ProxySetBean.Provider.Group(collectedGroup.id, "safe"),
             )
+            awaitState("Filtered group provider was not added") {
+                viewModel.uiState.value.providers.map { it.toProvider() } == safeProvider
+            }
+            assertEquals(safeProvider, viewModel.uiState.value.providers.map { it.toProvider() })
 
             val event = backgroundScope.async { viewModel.uiEvent.first() }
             viewModel.setGroupProvider(0, collectedGroup.id, "")
             advanceUntilIdle()
 
             assertCircularReference(event.await())
-            assertEquals(
-                listOf(ProxySetBean.Provider.Group(collectedGroup.id, "safe")),
-                viewModel.uiState.value.providers.map { it.toProvider() },
-            )
+            assertEquals(safeProvider, viewModel.uiState.value.providers.map { it.toProvider() })
         }
 
     @Test
@@ -152,7 +155,7 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             val editedSet = createProxySet(group.id, "set")
             val viewModel = ProxySetSettingsViewModel()
             viewModel.initialize(editedSet.id, isSubscription = false)
-            awaitState { viewModel.uiState.value.name == "set" }
+            awaitProxySetInitialized(viewModel)
             val event = backgroundScope.async { viewModel.uiEvent.first() }
 
             viewModel.addGroupProvider(group.id, "[")
@@ -163,13 +166,27 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             assertTrue(viewModel.uiState.value.providers.isEmpty())
         }
 
-    private suspend fun TestScope.awaitState(predicate: () -> Boolean) {
+    // Name is written before load() fills groups; waiting only on name races later provider edits.
+    private suspend fun TestScope.awaitProxySetInitialized(
+        viewModel: ProxySetSettingsViewModel,
+        name: String = "set",
+    ) {
+        awaitState("Proxy set editor did not finish initializing") {
+            val state = viewModel.uiState.value
+            state.name == name && state.groups.isNotEmpty()
+        }
+    }
+
+    private suspend fun TestScope.awaitState(
+        failureMessage: String,
+        predicate: () -> Boolean,
+    ) {
         repeat(100) {
             advanceUntilIdle()
             if (predicate()) return
             withContext(Dispatchers.IO) { delay(5.milliseconds) }
         }
-        fail("ViewModel state did not initialize")
+        fail(failureMessage)
     }
 
     private suspend fun createGroup(name: String = "group"): ProxyGroup {
