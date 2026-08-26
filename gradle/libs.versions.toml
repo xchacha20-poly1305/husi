@@ -27,6 +27,7 @@ smaliDexlib2 = "3.0.9"
 processPhoenix = "3.0.0"
 fileKit = "0.15.0"
 ini4j = "0.5.4"
+okio = "3.18.1"
 protobuf = "4.35.1"
 protobufPlugin = "0.10.0"
 junitBom = "6.1.3"
@@ -73,6 +74,7 @@ process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "p
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "fileKit" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "fileKit" }
 ini4j = { module = "org.ini4j:ini4j", version.ref = "ini4j" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
 protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }

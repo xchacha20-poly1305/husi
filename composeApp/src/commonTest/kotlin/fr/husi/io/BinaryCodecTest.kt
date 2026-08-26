@@ -1,5 +1,6 @@
 package fr.husi.io
 
+import okio.Buffer
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -126,6 +127,32 @@ class BinaryCodecTest {
             0x83, 0xED, 0xA0, 0xBD, 0xED, 0xB8, 0x80,
         )
         assertEquals("😀", decode(encode { it.writeString("😀") }).readString())
+    }
+
+    @Test
+    fun `reading a source gives the same result as reading a byte array`() {
+        val bytes = encode {
+            it.writeInt(7)
+            it.writeString("hello")
+            it.writeString("😀")
+        }
+
+        val input = BinaryInput(Buffer().write(bytes))
+
+        assertEquals(7, input.readInt())
+        assertEquals("hello", input.readString())
+        assertEquals("😀", input.readString())
+    }
+
+    @Test
+    fun `toByteArray does not consume what was written`() {
+        val output = BinaryOutput()
+        output.writeString("kept")
+
+        assertContentEquals(output.toByteArray(), output.toByteArray())
+
+        output.writeInt(1)
+        assertEquals("kept", decode(output.toByteArray()).readString())
     }
 
     @Test

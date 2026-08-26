@@ -21,41 +21,34 @@ import fr.husi.io.BinaryFormat.VAR_INT_FLAG_FIRST_SHIFT
 import fr.husi.io.BinaryFormat.VAR_INT_FLAG_PAYLOAD_MASK
 import fr.husi.io.BinaryFormat.VAR_INT_PAYLOAD_BITS
 import fr.husi.io.BinaryFormat.VAR_INT_PAYLOAD_MASK
+import okio.Buffer
 
-class BinaryOutput(initialCapacity: Int = DEFAULT_CAPACITY) {
+class BinaryOutput {
 
-    private var buffer = ByteArray(initialCapacity)
-    private var size = 0
+    private val buffer = Buffer()
 
-    fun toByteArray(): ByteArray = buffer.copyOf(size)
+    fun toByteArray(): ByteArray = buffer.snapshot().toByteArray()
 
     fun writeByte(value: Byte) {
-        reserve(1)
-        buffer[size++] = value
+        buffer.writeByte(value.toInt())
     }
 
-    fun writeByte(value: Int) = writeByte(value.toByte())
+    fun writeByte(value: Int) {
+        buffer.writeByte(value)
+    }
 
     fun writeBytes(bytes: ByteArray) {
-        reserve(bytes.size)
-        bytes.copyInto(buffer, size)
-        size += bytes.size
+        buffer.write(bytes)
     }
 
     fun writeBoolean(value: Boolean) = writeByte(if (value) 1 else 0)
 
     fun writeInt(value: Int) {
-        reserve(BinaryFormat.INT_BYTES)
-        for (shift in 0 until BinaryFormat.INT_BYTES * Byte.SIZE_BITS step Byte.SIZE_BITS) {
-            buffer[size++] = (value ushr shift).toByte()
-        }
+        buffer.writeIntLe(value)
     }
 
     fun writeLong(value: Long) {
-        reserve(BinaryFormat.LONG_BYTES)
-        for (shift in 0 until BinaryFormat.LONG_BYTES * Byte.SIZE_BITS step Byte.SIZE_BITS) {
-            buffer[size++] = (value ushr shift).toByte()
-        }
+        buffer.writeLongLe(value)
     }
 
     fun writeVarInt(value: Int, optimizePositive: Boolean) {
@@ -104,8 +97,8 @@ class BinaryOutput(initialCapacity: Int = DEFAULT_CAPACITY) {
     }
 
     private fun writeTerminatedAscii(value: String) {
-        for (char in value) writeByte(char.code)
-        buffer[size - 1] = (buffer[size - 1].toInt() or ASCII_TERMINATOR_BIT).toByte()
+        for (index in 0 until value.lastIndex) writeByte(value[index].code)
+        writeByte(value[value.lastIndex].code or ASCII_TERMINATOR_BIT)
     }
 
     private fun writeUtf8(value: String) {
@@ -129,16 +122,4 @@ class BinaryOutput(initialCapacity: Int = DEFAULT_CAPACITY) {
     }
 
     private fun zigzag(value: Int): Int = (value shl 1) xor (value shr 31)
-
-    private fun reserve(count: Int) {
-        val required = size + count
-        if (required <= buffer.size) return
-        var capacity = buffer.size.coerceAtLeast(DEFAULT_CAPACITY)
-        while (capacity < required) capacity *= 2
-        buffer = buffer.copyOf(capacity)
-    }
-
-    private companion object {
-        const val DEFAULT_CAPACITY = 256
-    }
 }

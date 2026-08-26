@@ -14,41 +14,33 @@ import fr.husi.io.BinaryFormat.VAR_INT_FLAG_PAYLOAD_MASK
 import fr.husi.io.BinaryFormat.VAR_INT_LAST_SHIFT
 import fr.husi.io.BinaryFormat.VAR_INT_PAYLOAD_BITS
 import fr.husi.io.BinaryFormat.VAR_INT_PAYLOAD_MASK
+import okio.Buffer
+import okio.BufferedSource
 
-class BinaryInput(private val bytes: ByteArray) {
+class BinaryInput(private val source: BufferedSource) {
 
-    private var position = 0
+    constructor(bytes: ByteArray) : this(Buffer().write(bytes))
 
     fun readByte(): Byte {
-        require(1)
-        return bytes[position++]
+        requireReadSize(1)
+        return source.readByte()
     }
 
     fun readBytes(length: Int): ByteArray {
-        require(length)
-        val result = bytes.copyOfRange(position, position + length)
-        position += length
-        return result
+        requireReadSize(length)
+        return source.readByteArray(length.toLong())
     }
 
     fun readBoolean(): Boolean = readByte() == ONE
 
     fun readInt(): Int {
-        require(BinaryFormat.INT_BYTES)
-        var result = 0
-        for (shift in 0 until BinaryFormat.INT_BYTES * Byte.SIZE_BITS step Byte.SIZE_BITS) {
-            result = result or ((bytes[position++].toInt() and BYTE_MASK) shl shift)
-        }
-        return result
+        requireReadSize(BinaryFormat.INT_BYTES)
+        return source.readIntLe()
     }
 
     fun readLong(): Long {
-        require(BinaryFormat.LONG_BYTES)
-        var result = 0L
-        for (shift in 0 until BinaryFormat.LONG_BYTES * Byte.SIZE_BITS step Byte.SIZE_BITS) {
-            result = result or ((bytes[position++].toLong() and BYTE_MASK.toLong()) shl shift)
-        }
-        return result
+        requireReadSize(BinaryFormat.LONG_BYTES)
+        return source.readLongLe()
     }
 
     fun readVarInt(optimizePositive: Boolean): Int {
@@ -91,8 +83,8 @@ class BinaryInput(private val bytes: ByteArray) {
     }
 
     private fun peekFlagBit(): Boolean {
-        require(1)
-        return bytes[position].toInt() and VAR_INT_FLAG_BIT != 0
+        requireReadSize(1)
+        return source.buffer[0].toInt() and VAR_INT_FLAG_BIT != 0
     }
 
     private fun readTerminatedAscii(): String {
@@ -132,10 +124,10 @@ class BinaryInput(private val bytes: ByteArray) {
 
     private fun unZigzag(value: Int): Int = (value ushr 1) xor -(value and 1)
 
-    private fun require(count: Int) {
-        if (position + count > bytes.size) {
+    private fun requireReadSize(count: Int) {
+        if (!source.request(count.toLong())) {
             throw BinaryUnderflowException(
-                "Need $count bytes at $position but only ${bytes.size} are available",
+                "Need $count bytes but only ${source.buffer.size} are available",
             )
         }
     }
