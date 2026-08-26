@@ -66,9 +66,9 @@ internal class StunScreenViewModel(
         super.onCleared()
     }
 
-    fun initialize() {
-        uiState.update {
-            it.copy(proxy = currentSocks5()?.string.orEmpty())
+    private fun initialize() = viewModelScope.launch {
+        uiState.update { state ->
+            state.copy(proxy = currentSocks5()?.string.orEmpty())
         }
     }
 

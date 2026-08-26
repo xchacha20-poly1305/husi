@@ -9,7 +9,6 @@ import fr.husi.fmt.LOCALHOST_NAME
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
-import kotlinx.coroutines.runBlocking
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -52,9 +51,9 @@ suspend fun localProxyURL(scheme: String): URL = Libcore.newURL(scheme).apply {
     }
 }
 
-fun currentSocks5(): URL? = if (!DataStore.serviceState.connected) {
+suspend fun currentSocks5(): URL? = if (!DataStore.serviceState.connected) {
     null
-} else runBlocking {
+} else {
     localProxyURL("socks5")
 }
 

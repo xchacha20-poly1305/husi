@@ -53,8 +53,10 @@ internal class GetCertScreenViewModel(
         initialize()
     }
 
-    fun initialize() {
-        uiState.update { it.copy(proxy = currentSocks5()?.string ?: "") }
+    private fun initialize() = viewModelScope.launch {
+        uiState.update { state ->
+            state.copy(proxy = currentSocks5()?.string.orEmpty())
+        }
     }
 
     fun launch() = viewModelScope.launch(Dispatchers.IO) {
