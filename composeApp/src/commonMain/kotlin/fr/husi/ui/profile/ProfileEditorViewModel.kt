@@ -26,13 +26,14 @@ import fr.husi.resources.mux_max_streams
 import fr.husi.resources.mux_min_streams
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,11 +55,11 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
 
     abstract val uiState: StateFlow<ProfileEditorUiState>
 
-    val uiEvent: SharedFlow<ProfileEditorUiEvent>
-        field = MutableSharedFlow<ProfileEditorUiEvent>()
+    private val uiEventChannel = Channel<ProfileEditorUiEvent>(Channel.BUFFERED)
+    val uiEvent: Flow<ProfileEditorUiEvent> = uiEventChannel.receiveAsFlow()
 
     protected suspend fun emitAlert(title: StringOrRes, message: StringOrRes) {
-        uiEvent.emit(ProfileEditorUiEvent.Alert(title, message))
+        uiEventChannel.send(ProfileEditorUiEvent.Alert(title, message))
     }
 
     private val initialState = MutableStateFlow<ProfileEditorUiState?>(null)
