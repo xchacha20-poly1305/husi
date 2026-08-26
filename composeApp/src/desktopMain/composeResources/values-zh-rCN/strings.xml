@@ -22,4 +22,5 @@
     <string name="daemon_takeover_message">这将断开 %1$s 的客户端连接，对方将失去对正在运行服务的控制。</string>
     <string name="daemon_takeover">接管</string>
     <string name="daemon_stay_read_only">保持只读</string>
+    <string name="copy_terminal_proxy_env">复制终端代理环境变量</string>
 </resources>

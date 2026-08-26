@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,7 @@ import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.cli.ApiCommand
 import fr.husi.cli.libcoreLoadFailureMessage
+import fr.husi.compose.setSystemClipboardPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
@@ -54,6 +56,8 @@ import fr.husi.repository.resolvePackagedAnjaNativesDir
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
 import fr.husi.resources.close
+import fr.husi.resources.content_copy
+import fr.husi.resources.copy_terminal_proxy_env
 import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
 import fr.husi.resources.service_mode
@@ -64,6 +68,8 @@ import fr.husi.resources.stop
 import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -273,6 +279,8 @@ class DesktopMain(
                     }
                 }
 
+                val scope = rememberCoroutineScope()
+
                 val appName = stringResource(Res.string.app_name)
                 val iconServiceActive = painterResource(Res.drawable.ic_service_active)
 
@@ -339,6 +347,14 @@ class DesktopMain(
                                     if (isSelected) setServiceMode(Key.MODE_VPN)
                                 },
                             )
+                        }
+                        Item(
+                            label = stringResource(Res.string.copy_terminal_proxy_env),
+                            icon = painterResource(Res.drawable.content_copy),
+                        ) {
+                            scope.launch(Dispatchers.Default) {
+                                setSystemClipboardPlainText(currentProxyEnvCommand())
+                            }
                         }
                         Item(
                             label = textExit,

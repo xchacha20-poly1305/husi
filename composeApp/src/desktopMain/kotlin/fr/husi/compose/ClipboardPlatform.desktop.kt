@@ -10,6 +10,7 @@ import fr.husi.ktx.Logs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.Image
+import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
@@ -21,6 +22,13 @@ import org.jetbrains.skia.Image as SkiaImage
 @OptIn(ExperimentalComposeUiApi::class)
 actual suspend fun Clipboard.setPlainText(text: String) {
     setClipEntry(ClipEntry(StringSelection(text)))
+}
+
+/**
+ * Use it outside LocalClipboard scope
+ */
+fun setSystemClipboardPlainText(text: String) = runCatching {
+    Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

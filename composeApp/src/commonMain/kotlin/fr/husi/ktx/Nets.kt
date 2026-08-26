@@ -9,6 +9,7 @@ import fr.husi.fmt.LOCALHOST_NAME
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
+import kotlinx.coroutines.runBlocking
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -41,20 +42,20 @@ fun URL.parseBoolean(key: String): Boolean = when (queryParameter(key).lowercase
     else -> false
 }
 
+suspend fun localProxyURL(scheme: String): URL = Libcore.newURL(scheme).apply {
+    host = LOCALHOST4
+    ports = DataStore.mixedPort.get().toString()
+
+    DataStore.inboundUsername.get().emptyAsNull()?.let { name ->
+        username = name
+        password = DataStore.inboundPassword.get()
+    }
+}
+
 fun currentSocks5(): URL? = if (!DataStore.serviceState.connected) {
     null
-} else {
-    Libcore.newURL("socks5").apply {
-        host = LOCALHOST4
-        ports = DataStore.mixedPort.getBlocking().toString()
-
-        // Avoid creating User field if not have.
-        val username = DataStore.inboundUsername.getBlocking()
-        if (username.isNotEmpty()) {
-            this.username = username
-            password = DataStore.inboundPassword.getBlocking()
-        }
-    }
+} else runBlocking {
+    localProxyURL("socks5")
 }
 
 fun String.isIpAddress(): Boolean {
