@@ -1,5 +1,5 @@
-@file:Suppress("ERROR_SUPPRESSION", "INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
-@file:OptIn(InternalResourceApi::class)
+@file:Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+@file:OptIn(ExperimentalResourceApi::class, InternalResourceApi::class)
 
 package fr.husi
 
@@ -10,12 +10,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import fr.husi.database.DataStore
 import org.jetbrains.compose.resources.ComposeEnvironment
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.LanguageQualifier
 import org.jetbrains.compose.resources.LocalComposeEnvironment
 import org.jetbrains.compose.resources.RegionQualifier
 import org.jetbrains.compose.resources.ResourceEnvironment
-import org.jetbrains.compose.resources.ScriptQualifier
 import org.jetbrains.compose.resources.getSystemEnvironment
 import java.util.Locale
 
@@ -74,7 +74,6 @@ private fun mapResourceEnvironment(
 
     return ResourceEnvironment(
         language = LanguageQualifier(language),
-        script = ScriptQualifier(locale.script),
         region = RegionQualifier(region),
         theme = environment.theme,
         density = environment.density,
