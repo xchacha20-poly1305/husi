@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
@@ -62,8 +63,74 @@ func ServiceInstall(workingDir string) error {
 		}
 	}
 
-	socketPath := DefaultSocketPath()
-	unit := fmt.Sprintf(`[Unit]
+	unitOptions := serviceUnitOptions{
+		ExecPath:   installBin,
+		WorkingDir: absDir,
+		SocketPath: DefaultSocketPath(),
+	}
+	account, err := ensureDaemonUser()
+	if err != nil {
+		log.Warn("the daemon will run as root: ", err)
+	} else {
+		unitOptions.User = account.Name
+		if err := chownTree(absDir, account.UID, account.GID); err != nil {
+			return E.Cause(err, "hand the working directory to ", account.Name)
+		}
+	}
+
+	err = os.WriteFile(serviceUnitPath, []byte(renderServiceUnit(unitOptions)), 0o644)
+	if err != nil {
+		return E.Cause(err, "write systemd unit")
+	}
+	err = runSystemctl("daemon-reload")
+	if err != nil {
+		return err
+	}
+	err = runSystemctl("enable", serviceUnitName)
+	if err != nil {
+		return err
+	}
+	// Idempotent upgrade path: restart picks up the new pair.
+	err = runSystemctl("restart", serviceUnitName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+const daemonCapabilities = "CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE CAP_SYS_PTRACE CAP_DAC_READ_SEARCH"
+
+type serviceUnitOptions struct {
+	ExecPath   string
+	WorkingDir string
+	SocketPath string
+	// User is the unprivileged account to run as. Empty means root, the
+	// fallback for a system where the account could not be created.
+	User string
+}
+
+func renderServiceUnit(options serviceUnitOptions) string {
+	var privileges strings.Builder
+	if options.User != "" {
+		fmt.Fprintf(&privileges, `User=%s
+Group=%s
+AmbientCapabilities=%s
+CapabilityBoundingSet=%s
+NoNewPrivileges=yes
+# The tun device node is world writable on every systemd distribution, so
+# reaching it needs no capability of its own — only naming it here.
+DeviceAllow=/dev/net/tun rw
+ProtectHome=yes
+ProtectSystem=strict
+`, options.User, options.User, daemonCapabilities, daemonCapabilities)
+		// StateDirectory only covers the default location. A working directory
+		// somewhere else has to be named, or ProtectSystem keeps it read-only.
+		if options.WorkingDir != DefaultWorkingDir() {
+			fmt.Fprintf(&privileges, "ReadWritePaths=%s\n", options.WorkingDir)
+		}
+	}
+
+	return fmt.Sprintf(`[Unit]
 Description=Husi Core Daemon
 After=network.target
 
@@ -76,25 +143,12 @@ RestartSec=5
 RuntimeDirectory=husi
 RuntimeDirectoryMode=0755
 StateDirectory=husi
-
+# Plugin configurations live here and carry server credentials.
+StateDirectoryMode=0700
+%s
 [Install]
 WantedBy=multi-user.target
-`, installBin, absDir, socketPath)
-
-	if err := os.WriteFile(serviceUnitPath, []byte(unit), 0o644); err != nil {
-		return E.Cause(err, "write systemd unit")
-	}
-	if err := runSystemctl("daemon-reload"); err != nil {
-		return err
-	}
-	if err := runSystemctl("enable", serviceUnitName); err != nil {
-		return err
-	}
-	// Idempotent upgrade path: restart picks up the new pair.
-	if err := runSystemctl("restart", serviceUnitName); err != nil {
-		return err
-	}
-	return nil
+`, options.ExecPath, options.WorkingDir, options.SocketPath, privileges.String())
 }
 
 func ServiceUninstall(workingDir string, purge bool) error {

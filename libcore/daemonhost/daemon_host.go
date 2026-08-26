@@ -55,6 +55,10 @@ func (h *DaemonHost) run(ctx context.Context) error {
 	if ctx == nil {
 		return E.New("missing context")
 	}
+	err := dropAmbientCapabilities()
+	if err != nil {
+		log.Warn(err)
+	}
 	workingDir := h.options.WorkingDir
 	if workingDir == "" {
 		workingDir = DefaultWorkingDir()

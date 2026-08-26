@@ -54,6 +54,54 @@ func TestPrepareInstallDirectoryRejectsUserWritable(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestRenderServiceUnitUnprivileged(t *testing.T) {
+	unit := renderServiceUnit(serviceUnitOptions{
+		ExecPath:   defaultInstallBin,
+		WorkingDir: DefaultWorkingDir(),
+		SocketPath: DefaultDaemonSocketPath,
+		User:       daemonUserName,
+	})
+
+	assert.Contains(t, unit, "ExecStart="+defaultInstallBin+" run --dir "+DefaultWorkingDir()+" --socket "+DefaultDaemonSocketPath)
+	assert.Contains(t, unit, "User="+daemonUserName)
+	assert.Contains(t, unit, "Group="+daemonUserName)
+	assert.Contains(t, unit, "AmbientCapabilities="+daemonCapabilities)
+	assert.Contains(t, unit, "CapabilityBoundingSet="+daemonCapabilities)
+	assert.Contains(t, unit, "DeviceAllow=/dev/net/tun rw")
+	assert.Contains(t, unit, "NoNewPrivileges=yes")
+	// Process routing rules walk /proc; hiding it would break them silently.
+	assert.NotContains(t, unit, "ProtectProc=")
+	assert.NotContains(t, unit, "ReadWritePaths=")
+	assert.Contains(t, unit, "StateDirectoryMode=0700")
+	assert.Contains(t, unit, "WantedBy=multi-user.target")
+}
+
+func TestRenderServiceUnitCustomWorkingDirStaysWritable(t *testing.T) {
+	const customDir = "/opt/husi-state"
+	unit := renderServiceUnit(serviceUnitOptions{
+		ExecPath:   defaultInstallBin,
+		WorkingDir: customDir,
+		SocketPath: DefaultDaemonSocketPath,
+		User:       daemonUserName,
+	})
+
+	assert.Contains(t, unit, "ProtectSystem=strict")
+	assert.Contains(t, unit, "ReadWritePaths="+customDir)
+}
+
+func TestRenderServiceUnitRootFallback(t *testing.T) {
+	unit := renderServiceUnit(serviceUnitOptions{
+		ExecPath:   defaultInstallBin,
+		WorkingDir: DefaultWorkingDir(),
+		SocketPath: DefaultDaemonSocketPath,
+	})
+
+	assert.NotContains(t, unit, "User=")
+	assert.NotContains(t, unit, "AmbientCapabilities=")
+	assert.NotContains(t, unit, "ProtectSystem=")
+	assert.Contains(t, unit, "StateDirectory=husi")
+}
+
 func requireProtectedSystemExecutable(t *testing.T) string {
 	t.Helper()
 	if _, err := os.Stat(protectedSystemExecutable); err != nil {

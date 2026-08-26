@@ -2,7 +2,14 @@
 
 package daemonhost
 
-import "syscall"
+import (
+	"os"
+	"syscall"
+)
+
+func NeedsProcessCredential() bool {
+	return os.Geteuid() == 0
+}
 
 func ProcessCredentialForOwner(identity PeerIdentity) (*syscall.SysProcAttr, error) {
 	return &syscall.SysProcAttr{

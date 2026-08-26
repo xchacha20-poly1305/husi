@@ -44,6 +44,9 @@ func newDaemonDaemonService(workingDir, version string, owner *OwnerStore) *daem
 }
 
 func (s *daemonDaemonService) pluginCredentials() (*syscall.SysProcAttr, error) {
+	if !NeedsProcessCredential() {
+		return nil, nil
+	}
 	identity := s.owner.Owner()
 	if identity == nil {
 		return nil, E.New("no owner for plugin credentials")
@@ -62,7 +65,7 @@ func (s *daemonDaemonService) GetDaemonInfo(ctx context.Context, _ *husiv1.GetDa
 		Hosting:    husiv1.Hosting_HOSTING_DAEMON,
 		Ownership:  s.owner.OwnershipInfo(caller),
 		Capabilities: &husiv1.Capabilities{
-			Tun:         true,
+			Tun:         hasNetworkAdminCapability(),
 			StartAtBoot: true,
 		},
 		StartAtBoot: StartAtBoot(s.workingDir),

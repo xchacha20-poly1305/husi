@@ -106,6 +106,15 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
       `SubscribeServiceEvents` subscribers.
     - `libcore/daemonhost/` is the desktop process host (session/daemon, peercred, service
       install of the shim+library pair). Entrypoint is `libcore/coreentry` (`//export HusiCoreMain`).
+      On Linux the installed daemon is **not** root: `ServiceInstall` creates a `husi` system
+      user and writes a unit that grants `CAP_NET_ADMIN` (tun, routes, nftables, `SO_MARK`),
+      `CAP_NET_BIND_SERVICE` and `CAP_SYS_PTRACE` (process routing rules read other users'
+      `/proc`), falling back to a root unit only when the account cannot be created. The daemon
+      clears its own ambient set at startup (`capabilities_linux.go`) because ambient
+      capabilities cross `execve` — plugin children inherit the unprivileged user and no
+      capabilities at all, so `NeedsProcessCredential` skips the setuid drop there. macOS
+      (launchd) and Windows (LocalSystem) still run privileged and still drop plugin children
+      to the owner.
     - `libcore/shim/` is that host's `main()`: a standalone Zig project (**not** part of the Go
       module) producing the console `husi-core` executable, which `dlopen`s the `libhusicore.*`
       sitting next to it — absolute path only, never a search path — and calls `HusiCoreMain`.
@@ -156,7 +165,8 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
 - `launcher/` — Zig project for the UI launcher (`src/main.zig`) embedded into desktop installers.
   Windowed, statically linked against musl so one binary runs on any distro. It only locates a JVM
   and execs the jar; privileges live in the core host process (`husi-core service install` copies
-  the shim+library pair into a protected path).
+  the shim+library pair into a protected path, and on Linux leaves a capability-scoped, non-root
+  unit behind).
 - `plugin/api/` — shared Android library that plugin APKs link against.
   `plugin/{hysteria2,juicity,mieru,naive,shadowquic}/` each wrap a Go/Rust submodule built into JNI
   libs by `buildScript/plugin/<name>.sh`. The matching Gradle module's `setupPlugin(...)` registers

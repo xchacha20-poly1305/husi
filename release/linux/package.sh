@@ -439,7 +439,7 @@ prepare_rootfs() {
         exit 1
     fi
 
-    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system"
+    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system" "$rootfs/usr/lib/sysusers.d"
     cp "$INPUT_JAR" "$app_dir/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$main_launcher"
     chmod 755 "$main_launcher"
@@ -470,6 +470,10 @@ prepare_rootfs() {
         "$daemon_unit_path" \
         "$CORE_PATH_PLACEHOLDER" "$core_path"
 
+    # The account the unit runs as. postinstall.sh applies it, for the
+    # distributions whose package manager does not pick sysusers.d up itself.
+    cp "$ROOT_DIR/release/linux/desktop/husi-sysusers.conf" "$rootfs/usr/lib/sysusers.d/husi.conf"
+
     local icon_source="$ROOT_DIR/fastlane/metadata/android/en-US/images/icon.png"
     if [[ -f "$icon_source" ]]; then
         cp "$icon_source" "$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
@@ -480,12 +484,10 @@ prepare_script_templates() {
     local work_dir="$1"
 
     # Scripts manage the fixed unit name husi-daemon.service — no placeholders.
-    # One postremove.sh for deb/rpm/pacman; argument handling is packager-aware.
-    cp "$ROOT_DIR/release/linux/desktop/postinstall.sh" "$work_dir/deb-postinstall.sh"
+    # One postinstall.sh for every install and upgrade hook, one postremove.sh
+    # for deb/rpm/pacman; argument handling is packager-aware.
+    cp "$ROOT_DIR/release/linux/desktop/postinstall.sh" "$work_dir/postinstall.sh"
     cp "$ROOT_DIR/release/linux/desktop/postremove.sh" "$work_dir/postremove.sh"
-    cp "$ROOT_DIR/release/linux/desktop/posttrans.sh" "$work_dir/rpm-posttrans.sh"
-    cp "$ROOT_DIR/release/linux/desktop/postinstall.arch.sh" "$work_dir/arch-postinstall.sh"
-    cp "$ROOT_DIR/release/linux/desktop/postupgrade.arch.sh" "$work_dir/arch-postupgrade.sh"
 
     # The tarball carries its own user-level installer: no package manager and
     # therefore no root is involved, so these two do need the metadata baked in.
@@ -499,11 +501,8 @@ prepare_script_templates() {
     done
 
     chmod 755 \
-        "$work_dir/deb-postinstall.sh" \
+        "$work_dir/postinstall.sh" \
         "$work_dir/postremove.sh" \
-        "$work_dir/rpm-posttrans.sh" \
-        "$work_dir/arch-postinstall.sh" \
-        "$work_dir/arch-postupgrade.sh" \
         "$work_dir/install.sh" \
         "$work_dir/uninstall.sh"
 }
@@ -555,6 +554,7 @@ EOF
     write_content_entry "$config_file" "../lib/$PACKAGE_NAME/bin/$PACKAGE_NAME" "/usr/bin/$PACKAGE_NAME" "symlink"
     write_content_entry "$config_file" "$rootfs/usr/share/applications/$PACKAGE_NAME.desktop" "/usr/share/applications/$PACKAGE_NAME.desktop" ""
     write_content_entry "$config_file" "$rootfs/etc/systemd/system/husi-daemon.service" "/etc/systemd/system/husi-daemon.service" ""
+    write_content_entry "$config_file" "$rootfs/usr/lib/sysusers.d/husi.conf" "/usr/lib/sysusers.d/husi.conf" ""
 
     local icon_path="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     if [[ -f "$icon_path" ]]; then
@@ -583,7 +583,7 @@ recommends:
   - pkexec | policykit-1
   - xdg-utils
 scripts:
-  postinstall: $work_dir/deb-postinstall.sh
+  postinstall: $work_dir/postinstall.sh
   postremove: $work_dir/postremove.sh
 deb:
   arch: $DEB_ARCH
@@ -611,7 +611,7 @@ rpm:
   summary: $APP_DESCRIPTION
   packager: $MAINTAINER
   scripts:
-    posttrans: $work_dir/rpm-posttrans.sh
+    posttrans: $work_dir/postinstall.sh
 EOF
 }
 
@@ -628,14 +628,14 @@ depends:
   - ca-certificates
   - nftables
 scripts:
-  postinstall: $work_dir/arch-postinstall.sh
+  postinstall: $work_dir/postinstall.sh
   postremove: $work_dir/postremove.sh
 archlinux:
   arch: $PACMAN_ARCH
   pkgbase: $PACKAGE_NAME
   packager: $MAINTAINER
   scripts:
-    postupgrade: $work_dir/arch-postupgrade.sh
+    postupgrade: $work_dir/postinstall.sh
 EOF
 }
 

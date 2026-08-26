@@ -10,6 +10,10 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+func NeedsProcessCredential() bool {
+	return true
+}
+
 func ProcessCredentialForOwner(identity PeerIdentity) (*syscall.SysProcAttr, error) {
 	if identity.SessionID == 0 {
 		return nil, E.New("missing Windows session id for process credentials")

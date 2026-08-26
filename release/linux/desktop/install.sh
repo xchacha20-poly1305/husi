@@ -30,8 +30,10 @@ Installs $APP_NAME for the current user only.
 Options:
   --prefix DIR         Install prefix (default: \$HOME/.local).
   --with-daemon        Also install the system daemon, which enables TUN mode.
-                       This is the one step that asks for administrator rights,
-                       through pkexec. Settings can do it later instead.
+                       Installing it asks for administrator rights, through
+                       pkexec; the daemon itself then runs as its own
+                       unprivileged "husi" user, holding only the capabilities
+                       it needs. Settings can do this later instead.
   --no-desktop-entry   Skip the application menu entry and icon.
   -h, --help           Show this help.
 EOF
@@ -119,8 +121,9 @@ install_desktop_entry() {
     log "Installed desktop entry $target_entry"
 }
 
-# TUN needs a privileged daemon; everything else runs fine without one, so a
-# refused prompt is a skipped feature rather than a failed install.
+# TUN needs the system daemon; everything else runs fine without one, so a
+# refused prompt is a skipped feature rather than a failed install. Installing
+# takes root — the daemon it leaves behind does not.
 install_daemon() {
     app_root="$1"
     if ! command -v pkexec >/dev/null 2>&1; then
