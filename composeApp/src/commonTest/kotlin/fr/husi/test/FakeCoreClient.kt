@@ -221,8 +221,10 @@ open class FakeCoreClient : CoreClient {
         delay(stopServiceDelay)
         stopServiceThrowable?.let { throw it }
     }
-    override suspend fun getClientMetadata(): GetClientMetadataResponse =
+    var nextClientMetadata: GetClientMetadataResponse =
         GetClientMetadataResponse.getDefaultInstance()
+
+    override suspend fun getClientMetadata(): GetClientMetadataResponse = nextClientMetadata
 
     override suspend fun setStartAtBoot(enabled: Boolean) = Unit
 

@@ -11,15 +11,19 @@ import fr.husi.bg.initPlugins
 import fr.husi.bg.proto.TrafficLooper
 import fr.husi.core.BridgeCoreClient
 import fr.husi.core.CoreClient
+import fr.husi.core.CoreStateReconciliation
+import fr.husi.core.reconciliationFor
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginNotFoundException
+import fr.husi.proto.daemon.ServiceStatus as DaemonServiceStatus
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.Hosting
 import fr.husi.proto.v1.clientMetadata
@@ -28,6 +32,7 @@ import fr.husi.resources.Res
 import fr.husi.resources.invalid_server
 import fr.husi.resources.profile_empty
 import fr.husi.resources.service_failed
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,6 +40,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.runInterruptible
@@ -72,8 +78,9 @@ internal class CoreHostController(
     private val repository: DesktopRepository,
     private val resolveCoreClient: () -> CoreClient = { GlobalContext.get().get() },
     private val resolveCoreBinary: () -> File? = ::resolveHusiCoreBinary,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val access = Mutex()
 
     private var runningProfileName: String? = null
@@ -108,6 +115,25 @@ internal class CoreHostController(
      * stays read-only until the user takes over from Settings.
      */
     private var foreignOwner: DaemonOwner? = null
+
+    private val coreStatus = MutableStateFlow<DaemonServiceStatus?>(null)
+    private var coreStatusMirror: Job? = null
+
+    init {
+        // Applying a status can tear the session down, which cancels the subscription above.
+        // So split to two job.
+        scope.launch {
+            coreStatus.filterNotNull().collect {
+                access.withLock {
+                    // Read the flow instead of the collected value: having
+                    // waited for the lock means a local command was running,
+                    // and anything the core reported meanwhile supersedes
+                    // whatever woke this collector.
+                    coreStatus.value?.let { latest -> reconcileWithCoreLocked(latest) }
+                }
+            }
+        }
+    }
 
     /**
      * Mirrors [connectedToDaemon] / [apiVersionMismatch] / [foreignOwner] for
@@ -265,7 +291,7 @@ internal class CoreHostController(
         // Already on a live session — re-probe.
         if (!connectedToDaemon && hostReady && sessionProcess?.isAlive == true) {
             if (probeHost()) return
-            hostReady = false
+            markHostLost()
         }
 
         // Try the system daemon first (once per attach cycle).
@@ -281,7 +307,68 @@ internal class CoreHostController(
             spawnSessionLocked()
         }
         waitForHostReady()
+        markHostReady()
+    }
+
+    private fun markHostReady() {
         hostReady = true
+        startCoreStatusMirror()
+    }
+
+    private fun markHostLost() {
+        hostReady = false
+        stopCoreStatusMirror()
+    }
+
+    /**
+     * Feeds the core's own service status into the local state machine.
+     */
+    private fun startCoreStatusMirror() {
+        if (coreStatusMirror?.isActive == true) return
+        coreStatusMirror = scope.launch {
+            coreClient.subscribeServiceStatus().collect { coreStatus.value = it }
+        }
+    }
+
+    private fun stopCoreStatusMirror() {
+        coreStatusMirror?.cancel()
+        coreStatusMirror = null
+        coreStatus.value = null
+    }
+
+    private suspend fun reconcileWithCoreLocked(status: DaemonServiceStatus) {
+        val reconciliation = reconciliationFor(status.status, DataStore.serviceState) ?: return
+        Logs.i("core reports ${status.status}, local state is ${DataStore.serviceState}: $reconciliation")
+        when (reconciliation) {
+            CoreStateReconciliation.Adopt -> adoptRunningServiceLocked()
+
+            CoreStateReconciliation.MarkStarting ->
+                changeState(ServiceState.Connecting, runningProfileName)
+
+            CoreStateReconciliation.Abandon -> abandonServiceLocked(status.errorMessage)
+        }
+    }
+
+    private suspend fun adoptRunningServiceLocked() {
+        val metadata = runCatching { coreClient.getClientMetadata().clientMetadata }
+            .onFailure { Logs.w("read the client metadata of the adopted service", it) }
+            .getOrNull()
+        runningProfileName = metadata?.profileName?.blankAsNull()
+        changeState(ServiceState.Connected, runningProfileName)
+        BackendState.setConnected(true)
+
+        // Last: this one goes to disk, and the UI should not wait for it.
+        metadata?.profileId?.takeIf { it > 0L }?.let { DataStore.currentProfile.set(it) }
+    }
+
+    /**
+     * @param errorMessage What the core reported, empty for an orderly stop.
+     */
+    private suspend fun abandonServiceLocked(errorMessage: String) {
+        val message = errorMessage.blankAsNull()?.let {
+            "${resolveRepository().getString(Res.string.service_failed)}: $it"
+        }
+        stopLocked(message)
     }
 
     /**
@@ -314,7 +401,7 @@ internal class CoreHostController(
 
         switchToDaemonClient(daemonPath)
         connectedToDaemon = true
-        hostReady = true
+        markHostReady()
         publishHostState()
         Logs.i("connected to system daemon at $daemonPath")
         return true
@@ -330,6 +417,7 @@ internal class CoreHostController(
      * Resets the dial path to the session working dir for a later fallback.
      */
     private suspend fun detachDaemonClientLocked() {
+        markHostLost()
         OpenConnectAuthWatcher.stop()
         OpenVPNAuthWatcher.stop()
         trafficLooper?.stop()
@@ -337,7 +425,6 @@ internal class CoreHostController(
         runCatching { coreClient.close() }
         repository.resetCoreSocketBasePath()
         connectedToDaemon = false
-        hostReady = false
         apiVersionMismatch = false
         foreignOwner = null
         publishHostState()
@@ -539,7 +626,7 @@ internal class CoreHostController(
             closeSessionLocked(SessionTeardown.Forced)
             spawnSessionLocked()
             waitForHostReady()
-            hostReady = true
+            markHostReady()
         }.onFailure {
             // The next ensureHostLocked spawns again; stopping must not fail.
             Logs.w(it)
@@ -623,7 +710,7 @@ internal class CoreHostController(
                 if (sessionProcess === process) {
                     sessionProcess = null
                     sessionStdin = null
-                    hostReady = false
+                    markHostLost()
                     if (DataStore.serviceState.canStop) {
                         stopLocked(
                             "${resolveRepository().getString(Res.string.service_failed)}: core host exited ($exit)",
@@ -658,7 +745,7 @@ internal class CoreHostController(
     private suspend fun closeSessionLocked(
         teardown: SessionTeardown = SessionTeardown.Graceful,
     ) {
-        hostReady = false
+        markHostLost()
         runCatching {
             GlobalContext.getOrNull()?.get<CoreClient>()?.close()
         }
@@ -713,7 +800,7 @@ internal class CoreHostController(
     /** Test-only: pretend the shared client is attached to a live host. */
     internal fun attachHostForTest(daemon: Boolean) {
         connectedToDaemon = daemon
-        hostReady = true
+        markHostReady()
         publishHostState()
     }
 
