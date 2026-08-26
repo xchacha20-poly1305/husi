@@ -1,5 +1,7 @@
 package fr.husi.repository
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
@@ -10,6 +12,8 @@ interface Repository {
     val isTv: Boolean
 
     val boxService: fr.husi.libcore.Service?
+
+    val preferenceStoreDispatcher: CoroutineDispatcher get() = Dispatchers.IO
 
     val cacheDir: File
     val filesDir: File

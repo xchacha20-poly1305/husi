@@ -11,8 +11,6 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import fr.husi.repository.resolveAndroidRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import okio.buffer
 import okio.sink
 import okio.source
@@ -23,14 +21,14 @@ private object MultiProcessPreferenceDataStoreHolder {
     @Volatile
     private var instance: DataStore<Preferences>? = null
 
-    fun get(context: Context): DataStore<Preferences> {
+    fun get(context: Context, scope: CoroutineScope): DataStore<Preferences> {
         val appContext = context.applicationContext
         return instance ?: synchronized(this) {
             instance ?: MultiProcessDataStoreFactory.create(
                 serializer = MultiProcessPreferencesSerializer,
                 corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
                 migrations = listOf(RoomToDataStoreMigration(appContext)),
-                scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+                scope = scope,
                 produceFile = { appContext.preferencesDataStoreFile("configuration") },
             ).also { instance = it }
         }
@@ -55,6 +53,6 @@ private object MultiProcessPreferencesSerializer : Serializer<Preferences> {
     }
 }
 
-internal actual fun createConfigurationDataStore(): DataStore<Preferences> {
-    return MultiProcessPreferenceDataStoreHolder.get(resolveAndroidRepository().context)
+internal actual fun createConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences> {
+    return MultiProcessPreferenceDataStoreHolder.get(resolveAndroidRepository().context, scope)
 }

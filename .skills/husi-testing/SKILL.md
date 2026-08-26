@@ -198,6 +198,12 @@ Its file path is resolved through `resolveRepository().resolveDatabaseFile(...)`
 Koin to be initialised — that's why ViewModel/updater tests **must** go through `HusiKoinTest` or
 deeper, not `MainDispatcherTest` alone.
 
+The store's own coroutines (file reads, the write actor) run on `Repository.preferenceStoreDispatcher`
+— `Dispatchers.IO` in production, `Dispatchers.Unconfined` under `FakeRepository`, so suspending
+`PreferenceProxy.get()` / `set()` resumes on the calling thread and stays inside the test
+scheduler. Note the store is created once per process: whichever `Repository` is registered at the
+first `DataStore` touch supplies that dispatcher for the whole test run.
+
 Reset between tests:
 
 ```kotlin
@@ -215,6 +221,12 @@ restore them yourself in `@AfterTest`.
 
 - **Tests hang or `advanceUntilIdle()` does nothing.** You passed `runTest { ... }` without
   `dispatcher.scheduler`. Use `runTest(dispatcher.scheduler) { ... }`.
+- **`advanceUntilIdle()` returns while the work is still running.** It only drains the test
+  scheduler; work that resumes on a *real* dispatcher is invisible to it, so assertions run
+  mid-flight. `DataStore` used to do exactly this — `Repository.preferenceStoreDispatcher` now
+  keeps the preference store on the caller's thread under `FakeRepository` (see below). For any
+  other hop onto a real dispatcher, either inject the dispatcher (see "Refactoring for
+  testability") or have the function return its `Job` and `join()` it.
 - **`uiEvent.first()` returns immediately with the wrong event** (or never returns). You started
   collecting *after* the producer emitted, into a 0-replay `SharedFlow`. Wrap the collection in
   `backgroundScope.async { flow.first() }` *before* triggering the producer.

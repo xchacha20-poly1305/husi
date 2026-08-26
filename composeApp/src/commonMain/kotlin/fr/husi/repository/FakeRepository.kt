@@ -1,6 +1,7 @@
 package fr.husi.repository
 
 import fr.husi.libcore.Service
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
@@ -14,6 +15,8 @@ class FakeRepository : Repository {
     override val isTv = false
 
     override val boxService: Service? = null
+
+    override val preferenceStoreDispatcher = Dispatchers.Unconfined
 
     @Suppress("NewApi")
     private val tempRoot = createTempDirectory("husi-fake-repo").toFile()
