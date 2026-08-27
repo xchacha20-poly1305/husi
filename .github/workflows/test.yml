@@ -134,4 +134,6 @@ jobs:
             build/reports/problems/
             composeApp/build/reports/tests/
             composeApp/build/test-results/
+            # Gradle's internal binary result format; the XML and HTML above say the same thing.
+            !**/*.bin
           if-no-files-found: warn
