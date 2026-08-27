@@ -5,6 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
+import org.jetbrains.compose.resources.getPluralString as getComposePluralString
+import org.jetbrains.compose.resources.getString as getComposeString
 
 interface Repository {
     val isMainProcess: Boolean
@@ -20,9 +22,16 @@ interface Repository {
     val externalAssetsDir: File
     fun resolveDatabaseFile(name: String): File
 
-    suspend fun getString(resource: StringResource): String
-    suspend fun getString(resource: StringResource, vararg formatArgs: Any): String
-    suspend fun getPluralString(resource: PluralStringResource, quantity: Int, vararg formatArgs: Any): String
+    suspend fun getString(resource: StringResource): String = getComposeString(resource)
+
+    suspend fun getString(resource: StringResource, vararg formatArgs: Any): String =
+        getComposeString(resource, *formatArgs)
+
+    suspend fun getPluralString(
+        resource: PluralStringResource,
+        quantity: Int,
+        vararg formatArgs: Any,
+    ): String = getComposePluralString(resource, quantity, *formatArgs)
 
     fun startService()
     fun reloadService()

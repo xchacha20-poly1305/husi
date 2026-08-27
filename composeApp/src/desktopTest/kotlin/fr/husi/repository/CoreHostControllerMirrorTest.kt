@@ -51,7 +51,7 @@ class CoreHostControllerMirrorTest : HusiKoinTest() {
         tempDir = createTempDirectory("husi-core-host-mirror").toFile()
         fakeClient = FakeCoreClient()
         controller = CoreHostController(
-            repository = DesktopRepository(tempDir),
+            repository = FakeDesktopRepository(tempDir),
             resolveCoreClient = { fakeClient },
             // No core binary: a session restart is attempted but never spawns.
             resolveCoreBinary = { null },

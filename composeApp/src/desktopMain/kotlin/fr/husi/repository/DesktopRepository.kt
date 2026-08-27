@@ -3,15 +3,11 @@ package fr.husi.repository
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.libcore.Service
 import kotlinx.coroutines.flow.StateFlow
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 import java.io.File
-import org.jetbrains.compose.resources.getPluralString as getComposePluralString
-import org.jetbrains.compose.resources.getString as getComposeString
 
 fun resolveDesktopRepository(): DesktopRepository = resolveRepository() as DesktopRepository
 
-class DesktopRepository(
+open class DesktopRepository(
     val dataDir: File,
 ) : Repository {
 
@@ -90,16 +86,6 @@ class DesktopRepository(
     override fun resolveDatabaseFile(name: String): File {
         return dataDir.resolve(name)
     }
-
-    override suspend fun getString(resource: StringResource) = getComposeString(resource)
-    override suspend fun getString(resource: StringResource, vararg formatArgs: Any) =
-        getComposeString(resource, *formatArgs)
-
-    override suspend fun getPluralString(
-        resource: PluralStringResource,
-        quantity: Int,
-        vararg formatArgs: Any,
-    ) = getComposePluralString(resource, quantity, *formatArgs)
 
     override fun startService() {
         coreHostController.start()

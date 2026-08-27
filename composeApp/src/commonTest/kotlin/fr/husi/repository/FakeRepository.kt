@@ -6,8 +6,11 @@ import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import kotlin.io.path.createTempDirectory
-import org.jetbrains.compose.resources.getPluralString as getComposePluralString
-import org.jetbrains.compose.resources.getString as getComposeString
+
+internal fun stubResourceString(key: String, formatArgs: Array<out Any>): String {
+    if (formatArgs.isEmpty()) return key
+    return formatArgs.joinToString(prefix = "$key(", postfix = ")")
+}
 
 class FakeRepository : Repository {
     override val isMainProcess = true
@@ -27,15 +30,15 @@ class FakeRepository : Repository {
         return tempRoot.resolve(name)
     }
 
-    override suspend fun getString(resource: StringResource) = getComposeString(resource)
+    override suspend fun getString(resource: StringResource) = resource.key
     override suspend fun getString(resource: StringResource, vararg formatArgs: Any) =
-        getComposeString(resource, *formatArgs)
+        stubResourceString(resource.key, formatArgs)
 
     override suspend fun getPluralString(
         resource: PluralStringResource,
         quantity: Int,
         vararg formatArgs: Any,
-    ) = getComposePluralString(resource, quantity, *formatArgs)
+    ) = stubResourceString("${resource.key}#$quantity", formatArgs)
 
     override fun startService() {}
     override fun reloadService() {}

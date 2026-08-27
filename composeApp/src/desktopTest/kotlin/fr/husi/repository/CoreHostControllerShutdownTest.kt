@@ -31,7 +31,7 @@ class CoreHostControllerShutdownTest : HusiKoinTest() {
         fakeClient = FakeCoreClient()
         // No core binary: a session restart is attempted but never spawns.
         controller = CoreHostController(
-            repository = DesktopRepository(tempDir),
+            repository = FakeDesktopRepository(tempDir),
             resolveCoreClient = { fakeClient },
             resolveCoreBinary = { null },
         )

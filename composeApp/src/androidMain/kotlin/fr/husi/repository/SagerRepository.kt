@@ -27,12 +27,8 @@ import fr.husi.resources.service_vpn
 import fr.husi.resources.service_vpn_request
 import fr.husi.ui.MainActivity
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.setResourceReaderAndroidContext
 import java.io.File
-import org.jetbrains.compose.resources.getPluralString as getComposePluralString
-import org.jetbrains.compose.resources.getString as getComposeString
 
 @OptIn(ExperimentalResourceApi::class)
 open class SagerRepository(
@@ -112,22 +108,6 @@ open class SagerRepository(
 
     override val isTv: Boolean
         get() = uiMode.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-
-    override suspend fun getString(resource: StringResource): String {
-        return getComposeString(resource)
-    }
-
-    override suspend fun getString(resource: StringResource, vararg formatArgs: Any): String {
-        return getComposeString(resource, *formatArgs)
-    }
-
-    override suspend fun getPluralString(
-        resource: PluralStringResource,
-        quantity: Int,
-        vararg formatArgs: Any,
-    ): String {
-        return getComposePluralString(resource, quantity, *formatArgs)
-    }
 
     override fun startService() {
         ContextCompat.startForegroundService(

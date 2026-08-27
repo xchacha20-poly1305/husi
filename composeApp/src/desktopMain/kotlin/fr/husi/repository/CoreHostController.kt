@@ -174,7 +174,7 @@ internal class CoreHostController(
         runExclusive {
             when {
                 DataStore.selectedProxy.get() == 0L -> {
-                    stopLocked(resolveRepository().getString(Res.string.profile_empty))
+                    stopLocked(repository.getString(Res.string.profile_empty))
                 }
 
                 DataStore.serviceState == ServiceState.Stopped || DataStore.serviceState == ServiceState.Idle -> {
@@ -366,7 +366,7 @@ internal class CoreHostController(
      */
     private suspend fun abandonServiceLocked(errorMessage: String) {
         val message = errorMessage.blankAsNull()?.let {
-            "${resolveRepository().getString(Res.string.service_failed)}: $it"
+            "${repository.getString(Res.string.service_failed)}: $it"
         }
         stopLocked(message)
     }
@@ -468,7 +468,7 @@ internal class CoreHostController(
 
         val profile = ProfileManager.getProfile(DataStore.selectedProxy.get())
         if (profile == null) {
-            stopLocked(resolveRepository().getString(Res.string.profile_empty))
+            stopLocked(repository.getString(Res.string.profile_empty))
             return
         }
 
@@ -533,12 +533,12 @@ internal class CoreHostController(
             BackendState.setConnected(true)
         } catch (e: Throwable) {
             when (e) {
-                is UnknownHostException -> stopLocked(resolveRepository().getString(Res.string.invalid_server))
+                is UnknownHostException -> stopLocked(repository.getString(Res.string.invalid_server))
                 is PluginNotFoundException ->
                     stopLocked(e.readableMessage, ServiceAlert.MissingPlugin(e.plugin))
 
                 else -> stopLocked(
-                    "${resolveRepository().getString(Res.string.service_failed)}: ${e.readableMessage}",
+                    "${repository.getString(Res.string.service_failed)}: ${e.readableMessage}",
                 )
             }
         }
@@ -713,7 +713,7 @@ internal class CoreHostController(
                     markHostLost()
                     if (DataStore.serviceState.canStop) {
                         stopLocked(
-                            "${resolveRepository().getString(Res.string.service_failed)}: core host exited ($exit)",
+                            "${repository.getString(Res.string.service_failed)}: core host exited ($exit)",
                         )
                     }
                 }
