@@ -5,9 +5,17 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.FileProvider
+import fr.husi.ktx.createTempChild
+import fr.husi.ktx.deleteIfExists
+import fr.husi.ktx.shareUri
+import fr.husi.repository.resolveRepository
 import fr.husi.utils.SendLog
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.sink
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.buffered
+import kotlinx.io.writeString
 
 class BlankActivity : PrivacyModeActivity() {
 
@@ -16,14 +24,16 @@ class BlankActivity : PrivacyModeActivity() {
     }
 
     private var sharedUri: Uri? = null
-    private var sharedFile: File? = null
+    private var sharedFile: PlatformFile? = null
 
     private val shareLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             sharedUri?.let { uri ->
                 revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            sharedFile?.delete()
+            sharedFile?.let { file ->
+                runBlocking { file.deleteIfExists() }
+            }
             finish()
         }
 
@@ -43,15 +53,12 @@ class BlankActivity : PrivacyModeActivity() {
     }
 
     private fun shareLogFile(title: String) {
-        val logFile = File.createTempFile(
-            title,
-            ".log",
-            File(cacheDir, "log").also { it.mkdirs() },
-        ).apply {
-            writeText(SendLog.buildLog(getExternalFilesDir(null) ?: filesDir))
+        val logFile = (PlatformFile(cacheDir) / "log").createTempChild(title, ".log")
+        logFile.sink().buffered().use {
+            it.writeString(SendLog.buildLog(resolveRepository().externalAssetsDir))
         }
         sharedFile = logFile
-        val uri = FileProvider.getUriForFile(this, packageName + ".cache", logFile)
+        val uri = shareUri(this, logFile)
         sharedUri = uri
         val shareIntent = Intent(Intent.ACTION_SEND)
             .setType("text/plain")

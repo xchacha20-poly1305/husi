@@ -1,9 +1,15 @@
 package fr.husi.plugin
 
 import fr.husi.database.SagerDatabase
+import fr.husi.ktx.canExecute
+import fr.husi.ktx.invariantPathString
 import fr.husi.platform.PlatformInfo
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.lastModified
 import kotlinx.coroutines.runBlocking
-import java.io.File
+import kotlin.time.ExperimentalTime
 
 actual object PluginManager {
 
@@ -25,6 +31,7 @@ actual object PluginManager {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     @Synchronized
     private fun resolvePath(pluginId: String): String? {
         val entry = runBlocking {
@@ -39,17 +46,18 @@ actual object PluginManager {
             return null
         }
 
-        val file = File(rawPath).absoluteFile
-        val lastModified = file.lastModified()
+        val file = PlatformFile(rawPath)
+        val lastModified = file.lastModified().toEpochMilliseconds()
+        val resolved = file.invariantPathString()
         cache[pluginId]?.let { cached ->
-            if (cached.path == file.absolutePath &&
+            if (cached.path == resolved &&
                 cached.lastModified == lastModified
             ) {
                 return cached.path
             }
         }
 
-        if (!file.exists() || !file.isFile) {
+        if (!file.exists() || !file.isRegularFile()) {
             cache.remove(pluginId)
             return null
         }
@@ -58,7 +66,6 @@ actual object PluginManager {
             return null
         }
 
-        val resolved = file.absolutePath
         cache[pluginId] = CacheEntry(
             path = resolved,
             lastModified = lastModified,
@@ -66,7 +73,7 @@ actual object PluginManager {
         return resolved
     }
 
-    private fun isExecutable(file: File): Boolean {
+    private fun isExecutable(file: PlatformFile): Boolean {
         if (PlatformInfo.isWindows) return true
         return file.canExecute()
     }

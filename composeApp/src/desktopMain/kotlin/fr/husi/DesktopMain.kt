@@ -22,8 +22,8 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.path
 import com.github.ajalt.clikt.parameters.types.restrictTo
 import dev.nucleusframework.composenativetray.menu.api.KeyShortcut
 import dev.nucleusframework.composenativetray.tray.api.Tray
@@ -44,8 +44,14 @@ import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
+import fr.husi.ktx.atomicMoveOrCopy
+import fr.husi.ktx.createTempChild
+import fr.husi.ktx.deleteIfExists
 import fr.husi.ktx.exitApplication
+import fr.husi.ktx.initializeFileKit
 import fr.husi.ktx.invariantDirectoryPathString
+import fr.husi.ktx.invariantPathString
+import fr.husi.ktx.isExclusiveLockHeldByAnotherProcess
 import fr.husi.ktx.sha256Hex
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
@@ -68,17 +74,20 @@ import fr.husi.resources.stop
 import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.source
+import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.buffered
+import kotlinx.io.readString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
-import java.io.File
-import java.io.RandomAccessFile
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import javax.swing.UIManager
@@ -126,7 +135,7 @@ private fun configureAnjaNativesDir() {
         return
     }
     val nativesDir = resolvePackagedAnjaNativesDir() ?: return
-    System.setProperty(ANJA_NATIVES_DIR_PROPERTY, nativesDir.absolutePath)
+    System.setProperty(ANJA_NATIVES_DIR_PROPERTY, nativesDir.invariantPathString())
 }
 
 class DesktopMain(
@@ -141,11 +150,11 @@ class DesktopMain(
         private const val PREFERENCE_NODE_NAME = "/fr/husi/preference"
     }
 
-    val baseDir: File? by option(
+    val baseDir: Path? by option(
         "-d",
         "--dir",
         help = "Data directory",
-    ).file(
+    ).path(
         canBeFile = false,
         canBeDir = true,
         mustBeWritable = true,
@@ -464,9 +473,14 @@ class DesktopMain(
     }
 
     private fun createDesktopRepository(): DesktopRepository {
-        val baseDir = baseDir ?: DesktopPaths.dataDir
-        baseDir.mkdirs()
-        return DesktopRepository(baseDir)
+        val dataDir = baseDir?.let { PlatformFile(it.toString()) } ?: DesktopPaths.dataDir
+        dataDir.createDirectories()
+        initializeFileKit(
+            appId = "husi",
+            filesDir = dataDir,
+            cacheDir = dataDir / "cache",
+        )
+        return DesktopRepository(dataDir)
     }
 
     private fun bootstrapDesktopRuntime(
@@ -580,15 +594,9 @@ private fun forwardTaskToRunningInstance(
 internal fun runningInstanceHoldsLock(
     configuration: SingleInstanceManager.Configuration,
 ): Boolean {
-    val lockFile = configuration.lockFilePath.toFile()
-    if (!lockFile.isFile) return false
+    val lockFile = PlatformFile(configuration.lockFilePath.toString())
     return try {
-        RandomAccessFile(lockFile, "rw").use { file ->
-            val lock = file.channel.tryLock()
-            // Acquiring it means nobody was there to hold it.
-            lock?.release()
-            lock == null
-        }
+        lockFile.isExclusiveLockHeldByAnotherProcess()
     } catch (e: Exception) {
         Logs.w("probe single-instance lock", e)
         false
@@ -601,14 +609,17 @@ internal fun sendTaskRequest(
     taskId: String,
 ): Boolean {
     return try {
-        val payload = Files.createTempFile(configuration.lockIdentifier, ".restore_request")
-        Files.write(payload, listOf(RESTORE_PAYLOAD_TASK, taskId))
-        // Nucleus watches for a created file, so the payload has to appear complete.
-        Files.move(
-            payload,
-            configuration.restoreRequestFilePath,
-            StandardCopyOption.REPLACE_EXISTING,
-        )
+        val payload = PlatformFile(System.getProperty("java.io.tmpdir"))
+            .createTempChild(configuration.lockIdentifier, ".restore_request")
+        val destination = PlatformFile(configuration.restoreRequestFilePath.toString())
+        runBlocking {
+            payload.writeString(
+                "$RESTORE_PAYLOAD_TASK${System.lineSeparator()}$taskId${System.lineSeparator()}",
+            )
+            // Nucleus watches for a created file, so the payload has to appear complete.
+            destination.deleteIfExists()
+            payload.atomicMoveOrCopy(destination)
+        }
         true
     } catch (e: Exception) {
         Logs.w("forward task $taskId to the running instance", e)
@@ -634,13 +645,16 @@ private fun writeRestorePayload(path: Path, restoreWindow: Boolean, deepLinks: L
         add(if (restoreWindow) RESTORE_PAYLOAD_RESTORE else RESTORE_PAYLOAD_SILENT)
         addAll(deepLinks)
     }
-    Files.write(path, lines)
+    val file = PlatformFile(path.toString())
+    runBlocking {
+        file.writeString(lines.joinToString(System.lineSeparator(), postfix = System.lineSeparator()))
+    }
 }
 
 /** Runs on the Nucleus watcher thread of the primary instance. */
 private fun handleRestoreRequest(path: Path) {
     val lines = try {
-        Files.readAllLines(path)
+        PlatformFile(path.toString()).source().buffered().use { it.readString() }.lines()
     } catch (e: Exception) {
         Logs.w("read single-instance restore request", e)
         return

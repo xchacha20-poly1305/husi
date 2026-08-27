@@ -73,6 +73,7 @@ import fr.husi.fmt.RuleItem
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
+import fr.husi.ktx.listOrEmpty
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -164,6 +165,12 @@ import fr.husi.ui.profile.tlsSpoofMethod
 import fr.husi.ui.tools.RuleSetMatchDialog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.extension
+import io.github.vinceglb.filekit.isDirectory
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.nameWithoutExtension
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -171,7 +178,6 @@ import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
 import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
@@ -455,7 +461,7 @@ private fun RouteSettings(
     modifier: Modifier = Modifier,
 ) {
     val geoDir = remember(resolveRepository().externalAssetsDir) {
-        resolveRepository().externalAssetsDir.resolve("geo").takeIf { it.isDirectory }
+        resolveRepository().externalAssetsDir.resolve("geo").takeIf { it.isDirectory() }
     }
 
     val listState = rememberLazyListState()
@@ -1230,15 +1236,15 @@ private fun RuleSetAutoCompleteTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     onOk: () -> Unit,
-    geoDir: File?,
+    geoDir: PlatformFile?,
     onCopy: suspend () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var ruleSets by remember { mutableStateOf(emptyList<String>()) }
     LaunchedEffect(geoDir) {
         ruleSets = withContext(Dispatchers.IO) {
-            geoDir?.listFiles()
-                ?.filter { it.isFile && it.extension == "srs" }
+            geoDir?.listOrEmpty()
+                ?.filter { it.isRegularFile() && it.extension == "srs" }
                 ?.map { it.nameWithoutExtension }
                 ?.sorted()
                 .orEmpty()

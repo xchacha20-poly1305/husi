@@ -7,17 +7,18 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
 import fr.husi.repository.resolveRepository
-import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.dialogs.openFileWithDefaultApplication
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.parent
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Image
-import java.awt.Desktop
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.nio.charset.StandardCharsets
 import javax.imageio.ImageIO
 
@@ -75,14 +76,10 @@ actual suspend fun shareQRCodeImage(
     name: String,
 ) = withContext(Dispatchers.IO) {
     try {
-        val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
-        cacheDir.createDirectories()
-        val platformFile = PlatformFile(cacheDir, "$name.png")
+        val platformFile = resolveRepository().cacheDir / "qrcodes" / "$name.png"
+        platformFile.parent()?.createDirectories()
         platformFile.write(pngBytes)
-
-        if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().open(File(resolveRepository().cacheDir, "qrcodes/$name.png"))
-        }
+        FileKit.openFileWithDefaultApplication(platformFile)
     } catch (e: Exception) {
         Logs.e(e)
     }

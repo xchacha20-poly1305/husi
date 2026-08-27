@@ -4,7 +4,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import fr.husi.Key
+import fr.husi.ktx.invariantPathString
 import fr.husi.repository.resolveAndroidRepository
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.parent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 
@@ -31,11 +34,11 @@ abstract class PublicDatabase : RoomDatabase() {
 
         private fun buildDatabase(): PublicDatabase {
             val dbFile = resolveAndroidRepository().resolveDatabaseFile(Key.DB_PUBLIC)
-            dbFile.parentFile?.mkdirs()
+            dbFile.parent()?.createDirectories()
             return Room.databaseBuilder(
                 resolveAndroidRepository().context,
                 PublicDatabase::class.java,
-                dbFile.absolutePath,
+                dbFile.invariantPathString(),
             )
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()

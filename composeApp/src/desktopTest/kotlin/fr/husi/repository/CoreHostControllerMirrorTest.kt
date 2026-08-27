@@ -3,21 +3,23 @@ package fr.husi.repository
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
+import fr.husi.ktx.deleteRecursively
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.serviceStatus
 import fr.husi.proto.v1.clientMetadata
 import fr.husi.proto.v1.getClientMetadataResponse
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -38,7 +40,7 @@ class CoreHostControllerMirrorTest : HusiKoinTest() {
 
     private val dispatcher = StandardTestDispatcher()
 
-    private lateinit var tempDir: File
+    private lateinit var tempDir: PlatformFile
     private lateinit var fakeClient: FakeCoreClient
     private lateinit var controller: CoreHostController
 
@@ -48,7 +50,7 @@ class CoreHostControllerMirrorTest : HusiKoinTest() {
 
     @BeforeTest
     fun setUpController() {
-        tempDir = createTempDirectory("husi-core-host-mirror").toFile()
+        tempDir = PlatformFile(createTempDirectory("husi-core-host-mirror").toString())
         fakeClient = FakeCoreClient()
         controller = CoreHostController(
             repository = DesktopRepository(tempDir),
@@ -63,7 +65,7 @@ class CoreHostControllerMirrorTest : HusiKoinTest() {
     fun tearDownController() {
         DataStore.serviceState = ServiceState.Idle
         BackendState.reset()
-        tempDir.deleteRecursively()
+        runBlocking { tempDir.deleteRecursively() }
     }
 
     /**

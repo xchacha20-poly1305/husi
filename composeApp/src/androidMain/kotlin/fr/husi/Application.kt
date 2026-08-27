@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Build
 import android.os.StrictMode
+import androidx.work.Configuration as WorkConfiguration
 import fr.husi.bg.AppChangeReceiver
 import fr.husi.bg.DefaultNetworkMonitor
 import fr.husi.bg.RouteAssetUpdater
@@ -29,8 +30,6 @@ import go.Seq
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import kotlinx.coroutines.runBlocking
-import java.io.File
-import androidx.work.Configuration as WorkConfiguration
 
 class Application : Application(),
     WorkConfiguration.Provider {
@@ -43,7 +42,6 @@ class Application : Application(),
         repository = SagerRepository(this, isMainProcess, isBgProcess)
     }
 
-    val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
     private val appId by lazy { packageName }
     private val process by lazy { tryGetProcessName() }
     val isMainProcess get() = process == appId
@@ -57,7 +55,7 @@ class Application : Application(),
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
         if (isMainProcess) runOnIoDispatcher {
-            clearClipboardImageCache(cacheDir)
+            clearClipboardImageCache(repository.cacheDir)
         }
 
         if (isMainProcess) runOnDefaultDispatcher {
@@ -78,7 +76,6 @@ class Application : Application(),
         }
 
         // init core
-        externalAssets.mkdirs()
         val rulesProvider = DataStore.rulesProvider.getBlocking()
         val isExpert = DataStore.isExpert.getBlocking()
         if (isBgProcess && rulesProvider == RuleProvider.OFFICIAL) {
@@ -87,9 +84,9 @@ class Application : Application(),
         Libcore.initCore(
             isBgProcess,
             !isBgProcess,
-            cacheDir.invariantDirectoryPathString(),
-            filesDir.invariantDirectoryPathString(),
-            externalAssets.invariantDirectoryPathString(),
+            repository.cacheDir.invariantDirectoryPathString(),
+            repository.filesDir.invariantDirectoryPathString(),
+            repository.externalAssetsDir.invariantDirectoryPathString(),
             DataStore.logMaxLine.getBlocking(),
             DataStore.logLevel.getBlocking(),
             rulesProvider == 0,

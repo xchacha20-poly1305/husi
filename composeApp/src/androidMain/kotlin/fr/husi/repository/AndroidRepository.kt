@@ -7,7 +7,7 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.os.UserManager
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 import org.koin.core.context.GlobalContext
 
 interface AndroidRepository : Repository {
@@ -19,7 +19,7 @@ interface AndroidRepository : Repository {
     val wifi: WifiManager
     val packageManager: PackageManager
 
-    val noBackupFilesDir: File
+    val noBackupFilesDir: PlatformFile
 
     suspend fun updateNotificationChannels()
 }

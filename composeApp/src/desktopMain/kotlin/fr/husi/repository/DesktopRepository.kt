@@ -2,17 +2,19 @@ package fr.husi.repository
 
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.libcore.Service
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
-import java.io.File
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
 
 fun resolveDesktopRepository(): DesktopRepository = resolveRepository() as DesktopRepository
 
 class DesktopRepository(
-    val dataDir: File,
+    val dataDir: PlatformFile,
 ) : Repository {
 
     override val isMainProcess: Boolean = true
@@ -26,8 +28,8 @@ class DesktopRepository(
     override val boxService: Service? = null
 
     /** Working directory and socket parent for the out-of-process core host. */
-    val coreDir: File by lazy {
-        dataDir.resolve("core").apply { mkdirs() }
+    val coreDir: PlatformFile by lazy {
+        (dataDir / "core").apply { createDirectories() }
     }
 
     /**
@@ -75,20 +77,20 @@ class DesktopRepository(
         coreHostController.takeOverDaemon()
     }
 
-    override val cacheDir: File by lazy {
-        dataDir.resolve("cache").apply { mkdirs() }
+    override val cacheDir: PlatformFile by lazy {
+        (dataDir / "cache").apply { createDirectories() }
     }
 
-    override val filesDir: File by lazy {
-        dataDir.resolve("files").apply { mkdirs() }
+    override val filesDir: PlatformFile by lazy {
+        (dataDir / "files").apply { createDirectories() }
     }
 
-    override val externalAssetsDir: File by lazy {
-        dataDir.resolve("external").apply { mkdirs() }
+    override val externalAssetsDir: PlatformFile by lazy {
+        (dataDir / "external").apply { createDirectories() }
     }
 
-    override fun resolveDatabaseFile(name: String): File {
-        return dataDir.resolve(name)
+    override fun resolveDatabaseFile(name: String): PlatformFile {
+        return dataDir / name
     }
 
     override suspend fun getString(resource: StringResource) = getComposeString(resource)

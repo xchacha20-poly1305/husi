@@ -1,10 +1,10 @@
 package fr.husi.repository
 
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
-import java.io.File
 
 interface Repository {
     val isMainProcess: Boolean
@@ -15,10 +15,10 @@ interface Repository {
 
     val preferenceStoreDispatcher: CoroutineDispatcher get() = Dispatchers.IO
 
-    val cacheDir: File
-    val filesDir: File
-    val externalAssetsDir: File
-    fun resolveDatabaseFile(name: String): File
+    val cacheDir: PlatformFile
+    val filesDir: PlatformFile
+    val externalAssetsDir: PlatformFile
+    fun resolveDatabaseFile(name: String): PlatformFile
 
     suspend fun getString(resource: StringResource): String
     suspend fun getString(resource: StringResource, vararg formatArgs: Any): String

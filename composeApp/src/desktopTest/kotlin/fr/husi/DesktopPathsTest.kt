@@ -1,7 +1,7 @@
 package fr.husi
 
 import fr.husi.platform.Platform
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -17,10 +17,10 @@ class DesktopPathsTest {
             userHomeProperty = "/jvm-home",
         )
 
-        assertEquals(File("/config"), paths.configHomeDir)
-        assertEquals(File("/config/husi"), paths.dataDir)
-        assertEquals(File("/config/autostart"), paths.linuxAutostartDir)
-        assertEquals(File("/config/systemd/user"), paths.linuxSystemdUserDir)
+        assertEquals(PlatformFile("/config"), paths.configHomeDir)
+        assertEquals(PlatformFile("/config/husi"), paths.dataDir)
+        assertEquals(PlatformFile("/config/autostart"), paths.linuxAutostartDir)
+        assertEquals(PlatformFile("/config/systemd/user"), paths.linuxSystemdUserDir)
     }
 
     @Test
@@ -34,9 +34,9 @@ class DesktopPathsTest {
             userHomeProperty = "/jvm-home",
         )
 
-        assertEquals(File("/home/alice"), paths.userHomeDir)
-        assertEquals(File("/home/alice/.config"), paths.configHomeDir)
-        assertEquals(File("/home/alice/.config/husi"), paths.dataDir)
+        assertEquals(PlatformFile("/home/alice"), paths.userHomeDir)
+        assertEquals(PlatformFile("/home/alice/.config"), paths.configHomeDir)
+        assertEquals(PlatformFile("/home/alice/.config/husi"), paths.dataDir)
     }
 
     @Test
@@ -47,10 +47,10 @@ class DesktopPathsTest {
             userHomeProperty = "/jvm-home",
         )
 
-        assertEquals(File("/Users/alice"), paths.userHomeDir)
-        assertEquals(File("/Users/alice/Library/Application Support"), paths.configHomeDir)
-        assertEquals(File("/Users/alice/Library/Application Support/husi"), paths.dataDir)
-        assertEquals(File("/Users/alice/Library/LaunchAgents"), paths.macLaunchAgentsDir)
+        assertEquals(PlatformFile("/Users/alice"), paths.userHomeDir)
+        assertEquals(PlatformFile("/Users/alice/Library/Application Support"), paths.configHomeDir)
+        assertEquals(PlatformFile("/Users/alice/Library/Application Support/husi"), paths.dataDir)
+        assertEquals(PlatformFile("/Users/alice/Library/LaunchAgents"), paths.macLaunchAgentsDir)
     }
 
     @Test
@@ -64,9 +64,9 @@ class DesktopPathsTest {
             userHomeProperty = "C:/JvmHome",
         )
 
-        assertEquals(File("C:/Users/Alice"), paths.userHomeDir)
-        assertEquals(File("C:/Users/Alice/AppData/Roaming"), paths.configHomeDir)
-        assertEquals(File("C:/Users/Alice/AppData/Roaming/husi"), paths.dataDir)
+        assertEquals(PlatformFile("C:/Users/Alice"), paths.userHomeDir)
+        assertEquals(PlatformFile("C:/Users/Alice/AppData/Roaming"), paths.configHomeDir)
+        assertEquals(PlatformFile("C:/Users/Alice/AppData/Roaming/husi"), paths.dataDir)
     }
 
     @Test
@@ -77,8 +77,8 @@ class DesktopPathsTest {
             userHomeProperty = "C:/JvmHome",
         )
 
-        assertEquals(File("C:/Users/Alice"), paths.userHomeDir)
-        assertEquals(File("C:/Users/Alice/AppData/Roaming"), paths.configHomeDir)
-        assertEquals(File("C:/Users/Alice/AppData/Roaming/husi"), paths.dataDir)
+        assertEquals(PlatformFile("C:/Users/Alice"), paths.userHomeDir)
+        assertEquals(PlatformFile("C:/Users/Alice/AppData/Roaming"), paths.configHomeDir)
+        assertEquals(PlatformFile("C:/Users/Alice/AppData/Roaming/husi"), paths.dataDir)
     }
 }

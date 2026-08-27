@@ -3,12 +3,18 @@ package fr.husi.utils
 import android.content.res.AssetManager
 import fr.husi.ktx.Logs
 import fr.husi.repository.resolveAndroidRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.sink
+import kotlinx.io.Buffer
+import kotlinx.io.asSource
 
 internal actual suspend fun copyBundledRuleSetAssetsIfNeeded() {
     val context = resolveAndroidRepository().context
     val assetManager = context.assets
-    val targetDir = File(context.filesDir, "sing-box")
+    val targetDir = PlatformFile(context.filesDir) / "sing-box"
     syncBundledRuleSetAssets(
         targetDir = targetDir,
         readResourceBytes = { readAssetBytes(assetManager, it) },
@@ -25,12 +31,20 @@ private fun readAssetBytes(assetManager: AssetManager, path: String): ByteArray?
     }
 }
 
-private fun copyAsset(assetManager: AssetManager, assetPath: String, targetFile: File): Boolean {
+private fun copyAsset(assetManager: AssetManager, assetPath: String, targetFile: PlatformFile): Boolean {
     return try {
-        targetFile.parentFile?.mkdirs()
+        targetFile.parent()?.createDirectories()
         assetManager.open(assetPath).use { input ->
-            targetFile.outputStream().use { output ->
-                input.copyTo(output)
+            input.asSource().use { source ->
+                targetFile.sink().use { sink ->
+                    val buffer = Buffer()
+                    while (true) {
+                        val bytesRead = source.readAtMostTo(buffer, COPY_BUFFER_SIZE_BYTES)
+                        if (bytesRead == -1L) break
+                        sink.write(buffer, bytesRead)
+                    }
+                    sink.flush()
+                }
             }
         }
         true
@@ -39,3 +53,5 @@ private fun copyAsset(assetManager: AssetManager, assetPath: String, targetFile:
         false
     }
 }
+
+private const val COPY_BUFFER_SIZE_BYTES = 8192L

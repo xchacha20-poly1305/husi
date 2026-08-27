@@ -2,9 +2,10 @@ package fr.husi.ktx
 
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.exists
 import java.awt.Desktop
 import java.awt.GraphicsEnvironment
-import java.io.File
 import java.net.URI
 
 fun openUri(uri: String): String? {
@@ -36,17 +37,17 @@ fun openFilePath(path: String) {
     val cleanPath = path.trim()
     if (cleanPath.isBlank()) return
 
-    val file = File(cleanPath)
+    val file = PlatformFile(cleanPath)
     if (!file.exists()) return
 
     try {
         // https://bugs.openjdk.org/browse/JDK-8233994
         if (PlatformInfo.isWindows) {
-            val windowsPath = file.canonicalPath.replace("/", "\\")
+            val windowsPath = file.nativeCanonicalPath()
             // use cmd.exe to handle edge cases
             ProcessBuilder("cmd.exe", "/c", "explorer.exe /select,\"$windowsPath\"").start()
         } else {
-            Desktop.getDesktop().browseFileDirectory(file.absoluteFile)
+            browseFileDirectory(file)
         }
     } catch (e: Exception) {
         Logs.e("select file", e)

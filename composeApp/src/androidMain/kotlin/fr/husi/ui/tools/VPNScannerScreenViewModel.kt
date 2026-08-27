@@ -11,11 +11,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import fr.husi.ktx.Logs
+import fr.husi.ktx.openApkZip
 import fr.husi.ktx.toStringIterator
 import fr.husi.libcore.Libcore
 import fr.husi.utils.PackageCache
-import java.io.File
-import java.util.zip.ZipFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -145,7 +144,7 @@ internal class VPNScannerScreenViewModel : ViewModel() {
     }
 
     private fun getVPNAppType(packageInfo: PackageInfo): String? {
-        ZipFile(File(packageInfo.applicationInfo!!.publicSourceDir)).use { packageFile ->
+        openApkZip(packageInfo.applicationInfo!!.publicSourceDir).use { packageFile ->
             var type: String? = null
             for (packageEntry in packageFile.entries()) {
                 if (

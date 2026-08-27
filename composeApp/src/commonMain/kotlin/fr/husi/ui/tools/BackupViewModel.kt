@@ -18,7 +18,8 @@ import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.kxs
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -113,8 +114,8 @@ internal class BackupViewModel : ViewModel() {
     }
 
     fun share(
-        createFile: (name: String) -> File,
-        launch: (File) -> Unit,
+        createFile: (name: String) -> PlatformFile,
+        launch: (PlatformFile) -> Unit,
         onFailed: (message: String) -> Unit,
     ) = viewModelScope.launch(Dispatchers.IO) {
         val state = uiState.value
@@ -125,7 +126,7 @@ internal class BackupViewModel : ViewModel() {
         val fileName = "husi_backup_${time}.json"
         try {
             val file = createFile(fileName)
-            file.writeText(content)
+            file.writeString(content)
             launch(file)
         } catch (e: Exception) {
             Logs.e(e)

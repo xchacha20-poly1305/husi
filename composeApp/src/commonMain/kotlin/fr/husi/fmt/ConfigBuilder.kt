@@ -92,6 +92,7 @@ import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.JsonPrimitive
 

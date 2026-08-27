@@ -16,13 +16,19 @@ import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.deleteIfExists
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
 import fr.husi.resources.route_asset_no_update
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readString
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -48,7 +54,7 @@ internal data class AssetsUiState(
 
 @Immutable
 internal data class AssetItem(
-    val file: File,
+    val file: PlatformFile,
     val version: String,
     val builtIn: Boolean,
     val autoUpdateDelay: Int = 0,
@@ -62,8 +68,8 @@ internal sealed interface AssetsScreenUiEvent {
 
 @Stable
 internal class AssetsScreenViewModel(
-    assetsDir: File,
-    geoDir: File,
+    assetsDir: PlatformFile,
+    geoDir: PlatformFile,
 ) : ViewModel() {
 
     companion object {
@@ -76,8 +82,8 @@ internal class AssetsScreenViewModel(
     val uiEvent: SharedFlow<AssetsScreenUiEvent>
         field = MutableSharedFlow<AssetsScreenUiEvent>()
 
-    private lateinit var assetsDir: File
-    private lateinit var geoDir: File
+    private lateinit var assetsDir: PlatformFile
+    private lateinit var geoDir: PlatformFile
 
     private var previousAssetNames = emptySet<String>()
     private var initializedFor: Pair<String, String>? = null
@@ -91,8 +97,8 @@ internal class AssetsScreenViewModel(
         initialize(assetsDir, geoDir)
     }
 
-    fun initialize(assetsDir: File, geoDir: File) {
-        val args = assetsDir.absolutePath to geoDir.absolutePath
+    fun initialize(assetsDir: PlatformFile, geoDir: PlatformFile) {
+        val args = assetsDir.absolutePath() to geoDir.absolutePath()
         if (initializedFor == args && assetsObserveJob?.isActive == true) return
         initializedFor = args
         assetsObserveJob?.cancel()
@@ -140,18 +146,18 @@ internal class AssetsScreenViewModel(
         }
     }
 
-    private fun buildAssetItem(index: Int, file: File, entity: AssetEntity?): AssetItem {
+    private suspend fun buildAssetItem(index: Int, file: PlatformFile, entity: AssetEntity?): AssetItem {
         val builtIn = isBuiltIn(index)
         val version = if (builtIn) {
-            file.takeIf(File::isFile)
-                ?.readText()
+            file.takeIf(PlatformFile::isRegularFile)
+                ?.readString()
                 ?.trim()
                 .blankAsNull()
                 ?: "Unknown"
         } else {
             entity?.version.blankAsNull()
-                ?: routeAssetVersionFile(assetsDir, file.name).takeIf(File::isFile)
-                    ?.readText()
+                ?: routeAssetVersionFile(assetsDir, file.name).takeIf(PlatformFile::isRegularFile)
+                    ?.readString()
                     ?.trim()
                     .blankAsNull()
                 ?: "Unknown"
@@ -165,17 +171,17 @@ internal class AssetsScreenViewModel(
         )
     }
 
-    suspend fun deleteAssets(files: List<File>) {
+    suspend fun deleteAssets(files: List<PlatformFile>) {
         for (file in files) {
-            file.delete()
+            file.deleteIfExists()
             val versionFile = routeAssetVersionFile(assetsDir, file.name)
-            if (versionFile.isFile) versionFile.delete()
+            if (versionFile.isRegularFile()) versionFile.deleteIfExists()
             SagerDatabase.assetDao.delete(file.name)
         }
         RouteAssetUpdater.reconfigureUpdater()
     }
 
-    fun updateAsset(cacheDir: File) {
+    fun updateAsset(cacheDir: PlatformFile) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 updateAsset0(cacheDir)
@@ -191,7 +197,7 @@ internal class AssetsScreenViewModel(
         }
     }
 
-    private suspend fun updateAsset0(cacheDir: File) {
+    private suspend fun updateAsset0(cacheDir: PlatformFile) {
         uiState.update { it.copy(process = 0f) }
 
         var process = 0f
@@ -209,8 +215,8 @@ internal class AssetsScreenViewModel(
         uiState.update { it.copy(process = 0f) }
         try {
             copyBundledRuleSetAssetsIfNeeded()
-            assetsDir.resolve("geoip.version.txt").delete()
-            assetsDir.resolve("geosite.version.txt").delete()
+            assetsDir.resolve("geoip.version.txt").deleteIfExists()
+            assetsDir.resolve("geosite.version.txt").deleteIfExists()
             Libcore.extractAssets()
             DataStore.routeAssetsLastUpdated.set(currentEpochSeconds())
             RouteAssetUpdater.reconfigureUpdater()
@@ -222,7 +228,7 @@ internal class AssetsScreenViewModel(
         refreshAssets0(assets)
     }
 
-    fun updateSingleAsset(asset: File) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateSingleAsset(asset: PlatformFile) = viewModelScope.launch(Dispatchers.IO) {
         try {
             updateSingleAsset0(asset)
         } catch (e: Exception) {
@@ -234,7 +240,7 @@ internal class AssetsScreenViewModel(
         refreshAssets0(assets)
     }
 
-    private suspend fun updateSingleAsset0(asset: File) {
+    private suspend fun updateSingleAsset0(asset: PlatformFile) {
         val entity = SagerDatabase.assetDao.get(asset.name) ?: return
 
         uiState.update { state ->
@@ -316,10 +322,10 @@ internal class AssetsScreenViewModel(
                 } else {
                     geoDir.resolve(fileName)
                 }
-                file.delete()
+                file.deleteIfExists()
                 if (!fileName.endsWith(".version.txt")) {
                     val versionFile = routeAssetVersionFile(assetsDir, fileName)
-                    if (versionFile.isFile) versionFile.delete()
+                    if (versionFile.isRegularFile()) versionFile.deleteIfExists()
                     SagerDatabase.assetDao.delete(fileName)
                 }
             }

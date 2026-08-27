@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.absolutePath
 import kotlinx.coroutines.CoroutineScope
 import okio.Path.Companion.toPath
 
@@ -14,6 +15,6 @@ internal actual fun createConfigurationDataStore(scope: CoroutineScope): DataSto
     return PreferenceDataStoreFactory.createWithPath(
         corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
         scope = scope,
-        produceFile = { file.absolutePath.toPath() },
+        produceFile = { file.absolutePath().toPath() },
     )
 }

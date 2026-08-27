@@ -2,11 +2,15 @@ package fr.husi.utils
 
 import fr.husi.ktx.Logs
 import fr.husi.repository.resolveRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.write
 
 internal actual suspend fun copyBundledRuleSetAssetsIfNeeded() {
     val classLoader = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
-    val targetDir = File(resolveRepository().filesDir, "sing-box")
+    val targetDir = resolveRepository().filesDir / "sing-box"
     syncBundledRuleSetAssets(
         targetDir = targetDir,
         readResourceBytes = { readResourceBytes(classLoader, it) },
@@ -23,14 +27,11 @@ private fun readResourceBytes(classLoader: ClassLoader, path: String): ByteArray
     }
 }
 
-private fun copyResource(classLoader: ClassLoader, resourcePath: String, targetFile: File): Boolean {
+private suspend fun copyResource(classLoader: ClassLoader, resourcePath: String, targetFile: PlatformFile): Boolean {
     return try {
-        targetFile.parentFile?.mkdirs()
-        classLoader.getResourceAsStream(resourcePath)?.use { input ->
-            targetFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        } ?: return false
+        targetFile.parent()?.createDirectories()
+        val bytes = classLoader.getResourceAsStream(resourcePath)?.use { it.readBytes() } ?: return false
+        targetFile.write(bytes)
         true
     } catch (e: Exception) {
         Logs.e("copy bundled asset $resourcePath", e)

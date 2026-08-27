@@ -4,12 +4,14 @@ import fr.husi.database.DataStore
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.protectPath
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.writeString
 
 private const val BITS_PER_MEGABIT = 1_000_000L
 private const val DEFAULT_SHARE_MTU = 1280
@@ -118,15 +120,15 @@ fun ShadowQUICBean.toUri(): String {
     }.string
 }
 
-fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logLevel: Int): String {
+suspend fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logLevel: Int): String {
     return buildShadowQUICConfig(port, shouldProtect, logLevel, null)
 }
 
-fun ShadowQUICBean.buildShadowQUICConfig(
+suspend fun ShadowQUICBean.buildShadowQUICConfig(
     port: Int,
     shouldProtect: Boolean,
     logLevel: Int,
-    cacheFile: ((type: String) -> File)?,
+    cacheFile: (suspend (type: String) -> PlatformFile)?,
 ): String {
     val paths = if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
         extraPaths.lines().filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }
@@ -137,8 +139,8 @@ fun ShadowQUICBean.buildShadowQUICConfig(
         cacheFile?.let {
             certificates.blankAsNull()?.let { certs ->
                 val certFile = cacheFile("cert.pem")
-                certFile.writeText(certs)
-                certFile.absolutePath
+                certFile.writeString(certs)
+                certFile.invariantPathString()
             }
         }
     } else {

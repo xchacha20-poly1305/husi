@@ -4,8 +4,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import fr.husi.ktx.Logs
-import java.io.File
-import java.util.zip.ZipFile
+import fr.husi.ktx.openApkZip
 
 object AppScanner {
     private val skipPrefixList by lazy {
@@ -116,7 +115,7 @@ object AppScanner {
                     return true
                 }
             }
-            ZipFile(File(packageInfo.applicationInfo!!.publicSourceDir)).use {
+            openApkZip(packageInfo.applicationInfo!!.publicSourceDir).use {
                 for (packageEntry in it.entries()) {
                     if (packageEntry.name.startsWith("firebase-")) return false
                 }

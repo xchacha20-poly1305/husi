@@ -1,7 +1,7 @@
 package fr.husi.ui.tools
 
 import androidx.compose.runtime.Composable
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 
 @Composable
-internal expect fun rememberShareBackupFile(): (File) -> Unit
+internal expect fun rememberShareBackupFile(): (PlatformFile) -> Unit

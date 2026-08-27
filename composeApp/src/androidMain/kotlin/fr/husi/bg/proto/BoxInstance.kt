@@ -7,11 +7,16 @@ import fr.husi.database.ProxyEntity
 import fr.husi.fmt.ConfigBuildResult
 import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteIfExists
+import fr.husi.ktx.invariantPathString
 import fr.husi.proto.v1.clientMetadata
 import fr.husi.proto.v1.startServiceRequest
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import kotlinx.coroutines.runBlocking
 
 abstract class BoxInstance(
     val profile: ProxyEntity,
@@ -21,7 +26,7 @@ abstract class BoxInstance(
 
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     private val externalInstances = hashMapOf<Int, AbstractInstance>()
-    private var cacheFiles = ArrayList<File>()
+    private var cacheFiles = ArrayList<PlatformFile>()
     private var isVPN: Boolean = false
 
     /**
@@ -63,11 +68,11 @@ abstract class BoxInstance(
             }
         }
         // Match the Kotlin pool's working dir: keep plugin files out of backup.
-        val pluginDir = resolveAndroidRepository().noBackupFilesDir.resolve("plugin")
-        pluginDir.mkdirs()
+        val pluginDir = resolveAndroidRepository().noBackupFilesDir / "plugin"
+        pluginDir.createDirectories()
         resolveRepository().boxService!!.startService(
             request.toByteArray(),
-            pluginDir.absolutePath,
+            pluginDir.invariantPathString(),
         )
     }
 
@@ -78,7 +83,12 @@ abstract class BoxInstance(
             }
         }
 
-        cacheFiles.removeAll { it.delete(); true }
+        runBlocking {
+            cacheFiles.forEach { file ->
+                runCatching { file.deleteIfExists() }
+            }
+        }
+        cacheFiles.clear()
 
         // Unconditional: stopService also tears down the Go plugin pool, and the
         // plugin processes must not outlive an instance that already went away.

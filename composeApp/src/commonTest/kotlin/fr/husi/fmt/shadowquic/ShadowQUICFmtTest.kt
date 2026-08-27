@@ -6,6 +6,7 @@ import fr.husi.fmt.BeanConverters
 import fr.husi.ktx.getObject
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -129,7 +130,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildShadowQUICConfig should produce json with inbound port and outbound credentials`() {
+    fun `buildShadowQUICConfig should produce json with inbound port and outbound credentials`() = runTest {
         val bean = ShadowQUICBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -161,7 +162,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildShadowQUICConfig should use sunnyquic type for sunny_quic subprotocol`() {
+    fun `buildShadowQUICConfig should use sunnyquic type for sunny_quic subprotocol`() = runTest {
         val bean = ShadowQUICBean().apply {
             serverAddress = "example.com"
             serverPort = 443
@@ -185,7 +186,7 @@ class ShadowQUICFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildShadowQUICConfig should emit brutal bandwidth in decimal bps`() {
+    fun `buildShadowQUICConfig should emit brutal bandwidth in decimal bps`() = runTest {
         DataStore.uploadSpeed.setBlocking(100)
 
         val bean = ShadowQUICBean().apply {

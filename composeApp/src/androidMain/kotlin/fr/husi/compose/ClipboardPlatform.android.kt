@@ -6,14 +6,18 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.toClipEntry
-import androidx.core.content.FileProvider
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteRecursively
+import fr.husi.ktx.shareUri
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.write
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.util.UUID
 
 private const val CLIPBOARD_IMAGE_CACHE_DIRECTORY = "clipboard"
 
@@ -51,18 +55,16 @@ actual suspend fun Clipboard.getFirstContent(): ClipboardContent? {
 actual suspend fun Clipboard.setImage(bitmap: ImageBitmap) {
     val context = resolveAndroidRepository().context
     val imageFile = withContext(Dispatchers.IO) {
-        File(
-            resolveRepository().cacheDir.resolve(CLIPBOARD_IMAGE_CACHE_DIRECTORY),
-            "${UUID.randomUUID()}.png",
-        ).also {
-            it.parentFile?.mkdirs()
-            it.writeBytes(encodeImageBitmapToPng(bitmap))
-        }
+        val dir = resolveRepository().cacheDir / CLIPBOARD_IMAGE_CACHE_DIRECTORY
+        dir.createDirectories()
+        val file = dir / "${UUID.randomUUID()}.png"
+        file.write(encodeImageBitmapToPng(bitmap))
+        file
     }
-    val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", imageFile)
+    val uri = shareUri(context, imageFile)
     setClipEntry(ClipData.newUri(context.contentResolver, null, uri).toClipEntry())
 }
 
-internal fun clearClipboardImageCache(cacheDir: File) {
-    cacheDir.resolve(CLIPBOARD_IMAGE_CACHE_DIRECTORY).deleteRecursively()
+internal suspend fun clearClipboardImageCache(cacheDir: PlatformFile) {
+    (cacheDir / CLIPBOARD_IMAGE_CACHE_DIRECTORY).deleteRecursively()
 }

@@ -2,7 +2,12 @@ package fr.husi.io
 
 import fr.husi.fmt.BeanConverters
 import fr.husi.ktx.b64EncodeOneLine
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.writeString
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -24,7 +29,7 @@ import kotlin.test.assertTrue
 class BinaryGoldenGenerator {
 
     @Test
-    fun generate() {
+    fun generate() = runTest {
         val builder = StringBuilder()
         val unstable = mutableListOf<String>()
         builder.append(HEADER)
@@ -58,10 +63,10 @@ class BinaryGoldenGenerator {
         }
         builder.append(FOOTER)
 
-        val destination = File(System.getenv(OUTPUT_VARIABLE) ?: DEFAULT_OUTPUT)
-        destination.parentFile?.mkdirs()
-        destination.writeText(builder.toString())
-        println("Wrote " + destination.absolutePath)
+        val destination = PlatformFile(System.getenv(OUTPUT_VARIABLE) ?: DEFAULT_OUTPUT)
+        destination.parent()?.createDirectories()
+        destination.writeString(builder.toString())
+        println("Wrote " + destination.absolutePath())
         assertTrue(
             unstable.isEmpty(),
             "Fixtures do not survive a decode/encode round trip: $unstable",

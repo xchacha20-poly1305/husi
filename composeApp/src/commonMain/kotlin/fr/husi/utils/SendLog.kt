@@ -1,15 +1,18 @@
 package fr.husi.utils
 
 import fr.husi.ktx.Logs
-import java.io.File
-import java.io.FileInputStream
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.source
 import java.io.IOException
+import kotlinx.io.buffered
+import kotlinx.io.readByteArray
 
 internal expect fun dumpPlatformLogcat(): String
 
 object SendLog {
 
-    fun buildLog(externalAssetsDir: File): String = buildString {
+    fun buildLog(externalAssetsDir: PlatformFile): String = buildString {
         append(CrashReport.buildReportHeader())
         appendLine("Logcat: ")
         appendLine()
@@ -22,11 +25,10 @@ object SendLog {
         appendLine(getCoreLog(externalAssetsDir))
     }
 
-    private fun getCoreLog(externalAssetsDir: File): String {
+    private fun getCoreLog(externalAssetsDir: PlatformFile): String {
         return try {
-            val logFile = File(externalAssetsDir, "stderr.log")
-            val stream = FileInputStream(logFile)
-            stream.use { it.readBytes() }.toString(Charsets.UTF_8)
+            val logFile = externalAssetsDir / "stderr.log"
+            logFile.source().buffered().use { it.readByteArray() }.toString(Charsets.UTF_8)
         } catch (e: Exception) {
             e.stackTraceToString()
         }

@@ -17,6 +17,7 @@ import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.getBool
 import fr.husi.ktx.getIntOrNull
 import fr.husi.ktx.getStr
+import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.parseBoolean
@@ -25,7 +26,8 @@ import fr.husi.ktx.sha256Hex
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.wrapIPV6Host
 import fr.husi.libcore.Libcore
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.writeString
 
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
 fun parseHysteria1(link: String): HysteriaBean {
@@ -201,10 +203,10 @@ fun JSONMap.parseHysteria1Json(): HysteriaBean {
     }
 }
 
-fun HysteriaBean.buildHysteriaConfig(
+suspend fun HysteriaBean.buildHysteriaConfig(
     port: Int,
     shouldProtect: Boolean,
-    cacheFile: ((type: String) -> File)?,
+    cacheFile: (suspend (type: String) -> PlatformFile)?,
 ): String {
     val address = when (val hopPort = HopPort.from(serverPorts)) {
         is HopPort.Single -> serverAddress.wrapIPV6Host() + ":" + hopPort.port
@@ -238,8 +240,8 @@ fun HysteriaBean.buildHysteriaConfig(
                 if (cacheFile != null) {
                     certificates.blankAsNull()?.let {
                         val caFile = cacheFile("ca")
-                        caFile.writeText(certificates)
-                        put("ca", caFile.absolutePath)
+                        caFile.writeString(certificates)
+                        put("ca", caFile.invariantPathString())
                     }
                 }
                 if (allowInsecure) put("insecure", true)
@@ -265,17 +267,17 @@ fun HysteriaBean.buildHysteriaConfig(
             if (cacheFile != null) {
                 certificates.blankAsNull()?.let {
                     val caFile = cacheFile("ca")
-                    caFile.writeText(certificates)
-                    caPath = caFile.absolutePath
+                    caFile.writeString(certificates)
+                    caPath = caFile.invariantPathString()
                 }
                 clientCert.blankAsNull()?.let {
                     if (clientKey.isBlank()) error("empty mtls key")
                     val certFile = cacheFile("mtls_cert")
-                    certFile.writeText(it)
+                    certFile.writeString(it)
                     val keyFile = cacheFile("mtls_key")
-                    keyFile.writeText(clientKey)
-                    certPath = certFile.absolutePath
-                    keyPath = keyFile.absolutePath
+                    keyFile.writeString(clientKey)
+                    certPath = certFile.invariantPathString()
+                    keyPath = keyFile.invariantPathString()
                 }
             }
             buildMap<String, Any?> {

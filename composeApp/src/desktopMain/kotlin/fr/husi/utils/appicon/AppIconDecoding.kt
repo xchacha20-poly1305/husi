@@ -2,11 +2,16 @@ package fr.husi.utils.appicon
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.extension
+import io.github.vinceglb.filekit.source
 import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.Icon
+import kotlinx.io.buffered
+import kotlinx.io.readByteArray
 import org.jetbrains.skia.Data
 import org.jetbrains.skia.Surface
 import org.jetbrains.skia.svg.SVGDOM
@@ -15,16 +20,16 @@ import org.jetbrains.skia.Image as SkiaImage
 internal object AppIconDecoding {
     private const val SVG_RENDER_SIZE = 128
 
-    fun decodeFile(file: File): ImageBitmap? {
+    fun decodeFile(file: PlatformFile): ImageBitmap? {
         return try {
             when (file.extension.lowercase()) {
                 "icns" -> {
-                    val png = IcnsDecoder.extractBestPng(file.readBytes()) ?: return null
+                    val png = IcnsDecoder.extractBestPng(file.readAllBytes()) ?: return null
                     decodeEncodedBytes(png)
                 }
-                "svg" -> decodeSvgBytes(file.readBytes())
+                "svg" -> decodeSvgBytes(file.readAllBytes())
                 "xpm" -> decodeWithImageIO(file)
-                else -> decodeEncodedBytes(file.readBytes())
+                else -> decodeEncodedBytes(file.readAllBytes())
             }
         } catch (_: Exception) {
             null
@@ -61,10 +66,14 @@ internal object AppIconDecoding {
         return SkiaImage.makeFromEncoded(bytes).toComposeImageBitmap()
     }
 
-    private fun decodeWithImageIO(file: File): ImageBitmap? {
-        val buffered = ImageIO.read(file) ?: return null
+    private fun decodeWithImageIO(file: PlatformFile): ImageBitmap? {
+        val buffered = ImageIO.read(ByteArrayInputStream(file.readAllBytes())) ?: return null
         val png = buffered.toPngBytes() ?: return null
         return decodeEncodedBytes(png)
+    }
+
+    private fun PlatformFile.readAllBytes(): ByteArray {
+        return source().buffered().use { it.readByteArray() }
     }
 
     private fun BufferedImage.toPngBytes(): ByteArray? {

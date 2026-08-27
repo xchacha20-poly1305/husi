@@ -1,11 +1,12 @@
 package fr.husi.repository
 
 import fr.husi.ktx.Logs
+import fr.husi.ktx.invariantPathString
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
-import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -50,8 +51,8 @@ suspend fun installDaemon(): DaemonInstallResult = runInterruptible(Dispatchers.
     }
 }
 
-private fun installDaemonLinux(binary: File): DaemonInstallResult {
-    val command = listOf(PKEXEC, binary.absolutePath, "service", "install")
+private fun installDaemonLinux(binary: PlatformFile): DaemonInstallResult {
+    val command = listOf(PKEXEC, binary.invariantPathString(), "service", "install")
     Logs.i("daemon install: ${command.joinToString(" ")}")
     val outcome = when (val elevation = runElevated(command)) {
         is ElevationOutcome.Unavailable -> return elevationUnavailable(elevation)
@@ -75,8 +76,8 @@ private fun installDaemonLinux(binary: File): DaemonInstallResult {
     }
 }
 
-private fun installDaemonMacOs(binary: File): DaemonInstallResult {
-    val quotedBinary = posixSingleQuote(binary.absolutePath)
+private fun installDaemonMacOs(binary: PlatformFile): DaemonInstallResult {
+    val quotedBinary = posixSingleQuote(binary.invariantPathString())
     val shell = "$quotedBinary service install"
     // AppleScript string literals only accept double quotes.
     val command = listOf(
@@ -84,7 +85,7 @@ private fun installDaemonMacOs(binary: File): DaemonInstallResult {
         "-e",
         "do shell script ${appleScriptQuote(shell)} with administrator privileges",
     )
-    Logs.i("daemon install: osascript elevated service install (${binary.absolutePath})")
+    Logs.i("daemon install: osascript elevated service install (${binary.invariantPathString()})")
     val outcome = when (val elevation = runElevated(command)) {
         is ElevationOutcome.Unavailable -> return elevationUnavailable(elevation)
         is ElevationOutcome.Completed -> elevation
@@ -106,8 +107,8 @@ private fun installDaemonMacOs(binary: File): DaemonInstallResult {
     }
 }
 
-private fun installDaemonWindows(binary: File): DaemonInstallResult {
-    val path = binary.absolutePath.replace("'", "''")
+private fun installDaemonWindows(binary: PlatformFile): DaemonInstallResult {
+    val path = binary.invariantPathString().replace("'", "''")
     val ps = buildString {
         append($$"$p = Start-Process -FilePath '")
         append(path)
@@ -116,7 +117,7 @@ private fun installDaemonWindows(binary: File): DaemonInstallResult {
         append($$"exit $p.ExitCode")
     }
     val command = listOf(POWERSHELL, "-NoProfile", "-Command", ps)
-    Logs.i("daemon install: powershell Start-Process -Verb RunAs (${binary.absolutePath})")
+    Logs.i("daemon install: powershell Start-Process -Verb RunAs (${binary.invariantPathString()})")
     val outcome = when (val elevation = runElevated(command)) {
         is ElevationOutcome.Unavailable -> return elevationUnavailable(elevation)
         is ElevationOutcome.Completed -> elevation

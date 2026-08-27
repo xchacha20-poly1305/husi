@@ -17,6 +17,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import fr.husi.Action
 import fr.husi.bg.SagerConnection
+import fr.husi.ktx.androidExternalFilesDir
+import fr.husi.ktx.androidNoBackupFilesDir
 import fr.husi.libcore.createBoxService
 import fr.husi.resources.Res
 import fr.husi.resources.openconnect_authentication
@@ -26,11 +28,12 @@ import fr.husi.resources.service_subscription
 import fr.husi.resources.service_vpn
 import fr.husi.resources.service_vpn_request
 import fr.husi.ui.MainActivity
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.setResourceReaderAndroidContext
-import java.io.File
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
 
@@ -90,24 +93,24 @@ open class SagerRepository(
         serviceContext.getSystemService<NotificationManager>()!!
     }
 
-    override val cacheDir: File by lazy {
-        serviceContext.cacheDir.apply { mkdirs() }
+    override val cacheDir: PlatformFile by lazy {
+        PlatformFile(serviceContext.cacheDir).apply { createDirectories() }
     }
 
-    override val filesDir: File by lazy {
-        serviceContext.filesDir.apply { mkdirs() }
+    override val filesDir: PlatformFile by lazy {
+        PlatformFile(serviceContext.filesDir).apply { createDirectories() }
     }
 
-    override val externalAssetsDir: File by lazy {
-        (serviceContext.getExternalFilesDir(null) ?: filesDir).apply { mkdirs() }
+    override val externalAssetsDir: PlatformFile by lazy {
+        (androidExternalFilesDir(serviceContext) ?: filesDir).apply { createDirectories() }
     }
 
-    override fun resolveDatabaseFile(name: String): File {
-        return serviceContext.getDatabasePath(name)
+    override fun resolveDatabaseFile(name: String): PlatformFile {
+        return PlatformFile(serviceContext.getDatabasePath(name))
     }
 
-    override val noBackupFilesDir: File by lazy {
-        serviceContext.noBackupFilesDir
+    override val noBackupFilesDir: PlatformFile by lazy {
+        androidNoBackupFilesDir(serviceContext)
     }
 
     override val isTv: Boolean

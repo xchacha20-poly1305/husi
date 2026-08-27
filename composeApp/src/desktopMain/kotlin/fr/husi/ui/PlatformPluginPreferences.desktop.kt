@@ -119,7 +119,7 @@ private fun PluginPathPreference(
     val rowDropTarget = rememberFileDropTarget(
         onDragStateChange = { isRowDragOver = it },
     ) { files ->
-        onValueChange(files.first().absolutePath)
+        onValueChange(files.first().absolutePath())
     }
     val rowHighlightColor by animateColorAsState(
         targetValue = if (isRowDragOver) {
@@ -173,7 +173,7 @@ private fun PluginPathDialog(
     val dropTarget = rememberFileDropTarget(
         onDragStateChange = { isDialogDragOver = it },
     ) { files ->
-        val absolute = files.first().absolutePath
+        val absolute = files.first().absolutePath()
         dialogText = TextFieldValue(absolute, TextRange(absolute.length))
     }
     val containerColor by animateColorAsState(

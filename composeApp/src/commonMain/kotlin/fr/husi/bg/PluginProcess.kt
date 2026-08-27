@@ -14,6 +14,7 @@ import fr.husi.fmt.naive.buildNaiveConfig
 import fr.husi.fmt.protectPath
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
+import fr.husi.ktx.invariantPathString
 import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
@@ -21,12 +22,17 @@ import fr.husi.proto.v1.PluginProcessSpec
 import fr.husi.proto.v1.pluginFile
 import fr.husi.proto.v1.pluginProcessSpec
 import fr.husi.repository.resolveRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
 
-fun initPlugins(
+suspend fun initPlugins(
     config: ConfigBuildResult,
     isVPN: Boolean,
-    cacheFiles: MutableList<File>,
+    cacheFiles: MutableList<PlatformFile>,
 ): Map<Int, Pair<Int, String>> {
     val repository = resolveRepository()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
@@ -52,8 +58,8 @@ fun initPlugins(
                     }
                     pluginConfigs[port] =
                         profile.type to bean.buildHysteriaConfig(port, shouldProtect) { type ->
-                            File(repository.cacheDir, "hysteria_${System.currentTimeMillis()}.$type").also {
-                                it.parentFile?.mkdirs()
+                            (repository.cacheDir / "hysteria_${System.currentTimeMillis()}.$type").also {
+                                it.parent()?.createDirectories()
                                 cacheFiles.add(it)
                             }
                         }
@@ -68,8 +74,8 @@ fun initPlugins(
                     PluginManager.init("shadowquic-plugin")
                     pluginConfigs[port] =
                         profile.type to bean.buildShadowQUICConfig(port, shouldProtect, logLevel) { type ->
-                            File(repository.cacheDir, "shadowquic_${System.currentTimeMillis()}.$type").also {
-                                it.parentFile?.mkdirs()
+                            (repository.cacheDir / "shadowquic_${System.currentTimeMillis()}.$type").also {
+                                it.parent()?.createDirectories()
                                 cacheFiles.add(it)
                             }
                         }
@@ -92,8 +98,8 @@ fun buildPluginSpecs(
 
     val sharedEnv = linkedMapOf<String, String>()
     repository.externalAssetsDir.resolve(Libcore.PluginCaFile)
-        .takeIf { it.isFile }
-        ?.absolutePath
+        .takeIf { it.isRegularFile() }
+        ?.invariantPathString()
         ?.let { sharedEnv["SSL_CERT_FILE"] = it }
 
     for ((chain) in config.externalIndex) {

@@ -2,9 +2,15 @@ package fr.husi.bg
 
 import fr.husi.DesktopPaths
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteIfExists
+import fr.husi.ktx.invariantPathString
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
+import kotlinx.coroutines.runBlocking
 import java.nio.charset.Charset
 
 internal object LegacyDesktopTaskCleanup {
@@ -49,7 +55,7 @@ internal object LegacyDesktopTaskCleanup {
         }
     }
 
-    private fun linuxUnitFile(taskId: String, suffix: String): File {
+    private fun linuxUnitFile(taskId: String, suffix: String): PlatformFile {
         return DesktopPaths.linuxSystemdUserDir
             .resolve("$UNIT_PREFIX.$taskId.$suffix")
     }
@@ -62,7 +68,7 @@ internal object LegacyDesktopTaskCleanup {
         if (!agentFile.exists()) return
 
         runCatching {
-            runCommand("launchctl", "bootout", macUserDomainTarget(), agentFile.absolutePath)
+            runCommand("launchctl", "bootout", macUserDomainTarget(), agentFile.invariantPathString())
         }.onFailure {
             Logs.w("bootout launch agent $label", it)
         }
@@ -113,8 +119,13 @@ internal object LegacyDesktopTaskCleanup {
             ?: Charset.defaultCharset()
     }
 
-    private fun deleteFileIfPresent(file: File) {
+    private fun deleteFileIfPresent(file: PlatformFile) {
         if (!file.exists()) return
-        check(file.delete()) { "failed to delete ${file.absolutePath}" }
+        runBlocking {
+            runCatching { file.deleteIfExists() }.getOrElse {
+                error("failed to delete ${file.invariantPathString()}")
+            }
+        }
+        check(!file.exists()) { "failed to delete ${file.invariantPathString()}" }
     }
 }

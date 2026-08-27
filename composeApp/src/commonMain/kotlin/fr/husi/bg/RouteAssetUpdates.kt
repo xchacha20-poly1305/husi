@@ -5,18 +5,26 @@ import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.deleteIfExists
+import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.kxs
 import fr.husi.libcore.CopyCallback
 import fr.husi.libcore.HTTPClient
 import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.resolveHttpClientFactory
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.readString
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.writeString
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.io.File
 import kotlin.time.Clock
 
 internal typealias UpdateProgress = (Float) -> Unit
@@ -35,20 +43,20 @@ private val assetVersionFormat = LocalDateTime.Format {
     secondFraction(fixedLength = 3)
 }
 
-internal fun routeGeoDir(externalAssetsDir: File): File {
+internal fun routeGeoDir(externalAssetsDir: PlatformFile): PlatformFile {
     return externalAssetsDir.resolve("geo").apply {
-        mkdirs()
+        createDirectories()
     }
 }
 
-internal fun routeVersionFiles(externalAssetsDir: File): List<File> {
+internal fun routeVersionFiles(externalAssetsDir: PlatformFile): List<PlatformFile> {
     return listOf(
         externalAssetsDir.resolve("geoip.version.txt"),
         externalAssetsDir.resolve("geosite.version.txt"),
     )
 }
 
-internal fun routeAssetVersionFile(externalAssetsDir: File, assetName: String): File {
+internal fun routeAssetVersionFile(externalAssetsDir: PlatformFile, assetName: String): PlatformFile {
     return externalAssetsDir.resolve("$assetName.version.txt")
 }
 
@@ -59,8 +67,8 @@ internal fun currentAssetVersionText(): String {
 }
 
 internal suspend fun updateManagedRouteAssets(
-    externalAssetsDir: File,
-    cacheDir: File,
+    externalAssetsDir: PlatformFile,
+    cacheDir: PlatformFile,
     checkedAtSeconds: Long = currentEpochSeconds(),
     updateProgress: UpdateProgress = {},
 ) {
@@ -110,7 +118,7 @@ internal suspend fun updateManagedRouteAssets(
 
 internal suspend fun updateSingleRouteAsset(
     asset: AssetEntity,
-    externalAssetsDir: File,
+    externalAssetsDir: PlatformFile,
     updateProgress: UpdateProgress = {},
 ): String {
     val targetFile = routeGeoDir(externalAssetsDir).resolve(asset.name)
@@ -128,7 +136,7 @@ internal suspend fun updateSingleRouteAsset(
         setURL(asset.url)
         setUserAgent(USER_AGENT)
     }.execute().writeTo(
-        targetFile.absolutePath,
+        targetFile.invariantPathString(),
         object : CopyCallback {
             private var saved = 0.0
             private var length = 0.0
@@ -146,7 +154,7 @@ internal suspend fun updateSingleRouteAsset(
     )
 
     val version = currentAssetVersionText()
-    routeAssetVersionFile(externalAssetsDir, asset.name).writeText(version)
+    routeAssetVersionFile(externalAssetsDir, asset.name).writeString(version)
     return version
 }
 
@@ -178,16 +186,16 @@ internal data class GithubRepository(
 
 internal data class GithubAssetSource(
     val repository: GithubRepository,
-    val versionFile: File,
+    val versionFile: PlatformFile,
 )
 
 internal data class GithubReleaseSource(
     val repository: GithubRepository,
     val assetName: String,
-    val versionFile: File,
+    val versionFile: PlatformFile,
 )
 
-internal fun buildGithubAssetSources(provider: Int, versionFiles: List<File>): List<GithubAssetSource> {
+internal fun buildGithubAssetSources(provider: Int, versionFiles: List<PlatformFile>): List<GithubAssetSource> {
     return when (provider) {
         RuleProvider.OFFICIAL -> listOf(
             GithubAssetSource(
@@ -254,10 +262,10 @@ internal sealed class UpdateInfo {
 }
 
 internal abstract class AssetsUpdater(
-    val versionFiles: List<File>,
+    val versionFiles: List<PlatformFile>,
     val updateProgress: UpdateProgress,
-    val cacheDir: File,
-    val destinationDir: File,
+    val cacheDir: PlatformFile,
+    val destinationDir: PlatformFile,
     remoteSource: RemoteSource? = null,
 ) {
     private val httpClient: HTTPClient? = if (remoteSource == null) {
@@ -298,10 +306,10 @@ internal abstract class AssetsUpdater(
 }
 
 internal class CustomAssetUpdater(
-    versionFiles: List<File>,
+    versionFiles: List<PlatformFile>,
     updateProgress: UpdateProgress,
-    cacheDir: File,
-    destinationDir: File,
+    cacheDir: PlatformFile,
+    destinationDir: PlatformFile,
     val links: List<String>,
     remoteSource: RemoteSource? = null,
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
@@ -311,7 +319,7 @@ internal class CustomAssetUpdater(
     }
 
     override suspend fun performUpdate(updates: List<UpdateInfo>) {
-        val cacheFiles = ArrayList<File>(updates.size)
+        val cacheFiles = ArrayList<PlatformFile>(updates.size)
 
         try {
             updateProgress(35f)
@@ -320,36 +328,35 @@ internal class CustomAssetUpdater(
                 val response = newRequest(update.link).execute()
 
                 val cacheFile = cacheDir.resolve("custom_asset_$index.tmp")
-                cacheFile.parentFile?.mkdirs()
-                cacheFile.deleteOnExit()
+                cacheFile.parent()?.createDirectories()
 
-                response.writeTo(cacheFile.absolutePath, null)
+                response.writeTo(cacheFile.invariantPathString(), null)
                 cacheFiles.add(cacheFile)
             }
 
             updateProgress(25f)
             for (file in cacheFiles) {
-                Libcore.tryUnpack(file.absolutePath, destinationDir.absolutePath)
+                Libcore.tryUnpack(file.invariantPathString(), destinationDir.invariantPathString())
             }
 
             updateProgress(25f)
             for (versionFile in versionFiles) {
-                versionFile.writeText("custom")
+                versionFile.writeString("custom")
             }
             updateProgress(15f)
         } finally {
             for (file in cacheFiles) {
-                file.runCatching { delete() }
+                file.runCatching { deleteIfExists() }
             }
         }
     }
 }
 
 internal class GithubAssetUpdater(
-    versionFiles: List<File>,
+    versionFiles: List<PlatformFile>,
     updateProgress: UpdateProgress,
-    cacheDir: File,
-    destinationDir: File,
+    cacheDir: PlatformFile,
+    destinationDir: PlatformFile,
     val sources: List<GithubAssetSource>,
     val useUnstableBranch: Boolean,
     remoteSource: RemoteSource? = null,
@@ -360,8 +367,8 @@ internal class GithubAssetUpdater(
 
         for (source in sources) {
             val latestVersion = fetchVersion(source.repository)
-            val currentVersion = source.versionFile.takeIf(File::isFile)
-                ?.readText()
+            val currentVersion = source.versionFile.takeIf(PlatformFile::isRegularFile)
+                ?.readString()
                 ?.trim()
                 .orEmpty()
 
@@ -374,7 +381,7 @@ internal class GithubAssetUpdater(
     }
 
     override suspend fun performUpdate(updates: List<UpdateInfo>) {
-        val cacheFiles = ArrayList<File>(updates.size)
+        val cacheFiles = ArrayList<PlatformFile>(updates.size)
         val progressTotalDownload = 60f
         val progressTotalUnpack = 25f
 
@@ -390,10 +397,9 @@ internal class GithubAssetUpdater(
                 val cacheFile = cacheDir.resolve(
                     "${source.repository.fullName.replace('/', '_')}-${update.newVersion}.tmp",
                 )
-                cacheFile.parentFile?.mkdirs()
-                cacheFile.deleteOnExit()
+                cacheFile.parent()?.createDirectories()
 
-                response.writeTo(cacheFile.absolutePath, null)
+                response.writeTo(cacheFile.invariantPathString(), null)
                 cacheFiles.add(cacheFile)
 
                 updateProgress(progressPerDownload)
@@ -401,22 +407,22 @@ internal class GithubAssetUpdater(
 
             val progressPerUnpack = progressTotalUnpack / cacheFiles.size
             for (file in cacheFiles) {
-                Libcore.untargzWithoutDir(file.absolutePath, destinationDir.absolutePath)
+                Libcore.untargzWithoutDir(file.invariantPathString(), destinationDir.invariantPathString())
                 updateProgress(progressPerUnpack)
             }
 
             if (sources.size == 1) {
                 val newVersion = (updates.firstOrNull() as? UpdateInfo.Github)?.newVersion ?: return
-                versionFiles.forEach { it.writeText(newVersion) }
+                versionFiles.forEach { it.writeString(newVersion) }
             } else {
                 for (update in updates) {
                     update as UpdateInfo.Github
-                    update.source.versionFile.writeText(update.newVersion)
+                    update.source.versionFile.writeString(update.newVersion)
                 }
             }
         } finally {
             for (file in cacheFiles) {
-                file.runCatching { delete() }
+                file.runCatching { deleteIfExists() }
             }
         }
     }
@@ -428,10 +434,10 @@ internal class GithubAssetUpdater(
 }
 
 internal class GithubReleaseZipUpdater(
-    versionFiles: List<File>,
+    versionFiles: List<PlatformFile>,
     updateProgress: UpdateProgress,
-    cacheDir: File,
-    destinationDir: File,
+    cacheDir: PlatformFile,
+    destinationDir: PlatformFile,
     val source: GithubReleaseSource,
     remoteSource: RemoteSource? = null,
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
@@ -440,8 +446,8 @@ internal class GithubReleaseZipUpdater(
         val body = remoteSource.fetchString(githubApiReleaseUrl(source.repository.fullName))
         val latestVersion = kxs.decodeFromString<GithubRelease>(body)
             .tagName.blankAsNull().orEmpty()
-        val currentVersion = source.versionFile.takeIf(File::isFile)
-            ?.readText()?.trim().orEmpty()
+        val currentVersion = source.versionFile.takeIf(PlatformFile::isRegularFile)
+            ?.readString()?.trim().orEmpty()
         return if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
             listOf(UpdateInfo.Github(GithubAssetSource(source.repository, source.versionFile), latestVersion))
         } else emptyList()
@@ -452,18 +458,17 @@ internal class GithubReleaseZipUpdater(
         val tag = update.newVersion
         val url = githubReleaseDownloadUrl(source.repository.fullName, tag, source.assetName)
         val cacheFile = cacheDir.resolve("${source.repository.name}-$tag.tmp")
-        cacheFile.parentFile?.mkdirs()
-        cacheFile.deleteOnExit()
+        cacheFile.parent()?.createDirectories()
         try {
             updateProgress(10f)
-            newRequest(url).execute().writeTo(cacheFile.absolutePath, null)
+            newRequest(url).execute().writeTo(cacheFile.invariantPathString(), null)
             updateProgress(60f)
-            Libcore.tryUnpack(cacheFile.absolutePath, destinationDir.absolutePath)
+            Libcore.tryUnpack(cacheFile.invariantPathString(), destinationDir.invariantPathString())
             updateProgress(25f)
-            versionFiles.forEach { it.writeText(tag) }
+            versionFiles.forEach { it.writeString(tag) }
             updateProgress(5f)
         } finally {
-            cacheFile.runCatching { delete() }
+            cacheFile.runCatching { deleteIfExists() }
         }
     }
 }

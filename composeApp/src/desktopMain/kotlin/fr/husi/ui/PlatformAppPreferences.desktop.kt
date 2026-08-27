@@ -31,12 +31,12 @@ import fr.husi.resources.folder_open
 import fr.husi.resources.legend_toggle
 import fr.husi.resources.process
 import fr.husi.resources.select_file
+import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
 
 @Composable
 internal actual fun AppSelectPreference(
@@ -75,8 +75,8 @@ internal actual fun AppSelectPreference(
                 updateText(text.copy(text = content, selection = TextRange(content.length)))
             }
 
-            fun appendFiles(files: List<File>) {
-                appendPaths(files.map { it.absolutePath })
+            fun appendFiles(files: List<PlatformFile>) {
+                appendPaths(files.map { it.absolutePath() })
             }
             val filePicker = rememberFilePickerLauncher(
                 mode = FileKitMode.Multiple(),

@@ -2,8 +2,11 @@ package fr.husi.plugin
 
 import android.content.pm.ProviderInfo
 import fr.husi.ktx.Logs
+import fr.husi.ktx.canExecute
+import fr.husi.ktx.invariantPathString
 import fr.husi.repository.resolveAndroidRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.div
 
 actual object PluginManager {
 
@@ -48,9 +51,9 @@ actual object PluginManager {
 
     private fun initNativeInternal(pluginId: String): String? {
         fun soIfExist(soName: String): String? {
-            val f = File(resolveAndroidRepository().context.applicationInfo.nativeLibraryDir, soName)
+            val f = PlatformFile(resolveAndroidRepository().context.applicationInfo.nativeLibraryDir) / soName
             if (f.canExecute()) {
-                return f.absolutePath
+                return f.invariantPathString()
             }
             return null
         }
@@ -68,9 +71,9 @@ actual object PluginManager {
     private fun initNativeFaster(provider: ProviderInfo): String? {
         return provider.loadString(Plugins.METADATA_KEY_EXECUTABLE_PATH)
             ?.let { relativePath ->
-                File(provider.applicationInfo.nativeLibraryDir).resolve(relativePath).apply {
-                    check(canExecute())
-                }.absolutePath
+                (PlatformFile(provider.applicationInfo.nativeLibraryDir) / relativePath).also {
+                    check(it.canExecute())
+                }.invariantPathString()
             }
     }
 }

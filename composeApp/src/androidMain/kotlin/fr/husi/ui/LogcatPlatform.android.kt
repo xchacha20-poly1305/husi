@@ -2,22 +2,24 @@ package fr.husi.ui
 
 import android.content.Context
 import android.content.Intent
-import fr.husi.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
 import fr.husi.compose.SheetActionRow
+import fr.husi.compose.material3.Icon
 import fr.husi.ktx.Logs
+import fr.husi.ktx.createTempChild
+import fr.husi.ktx.shareUri
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.send
 import fr.husi.resources.share
 import fr.husi.utils.SendLog
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
 
 @Composable
 internal actual fun ShareActionRow(scope: CoroutineScope, showSnackbar: suspend (Exception) -> Unit) {
@@ -41,13 +43,11 @@ internal actual fun ShareActionRow(scope: CoroutineScope, showSnackbar: suspend 
 }
 
 private suspend fun shareLogFile(context: Context) {
-    val logFile = File.createTempFile(
+    val logFile = (resolveRepository().cacheDir / "log").createTempChild(
         context.packageName,
         ".log",
-        File(resolveRepository().cacheDir, "log").also { it.mkdirs() },
-    ).apply {
-        writeText(SendLog.buildLog(resolveRepository().externalAssetsDir))
-    }
+    )
+    logFile.writeString(SendLog.buildLog(resolveRepository().externalAssetsDir))
     context.startActivity(
         Intent.createChooser(
             Intent(Intent.ACTION_SEND)
@@ -55,10 +55,7 @@ private suspend fun shareLogFile(context: Context) {
                 .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 .putExtra(
                     Intent.EXTRA_STREAM,
-                    FileProvider.getUriForFile(
-                        context, context.packageName + ".cache",
-                        logFile,
-                    ),
+                    shareUri(context, logFile),
                 ),
             resolveRepository().getString(Res.string.share),
         ).setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),

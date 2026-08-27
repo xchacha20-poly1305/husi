@@ -1,7 +1,15 @@
 package fr.husi.utils.appicon
 
-import java.io.File
+import fr.husi.ktx.deleteRecursively
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.writeString
+import kotlinx.coroutines.test.runTest
 import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,15 +24,15 @@ class LinuxDesktopEntriesTest {
     }
 
     @Test
-    fun `indexes TryExec ahead of Exec and matches both path styles`() {
+    fun `indexes TryExec ahead of Exec and matches both path styles`() = runTest {
         withTempDesktopTree { home, env ->
-            val applications = File(env.getValue("XDG_DATA_HOME"), "applications")
+            val applications = PlatformFile(env.getValue("XDG_DATA_HOME")).resolve("applications")
             val absoluteBin = home.resolve("opt").resolve("app").resolve("bin").resolve("foo")
-            absoluteBin.parentFile.mkdirs()
-            absoluteBin.writeText("")
+            absoluteBin.parent()?.createDirectories()
+            absoluteBin.writeString("")
             val execFallback = home.resolve("usr").resolve("bin").resolve("foo")
-            execFallback.parentFile.mkdirs()
-            execFallback.writeText("")
+            execFallback.parent()?.createDirectories()
+            execFallback.writeString("")
 
             writeDesktop(
                 applications.resolve("foo.desktop"),
@@ -33,14 +41,14 @@ class LinuxDesktopEntriesTest {
                 Type=Application
                 Name=Foo App
                 Icon=foo
-                Exec=${execFallback.absolutePath} %u
-                TryExec=${absoluteBin.absolutePath}
+                Exec=${execFallback.absolutePath()} %u
+                TryExec=${absoluteBin.absolutePath()}
                 """.trimIndent(),
             )
 
-            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath)
-            val byTryExec = assertNotNull(index.find(absoluteBin.absolutePath))
-            val byExec = assertNotNull(index.find(execFallback.absolutePath))
+            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath())
+            val byTryExec = assertNotNull(index.find(absoluteBin.absolutePath()))
+            val byExec = assertNotNull(index.find(execFallback.absolutePath()))
             assertEquals("Foo App", byTryExec.name)
             assertEquals("foo", byTryExec.iconName)
             assertEquals(byTryExec, byExec)
@@ -48,9 +56,9 @@ class LinuxDesktopEntriesTest {
     }
 
     @Test
-    fun `matches basename when Exec is not an absolute path`() {
+    fun `matches basename when Exec is not an absolute path`() = runTest {
         withTempDesktopTree { home, env ->
-            val applications = File(env.getValue("XDG_DATA_HOME"), "applications")
+            val applications = PlatformFile(env.getValue("XDG_DATA_HOME")).resolve("applications")
             writeDesktop(
                 applications.resolve("firefox.desktop"),
                 """
@@ -62,23 +70,28 @@ class LinuxDesktopEntriesTest {
                 """.trimIndent(),
             )
 
-            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath)
-            val found = assertNotNull(index.find(home.resolve("somewhere").resolve("firefox").absolutePath))
+            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath())
+            val found = assertNotNull(
+                index.find(home.resolve("somewhere").resolve("firefox").absolutePath()),
+            )
             assertEquals("Firefox", found.name)
         }
     }
 
     @Test
-    fun `resolves symlink to the canonical Exec path`() {
+    fun `resolves symlink to the canonical Exec path`() = runTest {
         withTempDesktopTree { home, env ->
-            val applications = File(env.getValue("XDG_DATA_HOME"), "applications")
+            val applications = PlatformFile(env.getValue("XDG_DATA_HOME")).resolve("applications")
             val real = home.resolve("lib").resolve("firefox").resolve("firefox")
-            real.parentFile.mkdirs()
-            real.writeText("")
+            real.parent()?.createDirectories()
+            real.writeString("")
             val linkDir = home.resolve("bin")
-            linkDir.mkdirs()
+            linkDir.createDirectories()
             val link = linkDir.resolve("firefox")
-            Files.createSymbolicLink(link.toPath(), real.toPath())
+            Files.createSymbolicLink(
+                Path.of(link.absolutePath()),
+                Path.of(real.absolutePath()),
+            )
 
             writeDesktop(
                 applications.resolve("firefox.desktop"),
@@ -87,20 +100,20 @@ class LinuxDesktopEntriesTest {
                 Type=Application
                 Name=Firefox
                 Icon=firefox
-                Exec=${real.absolutePath} %u
+                Exec=${real.absolutePath()} %u
                 """.trimIndent(),
             )
 
-            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath)
-            val found = assertNotNull(index.find(link.absolutePath))
+            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath())
+            val found = assertNotNull(index.find(link.absolutePath()))
             assertEquals("Firefox", found.name)
         }
     }
 
     @Test
-    fun `skips NoDisplay and non-Application entries`() {
+    fun `skips NoDisplay and non-Application entries`() = runTest {
         withTempDesktopTree { home, env ->
-            val applications = File(env.getValue("XDG_DATA_HOME"), "applications")
+            val applications = PlatformFile(env.getValue("XDG_DATA_HOME")).resolve("applications")
             writeDesktop(
                 applications.resolve("hidden.desktop"),
                 """
@@ -121,7 +134,7 @@ class LinuxDesktopEntriesTest {
                 """.trimIndent(),
             )
 
-            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath)
+            val index = LinuxDesktopEntries.buildIndex(env, home.absolutePath())
             assertNull(index.find("/usr/bin/hidden"))
             assertNull(index.find("/usr/bin/website"))
         }
@@ -143,20 +156,22 @@ class LinuxDesktopEntriesTest {
         assertEquals("Firefox", parsed.name)
     }
 
-    private fun writeDesktop(file: File, contents: String) {
-        file.parentFile.mkdirs()
-        file.writeText(contents)
+    private suspend fun writeDesktop(file: PlatformFile, contents: String) {
+        file.parent()?.createDirectories()
+        file.writeString(contents)
     }
 
-    private fun withTempDesktopTree(block: (home: File, env: Map<String, String>) -> Unit) {
-        val home = createTempDirectory("husi-desktop-entries").toFile()
+    private suspend fun withTempDesktopTree(
+        block: suspend (home: PlatformFile, env: Map<String, String>) -> Unit,
+    ) {
+        val home = PlatformFile(createTempDirectory("husi-desktop-entries").toString())
         try {
             val dataHome = home.resolve("local").resolve("share")
-            dataHome.mkdirs()
+            dataHome.createDirectories()
             val env = mapOf(
-                "HOME" to home.absolutePath,
-                "XDG_DATA_HOME" to dataHome.absolutePath,
-                "XDG_DATA_DIRS" to home.resolve("usr").resolve("share").absolutePath,
+                "HOME" to home.absolutePath(),
+                "XDG_DATA_HOME" to dataHome.absolutePath(),
+                "XDG_DATA_DIRS" to home.resolve("usr").resolve("share").absolutePath(),
             )
             block(home, env)
         } finally {

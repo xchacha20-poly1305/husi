@@ -79,6 +79,7 @@ import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.div
 import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -90,7 +91,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
 
 @Composable
 internal fun BackupScreen(
@@ -237,7 +237,7 @@ internal fun BackupScreen(
                                 onClick = {
                                     viewModel.share(
                                         createFile = { fileName ->
-                                            File(resolveRepository().cacheDir, fileName)
+                                            resolveRepository().cacheDir / fileName
                                         },
                                         launch = { file ->
                                             shareBackupFile(file)

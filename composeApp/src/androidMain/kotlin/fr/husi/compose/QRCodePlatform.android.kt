@@ -6,24 +6,24 @@ import android.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
+import fr.husi.ktx.shareUri
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
-import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.parent
 import io.github.vinceglb.filekit.write
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.nio.charset.StandardCharsets
 
 actual fun generateQRCodeBitmap(content: String, size: Int): ImageBitmap? {
     return try {
@@ -70,13 +70,10 @@ actual suspend fun shareQRCodeImage(
 ) = withContext(Dispatchers.IO) {
     try {
         val context = resolveAndroidRepository().context
-        val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
-        cacheDir.createDirectories()
-        val platformFile = PlatformFile(cacheDir, "$name.png")
+        val platformFile = resolveRepository().cacheDir / "qrcodes" / "$name.png"
+        platformFile.parent()?.createDirectories()
         platformFile.write(pngBytes)
-
-        val javaFile = File(resolveRepository().cacheDir, "qrcodes/$name.png")
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", javaFile)
+        val uri = shareUri(context, platformFile)
 
         val shareIntent = Intent(Intent.ACTION_SEND)
             .setType("image/png")

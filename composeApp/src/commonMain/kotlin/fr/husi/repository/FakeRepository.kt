@@ -1,11 +1,13 @@
 package fr.husi.repository
 
 import fr.husi.libcore.Service
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import kotlin.io.path.createTempDirectory
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
-import java.io.File
-import kotlin.io.path.createTempDirectory
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
 
@@ -19,12 +21,12 @@ class FakeRepository : Repository {
     override val preferenceStoreDispatcher = Dispatchers.Unconfined
 
     @Suppress("NewApi")
-    private val tempRoot = createTempDirectory("husi-fake-repo").toFile()
-    override val cacheDir = tempRoot.resolve("cache").apply { mkdirs() }
-    override val filesDir = tempRoot.resolve("files").apply { mkdirs() }
-    override val externalAssetsDir = tempRoot.resolve("external").apply { mkdirs() }
-    override fun resolveDatabaseFile(name: String): File {
-        return tempRoot.resolve(name)
+    private val tempRoot = PlatformFile(createTempDirectory("husi-fake-repo").toString())
+    override val cacheDir = (tempRoot / "cache").apply { createDirectories() }
+    override val filesDir = (tempRoot / "files").apply { createDirectories() }
+    override val externalAssetsDir = (tempRoot / "external").apply { createDirectories() }
+    override fun resolveDatabaseFile(name: String): PlatformFile {
+        return tempRoot / name
     }
 
     override suspend fun getString(resource: StringResource) = getComposeString(resource)

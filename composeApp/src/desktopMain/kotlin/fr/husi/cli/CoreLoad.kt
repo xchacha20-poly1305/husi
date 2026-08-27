@@ -4,11 +4,13 @@ import fr.husi.CORE_SOCKET_NAME
 import fr.husi.core.BridgeCoreClient
 import fr.husi.core.CoreClient
 import fr.husi.ktx.Logs
+import fr.husi.ktx.invariantPathString
 import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.CoreHostController
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.div
 import kotlinx.coroutines.runBlocking
-import java.io.File
 
 fun libcoreLoadFailureMessage(error: LinkageError): String {
     return buildString {
@@ -65,9 +67,9 @@ fun hostSocketPaths(sessionBasePath: String): List<String> {
         // The Windows daemon endpoint is the named pipe itself, not a directory.
         daemonBasePath
     } else {
-        File(daemonBasePath, CORE_SOCKET_NAME).path
+        (PlatformFile(daemonBasePath) / CORE_SOCKET_NAME).invariantPathString()
     }
-    return listOf(daemonSocket, File(sessionBasePath, CORE_SOCKET_NAME).path)
+    return listOf(daemonSocket, (PlatformFile(sessionBasePath) / CORE_SOCKET_NAME).invariantPathString())
 }
 
 fun connectRemoteClient(serverURL: String, secret: String): CoreClient {

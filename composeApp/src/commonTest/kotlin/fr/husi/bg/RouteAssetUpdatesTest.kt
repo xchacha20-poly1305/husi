@@ -1,11 +1,14 @@
 package fr.husi.bg
 
 import fr.husi.RuleProvider
+import fr.husi.ktx.deleteRecursively
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.writeString
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,10 +19,19 @@ import kotlin.test.assertTrue
 
 class RouteAssetUpdatesTest {
 
-    private val dummyFiles = listOf(File("geoip.version.txt"), File("geosite.version.txt"))
+    private val dummyFiles = listOf(
+        PlatformFile("geoip.version.txt"),
+        PlatformFile("geosite.version.txt"),
+    )
 
-    private fun createTempDir(): File =
-        createTempDirectory("route-asset-updates-test-").toFile().also { it.deleteOnExit() }
+    private suspend fun withTempDir(block: suspend (PlatformFile) -> Unit) {
+        val dir = PlatformFile(createTempDirectory("route-asset-updates-test-").toString())
+        try {
+            block(dir)
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
 
     // region hasUnstableBranch
 
@@ -150,108 +162,116 @@ class RouteAssetUpdatesTest {
 
     @Test
     fun `check returns update when remote version differs from local`() = runTest {
-        val dir = createTempDir()
-        val versionFile = dir.resolve("geoip.version.txt").also { it.writeText("202605151045") }
-        val source = GithubAssetSource(
-            repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
-            versionFile = versionFile,
-        )
-        val remoteSource = mockk<RemoteSource>()
-        every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
-        val updater = GithubAssetUpdater(
-            versionFiles = listOf(versionFile),
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            sources = listOf(source),
-            useUnstableBranch = false,
-            remoteSource = remoteSource,
-        )
+        withTempDir { dir ->
+            val versionFile = dir.resolve("geoip.version.txt")
+            versionFile.writeString("202605151045")
+            val source = GithubAssetSource(
+                repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
+                versionFile = versionFile,
+            )
+            val remoteSource = mockk<RemoteSource>()
+            every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
+            val updater = GithubAssetUpdater(
+                versionFiles = listOf(versionFile),
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                sources = listOf(source),
+                useUnstableBranch = false,
+                remoteSource = remoteSource,
+            )
 
-        val updates = updater.check()
+            val updates = updater.check()
 
-        assertEquals(1, updates.size)
-        assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
-        verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geoip")) }
+            assertEquals(1, updates.size)
+            assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
+            verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geoip")) }
+        }
     }
 
     @Test
     fun `check returns no update when remote version matches local`() = runTest {
-        val dir = createTempDir()
-        val versionFile = dir.resolve("geoip.version.txt").also { it.writeText("202605161045") }
-        val source = GithubAssetSource(
-            repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
-            versionFile = versionFile,
-        )
-        val remoteSource = mockk<RemoteSource>()
-        every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
-        val updater = GithubAssetUpdater(
-            versionFiles = listOf(versionFile),
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            sources = listOf(source),
-            useUnstableBranch = false,
-            remoteSource = remoteSource,
-        )
+        withTempDir { dir ->
+            val versionFile = dir.resolve("geoip.version.txt")
+            versionFile.writeString("202605161045")
+            val source = GithubAssetSource(
+                repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
+                versionFile = versionFile,
+            )
+            val remoteSource = mockk<RemoteSource>()
+            every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
+            val updater = GithubAssetUpdater(
+                versionFiles = listOf(versionFile),
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                sources = listOf(source),
+                useUnstableBranch = false,
+                remoteSource = remoteSource,
+            )
 
-        assertTrue(updater.check().isEmpty())
+            assertTrue(updater.check().isEmpty())
+        }
     }
 
     @Test
     fun `check skips source when remote version response is empty`() = runTest {
-        val dir = createTempDir()
-        val source = GithubAssetSource(
-            repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
-            versionFile = dir.resolve("geoip.version.txt"),
-        )
-        val remoteSource = mockk<RemoteSource>()
-        every { remoteSource.fetchString(any()) } returns """{"tag_name":""}"""
-        val updater = GithubAssetUpdater(
-            versionFiles = emptyList(),
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            sources = listOf(source),
-            useUnstableBranch = false,
-            remoteSource = remoteSource,
-        )
+        withTempDir { dir ->
+            val source = GithubAssetSource(
+                repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
+                versionFile = dir.resolve("geoip.version.txt"),
+            )
+            val remoteSource = mockk<RemoteSource>()
+            every { remoteSource.fetchString(any()) } returns """{"tag_name":""}"""
+            val updater = GithubAssetUpdater(
+                versionFiles = emptyList(),
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                sources = listOf(source),
+                useUnstableBranch = false,
+                remoteSource = remoteSource,
+            )
 
-        assertTrue(updater.check().isEmpty())
+            assertTrue(updater.check().isEmpty())
+        }
     }
 
     @Test
     fun `check fetches correct URL for each source`() = runTest {
-        val dir = createTempDir()
-        val vf1 = dir.resolve("geoip.version.txt").also { it.writeText("202605151045") }
-        val vf2 = dir.resolve("geosite.version.txt").also { it.writeText("202605151045") }
-        val sources = listOf(
-            GithubAssetSource(GithubRepository("SagerNet", "sing-geoip"), vf1),
-            GithubAssetSource(
-                GithubRepository(
-                    "SagerNet",
-                    "sing-geosite",
-                    unstableBranch = "rule-set-unstable",
+        withTempDir { dir ->
+            val vf1 = dir.resolve("geoip.version.txt")
+            vf1.writeString("202605151045")
+            val vf2 = dir.resolve("geosite.version.txt")
+            vf2.writeString("202605151045")
+            val sources = listOf(
+                GithubAssetSource(GithubRepository("SagerNet", "sing-geoip"), vf1),
+                GithubAssetSource(
+                    GithubRepository(
+                        "SagerNet",
+                        "sing-geosite",
+                        unstableBranch = "rule-set-unstable",
+                    ),
+                    vf2,
                 ),
-                vf2,
-            ),
-        )
-        val remoteSource = mockk<RemoteSource>()
-        every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
-        val updater = GithubAssetUpdater(
-            versionFiles = listOf(vf1, vf2),
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            sources = sources,
-            useUnstableBranch = true,
-            remoteSource = remoteSource,
-        )
+            )
+            val remoteSource = mockk<RemoteSource>()
+            every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
+            val updater = GithubAssetUpdater(
+                versionFiles = listOf(vf1, vf2),
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                sources = sources,
+                useUnstableBranch = true,
+                remoteSource = remoteSource,
+            )
 
-        updater.check()
+            updater.check()
 
-        verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geoip")) }
-        verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geosite")) }
+            verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geoip")) }
+            verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geosite")) }
+        }
     }
 
     // endregion
@@ -260,52 +280,56 @@ class RouteAssetUpdatesTest {
 
     @Test
     fun `GithubReleaseZipUpdater check returns update when versions differ`() = runTest {
-        val dir = createTempDir()
-        val versionFile = dir.resolve("geoip.version.txt").also { it.writeText("202605151045") }
-        val source = GithubReleaseSource(
-            repository = GithubRepository(author = "runetfreedom", name = "russia-v2ray-rules-dat"),
-            assetName = "sing-box.zip",
-            versionFile = versionFile,
-        )
-        val remoteSource = mockk<RemoteSource>()
-        every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
-        val updater = GithubReleaseZipUpdater(
-            versionFiles = listOf(versionFile),
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            source = source,
-            remoteSource = remoteSource,
-        )
+        withTempDir { dir ->
+            val versionFile = dir.resolve("geoip.version.txt")
+            versionFile.writeString("202605151045")
+            val source = GithubReleaseSource(
+                repository = GithubRepository(author = "runetfreedom", name = "russia-v2ray-rules-dat"),
+                assetName = "sing-box.zip",
+                versionFile = versionFile,
+            )
+            val remoteSource = mockk<RemoteSource>()
+            every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
+            val updater = GithubReleaseZipUpdater(
+                versionFiles = listOf(versionFile),
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                source = source,
+                remoteSource = remoteSource,
+            )
 
-        val updates = updater.check()
+            val updates = updater.check()
 
-        assertEquals(1, updates.size)
-        assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
-        verify { remoteSource.fetchString(githubApiReleaseUrl("runetfreedom/russia-v2ray-rules-dat")) }
+            assertEquals(1, updates.size)
+            assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
+            verify { remoteSource.fetchString(githubApiReleaseUrl("runetfreedom/russia-v2ray-rules-dat")) }
+        }
     }
 
     @Test
     fun `GithubReleaseZipUpdater check returns empty when versions match`() = runTest {
-        val dir = createTempDir()
-        val versionFile = dir.resolve("geoip.version.txt").also { it.writeText("202605161045") }
-        val source = GithubReleaseSource(
-            repository = GithubRepository(author = "runetfreedom", name = "russia-v2ray-rules-dat"),
-            assetName = "sing-box.zip",
-            versionFile = versionFile,
-        )
-        val remoteSource = mockk<RemoteSource>()
-        every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
-        val updater = GithubReleaseZipUpdater(
-            versionFiles = listOf(versionFile),
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            source = source,
-            remoteSource = remoteSource,
-        )
+        withTempDir { dir ->
+            val versionFile = dir.resolve("geoip.version.txt")
+            versionFile.writeString("202605161045")
+            val source = GithubReleaseSource(
+                repository = GithubRepository(author = "runetfreedom", name = "russia-v2ray-rules-dat"),
+                assetName = "sing-box.zip",
+                versionFile = versionFile,
+            )
+            val remoteSource = mockk<RemoteSource>()
+            every { remoteSource.fetchString(any()) } returns """{"tag_name":"202605161045"}"""
+            val updater = GithubReleaseZipUpdater(
+                versionFiles = listOf(versionFile),
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                source = source,
+                remoteSource = remoteSource,
+            )
 
-        assertTrue(updater.check().isEmpty())
+            assertTrue(updater.check().isEmpty())
+        }
     }
 
     // endregion
@@ -314,37 +338,39 @@ class RouteAssetUpdatesTest {
 
     @Test
     fun `CustomAssetUpdater check maps each link to UpdateInfo Custom`() = runTest {
-        val dir = createTempDir()
-        val links = listOf("https://example.com/geoip.db", "https://example.com/geosite.db")
-        val updater = CustomAssetUpdater(
-            versionFiles = dummyFiles,
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            links = links,
-            remoteSource = mockk(relaxed = true),
-        )
+        withTempDir { dir ->
+            val links = listOf("https://example.com/geoip.db", "https://example.com/geosite.db")
+            val updater = CustomAssetUpdater(
+                versionFiles = dummyFiles,
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                links = links,
+                remoteSource = mockk(relaxed = true),
+            )
 
-        val updates = updater.check()
+            val updates = updater.check()
 
-        assertEquals(2, updates.size)
-        assertEquals(UpdateInfo.Custom("https://example.com/geoip.db"), updates[0])
-        assertEquals(UpdateInfo.Custom("https://example.com/geosite.db"), updates[1])
+            assertEquals(2, updates.size)
+            assertEquals(UpdateInfo.Custom("https://example.com/geoip.db"), updates[0])
+            assertEquals(UpdateInfo.Custom("https://example.com/geosite.db"), updates[1])
+        }
     }
 
     @Test
     fun `CustomAssetUpdater check returns empty list when links are empty`() = runTest {
-        val dir = createTempDir()
-        val updater = CustomAssetUpdater(
-            versionFiles = dummyFiles,
-            updateProgress = {},
-            cacheDir = dir,
-            destinationDir = dir,
-            links = emptyList(),
-            remoteSource = mockk(relaxed = true),
-        )
+        withTempDir { dir ->
+            val updater = CustomAssetUpdater(
+                versionFiles = dummyFiles,
+                updateProgress = {},
+                cacheDir = dir,
+                destinationDir = dir,
+                links = emptyList(),
+                remoteSource = mockk(relaxed = true),
+            )
 
-        assertTrue(updater.check().isEmpty())
+            assertTrue(updater.check().isEmpty())
+        }
     }
 
     // endregion

@@ -4,10 +4,11 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.ui.dashboard.ProcessInfo
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.div
 
 internal object DesktopAppIcons {
-    private val defaultPixmapsDir = File(File("/usr/share"), "pixmaps")
+    private val defaultPixmapsDir = PlatformFile("/usr/share") / "pixmaps"
 
     fun resolve(processPath: String): ProcessInfo? {
         return resolve(
@@ -23,7 +24,7 @@ internal object DesktopAppIcons {
         platform: Platform,
         env: Map<String, String>,
         userHomeProperty: String?,
-        pixmapsDir: File = defaultPixmapsDir,
+        pixmapsDir: PlatformFile = defaultPixmapsDir,
     ): ProcessInfo? {
         val path = processPath.trim().blankAsNull() ?: return null
         return when (platform) {
@@ -38,7 +39,7 @@ internal object DesktopAppIcons {
         processPath: String,
         env: Map<String, String>,
         userHomeProperty: String?,
-        pixmapsDir: File,
+        pixmapsDir: PlatformFile,
     ): ProcessInfo? {
         val entry = LinuxDesktopEntries.find(processPath, env, userHomeProperty) ?: return null
         val iconFile = entry.iconName?.let { iconName ->

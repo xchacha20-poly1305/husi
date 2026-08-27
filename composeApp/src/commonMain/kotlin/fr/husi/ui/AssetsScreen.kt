@@ -72,6 +72,8 @@ import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteIfExists
+import fr.husi.ktx.invariantPathString
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -103,22 +105,28 @@ import fr.husi.resources.update
 import fr.husi.results.ResultEffect
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.isRegularFile
 import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.parent
 import io.github.vinceglb.filekit.readBytes
+import io.github.vinceglb.filekit.write
+import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
 import kotlin.random.Random
 
 private const val ASSET_BUILT_IN = 0
 private const val ASSET_CUSTOM = 1
 
-private fun geoDir(assetsDir: File): File {
-    return File(assetsDir, "geo").apply {
-        mkdirs()
+private fun geoDir(assetsDir: PlatformFile): PlatformFile {
+    return (assetsDir / "geo").apply {
+        createDirectories()
     }
 }
 
@@ -155,12 +163,12 @@ internal fun AssetsScreen(
     fun handleAssetEditResult(result: AssetEditResult) {
         when (result) {
             is AssetEditResult.ShouldUpdate -> {
-                viewModel.updateSingleAsset(File(geoDir, result.assetName))
+                viewModel.updateSingleAsset(geoDir / result.assetName)
             }
 
             is AssetEditResult.Deleted -> {
                 scope.launch(Dispatchers.IO) {
-                    viewModel.deleteAssets(listOf(File(geoDir, result.assetName)))
+                    viewModel.deleteAssets(listOf(geoDir / result.assetName))
                 }
             }
 
@@ -188,30 +196,29 @@ internal fun AssetsScreen(
             if (file == null) return@launch
             val fileName = file.name
 
-            val tempImportFile = File(cacheDir, fileName).apply {
-                parentFile?.mkdirs()
+            val tempImportFile = (cacheDir / fileName).apply {
+                parent()?.createDirectories()
             }
             try {
-                tempImportFile.writeBytes(file.readBytes())
+                tempImportFile.write(file.readBytes())
             } catch (e: Exception) {
                 Logs.e(e)
                 return@launch
             }
             try {
-                Libcore.tryUnpack(tempImportFile.absolutePath, geoDir.absolutePath)
+                Libcore.tryUnpack(tempImportFile.invariantPathString(), geoDir.invariantPathString())
             } catch (e: Exception) {
                 Logs.e(e)
                 return@launch
             } finally {
-                tempImportFile.delete()
+                tempImportFile.deleteIfExists()
             }
 
             val nameList = listOf("geosite", "geoip")
             for (name in nameList) {
-                val file = File(assetsDir, "$name.version.txt")
-                if (file.isFile) file.delete()
-                file.createNewFile()
-                file.writeText("Custom")
+                val versionFile = assetsDir / "$name.version.txt"
+                if (versionFile.isRegularFile()) versionFile.deleteIfExists()
+                versionFile.writeString("Custom")
             }
 
             DataStore.routeAssetsLastUpdated.set(currentEpochSeconds())

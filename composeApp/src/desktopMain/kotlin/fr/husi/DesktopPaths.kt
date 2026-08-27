@@ -3,34 +3,35 @@ package fr.husi
 import fr.husi.ktx.blankAsNull
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.resolve
 
 internal object DesktopPaths {
     private val current: DesktopPathSet by lazy {
         resolve()
     }
 
-    val userHomeDir: File by lazy {
+    val userHomeDir: PlatformFile by lazy {
         current.userHomeDir
     }
 
-    val configHomeDir: File by lazy {
+    val configHomeDir: PlatformFile by lazy {
         current.configHomeDir
     }
 
-    val dataDir: File by lazy {
+    val dataDir: PlatformFile by lazy {
         current.dataDir
     }
 
-    val linuxAutostartDir: File by lazy {
+    val linuxAutostartDir: PlatformFile by lazy {
         current.linuxAutostartDir
     }
 
-    val linuxSystemdUserDir: File by lazy {
+    val linuxSystemdUserDir: PlatformFile by lazy {
         current.linuxSystemdUserDir
     }
 
-    val macLaunchAgentsDir: File by lazy {
+    val macLaunchAgentsDir: PlatformFile by lazy {
         current.macLaunchAgentsDir
     }
 
@@ -39,14 +40,14 @@ internal object DesktopPaths {
         env: Map<String, String> = System.getenv(),
         userHomeProperty: String? = System.getProperty("user.home"),
     ): DesktopPathSet {
-        fun envFile(name: String): File? = env[name]?.blankAsNull()?.let(::File)
+        fun envFile(name: String): PlatformFile? = env[name]?.blankAsNull()?.let(::PlatformFile)
 
         val userHomeDir = when (platform) {
             Platform.Android -> error("Unsupported desktop platform")
             Platform.Windows -> envFile("USERPROFILE")
                 ?: envFile("HOME")
-                ?: userHomeProperty?.blankAsNull()?.let(::File)
-            Platform.Linux, Platform.MacOs -> envFile("HOME") ?: userHomeProperty?.blankAsNull()?.let(::File)
+                ?: userHomeProperty?.blankAsNull()?.let(::PlatformFile)
+            Platform.Linux, Platform.MacOs -> envFile("HOME") ?: userHomeProperty?.blankAsNull()?.let(::PlatformFile)
         } ?: error("Unable to resolve desktop user home directory")
 
         val configHomeDir = when (platform) {
@@ -64,22 +65,22 @@ internal object DesktopPaths {
 }
 
 internal class DesktopPathSet(
-    val userHomeDir: File,
-    val configHomeDir: File,
+    val userHomeDir: PlatformFile,
+    val configHomeDir: PlatformFile,
 ) {
-    val dataDir: File by lazy {
+    val dataDir: PlatformFile by lazy {
         configHomeDir.resolve("husi")
     }
 
-    val linuxAutostartDir: File by lazy {
+    val linuxAutostartDir: PlatformFile by lazy {
         configHomeDir.resolve("autostart")
     }
 
-    val linuxSystemdUserDir: File by lazy {
+    val linuxSystemdUserDir: PlatformFile by lazy {
         configHomeDir.resolve("systemd").resolve("user")
     }
 
-    val macLaunchAgentsDir: File by lazy {
+    val macLaunchAgentsDir: PlatformFile by lazy {
         userHomeDir.resolve("Library").resolve("LaunchAgents")
     }
 }

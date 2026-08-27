@@ -3,10 +3,11 @@ package fr.husi.repository
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
+import fr.husi.ktx.deleteRecursively
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.runBlocking
-import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -21,13 +22,13 @@ import kotlin.time.measureTime
 
 class CoreHostControllerShutdownTest : HusiKoinTest() {
 
-    private lateinit var tempDir: File
+    private lateinit var tempDir: PlatformFile
     private lateinit var fakeClient: FakeCoreClient
     private lateinit var controller: CoreHostController
 
     @BeforeTest
     fun setUpController() {
-        tempDir = createTempDirectory("husi-core-host-shutdown").toFile()
+        tempDir = PlatformFile(createTempDirectory("husi-core-host-shutdown").toString())
         fakeClient = FakeCoreClient()
         // No core binary: a session restart is attempted but never spawns.
         controller = CoreHostController(
@@ -41,7 +42,7 @@ class CoreHostControllerShutdownTest : HusiKoinTest() {
     fun tearDownController() {
         DataStore.serviceState = ServiceState.Idle
         BackendState.reset()
-        tempDir.deleteRecursively()
+        runBlocking { tempDir.deleteRecursively() }
     }
 
     @Test

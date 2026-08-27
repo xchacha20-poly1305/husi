@@ -8,9 +8,12 @@ import fr.husi.bg.RouteAssetUpdater
 import fr.husi.database.AssetEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -120,13 +123,14 @@ internal class AssetEditViewModel(
     }
 
     fun validate(text: String): StringResource? {
-        if (text.length > 255 || text.contains('/')) {
+        if (text.length > 255 || text.contains('/') || text == "." || text == "..") {
             return Res.string.invalid_filename
         }
-        if (
-            resolveRepository().externalAssetsDir.resolve("geo").resolve(text)
-                .canonicalPath.substringAfterLast('/') != text
-        ) {
+        val parent = resolveRepository().externalAssetsDir.resolve("geo")
+        val candidate = parent.resolve(text)
+        val parentPath = parent.invariantPathString()
+        val candidatePath = candidate.invariantPathString()
+        if (candidate.name != text || candidatePath != "$parentPath/$text") {
             return Res.string.invalid_filename
         }
         if (isNew && runBlocking { SagerDatabase.assetDao.get(text) } != null) {

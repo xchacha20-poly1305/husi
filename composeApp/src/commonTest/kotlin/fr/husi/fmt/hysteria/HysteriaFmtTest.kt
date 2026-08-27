@@ -476,7 +476,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildHysteriaConfig hy1 should serialize without throwing`() {
+    fun `buildHysteriaConfig hy1 should serialize without throwing`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
             serverAddress = "example.com"
@@ -496,7 +496,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildHysteriaConfig hy2 should serialize without throwing`() {
+    fun `buildHysteriaConfig hy2 should serialize without throwing`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"
@@ -524,7 +524,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildHysteriaConfig hy2 should serialize gecko obfs without throwing`() {
+    fun `buildHysteriaConfig hy2 should serialize gecko obfs without throwing`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"
@@ -548,7 +548,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildHysteriaConfig hy2 should emit disableChromeParrot under quic`() {
+    fun `buildHysteriaConfig hy2 should emit disableChromeParrot under quic`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"
@@ -566,7 +566,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildHysteriaConfig hy2 should emit receive windows, timeouts and mtu discovery under quic`() {
+    fun `buildHysteriaConfig hy2 should emit receive windows, timeouts and mtu discovery under quic`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"
@@ -592,7 +592,7 @@ class HysteriaFmtTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildHysteriaConfig hy2 should omit quic when disableChromeParrot is false and not protecting`() {
+    fun `buildHysteriaConfig hy2 should omit quic when disableChromeParrot is false and not protecting`() = runTest {
         val bean = HysteriaBean().apply {
             protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
             serverAddress = "example.com"

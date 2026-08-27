@@ -1,10 +1,20 @@
 package fr.husi
 
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.canExecute
+import fr.husi.ktx.invariantPathString
+import fr.husi.ktx.listOrEmpty
+import fr.husi.ktx.platformFileFromUrl
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.husiCoreBinaryName
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.extension
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.nameWithoutExtension
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
 import java.lang.management.ManagementFactory
 
 private const val DESKTOP_MAIN_CLASS = "fr.husi.DesktopMainKt"
@@ -20,15 +30,15 @@ internal fun buildLauncherCommand(vararg arguments: String): List<String> {
  * The single launcher executable of a packaged install, or null when running from a
  * dev environment where the app is only reachable through a multi-part java command.
  */
-internal fun resolvePackagedLauncherExecutable(): File? {
+internal fun resolvePackagedLauncherExecutable(): PlatformFile? {
     resolvePackagedDesktopLauncher()?.let {
         return it
     }
 
     return System.getProperty("jpackage.app-path")
         ?.blankAsNull()
-        ?.let(::File)
-        ?.takeIf(File::isFile)
+        ?.let(::PlatformFile)
+        ?.takeIf { it.isRegularFile() }
 }
 
 /**
@@ -36,7 +46,7 @@ internal fun resolvePackagedLauncherExecutable(): File? {
  */
 private fun resolveLauncherCommand(): List<String> {
     resolvePackagedLauncherExecutable()?.let {
-        return listOf(it.absolutePath)
+        return listOf(it.invariantPathString())
     }
 
     resolveCurrentProcessCommand(allowJava = true)?.let {
@@ -46,45 +56,40 @@ private fun resolveLauncherCommand(): List<String> {
     error("Desktop launcher not found")
 }
 
-private fun resolvePackagedDesktopLauncher(): File? {
+private fun resolvePackagedDesktopLauncher(): PlatformFile? {
     val codeSource = DesktopAutoStart::class.java.protectionDomain?.codeSource?.location ?: return null
-    val runtimePath = runCatching {
-        File(codeSource.toURI())
-    }.getOrElse {
-        File(codeSource.path)
-    }
-    val appDir = runtimePath.parentFile
-        ?.takeIf { runtimePath.isFile && it.name == "app" }
+    val runtimePath = platformFileFromUrl(codeSource)
+    val appDir = runtimePath.parent()
+        ?.takeIf { runtimePath.isRegularFile() && it.name == "app" }
         ?: return null
-    val appRoot = appDir.parentFile ?: return null
+    val appRoot = appDir.parent() ?: return null
     // Linux and macOS packaging name the launcher after the jar it starts, and put the
     // core host pair (husi-core plus its anja library) in the very same directory, so
     // "the only executable here" identifies nothing.
     val launcherName = runtimePath.nameWithoutExtension
     return when (PlatformInfo.platform) {
         Platform.Android -> null
-        Platform.Linux -> resolveNamedDesktopLauncher(File(appRoot, "bin"), launcherName)
-        Platform.MacOs -> resolveNamedDesktopLauncher(File(appRoot, "MacOS"), launcherName)
+        Platform.Linux -> resolveNamedDesktopLauncher(appRoot.resolve("bin"), launcherName)
+        Platform.MacOs -> resolveNamedDesktopLauncher(appRoot.resolve("MacOS"), launcherName)
         Platform.Windows -> resolveWindowsDesktopLauncher(appRoot)
     }
 }
 
-internal fun resolveNamedDesktopLauncher(directory: File, launcherName: String): File? {
-    return directory.resolve(launcherName).takeIf { it.isFile && it.canExecute() }
+internal fun resolveNamedDesktopLauncher(directory: PlatformFile, launcherName: String): PlatformFile? {
+    return directory.resolve(launcherName).takeIf { it.isRegularFile() && it.canExecute() }
 }
 
-private fun resolveWindowsDesktopLauncher(appRoot: File): File? {
+private fun resolveWindowsDesktopLauncher(appRoot: PlatformFile): PlatformFile? {
     val coreHostName = husiCoreBinaryName()
-    val executables = appRoot.listFiles()
-        ?.filter { it.isFile && it.extension.equals("exe", ignoreCase = true) }
+    val executables = appRoot.listOrEmpty()
+        .filter { it.isRegularFile() && it.extension.equals("exe", ignoreCase = true) }
         // The core host lives beside the launcher; it is never the launcher.
-        ?.filterNot { it.name.equals(coreHostName, ignoreCase = true) }
-        ?: return null
+        .filterNot { it.name.equals(coreHostName, ignoreCase = true) }
     if (executables.isEmpty()) return null
 
     val preferredName = System.getProperty("jpackage.app-path")
         ?.takeIf { it.isNotBlank() }
-        ?.let(::File)
+        ?.let(::PlatformFile)
         ?.name
         ?.lowercase()
     if (preferredName != null) {
@@ -99,14 +104,14 @@ private fun resolveCurrentProcessCommand(allowJava: Boolean): List<String>? {
     val processInfo = ProcessHandle.current().info()
     val command = processInfo.command().orElse(null)
         ?.takeIf { it.isNotBlank() }
-        ?.let(::File)
-        ?.takeIf(File::isFile)
+        ?.let(::PlatformFile)
+        ?.takeIf { it.isRegularFile() }
         ?: return null
     val arguments = processInfo.arguments().orElse(null)?.toList().orEmpty()
     val isJavaCommand = command.name.lowercase().startsWith("java")
     if (!isJavaCommand) {
         return buildList {
-            add(command.absolutePath)
+            add(command.invariantPathString())
             addAll(arguments)
         }
     }
@@ -114,12 +119,12 @@ private fun resolveCurrentProcessCommand(allowJava: Boolean): List<String>? {
     return resolveJavaProcessCommand(command)
 }
 
-private fun resolveJavaProcessCommand(javaCommand: File): List<String>? {
+private fun resolveJavaProcessCommand(javaCommand: PlatformFile): List<String>? {
     val classPath = System.getProperty("java.class.path")
         ?.takeIf { it.isNotBlank() }
         ?: return null
     return buildList {
-        add(javaCommand.absolutePath)
+        add(javaCommand.invariantPathString())
         addAll(ManagementFactory.getRuntimeMXBean().inputArguments)
         add("-cp")
         add(classPath)

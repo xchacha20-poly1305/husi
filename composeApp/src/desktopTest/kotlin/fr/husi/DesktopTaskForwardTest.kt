@@ -1,6 +1,9 @@
 package fr.husi
 
 import dev.nucleusframework.core.runtime.SingleInstanceManager
+import fr.husi.ktx.deleteRecursively
+import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.coroutines.runBlocking
 import java.nio.file.Files
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -20,7 +23,7 @@ class DesktopTaskForwardTest {
 
     @AfterTest
     fun cleanUp() {
-        lockFilesDir.toFile().deleteRecursively()
+        runBlocking { PlatformFile(lockFilesDir.toString()).deleteRecursively() }
     }
 
     @Test

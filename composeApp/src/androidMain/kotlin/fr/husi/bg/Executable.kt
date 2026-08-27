@@ -5,8 +5,15 @@ import android.system.Os
 import android.system.OsConstants
 import android.text.TextUtils
 import fr.husi.ktx.Logs
-import java.io.File
+import fr.husi.ktx.invariantPathString
+import fr.husi.ktx.listOrEmpty
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.source
 import java.io.IOException
+import kotlinx.io.buffered
+import kotlinx.io.readString
 
 actual object Executable {
     private val EXECUTABLES = setOf(
@@ -20,12 +27,11 @@ actual object Executable {
     )
 
     actual fun killAll(alsoKillBg: Boolean) {
-        for (process in File("/proc").listFiles { _, name -> TextUtils.isDigitsOnly(name) }
-            ?: return) {
-            val exe = File(
+        for (process in PlatformFile("/proc").listOrEmpty().filter { TextUtils.isDigitsOnly(it.name) }) {
+            val exe = PlatformFile(
                 try {
-                    File(process, "cmdline").inputStream().bufferedReader().use {
-                        it.readText()
+                    (process / "cmdline").source().buffered().use {
+                        it.readString()
                     }
                 } catch (_: IOException) {
                     continue
@@ -36,7 +42,7 @@ actual object Executable {
                 Logs.w("SIGKILL ${exe.name} (${process.name}) succeed")
             } catch (e: ErrnoException) {
                 if (e.errno != OsConstants.ESRCH) {
-                    Logs.w("SIGKILL ${exe.absolutePath} (${process.name}) failed")
+                    Logs.w("SIGKILL ${exe.invariantPathString()} (${process.name}) failed")
                     Logs.w(e)
                 }
             }

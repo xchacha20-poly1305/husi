@@ -9,22 +9,22 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.awtTransferable
+import fr.husi.ktx.platformFilesFromAwtFileList
+import io.github.vinceglb.filekit.PlatformFile
 import java.awt.datatransfer.DataFlavor
-import java.io.File
 
 fun DragAndDropEvent.hasFileList(): Boolean = runCatching {
     awtTransferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
 }.getOrDefault(false)
 
-fun DragAndDropEvent.droppedFiles(): List<File> = runCatching {
-    @Suppress("UNCHECKED_CAST")
-    awtTransferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<File>
+fun DragAndDropEvent.droppedFiles(): List<PlatformFile> = runCatching {
+    platformFilesFromAwtFileList(awtTransferable.getTransferData(DataFlavor.javaFileListFlavor))
 }.getOrNull().orEmpty()
 
 @Composable
 fun rememberFileDropTarget(
     onDragStateChange: (Boolean) -> Unit = {},
-    onDrop: (List<File>) -> Unit,
+    onDrop: (List<PlatformFile>) -> Unit,
 ): DragAndDropTarget {
     val onDragStateChangeState = rememberUpdatedState(onDragStateChange)
     val onDropState = rememberUpdatedState(onDrop)

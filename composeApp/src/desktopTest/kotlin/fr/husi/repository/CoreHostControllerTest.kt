@@ -1,10 +1,12 @@
 package fr.husi.repository
 
+import fr.husi.ktx.deleteRecursively
 import fr.husi.proto.v1.getDaemonInfoResponse
 import fr.husi.proto.v1.ownership
 import fr.husi.test.FakeCoreClient
+import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -16,14 +18,14 @@ import kotlin.test.assertNull
 
 class CoreHostControllerTest {
 
-    private lateinit var tempDir: File
+    private lateinit var tempDir: PlatformFile
     private lateinit var repository: DesktopRepository
     private lateinit var fakeClient: FakeCoreClient
     private lateinit var controller: CoreHostController
 
     @BeforeTest
     fun setUp() {
-        tempDir = createTempDirectory("husi-core-host").toFile()
+        tempDir = PlatformFile(createTempDirectory("husi-core-host").toString())
         repository = DesktopRepository(tempDir)
         fakeClient = FakeCoreClient()
         controller = CoreHostController(repository, resolveCoreClient = { fakeClient })
@@ -31,7 +33,7 @@ class CoreHostControllerTest {
 
     @AfterTest
     fun tearDown() {
-        tempDir.deleteRecursively()
+        runBlocking { tempDir.deleteRecursively() }
     }
 
     @Test

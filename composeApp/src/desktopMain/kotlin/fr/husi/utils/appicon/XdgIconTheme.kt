@@ -3,7 +3,13 @@ package fr.husi.utils.appicon
 import fr.husi.DesktopPaths
 import fr.husi.ktx.blankAsNull
 import fr.husi.platform.Platform
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isAbsolute
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.source
+import kotlinx.io.buffered
+import kotlinx.io.readString
 
 internal object XdgIconTheme {
     private const val DEFAULT_XDG_DATA_DIRS = "/usr/local/share:/usr/share"
@@ -15,11 +21,11 @@ internal object XdgIconTheme {
         iconName: String,
         env: Map<String, String>,
         userHomeProperty: String?,
-        pixmapsDir: File,
-    ): File? {
+        pixmapsDir: PlatformFile,
+    ): PlatformFile? {
         val name = iconName.trim().blankAsNull() ?: return null
-        val asFile = File(name)
-        if (asFile.isAbsolute && asFile.isFile) {
+        val asFile = PlatformFile(name)
+        if (asFile.isAbsolute() && asFile.isRegularFile()) {
             return asFile
         }
 
@@ -30,7 +36,7 @@ internal object XdgIconTheme {
 
         for (extension in iconExtensions) {
             val pixmap = pixmapsDir.resolve("$name.$extension")
-            if (pixmap.isFile) return pixmap
+            if (pixmap.isRegularFile()) return pixmap
         }
         return null
     }
@@ -47,11 +53,11 @@ internal object XdgIconTheme {
         return null
     }
 
-    internal fun readGtkIconThemeName(file: File): String? {
-        if (!file.isFile) return null
+    internal fun readGtkIconThemeName(file: PlatformFile): String? {
+        if (!file.isRegularFile()) return null
         var inSettings = false
         val lines = try {
-            file.readLines()
+            file.source().buffered().use { it.readString() }.lineSequence()
         } catch (_: Exception) {
             return null
         }
@@ -102,14 +108,14 @@ internal object XdgIconTheme {
         theme: String,
         env: Map<String, String>,
         userHomeProperty: String?,
-    ): File? {
+    ): PlatformFile? {
         val names = iconFileNames(iconName)
         for (size in sizeDirectories) {
             for (root in themeRoots(theme, env, userHomeProperty)) {
                 val appsDir = root.resolve(size).resolve("apps")
                 for (fileName in names) {
                     val file = appsDir.resolve(fileName)
-                    if (file.isFile) return file
+                    if (file.isRegularFile()) return file
                 }
             }
         }
@@ -132,13 +138,13 @@ internal object XdgIconTheme {
         theme: String,
         env: Map<String, String>,
         userHomeProperty: String?,
-    ): List<File> {
+    ): List<PlatformFile> {
         val paths = DesktopPaths.resolve(Platform.Linux, env, userHomeProperty)
-        val roots = ArrayList<File>()
+        val roots = ArrayList<PlatformFile>()
         roots.add(paths.userHomeDir.resolve(".icons").resolve(theme))
         val dataDirs = env["XDG_DATA_DIRS"]?.blankAsNull() ?: DEFAULT_XDG_DATA_DIRS
         for (part in dataDirs.split(':')) {
-            val directory = part.blankAsNull()?.let(::File) ?: continue
+            val directory = part.blankAsNull()?.let(::PlatformFile) ?: continue
             roots.add(directory.resolve("icons").resolve(theme))
         }
         return roots
@@ -157,11 +163,11 @@ internal object XdgIconTheme {
         return emptyList()
     }
 
-    private fun readInheritsFromIndex(file: File): List<String>? {
-        if (!file.isFile) return null
+    private fun readInheritsFromIndex(file: PlatformFile): List<String>? {
+        if (!file.isRegularFile()) return null
         var inIconTheme = false
         val lines = try {
-            file.readLines()
+            file.source().buffered().use { it.readString() }.lineSequence()
         } catch (_: Exception) {
             return null
         }
