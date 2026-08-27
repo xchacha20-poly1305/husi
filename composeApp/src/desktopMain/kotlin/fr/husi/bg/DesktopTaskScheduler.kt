@@ -72,6 +72,13 @@ private class DesktopTaskSchedulerManager {
         }
     }
 
+    /**
+     * Ensures the task is absent rather than removing one that is known to be there: [reconfigure]
+     * runs this on every startup for every disabled task, so "was never installed" is the common
+     * case and has to stay a silent no-op. Asking the scheduler to drop a name it has never heard
+     * of is an error on all three platforms, so each one first consults the state it owns — the
+     * systemd unit file, the launch agent plist, the task query.
+     */
     private fun removeTask(taskId: String) {
         when (PlatformInfo.platform) {
             Platform.Android -> error("Unsupported desktop platform")
@@ -128,10 +135,16 @@ private class DesktopTaskSchedulerManager {
     private fun removeLinuxTask(taskId: String) {
         val serviceFile = linuxUnitFile(taskId, "service")
         val timerFile = linuxUnitFile(taskId, "timer")
-        runCatching {
-            runCommand("systemctl", "--user", "disable", "--now", timerFile.name)
-        }.onFailure {
-            Logs.w("disable systemd timer ${timerFile.name}", it)
+        if (!timerFile.exists() && !serviceFile.exists()) return
+
+        // `disable` is happy with a unit that exists but was never enabled, and only fails when
+        // systemd cannot find the unit at all — which is exactly what the file tells us.
+        if (timerFile.exists()) {
+            runCatching {
+                runCommand("systemctl", "--user", "disable", "--now", timerFile.name)
+            }.onFailure {
+                Logs.w("disable systemd timer ${timerFile.name}", it)
+            }
         }
         deleteFileIfPresent(timerFile)
         deleteFileIfPresent(serviceFile)
@@ -157,11 +170,7 @@ private class DesktopTaskSchedulerManager {
         val agentSchedule = macLaunchAgentSchedule(schedule)
         agentFile.parentFile.mkdirs()
 
-        runCatching {
-            runLaunchCtl("bootout", macUserDomainTarget(), agentFile.absolutePath)
-        }.onFailure {
-            Logs.w("bootout launch agent $label", it)
-        }
+        unloadMacAgentIfPresent(agentFile, label)
 
         val arguments = launcherCommand.joinToString(separator = "\n") {
             "    <string>${xmlEscape(it)}</string>"
@@ -197,12 +206,23 @@ private class DesktopTaskSchedulerManager {
 
     private fun removeMacTask(taskId: String) {
         val agentFile = macLaunchAgentFile(taskId)
+        if (!agentFile.exists()) return
+
+        unloadMacAgentIfPresent(agentFile, macLabel(taskId))
+        deleteFileIfPresent(agentFile)
+    }
+
+    /**
+     * `bootout` addresses the agent by plist path, so without that file there is nothing loaded to
+     * boot out and launchctl only answers "no such process".
+     */
+    private fun unloadMacAgentIfPresent(agentFile: File, label: String) {
+        if (!agentFile.exists()) return
         runCatching {
             runLaunchCtl("bootout", macUserDomainTarget(), agentFile.absolutePath)
         }.onFailure {
-            Logs.w("bootout launch agent ${macLabel(taskId)}", it)
+            Logs.w("bootout launch agent $label", it)
         }
-        deleteFileIfPresent(agentFile)
     }
 
     private fun macLaunchAgentFile(taskId: String): File {
@@ -294,17 +314,27 @@ private class DesktopTaskSchedulerManager {
     }
 
     private fun removeWindowsTask(taskId: String) {
+        val taskName = windowsTaskName(taskId)
+        if (!windowsTaskExists(taskName)) return
+
         runCatching {
             runCommand(
                 "schtasks",
                 "/delete",
                 "/tn",
-                windowsTaskName(taskId),
+                taskName,
                 "/f",
             )
         }.onFailure {
-            Logs.w("delete scheduled task ${windowsTaskName(taskId)}", it)
+            Logs.w("delete scheduled task $taskName", it)
         }
+    }
+
+    /** Windows keeps the task registry to itself, so the query is the only way to ask. */
+    private fun windowsTaskExists(taskName: String): Boolean {
+        return runCatching {
+            runCommand("schtasks", "/query", "/tn", taskName)
+        }.isSuccess
     }
 
     private fun windowsTaskName(taskId: String): String = WINDOWS_TASK_PREFIX + taskId

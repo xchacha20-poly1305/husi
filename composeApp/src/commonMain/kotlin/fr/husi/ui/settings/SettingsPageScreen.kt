@@ -150,6 +150,9 @@ fun SettingsPageScreen(
                             NavRoutes.SettingsPage.Kind.General -> GeneralSettingsGroup(
                                 needReload = { needReload() },
                                 needRestart = { needRestart() },
+                                showMessage = { message ->
+                                    snackbar.show(StringOrRes.Direct(message))
+                                },
                             )
                             NavRoutes.SettingsPage.Kind.Daemon -> PlatformDaemonSettingsGroup(
                                 showMessage = { message ->

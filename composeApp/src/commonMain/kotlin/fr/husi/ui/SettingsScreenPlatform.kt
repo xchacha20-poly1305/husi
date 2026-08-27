@@ -39,7 +39,7 @@ internal expect fun rememberThemeExtraColors(): List<Color>
 internal expect fun rememberAppLanguageController(defaultTag: String): AppLanguageController
 
 @Composable
-internal expect fun AutoConnectPreference()
+internal expect fun AutoConnectPreference(showMessage: (String) -> Unit)
 
 /**
  * Desktop-only system-daemon rows (install / update / start-at-boot).

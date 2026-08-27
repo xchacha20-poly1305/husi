@@ -1,6 +1,9 @@
 <resources>
     <string name="auto_connect_desktop">登录时连接</string>
     <string name="auto_connect_summary_desktop">登录系统时启动并自动连接</string>
+    <string name="auto_connect_unsupported_desktop">登录时连接需要安装版，当前构建不支持。</string>
+    <string name="auto_connect_blocked_desktop">系统设置中禁止了开机启动项。请先在系统设置中允许 Husi，然后重试。</string>
+    <string name="auto_connect_failed_desktop">无法更新登录时连接。详情请查看日志。</string>
     <string name="tun_interface_name">Tun 接口名称</string>
     <string name="tun_interface_name_summary">留空则使用 sing-box 默认值</string>
     <string name="forced_search_process">强制搜索进程</string>

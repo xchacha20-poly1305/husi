@@ -876,7 +876,7 @@ internal fun resolveHusiCoreBinary(): File? {
     return resolveOnPath(binaryName)
 }
 
-private fun husiCoreBinaryName(): String {
+internal fun husiCoreBinaryName(): String {
     return if (PlatformInfo.isWindows) "husi-core.exe" else "husi-core"
 }
 

@@ -69,7 +69,7 @@ import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal actual fun AutoConnectPreference() {
+internal actual fun AutoConnectPreference(showMessage: (String) -> Unit) {
     val value by DataStore.persistAcrossReboot.collectAsStateWithLifecycle()
     SwitchPreference(
         value = value,

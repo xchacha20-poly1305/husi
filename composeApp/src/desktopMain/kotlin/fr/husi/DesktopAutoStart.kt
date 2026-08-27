@@ -8,6 +8,20 @@ import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import java.io.File
 
+/** Outcome of a [DesktopAutoStart.setEnabled] call, for the settings row to report. */
+internal enum class AutoStartResult {
+    /** The system now agrees with the requested state. */
+    Applied,
+
+    /** No packaged launcher to register, which is every dev run. */
+    Unsupported,
+
+    /** The user forbade auto-start in system settings; those settings were opened. */
+    BlockedByUser,
+
+    Failed,
+}
+
 internal object DesktopAutoStart {
 
     private const val EXECUTABLE_TYPE_PROPERTY = "nucleus.executable.type"
@@ -48,11 +62,11 @@ internal object DesktopAutoStart {
         migrateLegacyAutoStartEntry()
     }
 
-    fun setEnabled(enabled: Boolean): Boolean {
+    fun setEnabled(enabled: Boolean): AutoStartResult {
         ensureInitialized()
         if (packagedLauncher == null) {
             Logs.w("ignore desktop auto-start toggle: unsupported in this install")
-            return false
+            return AutoStartResult.Unsupported
         }
         return runCatching {
             val result = if (enabled) {
@@ -61,22 +75,22 @@ internal object DesktopAutoStart {
                 AutoLaunch.disable()
             }
             when (result) {
-                AutoLaunchResult.OK, AutoLaunchResult.UNCHANGED -> true
+                AutoLaunchResult.OK, AutoLaunchResult.UNCHANGED -> AutoStartResult.Applied
 
                 AutoLaunchResult.BLOCKED_BY_USER -> {
                     Logs.w("desktop auto-start is disabled by the user in system settings")
                     AutoLaunch.openSystemSettings()
-                    false
+                    AutoStartResult.BlockedByUser
                 }
 
                 else -> {
                     Logs.w("update desktop auto-start: $result")
-                    false
+                    AutoStartResult.Failed
                 }
             }
         }.getOrElse {
             Logs.e("update desktop auto-start", it)
-            false
+            AutoStartResult.Failed
         }
     }
 

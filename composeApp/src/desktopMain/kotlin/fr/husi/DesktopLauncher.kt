@@ -3,6 +3,7 @@ package fr.husi
 import fr.husi.ktx.blankAsNull
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
+import fr.husi.repository.husiCoreBinaryName
 import java.io.File
 import java.lang.management.ManagementFactory
 
@@ -124,28 +125,28 @@ private fun resolvePackagedDesktopLauncher(): File? {
         ?.takeIf { runtimePath.isFile && it.name == "app" }
         ?: return null
     val appRoot = appDir.parentFile ?: return null
+    // Linux and macOS packaging name the launcher after the jar it starts, and put the
+    // core host pair (husi-core plus its anja library) in the very same directory, so
+    // "the only executable here" identifies nothing.
+    val launcherName = runtimePath.nameWithoutExtension
     return when (PlatformInfo.platform) {
         Platform.Android -> null
-        Platform.Linux -> resolveSingleDesktopLauncher(File(appRoot, "bin")) {
-            it.canExecute()
-        }
-
-        Platform.MacOs -> resolveSingleDesktopLauncher(File(appRoot, "MacOS")) {
-            it.canExecute()
-        }
-
+        Platform.Linux -> resolveNamedDesktopLauncher(File(appRoot, "bin"), launcherName)
+        Platform.MacOs -> resolveNamedDesktopLauncher(File(appRoot, "MacOS"), launcherName)
         Platform.Windows -> resolveWindowsDesktopLauncher(appRoot)
     }
 }
 
-private fun resolveSingleDesktopLauncher(directory: File, predicate: (File) -> Boolean): File? {
-    val files = directory.listFiles() ?: return null
-    return files.singleOrNull { it.isFile && predicate(it) }
+internal fun resolveNamedDesktopLauncher(directory: File, launcherName: String): File? {
+    return directory.resolve(launcherName).takeIf { it.isFile && it.canExecute() }
 }
 
 private fun resolveWindowsDesktopLauncher(appRoot: File): File? {
+    val coreHostName = husiCoreBinaryName()
     val executables = appRoot.listFiles()
         ?.filter { it.isFile && it.extension.equals("exe", ignoreCase = true) }
+        // The core host lives beside the launcher; it is never the launcher.
+        ?.filterNot { it.name.equals(coreHostName, ignoreCase = true) }
         ?: return null
     if (executables.isEmpty()) return null
 

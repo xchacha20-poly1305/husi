@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.husi.AutoStartResult
 import fr.husi.DesktopAutoStart
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -34,8 +35,11 @@ import fr.husi.repository.installDaemon
 import fr.husi.repository.resolveDesktopRepository
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_and_edge
+import fr.husi.resources.auto_connect_blocked_desktop
 import fr.husi.resources.auto_connect_desktop
+import fr.husi.resources.auto_connect_failed_desktop
 import fr.husi.resources.auto_connect_summary_desktop
+import fr.husi.resources.auto_connect_unsupported_desktop
 import fr.husi.resources.daemon_in_use
 import fr.husi.resources.daemon_in_use_summary
 import fr.husi.resources.daemon_install_cancelled
@@ -68,19 +72,24 @@ import fr.husi.resources.warning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
 
 @Composable
-internal actual fun AutoConnectPreference() {
+internal actual fun AutoConnectPreference(showMessage: (String) -> Unit) {
     val value by DataStore.persistAcrossReboot.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     SwitchPreference(
         value = value,
-        onValueChange = {
-            if (DesktopAutoStart.setEnabled(it)) {
-                DataStore.persistAcrossReboot.setBlocking(it)
+        onValueChange = { enabled ->
+            val failure = DesktopAutoStart.setEnabled(enabled).failureString()
+            if (failure == null) {
+                DataStore.persistAcrossReboot.setBlocking(enabled)
+            } else {
+                scope.launch { showMessage(getString(failure)) }
             }
         },
         title = { Text(stringResource(Res.string.auto_connect_desktop)) },
@@ -92,6 +101,14 @@ internal actual fun AutoConnectPreference() {
         },
         summary = { Text(stringResource(Res.string.auto_connect_summary_desktop)) },
     )
+}
+
+/** The message explaining why the toggle did not take, or null when it did. */
+private fun AutoStartResult.failureString(): StringResource? = when (this) {
+    AutoStartResult.Applied -> null
+    AutoStartResult.Unsupported -> Res.string.auto_connect_unsupported_desktop
+    AutoStartResult.BlockedByUser -> Res.string.auto_connect_blocked_desktop
+    AutoStartResult.Failed -> Res.string.auto_connect_failed_desktop
 }
 
 @Composable

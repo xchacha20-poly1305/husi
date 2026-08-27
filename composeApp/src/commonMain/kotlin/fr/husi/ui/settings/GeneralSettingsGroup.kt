@@ -234,11 +234,12 @@ private fun ColorPickerPreference(
 internal fun GeneralSettingsGroup(
     needReload: () -> Unit,
     needRestart: () -> Unit,
+    showMessage: (String) -> Unit,
 ) {
     val applyNightMode = rememberApplyNightMode()
     val isExpertState by DataStore.isExpert.collectAsStateWithLifecycle()
 
-    AutoConnectPreference()
+    AutoConnectPreference(showMessage = showMessage)
 
     ColorPickerPreference(
         proxy = DataStore.appTheme,
