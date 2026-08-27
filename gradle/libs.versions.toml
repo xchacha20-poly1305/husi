@@ -107,6 +107,8 @@ nucleus-core-runtime = { module = "dev.nucleusframework:nucleus.core-runtime", v
 nucleus-notification = { module = "dev.nucleusframework:nucleus.notification-common", version.ref = "nucleus" }
 nucleus-darkmode-detector = { module = "dev.nucleusframework:nucleus.darkmode-detector", version.ref = "nucleus" }
 nucleus-autolaunch = { module = "dev.nucleusframework:nucleus.autolaunch", version.ref = "nucleus" }
+nucleus-scheduler = { module = "dev.nucleusframework:nucleus.scheduler", version.ref = "nucleus" }
+nucleus-scheduler-testing = { module = "dev.nucleusframework:nucleus.scheduler-testing", version.ref = "nucleus" }
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }

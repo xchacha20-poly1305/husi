@@ -427,7 +427,13 @@ kotlin {
                 implementation(libs.nucleus.notification)
                 implementation(libs.nucleus.darkmode.detector)
                 implementation(libs.nucleus.autolaunch)
+                implementation(libs.nucleus.scheduler)
                 implementation(libcoreDesktopJarRequired)
+            }
+        }
+        getByName("desktopTest") {
+            dependencies {
+                implementation(libs.nucleus.scheduler.testing)
             }
         }
     }

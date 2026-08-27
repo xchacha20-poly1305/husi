@@ -1,388 +1,114 @@
 package fr.husi.bg
 
 import androidx.compose.ui.util.fastCoerceAtLeast
-import fr.husi.DesktopPaths
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import dev.nucleusframework.scheduler.ExistingTaskPolicy
+import dev.nucleusframework.scheduler.SchedulerConfig
+import dev.nucleusframework.scheduler.TaskId
+import dev.nucleusframework.scheduler.TaskRequest
 import fr.husi.buildLauncherCommand
+import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.platform.Platform
-import fr.husi.platform.PlatformInfo
-import fr.husi.quoteSystemdArgument
-import fr.husi.quoteWindowsArgument
-import fr.husi.xmlEscape
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import java.io.File
-import java.nio.charset.Charset
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
+import dev.nucleusframework.scheduler.DesktopTaskScheduler as NucleusScheduler
 
 internal object DesktopTaskScheduler {
-    private lateinit var manager: DesktopTaskSchedulerManager
 
     fun initialize() {
-        manager = DesktopTaskSchedulerManager()
+        // Nucleus appends its own trigger flag to this command line.
+        val launcherCommand = buildLauncherCommand()
+        SchedulerConfig.executablePath = launcherCommand.first()
+        SchedulerConfig.executableArguments = launcherCommand.drop(1)
+        LegacyDesktopTaskCleanup.purge(DesktopTaskRegistry.ids)
+
+        if (!NucleusScheduler.isAvailable()) {
+            Logs.w("no OS task scheduler available: background updates will not run")
+        }
     }
 
     suspend fun reconfigure(task: DesktopTaskDefinition) {
-        if (!::manager.isInitialized) initialize()
-        manager.reconfigure(task)
-    }
-}
-
-internal data class MacLaunchAgentSchedule(
-    val startIntervalSeconds: Long?,
-    val runAtLoad: Boolean,
-)
-
-internal fun macLaunchAgentSchedule(schedule: DesktopTaskSchedule): MacLaunchAgentSchedule {
-    val initialDelaySeconds = schedule.initialDelaySeconds.coerceAtLeast(0L)
-    return if (initialDelaySeconds == 0L) {
-        MacLaunchAgentSchedule(
-            startIntervalSeconds = null,
-            runAtLoad = true,
-        )
-    } else {
-        MacLaunchAgentSchedule(
-            startIntervalSeconds = initialDelaySeconds,
-            runAtLoad = false,
-        )
-    }
-}
-
-private class DesktopTaskSchedulerManager {
-    companion object {
-        private const val LINUX_UNIT_PREFIX = "fr.husi.desktop"
-        private const val WINDOWS_TASK_PREFIX = "Husi-"
-    }
-
-    suspend fun reconfigure(task: DesktopTaskDefinition) {
+        val taskId = TaskId(task.id)
         val schedule = task.schedule()
         if (schedule == null) {
-            removeTask(task.id)
+            NucleusScheduler.cancel(taskId)
+            writeScheduledRecord(task.id, null)
             return
         }
 
-        val launcherCommand = buildLauncherCommand(*task.launcherArguments.toTypedArray())
-        when (PlatformInfo.platform) {
-            Platform.Android -> error("Unsupported desktop platform")
-            Platform.Linux -> installLinuxTask(task.id, launcherCommand, schedule)
-            Platform.MacOs -> installMacTask(task.id, launcherCommand, schedule)
-            Platform.Windows -> installWindowsTask(task.id, launcherCommand, schedule)
+        val record = scheduledRecordOf(schedule)
+        if (record == readScheduledRecord(task.id) && NucleusScheduler.isScheduled(taskId)) {
+            // Re-registering an unchanged schedule restarts its timer from zero, so an app
+            // restarted more often than the interval would never reach its first run.
+            return
+        }
+
+        if (NucleusScheduler.enqueue(taskRequestOf(taskId, record))) {
+            writeScheduledRecord(task.id, record)
+        } else {
+            Logs.w("schedule desktop task ${task.id}: Nucleus refused the request")
+            writeScheduledRecord(task.id, null)
         }
     }
+}
 
-    /**
-     * Ensures the task is absent rather than removing one that is known to be there: [reconfigure]
-     * runs this on every startup for every disabled task, so "was never installed" is the common
-     * case and has to stay a silent no-op. Asking the scheduler to drop a name it has never heard
-     * of is an error on all three platforms, so each one first consults the state it owns — the
-     * systemd unit file, the launch agent plist, the task query.
-     */
-    private fun removeTask(taskId: String) {
-        when (PlatformInfo.platform) {
-            Platform.Android -> error("Unsupported desktop platform")
-            Platform.Linux -> removeLinuxTask(taskId)
-            Platform.MacOs -> removeMacTask(taskId)
-            Platform.Windows -> removeWindowsTask(taskId)
+internal data class DesktopTaskScheduledRecord(
+    val intervalMinutes: Int,
+    val runImmediately: Boolean,
+)
+
+/** Nucleus rejects anything shorter, just like WorkManager does on Android. */
+private const val MIN_INTERVAL_MINUTES = 15
+
+internal fun scheduledRecordOf(schedule: DesktopTaskSchedule): DesktopTaskScheduledRecord {
+    return DesktopTaskScheduledRecord(
+        intervalMinutes = schedule.repeatIntervalMinutes.fastCoerceAtLeast(MIN_INTERVAL_MINUTES),
+        // Nucleus knows no arbitrary initial delay: a task that is already due runs at once,
+        // one that is not waits a full interval, and the runner skips whatever is not due yet.
+        runImmediately = schedule.initialDelaySeconds <= 0L,
+    )
+}
+
+internal fun taskRequestOf(taskId: TaskId, record: DesktopTaskScheduledRecord): TaskRequest {
+    return TaskRequest.periodic(taskId, record.intervalMinutes.minutes) {
+        runImmediately(record.runImmediately)
+        // Reaching this point means the schedule changed, so the old timer has to go.
+        existingTaskPolicy(ExistingTaskPolicy.REPLACE)
+    }
+}
+
+private const val RECORD_KEY_PREFIX = "desktopTaskSchedule."
+private const val RECORD_SEPARATOR = "/"
+
+private fun recordKey(taskId: String): Preferences.Key<String> {
+    return stringPreferencesKey(RECORD_KEY_PREFIX + taskId)
+}
+
+internal fun DesktopTaskScheduledRecord.encode(): String {
+    return "$intervalMinutes$RECORD_SEPARATOR$runImmediately"
+}
+
+internal fun decodeScheduledRecord(value: String): DesktopTaskScheduledRecord? {
+    val fields = value.split(RECORD_SEPARATOR)
+    if (fields.size != 2) return null
+    return DesktopTaskScheduledRecord(
+        intervalMinutes = fields[0].toIntOrNull() ?: return null,
+        runImmediately = fields[1].toBooleanStrictOrNull() ?: return null,
+    )
+}
+
+private suspend fun readScheduledRecord(taskId: String): DesktopTaskScheduledRecord? {
+    return DataStore.configurationStore.readValue(recordKey(taskId))
+        ?.let(::decodeScheduledRecord)
+}
+
+private suspend fun writeScheduledRecord(taskId: String, record: DesktopTaskScheduledRecord?) {
+    val key = recordKey(taskId)
+    DataStore.configurationStore.edit { preferences ->
+        if (record == null) {
+            preferences.remove(key)
+        } else {
+            preferences[key] = record.encode()
         }
-    }
-
-    private fun installLinuxTask(
-        taskId: String,
-        launcherCommand: List<String>,
-        schedule: DesktopTaskSchedule,
-    ) {
-        val serviceFile = linuxUnitFile(taskId, "service")
-        val timerFile = linuxUnitFile(taskId, "timer")
-        serviceFile.parentFile.mkdirs()
-
-        val serviceName = serviceFile.name
-        val timerName = timerFile.name
-        val execStart = launcherCommand.joinToString(" ", transform = ::quoteSystemdArgument)
-
-        serviceFile.writeText(
-            """
-            [Unit]
-            Description=Husi desktop task $taskId
-            Wants=network-online.target
-            After=network-online.target
-
-            [Service]
-            Type=oneshot
-            ExecStart=$execStart
-            """.trimIndent() + "\n",
-        )
-        timerFile.writeText(
-            """
-            [Unit]
-            Description=Husi desktop task timer $taskId
-
-            [Timer]
-            Unit=$serviceName
-            OnBootSec=${formatSystemdDuration(schedule.initialDelaySeconds)}
-            OnUnitActiveSec=${formatSystemdDuration(schedule.repeatIntervalMinutes.toLong() * 60L)}
-
-            [Install]
-            WantedBy=timers.target
-            """.trimIndent() + "\n",
-        )
-
-        runCommand("systemctl", "--user", "daemon-reload")
-        runCommand("systemctl", "--user", "enable", "--now", timerName)
-    }
-
-    private fun removeLinuxTask(taskId: String) {
-        val serviceFile = linuxUnitFile(taskId, "service")
-        val timerFile = linuxUnitFile(taskId, "timer")
-        if (!timerFile.exists() && !serviceFile.exists()) return
-
-        // `disable` is happy with a unit that exists but was never enabled, and only fails when
-        // systemd cannot find the unit at all — which is exactly what the file tells us.
-        if (timerFile.exists()) {
-            runCatching {
-                runCommand("systemctl", "--user", "disable", "--now", timerFile.name)
-            }.onFailure {
-                Logs.w("disable systemd timer ${timerFile.name}", it)
-            }
-        }
-        deleteFileIfPresent(timerFile)
-        deleteFileIfPresent(serviceFile)
-        runCatching {
-            runCommand("systemctl", "--user", "daemon-reload")
-        }.onFailure {
-            Logs.w("reload systemd user units", it)
-        }
-    }
-
-    private fun linuxUnitFile(taskId: String, suffix: String): File {
-        return DesktopPaths.linuxSystemdUserDir
-            .resolve("$LINUX_UNIT_PREFIX.$taskId.$suffix")
-    }
-
-    private fun installMacTask(
-        taskId: String,
-        launcherCommand: List<String>,
-        schedule: DesktopTaskSchedule,
-    ) {
-        val label = macLabel(taskId)
-        val agentFile = macLaunchAgentFile(taskId)
-        val agentSchedule = macLaunchAgentSchedule(schedule)
-        agentFile.parentFile.mkdirs()
-
-        unloadMacAgentIfPresent(agentFile, label)
-
-        val arguments = launcherCommand.joinToString(separator = "\n") {
-            "    <string>${xmlEscape(it)}</string>"
-        }
-        val scheduleBlock = buildString {
-            agentSchedule.startIntervalSeconds?.let {
-                appendLine("    <key>StartInterval</key>")
-                appendLine("    <integer>$it</integer>")
-            }
-            appendLine("    <key>RunAtLoad</key>")
-            append("    <${if (agentSchedule.runAtLoad) "true" else "false"}/>")
-        }
-        agentFile.writeText(
-            """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-                <key>Label</key>
-                <string>$label</string>
-                <key>ProgramArguments</key>
-                <array>
-            $arguments
-                </array>
-            $scheduleBlock
-            </dict>
-            </plist>
-            """.trimIndent() + "\n",
-        )
-
-        runCommand("launchctl", "bootstrap", macUserDomainTarget(), agentFile.absolutePath)
-    }
-
-    private fun removeMacTask(taskId: String) {
-        val agentFile = macLaunchAgentFile(taskId)
-        if (!agentFile.exists()) return
-
-        unloadMacAgentIfPresent(agentFile, macLabel(taskId))
-        deleteFileIfPresent(agentFile)
-    }
-
-    /**
-     * `bootout` addresses the agent by plist path, so without that file there is nothing loaded to
-     * boot out and launchctl only answers "no such process".
-     */
-    private fun unloadMacAgentIfPresent(agentFile: File, label: String) {
-        if (!agentFile.exists()) return
-        runCatching {
-            runLaunchCtl("bootout", macUserDomainTarget(), agentFile.absolutePath)
-        }.onFailure {
-            Logs.w("bootout launch agent $label", it)
-        }
-    }
-
-    private fun macLaunchAgentFile(taskId: String): File {
-        return DesktopPaths.macLaunchAgentsDir
-            .resolve("${macLabel(taskId)}.plist")
-    }
-
-    private fun macLabel(taskId: String): String = "$LINUX_UNIT_PREFIX.$taskId"
-
-    private fun macUserDomainTarget(): String {
-        return "gui/${runCommand("id", "-u").trim()}"
-    }
-
-    private fun installWindowsTask(
-        taskId: String,
-        launcherCommand: List<String>,
-        schedule: DesktopTaskSchedule,
-    ) {
-        val firstRunAt = (Clock.System.now() + schedule.initialDelaySeconds.fastCoerceAtLeast(60L).seconds)
-            .toLocalDateTime(TimeZone.currentSystemDefault())
-        // schtasks /sd /st parse dates per the user's locale (e.g. yyyy/M/d on zh-CN), so a fixed
-        // pattern always fails on non-en-US systems. Import an XML definition instead — its
-        // <StartBoundary> is ISO 8601 and locale-independent.
-        val xml = buildWindowsTaskXml(launcherCommand, firstRunAt, schedule.repeatIntervalMinutes)
-        val xmlFile = File.createTempFile("husi-task-", ".xml")
-        try {
-            xmlFile.writeText(xml, Charsets.UTF_16)
-            runCommand(
-                "schtasks",
-                "/create",
-                "/tn",
-                windowsTaskName(taskId),
-                "/xml",
-                xmlFile.absolutePath,
-                "/f",
-            )
-        } finally {
-            xmlFile.delete()
-        }
-    }
-
-    private fun buildWindowsTaskXml(
-        launcherCommand: List<String>,
-        firstRunAt: LocalDateTime,
-        repeatIntervalMinutes: Int,
-    ): String {
-        val command = launcherCommand.first()
-        val arguments = launcherCommand
-            .drop(1)
-            .joinToString(" ", transform = ::quoteWindowsArgument)
-        val startBoundary = LocalDateTime.Formats.ISO.format(firstRunAt)
-        return """
-            <?xml version="1.0" encoding="UTF-16"?>
-            <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-              <Triggers>
-                <TimeTrigger>
-                  <StartBoundary>$startBoundary</StartBoundary>
-                  <Repetition>
-                    <Interval>PT${repeatIntervalMinutes}M</Interval>
-                    <StopAtDurationEnd>false</StopAtDurationEnd>
-                  </Repetition>
-                  <Enabled>true</Enabled>
-                </TimeTrigger>
-              </Triggers>
-              <Principals>
-                <Principal id="Author">
-                  <LogonType>InteractiveToken</LogonType>
-                  <RunLevel>LeastPrivilege</RunLevel>
-                </Principal>
-              </Principals>
-              <Settings>
-                <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
-                <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-                <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-                <StartWhenAvailable>true</StartWhenAvailable>
-                <AllowStartOnDemand>true</AllowStartOnDemand>
-                <Enabled>true</Enabled>
-                <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
-                <Priority>7</Priority>
-              </Settings>
-              <Actions Context="Author">
-                <Exec>
-                  <Command>${xmlEscape(command)}</Command>
-                  <Arguments>${xmlEscape(arguments)}</Arguments>
-                </Exec>
-              </Actions>
-            </Task>
-            """.trimIndent() + "\n"
-    }
-
-    private fun removeWindowsTask(taskId: String) {
-        val taskName = windowsTaskName(taskId)
-        if (!windowsTaskExists(taskName)) return
-
-        runCatching {
-            runCommand(
-                "schtasks",
-                "/delete",
-                "/tn",
-                taskName,
-                "/f",
-            )
-        }.onFailure {
-            Logs.w("delete scheduled task $taskName", it)
-        }
-    }
-
-    /** Windows keeps the task registry to itself, so the query is the only way to ask. */
-    private fun windowsTaskExists(taskName: String): Boolean {
-        return runCatching {
-            runCommand("schtasks", "/query", "/tn", taskName)
-        }.isSuccess
-    }
-
-    private fun windowsTaskName(taskId: String): String = WINDOWS_TASK_PREFIX + taskId
-
-    private fun runLaunchCtl(vararg args: String): String {
-        return runCommand(
-            buildList {
-                add("launchctl")
-                addAll(args)
-            },
-        )
-    }
-
-    private fun runCommand(vararg args: String): String {
-        return runCommand(args.toList())
-    }
-
-    private fun runCommand(args: List<String>): String {
-        val process = ProcessBuilder(args)
-            .redirectErrorStream(true)
-            .start()
-        val output = process.inputStream.bufferedReader(nativeCharset).use { it.readText().trim() }
-        val exitCode = process.waitFor()
-        check(exitCode == 0) {
-            output.ifBlank {
-                "${args.joinToString(" ")} failed with exit code $exitCode"
-            }
-        }
-        return output
-    }
-
-    /** Subprocess stdout uses the OS native code page (e.g. GBK on zh-CN Windows). Since JEP 400
-     * (JDK 18+) Charset.defaultCharset() is UTF-8 on Windows, which mangles non-ASCII output;
-     * native.encoding is the JDK-standard way to recover the OS encoding.
-     */
-    private val nativeCharset: Charset = run {
-        val name = System.getProperty("native.encoding")
-            ?: System.getProperty("sun.jnu.encoding")
-        name?.let { runCatching { Charset.forName(it) }.getOrNull() }
-            ?: Charset.defaultCharset()
-    }
-
-    private fun deleteFileIfPresent(file: File) {
-        if (!file.exists()) return
-        check(file.delete()) { "failed to delete ${file.absolutePath}" }
-    }
-
-    private fun formatSystemdDuration(seconds: Long): String {
-        return "${seconds.coerceAtLeast(0L)}s"
     }
 }

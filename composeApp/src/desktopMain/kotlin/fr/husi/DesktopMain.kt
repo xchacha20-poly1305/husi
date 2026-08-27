@@ -177,6 +177,7 @@ class DesktopMain(
     ).flag()
 
     val taskId: String? by option(
+        "--nucleus-scheduler-run",
         "--task",
         hidden = true,
         help = "[Internal] Run a hidden desktop task and exit.",

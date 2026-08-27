@@ -201,7 +201,13 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
   `DeepLinkDispatcher`). All plugin spawning — including standalone URL test — goes through
   the Go `pluginpool` in the core host. On Android this powers `ProxyService`/`VpnService`/
   `TileService` running in the `:bg` process; on desktop it's wired through
-  `DesktopTaskScheduler`/`DesktopTaskRegistry`.
+  `DesktopTaskScheduler`/`DesktopTaskRegistry`. The desktop side registers its timers with the
+  OS through `nucleus.scheduler` (systemd user timers, launch agents, Windows scheduled tasks);
+  running a task stays husi's own path — the OS wakes the launcher with
+  `--nucleus-scheduler-run <id>` and `DesktopMain` forwards the id into the already running
+  instance, so Nucleus' `DesktopBootReceiver` (and its constraints, retries and run metadata)
+  is deliberately unused. `LegacyDesktopTaskCleanup` removes the pre-Nucleus entries husi used
+  to write itself.
 - `libcore/BoxServiceFactory.kt` is the `expect`/`actual` bridge that hands the platform a
   configured `Service` from the Go core.
 - `ui/` is the Compose tree. Sub-packages mirror feature areas (`profile`, `dashboard`,
