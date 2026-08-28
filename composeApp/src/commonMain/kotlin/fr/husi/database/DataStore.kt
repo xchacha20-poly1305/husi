@@ -65,13 +65,20 @@ object DataStore {
     val currentProfile = configurationStore.long(Key.PROFILE_CURRENT)
 
     val selectedProxy = configurationStore.long(Key.PROFILE_ID)
-    val selectedGroup = configurationStore.long(Key.PROFILE_GROUP) {
-        ProfileManager.ensureDefaultGroupId()
-    }
+
+    /** No group use this ID */
+    const val GROUP_NOPE = -1L
+
+    /**
+     * The stored value is [GROUP_NOPE] until a group is picked. Resolving that to a
+     * real group can create the default group and is a database round trip, so it
+     * lives in [currentGroupId] / [currentGroup].
+     */
+    val selectedGroup = configurationStore.long(Key.PROFILE_GROUP)
 
     suspend fun currentGroupId(): Long {
         val currentSelected = selectedGroup.getOrNull()
-        if (currentSelected != null && currentSelected > 0L) return currentSelected
+        if (currentSelected != null && currentSelected > GROUP_NOPE) return currentSelected
         val groupId = ProfileManager.ensureDefaultGroupId()
         selectedGroup.set(groupId)
         return groupId
@@ -79,7 +86,7 @@ object DataStore {
 
     suspend fun currentGroup(): ProxyGroup {
         val currentSelected = selectedGroup.getOrNull()
-        if (currentSelected != null && currentSelected > 0L) {
+        if (currentSelected != null && currentSelected > GROUP_NOPE) {
             val group = SagerDatabase.groupDao.getById(currentSelected).firstOrNull()
             if (group != null) return group
         }

@@ -217,7 +217,7 @@ fun ConfigurationScreen(
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val hasGroups = uiState.groups.isNotEmpty()
     val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(
-        DataStore.selectedGroup.getBlocking(),
+        DataStore.GROUP_NOPE,
     )
     val pagerState = rememberPagerState(
         initialPage = uiState.groups

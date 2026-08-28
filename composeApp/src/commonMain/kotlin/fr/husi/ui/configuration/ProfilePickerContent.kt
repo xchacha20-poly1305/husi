@@ -90,7 +90,7 @@ fun rememberProfilePickerState(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     var selectedGroup by rememberSaveable {
-        mutableLongStateOf(DataStore.selectedGroup.getBlocking())
+        mutableLongStateOf(DataStore.GROUP_NOPE)
     }
     val pagerState = rememberPagerState(
         initialPage = uiState.groups
@@ -106,7 +106,7 @@ fun rememberProfilePickerState(
         val initialGroup = withContext(Dispatchers.IO) {
             initialProfile.takeIf { it > 0 }?.let { ProfileManager.getProfile(it)?.groupId }
         }
-        selectedGroup = initialGroup ?: DataStore.selectedGroup.get()
+        selectedGroup = initialGroup ?: DataStore.currentGroupId()
         viewModel.scrollToProxy(initialProfile)
     }
     LaunchedEffect(selectedGroup, uiState.groups) {
