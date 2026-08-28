@@ -14,7 +14,14 @@ import kotlinx.coroutines.runBlocking
 
 class PreferenceProxy<T> internal constructor(
     val key: String,
-    private val defaultValue: suspend () -> T,
+    /**
+     * Reached from [getBlocking], which callers use on the UI thread, so this is
+     * deliberately not `suspend`: a default that waits on the database or the
+     * filesystem deadlocks the first frame. A preference whose fallback needs I/O
+     * belongs in a suspend resolver next to the preference instead (see
+     * [fr.husi.database.DataStore.currentGroupId]).
+     */
+    private val defaultValue: () -> T,
     private val read: suspend () -> T?,
     private val write: suspend (T) -> Unit,
     private val observe: () -> Flow<T?>,
@@ -48,7 +55,7 @@ class PreferenceProxy<T> internal constructor(
 private fun <T> DataStorePreferenceDataStore.typedProxy(
     name: String,
     preferenceKey: Preferences.Key<T>,
-    defaultValue: suspend () -> T,
+    defaultValue: () -> T,
 ): PreferenceProxy<T> = PreferenceProxy(
     key = name,
     defaultValue = defaultValue,
@@ -62,17 +69,17 @@ private fun <T> DataStorePreferenceDataStore.typedProxy(
 
 fun DataStorePreferenceDataStore.string(
     name: String,
-    defaultValue: suspend () -> String = { "" },
+    defaultValue: () -> String = { "" },
 ): PreferenceProxy<String> = typedProxy(name, stringPreferencesKey(name), defaultValue)
 
 fun DataStorePreferenceDataStore.boolean(
     name: String,
-    defaultValue: suspend () -> Boolean = { false },
+    defaultValue: () -> Boolean = { false },
 ): PreferenceProxy<Boolean> = typedProxy(name, booleanPreferencesKey(name), defaultValue)
 
 fun DataStorePreferenceDataStore.int(
     name: String,
-    defaultValue: suspend () -> Int = { 0 },
+    defaultValue: () -> Int = { 0 },
 ): PreferenceProxy<Int> {
     val preferenceKey = longPreferencesKey(name)
     return PreferenceProxy(
@@ -91,12 +98,12 @@ fun DataStorePreferenceDataStore.int(
 
 fun DataStorePreferenceDataStore.long(
     name: String,
-    defaultValue: suspend () -> Long = { 0L },
+    defaultValue: () -> Long = { 0L },
 ): PreferenceProxy<Long> = typedProxy(name, longPreferencesKey(name), defaultValue)
 
 fun DataStorePreferenceDataStore.stringSet(
     name: String,
-    defaultValue: suspend () -> Set<String> = { emptySet() },
+    defaultValue: () -> Set<String> = { emptySet() },
 ): PreferenceProxy<Set<String>> = typedProxy(name, stringSetPreferencesKey(name), defaultValue)
 
 fun DataStorePreferenceDataStore.port(

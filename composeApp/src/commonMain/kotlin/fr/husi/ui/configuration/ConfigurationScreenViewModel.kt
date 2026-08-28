@@ -516,7 +516,7 @@ class ConfigurationScreenViewModel(
                 resolveRepository().startService()
             }
         }
-        val groupId = DataStore.selectedGroup.get()
+        val groupId = DataStore.currentGroupId()
         childViewModels[groupId]?.onProfileSelected(new)
     }
 
