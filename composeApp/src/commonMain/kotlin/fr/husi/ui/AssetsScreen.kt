@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -23,11 +22,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -69,6 +69,7 @@ import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
+import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
@@ -280,7 +281,7 @@ internal fun AssetsScreen(
                     title = { Text(stringResource(Res.string.route_assets)) },
                     actions = {
                         val canOperate =
-                            uiState.process == null && uiState.assets.all { it.progress == null }
+                            uiState.process == null && uiState.assets.none { it.isUpdating }
                         val canReset = canOperate && rulesProvider == RuleProvider.OFFICIAL
 
                         CapsuleActionButton {
@@ -372,7 +373,7 @@ internal fun AssetsScreen(
             }
         },
 
-    ) { innerPadding ->
+        ) { innerPadding ->
         val listState = rememberLazyListState()
         val contentPadding = innerPadding.withNavigation()
         Row(modifier = Modifier.fillMaxSize()) {
@@ -415,18 +416,18 @@ internal fun AssetsScreen(
                             AssetCard(
                                 asset = asset,
                                 globalAutoUpdateDelay = routeAssetsAutoUpdateDelay,
-                                viewModel = viewModel,
-                                uiState = uiState,
+                                enabled = uiState.process == null,
                                 onEditAsset = { openAssetEditor(it) },
+                                onUpdateAsset = { viewModel.updateSingleAsset(it) },
                             )
                         }
                     } else {
                         AssetCard(
                             asset = asset,
                             globalAutoUpdateDelay = routeAssetsAutoUpdateDelay,
-                            viewModel = viewModel,
-                            uiState = uiState,
+                            enabled = uiState.process == null,
                             onEditAsset = { openAssetEditor(it) },
+                            onUpdateAsset = { viewModel.updateSingleAsset(it) },
                         )
                     }
                 }
@@ -474,9 +475,9 @@ internal fun AssetsScreen(
 private fun AssetCard(
     asset: AssetItem,
     globalAutoUpdateDelay: Int,
-    viewModel: AssetsScreenViewModel,
-    uiState: AssetsUiState,
+    enabled: Boolean,
     onEditAsset: (String) -> Unit,
+    onUpdateAsset: (File) -> Unit,
 ) {
     val autoUpdateDelay = if (asset.builtIn) {
         globalAutoUpdateDelay
@@ -492,14 +493,6 @@ private fun AssetCard(
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            asset.progress?.let {
-                LinearProgressIndicator(
-                    progress = { it },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -508,12 +501,22 @@ private fun AssetCard(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(
-                        text = asset.file.name,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = asset.file.name,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
+                        )
+                        if (asset.isUpdating) {
+                            CircularWavyProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
                         text = stringResource(
@@ -540,7 +543,7 @@ private fun AssetCard(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        val clickable = uiState.process == null && asset.progress == null
+                        val clickable = enabled && !asset.isUpdating
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                             Box(modifier = Modifier.size(36.dp)) {
                                 SimpleIconButton(
@@ -555,7 +558,7 @@ private fun AssetCard(
                         }
                         Button(
                             onClick = {
-                                viewModel.updateSingleAsset(asset.file)
+                                onUpdateAsset(asset.file)
                             },
                             enabled = clickable,
                             contentPadding = PaddingValues(
@@ -569,6 +572,45 @@ private fun AssetCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewAssetCards() {
+    ensurePreviewRepository()
+
+    val geoDir = remember { geoDir(resolveRepository().externalAssetsDir) }
+    AppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            AssetCard(
+                asset = AssetItem(
+                    file = geoDir.resolve("geoip.db"),
+                    version = "20260828",
+                    builtIn = true,
+                ),
+                globalAutoUpdateDelay = 0,
+                enabled = true,
+                onEditAsset = {},
+                onUpdateAsset = {},
+            )
+            AssetCard(
+                asset = AssetItem(
+                    file = geoDir.resolve("geosite.db"),
+                    version = "20260828",
+                    builtIn = true,
+                    autoUpdateDelay = 0,
+                    isUpdating = true,
+                ),
+                globalAutoUpdateDelay = 4400,
+                enabled = true,
+                onEditAsset = {},
+                onUpdateAsset = {},
+            )
         }
     }
 }

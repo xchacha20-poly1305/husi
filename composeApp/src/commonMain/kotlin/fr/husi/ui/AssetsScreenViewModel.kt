@@ -52,7 +52,7 @@ internal data class AssetItem(
     val version: String,
     val builtIn: Boolean,
     val autoUpdateDelay: Int = 0,
-    val progress: Float? = null,
+    val isUpdating: Boolean = false,
 )
 
 @Immutable
@@ -163,7 +163,7 @@ internal class AssetsScreenViewModel(
             version = version,
             builtIn = builtIn,
             autoUpdateDelay = entity?.autoUpdateDelay ?: 0,
-            progress = null,
+            isUpdating = false,
         )
     }
 
@@ -239,33 +239,28 @@ internal class AssetsScreenViewModel(
     private suspend fun updateSingleAsset0(asset: File) {
         val entity = SagerDatabase.assetDao.get(asset.name) ?: return
 
+        setUpdating(asset, isUpdating = true)
+        try {
+            entity.version = updateSingleRouteAsset(entity, assetsDir)
+        } finally {
+            setUpdating(asset, isUpdating = false)
+        }
+        entity.lastUpdated = currentEpochSeconds()
+        SagerDatabase.assetDao.update(entity)
+    }
+
+    private fun setUpdating(asset: File, isUpdating: Boolean) {
         uiState.update { state ->
             state.copy(
                 assets = state.assets.map {
                     if (it.file == asset) {
-                        it.copy(progress = 0f)
+                        it.copy(isUpdating = isUpdating)
                     } else {
                         it
                     }
                 },
             )
         }
-
-        entity.version = updateSingleRouteAsset(entity, assetsDir) { progress ->
-            uiState.update { state ->
-                state.copy(
-                    assets = state.assets.map {
-                        if (it.file == asset) {
-                            it.copy(progress = progress)
-                        } else {
-                            it
-                        }
-                    },
-                )
-            }
-        }
-        entity.lastUpdated = currentEpochSeconds()
-        SagerDatabase.assetDao.update(entity)
     }
 
     fun undoableRemove(fileName: String) = viewModelScope.launch {
