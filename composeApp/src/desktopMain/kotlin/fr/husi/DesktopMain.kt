@@ -1,5 +1,6 @@
 package fr.husi
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -176,6 +177,11 @@ class DesktopMain(
         help = "Start without opening the main window",
     ).flag()
 
+    val noTray: Boolean by option(
+        "--no-tray",
+        help = "Do not create a tray icon; closing the window exits the app",
+    ).flag()
+
     val taskId: String? by option(
         "--nucleus-scheduler-run",
         "--task",
@@ -238,7 +244,7 @@ class DesktopMain(
 
         application {
             val repository = resolveDesktopRepository()
-            val startInBackground = background || launchedAtLogin
+            val startInBackground = (background || launchedAtLogin) && !noTray
             var windowVisible by remember {
                 mutableStateOf(!startInBackground)
             }
@@ -273,6 +279,12 @@ class DesktopMain(
                 exitApplication()
             }
 
+            val leaveWindow: () -> Unit = if (noTray) {
+                ::exitGracefully
+            } else {
+                { windowVisible = false }
+            }
+
             DesktopResourceEnvironmentFix {
                 LaunchedEffect(Unit) {
                     if (shouldAutoConnectOnLaunch()) {
@@ -280,94 +292,19 @@ class DesktopMain(
                     }
                 }
 
-                val scope = rememberCoroutineScope()
-
                 val appName = stringResource(Res.string.app_name)
                 val iconServiceActive = painterResource(Res.drawable.ic_service_active)
 
-                val serviceStatus by BackendState.status.collectAsState()
-                val switchText = stringResource(
-                    if (serviceStatus.state == ServiceState.Connected) {
-                        Res.string.stop
-                    } else {
-                        Res.string.start
-                    },
-                )
-
-                val textServiceMode = stringResource(Res.string.service_mode)
-                val textServiceModeProxy = stringResource(Res.string.service_mode_proxy)
-                val textServiceModeVpn = stringResource(Res.string.service_mode_vpn)
-                val serviceMode by DataStore.serviceMode.flow()
-                    .collectAsState(Key.MODE_VPN)
-
-                fun setServiceMode(mode: String) {
-                    if (DataStore.serviceMode.getBlocking() == mode) return
-                    DataStore.serviceMode.setBlocking(mode)
-                    if (serviceStatus.state.canStop) {
-                        repository.reloadService()
-                    }
+                if (!noTray) {
+                    HusiTray(
+                        repository = repository,
+                        onOpenWindow = openWindow,
+                        onExit = ::exitGracefully,
+                    )
                 }
 
-                val textExit = stringResource(Res.string.exit)
-                val iconClose = painterResource(Res.drawable.close)
-                Tray(
-                    icon = iconServiceActive,
-                    tooltip = appName,
-                    primaryAction = openWindow,
-                    menuContent = {
-                        Item(
-                            label = serviceStatus.profileName ?: appName,
-                            shortcut = KeyShortcut(TrayKey.O),
-                        ) {
-                            openWindow()
-                        }
-                        Item(
-                            label = switchText,
-                            shortcut = KeyShortcut(TrayKey.Return, ctrl = true),
-                        ) {
-                            when (serviceStatus.state) {
-                                ServiceState.Stopped -> repository.startService()
-                                ServiceState.Idle, ServiceState.Connected -> repository.stopService()
-                                else -> {}
-                            }
-                        }
-                        SubMenu(
-                            label = textServiceMode,
-                        ) {
-                            CheckableItem(
-                                label = textServiceModeProxy,
-                                checked = serviceMode == Key.MODE_PROXY,
-                                onCheckedChange = { isSelected ->
-                                    if (isSelected) setServiceMode(Key.MODE_PROXY)
-                                },
-                            )
-                            CheckableItem(
-                                label = textServiceModeVpn,
-                                checked = serviceMode == Key.MODE_VPN,
-                                onCheckedChange = { isSelected ->
-                                    if (isSelected) setServiceMode(Key.MODE_VPN)
-                                },
-                            )
-                        }
-                        Item(
-                            label = stringResource(Res.string.copy_terminal_proxy),
-                            icon = painterResource(Res.drawable.content_copy),
-                        ) {
-                            scope.launch(Dispatchers.Default) {
-                                setSystemClipboardPlainText(currentProxyEnvCommand())
-                            }
-                        }
-                        Item(
-                            label = textExit,
-                            icon = iconClose,
-                            shortcut = KeyShortcut(TrayKey.Q),
-                            onClick = ::exitGracefully,
-                        )
-                    },
-                )
-
                 Window(
-                    onCloseRequest = { windowVisible = false },
+                    onCloseRequest = leaveWindow,
                     state = windowState,
                     visible = windowVisible,
                     title = appName,
@@ -375,9 +312,7 @@ class DesktopMain(
                 ) {
                     AppTheme {
                         MainScreen(
-                            moveToBackground = {
-                                windowVisible = false
-                            },
+                            moveToBackground = leaveWindow,
                         )
                     }
                 }
@@ -516,6 +451,90 @@ class DesktopMain(
             }
         }
     }
+}
+
+/** The tray icon and its menu, the app's only handle once the window is hidden. */
+@Composable
+private fun HusiTray(
+    repository: DesktopRepository,
+    onOpenWindow: () -> Unit,
+    onExit: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+
+    val serviceStatus by BackendState.status.collectAsState()
+    val serviceMode by DataStore.serviceMode.flow()
+        .collectAsState(Key.MODE_VPN)
+
+    fun setServiceMode(mode: String) {
+        if (DataStore.serviceMode.getBlocking() == mode) return
+        DataStore.serviceMode.setBlocking(mode)
+        if (serviceStatus.state.canStop) {
+            repository.reloadService()
+        }
+    }
+
+    Tray(
+        icon = painterResource(Res.drawable.ic_service_active),
+        tooltip = stringResource(Res.string.app_name),
+        primaryAction = onOpenWindow,
+        menuContent = {
+            Item(
+                label = serviceStatus.profileName ?: stringResource(Res.string.app_name),
+                shortcut = KeyShortcut(TrayKey.O),
+            ) {
+                onOpenWindow()
+            }
+            Item(
+                label = stringResource(
+                    if (serviceStatus.state == ServiceState.Connected) {
+                        Res.string.stop
+                    } else {
+                        Res.string.start
+                    },
+                ),
+                shortcut = KeyShortcut(TrayKey.Return, ctrl = true),
+            ) {
+                when (serviceStatus.state) {
+                    ServiceState.Stopped -> repository.startService()
+                    ServiceState.Idle, ServiceState.Connected -> repository.stopService()
+                    else -> {}
+                }
+            }
+            SubMenu(
+                label = stringResource(Res.string.service_mode),
+            ) {
+                CheckableItem(
+                    label = stringResource(Res.string.service_mode_proxy),
+                    checked = serviceMode == Key.MODE_PROXY,
+                    onCheckedChange = { isSelected ->
+                        if (isSelected) setServiceMode(Key.MODE_PROXY)
+                    },
+                )
+                CheckableItem(
+                    label = stringResource(Res.string.service_mode_vpn),
+                    checked = serviceMode == Key.MODE_VPN,
+                    onCheckedChange = { isSelected ->
+                        if (isSelected) setServiceMode(Key.MODE_VPN)
+                    },
+                )
+            }
+            Item(
+                label = stringResource(Res.string.copy_terminal_proxy),
+                icon = painterResource(Res.drawable.content_copy),
+            ) {
+                scope.launch(Dispatchers.Default) {
+                    setSystemClipboardPlainText(currentProxyEnvCommand())
+                }
+            }
+            Item(
+                label = stringResource(Res.string.exit),
+                icon = painterResource(Res.drawable.close),
+                shortcut = KeyShortcut(TrayKey.Q),
+                onClick = onExit,
+            )
+        },
+    )
 }
 
 private fun warnCoreHostFailureAndExit(error: Exception): Nothing {
