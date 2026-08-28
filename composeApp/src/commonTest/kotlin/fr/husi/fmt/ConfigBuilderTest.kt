@@ -40,6 +40,16 @@ class ConfigBuilderTest : HusiKoinTest() {
         SagerDatabase.pluginDao.reset()
     }
 
+    /**
+     * The DNS rule shape tests below describe the evaluate/respond migration, which only exists
+     * when queries reach the real DNS servers. Fake DNS routes them to [TAG_DNS_FAKE] instead, so
+     * pin both switches rather than inheriting whatever [DataStore] happens to default to today.
+     */
+    private suspend fun disableFakeDns() {
+        DataStore.enableFakeDns.set(false)
+        DataStore.fakeDNSForAll.set(false)
+    }
+
     @Test
     fun `buildConfig for URL test applies server domain strategy`() = runBlocking {
         DataStore.networkStrategy.set(SingBoxOptions.STRATEGY_PREFER_IPV6)
@@ -1628,6 +1638,8 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should migrate response-based direct DNS rules to evaluate then route`() = runBlocking {
+        disableFakeDns()
+
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
         val proxy = createSocksProxy(
@@ -1666,6 +1678,8 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should migrate response-based proxy DNS rules to evaluate then respond`() = runBlocking {
+        disableFakeDns()
+
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
         val proxy = createSocksProxy(
@@ -1704,6 +1718,8 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should keep request-based DNS rules as direct route without evaluate`() = runBlocking {
+        disableFakeDns()
+
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
         val proxy = createSocksProxy(
@@ -1740,6 +1756,8 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should treat ip field dns rule set as response-based without geoip prefix`() = runBlocking {
+        disableFakeDns()
+
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
         val proxy = createSocksProxy(
@@ -1777,6 +1795,8 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should keep domain field dns rule set as request-based without geosite prefix`() = runBlocking {
+        disableFakeDns()
+
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
         val proxy = createSocksProxy(
@@ -1932,6 +1952,8 @@ class ConfigBuilderTest : HusiKoinTest() {
 
     @Test
     fun `buildConfig should preserve request dns rule set when ip dns rule set needs response matching`() = runBlocking {
+        disableFakeDns()
+
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
         val proxy = createSocksProxy(
