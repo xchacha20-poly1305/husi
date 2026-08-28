@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -37,6 +38,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -69,9 +71,9 @@ import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -128,7 +130,8 @@ internal fun AssetEditScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    var illegalNameMessage by remember { mutableStateOf<StringResource?>(null) }
+    var illegalNameMessage by remember { mutableStateOf<StringOrRes?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     fun saveAndExit() {
         viewModel.save()
@@ -227,6 +230,16 @@ internal fun AssetEditScreen(
                             },
                             summary = { Text(contentOrUnset(uiState.name)) },
                             valueToText = { it },
+                            textField = { value, onValueChange, onOk ->
+                                ValidatedTextField(
+                                    value = value,
+                                    onValueChange = onValueChange,
+                                    onOk = onOk,
+                                    validator = { name ->
+                                        viewModel.validate(name)?.let { getStringOrRes(it) }
+                                    },
+                                )
+                            },
                         )
                         TextFieldPreference(
                             value = uiState.link,
@@ -297,12 +310,14 @@ internal fun AssetEditScreen(
             onDismissRequest = { showBackAlert = false },
             confirmButton = {
                 TextButton(stringResource(Res.string.ok)) {
-                    viewModel.validate(viewModel.uiState.value.name)?.let {
-                        illegalNameMessage = it
-                        showBackAlert = false
-                        return@TextButton
+                    coroutineScope.launch {
+                        viewModel.validate(viewModel.uiState.value.name)?.let {
+                            illegalNameMessage = it
+                            showBackAlert = false
+                            return@launch
+                        }
+                        saveAndExit()
                     }
-                    saveAndExit()
                 }
             },
             dismissButton = {
@@ -339,7 +354,7 @@ internal fun AssetEditScreen(
         )
     }
 
-    illegalNameMessage?.let { id ->
+    illegalNameMessage?.let { message ->
         AlertDialog(
             onDismissRequest = { illegalNameMessage = null },
             confirmButton = {
@@ -349,7 +364,7 @@ internal fun AssetEditScreen(
             },
             icon = { Icon(vectorResource(Res.drawable.warning_amber), null) },
             title = { Text(stringResource(Res.string.error_title)) },
-            text = { Text(stringResource(id)) },
+            text = { Text(stringOrRes(message)) },
         )
     }
 }

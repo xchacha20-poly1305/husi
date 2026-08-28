@@ -756,6 +756,10 @@
     <string name="url" translatable="false">URL</string>
     <string name="route_asset_name">Asset Name</string>
     <string name="invalid_filename">Invalid filename</string>
+    <string name="filename_too_long_bytes">Filename takes %2$d bytes, but this platform allows %1$d</string>
+    <string name="filename_too_long_characters">Filename takes %2$d characters, but this platform allows %1$d</string>
+    <string name="path_too_long_bytes">File path takes %2$d bytes, but this platform allows %1$d</string>
+    <string name="path_too_long_characters">File path takes %2$d characters, but this platform allows %1$d</string>
     <string name="add_route_asset">Add Route Asset</string>
     <string name="assets_settings">Asset Settings</string>
     <string name="import_url">Import URL</string>

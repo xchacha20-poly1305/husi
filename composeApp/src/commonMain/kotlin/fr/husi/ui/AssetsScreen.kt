@@ -57,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.RuleProvider
 import fr.husi.bg.RouteAssetUpdater
+import fr.husi.bg.createRouteGeoDir
 import fr.husi.bg.currentEpochSeconds
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
@@ -116,12 +117,6 @@ import kotlin.random.Random
 private const val ASSET_BUILT_IN = 0
 private const val ASSET_CUSTOM = 1
 
-private fun geoDir(assetsDir: File): File {
-    return File(assetsDir, "geo").apply {
-        mkdirs()
-    }
-}
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun AssetsScreen(
@@ -131,7 +126,7 @@ internal fun AssetsScreen(
 ) {
     val cacheDir = resolveRepository().cacheDir
     val assetsDir = resolveRepository().externalAssetsDir
-    val geoDir = remember { geoDir(assetsDir) }
+    val geoDir = remember { createRouteGeoDir(assetsDir) }
     val viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel(assetsDir, geoDir) }
     val scope = rememberCoroutineScope()
     val activeResultKeys = remember { mutableStateListOf<String>() }
@@ -579,7 +574,7 @@ private fun AssetCard(
 @Composable
 private fun PreviewAssetCards() {
     PreviewContainer {
-        val geoDir = remember { geoDir(resolveRepository().externalAssetsDir) }
+        val geoDir = remember { createRouteGeoDir(resolveRepository().externalAssetsDir) }
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),

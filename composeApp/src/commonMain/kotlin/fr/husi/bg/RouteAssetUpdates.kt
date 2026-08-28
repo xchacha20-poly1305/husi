@@ -35,8 +35,14 @@ private val assetVersionFormat = LocalDateTime.Format {
     secondFraction(fixedLength = 3)
 }
 
+/** Where every downloaded or user supplied rule set lives. May not exist yet. */
 internal fun routeGeoDir(externalAssetsDir: File): File {
-    return externalAssetsDir.resolve("geo").apply {
+    return externalAssetsDir.resolve("geo")
+}
+
+/** [routeGeoDir], created on the way out, for callers that are about to write into it. */
+internal fun createRouteGeoDir(externalAssetsDir: File): File {
+    return routeGeoDir(externalAssetsDir).apply {
         mkdirs()
     }
 }
@@ -64,7 +70,7 @@ internal suspend fun updateManagedRouteAssets(
     checkedAtSeconds: Long = currentEpochSeconds(),
     updateProgress: UpdateProgress = {},
 ) {
-    val destinationDir = routeGeoDir(externalAssetsDir)
+    val destinationDir = createRouteGeoDir(externalAssetsDir)
     val versionFiles = routeVersionFiles(externalAssetsDir)
     val provider = DataStore.rulesProvider.get()
     val updater = when (provider) {
@@ -113,7 +119,7 @@ internal suspend fun updateSingleRouteAsset(
     externalAssetsDir: File,
     updateProgress: UpdateProgress = {},
 ): String {
-    val targetFile = routeGeoDir(externalAssetsDir).resolve(asset.name)
+    val targetFile = createRouteGeoDir(externalAssetsDir).resolve(asset.name)
 
     resolveHttpClientFactory().newHttpClient().apply {
         keepAlive()

@@ -582,6 +582,10 @@
     <string name="refresh">Обновить</string>
     <string name="route_asset_name">Название ресурса (имя файла)</string>
     <string name="invalid_filename">Неверное имя файла</string>
+    <string name="filename_too_long_bytes">Имя файла занимает %2$d байт при пределе %1$d на этой платформе</string>
+    <string name="filename_too_long_characters">Имя файла занимает %2$d символов при пределе %1$d на этой платформе</string>
+    <string name="path_too_long_bytes">Путь к файлу занимает %2$d байт при пределе %1$d на этой платформе</string>
+    <string name="path_too_long_characters">Путь к файлу занимает %2$d символов при пределе %1$d на этой платформе</string>
     <string name="add_route_asset">Добавить ресурс маршрута</string>
     <string name="assets_settings">Данные ресурса</string>
     <string name="import_url">Импорт из URL</string>

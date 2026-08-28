@@ -5,13 +5,23 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.bg.RouteAssetUpdater
+import fr.husi.bg.routeGeoDir
 import fr.husi.database.AssetEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.runOnIoDispatcher
+import fr.husi.platform.PathLimits
 import fr.husi.repository.resolveRepository
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.duplicate_name
+import fr.husi.resources.expect_srs
+import fr.husi.resources.filename_too_long_bytes
+import fr.husi.resources.filename_too_long_characters
+import fr.husi.resources.invalid_filename
+import fr.husi.resources.path_too_long_bytes
+import fr.husi.resources.path_too_long_characters
+import fr.husi.resources.warn_starte_with_geo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +29,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 
 @Immutable
@@ -48,7 +57,7 @@ internal class AssetEditViewModel(
         initialValue = false,
     )
 
-    lateinit var editingName: String
+    var editingName: String = ""
     var isNew = false
 
     init {
@@ -120,25 +129,53 @@ internal class AssetEditViewModel(
         }
     }
 
-    fun validate(text: String): StringResource? {
-        if (text.length > 255 || text.contains('/')) {
-            return Res.string.invalid_filename
+    suspend fun validate(text: String): StringOrRes? {
+        val limits = PathLimits.current
+        if (!limits.acceptsName(text)) {
+            return limits.tooLongMessage(
+                inBytes = Res.string.filename_too_long_bytes,
+                inCharacters = Res.string.filename_too_long_characters,
+                limit = limits.maxNameLength,
+                text = text,
+            )
         }
-        if (
-            resolveRepository().externalAssetsDir.resolve("geo").resolve(text)
-                .canonicalPath.substringAfterLast('/') != text
-        ) {
-            return Res.string.invalid_filename
+        val file = routeGeoDir(resolveRepository().externalAssetsDir).resolve(text)
+        if (file.canonicalFile.name != text) {
+            return StringOrRes.Res(Res.string.invalid_filename)
         }
-        if (isNew && runBlocking { SagerDatabase.assetDao.get(text) } != null) {
-            return Res.string.duplicate_name
+        if (!limits.acceptsPath(file.absolutePath)) {
+            return limits.tooLongMessage(
+                inBytes = Res.string.path_too_long_bytes,
+                inCharacters = Res.string.path_too_long_characters,
+                limit = limits.maxPathLength,
+                text = file.absolutePath,
+            )
+        }
+        if (text != editingName && SagerDatabase.assetDao.get(text) != null) {
+            return StringOrRes.Res(Res.string.duplicate_name)
         }
         if (!text.endsWith(SingBoxOptions.RULE_SET_FILE_SUFFIX)) {
-            return Res.string.expect_srs
+            return StringOrRes.Res(Res.string.expect_srs)
         }
         if (text.startsWith("geosite-") || text.startsWith("geoip-")) {
-            return Res.string.warn_starte_with_geo
+            return StringOrRes.Res(Res.string.warn_starte_with_geo)
         }
         return null
     }
+
+    fun PathLimits.tooLongMessage(
+        inBytes: StringResource,
+        inCharacters: StringResource,
+        limit: Int,
+        text: String,
+    ): StringOrRes = StringOrRes.ResWithParams(
+        if (countsUtf8Bytes) {
+            inBytes
+        } else {
+            inCharacters
+        },
+        limit,
+        lengthOf(text),
+    )
+
 }

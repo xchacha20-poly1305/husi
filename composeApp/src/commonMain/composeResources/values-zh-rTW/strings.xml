@@ -630,6 +630,10 @@
     <string name="refresh">重新整理</string>
     <string name="route_asset_name">資源名稱</string>
     <string name="invalid_filename">無效檔名</string>
+    <string name="filename_too_long_bytes">檔名佔 %2$d 位元組，目前平台最多允許 %1$d 位元組</string>
+    <string name="filename_too_long_characters">檔名佔 %2$d 個字元，目前平台最多允許 %1$d 個字元</string>
+    <string name="path_too_long_bytes">檔案路徑佔 %2$d 位元組，目前平台最多允許 %1$d 位元組</string>
+    <string name="path_too_long_characters">檔案路徑佔 %2$d 個字元，目前平台最多允許 %1$d 個字元</string>
     <string name="add_route_asset">新增路由資源</string>
     <string name="assets_settings">資源設定</string>
     <string name="import_url">匯入 URL</string>

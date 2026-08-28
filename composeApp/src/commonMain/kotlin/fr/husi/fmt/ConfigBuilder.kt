@@ -6,6 +6,7 @@ import fr.husi.NetworkInterfaceStrategy
 import fr.husi.RuleProvider
 import fr.husi.TunImplementation
 import fr.husi.bg.VpnConstants
+import fr.husi.bg.routeGeoDir
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
@@ -1609,7 +1610,7 @@ suspend fun buildConfig(
         } else {
             null
         }) ?: RuleSetSource.Local(
-            repository.externalAssetsDir.resolve("geo").invariantPathString(),
+            routeGeoDir(repository.externalAssetsDir).invariantPathString(),
         )
         buildRuleSets(ruleSetSource)
         partitionEndpoints()

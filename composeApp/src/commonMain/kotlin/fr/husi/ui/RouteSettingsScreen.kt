@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.bg.routeGeoDir
 import fr.husi.compose.AutoCompleteTextField
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -455,7 +456,7 @@ private fun RouteSettings(
     modifier: Modifier = Modifier,
 ) {
     val geoDir = remember(resolveRepository().externalAssetsDir) {
-        resolveRepository().externalAssetsDir.resolve("geo").takeIf { it.isDirectory }
+        routeGeoDir(resolveRepository().externalAssetsDir).takeIf { it.isDirectory }
     }
 
     val listState = rememberLazyListState()
