@@ -147,7 +147,10 @@ object DataStore {
     val domainStrategyForServer = configurationStore.string(Key.DOMAIN_STRATEGY_FOR_SERVER) {
         DOMAIN_STRATEGY_AUTO
     }
-    val enableFakeDns = configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
+    // Using different outbound is a normal situation for proxy set.
+    // And the application may not refresh their DNS cache in time.
+    // So fake DNS is the best resolution. (With long-term practice by Clash and Surge.)
+    val enableFakeDns = configurationStore.boolean(Key.ENABLE_FAKE_DNS) { true }
     val fakeDNSForAll = configurationStore.boolean(Key.FAKE_DNS_FOR_ALL) { false }
 
     // https://developer.chrome.com/blog/local-network-access
