@@ -12,7 +12,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
-import fr.husi.ui.ensurePreviewRepository
 import fr.husi.resources.Res
 import fr.husi.resources.cleaning_services
 import fr.husi.resources.clear_selections
@@ -95,11 +94,11 @@ internal actual fun AppListScreen(
 @Preview
 @Composable
 private fun PreviewAppListScreen() {
-    ensurePreviewRepository()
-
-    AppListScreen(
-        initialPackages = emptySet(),
-        resultKey = "app-list-${Random.nextLong()}",
-        onBack = {},
-    )
+    PreviewContainer {
+        AppListScreen(
+            initialPackages = emptySet(),
+            resultKey = "app-list-${Random.nextLong()}",
+            onBack = {},
+        )
+    }
 }

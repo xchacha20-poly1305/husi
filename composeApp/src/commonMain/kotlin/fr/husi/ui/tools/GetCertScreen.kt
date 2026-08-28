@@ -80,7 +80,7 @@ import fr.husi.resources.sni
 import fr.husi.resources.start
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
-import fr.husi.ui.ensurePreviewRepository
+import fr.husi.ui.PreviewContainer
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
@@ -343,11 +343,12 @@ private fun CopyButton(modifier: Modifier = Modifier, copy: () -> Unit) {
 @Preview
 @Composable
 private fun PreviewGetCert() {
-    ensurePreviewRepository()
-    val viewModel = viewModel { GetCertScreenViewModel() }
+    PreviewContainer {
+        val viewModel = viewModel { GetCertScreenViewModel() }
 
-    GetCertScreen(
-        viewModel = viewModel,
-        onBack = {},
-    )
+        GetCertScreen(
+            viewModel = viewModel,
+            onBack = {},
+        )
+    }
 }

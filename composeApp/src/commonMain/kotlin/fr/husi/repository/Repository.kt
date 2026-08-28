@@ -1,6 +1,10 @@
 package fr.husi.repository
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import fr.husi.database.preference.createPlatformConfigurationDataStore
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
@@ -16,6 +20,9 @@ interface Repository {
     val boxService: fr.husi.libcore.Service?
 
     val preferenceStoreDispatcher: CoroutineDispatcher get() = Dispatchers.IO
+
+    fun createConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences> =
+        createPlatformConfigurationDataStore(scope)
 
     val cacheDir: File
     val filesDir: File

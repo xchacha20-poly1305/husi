@@ -53,6 +53,6 @@ private object MultiProcessPreferencesSerializer : Serializer<Preferences> {
     }
 }
 
-internal actual fun createConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences> {
+internal actual fun createPlatformConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences> {
     return MultiProcessPreferenceDataStoreHolder.get(resolveAndroidRepository().context, scope)
 }

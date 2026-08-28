@@ -34,7 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.ui.ensurePreviewRepository
 import fr.husi.utils.PackageCache
 import fr.husi.resources.*
 
@@ -258,9 +257,9 @@ private fun ScanDialog(
 @Preview
 @Composable
 private fun PreviewAppManagerScreen() {
-    ensurePreviewRepository()
-
-    AppManagerScreen(
-        onBackPress = {},
-    )
+    PreviewContainer {
+        AppManagerScreen(
+            onBackPress = {},
+        )
+    }
 }

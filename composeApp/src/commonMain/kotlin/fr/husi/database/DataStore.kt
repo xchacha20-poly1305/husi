@@ -16,7 +16,6 @@ import fr.husi.bg.ServiceState
 import fr.husi.compose.theme.DEFAULT
 import fr.husi.database.preference.DataStorePreferenceDataStore
 import fr.husi.database.preference.boolean
-import fr.husi.database.preference.createConfigurationDataStore
 import fr.husi.database.preference.int
 import fr.husi.database.preference.long
 import fr.husi.database.preference.port
@@ -24,6 +23,7 @@ import fr.husi.database.preference.preferenceStoreScope
 import fr.husi.database.preference.string
 import fr.husi.database.preference.stringSet
 import fr.husi.platform.PlatformInfo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -36,7 +36,7 @@ object DataStore {
     var serviceState = ServiceState.Idle
 
     val configurationStore = DataStorePreferenceDataStore.create(
-        createConfigurationDataStore(preferenceStoreScope()),
+        resolveRepository().createConfigurationDataStore(preferenceStoreScope()),
     )
 
     init {

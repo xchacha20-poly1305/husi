@@ -44,7 +44,6 @@ import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
-import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.libcore.Libcore
@@ -353,9 +352,7 @@ private fun CardItem(
 @Preview
 @Composable
 private fun PreviewAboutScreen() {
-    ensurePreviewRepository()
-
-    AppTheme {
+    PreviewContainer {
         AboutScreen(
             onBackPress = {},
             onNavigateToLibraries = {},

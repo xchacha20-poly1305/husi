@@ -49,7 +49,7 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.ui.LocalSnackbarEmitter
-import fr.husi.ui.ensurePreviewRepository
+import fr.husi.ui.PreviewContainer
 import fr.husi.ui.getStringOrRes
 import fr.husi.resources.*
 import fr.husi.ui.stringOrRes
@@ -277,9 +277,9 @@ internal fun SpeedtestScreen(
 @Preview
 @Composable
 private fun PreviewSpeedtest() {
-    ensurePreviewRepository()
-
-    SpeedtestScreen(
-        onBackPress = {},
-    )
+    PreviewContainer {
+        SpeedtestScreen(
+            onBackPress = {},
+        )
+    }
 }

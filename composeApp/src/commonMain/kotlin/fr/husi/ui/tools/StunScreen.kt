@@ -75,7 +75,7 @@ import fr.husi.resources.route_proxy
 import fr.husi.resources.start
 import fr.husi.resources.stun_attest_loading
 import fr.husi.resources.stun_test
-import fr.husi.ui.ensurePreviewRepository
+import fr.husi.ui.PreviewContainer
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -401,11 +401,12 @@ private fun natFilteringColor(value: NATFiltering): Color = when (value) {
 @Preview
 @Composable
 private fun PreviewStunScreen() {
-    ensurePreviewRepository()
-    val viewModel = viewModel { StunScreenViewModel() }
+    PreviewContainer {
+        val viewModel = viewModel { StunScreenViewModel() }
 
-    StunScreen(
-        viewModel = viewModel,
-        onBackPress = {},
-    )
+        StunScreen(
+            viewModel = viewModel,
+            onBackPress = {},
+        )
+    }
 }

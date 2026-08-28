@@ -69,7 +69,6 @@ import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
-import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
@@ -579,10 +578,8 @@ private fun AssetCard(
 @Preview
 @Composable
 private fun PreviewAssetCards() {
-    ensurePreviewRepository()
-
-    val geoDir = remember { geoDir(resolveRepository().externalAssetsDir) }
-    AppTheme {
+    PreviewContainer {
+        val geoDir = remember { geoDir(resolveRepository().externalAssetsDir) }
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),

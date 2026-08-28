@@ -58,7 +58,7 @@ import fr.husi.resources.vpn_core_path
 import fr.husi.resources.vpn_core_type
 import fr.husi.resources.vpn_core_type_unknown
 import fr.husi.resources.vpn_golang_version
-import fr.husi.ui.ensurePreviewRepository
+import fr.husi.ui.PreviewContainer
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -220,9 +220,9 @@ internal actual fun VPNScannerScreen(
 @Preview
 @Composable
 private fun PreviewVPNScannerScreen() {
-    ensurePreviewRepository()
-
-    VPNScannerScreen(
-        onBackPress = {},
-    )
+    PreviewContainer {
+        VPNScannerScreen(
+            onBackPress = {},
+        )
+    }
 }
