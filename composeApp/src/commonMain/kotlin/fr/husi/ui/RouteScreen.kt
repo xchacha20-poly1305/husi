@@ -184,9 +184,9 @@ fun RouteScreen(
                     }
                     CapsuleActionButton {
                         SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.replay),
-                            contentDescription = stringResource(Res.string.route_reset),
-                            onClick = { showResetAlert = true },
+                            imageVector = vectorResource(Res.drawable.layers),
+                            contentDescription = stringResource(Res.string.route_manage_assets),
+                            onClick = openAssets,
                         )
                     }
                     CapsuleActionButton {
@@ -203,14 +203,14 @@ fun RouteScreen(
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.route_manage_assets)) },
+                                    text = { Text(stringResource(Res.string.route_reset)) },
                                     onClick = {
                                         showMoreAction = false
-                                        openAssets()
+                                        showResetAlert = true
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = vectorResource(Res.drawable.layers),
+                                            imageVector = vectorResource(Res.drawable.replay),
                                             contentDescription = null,
                                         )
                                     },
