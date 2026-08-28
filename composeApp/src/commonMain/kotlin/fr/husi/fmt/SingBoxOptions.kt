@@ -13,6 +13,7 @@ object SingBoxOptions {
     // Generate on line +439
 
     const val RULE_SET_TAG_PLACEHOLDER = "{tag}"
+    const val RULE_SET_FILE_SUFFIX = ".srs"
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"

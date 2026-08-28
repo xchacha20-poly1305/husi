@@ -1,6 +1,8 @@
 package fr.husi.fmt
 
 import fr.husi.Key
+import fr.husi.RuleProvider
+import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
@@ -2105,6 +2107,47 @@ class ConfigBuilderTest : HusiKoinTest() {
             .jsonObject["rules"]!!
             .jsonArray
             .map { it.jsonObject }
+
+    @Test
+    fun `buildConfig for export should resolve asset rule sets from their own URL`() = runBlocking {
+        DataStore.rulesProvider.set(RuleProvider.OFFICIAL)
+        SagerDatabase.assetDao.create(
+            AssetEntity(
+                name = "my-list.srs",
+                url = "https://example.com/rules/my-list.srs",
+            ),
+        )
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "asset-rule",
+                domains = "set:my-list\nset:geosite-cn",
+                outbound = RuleEntity.OUTBOUND_PROXY,
+            ),
+        )
+
+        val ruleSets = parseRouteOptions(buildConfig(proxy, forExport = true))["rule_set"]!!.jsonArray
+            .map { it.jsonObject }
+        fun urlOf(tag: String) = ruleSets.first { ruleSet ->
+            ruleSet["tag"]!!.jsonArray.any { it.jsonPrimitive.content == tag }
+        }["url"]!!.jsonPrimitive.content
+
+        assertEquals("https://example.com/rules/{tag}.srs", urlOf("my-list"))
+        assertEquals(
+            "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set-unstable/{tag}.srs",
+            urlOf("geosite-cn"),
+        )
+    }
 
     private fun parseRouteOptions(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["route"]!!.jsonObject

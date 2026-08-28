@@ -1604,45 +1604,14 @@ suspend fun buildConfig(
             )
         }
 
-        var ruleSetResource: String? = null
-        var geositeLink: String? = null
-        var geoipLink: String? = null
-        if (forExport) {
-            // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
-            val pathPrefix = "https://raw.githubusercontent.com"
-            val provider = DataStore.rulesProvider.get()
-
-            val normalBranch = "rule-set"
-            val geoipBranch = normalBranch
-            val geositeBranch = if (RuleProvider.hasUnstableBranch(provider)) {
-                "rule-set-unstable"
-            } else {
-                normalBranch
-            }
-
-            when (provider) {
-                RuleProvider.OFFICIAL -> {
-                    geositeLink = "$pathPrefix/SagerNet/sing-geosite/$geositeBranch"
-                    geoipLink = "$pathPrefix/SagerNet/sing-geoip/$geoipBranch"
-                }
-
-                RuleProvider.LOYALSOLDIER -> {
-                    geositeLink = "$pathPrefix/xchacha20-poly1305/sing-geosite/$geositeBranch"
-                    geoipLink = "$pathPrefix/xchacha20-poly1305/sing-geoip/$geoipBranch"
-                }
-
-                RuleProvider.CHOCOLATE4U -> {
-                    geositeLink = "$pathPrefix/Chocolate4U/sing-geosite/$geositeBranch"
-                    geoipLink = "$pathPrefix/Chocolate4U/sing-geoip/$geoipBranch"
-                }
-
-                RuleProvider.CUSTOM -> {} // Can't generate.
-            }
-        }
-        if (geositeLink == null) {
-            ruleSetResource = repository.externalAssetsDir.resolve("geo").invariantPathString()
-        }
-        buildRuleSets(geoipLink, geositeLink, ruleSetResource)
+        val ruleSetSource = (if (forExport) {
+            exportRuleSetSource()
+        } else {
+            null
+        }) ?: RuleSetSource.Local(
+            repository.externalAssetsDir.resolve("geo").invariantPathString(),
+        )
+        buildRuleSets(ruleSetSource)
         partitionEndpoints()
     }.let {
         val optionsMap = it.toKxs().asKxsMap().apply {
@@ -1660,6 +1629,33 @@ suspend fun buildConfig(
         )
     }
 
+}
+
+private suspend fun exportRuleSetSource(): RuleSetSource.Remote? {
+    // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
+    val pathPrefix = "https://raw.githubusercontent.com"
+    val provider = DataStore.rulesProvider.get()
+
+    val normalBranch = "rule-set"
+    val geoipBranch = normalBranch
+    val geositeBranch = if (RuleProvider.hasUnstableBranch(provider)) {
+        "rule-set-unstable"
+    } else {
+        normalBranch
+    }
+
+    val repositoryOwner = when (provider) {
+        RuleProvider.OFFICIAL -> "SagerNet"
+        RuleProvider.LOYALSOLDIER -> "xchacha20-poly1305"
+        RuleProvider.CHOCOLATE4U -> "Chocolate4U"
+        else -> return null // Can't generate.
+    }
+
+    return RuleSetSource.Remote(
+        geoipPrefix = "$pathPrefix/$repositoryOwner/sing-geoip/$geoipBranch",
+        geositePrefix = "$pathPrefix/$repositoryOwner/sing-geosite/$geositeBranch",
+        assets = SagerDatabase.assetDao.getAll().first(),
+    )
 }
 
 /**

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.database.AssetEntity
 import fr.husi.database.SagerDatabase
+import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.repository.resolveRepository
@@ -132,7 +133,7 @@ internal class AssetEditViewModel(
         if (isNew && runBlocking { SagerDatabase.assetDao.get(text) } != null) {
             return Res.string.duplicate_name
         }
-        if (!text.endsWith(".srs")) {
+        if (!text.endsWith(SingBoxOptions.RULE_SET_FILE_SUFFIX)) {
             return Res.string.expect_srs
         }
         if (text.startsWith("geosite-") || text.startsWith("geoip-")) {

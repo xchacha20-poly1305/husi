@@ -1,5 +1,6 @@
 package fr.husi.fmt
 
+import fr.husi.database.AssetEntity
 import fr.husi.fmt.SingBoxOptions.DNSRule_Default
 import fr.husi.fmt.SingBoxOptions.DomainResolveOptions
 import fr.husi.fmt.SingBoxOptions.MyOptions
@@ -305,16 +306,28 @@ fun DNSRule_Default.makeProcessRule(list: List<RuleItem>) {
     if (user_id?.isEmpty() == true) user_id = null
 }
 
+sealed interface RuleSetSource {
+
+    data class Local(val geoDir: String) : RuleSetSource
+
+    data class Remote(
+        val geoipPrefix: String,
+        val geositePrefix: String,
+        val assets: List<AssetEntity>,
+    ) : RuleSetSource
+}
+
+private const val GEOIP_TAG_PREFIX = "geoip-"
+
+private const val RULE_SET_PLACEHOLDER_FILE =
+    SingBoxOptions.RULE_SET_TAG_PLACEHOLDER + SingBoxOptions.RULE_SET_FILE_SUFFIX
+
 /**
  * Builds all rule-set.
  * This will crate route if route is null,
  * and will refreshes route.rule_set.
  * */
-fun MyOptions.buildRuleSets(
-    ipURL: String?,
-    domainURL: String?,
-    localPath: String?,
-) {
+fun MyOptions.buildRuleSets(source: RuleSetSource) {
     val names = hashSetOf<String>()
     if (dns != null) collectSet(names, dns!!.rules)
     if (route != null) collectSet(names, route!!.rules)
@@ -328,31 +341,78 @@ fun MyOptions.buildRuleSets(
     }
 
     val sorted = names.sorted()
-    val ruleSets = if (ipURL != null) {
-        sorted.groupBy { it.startsWith("geoip-") }.map { (isIP, tags) ->
-            RuleSet_Remote().apply {
-                tag = tags.toMutableList()
-                type = SingBoxOptions.RULE_SET_TYPE_REMOTE
-                format = SingBoxOptions.RULE_SET_FORMAT_BINARY
-                url = if (isIP) {
-                    "$ipURL/${SingBoxOptions.RULE_SET_TAG_PLACEHOLDER}.srs"
-                } else {
-                    "$domainURL/${SingBoxOptions.RULE_SET_TAG_PLACEHOLDER}.srs"
-                }
-            }
-        }
-    } else {
-        listOf(
+    val ruleSets = when (source) {
+        is RuleSetSource.Local -> listOf(
             RuleSet_Local().apply {
                 tag = sorted.toMutableList()
                 type = SingBoxOptions.RULE_SET_TYPE_LOCAL
                 format = SingBoxOptions.RULE_SET_FORMAT_BINARY
-                path = "$localPath/${SingBoxOptions.RULE_SET_TAG_PLACEHOLDER}.srs"
+                path = "${source.geoDir}/$RULE_SET_PLACEHOLDER_FILE"
             },
         )
+
+        is RuleSetSource.Remote -> source.buildRemoteRuleSets(sorted)
     }
 
     route!!.rule_set = ruleSets.toMutableList()
+}
+
+private fun RuleSetSource.Remote.buildRemoteRuleSets(sorted: List<String>): List<RuleSet_Remote> {
+    val assetsByTag = assets.filter {
+        it.name.endsWith(SingBoxOptions.RULE_SET_FILE_SUFFIX) && it.url.isNotBlank()
+    }.associateBy {
+        it.name.removeSuffix(SingBoxOptions.RULE_SET_FILE_SUFFIX)
+    }
+    val (assetTags, repositoryTags) = sorted.partition { assetsByTag.containsKey(it) }
+
+    val repositoryRuleSets = repositoryTags.groupBy { it.startsWith(GEOIP_TAG_PREFIX) }
+        .map { (isIP, tags) ->
+            val prefix = if (isIP) {
+                geoipPrefix
+            } else {
+                geositePrefix
+            }
+            remoteRuleSet(
+                tags = tags,
+                url = "$prefix/$RULE_SET_PLACEHOLDER_FILE",
+            )
+        }
+
+    val tagsByPattern = sortedMapOf<String, MutableList<String>>()
+    val literalAssets = mutableListOf<Pair<String, String>>() // Tag to URL.
+    for (tag in assetTags) {
+        val asset = assetsByTag.getValue(tag)
+        val pattern = asset.ruleSetURLPattern()
+        if (pattern == null) {
+            literalAssets.add(tag to asset.url)
+        } else {
+            tagsByPattern.getOrPut(pattern) { mutableListOf() }.add(tag)
+        }
+    }
+
+    return repositoryRuleSets +
+            tagsByPattern.map { (pattern, tags) ->
+                remoteRuleSet(tags = tags, url = pattern)
+            } +
+            literalAssets.sortedBy { (_, url) ->
+                url
+            }.map { (tag, url) ->
+                remoteRuleSet(tags = listOf(tag), url = url)
+            }
+}
+
+private fun remoteRuleSet(tags: List<String>, url: String) = RuleSet_Remote().apply {
+    tag = tags.toMutableList()
+    type = SingBoxOptions.RULE_SET_TYPE_REMOTE
+    format = SingBoxOptions.RULE_SET_FORMAT_BINARY
+    this.url = url
+}
+
+private fun AssetEntity.ruleSetURLPattern(): String? {
+    val fileNameSuffix = "/$name"
+    if (!url.endsWith(fileNameSuffix)) return null
+    val directoryURL = url.removeSuffix(fileNameSuffix)
+    return "$directoryURL/$RULE_SET_PLACEHOLDER_FILE"
 }
 
 /**
