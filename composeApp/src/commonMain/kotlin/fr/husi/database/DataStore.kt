@@ -67,7 +67,7 @@ object DataStore {
     val selectedProxy = configurationStore.long(Key.PROFILE_ID)
 
     /** No group use this ID */
-    const val GROUP_NOPE = -1
+    const val GROUP_NOPE = -1L
 
     /**
      * The stored value is [GROUP_NOPE] until a group is picked. Resolving that to a
