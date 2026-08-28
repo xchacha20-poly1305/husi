@@ -71,6 +71,9 @@ func TestRenderServiceUnitUnprivileged(t *testing.T) {
 	assert.Contains(t, unit, "NoNewPrivileges=yes")
 	// Process routing rules walk /proc; hiding it would break them silently.
 	assert.NotContains(t, unit, "ProtectProc=")
+	// The config names the owner's rule sets by absolute path, so an empty
+	// /home would fail every start with "no such file or directory".
+	assert.NotContains(t, unit, "ProtectHome=")
 	assert.NotContains(t, unit, "ReadWritePaths=")
 	assert.Contains(t, unit, "StateDirectoryMode=0700")
 	assert.Contains(t, unit, "WantedBy=multi-user.target")

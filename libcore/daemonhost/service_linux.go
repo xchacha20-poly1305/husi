@@ -120,7 +120,11 @@ NoNewPrivileges=yes
 # The tun device node is world writable on every systemd distribution, so
 # reaching it needs no capability of its own — only naming it here.
 DeviceAllow=/dev/net/tun rw
-ProtectHome=yes
+# No ProtectHome here. Rule sets, plugin certificates and custom config
+# fragments live in the owner's home, and StartServiceRequest hands them to the
+# daemon as owner-supplied paths. An empty /home would turn every one of them
+# into "no such file or directory". CAP_DAC_READ_SEARCH is what opens them;
+# ProtectSystem=strict still keeps the daemon from writing there.
 ProtectSystem=strict
 `, options.User, options.User, daemonCapabilities, daemonCapabilities)
 		// StateDirectory only covers the default location. A working directory
