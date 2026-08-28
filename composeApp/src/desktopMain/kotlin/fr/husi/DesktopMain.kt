@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.InternalComposeUiApi
+import androidx.compose.ui.platform.registerSkikoComposeImplementation
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
@@ -235,6 +237,11 @@ class DesktopMain(
         for (link in deepLinks) {
             DeepLinkDispatcher.emit(link)
         }
+
+        // Compose installs its Skiko graphics backend when the first window scene is built, but the
+        // tray icon is a painter composed outside any window. Install it up front so those painters have a backend to draw with.
+        @OptIn(InternalComposeUiApi::class)
+        registerSkikoComposeImplementation()
 
         application {
             val repository = resolveDesktopRepository()

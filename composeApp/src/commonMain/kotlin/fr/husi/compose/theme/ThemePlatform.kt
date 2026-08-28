@@ -9,6 +9,3 @@ val DEFAULT get() = if (isDynamicThemeSupported()) DYNAMIC else RED
 
 @Composable
 internal expect fun rememberDynamicColorScheme(isDarkMode: Boolean): ColorScheme?
-
-@Composable
-expect fun rememberPlatformSystemDarkMode(): Boolean

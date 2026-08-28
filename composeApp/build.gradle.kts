@@ -113,8 +113,6 @@ data class DesktopTarget(
 ) {
     val id: String = "${platform.id}/${arch.id}"
     val libcoreDesktopJarName: String = "libcore-desktop-${platform.id}-${arch.id}.jar"
-    val composeDependencyNotation: String =
-        "org.jetbrains.compose.desktop:desktop-jvm-${platform.composeDependencyId}-${arch.composeDependencyId}"
     val nativeKeepPrefixes: Set<String> =
         platform.nativeNames
             .flatMap { platformName ->
@@ -202,14 +200,12 @@ fun resolveHostDesktopTarget(): DesktopTarget =
     )
 
 val requestedDesktopTargetRaw = providers.gradleProperty("desktopTarget").orNull?.trim().orEmpty()
-val requestedDesktopTarget =
+val desktopTarget =
     if (requestedDesktopTargetRaw.isNotEmpty()) {
         DesktopTarget.parse(requestedDesktopTargetRaw)
     } else {
-        null
+        resolveHostDesktopTarget()
     }
-val desktopTarget = requestedDesktopTarget ?: resolveHostDesktopTarget()
-val composeDesktopVersion = libs.versions.composeMultiplatform.get()
 
 val desktopJarName = desktopTarget.libcoreDesktopJarName
 val desktopJarFile = layout.projectDirectory.file("libs/$desktopJarName").asFile
@@ -415,17 +411,12 @@ kotlin {
         val desktopMain = getByName("desktopMain") {
             kotlin.srcDir(generateDesktopPlatformInfo)
             dependencies {
-                if (requestedDesktopTarget == null) {
-                    implementation(compose.desktop.currentOs)
-                } else {
-                    implementation("${desktopTarget.composeDependencyNotation}:$composeDesktopVersion")
-                }
+                implementation(libs.jetbrains.compose.desktop)
                 implementation(libs.clikt)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.nucleus.composetray)
                 implementation(libs.nucleus.core.runtime)
                 implementation(libs.nucleus.notification)
-                implementation(libs.nucleus.darkmode.detector)
                 implementation(libs.nucleus.autolaunch)
                 implementation(libs.nucleus.scheduler)
                 implementation(libcoreDesktopJarRequired)

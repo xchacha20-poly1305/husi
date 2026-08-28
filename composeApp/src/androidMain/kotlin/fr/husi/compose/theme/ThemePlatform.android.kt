@@ -54,9 +54,6 @@ internal object TvPlatformThemeApi : PlatformThemeApi {
     }
 }
 
-@Composable
-actual fun rememberPlatformSystemDarkMode(): Boolean = isSystemInDarkTheme()
-
 private fun ColorScheme.toTvColorScheme(
     isDarkMode: Boolean,
 ): TvColorScheme {
