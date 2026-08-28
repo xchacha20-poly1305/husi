@@ -57,7 +57,7 @@ import fr.husi.resources.Res
 import fr.husi.resources.app_name
 import fr.husi.resources.close
 import fr.husi.resources.content_copy
-import fr.husi.resources.copy_terminal_proxy_env
+import fr.husi.resources.copy_terminal_proxy
 import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
 import fr.husi.resources.service_mode
@@ -350,7 +350,7 @@ class DesktopMain(
                             )
                         }
                         Item(
-                            label = stringResource(Res.string.copy_terminal_proxy_env),
+                            label = stringResource(Res.string.copy_terminal_proxy),
                             icon = painterResource(Res.drawable.content_copy),
                         ) {
                             scope.launch(Dispatchers.Default) {

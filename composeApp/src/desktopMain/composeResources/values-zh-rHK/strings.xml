@@ -25,5 +25,5 @@
     <string name="daemon_takeover_message">這將中斷 %1$s 的用戶端連線，對方將失去對正在執行服務的控制。</string>
     <string name="daemon_takeover">接管</string>
     <string name="daemon_stay_read_only">保持唯讀</string>
-    <string name="copy_terminal_proxy_env">複製終端機代理環境變數</string>
+    <string name="copy_terminal_proxy">複製終端機代理</string>
 </resources>

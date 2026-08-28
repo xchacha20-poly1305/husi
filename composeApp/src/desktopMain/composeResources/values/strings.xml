@@ -25,5 +25,5 @@
     <string name="daemon_takeover_message">This will disconnect %1$s\'s client. They will lose control of the running service.</string>
     <string name="daemon_takeover">Take over</string>
     <string name="daemon_stay_read_only">Stay read-only</string>
-    <string name="copy_terminal_proxy_env">Copy terminal proxy env</string>
+    <string name="copy_terminal_proxy">Copy terminal proxy</string>
 </resources>
