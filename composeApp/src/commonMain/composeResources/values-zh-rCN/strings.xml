@@ -24,6 +24,7 @@
     <string name="group_edit_subscription">编辑订阅</string>
     <string name="group_status_empty">空</string>
     <string name="group_status_empty_subscription">从未更新</string>
+    <string name="group_status_updated_empty">已更新，但没有节点</string>
     <plurals name="group_status_proxies">
         <item quantity="other">%1$d 个配置</item>
     </plurals>
@@ -282,8 +283,8 @@
     <string name="route_asset_status">本地版本: %1$s</string>
     <string name="route_global_asset_auto_update_delay">规则资源更新间隔 (分)</string>
     <string name="route_asset_auto_update_delay">单个资源更新间隔 (分)</string>
-    <string name="route_asset_auto_update_off">自动更新已关闭</string>
-    <string name="route_asset_auto_update_on">每 %1$d 分钟自动更新</string>
+    <string name="auto_update_off">自动更新已关闭</string>
+    <string name="auto_update_on">每 %1$d 分钟自动更新</string>
     <string name="route_rules_provider">路由资源更新源</string>
     <string name="route_assets">资源</string>
     <string name="route_manage_assets">管理路由资源</string>

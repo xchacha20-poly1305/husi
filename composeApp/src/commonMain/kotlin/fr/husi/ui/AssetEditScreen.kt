@@ -30,8 +30,8 @@ import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
-import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.IconMaskColors
+import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -46,6 +46,8 @@ import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.assets_settings
+import fr.husi.resources.auto_update_off
+import fr.husi.resources.auto_update_on
 import fr.husi.resources.cancel
 import fr.husi.resources.close
 import fr.husi.resources.delete
@@ -256,7 +258,15 @@ internal fun AssetEditScreen(
                                     color = IconMaskColors.IconLightOrange,
                                 )
                             },
-                            summary = { Text(uiState.autoUpdateDelay.toString()) },
+                            summary = {
+                                Text(
+                                    if (uiState.autoUpdateDelay > 0) {
+                                        stringResource(Res.string.auto_update_on, uiState.autoUpdateDelay)
+                                    } else {
+                                        stringResource(Res.string.auto_update_off)
+                                    },
+                                )
+                            },
                             valueToText = { it.toString() },
                             textField = { value, onValueChange, onOk ->
                                 UIntegerTextField(value, onValueChange, onOk)

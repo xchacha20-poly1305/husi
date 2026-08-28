@@ -62,13 +62,15 @@ import fr.husi.resources.age_identity
 import fr.husi.resources.apply
 import fr.husi.resources.auto_update
 import fr.husi.resources.auto_update_delay
+import fr.husi.resources.auto_update_off
+import fr.husi.resources.auto_update_on
 import fr.husi.resources.close
 import fr.husi.resources.content_copy
+import fr.husi.resources.deduplication
+import fr.husi.resources.deduplication_sum
 import fr.husi.resources.delete
 import fr.husi.resources.delete_group_prompt
 import fr.husi.resources.delete_sweep
-import fr.husi.resources.deduplication
-import fr.husi.resources.deduplication_sum
 import fr.husi.resources.dns
 import fr.husi.resources.done
 import fr.husi.resources.emoji_symbols
@@ -500,7 +502,15 @@ private fun LazyListScope.groupSettings(
                         color = IconMaskColors.IconLightOrange,
                     )
                 },
-                summary = { Text(uiState.subscriptionUpdateDelay.toString()) },
+                summary = {
+                    Text(
+                        if (uiState.subscriptionUpdateDelay > 0) {
+                            stringResource(Res.string.auto_update_on, uiState.subscriptionUpdateDelay)
+                        } else {
+                            stringResource(Res.string.auto_update_off)
+                        },
+                    )
+                },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
                 },

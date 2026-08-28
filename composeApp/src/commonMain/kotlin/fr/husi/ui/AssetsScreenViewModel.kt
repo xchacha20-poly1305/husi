@@ -79,7 +79,7 @@ internal class AssetsScreenViewModel(
     private lateinit var assetsDir: File
     private lateinit var geoDir: File
 
-    private var previousAssetNames = emptySet<String>()
+    private val firstDownloadStarted = mutableSetOf<String>()
     private var initializedFor: Pair<String, String>? = null
     private var assetsObserveJob: Job? = null
 
@@ -96,22 +96,24 @@ internal class AssetsScreenViewModel(
         if (initializedFor == args && assetsObserveJob?.isActive == true) return
         initializedFor = args
         assetsObserveJob?.cancel()
+        firstDownloadStarted.clear()
         this.assetsDir = assetsDir
         this.geoDir = geoDir
 
         assetsObserveJob = viewModelScope.launch {
             SagerDatabase.assetDao.getAll().collectLatest { assets ->
-                val currentNames = assets.map { it.name }.toSet()
-                val newAssets = currentNames - previousAssetNames
-
-                newAssets.forEach { name ->
-                    updateSingleAsset(geoDir.resolve(name))
+                for (asset in assets) {
+                    if (needsFirstDownload(asset) && firstDownloadStarted.add(asset.name)) {
+                        updateSingleAsset(geoDir.resolve(asset.name))
+                    }
                 }
-
-                previousAssetNames = currentNames
                 refreshAssets0(assets)
             }
         }
+    }
+
+    private fun needsFirstDownload(asset: AssetEntity): Boolean {
+        return asset.lastUpdated == 0L && !geoDir.resolve(asset.name).isFile
     }
 
     fun refreshAssets() = viewModelScope.launch {

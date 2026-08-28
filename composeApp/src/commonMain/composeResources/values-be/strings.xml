@@ -174,8 +174,8 @@
     <string name="route_asset_updated">Абноўлены</string>
     <string name="route_global_asset_auto_update_delay">Перыядычнасць абнаўлення правілы (у хвілінах)</string>
     <string name="route_asset_auto_update_delay">Перыядычнасць абнаўлення актываў (у хвілінах)</string>
-    <string name="route_asset_auto_update_off">Аўтаматычнае абнаўленне адключана</string>
-    <string name="route_asset_auto_update_on">Аўтаматычнае абнаўленне кожныя %1$d хвіліна</string>
+    <string name="auto_update_off">Аўтаматычнае абнаўленне адключана</string>
+    <string name="auto_update_on">Аўтаматычнае абнаўленне кожныя %1$d хвіліна</string>
     <string name="route_opt_bypass_lan">Абыход LAN</string>
     <string name="route_opt_block_ads">Блакаваць рэкламу</string>
     <string name="route_opt_block_analysis">Блакаваць аналітыку</string>

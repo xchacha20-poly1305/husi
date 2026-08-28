@@ -105,7 +105,7 @@ private fun autoUpdateCandidates(
     subscriptions: List<ProxyGroup>,
     nowSeconds: Long,
 ): List<AutoUpdateCandidate> {
-    return subscriptions.map { subscription ->
+    return subscriptions.mapNotNull { subscription ->
         autoUpdateCandidate(subscription, nowSeconds)
     }
 }
@@ -113,33 +113,20 @@ private fun autoUpdateCandidates(
 private fun autoUpdateCandidate(
     group: ProxyGroup,
     nowSeconds: Long,
-): AutoUpdateCandidate {
+): AutoUpdateCandidate? {
     val subscription = group.subscription!!
-    val repeatIntervalMinutes = effectiveDelayMinutes(subscription.autoUpdateDelay)
+    val interval = AutoUpdateInterval(subscription.autoUpdateDelay)
+    if (!interval.isEnabled) return null
+
     return AutoUpdateCandidate(
         group = group,
-        repeatIntervalMinutes = repeatIntervalMinutes,
-        secondsUntilDue = secondsUntilDue(
+        repeatIntervalMinutes = interval.minutes,
+        secondsUntilDue = interval.secondsUntilDue(
             lastUpdatedSeconds = subscription.lastUpdated.toLong(),
-            repeatIntervalMinutes = repeatIntervalMinutes,
             nowSeconds = nowSeconds,
         ),
         updateWhenConnectedOnly = subscription.updateWhenConnectedOnly,
     )
-}
-
-private fun effectiveDelayMinutes(autoUpdateDelayMinutes: Int): Int {
-    return autoUpdateDelayMinutes.coerceAtLeast(1)
-}
-
-private fun secondsUntilDue(
-    lastUpdatedSeconds: Long,
-    repeatIntervalMinutes: Int,
-    nowSeconds: Long,
-): Long {
-    val elapsedSeconds = nowSeconds - lastUpdatedSeconds
-    val delaySeconds = repeatIntervalMinutes.toLong() * 60L
-    return (delaySeconds - elapsedSeconds).coerceAtLeast(0L)
 }
 
 internal fun currentEpochSeconds(): Long = System.currentTimeMillis() / 1000L

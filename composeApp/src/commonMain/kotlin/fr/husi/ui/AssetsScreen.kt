@@ -59,12 +59,12 @@ import fr.husi.RuleProvider
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.currentEpochSeconds
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -78,6 +78,8 @@ import fr.husi.resources.Res
 import fr.husi.resources.action_import_file
 import fr.husi.resources.arrow_back
 import fr.husi.resources.assets_update
+import fr.husi.resources.auto_update_off
+import fr.husi.resources.auto_update_on
 import fr.husi.resources.back
 import fr.husi.resources.cancel
 import fr.husi.resources.delete
@@ -92,8 +94,6 @@ import fr.husi.resources.ok
 import fr.husi.resources.removed
 import fr.husi.resources.replay
 import fr.husi.resources.reset_rule_set
-import fr.husi.resources.route_asset_auto_update_off
-import fr.husi.resources.route_asset_auto_update_on
 import fr.husi.resources.route_asset_status
 import fr.husi.resources.route_assets
 import fr.husi.resources.route_global_asset_auto_update_delay
@@ -524,7 +524,11 @@ private fun AssetCard(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
-                        text = routeAssetAutoUpdateSummary(autoUpdateDelay),
+                        text = if (autoUpdateDelay > 0) {
+                            stringResource(Res.string.auto_update_on, autoUpdateDelay)
+                        } else {
+                            stringResource(Res.string.auto_update_off)
+                        },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -566,14 +570,5 @@ private fun AssetCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun routeAssetAutoUpdateSummary(autoUpdateDelay: Int): String {
-    return if (autoUpdateDelay <= 0) {
-        stringResource(Res.string.route_asset_auto_update_off)
-    } else {
-        stringResource(Res.string.route_asset_auto_update_on, autoUpdateDelay)
     }
 }

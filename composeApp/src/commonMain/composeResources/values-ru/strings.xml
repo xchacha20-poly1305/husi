@@ -699,8 +699,8 @@
     <string name="optimistic_cache">Длительность оптимистического кэширования</string>
     <string name="route_global_asset_auto_update_delay">Периодичность обновления ресурсов правил (в минутах)</string>
     <string name="route_asset_auto_update_delay">Периодичность обновления ресурса (в минутах)</string>
-    <string name="route_asset_auto_update_off">Автоматическое обновление отключено</string>
-    <string name="route_asset_auto_update_on">Автоматическое обновление каждые %1$d минут</string>
+    <string name="auto_update_off">Автоматическое обновление отключено</string>
+    <string name="auto_update_on">Автоматическое обновление каждые %1$d минут</string>
     <string name="nat_external_address">Внешний адрес</string>
     <string name="nat_mapping">NAT-Отображение</string>
     <string name="nat_filtering">NAT-Фильтрация</string>

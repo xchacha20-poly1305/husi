@@ -89,6 +89,7 @@ import fr.husi.resources.group_create
 import fr.husi.resources.group_status_empty
 import fr.husi.resources.group_status_empty_subscription
 import fr.husi.resources.group_status_proxies
+import fr.husi.resources.group_status_updated_empty
 import fr.husi.resources.group_update
 import fr.husi.resources.internal_link
 import fr.husi.resources.link
@@ -709,7 +710,6 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                             }
 
                             if (state.group.type == GroupType.SUBSCRIPTION &&
-                                state.counts > 0L &&
                                 state.group.subscription!!.lastUpdated > 0
                             ) {
                                 Text(
@@ -740,7 +740,11 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
 
                                     GroupType.SUBSCRIPTION -> {
                                         if (state.counts == 0L) {
-                                            stringResource(Res.string.group_status_empty_subscription)
+                                            if (state.group.subscription!!.lastUpdated > 0) {
+                                                stringResource(Res.string.group_status_updated_empty)
+                                            } else {
+                                                stringResource(Res.string.group_status_empty_subscription)
+                                            }
                                         } else {
                                             pluralStringResource(
                                                 Res.plurals.group_status_proxies,

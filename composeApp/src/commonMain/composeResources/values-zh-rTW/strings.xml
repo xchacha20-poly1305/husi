@@ -21,6 +21,7 @@
     <string name="group_edit_subscription">編輯訂閱</string>
     <string name="group_status_empty">空組</string>
     <string name="group_status_empty_subscription">尚未更新</string>
+    <string name="group_status_updated_empty">已更新，但沒有節點</string>
     <plurals name="group_status_proxies">
         <item quantity="other">%1$d 個代理</item>
     </plurals>
@@ -244,8 +245,8 @@
     <string name="route_asset_updated">已更新</string>
     <string name="route_global_asset_auto_update_delay">規則資源更新間隔（分鐘）</string>
     <string name="route_asset_auto_update_delay">單個資源更新間隔（分鐘）</string>
-    <string name="route_asset_auto_update_off">已停用自動更新</string>
-    <string name="route_asset_auto_update_on">每 %1$d 分鐘自動更新</string>
+    <string name="auto_update_off">已停用自動更新</string>
+    <string name="auto_update_on">每 %1$d 分鐘自動更新</string>
     <string name="route_opt_bypass_lan">略過區域網路位址</string>
     <string name="route_opt_block_ads">封鎖廣告</string>
     <string name="domain_strategy">網域解析策略</string>

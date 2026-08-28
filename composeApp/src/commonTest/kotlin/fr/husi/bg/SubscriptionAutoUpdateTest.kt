@@ -25,20 +25,33 @@ class SubscriptionAutoUpdateTest {
     }
 
     @Test
-    fun `planner clamps non-positive interval to one minute`() {
-        val plan = SubscriptionAutoUpdatePlanner.plan(
-            subscriptions = listOf(
-                autoUpdateGroup(
-                    name = "clamped",
-                    delayMinutes = 0,
-                    lastUpdated = 100,
+    fun `planner ignores subscriptions whose interval is not positive`() {
+        assertNull(
+            SubscriptionAutoUpdatePlanner.plan(
+                subscriptions = listOf(
+                    autoUpdateGroup(
+                        name = "disabled",
+                        delayMinutes = 0,
+                        lastUpdated = 100,
+                    ),
                 ),
+                nowSeconds = 100,
             ),
-            nowSeconds = 100,
+        )
+    }
+
+    @Test
+    fun `due subscriptions skip profiles whose interval is not positive`() {
+        val dueSubscriptions = SubscriptionAutoUpdateRunner.dueSubscriptions(
+            subscriptions = listOf(
+                autoUpdateGroup(name = "disabled", delayMinutes = 0, lastUpdated = 0),
+                autoUpdateGroup(name = "due", delayMinutes = 15, lastUpdated = 0),
+            ),
+            nowSeconds = 20 * 60L,
+            connected = true,
         )
 
-        assertEquals(1, plan?.repeatIntervalMinutes)
-        assertEquals(60L, plan?.initialDelaySeconds)
+        assertEquals(listOf("due"), dueSubscriptions.map { it.name })
     }
 
     @Test

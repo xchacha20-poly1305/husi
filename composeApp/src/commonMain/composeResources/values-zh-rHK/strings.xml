@@ -36,6 +36,7 @@
     <string name="menu_group">分組</string>
     <string name="group_name">分組名稱</string>
     <string name="group_status_empty_subscription">尚未更新</string>
+    <string name="group_status_updated_empty">已更新，但沒有節點</string>
     <string name="group_no_difference">%1$s: 沒有變化</string>
     <plurals name="group_updated">
         <item quantity="other">%1$s: 更新了 %2$d 個代理</item>
@@ -112,8 +113,8 @@
     <string name="route_asset_no_update">沒有更新</string>
     <string name="route_global_asset_auto_update_delay">規則資源更新間隔（分鐘）</string>
     <string name="route_asset_auto_update_delay">單個資源更新間隔（分鐘）</string>
-    <string name="route_asset_auto_update_off">已停用自動更新</string>
-    <string name="route_asset_auto_update_on">每 %1$d 分鐘自動更新</string>
+    <string name="auto_update_off">已停用自動更新</string>
+    <string name="auto_update_on">每 %1$d 分鐘自動更新</string>
     <string name="insecure">不安全</string>
     <string name="connection_test_icmp_ping_unavailable">ICMPing 不可用</string>
     <string name="app_name">虎兕</string>
