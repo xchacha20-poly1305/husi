@@ -23,7 +23,6 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
 import dev.nucleusframework.composenativetray.menu.api.KeyShortcut
@@ -39,6 +38,7 @@ import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.cli.ApiCommand
+import fr.husi.cli.directory
 import fr.husi.cli.libcoreLoadFailureMessage
 import fr.husi.compose.setSystemClipboardPlainText
 import fr.husi.compose.theme.AppTheme
@@ -146,9 +146,7 @@ class DesktopMain(
         "-d",
         "--dir",
         help = "Data directory",
-    ).file(
-        canBeFile = false,
-        canBeDir = true,
+    ).directory(
         mustBeWritable = true,
         mustBeReadable = true,
     )
