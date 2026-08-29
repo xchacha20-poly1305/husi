@@ -21,6 +21,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/raybridge"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
@@ -160,7 +161,7 @@ func (b *rootCABundle) Append(raw []byte) error {
 
 const typeCert = "CERTIFICATE"
 
-func getCert(ctx context.Context, address, serverName, mode, proxy string) (string, error) {
+func getCert(ctx context.Context, address, serverName string, mode husiv1.GetCertMode, proxy string) (string, error) {
 	target := M.ParseSocksaddr(address)
 	if target.Port == 0 {
 		target.Port = 443
@@ -191,9 +192,9 @@ func getCert(ctx context.Context, address, serverName, mode, proxy string) (stri
 		err   error
 	)
 	switch mode {
-	case "https":
+	case husiv1.GetCertMode_GET_CERT_MODE_HTTPS:
 		certs, err = scribe.GetCert(ctx, options)
-	case "quic":
+	case husiv1.GetCertMode_GET_CERT_MODE_QUIC:
 		if target.IsDomain() {
 			ips, err := net.LookupIP(target.Fqdn)
 			if err != nil {
@@ -208,7 +209,7 @@ func getCert(ctx context.Context, address, serverName, mode, proxy string) (stri
 		}
 		certs, err = scribe.GetCertQuic(ctx, options)
 	default:
-		err = E.New("unknown mode: ", mode)
+		err = E.New("unknown get cert mode: ", mode.String())
 	}
 	if err != nil {
 		return "", err

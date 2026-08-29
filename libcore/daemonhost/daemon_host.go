@@ -14,6 +14,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/externalapi"
@@ -152,20 +153,20 @@ func (h *DaemonHost) run(ctx context.Context) error {
 	serverOptions = append(serverOptions, platformCreds...)
 
 	hostOpts := coresvc.HostOptions{
-		Context:       hostCtx,
-		Version:       version,
-		LogMaxLines:   h.options.LogMaxLines,
-		ServerOptions: serverOptions,
+		Context:          hostCtx,
+		Version:          version,
+		BuildEnvironment: libcore.BuildEnvironment(),
+		LogMaxLines:      h.options.LogMaxLines,
+		ServerOptions:    serverOptions,
 		// Skip default locale chain; we already installed locale+auth above.
 		SkipDefaultInterceptors: true,
 		OnStuck:                 stuck.report,
-		Backend: &pooledBackend{
-			workingDir: absDir,
+		Services: []coresvc.ServiceRegistrar{
 			// Same owner credential drop as StartService: plugins never run as
 			// the privileged daemon.
-			credential: daemonSvc.pluginCredentials,
+			newApplicationService(absDir, daemonSvc.pluginCredentials),
+			daemonSvc,
 		},
-		ExtraServices: daemonSvc,
 	}
 	host, err := coresvc.NewHost(hostOpts)
 	if err != nil {

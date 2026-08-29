@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -41,18 +42,6 @@ func testBaseContext(t *testing.T) context.Context {
 	return ctx
 }
 
-type defaultTestBackend struct {
-	coresvc.UnimplementedBackend
-}
-
-func (defaultTestBackend) CheckConfig(string) error { return nil }
-
-func (defaultTestBackend) GenerateSchema(husiv1.SchemaKind) (string, error) {
-	return `{"type":"object"}`, nil
-}
-
-func (defaultTestBackend) BuildEnvironment() string { return "test-env" }
-
 func startTestHost(t *testing.T, opts coresvc.HostOptions) (*coresvc.Host, string) {
 	t.Helper()
 	if opts.Context == nil {
@@ -64,8 +53,8 @@ func startTestHost(t *testing.T, opts coresvc.HostOptions) (*coresvc.Host, strin
 	if opts.LogMaxLines == 0 {
 		opts.LogMaxLines = 100
 	}
-	if opts.Backend == nil {
-		opts.Backend = defaultTestBackend{}
+	if opts.BuildEnvironment == "" {
+		opts.BuildEnvironment = "test-env"
 	}
 	host, err := coresvc.NewHost(opts)
 	require.NoError(t, err)
@@ -122,6 +111,7 @@ func TestHostHealthAndGetVersion(t *testing.T) {
 	husiVersion, err := coreClient.GetVersion(ctx, &husiv1.GetVersionRequest{})
 	require.NoError(t, err)
 	assert.Equal(t, "test", husiVersion.GetVersion())
+	assert.Equal(t, "test-env", husiVersion.GetBuildEnvironment())
 	assert.Equal(t, uint32(daemon.APIVersion), husiVersion.GetApiVersion())
 }
 
@@ -141,53 +131,57 @@ func TestHostCloseAfterStartReturnsNil(t *testing.T) {
 	assert.NoError(t, host.Close())
 }
 
-type generateSchemaBackend struct {
-	coresvc.UnimplementedBackend
-}
-
-func (generateSchemaBackend) GenerateSchema(kind husiv1.SchemaKind) (string, error) {
-	return `{"kind":` + kind.String() + `}`, nil
-}
-
-func TestApplicationServiceGenerateSchema(t *testing.T) {
-	_, socketPath := startTestHost(t, coresvc.HostOptions{
-		Backend: generateSchemaBackend{},
-	})
+// The Host serves no application surface of its own: a host built without the
+// registrar libcore provides answers Unimplemented rather than a stub value.
+func TestApplicationServiceUnregistered(t *testing.T) {
+	_, socketPath := startTestHost(t, coresvc.HostOptions{})
 	conn := dialGRPC(t, socketPath)
 	client := husiv1.NewApplicationServiceClient(conn)
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
-	for _, kind := range []husiv1.SchemaKind{
-		husiv1.SchemaKind_SCHEMA_KIND_CONFIG,
-		husiv1.SchemaKind_SCHEMA_KIND_OUTBOUND,
-		husiv1.SchemaKind_SCHEMA_KIND_DNS_RULE,
-	} {
-		resp, err := client.GenerateSchema(ctx, &husiv1.GenerateSchemaRequest{Kind: kind})
-		require.NoError(t, err, "GenerateSchema %v", kind)
-		assert.NotEmpty(t, resp.GetSchema(), "empty schema for %v", kind)
-	}
+	_, err := client.CheckConfig(ctx, &husiv1.CheckConfigRequest{Config: "{}"})
+	require.Error(t, err, "expected Unimplemented without an application service")
+	st, ok := status.FromError(err)
+	require.True(t, ok, "expected grpc status, got %v", err)
+	assert.Equal(t, codes.Unimplemented, st.Code())
 }
 
-type checkConfigErrorBackend struct {
-	coresvc.UnimplementedBackend
+// registeredService is any extra surface a host owner contributes.
+type registeredService struct {
+	husiv1.UnimplementedApplicationServiceServer
+	schema string
 }
 
-func (checkConfigErrorBackend) CheckConfig(string) error {
-	return context.Canceled // any error → InvalidArgument
+func (s registeredService) RegisterServices(server *grpc.Server, healthServer *health.Server) {
+	husiv1.RegisterApplicationServiceServer(server, s)
+	coresvc.ServingStatus(healthServer, husiv1.ApplicationService_ServiceDesc.ServiceName)
 }
 
-func TestApplicationServiceCheckConfigInvalid(t *testing.T) {
+func (s registeredService) GenerateSchema(_ context.Context, _ *husiv1.GenerateSchemaRequest) (*husiv1.GenerateSchemaResponse, error) {
+	return &husiv1.GenerateSchemaResponse{Schema: s.schema}, nil
+}
+
+func TestServiceRegistrarIsServed(t *testing.T) {
+	const schema = `{"type":"object"}`
 	_, socketPath := startTestHost(t, coresvc.HostOptions{
-		Backend: checkConfigErrorBackend{},
+		Services: []coresvc.ServiceRegistrar{registeredService{schema: schema}},
 	})
 	conn := dialGRPC(t, socketPath)
-	client := husiv1.NewApplicationServiceClient(conn)
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
-	_, err := client.CheckConfig(ctx, &husiv1.CheckConfigRequest{Config: "nope"})
-	require.Error(t, err, "expected error for invalid config")
+	resp, err := husiv1.NewApplicationServiceClient(conn).GenerateSchema(ctx, &husiv1.GenerateSchemaRequest{
+		Kind: husiv1.SchemaKind_SCHEMA_KIND_CONFIG,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, schema, resp.GetSchema())
+
+	healthResp, err := grpc_health_v1.NewHealthClient(conn).Check(ctx, &grpc_health_v1.HealthCheckRequest{
+		Service: husiv1.ApplicationService_ServiceDesc.ServiceName,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, healthResp.GetStatus())
 }
 
 func TestStatusStreamIdleSnapshot(t *testing.T) {

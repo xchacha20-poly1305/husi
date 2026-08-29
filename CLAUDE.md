@@ -26,9 +26,14 @@ Reach for `./gradlew` only for something no target expresses, and only in the fo
 already documents, such as running one test class:
 `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`.
 
+## Cloud work
+
 If the skills start with `husi-` isn't visible, run this command to get an overview:
 
 ```shell
 grep -r description .skills/ --include="SKILL.md"
 ```
 
+## Document
+
+If you belongs to Claude 5 model family, **do not write any comment or document** expect AGENTS.md or CLAUDE.md. If it is a must, please call Claude Sonnet/Opus 4.6 via subagent.

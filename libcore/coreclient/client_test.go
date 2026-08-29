@@ -18,22 +18,9 @@ import (
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coreclient"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
-
-type stubBackend struct {
-	coresvc.UnimplementedBackend
-}
-
-func (stubBackend) CheckConfig(string) error { return nil }
-
-func (stubBackend) GenerateSchema(husiv1.SchemaKind) (string, error) {
-	return "{}", nil
-}
-
-func (stubBackend) BuildEnvironment() string { return "test" }
 
 func startHost(t *testing.T) (socketPath string, cleanup func()) {
 	t.Helper()
@@ -48,10 +35,10 @@ func startHost(t *testing.T) (socketPath string, cleanup func()) {
 	)
 	service.MustRegister[*coresvc.InstanceContextHolder](ctx, coresvc.NewInstanceContextHolder())
 	host, err := coresvc.NewHost(coresvc.HostOptions{
-		Context:     ctx,
-		Version:     "bridge-test",
-		LogMaxLines: 50,
-		Backend:     stubBackend{},
+		Context:          ctx,
+		Version:          "bridge-test",
+		BuildEnvironment: "test",
+		LogMaxLines:      50,
 	})
 	require.NoError(t, err)
 	socketPath = filepath.Join(t.TempDir(), coresvc.Socket)

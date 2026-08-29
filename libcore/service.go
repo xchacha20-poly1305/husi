@@ -5,7 +5,6 @@ import (
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
-	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
@@ -39,14 +38,16 @@ func (s *Service) buildHost() (*coresvc.Host, error) {
 	holder := coresvc.NewInstanceContextHolder()
 	service.MustRegister[*coresvc.InstanceContextHolder](ctx, holder)
 
+	application := NewApplicationService(s.platformInterface, servicePluginLauncher{service: s})
 	opts := coresvc.HostOptions{
-		Context:     ctx,
-		Version:     s.version,
-		LogMaxLines: currentLogMaxLines(),
-		AppHandler:  s.appHandler,
-		Backend:     &serviceBackend{service: s},
-		FileLogSink: fileLogSink(),
-		OnStuck:     s.hostStuck,
+		Context:          ctx,
+		Version:          s.version,
+		BuildEnvironment: BuildEnvironment(),
+		LogMaxLines:      currentLogMaxLines(),
+		AppHandler:       s.appHandler,
+		Services:         []coresvc.ServiceRegistrar{application},
+		FileLogSink:      fileLogSink(),
+		OnStuck:          s.hostStuck,
 	}
 	return coresvc.NewHost(opts)
 }
@@ -110,27 +111,19 @@ func (s *Service) HasInstance() bool {
 	return s.host.HasInstance()
 }
 
-func (s *Service) standaloneURLTest(config, tag, link string, timeoutMs int32, options uint8, plugins []*husiv1.PluginProcessSpec) (int32, error) {
-	s.access.RLock()
-	workingDir := s.pluginWorkingDir
-	platformInterface := s.platformInterface
-	s.access.RUnlock()
-	return pluginpool.RunWithPlugins(workingDir, plugins, nil, func() (int32, error) {
-		return StandaloneURLTest(config, tag, link, timeoutMs, options, platformInterface)
-	})
+// servicePluginLauncher runs plugin children under the Service's current
+// working directory, which SetPluginWorkingDir may change after the host is up.
+type servicePluginLauncher struct {
+	service *Service
 }
 
-func StandaloneURLTest(config, tag, link string, timeoutMs int32, options uint8, platformInterface PlatformInterface) (int32, error) {
-	instance, err := newBoxInstance(config, platformInterface, true)
-	if err != nil {
-		return -1, E.Cause(err, "create instance")
-	}
-	defer instance.Close()
-	err = instance.Start()
-	if err != nil {
-		return -1, E.Cause(err, "start instance")
-	}
-	return instance.urlTest(tag, link, timeoutMs, options)
+var _ pluginpool.Launcher = servicePluginLauncher{}
+
+func (l servicePluginLauncher) RunWithPlugins(specs []*husiv1.PluginProcessSpec, run func() (int32, error)) (int32, error) {
+	l.service.access.RLock()
+	workingDir := l.service.pluginWorkingDir
+	l.service.access.RUnlock()
+	return pluginpool.RunWithPlugins(workingDir, specs, nil, run)
 }
 
 func ProxyDisplayName(proxyType string) string {

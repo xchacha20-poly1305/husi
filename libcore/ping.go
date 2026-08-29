@@ -6,13 +6,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/urltest"
 	"github.com/xchacha20-poly1305/libping"
 )
 
@@ -56,20 +55,18 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 	return int32(l.Milliseconds()), nil
 }
 
-// urlTest perform URL test for tag using link and timeout as millisecond.
-// If tag is empty, it will use the default outbound.
-// Used by the forTest StandaloneURLTest path.
-func (b *boxInstance) urlTest(tag, link string, timeout int32, options uint8) (latency int32, err error) {
-	var detour adapter.Outbound
-	if tag == "" {
-		detour = b.Outbound().Default()
-	} else {
-		var loaded bool
-		detour, loaded = b.Outbound().Outbound(tag)
-		if !loaded {
-			return -1, E.Cause(coresvc.ErrOutboundNotFound, tag)
-		}
+// standaloneURLTest measures an outbound in a throwaway instance,
+// leaving the running instance untouched.
+func standaloneURLTest(config, tag, link string, timeoutMs int32, options urltest.Flags, platformInterface PlatformInterface) (int32, error) {
+	instance, err := newBoxInstance(config, platformInterface, true)
+	if err != nil {
+		return -1, E.Cause(err, "create instance")
+	}
+	defer instance.Close()
+	err = instance.Start()
+	if err != nil {
+		return -1, E.Cause(err, "start instance")
 	}
 	// History storage is on the instance context for the forTest path.
-	return coresvc.RunOutboundURLTest(b.ctx, detour, link, timeout, options)
+	return urltest.RunTag(instance.ctx, instance.Outbound(), tag, link, timeoutMs, options)
 }

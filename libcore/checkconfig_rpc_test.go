@@ -21,12 +21,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type testHostBackend struct {
-	HostBackend
-}
-
-func (testHostBackend) BuildEnvironment() string { return "test" }
-
 func startLibcoreHost(t *testing.T) (*coresvc.Host, string) {
 	t.Helper()
 	ctx := box.Context(
@@ -40,10 +34,13 @@ func startLibcoreHost(t *testing.T) (*coresvc.Host, string) {
 	)
 	service.MustRegister[*coresvc.InstanceContextHolder](ctx, coresvc.NewInstanceContextHolder())
 	host, err := coresvc.NewHost(coresvc.HostOptions{
-		Context:     ctx,
-		Version:     "check-test",
-		LogMaxLines: 50,
-		Backend:     testHostBackend{},
+		Context:          ctx,
+		Version:          "check-test",
+		BuildEnvironment: BuildEnvironment(),
+		LogMaxLines:      50,
+		Services: []coresvc.ServiceRegistrar{
+			NewApplicationService(nil, nil),
+		},
 	})
 	require.NoError(t, err)
 	socketPath := filepath.Join(t.TempDir(), coresvc.Socket)

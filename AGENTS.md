@@ -96,9 +96,21 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
       Zig shim (`make core_desktop` → `husi-core`) that `dlopen`s the sibling library and calls
       `HusiCoreMain`; packaged installs ship **one** Go artifact (the library) plus that shim.
     - `libcore/coresvc/` hosts sing-box's `daemon.StartedService` plus husi's
-      `CoreService` / `ApplicationService` / `AppService` over the app-private `api.sock` UDS
+      `CoreService` / `AppService` over the app-private `api.sock` UDS
       (desktop: `husi-core session`, spawned by the UI when no daemon is installed, or
-      `husi-core run` as the system daemon; Android: still in-process in `:bg`). Bound `Service` is
+      `husi-core run` as the system daemon; Android: still in-process in `:bg`). Everything else
+      arrives through `HostOptions.Services`, a list of `coresvc.ServiceRegistrar`: `libcore`
+      contributes the application surface (`libcore.NewApplicationService`, the stateless tools
+      plus the standalone URL test) and `daemonhost` contributes `DaemonService`. A host given no
+      registrar answers those methods `Unimplemented` — there is no stub implementation to
+      configure. The one thing a standalone URL test cannot decide for itself, where plugin
+      children live and which credential they run as, is injected as a `pluginpool.Launcher`.
+      `NewApplicationService` takes that launcher and returns a `coresvc.ServiceRegistrar`: its
+      own type stays unexported, because **package `libcore` is what gomobile binds** — an
+      exported interface there whose methods gomobile cannot bind (proto slices, func values)
+      fails `make libcore_android` with "proxy … does not implement", and an exported struct
+      only adds a dead Java class. Nothing Kotlin does not call belongs in `libcore`'s exported
+      surface; put shared Go-side types in a sibling package instead. Bound `Service` is
       `Start`/`Close` (socket + protect) and `StartService`/`StopService`/`HasInstance`
       (instance lifecycle). On Android, `StartService` takes a serialized
       `husi.v1.StartServiceRequest` plus a plugin working dir, and
@@ -125,6 +137,12 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
     - `libcore/pluginpool/` is the shared Go process pool for plugin children
       (supervise, restart-or-fatal). Used by desktop `daemonhost` and by Android
       `:bg` via the bound `Service`.
+    - `libcore/urltest/` measures outbound latency: `Measure` (one timed request),
+      `Run` (deadline plus URL test history) and `RunTag` (resolve a tag against an
+      outbound manager, then `Run`). Both entry points go through `RunTag` —
+      `CoreService.URLTest` against the running instance, `ApplicationService`'s
+      standalone test against a throwaway one — so neither `coresvc` nor `libcore`
+      has to export a URL test helper to the other.
     - `libcore/coreclient/` is the raw gRPC bridge (`Invoke`/`Stream`/`Probe` with a
       passthrough proto codec). Bound as `BridgeClient` for Kotlin.
     - `libcore/cmd/` holds `boxoption` (option codegen), `boxversion`, `licencecollect`,

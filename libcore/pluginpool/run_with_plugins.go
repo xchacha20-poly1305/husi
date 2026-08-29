@@ -11,6 +11,13 @@ import (
 
 const startupGrace = 500 * time.Millisecond
 
+// Launcher keeps the plugin processes described by specs alive while run
+// executes. It wraps RunWithPlugins with the two things a caller cannot decide
+// for itself: where plugin children may live, and which credential they run as.
+type Launcher interface {
+	RunWithPlugins(specs []*husiv1.PluginProcessSpec, run func() (int32, error)) (int32, error)
+}
+
 func RunWithPlugins(
 	workingDir string,
 	specs []*husiv1.PluginProcessSpec,

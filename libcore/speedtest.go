@@ -12,15 +12,18 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
 
+type speedTestSender interface {
+	Send(response *husiv1.SpeedTestResponse) error
+}
+
 func runSpeedTest(
 	ctx context.Context,
 	req *husiv1.SpeedTestRequest,
-	sender coresvc.SpeedTestSender,
+	sender speedTestSender,
 ) error {
 	targetURL := req.GetUrl()
 	if targetURL == "" {
@@ -64,7 +67,7 @@ func speedTestDownload(
 	ctx context.Context,
 	client *http.Client,
 	targetURL, userAgent string,
-	sender coresvc.SpeedTestSender,
+	sender speedTestSender,
 ) error {
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
 	if err != nil {
@@ -91,7 +94,7 @@ func speedTestUpload(
 	client *http.Client,
 	targetURL, userAgent string,
 	length int64,
-	sender coresvc.SpeedTestSender,
+	sender speedTestSender,
 ) error {
 	if length < 0 {
 		return E.New("invalid upload length")
@@ -135,11 +138,11 @@ type progressReporter struct {
 	total     int64
 	saved     int64
 	lastEmit  time.Time
-	sender    coresvc.SpeedTestSender
+	sender    speedTestSender
 	lastError error
 }
 
-func newProgressReporter(total int64, sender coresvc.SpeedTestSender) *progressReporter {
+func newProgressReporter(total int64, sender speedTestSender) *progressReporter {
 	return &progressReporter{
 		start:  time.Now(),
 		total:  total,

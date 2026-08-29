@@ -7,15 +7,18 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
 
+type stunTestSender interface {
+	Send(response *husiv1.STUNTestResponse) error
+}
+
 func runSTUNTest(
 	ctx context.Context,
 	server, proxy string,
-	sender coresvc.STUNTestSender,
+	sender stunTestSender,
 ) error {
 	var dialer N.Dialer
 	if proxy != "" {
