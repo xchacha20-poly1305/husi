@@ -182,6 +182,7 @@ var outboundList = []any{
 	pluginoption.TrustTunnelOutboundOptions{},
 	option.SnellOutboundOptions{},
 	option.BridgeOutboundOptions{},
+	pluginoption.BalancerOutboundOptions{},
 }
 
 var endpointList = []any{

@@ -57,8 +57,8 @@ import fr.husi.database.ProxyGroup
 import fr.husi.database.displayType
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.ktx.contentOrUnset
-import fr.husi.ktx.intListN
 import fr.husi.resources.Res
+import fr.husi.resources.action_balancer
 import fr.husi.resources.action_selector
 import fr.husi.resources.action_urltest
 import fr.husi.resources.add_group
@@ -83,6 +83,7 @@ import fr.husi.resources.not_set
 import fr.husi.resources.ok
 import fr.husi.resources.photo_camera
 import fr.husi.resources.profile_name
+import fr.husi.resources.rotate_interval
 import fr.husi.resources.stop
 import fr.husi.resources.urltest_interval
 import fr.husi.resources.urltest_tolerance
@@ -90,6 +91,7 @@ import fr.husi.resources.widgets
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.OpenProfilePicker
 import me.zhanghai.compose.preference.ListPreferenceType
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -176,24 +178,34 @@ private fun LazyListScope.proxySetSettings(
             when (management) {
                 ProxySetBean.MANAGEMENT_SELECTOR -> Res.string.action_selector
                 ProxySetBean.MANAGEMENT_URLTEST -> Res.string.action_urltest
+                ProxySetBean.MANAGEMENT_BALANCER -> Res.string.action_balancer
                 else -> error("impossible")
             }
         ListPreference(
             value = uiState.management,
             onValueChange = { viewModel.setManagement(it) },
-            values = intListN(2),
+            values = ProxySetBean.MANAGEMENTS,
             title = { Text(stringResource(Res.string.management)) },
             icon = { MaskedIcon(Res.drawable.widgets, IconMaskColors.IconLavender) },
             summary = { Text(stringResource(managementName(uiState.management))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(managementName(it))) },
         )
-        SwitchPreference(
-            value = uiState.interruptExistConnections,
-            onValueChange = { viewModel.setInterruptExistConnections(it) },
-            title = { Text(stringResource(Res.string.interrupt_exist_connections)) },
-            icon = { MaskedIcon(Res.drawable.stop, IconMaskColors.IconCoral) },
-        )
+        if (uiState.management != ProxySetBean.MANAGEMENT_BALANCER) {
+            SwitchPreference(
+                value = uiState.interruptExistConnections,
+                onValueChange = { viewModel.setInterruptExistConnections(it) },
+                title = { Text(stringResource(Res.string.interrupt_exist_connections)) },
+                icon = { MaskedIcon(Res.drawable.stop, IconMaskColors.IconCoral) },
+            )
+        }
+        if (uiState.management == ProxySetBean.MANAGEMENT_BALANCER) {
+            IntervalPreference(
+                value = uiState.interval,
+                onValueChange = { viewModel.setInterval(it) },
+                title = Res.string.rotate_interval,
+            )
+        }
         if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
             TextFieldPreference(
                 value = uiState.testURL,
@@ -210,22 +222,10 @@ private fun LazyListScope.proxySetSettings(
                 summary = { Text(contentOrUnset(uiState.testURL)) },
                 valueToText = { it },
             )
-            TextFieldPreference(
-                value = uiState.testInterval,
-                onValueChange = { viewModel.setTestInterval(it) },
-                title = { Text(stringResource(Res.string.urltest_interval)) },
-                textToValue = { it },
-                icon = {
-                    MaskedIcon(
-                        resource = Res.drawable.flip_camera_android,
-                        color = IconMaskColors.IconLightBlue,
-                    )
-                },
-                summary = { Text(contentOrUnset(uiState.testInterval)) },
-                valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    DurationTextField(value, onValueChange, onOk)
-                },
+            IntervalPreference(
+                value = uiState.interval,
+                onValueChange = { viewModel.setInterval(it) },
+                title = Res.string.urltest_interval,
             )
             TextFieldPreference(
                 value = uiState.testIdleTimeout,
@@ -309,6 +309,31 @@ private fun LazyListScope.proxySetSettings(
             }
         }
     }
+}
+
+@Composable
+private fun IntervalPreference(
+    value: String,
+    onValueChange: (String) -> Unit,
+    title: StringResource,
+) {
+    TextFieldPreference(
+        value = value,
+        onValueChange = onValueChange,
+        title = { Text(stringResource(title)) },
+        textToValue = { it },
+        icon = {
+            MaskedIcon(
+                resource = Res.drawable.flip_camera_android,
+                color = IconMaskColors.IconLightBlue,
+            )
+        },
+        summary = { Text(contentOrUnset(value)) },
+        valueToText = { it },
+        textField = { fieldValue, onFieldValueChange, onOk ->
+            DurationTextField(fieldValue, onFieldValueChange, onOk)
+        },
+    )
 }
 
 @Composable

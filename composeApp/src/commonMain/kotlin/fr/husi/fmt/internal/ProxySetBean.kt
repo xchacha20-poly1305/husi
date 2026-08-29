@@ -20,6 +20,15 @@ class ProxySetBean : InternalBean() {
     companion object {
         const val MANAGEMENT_SELECTOR = 0
         const val MANAGEMENT_URLTEST = 1
+        const val MANAGEMENT_BALANCER = 2
+
+        val MANAGEMENTS = listOf(
+            MANAGEMENT_SELECTOR,
+            MANAGEMENT_URLTEST,
+            MANAGEMENT_BALANCER,
+        )
+
+        fun isValidManagement(management: Int): Boolean = management in MANAGEMENTS
 
         @JvmField
         val CREATOR = object : CREATOR<ProxySetBean>() {
@@ -86,7 +95,7 @@ class ProxySetBean : InternalBean() {
             companion object {
                 fun deserialize(input: BinaryInput): Group {
                     val groupID = input.readLong()
-                    val filterNotRegex = input.readString().orEmpty()
+                    val filterNotRegex = input.readString()
                     return Group(groupID, filterNotRegex)
                 }
             }
@@ -119,17 +128,17 @@ class ProxySetBean : InternalBean() {
 
     // URLTest
     var testURL: String = CONNECTION_TEST_URL
-    var testInterval: String = "3m"
+    var interval: String = "3m" // URL test interval or balancer rotate interval
     var testIdleTimeout: String = "3m"
     var testTolerance: Int = 50
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
-        if (management != MANAGEMENT_SELECTOR && management != MANAGEMENT_URLTEST) {
+        if (!isValidManagement(management)) {
             management = MANAGEMENT_SELECTOR
         }
         if (testURL.isEmpty()) testURL = CONNECTION_TEST_URL
-        if (testInterval.isEmpty()) testInterval = "3m"
+        if (interval.isEmpty()) interval = "3m"
         if (testIdleTimeout.isEmpty()) testIdleTimeout = "3m"
     }
 
@@ -139,6 +148,7 @@ class ProxySetBean : InternalBean() {
             when (management) {
                 MANAGEMENT_SELECTOR -> "Selector $hash"
                 MANAGEMENT_URLTEST -> "URLTest $hash"
+                MANAGEMENT_BALANCER -> "Balancer $hash"
                 else -> "Unknown $hash"
             }
         }
@@ -149,7 +159,7 @@ class ProxySetBean : InternalBean() {
         output.writeInt(management)
         output.writeBoolean(interruptExistConnections)
         output.writeString(testURL)
-        output.writeString(testInterval)
+        output.writeString(interval)
         output.writeString(testIdleTimeout)
         output.writeInt(testTolerance)
 
@@ -160,9 +170,9 @@ class ProxySetBean : InternalBean() {
         val version = input.readInt()
         management = input.readInt()
         interruptExistConnections = input.readBoolean()
-        testURL = input.readString().orEmpty()
-        testInterval = input.readString().orEmpty()
-        testIdleTimeout = input.readString().orEmpty()
+        testURL = input.readString()
+        interval = input.readString()
+        testIdleTimeout = input.readString()
         testTolerance = input.readInt()
 
         if (version >= 2) {
@@ -179,7 +189,7 @@ class ProxySetBean : InternalBean() {
                     val groupID = input.readLong()
                     var filterNotRegex = ""
                     if (version >= 1) {
-                        filterNotRegex = input.readString().orEmpty()
+                        filterNotRegex = input.readString()
                     }
                     listOf(Provider.Group(groupID, filterNotRegex))
                 }
@@ -197,6 +207,7 @@ class ProxySetBean : InternalBean() {
         return when (management) {
             MANAGEMENT_SELECTOR -> "Selector"
             MANAGEMENT_URLTEST -> "URLTest"
+            MANAGEMENT_BALANCER -> "Balancer"
             else -> "Unknown"
         }
     }

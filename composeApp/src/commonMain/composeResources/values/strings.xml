@@ -281,6 +281,7 @@
     <string name="action_trusttunnel" translatable="false">TrustTunnel</string>
     <string name="action_urltest" translatable="false">URLTest</string>
     <string name="action_selector" translatable="false">Selector</string>
+    <string name="action_balancer" translatable="false">Balancer</string>
     <string name="proxy_chain">Proxy Chain</string>
     <string name="custom_config">Custom Config</string>
     <string name="balancer">Balancer</string>
@@ -731,6 +732,7 @@
     <string name="proxy_set">Proxy Set</string>
     <string name="interrupt_exist_connections">Interrupt Exist Connections</string>
     <string name="urltest_interval">URLTest Interval</string>
+    <string name="rotate_interval">Rotate Interval</string>
     <string name="idle_timeout">IDLE Timeout</string>
     <string name="urltest_tolerance">Tolerance</string>
     <string name="expand">Expand</string>

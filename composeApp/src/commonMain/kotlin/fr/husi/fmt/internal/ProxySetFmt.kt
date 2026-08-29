@@ -2,6 +2,7 @@ package fr.husi.fmt.internal
 
 import fr.husi.database.ProxyEntity
 import fr.husi.fmt.SingBoxOptions
+import fr.husi.ktx.blankAsNull
 
 suspend fun ProxySetBean.resolveMembers(
     selfId: Long,
@@ -41,10 +42,16 @@ fun buildSingBoxOutboundProxySetBean(
             type = SingBoxOptions.TYPE_URLTEST
             this.outbounds = outbounds.toMutableList()
             url = bean.testURL
-            interval = bean.testInterval
+            interval = bean.interval
             tolerance = bean.testTolerance
             idle_timeout = bean.testIdleTimeout
             interrupt_exist_connections = bean.interruptExistConnections
+        }
+
+        ProxySetBean.MANAGEMENT_BALANCER -> SingBoxOptions.Outbound_BalancerOptions().apply {
+            type = SingBoxOptions.TYPE_BALANCER
+            this.outbounds = outbounds.toMutableList()
+            interval = bean.interval.blankAsNull()
         }
 
         else -> throw IllegalStateException()

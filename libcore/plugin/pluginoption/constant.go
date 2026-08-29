@@ -8,6 +8,7 @@ import (
 const (
 	TypeJuicity     = "juicity"
 	TypeTrustTunnel = "trusttunnel"
+	TypeBalancer    = "balancer"
 	TypeAnchor      = "anchor"
 	TypeProtect     = "protect"
 )
@@ -18,6 +19,8 @@ func ProxyDisplayName(proxyType string) string {
 		return "Juicity"
 	case TypeTrustTunnel:
 		return "TrustTunnel"
+	case TypeBalancer:
+		return "Balancer"
 	default:
 		return C.ProxyDisplayName(proxyType)
 	}

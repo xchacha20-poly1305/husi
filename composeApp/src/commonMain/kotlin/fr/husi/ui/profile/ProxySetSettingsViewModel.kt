@@ -58,7 +58,7 @@ internal data class ProxySetUiState(
     val interruptExistConnections: Boolean = false,
 
     val testURL: String = "",
-    val testInterval: String = "",
+    val interval: String = "",
     val testIdleTimeout: String = "",
     val testTolerance: Int = 50,
 
@@ -83,7 +83,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
                 management = management,
                 interruptExistConnections = interruptExistConnections,
                 testURL = testURL,
-                testInterval = testInterval,
+                interval = interval,
                 testIdleTimeout = testIdleTimeout,
                 testTolerance = testTolerance,
             )
@@ -100,7 +100,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         management = state.management
         interruptExistConnections = state.interruptExistConnections
         testURL = state.testURL
-        testInterval = state.testInterval
+        interval = state.interval
         testIdleTimeout = state.testIdleTimeout
         testTolerance = state.testTolerance
         providers = state.providers.map { it.toProvider() }
@@ -267,8 +267,8 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         uiState.update { it.copy(testURL = url) }
     }
 
-    fun setTestInterval(interval: String) {
-        uiState.update { it.copy(testInterval = interval) }
+    fun setInterval(interval: String) {
+        uiState.update { it.copy(interval = interval) }
     }
 
     fun setTestIdleTimeout(timeout: String) {

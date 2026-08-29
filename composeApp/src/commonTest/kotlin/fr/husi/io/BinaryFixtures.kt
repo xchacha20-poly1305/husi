@@ -240,31 +240,45 @@ object BinaryFixtures {
 
     private val UNSERIALIZED_FIELDS = setOf("dirty", "export")
 
-    /** A stable, human-readable dump of every field, used to detect silent decoding drift. */
+    /**
+     * A stable dump of every field value, used to detect silent decoding drift.
+     *
+     * Field names are deliberately absent. A golden case records what a byte string decodes to,
+     * and renaming a Kotlin property changes neither those bytes nor their meaning, so a rename
+     * must leave the recorded data untouched.
+     */
     fun snapshot(value: Any?): String = when (value) {
         null -> "null"
         is String, is Int, is Long, is Boolean, is Byte -> value.toString()
         is List<*> -> value.joinToString(prefix = "[", postfix = "]") { snapshot(it) }
         else -> fieldsOf(value.javaClass).joinToString(
             separator = ", ",
-            prefix = value.javaClass.simpleName + "{",
-            postfix = "}",
-        ) { field -> field.name + "=" + snapshot(field.get(value)) }
+            prefix = value.javaClass.simpleName + "[",
+            postfix = "]",
+        ) { field -> snapshot(field.get(value)) }
     }
 
+    /**
+     * Every instance field of [type], base class first, each class in declaration order.
+     *
+     * Names take no part in the ordering, for the reason [snapshot] gives.
+     */
     private fun fieldsOf(type: Class<*>): List<Field> {
-        val fields = mutableListOf<Field>()
+        val hierarchy = mutableListOf<Class<*>>()
         var current: Class<*>? = type
         while (current != null && current != Any::class.java) {
-            for (field in current.declaredFields) {
+            hierarchy += current
+            current = current.superclass
+        }
+        val fields = mutableListOf<Field>()
+        for (owner in hierarchy.asReversed()) {
+            for (field in owner.declaredFields) {
                 if (field.isSynthetic) continue
                 if (Modifier.isStatic(field.modifiers)) continue
                 field.isAccessible = true
                 fields += field
             }
-            current = current.superclass
         }
-        fields.sortBy { it.declaringClass.name + "#" + it.name }
         return fields
     }
 }
