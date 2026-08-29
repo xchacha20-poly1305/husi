@@ -21,6 +21,7 @@ STARTUP_WM_CLASS_PLACEHOLDER="__HUSI_STARTUP_WM_CLASS__"
 APP_URL_PLACEHOLDER="__HUSI_APP_URL__"
 MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
 URL_SCHEME_MIME_TYPES_PLACEHOLDER="__HUSI_URL_SCHEME_MIME_TYPES__"
+RELEASE_DATE_PLACEHOLDER="__HUSI_RELEASE_DATE__"
 CORE_PATH_PLACEHOLDER="__HUSI_CORE_PATH__"
 TAG_NAME=""
 TAG_EPOCH=""
@@ -36,7 +37,7 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>] [--pkgrel <n>] [--jdk-jmods <dir>] [--appimage-runtime <file>] [--strip-objcopy <file>]
+  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>] [--pkgrel <n>] [--jdk-jmods <dir>] [--appimage-runtime <file>] [--appimage-update-info <string>] [--strip-objcopy <file>]
   $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball,appimage]
 
 Description:
@@ -59,6 +60,11 @@ Defaults:
   --appimage-runtime
                AppImage runtime binary for the target architecture
                (env: APPIMAGE_RUNTIME). Left out, appimagetool picks its own.
+  --appimage-update-info
+               Update information embedded into the AppImage's .upd_info section
+               (env: APPIMAGE_UPDATE_INFO). Defaults to a gh-releases-zsync entry
+               for the GitHub repository APP_URL names, which also makes
+               appimagetool emit the matching .zsync file next to the AppImage.
   --strip-objcopy
                objcopy used to strip the bundled runtime's native libraries
                (env: OBJCOPY). Defaults to the host objcopy, or to
@@ -108,6 +114,13 @@ render_template() {
     done
 
     sed "${sed_args[@]}" "$template_file" >"$output_file"
+}
+
+# An AppStream summary is a label rather than a sentence, so it carries no
+# terminator. APP_DESCRIPTION is written as a sentence for everything else.
+summary_of() {
+    local summary="${1%.}"
+    printf '%s' "${summary%。}"
 }
 
 source_desktop_metadata() {
@@ -175,6 +188,7 @@ load_metadata() {
     source_desktop_metadata
     source_desktop_jre_modules
     URL_SCHEME_MIME_TYPES="$(desktop_url_scheme_mime_types)"
+    METAINFO_RELATIVE_PATH="usr/share/metainfo/$PACKAGE_NAME.metainfo.xml"
 }
 
 resolve_tag_epoch() {
@@ -427,19 +441,21 @@ prepare_rootfs() {
     local java_opts_template="$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf"
     local app_args_template="$ROOT_DIR/release/linux/desktop/desktop-app-args.conf"
     local desktop_entry_template="$ROOT_DIR/release/linux/desktop/husi.desktop"
+    local metainfo_template="$ROOT_DIR/release/linux/desktop/husi.metainfo.xml"
     local daemon_unit_template="$ROOT_DIR/release/linux/desktop/husi-daemon.service"
     local main_launcher="$bin_dir/$PACKAGE_NAME"
     local core_path="/usr/lib/$PACKAGE_NAME/bin/husi-core"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
+    local metainfo_path="$rootfs/$METAINFO_RELATIVE_PATH"
     local daemon_unit_path="$rootfs/etc/systemd/system/husi-daemon.service"
     local startup_wm_class="${PACKAGE_NAME//./-}-DesktopMainKt"
 
-    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$daemon_unit_template" ]]; then
+    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$metainfo_template" || ! -f "$daemon_unit_template" ]]; then
         error "Missing launcher templates under release/linux/desktop"
         exit 1
     fi
 
-    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system" "$rootfs/usr/lib/sysusers.d"
+    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/metainfo" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system" "$rootfs/usr/lib/sysusers.d"
     cp "$INPUT_JAR" "$app_dir/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$main_launcher"
     chmod 755 "$main_launcher"
@@ -464,6 +480,21 @@ prepare_rootfs() {
         "$APP_DESCRIPTION_ZH_TW_PLACEHOLDER" "$APP_DESCRIPTION_ZH_TW" \
         "$URL_SCHEME_MIME_TYPES_PLACEHOLDER" "$URL_SCHEME_MIME_TYPES" \
         "$STARTUP_WM_CLASS_PLACEHOLDER" "$startup_wm_class"
+
+    render_template \
+        "$metainfo_template" \
+        "$metainfo_path" \
+        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
+        "$APP_NAME_PLACEHOLDER" "$APP_NAME" \
+        "$APP_NAME_ZH_CN_PLACEHOLDER" "$APP_NAME_ZH_CN" \
+        "$APP_NAME_ZH_TW_PLACEHOLDER" "$APP_NAME_ZH_TW" \
+        "$APP_DESCRIPTION_PLACEHOLDER" "$(summary_of "$APP_DESCRIPTION")" \
+        "$APP_DESCRIPTION_ZH_CN_PLACEHOLDER" "$(summary_of "$APP_DESCRIPTION_ZH_CN")" \
+        "$APP_DESCRIPTION_ZH_TW_PLACEHOLDER" "$(summary_of "$APP_DESCRIPTION_ZH_TW")" \
+        "$APP_URL_PLACEHOLDER" "$APP_URL" \
+        "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
+        "$VERSION_NAME_PLACEHOLDER" "$VERSION_NAME" \
+        "$RELEASE_DATE_PLACEHOLDER" "$(date -u -d "@$TAG_EPOCH" "+%Y-%m-%d")"
 
     render_template \
         "$daemon_unit_template" \
@@ -553,6 +584,7 @@ EOF
     write_content_entry "$config_file" "$rootfs/usr/lib/$PACKAGE_NAME" "/usr/lib/$PACKAGE_NAME" "tree"
     write_content_entry "$config_file" "../lib/$PACKAGE_NAME/bin/$PACKAGE_NAME" "/usr/bin/$PACKAGE_NAME" "symlink"
     write_content_entry "$config_file" "$rootfs/usr/share/applications/$PACKAGE_NAME.desktop" "/usr/share/applications/$PACKAGE_NAME.desktop" ""
+    write_content_entry "$config_file" "$rootfs/$METAINFO_RELATIVE_PATH" "/$METAINFO_RELATIVE_PATH" ""
     write_content_entry "$config_file" "$rootfs/etc/systemd/system/husi-daemon.service" "/etc/systemd/system/husi-daemon.service" ""
     write_content_entry "$config_file" "$rootfs/usr/lib/sysusers.d/husi.conf" "/usr/lib/sysusers.d/husi.conf" ""
 
@@ -661,10 +693,10 @@ output_filename() {
             echo "${PACKAGE_NAME}-${package_version}-${PKGREL}-${PACMAN_ARCH}.pkg.tar.zst"
             ;;
         tarball)
-            echo "${PACKAGE_NAME}-${VERSION_NAME}-linux-${TARGET_ARCH}.tar.zst"
+            echo "${PACKAGE_NAME}-${package_version}-linux-${TARGET_ARCH}.tar.zst"
             ;;
         appimage)
-            echo "${PACKAGE_NAME}-${VERSION_NAME}-linux-${APPIMAGE_ARCH}.AppImage"
+            echo "${PACKAGE_NAME}-${package_version}-linux-${APPIMAGE_ARCH}.AppImage"
             ;;
         *)
             error "Unknown output format '$format'."
@@ -860,6 +892,27 @@ build_jre() {
     log "Linked bundled runtime: $jvm_dir"
 }
 
+# The desktop entry the AppImage carries differs from the packaged one in two
+# ways, both meaningless outside an AppDir: Exec names AppRun, and the X-AppImage
+# keys describe the image itself. Desktop integration tools read the version from
+# there before they fall back to the AppStream metainfo.
+write_appdir_desktop_entry() {
+    local source_entry="$1"
+    local target_entry="$2"
+
+    # AppRun is the only entry point inside the image, so Exec names it rather
+    # than the launcher: JAVA_HOME has to be set before the launcher starts.
+    sed -e "s#^Exec=.*#Exec=AppRun open %u#" "$source_entry" >"$target_entry"
+
+    # [Desktop Entry] is the only group in the file, so these land in it.
+    # No X-AppImage-UpdateURL: the embedded update information already names the
+    # source, and installers derive the link from it.
+    cat >>"$target_entry" <<EOF
+X-AppImage-Version=$VERSION_NAME
+X-AppImage-Homepage=$APP_URL
+EOF
+}
+
 # AppDir layout follows the AppImage spec: AppRun, one desktop entry and one
 # icon at the root, with the real tree under usr/ so desktop-integration tools
 # (Gear Lever, appimaged) find what they expect.
@@ -877,7 +930,7 @@ prepare_appdir() {
 
     rm -rf "$appdir"
     mkdir -p "$appdir/usr/lib/$PACKAGE_NAME" "$appdir/usr/share/applications" \
-        "$appdir/usr/share/icons/hicolor/512x512/apps"
+        "$appdir/usr/share/metainfo" "$appdir/usr/share/icons/hicolor/512x512/apps"
     cp -a "$app_root/." "$appdir/usr/lib/$PACKAGE_NAME/"
 
     render_template \
@@ -886,11 +939,10 @@ prepare_appdir() {
         "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME"
     chmod 755 "$appdir/AppRun"
 
-    # AppRun is the only entry point inside the image, so Exec names it rather
-    # than the launcher: JAVA_HOME has to be set before the launcher starts.
-    sed -e "s#^Exec=.*#Exec=AppRun open %u#" \
-        "$source_entry" >"$appdir/$PACKAGE_NAME.desktop"
+    write_appdir_desktop_entry "$source_entry" "$appdir/$PACKAGE_NAME.desktop"
     cp "$appdir/$PACKAGE_NAME.desktop" "$appdir/usr/share/applications/$PACKAGE_NAME.desktop"
+
+    cp "$rootfs/$METAINFO_RELATIVE_PATH" "$appdir/$METAINFO_RELATIVE_PATH"
 
     if [[ -f "$source_icon" ]]; then
         cp "$source_icon" "$appdir/$PACKAGE_NAME.png"
@@ -899,16 +951,39 @@ prepare_appdir() {
     fi
 }
 
+# Update information for the .upd_info ELF section: what tells AppImage
+# desktop integrators (AppManager, Gear Lever, appimageupdate) where the next
+# version lives. The pattern has to match the published asset name, so it is
+# derived from output_filename with the version turned into a wildcard.
+resolve_appimage_update_info() {
+    local repository_slug
+
+    if [[ -n "$APPIMAGE_UPDATE_INFO_ARG" ]]; then
+        APPIMAGE_UPDATE_INFO="$APPIMAGE_UPDATE_INFO_ARG"
+        return
+    fi
+
+    repository_slug="$(github_repository_slug)"
+    if [[ -z "$repository_slug" ]]; then
+        APPIMAGE_UPDATE_INFO=""
+        log "APP_URL names no GitHub repository, building without update information."
+        return
+    fi
+
+    APPIMAGE_UPDATE_INFO="gh-releases-zsync|${repository_slug%%/*}|${repository_slug##*/}|latest|$(output_filename "appimage" "*").zsync"
+}
+
 build_appimage() {
     local rootfs="$1"
     local work_dir="$2"
     local appdir="$work_dir/appdir"
-    local output_path
+    local output_name
     local -a appimagetool_args=()
-    output_path="$OUTPUT_DIR/$(output_filename "appimage" "$VERSION_NAME")"
+    output_name="$(output_filename "appimage" "$VERSION_NAME")"
 
     resolve_jdk_jmods "$JDK_JMODS_ARG"
     resolve_strip_objcopy "$STRIP_OBJCOPY_ARG"
+    resolve_appimage_update_info
     prepare_appdir "$rootfs" "$appdir"
     build_jre "$appdir/usr/lib/jvm"
 
@@ -920,13 +995,32 @@ build_appimage() {
         appimagetool_args+=(--runtime-file "$APPIMAGE_RUNTIME_ARG")
     fi
 
+    if [[ -n "$APPIMAGE_UPDATE_INFO" ]]; then
+        appimagetool_args+=(--updateinformation "$APPIMAGE_UPDATE_INFO")
+    fi
+
     find "$appdir" -exec touch -d "@$TAG_EPOCH" {} +
 
-    rm -f "$output_path"
+    rm -f "$OUTPUT_DIR/$output_name" "$OUTPUT_DIR/$output_name.zsync"
+    # Named rather than addressed by path, and run from the output directory:
+    # the bundled zsyncmake writes its .zsync into the working directory, so
+    # both artifacts have to be produced there to end up side by side.
     # --appimage-extract-and-run keeps the build host free of any FUSE requirement.
-    ARCH="$APPIMAGE_ARCH" SOURCE_DATE_EPOCH="$TAG_EPOCH" \
-        appimagetool --appimage-extract-and-run "${appimagetool_args[@]}" "$appdir" "$output_path"
-    log "Built AppImage: $output_path"
+    (
+        cd "$OUTPUT_DIR" &&
+            ARCH="$APPIMAGE_ARCH" SOURCE_DATE_EPOCH="$TAG_EPOCH" \
+                appimagetool --appimage-extract-and-run "${appimagetool_args[@]}" "$appdir" "$output_name"
+    )
+    log "Built AppImage: $OUTPUT_DIR/$output_name"
+
+    if [[ -n "$APPIMAGE_UPDATE_INFO" ]]; then
+        if [[ ! -f "$OUTPUT_DIR/$output_name.zsync" ]]; then
+            error "Update information was embedded but no zsync file was produced."
+            error "appimagetool needs zsyncmake for that; its own AppImage bundles one."
+            exit 1
+        fi
+        log "Built zsync file: $OUTPUT_DIR/$output_name.zsync"
+    fi
 }
 
 FORMATS="deb,rpm,pacman"
@@ -943,6 +1037,8 @@ CHECK_TOOLS=0
 JDK_JMODS_ARG=""
 JDK_JMODS=""
 APPIMAGE_RUNTIME_ARG="${APPIMAGE_RUNTIME:-}"
+APPIMAGE_UPDATE_INFO_ARG="${APPIMAGE_UPDATE_INFO:-}"
+APPIMAGE_UPDATE_INFO=""
 STRIP_OBJCOPY_ARG=""
 STRIP_OBJCOPY=""
 
@@ -996,6 +1092,11 @@ while [[ $# -gt 0 ]]; do
         --appimage-runtime)
             require_arg "$1" "${2:-}"
             APPIMAGE_RUNTIME_ARG="$2"
+            shift 2
+            ;;
+        --appimage-update-info)
+            require_arg "$1" "${2:-}"
+            APPIMAGE_UPDATE_INFO_ARG="$2"
             shift 2
             ;;
         --strip-objcopy)

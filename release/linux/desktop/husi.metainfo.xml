@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AppStream metadata, rendered by release/linux/package.sh into
+  usr/share/metainfo/. Software centres read it, and so do AppImage installers:
+  AppManager falls back to the first <release version> and the first untranslated
+  <summary> when the desktop entry carries no X-AppImage-Version. Keep the
+  untranslated variants first for that reason.
+-->
+<component type="desktop-application">
+  <id>__HUSI_PACKAGE_NAME__</id>
+  <launchable type="desktop-id">__HUSI_PACKAGE_NAME__.desktop</launchable>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>__HUSI_APP_NAME__</name>
+  <name xml:lang="zh_CN">__HUSI_APP_NAME_ZH_CN__</name>
+  <name xml:lang="zh_TW">__HUSI_APP_NAME_ZH_TW__</name>
+
+  <summary>__HUSI_APP_DESCRIPTION__</summary>
+  <summary xml:lang="zh_CN">__HUSI_APP_DESCRIPTION_ZH_CN__</summary>
+  <summary xml:lang="zh_TW">__HUSI_APP_DESCRIPTION_ZH_TW__</summary>
+
+  <!-- Same wording as the store listing in fastlane/metadata/android. -->
+  <description>
+    <p>
+      Husi is a non-professional proxy-set-based multiplatform proxy tool set.
+      With graphical config editor, network tools and proxy status observation.
+    </p>
+    <p xml:lang="zh_CN">
+      虎兕 是一个非专业的基于代理集的跨平台代理工具集。有着图形化编辑配置、网络工具以及代理状态观测的功能。
+    </p>
+    <p xml:lang="zh_TW">
+      虎兕 是一個非專業的基於代理集的跨平台代理工具集。有著圖形化編輯配置、網路工具以及代理狀態觀測的功能。
+    </p>
+  </description>
+
+  <developer id="__HUSI_PACKAGE_NAME__">
+    <name>__HUSI_MAINTAINER__</name>
+  </developer>
+
+  <url type="homepage">__HUSI_APP_URL__</url>
+  <url type="bugtracker">__HUSI_APP_URL__/issues</url>
+
+  <categories>
+    <category>Network</category>
+  </categories>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="__HUSI_VERSION_NAME__" date="__HUSI_RELEASE_DATE__"/>
+  </releases>
+</component>

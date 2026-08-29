@@ -184,6 +184,15 @@ single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tool
   `appimage` (bundles a `jlink` runtime, so it needs no system Java — `release/linux/appimage/`).
   Windows packaging Authenticode signs its payloads via `release/windows/codesign.sh`; its NSIS
   installer is per-user (`RequestExecutionLevel user`) and only elevates for the optional service.
+- Linux desktop metadata is templated from `release/desktop/package-metadata.sh`: every format gets
+  the desktop entry plus the AppStream `release/linux/desktop/husi.metainfo.xml`, and the AppImage
+  additionally carries `X-AppImage-Version` / `X-AppImage-Homepage` in its own copy of the entry
+  and a `gh-releases-zsync` string in `.upd_info`, derived from the GitHub repository `APP_URL`
+  names (override with `--appimage-update-info`). That last one makes appimagetool emit a `.zsync`
+  beside the AppImage: it is what desktop integrators (AppManager, Gear Lever) update from, so it
+  has to be published as a release asset — the release workflow uploads the whole packages
+  directory, so it already is. `<release version>` in the metainfo is the current `VERSION_NAME`,
+  and installers read it when the desktop entry is not available.
 
 ## Compose UI (composeApp)
 

@@ -37,6 +37,23 @@ DESKTOP_URL_SCHEMES=(
     tt
 )
 
+# "owner/repo" of the GitHub project APP_URL points at, empty for a fork that
+# publishes somewhere else. The single source of truth for the repository slug:
+# whatever rename.sh writes into APP_URL is what the packaging follows.
+github_repository_slug() {
+    local github_prefix="https://github.com/"
+    local path="${APP_URL#"$github_prefix"}"
+
+    if [[ "$path" == "$APP_URL" ]]; then
+        return
+    fi
+
+    # Nothing but "<owner>/<repo>" qualifies: a deeper path is not a project page.
+    if [[ "$path" =~ ^[^/]+/[^/]+$ ]]; then
+        printf '%s' "${path%.git}"
+    fi
+}
+
 desktop_url_scheme_mime_types() {
     local scheme
     for scheme in "${DESKTOP_URL_SCHEMES[@]}"; do
