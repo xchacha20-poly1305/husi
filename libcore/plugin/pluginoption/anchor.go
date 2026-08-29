@@ -10,5 +10,5 @@ type AnchorServiceOptions struct {
 	DNSPort      uint16                     `json:"dns_port,omitempty"`
 	DeviceName   string                     `json:"device_name,omitempty"`
 	SocksPort    uint16                     `json:"socks_port,omitempty"`
-	AllowedSSIDs badoption.Listable[string] `json:"allowed_ssids,omitempty"`
+	AllowedSSIDs badoption.Listable[string] `json:"allowed_ssids,omitempty" examples:"^Home-WiFi$"`
 }

@@ -6,5 +6,5 @@ import (
 
 type VLESSOutboundOptions struct {
 	option.VLESSOutboundOptions
-	Encryption string `json:"encryption,omitempty"`
+	Encryption string `json:"encryption,omitempty" examples:"none"`
 }
