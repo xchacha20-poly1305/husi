@@ -5,7 +5,7 @@ go 1.26
 require (
 	filippo.io/age v1.3.1
 	github.com/coder/websocket v1.8.14
-	github.com/exclavenetwork/sing-juicity v0.3.0-beta.1
+	github.com/exclavenetwork/sing-juicity v0.3.0-beta.2
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/klauspost/compress v1.19.2
 	github.com/miekg/dns v1.1.72
