@@ -176,6 +176,30 @@ func (h *Host) Start(socketPath string) error {
 	return h.StartOn(listener)
 }
 
+func (h *Host) NewServiceServer(serverOptions ...grpc.ServerOption) *grpc.Server {
+	server := grpc.NewServer(serverOptions...)
+	daemon.RegisterStartedServiceServer(server, h.started)
+	husiv1.RegisterCoreServiceServer(server, &coreService{host: h})
+	husiv1.RegisterApplicationServiceServer(server, &applicationService{host: h})
+	if h.appHandler != nil {
+		husiv1.RegisterAppServiceServer(server, &appService{host: h})
+	}
+
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus(daemon.StartedService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
+	healthServer.SetServingStatus(husiv1.CoreService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
+	healthServer.SetServingStatus(husiv1.ApplicationService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
+	if h.appHandler != nil {
+		healthServer.SetServingStatus(husiv1.AppService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
+	}
+	if h.extraServices != nil {
+		h.extraServices.RegisterExtraServices(server, healthServer)
+	}
+	grpc_health_v1.RegisterHealthServer(server, healthServer)
+	reflection.Register(server)
+	return server
+}
+
 // StartOn serves the gRPC surface on an existing listener (UDS, named pipe, TCP).
 // The Host takes ownership of the listener and closes it on Close.
 func (h *Host) StartOn(listener net.Listener) error {
@@ -196,26 +220,7 @@ func (h *Host) StartOn(listener net.Listener) error {
 		)
 	}
 	serverOpts = append(serverOpts, h.serverOptions...)
-	server := grpc.NewServer(serverOpts...)
-	daemon.RegisterStartedServiceServer(server, h.started)
-	husiv1.RegisterCoreServiceServer(server, &coreService{host: h})
-	husiv1.RegisterApplicationServiceServer(server, &applicationService{host: h})
-	if h.appHandler != nil {
-		husiv1.RegisterAppServiceServer(server, &appService{host: h})
-	}
-
-	healthServer := health.NewServer()
-	healthServer.SetServingStatus(daemon.StartedService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
-	healthServer.SetServingStatus(husiv1.CoreService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
-	healthServer.SetServingStatus(husiv1.ApplicationService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
-	if h.appHandler != nil {
-		healthServer.SetServingStatus(husiv1.AppService_ServiceDesc.ServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
-	}
-	if h.extraServices != nil {
-		h.extraServices.RegisterExtraServices(server, healthServer)
-	}
-	grpc_health_v1.RegisterHealthServer(server, healthServer)
-	reflection.Register(server)
+	server := h.NewServiceServer(serverOpts...)
 
 	h.server = server
 	h.listener = listener

@@ -101,15 +101,16 @@ func cmdVersion() int {
 }
 
 func cmdRun(args []string) int {
-	fs := flag.NewFlagSet("run", flag.ContinueOnError)
-	fs.SetOutput(os.Stderr)
-	workingDir := fs.String("dir", "", "working directory (default: platform-specific)")
-	socketPath := fs.String("socket", "", "gRPC socket or named pipe path (default: platform-specific)")
-	listenAddr := fs.String("listen", "", "TCP address for dev mode (optional; disables peer auth)")
-	if err := fs.Parse(args); err != nil {
+	flagSet := flag.NewFlagSet("run", flag.ContinueOnError)
+	flagSet.SetOutput(os.Stderr)
+	workingDir := flagSet.String("dir", "", "working directory (default: platform-specific)")
+	socketPath := flagSet.String("socket", "", "gRPC socket or named pipe path (default: platform-specific)")
+	listenAddr := flagSet.String("listen", "", "TCP address for dev mode (optional; disables peer auth)")
+	configPath := flagSet.String("config", "", "daemon config file (default: <dir>/daemon.json)")
+	if err := flagSet.Parse(args); err != nil {
 		return 2
 	}
-	if fs.NArg() != 0 {
+	if flagSet.NArg() != 0 {
 		fmt.Fprintln(os.Stderr, "run: unexpected arguments")
 		return 2
 	}
@@ -131,11 +132,16 @@ func cmdRun(args []string) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	log.Info("starting daemon host dir=", absDir, " socket=", *socketPath, " listen=", *listenAddr)
+	cfgLog := *configPath
+	if cfgLog == "" {
+		cfgLog = daemonhost.DefaultConfigPath(absDir)
+	}
+	log.Info("starting daemon host dir=", absDir, " socket=", *socketPath, " listen=", *listenAddr, " config=", cfgLog)
 	host := daemonhost.NewDaemonHost(daemonhost.DaemonHostOptions{
 		WorkingDir: absDir,
 		SocketPath: *socketPath,
 		ListenAddr: *listenAddr,
+		ConfigPath: *configPath,
 		Version:    libcore.Version,
 	})
 	if err := host.Run(ctx); err != nil {

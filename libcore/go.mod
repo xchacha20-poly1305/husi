@@ -4,10 +4,12 @@ go 1.26
 
 require (
 	filippo.io/age v1.3.1
+	github.com/coder/websocket v1.8.14
 	github.com/exclavenetwork/sing-juicity v0.3.0-beta.1
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/klauspost/compress v1.19.2
 	github.com/miekg/dns v1.1.72
+	github.com/sagernet/cors v1.2.1
 	github.com/sagernet/sing v0.9.0-beta.4
 	github.com/sagernet/sing-box v1.14.0-rc.1
 	github.com/sagernet/sing-tun v0.9.0-beta.2
@@ -20,6 +22,7 @@ require (
 	github.com/xchacha20-poly1305/libping v0.10.5
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.0-beta.6
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
+	golang.org/x/net v0.58.0
 	golang.org/x/sys v0.47.0
 	google.golang.org/grpc v1.83.1
 	google.golang.org/protobuf v1.36.12
@@ -153,7 +156,6 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
-	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
