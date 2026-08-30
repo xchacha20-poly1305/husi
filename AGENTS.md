@@ -34,6 +34,7 @@ Common targets:
 | `make desktop_package_windows_jbr DESKTOP_TARGET=...`       | Thin Windows zip/NSIS plus a -jbr pair with a jlink JetBrains Runtime (no system Java); modules fetched by `./run lib jbr <target>` into `build/jbr/` |
 | `make launcher`                                             | Build the Zig native UI launcher from `launcher/` (used by Linux/macOS/Windows installers) |
 | `make plugin PLUGIN=<name>`                                 | Assemble plugin APK; valid names: `hysteria2 juicity naive mieru shadowquic`     |
+| `make icon`                                                 | Regenerate every committed app icon from `art/` (needs `rsvg-convert` + ImageMagick)          |
 | `make aboutlibraries`                                       | Regenerate committed OSS license JSON (Gradle plugin is offline; run before release) |
 | `make generate_option`                                      | Regenerate sing-box option mappings (boxoption); output piped through `$CLIP`    |
 | `make proto`                                                | Re-vendor sing-box schema and regenerate Go gRPC stubs under `libcore/pb/` via `protoc`       |
@@ -330,6 +331,53 @@ Canonical conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it firs
   `--generate-cds-archive` (cannot be generated cross-platform). `JBR_VERSION` in
   `buildScript/init/version.sh` has to track `JAVA_VERSION`: the host `jlink` cannot read modules
   newer than itself.
+- App icons all derive from `art/` — the mark alone, transparent, on a 135.47 canvas, and nothing
+  but `<path>` elements (`buildScript/icon.py` rejects anything else rather than silently dropping
+  it). `make icon` measures the mark's real bounding box by rendering it, centres it, and emits
+  every committed variant; the rendered outputs are committed the way the AboutLibraries JSON is,
+  so an ordinary build never needs `rsvg-convert` or ImageMagick. Edit the SVG and re-run — never
+  hand-edit a generated file, the Android `<vector>` XML included.
+
+  There are **two** artworks, because one cannot survive the whole size range. `art/icon.svg` is
+  the full mark; `art/icon-small.svg` keeps only the triangle and the outer bowl, with the bowl
+  thickened and round-capped. `ArtworkSet.select` hands out the simplified one at or below
+  `SMALL_ARTWORK_MAX_SIZE`, which is 96 for a measurable reason: the three inner waves sit about
+  4.3 canvas units apart, so with strokes floored at `MIN_STROKE_PIXELS` they stop being
+  separable below ~98px and smear into one amber blob. Only the raster outputs tier; the Android
+  `<vector>` always uses the full mark, since it is resolution independent.
+
+  Every raster also gets stroke hinting: at each output size the strokes are floored at
+  `MIN_STROKE_PIXELS`, because the mark's natural 1.5–2 unit strokes land at 0.18–0.24px in a
+  16px raster and antialias into nothing. The floor applies only to strokes at or above
+  `STRUCTURAL_STROKE_WIDTH` — the artwork also carries two sub-unit hairlines that outline a
+  filled shape, and lifting those to a visible width would draw a black keyline around the
+  triangle. Hinting is a `max()`, so it is a no-op at 512px and above.
+
+  The mark is line art (thin amber strokes with no filled body), so it needs a background plate
+  on every surface it does not control; `BACKGROUND` is the one colour that decides this. It is
+  deliberately near-black: amber `#ffb300` sits at 1.8:1 against white and 9.6:1 against
+  `#191C15`, so the old white plate was both the glaring option and the low-contrast one.
+  Only Android's adaptive foreground goes plate-free, because the launcher composites the
+  `<background>` layer itself.
+
+  What the plate becomes is per-platform, and the differences are requirements, not taste:
+  macOS gets the HIG geometry (a rounded square inset ~10% of the canvas, corner radius 22.5% of
+  that square) because the Dock expects the margin; the Play Store PNGs are full-bleed and
+  **opaque** because Play rejects transparency and applies its own rounding; Windows `.ico` and
+  the Linux hicolor PNG get a lightly inset rounded plate. Linux used to reuse the Play Store
+  listing image for `/usr/share/pixmaps` — those two have opposite requirements, so it now has
+  its own `release/linux/desktop/icon.png`.
+
+  `<monochrome>` is a separate generated drawable, not the colour foreground reused: themed
+  icons keep only alpha, and this mark's 1.5–2pt strokes come out too faint, so the monochrome
+  variant thickens them by `MONOCHROME_STROKE_SCALE`.
+
+  The `.icns` is written directly rather than through `png2icns`, which emits JPEG-2000 payloads
+  for the large elements; the elements here are PNG, including the retina ones (`ic11`–`ic14`)
+  that libicns does not write at all.
+
+  Plugin APKs keep their own icons under `plugin/<name>/src/main/res/` and are not part of this
+  pipeline.
 - `composeApp/executableSo/` is added as a JNI libs source dir for the Android app (used to bundle
   plugin executables alongside the host APK).
 - `make aboutlibraries` (`aboutlibraries_go` + `aboutlibraries_android` +

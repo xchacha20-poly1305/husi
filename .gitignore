@@ -31,3 +31,5 @@ go.work*
 
 # submodules
 /external
+
+__pycache__/

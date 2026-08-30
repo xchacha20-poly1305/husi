@@ -505,7 +505,7 @@ prepare_rootfs() {
     # distributions whose package manager does not pick sysusers.d up itself.
     cp "$ROOT_DIR/release/linux/desktop/husi-sysusers.conf" "$rootfs/usr/lib/sysusers.d/husi.conf"
 
-    local icon_source="$ROOT_DIR/fastlane/metadata/android/en-US/images/icon.png"
+    local icon_source="$ROOT_DIR/release/linux/desktop/icon.png"
     if [[ -f "$icon_source" ]]; then
         cp "$icon_source" "$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     fi
