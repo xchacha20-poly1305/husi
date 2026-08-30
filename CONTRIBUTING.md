@@ -23,6 +23,7 @@ Truly readable code is more than just clear—it's understandable even without c
   * You can be grumpy, but express it with **decent wording**.
 
 * Avoid **confusing abbreviations**.
+  A reader unfamiliar with the abbreviation has to guess or grep; the few bytes saved are not worth the cognitive cost.
 
   **Bad:**
 
@@ -41,6 +42,7 @@ Truly readable code is more than just clear—it's understandable even without c
 * Strive for **readability through naming**, not excessive comments.
 
 * Use **constants** wherever possible.
+  Magic literals hide intent and scatter duplicates across the codebase; a named constant is self-documenting and has exactly one place to update.
 
   **Bad:**
 
@@ -76,10 +78,12 @@ Truly readable code is more than just clear—it's understandable even without c
 ### Path Handling
 
 * Do **not** build filesystem paths by string concatenation such as `base + "/child"` or `absolutePath + "/"`.
+  String concatenation breaks on Windows (`\` vs `/`), mishandles trailing separators, and bypasses `File`'s normalization.
 
 * Prefer `File.resolve(...)`, `File(parent, child)`, or equivalent path APIs when combining local paths.
 
-* On Windows, we should use `/` instead of `\`
+* On Windows, we should use `/` instead of `\`.
+  The Windows JVM returns `\` separators, but sing-box (the Go core) always expects `/`; `invariantPathString()` ensures the forward-slash form.
 
   **Bad:**
 
@@ -112,6 +116,7 @@ Truly readable code is more than just clear—it's understandable even without c
 #### Import usage
 
 * **Always use imports** instead of fully qualified names in code.
+  Fully qualified names clutter the call site and make refactoring harder -- the IDE cannot collapse or auto-update them.
 * The **only exception** is when referencing `R` classes from other packages (e.g., `com.google.android.material.R`).
 
 **Bad:**
@@ -135,6 +140,7 @@ DisposableEffect(view) { /* ... */ }
 
 * Prefer explicit backing fields for public read-only `StateFlow` or `SharedFlow` properties backed by mutable flows.
 * This keeps the public type read-only while avoiding extra `_uiState` / `_uiEvent` properties.
+  The `_foo` / `foo` naming dance leaks the mutable handle into the class's namespace; an explicit backing field scopes it to the property body, so nothing else in the class can accidentally mutate it.
 
 **Good:**
 
@@ -152,7 +158,8 @@ fun updateName(name: String) {
 
 #### `forEach` vs `for` loops
 
-* `forEach` is fluent, especially at the end of a chain:
+* `forEach` is fluent, especially at the end of a chain.
+  However, `forEach` cannot `break` or `return` from the enclosing function, so standalone iterations that may exit early should use `for`.
 
   ```kotlin
   strings.filter { it.isNotEmpty() }.forEach { println(it) }
@@ -178,6 +185,7 @@ fun updateName(name: String) {
 #### `also` vs `apply`
 
 * Prefer `also` over `apply` when `this` is ambiguous.
+  Inside `apply`, `this` rebinds to the receiver -- in a class that already has properties with the same names, the wrong one shadows silently, causing bugs that compile without warning.
 * `apply` is great for object configuration, but nested scopes (e.g. in Activities or Fragments) may introduce confusion.
 * `also` makes the receiver explicit via `it`, improving readability.
 

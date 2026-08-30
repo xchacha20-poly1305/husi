@@ -1,408 +1,107 @@
-# Project overview
+# AGENTS.md
 
-Husi is a recreational proxy tool for Android and Desktop (Linux/macOS/Windows). The Kotlin/Compose
-Multiplatform UI in `composeApp/` calls into a Go core (`libcore/`) via JNI; protocol plugins under
-`plugin/` are separately built from Go/Rust submodules and packaged as auxiliary Android APKs.
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before writing code.
 
-# Build & development commands
+## Tools & commands
 
-All build orchestration goes through the root `Makefile`. Toolchain: **JDK**, **Android NDK**, **Go
-**, **Zig** (used for the desktop launcher and Darwin cross-builds) — pinned versions live in
-`buildScript/init/`. `./run <subcmd>` is a generic dispatcher that resolves to
-`buildScript/<subcmd>.sh`.
-
-First-time setup needs git submodules for plugins and library pins:
+First-time setup — run once after a fresh clone or when submodules/assets are missing; skip if `composeApp/libs/` already contains the host desktop `libcore-desktop-*.jar`:
 
 ```
-./run lib source     # = git submodule update --init --recursive
-make assets          # downloads geoip/geosite into composeApp resources
+./run lib source     # git submodule update --init --recursive
+make assets          # geoip/geosite into composeApp resources
 make libcore         # host desktop libcore jar — Gradle sync fails without it
 ```
 
 Common targets:
 
-| Target                                                      | Purpose                                                                          |
-|-------------------------------------------------------------|----------------------------------------------------------------------------------|
-| `make assets`                                               | Download geoip/geosite into `composeApp` resources (run once before first build) |
-| `make libcore_android`                                      | Build Go core into `composeApp/libs/libcore.aar` (required for Android builds)   |
-| `make libcore` / `make libcore_desktop DESKTOP_TARGETS=...` | One anja bind: fat `libcore-desktop-<os>-<arch>.jar` + sidecar `libhusicore.*` in `libcore/build/<os>_<arch>/` |
-| `make core_desktop DESKTOP_TARGETS=...`                     | Build the Zig `husi-core` shim (source: `libcore/shim/`) into `libcore/build/<os>_<arch>/` (next to the sidecar) |
-| `make apk` / `make apk_debug`                               | Assemble `androidApp:assembleFossRelease` / `Debug`                              |
-| `make desktop` / `make desktop_release`                     | Run Compose desktop app via `gradlew :composeApp:run[Release]`                   |
-| `make desktop_uberjar`                                      | Thin ProGuard-shrunk release jar (no libcore native); needs the `husi-core` shim **and** `libhusicore.*` next to the jar, or `husi-core` on `PATH` with the library next to that binary |
-| `make desktop_package[_linux/_macos/_windows]`              | Native packages under `composeApp/build/compose/packages/`                       |
-| `make desktop_package_windows_jbr DESKTOP_TARGET=...`       | Thin Windows zip/NSIS plus a -jbr pair with a jlink JetBrains Runtime (no system Java); modules fetched by `./run lib jbr <target>` into `build/jbr/` |
-| `make launcher`                                             | Build the Zig native UI launcher from `launcher/` (used by Linux/macOS/Windows installers) |
-| `make plugin PLUGIN=<name>`                                 | Assemble plugin APK; valid names: `hysteria2 juicity naive mieru shadowquic`     |
-| `make icon`                                                 | Regenerate every committed app icon from `art/` (needs `rsvg-convert` + ImageMagick)          |
-| `make aboutlibraries`                                       | Regenerate committed OSS license JSON (Gradle plugin is offline; run before release) |
-| `make generate_option`                                      | Regenerate sing-box option mappings (boxoption); output piped through `$CLIP`    |
-| `make proto`                                                | Re-vendor sing-box schema and regenerate Go gRPC stubs under `libcore/pb/` via `protoc`       |
-| `make proto_install`                                        | Print instructions for installing `protoc`                                       |
+| Target | Purpose |
+|---|---|
+| `make assets` | Download geoip/geosite (once before first build) |
+| `make libcore_android` | Go core into `composeApp/libs/libcore.aar` (required for Android) |
+| `make libcore` / `make libcore_desktop DESKTOP_TARGETS=...` | Desktop `libcore-desktop-<os>-<arch>.jar` + sidecar `libhusicore.*` |
+| `make core_desktop DESKTOP_TARGETS=...` | Zig `husi-core` shim into `libcore/build/<os>_<arch>/` |
+| `make apk` / `make apk_debug` | Android APK (foss release/debug) |
+| `make desktop` / `make desktop_release` | Run Compose desktop app |
+| `make desktop_uberjar` | Thin release jar (needs `husi-core` + `libhusicore.*` beside it) |
+| `make desktop_package[_linux/_macos/_windows]` | Native packages |
+| `make desktop_package_windows_jbr DESKTOP_TARGET=...` | Windows zip/NSIS plus a -jbr pair with jlink JetBrains Runtime |
+| `make launcher` | Zig native UI launcher from `launcher/` |
+| `make plugin PLUGIN=<name>` | Plugin APK; valid: `hysteria2 juicity naive mieru shadowquic` |
+| `make icon` | Regenerate all icons from `art/` (needs `rsvg-convert` + ImageMagick) |
+| `make aboutlibraries` | Regenerate OSS license JSON |
+| `make generate_option` | Regenerate sing-box option mappings; output piped through `$CLIP` |
+| `make proto` | Re-vendor sing-box schema and regenerate Go gRPC stubs |
+| `make test` | `test_gradle` + `test_go` + `test_no_go_core_binary` + `test_zig` |
+| `make test_gradle` | `./gradlew :composeApp:allTests` (JUnit5) |
+| `make test_go` | `cd libcore && go test -v -count=1 ./...` |
+| `make test_zig` | zig build test in both `launcher/` and `libcore/shim/` |
+| `make lint_go` | golangci-lint for linux + android + windows |
+| `make fmt_go` | golangci-lint fmt |
 
-The `BUILD_PLUGIN` env var (read in `settings.gradle.kts`) controls which plugin modules are
-included; `BUILD_PLUGIN=none` excludes all plugins to speed up app-only builds (this is what the
-Makefile does).
+Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`.
+Run a single Go test: `cd libcore && go test -run TestName ./pkg/...`.
+Install Go tooling: `make lint_go_install`.
 
-Cross-compiling desktop libcore: pass `JNI_INCLUDE=/path/to/jni` when JNI headers aren't
-auto-detected; for Darwin targets on non-Darwin hosts also pass `DARWIN_SDK=/path/to/MacOSX.sdk` (
-uses `zig cc`). Linux desktop builds use Zig for naive outbound, while the required prebuilt Cronet
-library is downloaded through Go modules.
+`lint_go` runs one pass per shipped GOOS (`lint_go_linux`, `lint_go_android`, `lint_go_windows`); no Darwin pass because sing-tun's gvisor backend does not typecheck without a full Darwin SDK. `lint_go_windows` needs `zig` on PATH as the cgo cross compiler.
 
-Desktop Gradle picks the libcore jar from `os.name`/`os.arch`; override with
-`./gradlew -p composeApp run -PdesktopTarget=linux/amd64`. A missing jar fails Gradle sync (and any
-build) immediately rather than silently falling back — even Android-only work in the IDE needs the
-host desktop jar built first.
+`BUILD_PLUGIN=none` (what the Makefile sets for app-only builds) excludes all plugin modules to speed up Gradle.
 
-## Tests & lint
+## Workflow requirements
 
-```
-make test                # = test_gradle + test_go + test_no_go_core_binary + test_zig
-make test_gradle         # ./gradlew :composeApp:allTests (JUnit5)
-make test_go             # cd libcore && go test -v -count=1 ./...
-make test_zig            # zig build test in both launcher/ and libcore/shim/
-make lint_go             # golangci-lint for linux + android + windows
-make fmt_go              # golangci-lint fmt (run before committing Go)
-```
+### gomobile export surface
 
-`lint_go` runs one pass per shipped GOOS, because each one only ever compiles its own half of the
-platform-split files; the individual passes are `lint_go_linux`, `lint_go_android` and
-`lint_go_windows` (the last needs `zig` on `PATH` as the cgo cross compiler). Darwin has no pass:
-sing-tun's gvisor backend does not typecheck without a full Darwin SDK. `make fmt_go` runs
-`golangci-lint fmt` using the `formatters` block in `libcore/.golangci.yml` (gofumpt + gci with
-the sagernet import prefix). `golangci-lint run` reports those same formatters as issues without
-rewriting files, so lint and fmt stay on one tool. CI runs `make lint_go` as the `lint-go` job
-in `.github/workflows/test.yml`.
+Package `libcore` is what gomobile binds. An exported interface there whose methods gomobile cannot bind (proto slices, func values) fails `make libcore_android` with "proxy … does not implement", and an exported struct only adds a dead Java class. Nothing Kotlin does not call belongs in `libcore`'s exported surface; put shared Go-side types in a sibling package.
 
-Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`. Run a
-single Go test: `cd libcore && go test -run TestName ./pkg/...`. Install Go tooling once with
-`make lint_go_install` (covers `fmt_go` as well).
+### Proto workflow
 
-# Architecture
+- `daemon/started_service.proto` is vendored from the pinned sing-box by `make proto` — never edit it by hand.
+- `KEEP_STARTED_SERVICE_RPCS` in `buildScript/proto.sh` is the allowlist of upstream RPCs. Using a new upstream RPC means adding it to that list and re-running `make proto`; an allowlisted RPC that upstream renamed or dropped fails the run.
+- Adding a husi message means editing `husi/v1/`, then `make proto`.
+- Go stubs are regenerated for `husi/v1` only — a second copy of `daemon/started_service.proto` in the binary would panic the protobuf registry.
 
-## Module layout
+### Room database migrations
 
-- `libcore/` — Go module exposed to JVM. Built **two ways**:
-    - Android via `gomobile` → `composeApp/libs/libcore.aar` (entry: `libcore.go`, with sibling Go
-      files for tun, dns, ping, ruleset, plugin glue, etc.).
-    - Desktop via `anja` (JNI bindings) → one c-shared library per target
-      (`libhusicore.so` / `libhusicore.dylib` / `husicore.dll`) packed into
-      `libcore-desktop-<os>-<arch>.jar` under gitignored `composeApp/libs/`, and also emitted as a
-      plain sidecar under `libcore/build/<os>_<arch>/`. The jar stays fat for dev (`gradlew run` /
-      tests); release uberjars keep only the target bucket under `natives/` and additionally drop
-      `natives/<os>-<arch>/libhusicore.*` (libraries sharing that family — androidx sqlite's
-      `libsqliteJni` — have no sidecar, so only libcore's own entry goes), loading the sidecar
-      via `anja.natives.dir`
-      (set early in `DesktopMain` when a packaged layout is found). The process host is a small
-      Zig shim (`make core_desktop` → `husi-core`) that `dlopen`s the sibling library and calls
-      `HusiCoreMain`; packaged installs ship **one** Go artifact (the library) plus that shim.
-    - `libcore/coresvc/` hosts sing-box's `daemon.StartedService` plus husi's
-      `CoreService` / `AppService` over the app-private `api.sock` UDS
-      (desktop: `husi-core session`, spawned by the UI when no daemon is installed, or
-      `husi-core run` as the system daemon; Android: still in-process in `:bg`). Everything else
-      arrives through `HostOptions.Services`, a list of `coresvc.ServiceRegistrar`: `libcore`
-      contributes the application surface (`libcore.NewApplicationService`, the stateless tools
-      plus the standalone URL test) and `daemonhost` contributes `DaemonService`. A host given no
-      registrar answers those methods `Unimplemented` — there is no stub implementation to
-      configure. The one thing a standalone URL test cannot decide for itself, where plugin
-      children live and which credential they run as, is injected as a `pluginpool.Launcher`.
-      `NewApplicationService` takes that launcher and returns a `coresvc.ServiceRegistrar`: its
-      own type stays unexported, because **package `libcore` is what gomobile binds** — an
-      exported interface there whose methods gomobile cannot bind (proto slices, func values)
-      fails `make libcore_android` with "proxy … does not implement", and an exported struct
-      only adds a dead Java class. Nothing Kotlin does not call belongs in `libcore`'s exported
-      surface; put shared Go-side types in a sibling package instead. Bound `Service` is
-      `Start`/`Close` (socket + protect) and `StartService`/`StopService`/`HasInstance`
-      (instance lifecycle). On Android, `StartService` takes a serialized
-      `husi.v1.StartServiceRequest` plus a plugin working dir, and
-      `PublishServiceEvent` fans husi lifecycle/speed/alerts to
-      `SubscribeServiceEvents` subscribers.
-    - `libcore/daemonhost/` is the desktop process host (session/daemon, peercred, service
-      install of the shim+library pair). Entrypoint is `libcore/coreentry` (`//export HusiCoreMain`).
-      On Linux the installed daemon is **not** root: `ServiceInstall` creates a `husi` system
-      user and writes a unit that grants `CAP_NET_ADMIN` (tun, routes, nftables, `SO_MARK`),
-      `CAP_NET_BIND_SERVICE` and `CAP_SYS_PTRACE` (process routing rules read other users'
-      `/proc`), falling back to a root unit only when the account cannot be created. The daemon
-      clears its own ambient set at startup (`capabilities_linux.go`) because ambient
-      capabilities cross `execve` — plugin children inherit the unprivileged user and no
-      capabilities at all, so `NeedsProcessCredential` skips the setuid drop there. macOS
-      (launchd) and Windows (LocalSystem) still run privileged and still drop plugin children
-      to the owner.
-    - `libcore/shim/` is that host's `main()`: a standalone Zig project (**not** part of the Go
-      module) producing the console `husi-core` executable, which `dlopen`s the `libhusicore.*`
-      sitting next to it — absolute path only, never a search path — and calls `HusiCoreMain`.
-      It is a separate project from `launcher/` on purpose: it links libc dynamically because
-      `dlopen` needs it and because the anja library it loads is a glibc cgo artifact, whereas the
-      launcher is static musl. Keeping them in one `build.zig` made the two exes collide in
-      `zig-out/bin/` (same `{os}-{arch}` name, ABI not in the name) — do not merge them back.
-    - `libcore/pluginpool/` is the shared Go process pool for plugin children
-      (supervise, restart-or-fatal). Used by desktop `daemonhost` and by Android
-      `:bg` via the bound `Service`.
-    - `libcore/urltest/` measures outbound latency: `Measure` (one timed request),
-      `Run` (deadline plus URL test history) and `RunTag` (resolve a tag against an
-      outbound manager, then `Run`). Both entry points go through `RunTag` —
-      `CoreService.URLTest` against the running instance, `ApplicationService`'s
-      standalone test against a throwaway one — so neither `coresvc` nor `libcore`
-      has to export a URL test helper to the other.
-    - `libcore/coreclient/` is the raw gRPC bridge (`Invoke`/`Stream`/`Probe` with a
-      passthrough proto codec). Bound as `BridgeClient` for Kotlin.
-    - `libcore/cmd/` holds `boxoption` (option codegen), `boxversion`, `licencecollect`,
-      `ruleset_generate`, `prototrim` (the vendored-schema trimmer `make proto` runs).
-      `libcore/plugin/` houses Go-side plugin support: outbound adapters (
-      `http`, `juicity`, `trusttunnel`, `vless`), plus `mieruproto` (Mieru traffic-pattern
-      protobuf), `raybridge` (*ray-compatible API shim), `plugindns` (plugin DNS conn plumbing), and
-      `pluginoption` (option types/constants for hooked protocols).
-    - `libcore/pb/` is generated by `make proto` and committed, so building the core never needs
-      `protoc`.
-- `proto/` — the gRPC contract between the UI and the core host, and the single source of truth for
-  it. Two trees, generated the same way but owned differently:
-    - `daemon/started_service.proto` is **vendored from the pinned sing-box** by `make proto`
-      (only Java options are injected, which never reach the wire). It is the core-scoped
-      surface — status, log, connections, groups, clash mode, OpenConnect — so husi stays wire
-      compatible with the original sing-box daemon, and the Go side reuses
-      `github.com/sagernet/sing-box/daemon` instead of regenerating it. The copy is trimmed to
-      the RPCs husi calls, because the whole tree is compiled into JVM classes shipped in the
-      app: `buildScript/proto.sh` holds the `KEEP_STARTED_SERVICE_RPCS` allowlist (the same
-      list as the method constants in `fr.husi.core.CoreClient`) and `libcore/cmd/prototrim`
-      copies those RPCs plus every type they reach, line for line.
-      Using a new upstream RPC means adding it to that list and re-running `make proto`; an
-      allowlisted RPC that upstream renamed or dropped fails the run. Never edit it by hand.
-    - `husi/v1/*.proto` is husi's own: what sing-box has no place for (plugin processes, pushed
-      assets, husi's URL test knobs, schema generation).
-  Both share one protoc include path for the `:proto` Gradle module, which generates the
-  Kotlin/Java message classes into `build/proto/`; `composeApp` `commonMain` consumes them as
-  `fr.husi.proto.v1` and `fr.husi.proto.daemon`.
-  Adding a message means editing `husi/v1/`, then `make proto`.
-  Kotlin talks to the host through `fr.husi.core.CoreClient` (typed suspend/Flow over
-  `BridgeClient`), injected via Koin.
-- `composeApp/` — Kotlin Multiplatform shared module (Android library + JVM `desktop` target).
-  Source sets: `commonMain`, `androidMain`, `desktopMain`, plus `androidDebug` and tests. Package
-  root is `fr.husi`.
-- `androidApp/` — thin Android `application` that depends on `:composeApp`. Defines the
-  `AndroidManifest.xml`, ABI splits, signing, and `foss`/`play` flavors.
-- `library/` — vendored `DragDropSwipeLazyColumn` submodule.
-- `launcher/` — Zig project for the UI launcher (`src/main.zig`) embedded into desktop installers.
-  Windowed, statically linked against musl so one binary runs on any distro. It only locates a JVM
-  and execs the jar; privileges live in the core host process (`husi-core service install` copies
-  the shim+library pair into a protected path, and on Linux leaves a capability-scoped, non-root
-  unit behind).
-- `plugin/api/` — shared Android library that plugin APKs link against.
-  `plugin/{hysteria2,juicity,mieru,naive,shadowquic}/` each wrap a Go/Rust submodule built into JNI
-  libs by `buildScript/plugin/<name>.sh`. The matching Gradle module's `setupPlugin(...)` registers
-  an `externalBuild` `Exec` task that hooks into `mergeJniLibFolders`.
-- `buildSrc/src/main/kotlin/Helpers.kt` — Gradle conventions: `setupApp`, `setupAppCommon`,
-  `setupKotlinCommon`, `setupPlugin`, `requireMetadata` (reads `husi.properties`),
-  `requireLocalProperties`, APK renamer, and `writePlatformInfo` (used to emit `expect`/`actual`
-  `PlatformInfo` per desktop target).
-- `buildScript/` — bash scripts invoked via `./run`: `lib/{core,assets,source}.sh`,
-  `plugin/<name>.sh`, `init/{env,env_ndk,version}.sh`, plus `rename.sh` for forking under a new
-  package name.
-- `release/{linux,macos,windows}/package.sh` — invoked by `make desktop_package_*` after the uber
-  jar exists. Linux packaging uses `nfpm` for `deb`/`rpm`/`pacman`; the two root-free formats are
-  `tarball` (ships `release/linux/desktop/install.sh`, which installs under `~/.local`) and
-  `appimage` (bundles a `jlink` runtime, so it needs no system Java — `release/linux/appimage/`).
-  Windows packaging Authenticode signs its payloads via `release/windows/codesign.sh`; its NSIS
-  installer is per-user (`RequestExecutionLevel user`) and only elevates for the optional service.
-- Linux desktop metadata is templated from `release/desktop/package-metadata.sh`: every format gets
-  the desktop entry plus the AppStream `release/linux/desktop/husi.metainfo.xml`, and the AppImage
-  additionally carries `X-AppImage-Version` / `X-AppImage-Homepage` in its own copy of the entry
-  and a `gh-releases-zsync` string in `.upd_info`, derived from the GitHub repository `APP_URL`
-  names (override with `--appimage-update-info`). That last one makes appimagetool emit a `.zsync`
-  beside the AppImage: it is what desktop integrators (AppManager, Gear Lever) update from, so it
-  has to be published as a release asset — the release workflow uploads the whole packages
-  directory, so it already is. `<release version>` in the metainfo is the current `VERSION_NAME`,
-  and installers read it when the desktop entry is not available.
+`database/SagerDatabase` uses an explicit `AutoMigration` chain plus custom `Migration` specs in `database/Migrations.kt`. Add a new entry every time you bump the schema or KSP will fail.
 
-## Compose UI (composeApp)
+### aboutlibraries
 
-- DI via **Koin**. Boot at `fr.husi.di.initHusiKoin(repository)` (called from `Application.onCreate`
-  on Android, `DesktopMain.main` on desktop). Koin modules: `commonUiModule()`,
-  `commonNavigationModule`, plus `expect` `platformKoinModules()` / `platformRepositoryModule()`.
-- `Repository` (`fr.husi.repository.Repository`) is the central platform-abstraction interface (
-  filesystem dirs, string resources, service start/stop, `boxService`). `SagerRepository` is the
-  Android impl (subclass `AndroidRepository`); `DesktopRepository` is the desktop impl. Always go
-  through `Repository` instead of touching `Context` directly in `commonMain`.
-- `database/SagerDatabase` — Room database with explicit `AutoMigration` chain plus custom
-  `Migration` specs in `database/Migrations.kt`. Add a new entry every time you bump the schema or
-  KSP will fail. Schemas land in `composeApp/schemas/`.
-- `bg/` — service plumbing (subscription/route asset auto-update, `BackendState`,
-  `DeepLinkDispatcher`). All plugin spawning — including standalone URL test — goes through
-  the Go `pluginpool` in the core host. On Android this powers `ProxyService`/`VpnService`/
-  `TileService` running in the `:bg` process; on desktop it's wired through
-  `DesktopTaskScheduler`/`DesktopTaskRegistry`. The desktop side registers its timers with the
-  OS through `nucleus.scheduler` (systemd user timers, launch agents, Windows scheduled tasks);
-  running a task stays husi's own path — the OS wakes the launcher with
-  `--nucleus-scheduler-run <id>` and `DesktopMain` forwards the id into the already running
-  instance, so Nucleus' `DesktopBootReceiver` (and its constraints, retries and run metadata)
-  is deliberately unused. `LegacyDesktopTaskCleanup` removes the pre-Nucleus entries husi used
-  to write itself.
-- `libcore/BoxServiceFactory.kt` is the `expect`/`actual` bridge that hands the platform a
-  configured `Service` from the Go core.
-- `ui/` is the Compose tree. Sub-packages mirror feature areas (`profile`, `dashboard`,
-  `configuration`, `tools`); ViewModels follow Jetpack Lifecycle. Navigation uses Compose
-  `navigation3`.
-- Resources: shared in `composeApp/src/commonMain/composeResources/`, accessed via the generated
-  `fr.husi.resources.Res` (`packageOfResClass = "fr.husi.resources"`).
+Do not run `exportLibraryDefinitions` and `exportLibraryDefinitionsDesktop` in one Gradle invocation: `configPath` is chosen from the start-parameter task names, so both tasks would share the desktop merge output. `aboutlibraries_go` scans the local module cache — run `go mod download` in `libcore` first.
 
-## Android process model
+### Icon pipeline
 
-The Android app runs in **two processes**: the main UI process and `:bg` (proxy service, tile,
-BootReceiver, Tasker receiver, Room invalidation service). `Application.kt` branches on
-`isMainProcess`/`isBgProcess` and only `isBgProcess` calls
-`Libcore.initCore(shouldOperateFiles=true, ...)` and `boxService.start()`. Code added under `bg/`
-should respect this split.
+- `art/icon.svg` is the full mark; `art/icon-small.svg` is the simplified variant (triangle + outer bowl) used at or below 96px — they serve different size ranges and must not be merged.
+- `buildScript/icon.py` rejects anything but `<path>` elements in the SVG.
+- Never hand-edit generated icon files (Android `<vector>` XML included) — edit the SVG and re-run `make icon`.
 
-`:bg` serves the same gRPC surface as the desktop host (`coresvc` on
-`<filesDir>/api.sock`). The UI process talks to it through `CoreClient` /
-`BridgeClient` (state, speed and alerts via `SubscribeServiceEvents`; dashboard /
-groups / logs / … via the shared daemon + husi services). The binder
-(`SagerConnection` + a plain `Binder` on `ProxyService`/`VpnService`) is
-**lifecycle-only** — `BIND_AUTO_CREATE` starts/keeps `:bg` alive; the old AIDL
-data plane (`IServiceControl` / `IServiceObserver` / `SpeedDisplayData`) is
-gone. All plugin processes (service start and standalone URL test) are spawned
-by the Go `pluginpool` inside `:bg` (or the desktop session/daemon host).
+### Zig projects
 
-## Desktop entry point
+`launcher/` and `libcore/shim/` are separate Zig projects on purpose: the launcher links musl statically; the shim links libc dynamically (it needs `dlopen` and loads a glibc cgo artifact). Do not merge them.
 
-`DesktopMain.kt` is a Clikt CLI: `-d/--dir`, `-l/--log-level`, `-m/--many` (allow multiple
-instances), `-b/--background`, plus deep-link arguments. Uses Compose
-`application { Window(...) Tray(...) }`. Single-instance enforcement and tray live here. Data dir
-defaults to the platform config directory: Linux uses `$XDG_CONFIG_HOME/husi` when set, otherwise
-`$HOME/.config/husi`; macOS uses `$HOME/Library/Application Support/husi`; Windows uses
-`%APPDATA%\husi` or `%USERPROFILE%\AppData\Roaming\husi`. Override with `-d` for a custom data dir.
+### Windows signing
 
-A core host owns its socket exclusively — `coresvc.Host.Start` refuses a socket another host still
-answers on rather than unlinking it — so each UI instance needs a host directory of its own. The
-instance holding the single-instance lock keeps `<dataDir>/core/`, which is also what CLI
-subcommands (`husi api …`) and scheduled task runs dial; a `-m/--many` instance gets
-`<dataDir>/core/instances/<pid>/` instead, deletes it on exit, and prunes the leftovers of
-instances that died. Host lifetime follows the same split: a session host is a child process and
-dies with its UI (service and all), while an attached system daemon only loses a client — it
-outlives any single UI and may be serving another instance.
+`daemonhost.VerifyCorePairSignature` binds `husi-core.exe` to the `husicore.dll` it loads. The certificate's validity window matters at runtime — `validateUntrustedSelfSignedCertificate` compares `time.Now()` against the certificate, not the countersignature. An expired cert starts failing installed daemons. Building without a certificate requires explicit `WINDOWS_NO_SIGN=1`.
 
-Which is why the daemon counts its clients. `DaemonService.AttachClient` is a lease: a UI attached
-to a daemon holds that stream open for as long as it is attached, and the daemon stops the service
-once the last lease ends — after a short grace period, so a UI that reconnects (a restart, the
-reattach a daemon install triggers) does not read as the end of the service. That stop keeps
-`was_running` and the snapshot: nobody asked the service to end, so a boot restore still has its
-input. A service the daemon restored on boot therefore keeps running until a client attaches and
-leaves. Leases are owner-only, so a read-only viewer of someone else's daemon holds none.
+## Project-specific context
 
-# Coding conventions
+### Desktop Gradle requires the host libcore jar
 
-Canonical conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it first if you need to write code.
+Desktop Gradle picks the libcore jar from `os.name`/`os.arch`. A missing jar fails Gradle sync immediately — even Android-only IDE work needs the host desktop jar built first (`make libcore`).
 
-# Repo conventions to know
+### Android two-process model
 
-- Version metadata lives in `husi.properties` (`PACKAGE_NAME`, `VERSION_NAME`, `VERSION_CODE`, plus
-  `<PLUGIN>_VERSION_*` per plugin). `requireMetadata()` reads it from Gradle.
-- Android signing: drop `KEYSTORE_PASS` / `ALIAS_NAME` / `ALIAS_PASS` into `local.properties` (or
-  env), and replace `release.keystore`. A `FossRelease` build with no keystore aborts via
-  `exitProcess(0)` in `setupAppCommon` — that's intentional, not a bug.
-- Windows signing (`release/windows/codesign.sh`, sourced by `release/windows/package.sh`): the
-  launcher, `husi-core.exe`, `husicore.dll` and the NSIS installer are Authenticode signed with
-  **one self-signed certificate** via `osslsigncode` (CI cross-compiles on Ubuntu, so `signtool` is
-  not an option). The point is not SmartScreen — it is that `daemonhost.VerifyCorePairSignature`
-  binds `husi-core.exe` to the `husicore.dll` it loads, following sing-box's `boxdd`. Configure with
-  `WINDOWS_SIGNING_P12` (or `WINDOWS_SIGNING_P12_BASE64` for CI) plus
-  `WINDOWS_SIGNING_P12_PASSWORD`; signing is on by default, and building without a certificate has
-  to be asked for with `make desktop_package_windows … WINDOWS_NO_SIGN=1`. Mint the certificate
-  with a long life — `validateUntrustedSelfSignedCertificate` compares `time.Now()` against the
-  **certificate** validity window, not the countersignature, so an expired certificate starts
-  failing installed daemons regardless of the PE timestamp:
+The app runs in two processes: UI and `:bg`. Only `:bg` calls `Libcore.initCore(shouldOperateFiles=true, ...)` and `boxService.start()`. The binder (`SagerConnection`) is lifecycle-only — `BIND_AUTO_CREATE` starts/keeps `:bg` alive; the data plane is gRPC over `<filesDir>/api.sock`.
 
-  ```
-  openssl req -x509 -newkey rsa:4096 -keyout husi-signing-key.pem -out husi-signing-cert.pem \
-      -days 3650 -nodes -subj "/CN=husi" \
-      -addext "extendedKeyUsage=codeSigning" -addext "basicConstraints=critical,CA:true"
-  openssl pkcs12 -export -inkey husi-signing-key.pem -in husi-signing-cert.pem -out husi-signing.p12
-  ```
+### Desktop core host
 
-  The public half is committed as `release/windows/husi-signing-cert.pem` so downloads can be
-  checked against it — see `release/windows/README.md` for the fingerprints. Nothing in the code
-  reads that file: `VerifyCorePairSignature` compares the shim against its own library rather than
-  pinning a certificate, so the published fingerprint is for humans, not for the daemon. Keep the
-  private key out of the repository. The runtime bundled into the `-jbr` packages is signed by
-  JetBrains and is not re-signed here; nothing in husi checks it.
-- Bundled Java runtimes (the Linux AppImage and the Windows `-jbr` packages) are linked by `jlink`
-  from one shared module list, `release/desktop/jre-modules.sh`. `jlink` links an image for the
-  platform its modules belong to, so both are produced on the Linux release runner. The Windows
-  variant deliberately omits `--strip-native-debug-symbols` (objcopy only understands ELF) and
-  `--generate-cds-archive` (cannot be generated cross-platform). `JBR_VERSION` in
-  `buildScript/init/version.sh` has to track `JAVA_VERSION`: the host `jlink` cannot read modules
-  newer than itself.
-- App icons all derive from `art/` — the mark alone, transparent, on a 135.47 canvas, and nothing
-  but `<path>` elements (`buildScript/icon.py` rejects anything else rather than silently dropping
-  it). `make icon` measures the mark's real bounding box by rendering it, centres it, and emits
-  every committed variant; the rendered outputs are committed the way the AboutLibraries JSON is,
-  so an ordinary build never needs `rsvg-convert` or ImageMagick. Edit the SVG and re-run — never
-  hand-edit a generated file, the Android `<vector>` XML included.
+Each UI instance needs its own host directory. The single-instance lock holder uses `<dataDir>/core/`; a `--many` instance gets `<dataDir>/core/instances/<pid>/` (deleted on exit, stale dirs pruned). `coresvc.Host.Start` refuses a socket another host still answers on rather than unlinking it.
 
-  There are **two** artworks, because one cannot survive the whole size range. `art/icon.svg` is
-  the full mark; `art/icon-small.svg` keeps only the triangle and the outer bowl, with the bowl
-  thickened and round-capped. `ArtworkSet.select` hands out the simplified one at or below
-  `SMALL_ARTWORK_MAX_SIZE`, which is 96 for a measurable reason: the three inner waves sit about
-  4.3 canvas units apart, so with strokes floored at `MIN_STROKE_PIXELS` they stop being
-  separable below ~98px and smear into one amber blob. Only the raster outputs tier; the Android
-  `<vector>` always uses the full mark, since it is resolution independent.
+`DaemonService.AttachClient` is a lease: the daemon stops the service once the last lease ends (after a grace period). A service the daemon restored on boot keeps running until a client attaches and leaves.
 
-  Every raster also gets stroke hinting: at each output size the strokes are floored at
-  `MIN_STROKE_PIXELS`, because the mark's natural 1.5–2 unit strokes land at 0.18–0.24px in a
-  16px raster and antialias into nothing. The floor applies only to strokes at or above
-  `STRUCTURAL_STROKE_WIDTH` — the artwork also carries two sub-unit hairlines that outline a
-  filled shape, and lifting those to a visible width would draw a black keyline around the
-  triangle. Hinting is a `max()`, so it is a no-op at 512px and above.
+### Android signing
 
-  The mark is line art (thin amber strokes with no filled body), so it needs a background plate
-  on every surface it does not control; `BACKGROUND` is the one colour that decides this. It is
-  deliberately near-black: amber `#ffb300` sits at 1.8:1 against white and 9.6:1 against
-  `#191C15`, so the old white plate was both the glaring option and the low-contrast one.
-  Only Android's adaptive foreground goes plate-free, because the launcher composites the
-  `<background>` layer itself.
+A `FossRelease` build with no keystore calls `exitProcess(0)` in `setupAppCommon` — that is intentional, not a bug.
 
-  What the plate becomes is per-platform, and the differences are requirements, not taste:
-  macOS gets the HIG geometry (a rounded square inset ~10% of the canvas, corner radius 22.5% of
-  that square) because the Dock expects the margin; the Play Store PNGs are full-bleed and
-  **opaque** because Play rejects transparency and applies its own rounding; Windows `.ico` and
-  the Linux hicolor PNG get a lightly inset rounded plate. Linux used to reuse the Play Store
-  listing image for `/usr/share/pixmaps` — those two have opposite requirements, so it now has
-  its own `release/linux/desktop/icon.png`.
+### Cross-compiling desktop libcore
 
-  `<monochrome>` is a separate generated drawable, not the colour foreground reused: themed
-  icons keep only alpha, and this mark's 1.5–2pt strokes come out too faint, so the monochrome
-  variant thickens them by `MONOCHROME_STROKE_SCALE`.
+Pass `JNI_INCLUDE=/path/to/jni` when JNI headers aren't auto-detected; for Darwin targets on non-Darwin hosts also pass `DARWIN_SDK=/path/to/MacOSX.sdk`.
 
-  The `.icns` is written directly rather than through `png2icns`, which emits JPEG-2000 payloads
-  for the large elements; the elements here are PNG, including the retina ones (`ic11`–`ic14`)
-  that libicns does not write at all.
-
-  Plugin APKs keep their own icons under `plugin/<name>/src/main/res/` and are not part of this
-  pipeline.
-- `composeApp/executableSo/` is added as a JNI libs source dir for the Android app (used to bundle
-  plugin executables alongside the host APK).
-- `make aboutlibraries` (`aboutlibraries_go` + `aboutlibraries_android` +
-  `aboutlibraries_desktop`) rewrites the committed OSS metadata at
-  `composeApp/src/{android,desktop}Main/composeResources/files/aboutlibraries.json`. The UI
-  loads those files at runtime; regular `make apk` / `make desktop` do not regenerate them.
-  The AboutLibraries Gradle plugin runs with `offlineMode = true` and will not download SPDX
-  license texts (or any other remote license data). Full texts are vendored as
-  `composeApp/src/commonMain/aboutlibraries/licenses/<SPDX-id>.json` (shared) and
-  `composeApp/src/desktopMain/aboutlibraries/licenses/` (desktop-only, currently the LGPLs).
-  `hash` / `spdxId` must be the SPDX id that library presets reference (e.g.
-  `GPL-3.0-or-later`). Go module presets from `libcore/cmd/licencecollect` only carry those
-  ids, no body; without a matching file here, the next export ships empty `content` and the
-  OSS screen falls back to opening the license URL. Add a new JSON when a dependency
-  introduces a license that is not already vendored and is not already present in a Maven
-  POM. `aboutlibraries_go` is offline too: `licencecollect` scans the license files of every
-  module in the local module cache with `github.com/google/licensecheck`, so run
-  `go mod download` in `libcore` first — it never downloads anything itself. Do not
-  run `exportLibraryDefinitions` and `exportLibraryDefinitionsDesktop` in one Gradle
-  invocation: `configPath` is chosen from the start-parameter task names, so both tasks would
-  share the desktop merge output.
-- `make proto` re-vendors the sing-box schema and regenerates the Go stubs for `husi/v1` only via
-  `protoc` — a second copy of `daemon/started_service.proto` in the binary would panic the
-  protobuf registry. The protoc plugins are pinned by the `tool` block in `libcore/go.mod` rather
-  than by whatever happens to be installed globally.
-- `.gitignore` excludes `.claude/`, `.codex/`, `.agents`, generated `composeApp/libs/`, and
-  submodule trees under `external/`. Build outputs (`build/`, `*.aar`, `*.jar` in libs, `*.tar.zst`
-  assets) are also ignored.

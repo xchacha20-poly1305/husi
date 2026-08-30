@@ -20,18 +20,10 @@
   <summary xml:lang="zh_CN">__HUSI_APP_DESCRIPTION_ZH_CN__</summary>
   <summary xml:lang="zh_TW">__HUSI_APP_DESCRIPTION_ZH_TW__</summary>
 
-  <!-- Same wording as the store listing in fastlane/metadata/android. -->
   <description>
-    <p>
-      Husi is a non-professional proxy-set-based multiplatform proxy tool set.
-      With graphical config editor, network tools and proxy status observation.
-    </p>
-    <p xml:lang="zh_CN">
-      虎兕 是一个非专业的基于代理集的跨平台代理工具集。有着图形化编辑配置、网络工具以及代理状态观测的功能。
-    </p>
-    <p xml:lang="zh_TW">
-      虎兕 是一個非專業的基於代理集的跨平台代理工具集。有著圖形化編輯配置、網路工具以及代理狀態觀測的功能。
-    </p>
+    <p>__HUSI_APP_FULL_DESCRIPTION__</p>
+    <p xml:lang="zh_CN">__HUSI_APP_FULL_DESCRIPTION_ZH_CN__</p>
+    <p xml:lang="zh_TW">__HUSI_APP_FULL_DESCRIPTION_ZH_TW__</p>
   </description>
 
   <developer id="__HUSI_PACKAGE_NAME__">
