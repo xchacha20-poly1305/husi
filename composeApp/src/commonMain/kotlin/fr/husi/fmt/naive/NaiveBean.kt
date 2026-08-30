@@ -3,6 +3,7 @@ package fr.husi.fmt.naive
 import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.BeanConverters
+import fr.husi.fmt.migrateDeletedCongestionControl
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
 
@@ -101,7 +102,7 @@ class NaiveBean : AbstractBean() {
         }
 
         if (version >= 3) {
-            quicCongestionControl = input.readString()
+            quicCongestionControl = migrateDeletedCongestionControl(input.readString())
         }
 
         if (version >= 4) {

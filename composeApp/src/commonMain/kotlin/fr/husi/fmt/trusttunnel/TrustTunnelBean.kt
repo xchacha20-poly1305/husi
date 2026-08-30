@@ -3,6 +3,7 @@ package fr.husi.fmt.trusttunnel
 import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.BeanConverters
+import fr.husi.fmt.migrateDeletedCongestionControl
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
 
@@ -80,7 +81,7 @@ class TrustTunnelBean : AbstractBean() {
         password = input.readString()
         healthCheck = input.readBoolean()
         quic = input.readBoolean()
-        quicCongestionControl = input.readString()
+        quicCongestionControl = migrateDeletedCongestionControl(input.readString())
         serverName = input.readString()
         alpn = input.readString()
         certificates = input.readString()

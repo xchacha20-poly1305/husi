@@ -94,13 +94,6 @@ private fun LazyListScope.naiveSettings(
     viewModel: NaiveSettingsViewModel,
 ) {
     val protos = listOf("https", "quic")
-    val quicCongestionControls = listOf(
-        "",
-        "bbr",
-        "bbr2",
-        "cubic",
-        "reno",
-    )
 
     preferenceGroup(key = "name") {
         TextFieldPreference(
@@ -181,7 +174,7 @@ private fun LazyListScope.naiveSettings(
         )
         ListPreference(
             value = uiState.quicCongestionControl,
-            values = quicCongestionControls,
+            values = congestionControlsWithEmpty,
             onValueChange = { viewModel.setQuicCongestionControl(it) },
             title = { Text(stringResource(Res.string.tuic_congestion_controller)) },
             enabled = uiState.proto == "quic",

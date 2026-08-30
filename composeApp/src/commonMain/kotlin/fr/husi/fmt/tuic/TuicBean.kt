@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
+import fr.husi.fmt.migrateDeletedCongestionControl
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
@@ -120,7 +121,7 @@ class TuicBean : AbstractBean() {
         token = input.readString()
         certificates = input.readString()
         udpRelayMode = input.readString()
-        congestionController = input.readString()
+        congestionController = migrateDeletedCongestionControl(input.readString())
         alpn = input.readString()
         disableSNI = input.readBoolean()
         zeroRTT = input.readBoolean()

@@ -99,16 +99,6 @@ private fun LazyListScope.trustTunnelSettings(
     uiState: TrustTunnelUiState,
     viewModel: TrustTunnelSettingsViewModel,
 ) {
-    val congestionControls = listOf(
-        "",
-        "bbr",
-        "cubic",
-        "reno",
-        "bbr_standard",
-        "bbr2",
-        "bbr_variant",
-    )
-
     preferenceGroup(key = "name") {
         TextFieldPreference(
             value = uiState.name,
@@ -194,7 +184,7 @@ private fun LazyListScope.trustTunnelSettings(
         )
         ListPreference(
             value = uiState.quicCongestionControl,
-            values = congestionControls,
+            values = congestionControlsWithEmpty,
             onValueChange = { viewModel.setQuicCongestionControl(it) },
             title = { Text(stringResource(Res.string.tuic_congestion_controller)) },
             icon = {

@@ -181,6 +181,15 @@ internal val congestionControls
         "new_reno",
     )
 
+internal val congestionControlsWithEmpty: List<String>
+    get() {
+        val congestionControls = congestionControls
+        return buildList(1 + congestionControls.size) {
+            add("")
+            addAll(congestionControls)
+        }
+    }
+
 internal val muxTypes = listOf("h2mux", "smux", "yamux")
 
 internal val muxStrategies = listOf(

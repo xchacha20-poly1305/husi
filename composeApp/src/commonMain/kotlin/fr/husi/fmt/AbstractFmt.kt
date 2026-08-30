@@ -44,14 +44,14 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
+import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
+import fr.husi.fmt.naive.parseNaiveOutbound
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openconnect.buildSingBoxEndpointOpenConnectBean
 import fr.husi.fmt.openconnect.parseOpenConnectEndpoint
 import fr.husi.fmt.openvpn.OpenVPNBean
 import fr.husi.fmt.openvpn.buildSingBoxEndpointOpenVPNBean
 import fr.husi.fmt.openvpn.parseOpenVPNEndpoint
-import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
-import fr.husi.fmt.naive.parseNaiveOutbound
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
@@ -89,6 +89,17 @@ import fr.husi.ktx.getObject
 import fr.husi.ktx.getStr
 import fr.husi.ktx.kxs
 import fr.husi.ktx.toJsonStringKxs
+
+// https://github.com/SagerNet/sing-box/commit/24a429ad91db61dd0c1eb4a39d7d9f051f70ef17
+fun migrateDeletedCongestionControl(congestionControl: String): String {
+    return when (congestionControl) {
+        "bbr_standard", "bbr_variant", "bbr_meta_v1", "bbr_quiche",
+        "bbr2", "bbr2_aggressive",
+            -> "bbr"
+
+        else -> congestionControl
+    }
+}
 
 const val ECH_CONFIGS_PEM_HEADER = "-----BEGIN ECH CONFIGS-----"
 const val ECH_CONFIGS_PEM_FOOTER = "-----END ECH CONFIGS-----"
@@ -141,27 +152,37 @@ suspend fun buildSingBoxOutbound(bean: AbstractBean): String = when (bean) {
     is DirectBean -> kxs.encodeToString(buildSingBoxOutboundDirectBean(bean).apply { tag = bean.name })
     is StandardV2RayBean ->
         buildSingBoxOutboundStandardV2RayBean(bean).apply { tag = bean.name }.toJsonStringKxs()
+
     is HysteriaBean ->
         buildSingBoxOutboundHysteriaBean(bean).apply { tag = bean.name }.toJsonStringKxs()
+
     is ShadowsocksBean ->
         kxs.encodeToString(buildSingBoxOutboundShadowsocksBean(bean).apply { tag = bean.name })
+
     is SnellBean ->
         kxs.encodeToString(buildSingBoxOutboundSnellBean(bean).apply { tag = bean.name })
+
     is SOCKSBean -> kxs.encodeToString(buildSingBoxOutboundSocksBean(bean).apply { tag = bean.name })
     is SSHBean -> kxs.encodeToString(buildSingBoxOutboundSSHBean(bean).apply { tag = bean.name })
     is TuicBean -> kxs.encodeToString(buildSingBoxOutboundTuicBean(bean).apply { tag = bean.name })
     is WireGuardBean ->
         kxs.encodeToString(buildSingBoxEndpointWireGuardBean(bean).apply { tag = bean.name })
+
     is OpenConnectBean ->
         kxs.encodeToString(buildSingBoxEndpointOpenConnectBean(bean).apply { tag = bean.name })
+
     is OpenVPNBean ->
         kxs.encodeToString(buildSingBoxEndpointOpenVPNBean(bean).apply { tag = bean.name })
+
     is AnyTLSBean ->
         kxs.encodeToString(buildSingBoxOutboundAnyTLSBean(bean).apply { tag = bean.name })
+
     is NaiveBean ->
         kxs.encodeToString(buildSingBoxOutboundNaiveBean(bean).apply { tag = bean.name })
+
     is TrustTunnelBean ->
         kxs.encodeToString(buildSingBoxOutboundTrustTunnelBean(bean).apply { tag = bean.name })
+
     else -> error("invalid bean: ${bean.javaClass.simpleName}")
 }
 
