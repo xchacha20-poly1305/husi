@@ -120,6 +120,11 @@ func setupLog(maxLogLine int, path string, level log.Level, truncate bool) (err 
 		true,
 	)
 	logFactory.SetLevel(level)
+	err = logFactory.Start()
+	if err != nil {
+		_, _ = os.Stderr.WriteString(E.Cause(err, "start log factory").Error())
+		return
+	}
 	log.SetStdLogger(logFactory.Logger())
 
 	return
