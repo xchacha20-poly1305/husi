@@ -45,6 +45,7 @@ import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.SubscribeServiceEventsResponse
 import fr.husi.proto.v1.URLTestOptions
 import fr.husi.proto.v1.URLTestResponse
+import fr.husi.proto.v1.attachClientRequest
 import fr.husi.proto.v1.checkConfigRequest
 import fr.husi.proto.v1.claimServiceRequest
 import fr.husi.proto.v1.generateSchemaRequest
@@ -158,6 +159,8 @@ interface CoreClient {
     suspend fun getDaemonInfo(): GetDaemonInfoResponse
     suspend fun claimService()
     suspend fun takeOverService()
+
+    fun attachClient(): Flow<Unit>
     suspend fun startService(request: StartServiceRequest)
     suspend fun stopService()
     suspend fun getClientMetadata(): GetClientMetadataResponse
@@ -746,6 +749,9 @@ class BridgeCoreClient private constructor(
         )
     }
 
+    override fun attachClient(): Flow<Unit> =
+        stream(Methods.ATTACH_CLIENT, attachClientRequest { }.toByteArray()) { }
+
     override suspend fun setStartAtBoot(enabled: Boolean) {
         unary(
             Methods.SET_START_AT_BOOT,
@@ -810,6 +816,7 @@ class BridgeCoreClient private constructor(
 
         const val GET_DAEMON_INFO = "/husi.v1.DaemonService/GetDaemonInfo"
         const val CLAIM_SERVICE = "/husi.v1.DaemonService/ClaimService"
+        const val ATTACH_CLIENT = "/husi.v1.DaemonService/AttachClient"
         const val TAKE_OVER_SERVICE = "/husi.v1.DaemonService/TakeOverService"
         const val START_SERVICE = "/husi.v1.DaemonService/StartService"
         const val STOP_SERVICE = "/husi.v1.DaemonService/StopService"

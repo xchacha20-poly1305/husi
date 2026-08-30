@@ -470,6 +470,94 @@ func (*TakeOverServiceResponse) Descriptor() ([]byte, []int) {
 	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{7}
 }
 
+// AttachClient registers the caller as a live client for as long as it keeps
+// the stream open. The daemon runs a service on behalf of its clients, so when
+// the last one goes away — closing its window or dying — the service goes with
+// it. The snapshot survives that stop: nobody asked for the service to end, so
+// a boot restore still has something to restore.
+//
+// A service the daemon restored on boot has no client to lose and keeps running
+// until one attaches and leaves. Detaching is also how a client hands the
+// daemon over, so the daemon waits out a short grace period before stopping: a
+// UI that reconnects — after a restart, or a daemon install — is one client
+// leaving and coming back, not the end of the service.
+//
+// Only HOSTING_DAEMON serves this. A session host is a child of its one UI and
+// already dies with it.
+type AttachClientRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachClientRequest) Reset() {
+	*x = AttachClientRequest{}
+	mi := &file_husi_v1_daemon_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachClientRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachClientRequest) ProtoMessage() {}
+
+func (x *AttachClientRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_daemon_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachClientRequest.ProtoReflect.Descriptor instead.
+func (*AttachClientRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{8}
+}
+
+// Sent once the daemon has registered the client, so the caller knows the
+// stream is a lease rather than a request for one.
+type AttachClientResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachClientResponse) Reset() {
+	*x = AttachClientResponse{}
+	mi := &file_husi_v1_daemon_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachClientResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachClientResponse) ProtoMessage() {}
+
+func (x *AttachClientResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_daemon_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachClientResponse.ProtoReflect.Descriptor instead.
+func (*AttachClientResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{9}
+}
+
 type StartServiceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Rendered config, pushed as content so starting never depends on the
@@ -487,7 +575,7 @@ type StartServiceRequest struct {
 
 func (x *StartServiceRequest) Reset() {
 	*x = StartServiceRequest{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[8]
+	mi := &file_husi_v1_daemon_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -499,7 +587,7 @@ func (x *StartServiceRequest) String() string {
 func (*StartServiceRequest) ProtoMessage() {}
 
 func (x *StartServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[8]
+	mi := &file_husi_v1_daemon_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -512,7 +600,7 @@ func (x *StartServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartServiceRequest.ProtoReflect.Descriptor instead.
 func (*StartServiceRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{8}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StartServiceRequest) GetConfig() string {
@@ -567,7 +655,7 @@ type PluginProcessSpec struct {
 
 func (x *PluginProcessSpec) Reset() {
 	*x = PluginProcessSpec{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[9]
+	mi := &file_husi_v1_daemon_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -579,7 +667,7 @@ func (x *PluginProcessSpec) String() string {
 func (*PluginProcessSpec) ProtoMessage() {}
 
 func (x *PluginProcessSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[9]
+	mi := &file_husi_v1_daemon_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -592,7 +680,7 @@ func (x *PluginProcessSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginProcessSpec.ProtoReflect.Descriptor instead.
 func (*PluginProcessSpec) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{9}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *PluginProcessSpec) GetName() string {
@@ -634,7 +722,7 @@ type PluginFile struct {
 
 func (x *PluginFile) Reset() {
 	*x = PluginFile{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[10]
+	mi := &file_husi_v1_daemon_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -646,7 +734,7 @@ func (x *PluginFile) String() string {
 func (*PluginFile) ProtoMessage() {}
 
 func (x *PluginFile) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[10]
+	mi := &file_husi_v1_daemon_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -659,7 +747,7 @@ func (x *PluginFile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginFile.ProtoReflect.Descriptor instead.
 func (*PluginFile) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{10}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PluginFile) GetName() string {
@@ -685,7 +773,7 @@ type ServiceOptions struct {
 
 func (x *ServiceOptions) Reset() {
 	*x = ServiceOptions{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[11]
+	mi := &file_husi_v1_daemon_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -697,7 +785,7 @@ func (x *ServiceOptions) String() string {
 func (*ServiceOptions) ProtoMessage() {}
 
 func (x *ServiceOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[11]
+	mi := &file_husi_v1_daemon_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -710,7 +798,7 @@ func (x *ServiceOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceOptions.ProtoReflect.Descriptor instead.
 func (*ServiceOptions) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{11}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ServiceOptions) GetLogLevel() daemon.LogLevel {
@@ -735,7 +823,7 @@ type ClientMetadata struct {
 
 func (x *ClientMetadata) Reset() {
 	*x = ClientMetadata{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[12]
+	mi := &file_husi_v1_daemon_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -747,7 +835,7 @@ func (x *ClientMetadata) String() string {
 func (*ClientMetadata) ProtoMessage() {}
 
 func (x *ClientMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[12]
+	mi := &file_husi_v1_daemon_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -760,7 +848,7 @@ func (x *ClientMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientMetadata.ProtoReflect.Descriptor instead.
 func (*ClientMetadata) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{12}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ClientMetadata) GetProfileId() int64 {
@@ -785,7 +873,7 @@ type StartServiceResponse struct {
 
 func (x *StartServiceResponse) Reset() {
 	*x = StartServiceResponse{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[13]
+	mi := &file_husi_v1_daemon_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -797,7 +885,7 @@ func (x *StartServiceResponse) String() string {
 func (*StartServiceResponse) ProtoMessage() {}
 
 func (x *StartServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[13]
+	mi := &file_husi_v1_daemon_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -810,7 +898,7 @@ func (x *StartServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartServiceResponse.ProtoReflect.Descriptor instead.
 func (*StartServiceResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{13}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{15}
 }
 
 type StopServiceRequest struct {
@@ -821,7 +909,7 @@ type StopServiceRequest struct {
 
 func (x *StopServiceRequest) Reset() {
 	*x = StopServiceRequest{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[14]
+	mi := &file_husi_v1_daemon_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -833,7 +921,7 @@ func (x *StopServiceRequest) String() string {
 func (*StopServiceRequest) ProtoMessage() {}
 
 func (x *StopServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[14]
+	mi := &file_husi_v1_daemon_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -846,7 +934,7 @@ func (x *StopServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopServiceRequest.ProtoReflect.Descriptor instead.
 func (*StopServiceRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{14}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{16}
 }
 
 type StopServiceResponse struct {
@@ -857,7 +945,7 @@ type StopServiceResponse struct {
 
 func (x *StopServiceResponse) Reset() {
 	*x = StopServiceResponse{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[15]
+	mi := &file_husi_v1_daemon_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -869,7 +957,7 @@ func (x *StopServiceResponse) String() string {
 func (*StopServiceResponse) ProtoMessage() {}
 
 func (x *StopServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[15]
+	mi := &file_husi_v1_daemon_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -882,7 +970,7 @@ func (x *StopServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopServiceResponse.ProtoReflect.Descriptor instead.
 func (*StopServiceResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{15}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{17}
 }
 
 type GetClientMetadataRequest struct {
@@ -893,7 +981,7 @@ type GetClientMetadataRequest struct {
 
 func (x *GetClientMetadataRequest) Reset() {
 	*x = GetClientMetadataRequest{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[16]
+	mi := &file_husi_v1_daemon_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -905,7 +993,7 @@ func (x *GetClientMetadataRequest) String() string {
 func (*GetClientMetadataRequest) ProtoMessage() {}
 
 func (x *GetClientMetadataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[16]
+	mi := &file_husi_v1_daemon_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -918,7 +1006,7 @@ func (x *GetClientMetadataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetClientMetadataRequest.ProtoReflect.Descriptor instead.
 func (*GetClientMetadataRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{16}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{18}
 }
 
 type GetClientMetadataResponse struct {
@@ -931,7 +1019,7 @@ type GetClientMetadataResponse struct {
 
 func (x *GetClientMetadataResponse) Reset() {
 	*x = GetClientMetadataResponse{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[17]
+	mi := &file_husi_v1_daemon_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -943,7 +1031,7 @@ func (x *GetClientMetadataResponse) String() string {
 func (*GetClientMetadataResponse) ProtoMessage() {}
 
 func (x *GetClientMetadataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[17]
+	mi := &file_husi_v1_daemon_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -956,7 +1044,7 @@ func (x *GetClientMetadataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetClientMetadataResponse.ProtoReflect.Descriptor instead.
 func (*GetClientMetadataResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{17}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetClientMetadataResponse) GetClientMetadata() *ClientMetadata {
@@ -977,7 +1065,7 @@ type SetStartAtBootRequest struct {
 
 func (x *SetStartAtBootRequest) Reset() {
 	*x = SetStartAtBootRequest{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[18]
+	mi := &file_husi_v1_daemon_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -989,7 +1077,7 @@ func (x *SetStartAtBootRequest) String() string {
 func (*SetStartAtBootRequest) ProtoMessage() {}
 
 func (x *SetStartAtBootRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[18]
+	mi := &file_husi_v1_daemon_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1002,7 +1090,7 @@ func (x *SetStartAtBootRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStartAtBootRequest.ProtoReflect.Descriptor instead.
 func (*SetStartAtBootRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{18}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SetStartAtBootRequest) GetEnabled() bool {
@@ -1020,7 +1108,7 @@ type SetStartAtBootResponse struct {
 
 func (x *SetStartAtBootResponse) Reset() {
 	*x = SetStartAtBootResponse{}
-	mi := &file_husi_v1_daemon_proto_msgTypes[19]
+	mi := &file_husi_v1_daemon_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1032,7 +1120,7 @@ func (x *SetStartAtBootResponse) String() string {
 func (*SetStartAtBootResponse) ProtoMessage() {}
 
 func (x *SetStartAtBootResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_daemon_proto_msgTypes[19]
+	mi := &file_husi_v1_daemon_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1045,7 +1133,7 @@ func (x *SetStartAtBootResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStartAtBootResponse.ProtoReflect.Descriptor instead.
 func (*SetStartAtBootResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{19}
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{21}
 }
 
 var File_husi_v1_daemon_proto protoreflect.FileDescriptor
@@ -1074,7 +1162,9 @@ const file_husi_v1_daemon_proto_rawDesc = "" +
 	"\x13ClaimServiceRequest\"\x16\n" +
 	"\x14ClaimServiceResponse\"\x18\n" +
 	"\x16TakeOverServiceRequest\"\x19\n" +
-	"\x17TakeOverServiceResponse\"\xd8\x01\n" +
+	"\x17TakeOverServiceResponse\"\x15\n" +
+	"\x13AttachClientRequest\"\x16\n" +
+	"\x14AttachClientResponse\"\xd8\x01\n" +
 	"\x13StartServiceRequest\x12\x16\n" +
 	"\x06config\x18\x01 \x01(\tR\x06config\x124\n" +
 	"\aplugins\x18\x02 \x03(\v2\x1a.husi.v1.PluginProcessSpecR\aplugins\x121\n" +
@@ -1110,11 +1200,12 @@ const file_husi_v1_daemon_proto_rawDesc = "" +
 	"\aHosting\x12\x17\n" +
 	"\x13HOSTING_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eHOSTING_DAEMON\x10\x01\x12\x13\n" +
-	"\x0fHOSTING_SESSION\x10\x022\xc8\x04\n" +
+	"\x0fHOSTING_SESSION\x10\x022\x97\x05\n" +
 	"\rDaemonService\x12N\n" +
 	"\rGetDaemonInfo\x12\x1d.husi.v1.GetDaemonInfoRequest\x1a\x1e.husi.v1.GetDaemonInfoResponse\x12K\n" +
 	"\fClaimService\x12\x1c.husi.v1.ClaimServiceRequest\x1a\x1d.husi.v1.ClaimServiceResponse\x12T\n" +
-	"\x0fTakeOverService\x12\x1f.husi.v1.TakeOverServiceRequest\x1a .husi.v1.TakeOverServiceResponse\x12K\n" +
+	"\x0fTakeOverService\x12\x1f.husi.v1.TakeOverServiceRequest\x1a .husi.v1.TakeOverServiceResponse\x12M\n" +
+	"\fAttachClient\x12\x1c.husi.v1.AttachClientRequest\x1a\x1d.husi.v1.AttachClientResponse0\x01\x12K\n" +
 	"\fStartService\x12\x1c.husi.v1.StartServiceRequest\x1a\x1d.husi.v1.StartServiceResponse\x12H\n" +
 	"\vStopService\x12\x1b.husi.v1.StopServiceRequest\x1a\x1c.husi.v1.StopServiceResponse\x12Z\n" +
 	"\x11GetClientMetadata\x12!.husi.v1.GetClientMetadataRequest\x1a\".husi.v1.GetClientMetadataResponse\x12Q\n" +
@@ -1134,7 +1225,7 @@ func file_husi_v1_daemon_proto_rawDescGZIP() []byte {
 }
 
 var file_husi_v1_daemon_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_husi_v1_daemon_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_husi_v1_daemon_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_husi_v1_daemon_proto_goTypes = []any{
 	(Hosting)(0),                      // 0: husi.v1.Hosting
 	(*GetDaemonInfoRequest)(nil),      // 1: husi.v1.GetDaemonInfoRequest
@@ -1145,48 +1236,52 @@ var file_husi_v1_daemon_proto_goTypes = []any{
 	(*ClaimServiceResponse)(nil),      // 6: husi.v1.ClaimServiceResponse
 	(*TakeOverServiceRequest)(nil),    // 7: husi.v1.TakeOverServiceRequest
 	(*TakeOverServiceResponse)(nil),   // 8: husi.v1.TakeOverServiceResponse
-	(*StartServiceRequest)(nil),       // 9: husi.v1.StartServiceRequest
-	(*PluginProcessSpec)(nil),         // 10: husi.v1.PluginProcessSpec
-	(*PluginFile)(nil),                // 11: husi.v1.PluginFile
-	(*ServiceOptions)(nil),            // 12: husi.v1.ServiceOptions
-	(*ClientMetadata)(nil),            // 13: husi.v1.ClientMetadata
-	(*StartServiceResponse)(nil),      // 14: husi.v1.StartServiceResponse
-	(*StopServiceRequest)(nil),        // 15: husi.v1.StopServiceRequest
-	(*StopServiceResponse)(nil),       // 16: husi.v1.StopServiceResponse
-	(*GetClientMetadataRequest)(nil),  // 17: husi.v1.GetClientMetadataRequest
-	(*GetClientMetadataResponse)(nil), // 18: husi.v1.GetClientMetadataResponse
-	(*SetStartAtBootRequest)(nil),     // 19: husi.v1.SetStartAtBootRequest
-	(*SetStartAtBootResponse)(nil),    // 20: husi.v1.SetStartAtBootResponse
-	nil,                               // 21: husi.v1.PluginProcessSpec.EnvironmentEntry
-	(daemon.LogLevel)(0),              // 22: daemon.LogLevel
+	(*AttachClientRequest)(nil),       // 9: husi.v1.AttachClientRequest
+	(*AttachClientResponse)(nil),      // 10: husi.v1.AttachClientResponse
+	(*StartServiceRequest)(nil),       // 11: husi.v1.StartServiceRequest
+	(*PluginProcessSpec)(nil),         // 12: husi.v1.PluginProcessSpec
+	(*PluginFile)(nil),                // 13: husi.v1.PluginFile
+	(*ServiceOptions)(nil),            // 14: husi.v1.ServiceOptions
+	(*ClientMetadata)(nil),            // 15: husi.v1.ClientMetadata
+	(*StartServiceResponse)(nil),      // 16: husi.v1.StartServiceResponse
+	(*StopServiceRequest)(nil),        // 17: husi.v1.StopServiceRequest
+	(*StopServiceResponse)(nil),       // 18: husi.v1.StopServiceResponse
+	(*GetClientMetadataRequest)(nil),  // 19: husi.v1.GetClientMetadataRequest
+	(*GetClientMetadataResponse)(nil), // 20: husi.v1.GetClientMetadataResponse
+	(*SetStartAtBootRequest)(nil),     // 21: husi.v1.SetStartAtBootRequest
+	(*SetStartAtBootResponse)(nil),    // 22: husi.v1.SetStartAtBootResponse
+	nil,                               // 23: husi.v1.PluginProcessSpec.EnvironmentEntry
+	(daemon.LogLevel)(0),              // 24: daemon.LogLevel
 }
 var file_husi_v1_daemon_proto_depIdxs = []int32{
 	0,  // 0: husi.v1.GetDaemonInfoResponse.hosting:type_name -> husi.v1.Hosting
 	3,  // 1: husi.v1.GetDaemonInfoResponse.ownership:type_name -> husi.v1.Ownership
 	4,  // 2: husi.v1.GetDaemonInfoResponse.capabilities:type_name -> husi.v1.Capabilities
-	10, // 3: husi.v1.StartServiceRequest.plugins:type_name -> husi.v1.PluginProcessSpec
-	12, // 4: husi.v1.StartServiceRequest.options:type_name -> husi.v1.ServiceOptions
-	13, // 5: husi.v1.StartServiceRequest.client_metadata:type_name -> husi.v1.ClientMetadata
-	21, // 6: husi.v1.PluginProcessSpec.environment:type_name -> husi.v1.PluginProcessSpec.EnvironmentEntry
-	11, // 7: husi.v1.PluginProcessSpec.files:type_name -> husi.v1.PluginFile
-	22, // 8: husi.v1.ServiceOptions.log_level:type_name -> daemon.LogLevel
-	13, // 9: husi.v1.GetClientMetadataResponse.client_metadata:type_name -> husi.v1.ClientMetadata
+	12, // 3: husi.v1.StartServiceRequest.plugins:type_name -> husi.v1.PluginProcessSpec
+	14, // 4: husi.v1.StartServiceRequest.options:type_name -> husi.v1.ServiceOptions
+	15, // 5: husi.v1.StartServiceRequest.client_metadata:type_name -> husi.v1.ClientMetadata
+	23, // 6: husi.v1.PluginProcessSpec.environment:type_name -> husi.v1.PluginProcessSpec.EnvironmentEntry
+	13, // 7: husi.v1.PluginProcessSpec.files:type_name -> husi.v1.PluginFile
+	24, // 8: husi.v1.ServiceOptions.log_level:type_name -> daemon.LogLevel
+	15, // 9: husi.v1.GetClientMetadataResponse.client_metadata:type_name -> husi.v1.ClientMetadata
 	1,  // 10: husi.v1.DaemonService.GetDaemonInfo:input_type -> husi.v1.GetDaemonInfoRequest
 	5,  // 11: husi.v1.DaemonService.ClaimService:input_type -> husi.v1.ClaimServiceRequest
 	7,  // 12: husi.v1.DaemonService.TakeOverService:input_type -> husi.v1.TakeOverServiceRequest
-	9,  // 13: husi.v1.DaemonService.StartService:input_type -> husi.v1.StartServiceRequest
-	15, // 14: husi.v1.DaemonService.StopService:input_type -> husi.v1.StopServiceRequest
-	17, // 15: husi.v1.DaemonService.GetClientMetadata:input_type -> husi.v1.GetClientMetadataRequest
-	19, // 16: husi.v1.DaemonService.SetStartAtBoot:input_type -> husi.v1.SetStartAtBootRequest
-	2,  // 17: husi.v1.DaemonService.GetDaemonInfo:output_type -> husi.v1.GetDaemonInfoResponse
-	6,  // 18: husi.v1.DaemonService.ClaimService:output_type -> husi.v1.ClaimServiceResponse
-	8,  // 19: husi.v1.DaemonService.TakeOverService:output_type -> husi.v1.TakeOverServiceResponse
-	14, // 20: husi.v1.DaemonService.StartService:output_type -> husi.v1.StartServiceResponse
-	16, // 21: husi.v1.DaemonService.StopService:output_type -> husi.v1.StopServiceResponse
-	18, // 22: husi.v1.DaemonService.GetClientMetadata:output_type -> husi.v1.GetClientMetadataResponse
-	20, // 23: husi.v1.DaemonService.SetStartAtBoot:output_type -> husi.v1.SetStartAtBootResponse
-	17, // [17:24] is the sub-list for method output_type
-	10, // [10:17] is the sub-list for method input_type
+	9,  // 13: husi.v1.DaemonService.AttachClient:input_type -> husi.v1.AttachClientRequest
+	11, // 14: husi.v1.DaemonService.StartService:input_type -> husi.v1.StartServiceRequest
+	17, // 15: husi.v1.DaemonService.StopService:input_type -> husi.v1.StopServiceRequest
+	19, // 16: husi.v1.DaemonService.GetClientMetadata:input_type -> husi.v1.GetClientMetadataRequest
+	21, // 17: husi.v1.DaemonService.SetStartAtBoot:input_type -> husi.v1.SetStartAtBootRequest
+	2,  // 18: husi.v1.DaemonService.GetDaemonInfo:output_type -> husi.v1.GetDaemonInfoResponse
+	6,  // 19: husi.v1.DaemonService.ClaimService:output_type -> husi.v1.ClaimServiceResponse
+	8,  // 20: husi.v1.DaemonService.TakeOverService:output_type -> husi.v1.TakeOverServiceResponse
+	10, // 21: husi.v1.DaemonService.AttachClient:output_type -> husi.v1.AttachClientResponse
+	16, // 22: husi.v1.DaemonService.StartService:output_type -> husi.v1.StartServiceResponse
+	18, // 23: husi.v1.DaemonService.StopService:output_type -> husi.v1.StopServiceResponse
+	20, // 24: husi.v1.DaemonService.GetClientMetadata:output_type -> husi.v1.GetClientMetadataResponse
+	22, // 25: husi.v1.DaemonService.SetStartAtBoot:output_type -> husi.v1.SetStartAtBootResponse
+	18, // [18:26] is the sub-list for method output_type
+	10, // [10:18] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name
@@ -1203,7 +1298,7 @@ func file_husi_v1_daemon_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_daemon_proto_rawDesc), len(file_husi_v1_daemon_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   21,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

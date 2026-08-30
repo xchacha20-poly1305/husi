@@ -22,6 +22,7 @@ const (
 	DaemonService_GetDaemonInfo_FullMethodName     = "/husi.v1.DaemonService/GetDaemonInfo"
 	DaemonService_ClaimService_FullMethodName      = "/husi.v1.DaemonService/ClaimService"
 	DaemonService_TakeOverService_FullMethodName   = "/husi.v1.DaemonService/TakeOverService"
+	DaemonService_AttachClient_FullMethodName      = "/husi.v1.DaemonService/AttachClient"
 	DaemonService_StartService_FullMethodName      = "/husi.v1.DaemonService/StartService"
 	DaemonService_StopService_FullMethodName       = "/husi.v1.DaemonService/StopService"
 	DaemonService_GetClientMetadata_FullMethodName = "/husi.v1.DaemonService/GetClientMetadata"
@@ -50,6 +51,7 @@ type DaemonServiceClient interface {
 	GetDaemonInfo(ctx context.Context, in *GetDaemonInfoRequest, opts ...grpc.CallOption) (*GetDaemonInfoResponse, error)
 	ClaimService(ctx context.Context, in *ClaimServiceRequest, opts ...grpc.CallOption) (*ClaimServiceResponse, error)
 	TakeOverService(ctx context.Context, in *TakeOverServiceRequest, opts ...grpc.CallOption) (*TakeOverServiceResponse, error)
+	AttachClient(ctx context.Context, in *AttachClientRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AttachClientResponse], error)
 	StartService(ctx context.Context, in *StartServiceRequest, opts ...grpc.CallOption) (*StartServiceResponse, error)
 	StopService(ctx context.Context, in *StopServiceRequest, opts ...grpc.CallOption) (*StopServiceResponse, error)
 	GetClientMetadata(ctx context.Context, in *GetClientMetadataRequest, opts ...grpc.CallOption) (*GetClientMetadataResponse, error)
@@ -93,6 +95,25 @@ func (c *daemonServiceClient) TakeOverService(ctx context.Context, in *TakeOverS
 	}
 	return out, nil
 }
+
+func (c *daemonServiceClient) AttachClient(ctx context.Context, in *AttachClientRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AttachClientResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &DaemonService_ServiceDesc.Streams[0], DaemonService_AttachClient_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[AttachClientRequest, AttachClientResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type DaemonService_AttachClientClient = grpc.ServerStreamingClient[AttachClientResponse]
 
 func (c *daemonServiceClient) StartService(ctx context.Context, in *StartServiceRequest, opts ...grpc.CallOption) (*StartServiceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -156,6 +177,7 @@ type DaemonServiceServer interface {
 	GetDaemonInfo(context.Context, *GetDaemonInfoRequest) (*GetDaemonInfoResponse, error)
 	ClaimService(context.Context, *ClaimServiceRequest) (*ClaimServiceResponse, error)
 	TakeOverService(context.Context, *TakeOverServiceRequest) (*TakeOverServiceResponse, error)
+	AttachClient(*AttachClientRequest, grpc.ServerStreamingServer[AttachClientResponse]) error
 	StartService(context.Context, *StartServiceRequest) (*StartServiceResponse, error)
 	StopService(context.Context, *StopServiceRequest) (*StopServiceResponse, error)
 	GetClientMetadata(context.Context, *GetClientMetadataRequest) (*GetClientMetadataResponse, error)
@@ -178,6 +200,9 @@ func (UnimplementedDaemonServiceServer) ClaimService(context.Context, *ClaimServ
 }
 func (UnimplementedDaemonServiceServer) TakeOverService(context.Context, *TakeOverServiceRequest) (*TakeOverServiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TakeOverService not implemented")
+}
+func (UnimplementedDaemonServiceServer) AttachClient(*AttachClientRequest, grpc.ServerStreamingServer[AttachClientResponse]) error {
+	return status.Error(codes.Unimplemented, "method AttachClient not implemented")
 }
 func (UnimplementedDaemonServiceServer) StartService(context.Context, *StartServiceRequest) (*StartServiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method StartService not implemented")
@@ -265,6 +290,17 @@ func _DaemonService_TakeOverService_Handler(srv interface{}, ctx context.Context
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _DaemonService_AttachClient_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AttachClientRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DaemonServiceServer).AttachClient(m, &grpc.GenericServerStream[AttachClientRequest, AttachClientResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type DaemonService_AttachClientServer = grpc.ServerStreamingServer[AttachClientResponse]
 
 func _DaemonService_StartService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StartServiceRequest)
@@ -374,6 +410,12 @@ var DaemonService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DaemonService_SetStartAtBoot_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "AttachClient",
+			Handler:       _DaemonService_AttachClient_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "husi/v1/daemon.proto",
 }

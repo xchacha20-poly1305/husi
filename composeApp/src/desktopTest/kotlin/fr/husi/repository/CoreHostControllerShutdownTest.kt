@@ -5,7 +5,9 @@ import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -16,6 +18,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
@@ -44,17 +47,51 @@ class CoreHostControllerShutdownTest : HusiKoinTest() {
         tempDir.deleteRecursively()
     }
 
+    /**
+     * The lease is held by a coroutine on the controller's own dispatcher, so
+     * it appears and disappears a moment after the call that caused it.
+     */
+    private fun awaitAttachedClients(expected: Int) = runBlocking {
+        withTimeout(5.seconds) {
+            while (fakeClient.attachedClients != expected) {
+                delay(10.milliseconds)
+            }
+        }
+    }
+
     @Test
-    fun `shutdownHost stops the box instance when attached to a daemon`() {
+    fun `a daemon client holds a lease until it shuts down`() {
+        controller.attachHostForTest(daemon = true)
+        awaitAttachedClients(1)
+
+        controller.shutdownHost()
+
+        // Dropping the lease is what tells the daemon this UI stopped watching.
+        awaitAttachedClients(0)
+    }
+
+    @Test
+    fun `a session host needs no lease`() {
+        controller.attachHostForTest(daemon = false)
+
+        runBlocking { delay(100.milliseconds) }
+
+        assertEquals(0, fakeClient.attachedClients)
+    }
+
+    @Test
+    fun `shutdownHost leaves a daemon-hosted service running`() {
         DataStore.serviceState = ServiceState.Connected
         controller.attachHostForTest(daemon = true)
 
         controller.shutdownHost()
 
-        assertEquals(1, fakeClient.stopServiceCalls)
+        // The daemon outlives the UI and may serve another instance: closing
+        // this window only ends this client's connection.
+        assertEquals(0, fakeClient.stopServiceCalls)
         assertEquals(true, fakeClient.closed)
         assertFalse(controller.hostState.value.isDaemon)
-        assertEquals(ServiceState.Stopped, DataStore.serviceState)
+        assertEquals(ServiceState.Connected, DataStore.serviceState)
     }
 
     @Test
@@ -67,18 +104,6 @@ class CoreHostControllerShutdownTest : HusiKoinTest() {
 
         assertEquals(1, fakeClient.stopServiceCalls)
         assertEquals(1, controller.sessionRestarts)
-        assertEquals(ServiceState.Stopped, DataStore.serviceState)
-    }
-
-    @Test
-    fun `shutdownHost does not detach a daemon host that refuses to stop`() {
-        DataStore.serviceState = ServiceState.Connected
-        controller.attachHostForTest(daemon = true)
-        fakeClient.stopServiceThrowable = IOException("stuck")
-
-        controller.shutdownHost()
-
-        assertEquals(0, controller.daemonDetaches)
         assertEquals(ServiceState.Stopped, DataStore.serviceState)
     }
 

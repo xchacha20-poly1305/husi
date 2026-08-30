@@ -29,6 +29,8 @@ service DaemonService {
   rpc ClaimService(ClaimServiceRequest) returns (ClaimServiceResponse);
   rpc TakeOverService(TakeOverServiceRequest) returns (TakeOverServiceResponse);
 
+  rpc AttachClient(AttachClientRequest) returns (stream AttachClientResponse);
+
   rpc StartService(StartServiceRequest) returns (StartServiceResponse);
   rpc StopService(StopServiceRequest) returns (StopServiceResponse);
   rpc GetClientMetadata(GetClientMetadataRequest) returns (GetClientMetadataResponse);
@@ -86,6 +88,26 @@ message ClaimServiceResponse {}
 message TakeOverServiceRequest {}
 
 message TakeOverServiceResponse {}
+
+// AttachClient registers the caller as a live client for as long as it keeps
+// the stream open. The daemon runs a service on behalf of its clients, so when
+// the last one goes away — closing its window or dying — the service goes with
+// it. The snapshot survives that stop: nobody asked for the service to end, so
+// a boot restore still has something to restore.
+//
+// A service the daemon restored on boot has no client to lose and keeps running
+// until one attaches and leaves. Detaching is also how a client hands the
+// daemon over, so the daemon waits out a short grace period before stopping: a
+// UI that reconnects — after a restart, or a daemon install — is one client
+// leaving and coming back, not the end of the service.
+//
+// Only HOSTING_DAEMON serves this. A session host is a child of its one UI and
+// already dies with it.
+message AttachClientRequest {}
+
+// Sent once the daemon has registered the client, so the caller knows the
+// stream is a lease rather than a request for one.
+message AttachClientResponse {}
 
 message StartServiceRequest {
   // Rendered config, pushed as content so starting never depends on the

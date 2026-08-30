@@ -270,6 +270,23 @@ defaults to the platform config directory: Linux uses `$XDG_CONFIG_HOME/husi` wh
 `$HOME/.config/husi`; macOS uses `$HOME/Library/Application Support/husi`; Windows uses
 `%APPDATA%\husi` or `%USERPROFILE%\AppData\Roaming\husi`. Override with `-d` for a custom data dir.
 
+A core host owns its socket exclusively — `coresvc.Host.Start` refuses a socket another host still
+answers on rather than unlinking it — so each UI instance needs a host directory of its own. The
+instance holding the single-instance lock keeps `<dataDir>/core/`, which is also what CLI
+subcommands (`husi api …`) and scheduled task runs dial; a `-m/--many` instance gets
+`<dataDir>/core/instances/<pid>/` instead, deletes it on exit, and prunes the leftovers of
+instances that died. Host lifetime follows the same split: a session host is a child process and
+dies with its UI (service and all), while an attached system daemon only loses a client — it
+outlives any single UI and may be serving another instance.
+
+Which is why the daemon counts its clients. `DaemonService.AttachClient` is a lease: a UI attached
+to a daemon holds that stream open for as long as it is attached, and the daemon stops the service
+once the last lease ends — after a short grace period, so a UI that reconnects (a restart, the
+reattach a daemon install triggers) does not read as the end of the service. That stop keeps
+`was_running` and the snapshot: nobody asked the service to end, so a boot restore still has its
+input. A service the daemon restored on boot therefore keeps running until a client attaches and
+leaves. Leases are owner-only, so a read-only viewer of someone else's daemon holds none.
+
 # Coding conventions
 
 Canonical conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it first if you need to write code.

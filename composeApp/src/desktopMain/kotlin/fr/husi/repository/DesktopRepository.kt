@@ -9,6 +9,13 @@ fun resolveDesktopRepository(): DesktopRepository = resolveRepository() as Deskt
 
 open class DesktopRepository(
     val dataDir: File,
+    /**
+     * Identifies a secondary instance started with `--many`, which owns a
+     * private core host instead of the well-known one. Null for the primary
+     * instance — the single-instance lock guarantees there is only one, so it
+     * keeps `core/` itself and stays the host CLI subcommands dial.
+     */
+    private val instanceId: String? = null,
 ) : Repository {
 
     override val isMainProcess: Boolean = true
@@ -21,9 +28,23 @@ open class DesktopRepository(
      */
     override val boxService: Service? = null
 
-    /** Working directory and socket parent for the out-of-process core host. */
+    /**
+     * Root of everything the out-of-process core host owns, and the working
+     * directory of the primary instance's host. See [coreRunDir].
+     */
     val coreDir: File by lazy {
         dataDir.resolve("core").apply { mkdirs() }
+    }
+
+    /**
+     * Where this instance's session host keeps its socket and its plugin files.
+     * A session host deletes and rebinds the socket it is given, so two
+     * instances pointed at one directory would steal each other's host and tear
+     * it down on exit: a secondary instance gets a private directory instead.
+     */
+    val coreRunDir: File by lazy {
+        val dir = instanceId?.let { coreDir.resolve(INSTANCE_DIR_NAME).resolve(it) } ?: coreDir
+        dir.apply { mkdirs() }
     }
 
     /**
@@ -35,7 +56,23 @@ open class DesktopRepository(
     private var coreSocketBasePathOverride: String? = null
 
     val sessionSocketBasePath: String
-        get() = coreDir.invariantDirectoryPathString()
+        get() = coreRunDir.invariantDirectoryPathString()
+
+    fun releaseCoreRunDir() {
+        if (instanceId == null) return
+        coreRunDir.deleteRecursively()
+    }
+
+    fun pruneStaleCoreRunDirs() {
+        val instancesDir = coreDir.resolve(INSTANCE_DIR_NAME)
+        val leftovers = instancesDir.listFiles() ?: return
+        for (dir in leftovers) {
+            if (dir == coreRunDir) continue
+            val pid = dir.name.toLongOrNull() ?: continue
+            if (ProcessHandle.of(pid).map { it.isAlive }.orElse(false)) continue
+            dir.deleteRecursively()
+        }
+    }
 
     var coreSocketBasePath: String
         get() = coreSocketBasePathOverride ?: sessionSocketBasePath
@@ -97,5 +134,11 @@ open class DesktopRepository(
 
     override fun stopService() {
         coreHostController.stop()
+    }
+
+    companion object {
+        private const val INSTANCE_DIR_NAME = "instances"
+
+        fun currentInstanceId(): String = ProcessHandle.current().pid().toString()
     }
 }

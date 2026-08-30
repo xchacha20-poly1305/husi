@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -344,4 +345,40 @@ func TestHostStuckAfterCloseTimeout(t *testing.T) {
 		t.Fatal("OnStuck was called more than once")
 	case <-time.After(100 * time.Millisecond):
 	}
+}
+
+func newTestHost(t *testing.T) *coresvc.Host {
+	t.Helper()
+	host, err := coresvc.NewHost(coresvc.HostOptions{
+		Context:          testBaseContext(t),
+		Version:          "test",
+		LogMaxLines:      100,
+		BuildEnvironment: "test-env",
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = host.Close() })
+	return host
+}
+
+func TestStartRefusesSocketServedByAnotherHost(t *testing.T) {
+	_, socketPath := startTestHost(t, coresvc.HostOptions{})
+
+	err := newTestHost(t).Start(socketPath)
+	require.ErrorContains(t, err, "another core host is serving")
+
+	// The first host still owns the socket it was serving.
+	conn, err := net.Dial("unix", socketPath)
+	require.NoError(t, err)
+	_ = conn.Close()
+}
+
+func TestStartClearsStaleSocket(t *testing.T) {
+	socketPath := filepath.Join(t.TempDir(), coresvc.Socket)
+	require.NoError(t, os.WriteFile(socketPath, nil, 0o600))
+
+	require.NoError(t, newTestHost(t).Start(socketPath))
+
+	conn, err := net.Dial("unix", socketPath)
+	require.NoError(t, err)
+	_ = conn.Close()
 }

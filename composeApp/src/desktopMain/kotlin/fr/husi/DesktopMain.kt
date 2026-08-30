@@ -273,6 +273,7 @@ class DesktopMain(
             fun exitGracefully() {
                 runCatching {
                     repository.coreHostController.shutdownHost()
+                    repository.releaseCoreRunDir()
                 }
                 exitApplication()
             }
@@ -327,13 +328,19 @@ class DesktopMain(
 
     private fun initDesktopRuntime(deepLinks: List<String>) {
         fixComposePreferenceNode()
-        val repository = createDesktopRepository()
+        // An instance that ignores the running one cannot share its core host
+        // either: hosts do not share a socket, and the one under `core/` belongs
+        // to whoever holds the single-instance lock.
+        val repository = createDesktopRepository(
+            instanceId = if (many) DesktopRepository.currentInstanceId() else null,
+        )
 
         if (!many && !acquireSingleInstanceLock(repository, deepLinks)) {
             // A running instance holds the lock and has been handed this launch's payload.
             exitApplication()
         }
 
+        repository.pruneStaleCoreRunDirs()
         bootstrapDesktopRuntime(repository, startCoreHost = true)
     }
 
@@ -396,10 +403,10 @@ class DesktopMain(
         System.setProperty(PREFERENCE_NODE_PROPERTY_NAME, PREFERENCE_NODE_NAME)
     }
 
-    private fun createDesktopRepository(): DesktopRepository {
+    private fun createDesktopRepository(instanceId: String? = null): DesktopRepository {
         val baseDir = baseDir ?: DesktopPaths.dataDir
         baseDir.mkdirs()
-        return DesktopRepository(baseDir)
+        return DesktopRepository(baseDir, instanceId)
     }
 
     private fun bootstrapDesktopRuntime(

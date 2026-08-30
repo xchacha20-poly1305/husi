@@ -29,8 +29,10 @@ import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.URLTestOptions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlin.time.Duration
 
 /**
@@ -177,9 +179,9 @@ open class FakeCoreClient : CoreClient {
         )
         val error = speedTestThrowable
         if (error != null) {
-            return kotlinx.coroutines.flow.flow { throw error }
+            return flow { throw error }
         }
-        return kotlinx.coroutines.flow.flow {
+        return flow {
             for (response in speedTestResponses) {
                 emit(response)
             }
@@ -197,6 +199,20 @@ open class FakeCoreClient : CoreClient {
 
     override suspend fun claimService() {
         claimServiceCalls += 1
+    }
+
+    /** How many [attachClient] leases are being collected right now. */
+    var attachedClients: Int = 0
+        private set
+
+    override fun attachClient(): Flow<Unit> = flow {
+        attachedClients += 1
+        try {
+            emit(Unit)
+            awaitCancellation()
+        } finally {
+            attachedClients -= 1
+        }
     }
 
     override suspend fun takeOverService() {

@@ -149,12 +149,12 @@ func (h *Host) Start(socketPath string) error {
 		return E.New("missing socket path")
 	}
 
-	_ = os.Remove(socketPath)
+	err := clearSocketPath(socketPath)
+	if err != nil {
+		return err
+	}
 	// Copied from libbox / previous vario path: Android early-boot EROFS quirk.
-	var (
-		listener net.Listener
-		err      error
-	)
+	var listener net.Listener
 	for range 30 {
 		var unixListener *net.UnixListener
 		unixListener, err = net.ListenUnix("unix", &net.UnixAddr{
@@ -174,6 +174,24 @@ func (h *Host) Start(socketPath string) error {
 		return E.Cause(err, "listen command server")
 	}
 	return h.StartOn(listener)
+}
+
+func clearSocketPath(socketPath string) error {
+	_, err := os.Stat(socketPath)
+	if err != nil {
+		return nil
+	}
+	const liveHostTimeout = 500 * time.Millisecond
+	conn, err := net.DialTimeout("unix", socketPath, liveHostTimeout)
+	if err == nil {
+		_ = conn.Close()
+		return E.New("another core host is serving ", socketPath)
+	}
+	err = os.Remove(socketPath)
+	if err != nil && !os.IsNotExist(err) {
+		return E.Cause(err, "remove stale socket")
+	}
+	return nil
 }
 
 func (h *Host) NewServiceServer(serverOptions ...grpc.ServerOption) *grpc.Server {

@@ -1,5 +1,6 @@
 package fr.husi.repository
 
+import fr.husi.CORE_SOCKET_NAME
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.OpenConnectAuthWatcher
@@ -118,6 +119,7 @@ internal class CoreHostController(
 
     private val coreStatus = MutableStateFlow<DaemonServiceStatus?>(null)
     private var coreStatusMirror: Job? = null
+    private var daemonLease: Job? = null
 
     init {
         // Applying a status can tear the session down, which cancels the subscription above.
@@ -146,8 +148,8 @@ internal class CoreHostController(
     val isDaemonMode: Boolean
         get() = connectedToDaemon
 
-    private val coreDir: File
-        get() = repository.coreDir
+    private val coreRunDir: File
+        get() = repository.coreRunDir
 
     private val socketBasePath: String
         get() = repository.coreSocketBasePath
@@ -201,10 +203,10 @@ internal class CoreHostController(
                 access.withLock {
                     discardingSession = true
                     try {
-                        stopLocked()
                         if (connectedToDaemon) {
                             detachDaemonClientLocked()
                         } else {
+                            stopLocked()
                             closeSessionLocked(SessionTeardown.Immediate)
                         }
                     } finally {
@@ -264,6 +266,7 @@ internal class CoreHostController(
                 coreClient.claimService()
             }
             foreignOwner = null
+            startDaemonLease()
             publishHostState()
         }
     }
@@ -328,6 +331,18 @@ internal class CoreHostController(
         coreStatusMirror = scope.launch {
             coreClient.subscribeServiceStatus().collect { coreStatus.value = it }
         }
+    }
+
+    private fun startDaemonLease() {
+        if (foreignOwner != null || daemonLease?.isActive == true) return
+        daemonLease = scope.launch {
+            coreClient.attachClient().collect { }
+        }
+    }
+
+    private fun stopDaemonLease() {
+        daemonLease?.cancel()
+        daemonLease = null
     }
 
     private fun stopCoreStatusMirror() {
@@ -402,6 +417,7 @@ internal class CoreHostController(
         switchToDaemonClient(daemonPath)
         connectedToDaemon = true
         markHostReady()
+        startDaemonLease()
         publishHostState()
         Logs.i("connected to system daemon at $daemonPath")
         return true
@@ -418,6 +434,7 @@ internal class CoreHostController(
      */
     private suspend fun detachDaemonClientLocked() {
         markHostLost()
+        stopDaemonLease()
         OpenConnectAuthWatcher.stop()
         OpenVPNAuthWatcher.stop()
         trafficLooper?.stop()
@@ -642,27 +659,26 @@ internal class CoreHostController(
         foreignOwner = null
         publishHostState()
 
-        coreDir.mkdirs()
+        coreRunDir.mkdirs()
         val binary = resolveCoreBinary()
             ?: throw IOException("husi-core binary not found (looked in: ${describeHusiCoreSearchLocations()})")
 
-        val socketPath = coreDir.resolve("api.sock")
-        if (socketPath.exists()) {
-            runCatching { socketPath.delete() }
-        }
+        // The host owns the socket file: it refuses to start on one another
+        // host still answers on, and clears it otherwise.
+        val socketPath = coreRunDir.resolve(CORE_SOCKET_NAME)
 
         val command = listOf(
             binary.absolutePath,
             "session",
             "--dir",
-            coreDir.absolutePath,
+            coreRunDir.absolutePath,
             "--socket",
             socketPath.absolutePath,
         )
         Logs.i("starting core host: ${command.joinToString(" ")}")
 
         val process = ProcessBuilder(command)
-            .directory(coreDir)
+            .directory(coreRunDir)
             .redirectErrorStream(false)
             .start()
 
@@ -801,6 +817,9 @@ internal class CoreHostController(
     internal fun attachHostForTest(daemon: Boolean) {
         connectedToDaemon = daemon
         markHostReady()
+        if (daemon) {
+            startDaemonLease()
+        }
         publishHostState()
     }
 

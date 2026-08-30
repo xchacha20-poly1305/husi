@@ -2,8 +2,10 @@ package daemonhost
 
 import (
 	"context"
+	"maps"
 	"sync"
 	"syscall"
+	"time"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
@@ -13,9 +15,12 @@ import (
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+const lastClientGrace = 5 * time.Second
 
 type daemonDaemonService struct {
 	husiv1.UnimplementedDaemonServiceServer
@@ -30,13 +35,20 @@ type daemonDaemonService struct {
 	metadata *husiv1.ClientMetadata
 	// lastCredentialAttr holds the Windows token (if any) for the active pool.
 	lastCredentialAttr *syscall.SysProcAttr
+
+	clientAccess     sync.Mutex
+	clientsReference int
+	// idleStopTimer stops instance if all client detached.
+	idleStopTimer *time.Timer
+	clientGrace   time.Duration
 }
 
 func newDaemonDaemonService(workingDir, version string, owner *OwnerStore) *daemonDaemonService {
 	s := &daemonDaemonService{
-		workingDir: workingDir,
-		version:    version,
-		owner:      owner,
+		workingDir:  workingDir,
+		version:     version,
+		owner:       owner,
+		clientGrace: lastClientGrace,
 	}
 	s.plugins = pluginpool.NewPluginPool(workingDir, s.handlePluginFatal)
 	s.plugins.SetProcessCredential(s.pluginCredentials)
@@ -102,6 +114,60 @@ func (s *daemonDaemonService) TakeOverService(ctx context.Context, _ *husiv1.Tak
 	s.refreshPluginCredentialLocked()
 	s.access.Unlock()
 	return &husiv1.TakeOverServiceResponse{}, nil
+}
+
+func (s *daemonDaemonService) AttachClient(_ *husiv1.AttachClientRequest, stream grpc.ServerStreamingServer[husiv1.AttachClientResponse]) error {
+	s.clientAttached()
+	defer s.clientDetached()
+	err := stream.Send(&husiv1.AttachClientResponse{})
+	if err != nil {
+		return err
+	}
+	<-stream.Context().Done()
+	return nil
+}
+
+func (s *daemonDaemonService) clientAttached() {
+	s.clientAccess.Lock()
+	defer s.clientAccess.Unlock()
+	s.clientsReference++
+	if s.idleStopTimer != nil {
+		s.idleStopTimer.Stop()
+		s.idleStopTimer = nil
+	}
+	log.Debug("client attached, ", s.clientsReference, " attached now")
+}
+
+func (s *daemonDaemonService) clientDetached() {
+	s.clientAccess.Lock()
+	defer s.clientAccess.Unlock()
+	s.clientsReference--
+	log.Debug("client detached, ", s.clientsReference, " attached now")
+	if s.clientsReference > 0 {
+		return
+	}
+	s.idleStopTimer = time.AfterFunc(s.clientGrace, s.stopWithoutClients)
+}
+
+func (s *daemonDaemonService) stopWithoutClients() {
+	s.clientAccess.Lock()
+	if s.clientsReference > 0 {
+		s.clientAccess.Unlock()
+		return
+	}
+	s.idleStopTimer = nil
+	s.clientAccess.Unlock()
+
+	s.access.Lock()
+	defer s.access.Unlock()
+	if s.host == nil || !s.host.HasInstance() {
+		return
+	}
+	log.Info("the last client detached, stopping the service")
+	err := s.stopLocked(false)
+	if err != nil {
+		log.Warn("stop after the last client detached: ", err)
+	}
 }
 
 func (s *daemonDaemonService) StartService(ctx context.Context, req *husiv1.StartServiceRequest) (*husiv1.StartServiceResponse, error) {
@@ -281,9 +347,7 @@ func clonePluginSpecs(src []*husiv1.PluginProcessSpec) []*husiv1.PluginProcessSp
 		}
 		if env := spec.GetEnvironment(); len(env) > 0 {
 			cloned.Environment = make(map[string]string, len(env))
-			for k, v := range env {
-				cloned.Environment[k] = v
-			}
+			maps.Copy(cloned.Environment, env)
 		}
 		if files := spec.GetFiles(); len(files) > 0 {
 			cloned.Files = make([]*husiv1.PluginFile, 0, len(files))
