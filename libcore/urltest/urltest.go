@@ -87,13 +87,14 @@ func RunTag(
 			return -1, E.Cause(ErrOutboundNotFound, tag)
 		}
 	}
-	return Run(instanceCtx, detour, link, timeoutMs, flags)
+	return Run(instanceCtx, manager, detour, link, timeoutMs, flags)
 }
 
 // Run measures detour within timeoutMs and stores the result in the instance's
 // URL test history, so the UI sees the same number the group selector does.
 func Run(
 	instanceCtx context.Context,
+	manager adapter.OutboundManager,
 	detour adapter.Outbound,
 	link string,
 	timeoutMs int32,
@@ -117,7 +118,7 @@ func Run(
 		if historyStorage == nil {
 			return
 		}
-		historyStorage.StoreURLTestHistory(group.RealTag(detour), &adapter.URLTestHistory{
+		historyStorage.StoreURLTestHistory(group.RealTag(manager, detour), &adapter.URLTestHistory{
 			Time:  time.Now(),
 			Delay: latency,
 		})

@@ -116,6 +116,14 @@ interface CoreClient {
     suspend fun getVersion(): GetVersionResponse
     suspend fun getDaemonVersion(): Version
     suspend fun getStartedAt(): Long
+
+    /**
+     * Kept separate from [urlTest] because StartedService is wire-compatible
+     * with a vanilla sing-box host and cannot grow husi-only fields (link,
+     * timeout, how latency is counted, a synchronous delay). Remote control
+     * and the CLI use this; a host without `husi.v1.CoreService` has nothing
+     * else.
+     */
     suspend fun daemonUrlTest(outboundTag: String)
     suspend fun urlTest(
         tag: String,
