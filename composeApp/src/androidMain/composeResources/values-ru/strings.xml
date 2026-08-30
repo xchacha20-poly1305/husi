@@ -1,4 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="auto_connect">Автоматическое подключение</string>
     <string name="auto_connect_summary">Включить прокси при запуске/обновлении приложения, если он был запущен до этого</string>
+    <string name="vpn_session_name">Имя VPN-сессии</string>
+    <string name="vpn_permission_required_summary">Нажмите, чтобы предоставить разрешение на VPN и запустить сервис.</string>
+    <string name="vpn_permission_required">Требуется разрешение на VPN</string>
+    <string name="service_vpn_request">Запрос разрешения на использование VPN</string>
+    <string name="vpn_session_name_summary">Оставьте пустым, чтобы использовать название приложения</string>
 </resources>
