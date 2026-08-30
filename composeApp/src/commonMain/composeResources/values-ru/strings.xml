@@ -256,8 +256,8 @@
     <string name="clipboard_empty">Буфер обмена пуст</string>
     <string name="connect">Подключиться</string>
     <string name="profile_empty">Пожалуйста, выберите профиль</string>
-    <string name="reboot_required">Не удалось запустить службу VPN. Возможно, вам потребуется перезагрузить устройство.</string>
-    <string name="vpn_permission_denied">Отказано в разрешении на создание службы VPN</string>
+    <string name="reboot_required">Не удалось запустить VPN-сервис. Возможно, вам потребуется перезагрузить устройство.</string>
+    <string name="vpn_permission_denied">Отказано в разрешении на создание VPN-сервиса</string>
     <string name="vpn_error">%1$s</string>
     <string name="stopping">Выключение…</string>
     <string name="stop">Стоп</string>
@@ -818,4 +818,8 @@
     <string name="remote_delete_confirm">Убрать этот удаленный сервер?</string>
     <string name="hide">Скрыть</string>
     <string name="show">Показать</string>
+    <string name="add_source">Добавить источник</string>
+    <string name="add_group">Добавить группу</string>
+    <string name="rotate_interval">Интервал чередования</string>
+    <string name="group_status_updated_empty">Обновлено, но серверы отсутствуют</string>
 </resources>
