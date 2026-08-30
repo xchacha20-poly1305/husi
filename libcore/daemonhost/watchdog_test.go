@@ -3,106 +3,121 @@ package daemonhost
 import (
 	"context"
 	"io"
+	"sync"
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestWatchStdinEOFCancels(t *testing.T) {
-	reader, writer := io.Pipe()
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
+	synctest.Test(t, func(t *testing.T) {
+		stdin, closeStdin := blockingStdin(t)
+		var parentAlive atomic.Bool
+		parentAlive.Store(true)
 
-	StartWatchdog(cancel, WatchdogOptions{
-		Stdin:         reader,
-		Getppid:       func() int { return 42 },
-		ProcessExists: func(int) bool { return true },
-		Interval:      50 * time.Millisecond,
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
+
+		const interval = 50 * time.Millisecond
+		StartWatchdog(cancel, WatchdogOptions{
+			Stdin:         stdin,
+			Getppid:       func() int { return 42 },
+			ProcessExists: func(int) bool { return parentAlive.Load() },
+			Interval:      interval,
+		})
+
+		closeStdin()
+		synctest.Wait()
+		require.Error(t, ctx.Err(), "context not cancelled after stdin EOF")
+
+		// watchParentPID does not observe cancel; make the parent disappear so
+		// the ticker loop can exit before the bubble shuts down.
+		parentAlive.Store(false)
+		synctest.Sleep(interval)
 	})
-
-	require.NoError(t, writer.Close())
-
-	select {
-	case <-ctx.Done():
-	case <-time.After(2 * time.Second):
-		require.FailNow(t, "context not cancelled after stdin EOF")
-	}
 }
 
 func TestWatchParentPIDChangeCancels(t *testing.T) {
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
+	synctest.Test(t, func(t *testing.T) {
+		stdin, _ := blockingStdin(t)
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
 
-	var ppid atomic.Int32
-	ppid.Store(100)
+		var ppid atomic.Int32
+		ppid.Store(100)
 
-	StartWatchdog(cancel, WatchdogOptions{
-		Stdin: io.NopCloser(nilReader{}),
-		Getppid: func() int {
-			return int(ppid.Load())
-		},
-		ProcessExists: func(pid int) bool {
-			return pid == int(ppid.Load())
-		},
-		Interval: 20 * time.Millisecond,
+		const interval = 20 * time.Millisecond
+		StartWatchdog(cancel, WatchdogOptions{
+			Stdin: stdin,
+			Getppid: func() int {
+				return int(ppid.Load())
+			},
+			ProcessExists: func(pid int) bool {
+				return pid == int(ppid.Load())
+			},
+			Interval: interval,
+		})
+
+		synctest.Sleep(3 * interval)
+		require.NoError(t, ctx.Err(), "cancelled before parent change")
+
+		ppid.Store(1) // reparented to init
+		synctest.Sleep(interval)
+		require.Error(t, ctx.Err(), "context not cancelled after parent PID change")
 	})
-
-	// Parent still alive: should not cancel yet.
-	select {
-	case <-ctx.Done():
-		require.FailNow(t, "cancelled before parent change")
-	case <-time.After(60 * time.Millisecond):
-	}
-
-	ppid.Store(1) // reparented to init
-
-	select {
-	case <-ctx.Done():
-	case <-time.After(2 * time.Second):
-		require.FailNow(t, "context not cancelled after parent PID change")
-	}
 }
 
 func TestWatchParentProcessGoneCancels(t *testing.T) {
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
+	synctest.Test(t, func(t *testing.T) {
+		stdin, _ := blockingStdin(t)
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
 
-	alive := atomic.Bool{}
-	alive.Store(true)
-	const parentPID = 77
+		var alive atomic.Bool
+		alive.Store(true)
+		const parentPID = 77
+		const interval = 20 * time.Millisecond
 
-	StartWatchdog(cancel, WatchdogOptions{
-		Stdin:   io.NopCloser(nilReader{}),
-		Getppid: func() int { return parentPID },
-		ProcessExists: func(pid int) bool {
-			if pid != parentPID {
-				return false
-			}
-			return alive.Load()
-		},
-		Interval: 20 * time.Millisecond,
+		StartWatchdog(cancel, WatchdogOptions{
+			Stdin:   stdin,
+			Getppid: func() int { return parentPID },
+			ProcessExists: func(pid int) bool {
+				if pid != parentPID {
+					return false
+				}
+				return alive.Load()
+			},
+			Interval: interval,
+		})
+
+		synctest.Sleep(3 * interval)
+		require.NoError(t, ctx.Err(), "cancelled while parent alive")
+
+		alive.Store(false)
+		synctest.Sleep(interval)
+		require.Error(t, ctx.Err(), "context not cancelled after parent process gone")
 	})
-
-	select {
-	case <-ctx.Done():
-		require.FailNow(t, "cancelled while parent alive")
-	case <-time.After(60 * time.Millisecond):
-	}
-
-	alive.Store(false)
-
-	select {
-	case <-ctx.Done():
-	case <-time.After(2 * time.Second):
-		require.FailNow(t, "context not cancelled after parent process gone")
-	}
 }
 
-// nilReader never returns so the stdin watchdog stays quiet in parent-pid tests.
-type nilReader struct{}
+// eofReader blocks on done until it is closed, then returns io.EOF.
+// Channel receive is durably blocked, so synctest's fake clock can still advance.
+type eofReader struct {
+	done <-chan struct{}
+}
 
-func (nilReader) Read([]byte) (int, error) {
-	select {}
+func (r eofReader) Read([]byte) (int, error) {
+	<-r.done
+	return 0, io.EOF
+}
+
+func blockingStdin(t *testing.T) (io.Reader, func()) {
+	t.Helper()
+	done := make(chan struct{})
+	var once sync.Once
+	stop := func() { once.Do(func() { close(done) }) }
+	t.Cleanup(stop)
+	return eofReader{done: done}, stop
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/sagernet/sing-box"
@@ -237,11 +238,16 @@ func TestStartMinimalConfigAndURLTest(t *testing.T) {
 }
 
 func TestCloseWithWatchdogTimeout(t *testing.T) {
-	err := coresvc.CloseWithWatchdogForTest(func() error {
-		time.Sleep(500 * time.Millisecond)
-		return nil
-	}, 50*time.Millisecond)
-	require.EqualError(t, err, "sing-box did not close in time")
+	synctest.Test(t, func(t *testing.T) {
+		closed := make(chan struct{})
+		err := coresvc.CloseWithWatchdogForTest(func() error {
+			defer close(closed)
+			time.Sleep(500 * time.Millisecond)
+			return nil
+		}, 50*time.Millisecond)
+		require.EqualError(t, err, "sing-box did not close in time")
+		<-closed
+	})
 }
 
 func TestCloseWithWatchdogSuccess(t *testing.T) {
@@ -309,42 +315,42 @@ func TestHolderStartFailThenStartOK(t *testing.T) {
 }
 
 func TestHostStuckAfterCloseTimeout(t *testing.T) {
-	stuck := make(chan error, 4)
-	host, err := coresvc.NewHost(coresvc.HostOptions{
-		Context: testBaseContext(t),
-		OnStuck: func(err error) { stuck <- err },
-	})
-	require.NoError(t, err)
-	assert.False(t, host.Stuck())
+	synctest.Test(t, func(t *testing.T) {
+		stuck := make(chan error, 4)
+		host, err := coresvc.NewHost(coresvc.HostOptions{
+			Context: testBaseContext(t),
+			OnStuck: func(err error) { stuck <- err },
+		})
+		require.NoError(t, err)
+		assert.False(t, host.Stuck())
 
-	hang := make(chan struct{})
-	defer close(hang)
-	err = host.CloseServiceWithWatchdogForTest(func() error {
-		<-hang
-		return nil
-	}, 50*time.Millisecond)
-	require.ErrorIs(t, err, coresvc.ErrCloseTimeout)
-	assert.True(t, host.Stuck())
+		hang := make(chan struct{})
+		t.Cleanup(func() { _ = host.Close() })
+		t.Cleanup(func() { close(hang) })
+		err = host.CloseServiceWithWatchdogForTest(func() error {
+			<-hang
+			return nil
+		}, 50*time.Millisecond)
+		require.ErrorIs(t, err, coresvc.ErrCloseTimeout)
+		assert.True(t, host.Stuck())
 
-	select {
-	case notified := <-stuck:
+		notified := <-stuck
 		require.ErrorIs(t, notified, coresvc.ErrCloseTimeout)
-	case <-time.After(time.Second):
-		t.Fatal("OnStuck was not called")
-	}
 
-	// Every later lifecycle call fails fast instead of queueing behind the
-	// lock the abandoned close still holds.
-	start := time.Now()
-	require.ErrorIs(t, host.CloseService(time.Hour), coresvc.ErrHostStuck)
-	require.ErrorIs(t, host.StartOrReload(t.Context(), `{}`), coresvc.ErrHostStuck)
-	assert.Less(t, time.Since(start), 5*time.Second)
+		// Every later lifecycle call fails fast instead of queueing behind the
+		// lock the abandoned close still holds.
+		start := time.Now()
+		require.ErrorIs(t, host.CloseService(time.Hour), coresvc.ErrHostStuck)
+		require.ErrorIs(t, host.StartOrReload(t.Context(), `{}`), coresvc.ErrHostStuck)
+		assert.Less(t, time.Since(start), 5*time.Second)
 
-	select {
-	case <-stuck:
-		t.Fatal("OnStuck was called more than once")
-	case <-time.After(100 * time.Millisecond):
-	}
+		synctest.Wait()
+		select {
+		case <-stuck:
+			t.Fatal("OnStuck was called more than once")
+		default:
+		}
+	})
 }
 
 func newTestHost(t *testing.T) *coresvc.Host {

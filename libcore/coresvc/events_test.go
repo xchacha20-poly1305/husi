@@ -69,13 +69,8 @@ func TestEventBroadcasterUnsubscribe(t *testing.T) {
 	ch, unsub := b.Subscribe()
 	unsub()
 
-	// Channel must be closed after unsubscribe (no leak / no hang).
-	select {
-	case _, ok := <-ch:
-		assert.False(t, ok, "expected closed channel after unsubscribe")
-	case <-time.After(time.Second):
-		require.FailNow(t, "timed out waiting for channel close after unsubscribe")
-	}
+	_, loaded := <-ch
+	assert.False(t, loaded, "expected closed channel after unsubscribe")
 
 	// Second unsubscribe is a no-op.
 	unsub()
@@ -100,8 +95,7 @@ func TestEventBroadcasterAlertsNotReplayed(t *testing.T) {
 	select {
 	case ev := <-ch:
 		require.FailNow(t, "unexpected replay of alert", "%v", ev)
-	case <-time.After(50 * time.Millisecond):
-		// expected: alerts are not retained
+	default:
 	}
 }
 
