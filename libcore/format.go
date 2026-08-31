@@ -43,18 +43,43 @@ func parseConfig(ctx context.Context, configContent string) (option.Options, err
 	return options, nil
 }
 
-// FormatConfig formats json.
+var _ json.CommentUnmarshaler = (*commentedDocument)(nil)
+
+// commentDocument wraps map[string]any to keep comments in json
+type commentedDocument struct {
+	fields   map[string]any
+	comments *json.CommentSet
+}
+
+func (c *commentedDocument) MarshalJSONContext(ctx context.Context) ([]byte, error) {
+	return json.MarshalContext(ctx, c.fields)
+}
+
+func (c *commentedDocument) UnmarshalJSONContext(ctx context.Context, content []byte) error {
+	return json.UnmarshalContext(ctx, content, &c.fields)
+}
+
+func (c *commentedDocument) Comments() *json.CommentSet {
+	return c.comments
+}
+
+func (c *commentedDocument) SetComments(comments *json.CommentSet) {
+	c.comments = comments
+}
+
+// FormatConfig formats json, keeping the comments of configContent.
 func FormatConfig(configContent string) (string, error) {
 	ctx := baseContext(nil)
-	configMap, err := json.UnmarshalExtendedContext[map[string]any](ctx, []byte(configContent))
+	document, err := json.UnmarshalExtendedContext[commentedDocument](ctx, []byte(configContent))
 	if err != nil {
 		return "", err
 	}
 
 	var buffer bytes.Buffer
-	encoder := json.NewEncoder(&buffer)
-	encoder.SetIndent("", "  ")
-	err = encoder.Encode(configMap)
+	encoder := json.NewEncoderContext(ctx, &buffer)
+	const indent = "  " // sing-box style
+	encoder.SetIndent("", indent)
+	err = encoder.Encode(&document)
 	if err != nil {
 		return "", err
 	}

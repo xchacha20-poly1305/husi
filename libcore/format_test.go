@@ -105,6 +105,65 @@ func Test_FormatConfig(t *testing.T) {
 	}
 }
 
+func Test_FormatConfig_KeepComments(t *testing.T) {
+	tt := []struct {
+		name   string
+		config string
+		want   string
+	}{
+		{
+			name: "Line",
+			config: `{
+// ntp
+"ntp": {"server": "time.apple.com"}
+}`,
+			want: "// ntp",
+		},
+		{
+			name: "Hash",
+			config: `{
+# ntp
+"ntp": {"server": "time.apple.com"}
+}`,
+			want: "# ntp",
+		},
+		{
+			name: "Block",
+			config: `{
+/* ntp */
+"ntp": {"server": "time.apple.com"}
+}`,
+			want: "/* ntp */",
+		},
+		{
+			name: "Trailing",
+			config: `{
+"ntp": {"server": "time.apple.com"} // ntp
+}`,
+			want: "// ntp",
+		},
+		{
+			name: "Nested",
+			config: `{
+"outbounds": [
+// direct
+{"type": "direct", "tag": "direct"}
+]
+}`,
+			want: "// direct",
+		},
+	}
+
+	for _, test := range tt {
+		t.Run(test.name, func(t *testing.T) {
+			formatted, err := FormatConfig(test.config)
+			if assert.NoError(t, err) {
+				assert.Contains(t, formatted, test.want)
+			}
+		})
+	}
+}
+
 func Test_CheckConfig(t *testing.T) {
 	tests := []struct {
 		name    string
