@@ -12,7 +12,7 @@ class ProxySetTest {
         val proxySet = allProxySet(emptyList())
 
         assertEquals(ALL_PROXY_SET_ID, proxySet.id)
-        assertEquals("All", proxySet.type)
+        assertEquals("All", proxySet.displayType)
         assertEquals("All proxies", proxySet.tag)
         assertTrue(proxySet.isAll)
         assertFalse(proxySet.selectable)
@@ -22,10 +22,10 @@ class ProxySetTest {
     @Test
     fun `group url test skips direct and block items only`() {
         val items = listOf(
-            ProxyItem(tag = "direct", type = "Direct"),
-            ProxyItem(tag = "block", type = "Block"),
-            ProxyItem(tag = "proxy", type = "Shadowsocks"),
-            ProxyItem(tag = "endpoint", type = "WireGuard"),
+            ProxyItem(tag = "direct", type = "direct"),
+            ProxyItem(tag = "block", type = "block"),
+            ProxyItem(tag = "proxy", type = "shadowsocks"),
+            ProxyItem(tag = "endpoint", type = "wireguard"),
         )
 
         assertEquals(
@@ -36,13 +36,13 @@ class ProxySetTest {
 
     @Test
     fun `expanding url test targets reaches the leaves of nested groups`() {
-        val outer = ProxyItem(tag = "outer", type = "Selector")
-        val inner = ProxyItem(tag = "inner", type = "URLTest")
+        val outer = ProxyItem(tag = "outer", type = "selector")
+        val inner = ProxyItem(tag = "inner", type = "urltest")
         val members = mapOf(
-            "outer" to listOf(ProxyItem(tag = "a", type = "Shadowsocks"), inner),
+            "outer" to listOf(ProxyItem(tag = "a", type = "shadowsocks"), inner),
             "inner" to listOf(
-                ProxyItem(tag = "b", type = "Trojan"),
-                ProxyItem(tag = "direct", type = "Direct"),
+                ProxyItem(tag = "b", type = "trojan"),
+                ProxyItem(tag = "direct", type = "direct"),
             ),
         )
 
@@ -55,12 +55,12 @@ class ProxySetTest {
     @Test
     fun `expanding url test targets measures a shared leaf once`() {
         val members = mapOf(
-            "left" to listOf(ProxyItem(tag = "shared", type = "Trojan")),
-            "right" to listOf(ProxyItem(tag = "shared", type = "Trojan")),
+            "left" to listOf(ProxyItem(tag = "shared", type = "trojan")),
+            "right" to listOf(ProxyItem(tag = "shared", type = "trojan")),
         )
         val items = listOf(
-            ProxyItem(tag = "left", type = "Selector"),
-            ProxyItem(tag = "right", type = "Selector"),
+            ProxyItem(tag = "left", type = "selector"),
+            ProxyItem(tag = "right", type = "selector"),
         )
 
         assertEquals(listOf("shared"), expandUrlTestTargets(items, members).map(ProxyItem::tag))
@@ -70,16 +70,16 @@ class ProxySetTest {
     fun `expanding url test targets survives a group cycle`() {
         val members = mapOf(
             "left" to listOf(
-                ProxyItem(tag = "right", type = "Selector"),
-                ProxyItem(tag = "a", type = "Trojan"),
+                ProxyItem(tag = "right", type = "selector"),
+                ProxyItem(tag = "a", type = "trojan"),
             ),
-            "right" to listOf(ProxyItem(tag = "left", type = "Selector")),
+            "right" to listOf(ProxyItem(tag = "left", type = "selector")),
         )
 
         assertEquals(
             listOf("a"),
             expandUrlTestTargets(
-                listOf(ProxyItem(tag = "left", type = "Selector")),
+                listOf(ProxyItem(tag = "left", type = "selector")),
                 members,
             ).map(ProxyItem::tag),
         )

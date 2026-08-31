@@ -112,7 +112,7 @@ object ProxySetOrder {
 data class ProxySet(
     val tag: String = "",
     val id: String = tag,
-    val type: String = "",
+    val displayType: String = "",
     val selectable: Boolean = false,
     var selected: String = "",
     var items: List<ProxyItem> = emptyList(),
@@ -129,7 +129,7 @@ internal fun allProxySet(items: List<ProxyItem>): ProxySet {
     return ProxySet(
         id = ALL_PROXY_SET_ID,
         tag = "All proxies",
-        type = "All",
+        displayType = "All",
         items = items,
         isAll = true,
     )
@@ -146,6 +146,7 @@ data class ProxyItem(
     val tag: String = "",
     val type: String = "",
     val urlTestDelay: Int = -1,
+    val displayType: String = type,
 )
 
 @Stable
@@ -738,14 +739,15 @@ class DashboardViewModel(
             val fresh = latestGroups.map { group ->
                 ProxySet(
                     tag = group.tag,
-                    type = proxyDisplayName(group.type),
+                    displayType = proxyDisplayName(group.type),
                     selectable = group.selectable,
                     selected = group.selected,
                     items = group.itemsList.map { item ->
                         ProxyItem(
                             tag = item.tag,
-                            type = proxyDisplayName(item.type),
+                            type = item.type,
                             urlTestDelay = item.urlTestDelay,
+                            displayType = proxyDisplayName(item.type),
                         )
                     }.let { items ->
                         comparator?.let { items.sortedWith(it) } ?: items
@@ -755,8 +757,9 @@ class DashboardViewModel(
             val allItems = latestOutbounds.map { item ->
                 ProxyItem(
                     tag = item.tag,
-                    type = proxyDisplayName(item.type),
+                    type = item.type,
                     urlTestDelay = item.urlTestDelay,
+                    displayType = proxyDisplayName(item.type),
                 )
             }.let { items ->
                 comparator?.let { items.sortedWith(it) } ?: items

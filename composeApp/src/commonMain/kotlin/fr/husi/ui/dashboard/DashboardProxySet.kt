@@ -167,7 +167,7 @@ private fun ProxySetCard(
                             modifier = Modifier.weight(1f),
                         ) {
                             Text(
-                                text = proxySet.type,
+                                text = proxySet.displayType,
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.titleMediumEmphasized,
                             )
@@ -390,7 +390,7 @@ private fun ProxyCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = proxy.type,
+                    text = proxy.displayType,
                     color = MaterialTheme.colorScheme.outline,
                     style = MaterialTheme.typography.labelMedium,
                 )
@@ -448,7 +448,7 @@ private fun PreviewProxySet() {
             proxySets = listOf(
                 ProxySet(
                     tag = "♻️自动选择",
-                    type = "URLTest",
+                    displayType = "URLTest",
                     selected = "🇭🇰 Hong Kong",
                     items = listOf(
                         ProxyItem("🇭🇰 Hong Kong", "Shadowsocks", 18),
