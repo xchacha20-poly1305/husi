@@ -226,8 +226,11 @@ class DesktopMain(
             exitProcess(runTaskMode(it))
         }
 
+        val uiScaleWait = awaitLinuxUiScaleSettings()
+
         registerMacOSOpenUriHandler()
         initDesktopRuntime(deepLinks)
+        uiScaleWait.logOutcome()
         runCatching {
             runBlocking {
                 SubscriptionUpdater.reconfigureUpdater()

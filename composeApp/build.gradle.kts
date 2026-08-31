@@ -421,6 +421,7 @@ kotlin {
                     implementation("${desktopTarget.composeDependencyNotation}:$composeDesktopVersion")
                 }
                 implementation(libs.clikt)
+                implementation(libs.jna)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.nucleus.composetray)
                 implementation(libs.nucleus.core.runtime)
