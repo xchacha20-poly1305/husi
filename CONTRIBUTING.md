@@ -44,6 +44,10 @@ Truly readable code is more than just clear—it's understandable even without c
 * Use **constants** wherever possible.
   Magic literals hide intent and scatter duplicates across the codebase; a named constant is self-documenting and has exactly one place to update.
 
+  **Exceptions** — inline literals are fine when the value is local and self-evident:
+  * Layout-only dp values in Compose UI that no other component references (e.g. `Modifier.padding(16.dp)`).
+  * Arbitrary delays with no domain meaning (e.g. a short animation debounce).
+
   **Bad:**
 
   ```go

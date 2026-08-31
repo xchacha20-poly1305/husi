@@ -222,6 +222,7 @@ object DataStore {
     val trafficSortMode = configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }
     val trafficConnectionQuery = configurationStore.int(Key.TRAFFIC_CONNECTION_QUERY) { 1 shl 0 }
     val proxySetOrder = configurationStore.int(Key.PROXY_SET_ORDER)
+    val dashboardWidgets = configurationStore.string(Key.DASHBOARD_WIDGETS)
 
     val speedTestUrl = configurationStore.string(Key.SPEED_TEST_URL) { SPEED_TEST_URL }
     val speedTestUploadURL = configurationStore.string(Key.SPEED_TEST_UPLOAD_URL) { SPEED_TEST_UPLOAD_URL }

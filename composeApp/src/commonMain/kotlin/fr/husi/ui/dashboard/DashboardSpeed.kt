@@ -5,7 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -37,38 +36,44 @@ import org.jetbrains.compose.resources.stringResource
 
 // Reference: https://github.com/SagerNet/sing-box-for-android/blob/8f6343802a6d8e0fa478d9e642cbb58c147e671b/app/src/main/java/io/nekohasekai/sfa/compose/LineChart.kt
 
+private const val SPEED_CEILING_HEADROOM = 1.2f
+
+private fun DashboardState.speedValueCeiling(): Float {
+    val proxyCeiling = proxySpeedHistory.maxOrNull() ?: 0f
+    val directCeiling = directSpeedHistory.maxOrNull() ?: 0f
+    return maxOf(proxyCeiling, directCeiling, 1f) * SPEED_CEILING_HEADROOM
+}
+
 @Composable
-internal fun DashboardSpeedRow(
+internal fun ProxySpeedCard(
     uiState: DashboardState,
     modifier: Modifier = Modifier,
 ) {
-    val proxyCeiling = uiState.proxySpeedHistory.maxOrNull() ?: 0f
-    val directCeiling = uiState.directSpeedHistory.maxOrNull() ?: 0f
-    val valueCeiling = maxOf(proxyCeiling, directCeiling, 1f) * 1.2f
+    SpeedCard(
+        title = stringResource(Res.string.status_proxy),
+        txRate = uiState.txRateProxy,
+        rxRate = uiState.rxRateProxy,
+        history = uiState.proxySpeedHistory,
+        lineColor = MaterialTheme.colorScheme.primary,
+        valueCeiling = uiState.speedValueCeiling(),
+        modifier = modifier,
+    )
+}
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        SpeedCard(
-            title = stringResource(Res.string.status_proxy),
-            txRate = uiState.txRateProxy,
-            rxRate = uiState.rxRateProxy,
-            history = uiState.proxySpeedHistory,
-            lineColor = MaterialTheme.colorScheme.primary,
-            valueCeiling = valueCeiling,
-            modifier = Modifier.weight(1f),
-        )
-        SpeedCard(
-            title = stringResource(Res.string.status_direct),
-            txRate = uiState.txRateDirect,
-            rxRate = uiState.rxRateDirect,
-            history = uiState.directSpeedHistory,
-            lineColor = MaterialTheme.colorScheme.tertiary,
-            valueCeiling = valueCeiling,
-            modifier = Modifier.weight(1f),
-        )
-    }
+@Composable
+internal fun DirectSpeedCard(
+    uiState: DashboardState,
+    modifier: Modifier = Modifier,
+) {
+    SpeedCard(
+        title = stringResource(Res.string.status_direct),
+        txRate = uiState.txRateDirect,
+        rxRate = uiState.rxRateDirect,
+        history = uiState.directSpeedHistory,
+        lineColor = MaterialTheme.colorScheme.tertiary,
+        valueCeiling = uiState.speedValueCeiling(),
+        modifier = modifier,
+    )
 }
 
 @Composable

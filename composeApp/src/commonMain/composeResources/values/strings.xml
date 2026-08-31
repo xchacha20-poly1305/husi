@@ -661,6 +661,11 @@
     <string name="status_status">Status</string>
     <string name="status_proxy">Proxy</string>
     <string name="status_direct">Direct</string>
+    <string name="dashboard_edit_widgets">Edit dashboard</string>
+    <string name="dashboard_done_editing">Done editing</string>
+    <string name="dashboard_hidden_widgets">Hidden cards</string>
+    <string name="dashboard_hide_widget">Hide card</string>
+    <string name="dashboard_show_widget">Show card</string>
     <string name="disable_post_quantum">Disable post-quantum key agreement</string>
     <string name="mux_strategy">Mux Strategy</string>
     <string name="mux_number">Mux Number</string>

@@ -138,6 +138,11 @@
     <string name="auth_browser_cookie_missing">找不到驗證所需的 Cookie。</string>
     <string name="auth_verifying">驗證中…</string>
     <string name="auth_later_hint">您可以稍後在「儀表板 → 狀態」完成驗證。</string>
+    <string name="dashboard_edit_widgets">編輯儀表板</string>
+    <string name="dashboard_done_editing">完成編輯</string>
+    <string name="dashboard_hidden_widgets">已隱藏的卡片</string>
+    <string name="dashboard_hide_widget">隱藏卡片</string>
+    <string name="dashboard_show_widget">顯示卡片</string>
     <string name="cancel_auth">取消驗證</string>
     <string name="state">狀態</string>
     <string name="auth_required">需要驗證</string>

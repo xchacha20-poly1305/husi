@@ -582,6 +582,11 @@
     <string name="status_status">状态</string>
     <string name="status_proxy">代理</string>
     <string name="status_direct">直连</string>
+    <string name="dashboard_edit_widgets">编辑仪表板</string>
+    <string name="dashboard_done_editing">完成编辑</string>
+    <string name="dashboard_hidden_widgets">已隐藏的卡片</string>
+    <string name="dashboard_hide_widget">隐藏卡片</string>
+    <string name="dashboard_show_widget">显示卡片</string>
     <string name="disable_post_quantum">禁用后量子密钥协商</string>
     <string name="mux_strategy">多路复用策略</string>
     <string name="mux_number">多路复用数量</string>

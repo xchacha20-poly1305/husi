@@ -84,6 +84,8 @@ import fr.husi.resources.connection_status
 import fr.husi.resources.connection_status_active
 import fr.husi.resources.connection_status_closed
 import fr.husi.resources.copy_success
+import fr.husi.resources.dashboard_done_editing
+import fr.husi.resources.dashboard_edit_widgets
 import fr.husi.resources.descending
 import fr.husi.resources.ensure_close_all
 import fr.husi.resources.group_order_by_delay
@@ -152,9 +154,11 @@ fun DashboardScreen(
     val targetConnected by remoteControl.targetConnected.collectAsStateWithLifecycle()
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
+    var isEditingDashboard by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val isConnectionsPage = pagerState.currentPage == PAGE_CONNECTIONS
     val isProxySetPage = pagerState.currentPage == PAGE_PROXY_SET
+    val isStatusPage = pagerState.currentPage == PAGE_STATUS
 
     val searchBarState = rememberSearchBarState()
     val searchTextFieldState = dashboardViewModel.searchTextFieldState
@@ -184,6 +188,10 @@ fun DashboardScreen(
         )
     }
     val windowInsets = WindowInsets.safeDrawing
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage != PAGE_STATUS) isEditingDashboard = false
+    }
 
     LaunchedEffect(remoteSession?.server?.id, targetConnected) {
         dashboardViewModel.initialize(targetConnected)
@@ -353,7 +361,7 @@ fun DashboardScreen(
                             scrollBehavior = scrollBehavior,
                         )
                     } else {
-                        val groupCount = if (isProxySetPage) 2 else 1
+                        val groupCount = if (isProxySetPage || isStatusPage) 2 else 1
                         CapsuleTopBar(
                             navigationIcon = null,
                             title = { Text(stringResource(Res.string.menu_dashboard)) },
@@ -375,6 +383,31 @@ fun DashboardScreen(
                                                 onManage = onOpenRemoteControl,
                                                 onDismiss = { isOverflowMenuExpanded = false },
                                             )
+                                            if (isStatusPage) {
+                                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
+                                                DropdownMenuGroup(
+                                                    shapes = MenuDefaults.groupShape(1, groupCount),
+                                                ) {
+                                                    DropdownMenuItem(
+                                                        text = {
+                                                            Text(
+                                                                stringResource(
+                                                                    if (isEditingDashboard) {
+                                                                        Res.string.dashboard_done_editing
+                                                                    } else {
+                                                                        Res.string.dashboard_edit_widgets
+                                                                    },
+                                                                ),
+                                                            )
+                                                        },
+                                                        onClick = {
+                                                            isOverflowMenuExpanded = false
+                                                            isEditingDashboard = !isEditingDashboard
+                                                        },
+                                                        shape = MenuDefaults.itemShape(0, 1).shape,
+                                                    )
+                                                }
+                                            }
                                             if (isProxySetPage) {
                                                 Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
                                                 DropdownMenuGroup(
@@ -470,6 +503,8 @@ fun DashboardScreen(
                         onCopySuccess = {
                             snackbar.show(StringOrRes.Res(Res.string.copy_success))
                         },
+                        isEditing = isEditingDashboard,
+                        onWidgetsChange = { dashboardViewModel.setDashboardWidgets(it) },
                     )
 
                     PAGE_CONNECTIONS -> DashboardConnectionsScreen(

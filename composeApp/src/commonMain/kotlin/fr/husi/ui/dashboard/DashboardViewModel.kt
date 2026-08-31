@@ -84,6 +84,8 @@ data class DashboardState(
     val isRemote: Boolean = false,
 
     val urlTestingTags: Map<String, Int> = emptyMap(),
+
+    val dashboardWidgets: List<DashboardWidgetEntry> = defaultDashboardWidgets(),
 ) {
     companion object {
         const val SHOW_TRACKER_ACTIVELY: Byte = 1
@@ -224,6 +226,14 @@ class DashboardViewModel(
                         state.copy(proxySetOrder = order)
                     }
                     publishProxySets()
+                }
+        }
+        viewModelScope.launch {
+            DataStore.dashboardWidgets.flow()
+                .collectLatest { stored ->
+                    uiState.update { state ->
+                        state.copy(dashboardWidgets = decodeDashboardWidgets(stored))
+                    }
                 }
         }
         viewModelScope.launch {
@@ -440,6 +450,11 @@ class DashboardViewModel(
     fun setProxySetOrder(order: Int) = viewModelScope.launch(Dispatchers.Default) {
         DataStore.proxySetOrder.set(order)
     }
+
+    fun setDashboardWidgets(entries: List<DashboardWidgetEntry>) =
+        viewModelScope.launch(Dispatchers.Default) {
+            DataStore.dashboardWidgets.set(encodeDashboardWidgets(entries))
+        }
 
     fun setQueryActivate(queryActivate: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions

@@ -543,6 +543,11 @@
     <string name="status_status">狀態</string>
     <string name="status_proxy">代理</string>
     <string name="status_direct">直連</string>
+    <string name="dashboard_edit_widgets">編輯儀表板</string>
+    <string name="dashboard_done_editing">完成編輯</string>
+    <string name="dashboard_hidden_widgets">已隱藏的卡片</string>
+    <string name="dashboard_hide_widget">隱藏卡片</string>
+    <string name="dashboard_show_widget">顯示卡片</string>
     <string name="done">完成</string>
     <string name="custom_plugin_prefix">自訂插件前綴</string>
     <string name="custom_plugin_prefix_summary">請確保您完全信任插件提供者。</string>
