@@ -80,6 +80,7 @@ import fr.husi.fmt.toUniversalLink
 import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.blurAddress
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.readableUrlTestError
 import fr.husi.libcore.Libcore
@@ -430,8 +431,8 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     val bean = entity.requireBean()
 
     val (name, address) = when {
-        blurAddress && bean.name.isBlank() -> bean.displayAddress().blur() to null
-        blurAddress && showAddress -> bean.displayName() to bean.displayAddress().blur()
+        blurAddress && bean.name.isBlank() -> bean.displayAddress().blurAddress() to null
+        blurAddress && showAddress -> bean.displayName() to bean.displayAddress().blurAddress()
         showAddress -> bean.displayName() to bean.displayAddress()
         else -> bean.displayName() to null
     }
@@ -916,16 +917,4 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
             }
         },
     )
-}
-
-/** Make server address blurred. */
-private fun String.blur(): String = when (length) {
-    in 0 until 20 -> {
-        val halfLength = length / 2
-        substring(0, halfLength) + "*".repeat(length - halfLength)
-    }
-
-    in 20..30 -> substring(0, 15) + "*".repeat(length - 15)
-
-    else -> substring(0, 15) + "*".repeat(15)
 }

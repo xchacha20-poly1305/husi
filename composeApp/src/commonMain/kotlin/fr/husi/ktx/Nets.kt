@@ -126,6 +126,56 @@ fun String.wrapIPV6Host(): String {
     }
 }
 
+private const val ADDRESS_MASK = "***"
+private const val MASKED_IPV4_TAIL = ".*.*.*"
+
+fun String.blurAddress(): String {
+    val (host, port) = splitHostAndPort()
+    val blurredHost = host.blurHost()
+    val blurredPort = port?.blurLabel()
+    return if (blurredPort == null) blurredHost else "$blurredHost:$blurredPort"
+}
+
+private fun String.splitHostAndPort(): Pair<String, String?> {
+    if (startsWith("[")) {
+        val closingBracket = indexOf(']')
+        if (closingBracket < 0) return this to null
+        val host = substring(0, closingBracket + 1)
+        val port = substring(closingBracket + 1).removePrefix(":").blankAsNull()
+        return host to port
+    }
+
+    val separator = indexOf(':')
+    val isBareIPv6 = separator >= 0 && indexOf(':', separator + 1) >= 0
+    if (separator < 0 || isBareIPv6) return this to null
+    return substring(0, separator) to substring(separator + 1).blankAsNull()
+}
+
+private fun String.blurHost(): String = when {
+    isBlank() -> this
+
+    startsWith("[") && endsWith("]") -> "[${unwrapIPV6Host().blurHost()}]"
+
+    isIPv4() -> substringBefore('.') + MASKED_IPV4_TAIL
+
+    isIPv6() -> "${substringBefore(':')}:$ADDRESS_MASK"
+
+    else -> blurDomain()
+}
+
+private fun String.blurDomain(): String {
+    val labels = split('.')
+    val topLevelIndex = if (labels.size > 1) labels.lastIndex else -1
+    return labels.mapIndexed { index, label ->
+        if (index == topLevelIndex) label else label.blurLabel()
+    }.joinToString(".")
+}
+
+private fun String.blurLabel(): String {
+    if (isEmpty()) return this
+    return "${first()}$ADDRESS_MASK"
+}
+
 fun String.isLoopbackHost(): Boolean {
     if (equals(LOCALHOST_NAME, ignoreCase = true)) return true
     val literal = unwrapIPV6Host()
