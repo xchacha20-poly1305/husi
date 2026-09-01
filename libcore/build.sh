@@ -344,7 +344,11 @@ fi
 # Just install anja & anjb if not have or version not same
 go install tool
 
-box_version=$(go run ./cmd/boxversion/)
+box_version="$(go list -m -f '{{.Version}}' github.com/sagernet/sing-box)"
+if [ -z "$box_version" ]; then
+    echo "Unable to determine sing-box version from go.mod" >&2
+    exit 1
+fi
 husi_version="$(read_husi_version)"
 export CGO_ENABLED=1
 export GO386=softfloat
