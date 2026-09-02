@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +20,6 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
@@ -52,9 +53,60 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-private val CapsuleSize get() = 44.dp
-private val CapsuleBarVerticalPadding get() = 8.dp
-private val CapsuleBarHeight get() = CapsuleSize + CapsuleBarVerticalPadding * 2
+private val PillHorizontalPadding get() = 20.dp
+
+object CapsuleDefaults {
+    val Size: Dp get() = 44.dp
+    val Shape: Shape get() = RoundedCornerShape(Size / 2)
+    val HorizontalPadding: Dp get() = 16.dp
+    val VerticalPadding: Dp get() = 8.dp
+    val Spacing: Dp get() = 8.dp
+
+    val borderColor: Color
+        @Composable get() = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+
+    val containerColor: Color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f)
+}
+
+private val CapsuleBarHeight get() = CapsuleDefaults.Size + CapsuleDefaults.VerticalPadding * 2
+
+@Composable
+fun CapsuleSurface(
+    modifier: Modifier = Modifier,
+    shape: Shape = CapsuleDefaults.Shape,
+    borderColor: Color = CapsuleDefaults.borderColor,
+    onClick: (() -> Unit)? = null,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Surface(
+        modifier = modifier,
+        shape = shape,
+        color = Color.Transparent,
+        border = BorderStroke(width = 1.dp, color = borderColor),
+    ) {
+        val fill: @Composable () -> Unit = {
+            Box(
+                contentAlignment = Alignment.Center,
+                content = content,
+            )
+        }
+        if (onClick != null) {
+            Surface(
+                onClick = onClick,
+                shape = shape,
+                color = CapsuleDefaults.containerColor,
+                content = fill,
+            )
+        } else {
+            Surface(
+                shape = shape,
+                color = CapsuleDefaults.containerColor,
+                content = fill,
+            )
+        }
+    }
+}
 
 @Composable
 fun CapsuleTopBar(
@@ -64,7 +116,7 @@ fun CapsuleTopBar(
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    capsuleSpacing: Dp = 8.dp,
+    capsuleSpacing: Dp = CapsuleDefaults.Spacing,
 ) {
     SetHeightOffsetLimit(scrollBehavior)
     Box(
@@ -80,12 +132,15 @@ fun CapsuleTopBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(
+                    horizontal = CapsuleDefaults.HorizontalPadding,
+                    vertical = CapsuleDefaults.VerticalPadding,
+                ),
             horizontalArrangement = Arrangement.spacedBy(capsuleSpacing),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (navigationIcon != null) {
-                CircularCapsule {
+                CapsuleSurface(modifier = Modifier.size(CapsuleDefaults.Size)) {
                     navigationIcon()
                 }
             }
@@ -111,56 +166,19 @@ fun CapsuleTopBar(
 }
 
 @Composable
-private fun CircularCapsule(
-    content: @Composable () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.size(CapsuleSize),
-        shape = CircleShape,
-        color = Color.Transparent,
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-        ),
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-            ) {
-                content()
-            }
-        }
-    }
-}
-
-@Composable
 private fun PillCapsule(
     content: @Composable () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.height(CapsuleSize),
-        shape = RoundedCornerShape(22.dp),
-        color = Color.Transparent,
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-        ),
+    CapsuleSurface(
+        modifier = Modifier.height(CapsuleDefaults.Size),
+        onClick = {},
     ) {
-        Surface(
-            onClick = {},
-            shape = RoundedCornerShape(22.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
+        Box(
+            modifier = Modifier.padding(horizontal = PillHorizontalPadding),
+            contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                MarqueeWithFadingEdges {
-                    content()
-                }
+            MarqueeWithFadingEdges {
+                content()
             }
         }
     }
@@ -171,25 +189,8 @@ fun CapsuleActionButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Surface(
-        modifier = modifier.size(CapsuleSize),
-        shape = CircleShape,
-        color = Color.Transparent,
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-        ),
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-            ) {
-                content()
-            }
-        }
+    CapsuleSurface(modifier = modifier.size(CapsuleDefaults.Size)) {
+        content()
     }
 }
 
@@ -203,7 +204,7 @@ fun CapsuleSearchTopBar(
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    capsuleSpacing: Dp = 8.dp,
+    capsuleSpacing: Dp = CapsuleDefaults.Spacing,
 ) {
     SetHeightOffsetLimit(scrollBehavior)
     Box(
@@ -214,12 +215,15 @@ fun CapsuleSearchTopBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(
+                    horizontal = CapsuleDefaults.HorizontalPadding,
+                    vertical = CapsuleDefaults.VerticalPadding,
+                ),
             horizontalArrangement = Arrangement.spacedBy(capsuleSpacing),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (navigationIcon != null) {
-                CapsuleCircular {
+                CapsuleSurface(modifier = Modifier.size(CapsuleDefaults.Size)) {
                     navigationIcon()
                 }
             }
@@ -310,28 +314,6 @@ fun CapsuleSearchInputField(
 }
 
 @Composable
-private fun CapsuleCircular(content: @Composable () -> Unit) {
-    Surface(
-        modifier = Modifier.size(CapsuleSize),
-        shape = CircleShape,
-        color = Color.Transparent,
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-        ),
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                content()
-            }
-        }
-    }
-}
-
-@Composable
 private fun CapsuleSearchPill(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
@@ -340,34 +322,19 @@ private fun CapsuleSearchPill(
 ) {
     val currentOnClick = rememberUpdatedState(onClick)
     val currentOnLongClick = rememberUpdatedState(onLongClick)
-    Surface(
-        modifier = modifier.height(CapsuleSize),
-        shape = CircleShape,
-        color = Color.Transparent,
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-        ),
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.75f),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                content()
-                if (onClick != null || onLongClick != null) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = { currentOnClick.value?.invoke() },
-                                    onLongPress = { currentOnLongClick.value?.invoke() },
-                                )
-                            },
-                    )
-                }
-            }
+    CapsuleSurface(modifier = modifier.height(CapsuleDefaults.Size)) {
+        content()
+        if (onClick != null || onLongClick != null) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { currentOnClick.value?.invoke() },
+                            onLongPress = { currentOnLongClick.value?.invoke() },
+                        )
+                    },
+            )
         }
     }
 }

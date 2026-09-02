@@ -93,6 +93,7 @@ import fr.husi.resources.scroll_to_bottom
 import fr.husi.resources.search
 import fr.husi.resources.search_go
 import fr.husi.resources.share
+import fr.husi.ui.remote.RemoteSessionBanner
 import fr.husi.ui.remote.RemoteTargetMenuSection
 import fr.husi.utils.SendLog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -202,106 +203,115 @@ fun LogcatScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            CapsuleSearchTopBar(
-                inputField = searchInputField,
-                navigationIcon = null,
-                actions = {
-                    CapsuleActionButton {
-                        SimpleIconButton(
-                            imageVector = vectorResource(
-                                if (uiState.pause) {
-                                    Res.drawable.play_arrow
-                                } else {
-                                    Res.drawable.pause
-                                },
-                            ),
-                            contentDescription = stringResource(
-                                if (uiState.pause) Res.string.resume else Res.string.pause,
-                            ),
-                            onClick = viewModel::togglePause,
-                        )
-                    }
-                    CapsuleActionButton {
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.keyboard_arrow_down),
-                            contentDescription = stringResource(Res.string.scroll_to_bottom),
-                            onClick = {
-                                if (uiState.logs.isNotEmpty()) scope.launch {
-                                    listState.animateScrollToItem(uiState.logs.lastIndex)
-                                }
-                            },
-                        )
-                    }
-                    CapsuleActionButton {
-                        SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.share),
-                            contentDescription = stringResource(Res.string.logcat),
-                            onClick = { showBottomSheet = true },
-                        )
-                    }
-                    CapsuleActionButton {
-                        Box {
+            Column {
+                CapsuleSearchTopBar(
+                    inputField = searchInputField,
+                    navigationIcon = null,
+                    actions = {
+                        CapsuleActionButton {
                             SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.more_vert),
-                                contentDescription = stringResource(Res.string.more),
-                                onClick = { expandMenu = true },
+                                imageVector = vectorResource(
+                                    if (uiState.pause) {
+                                        Res.drawable.play_arrow
+                                    } else {
+                                        Res.drawable.pause
+                                    },
+                                ),
+                                contentDescription = stringResource(
+                                    if (uiState.pause) Res.string.resume else Res.string.pause,
+                                ),
+                                onClick = viewModel::togglePause,
                             )
-                            DropdownMenuPopup(
-                                expanded = expandMenu,
-                                onDismissRequest = { expandMenu = false },
-                            ) {
-                                RemoteTargetMenuSection(
-                                    groupIndex = 0,
-                                    groupCount = 3,
-                                    onManage = onOpenRemoteControl,
-                                    onDismiss = { expandMenu = false },
+                        }
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.keyboard_arrow_down),
+                                contentDescription = stringResource(Res.string.scroll_to_bottom),
+                                onClick = {
+                                    if (uiState.logs.isNotEmpty()) scope.launch {
+                                        listState.animateScrollToItem(uiState.logs.lastIndex)
+                                    }
+                                },
+                            )
+                        }
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.share),
+                                contentDescription = stringResource(Res.string.logcat),
+                                onClick = { showBottomSheet = true },
+                            )
+                        }
+                        CapsuleActionButton {
+                            Box {
+                                SimpleIconButton(
+                                    imageVector = vectorResource(Res.drawable.more_vert),
+                                    contentDescription = stringResource(Res.string.more),
+                                    onClick = { expandMenu = true },
                                 )
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(1, 3),
+                                DropdownMenuPopup(
+                                    expanded = expandMenu,
+                                    onDismissRequest = { expandMenu = false },
                                 ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.clear_logcat)) },
-                                        onClick = viewModel::clearLog,
-                                        leadingIcon = {
-                                            Icon(vectorResource(Res.drawable.delete_sweep), null)
-                                        },
-                                        colors = MenuDefaults.itemColors().copy(
-                                            leadingIconColor = MaterialTheme.colorScheme.error,
-                                        ),
-                                        shape = MenuDefaults.itemShape(0, 1).shape,
+                                    RemoteTargetMenuSection(
+                                        groupIndex = 0,
+                                        groupCount = 3,
+                                        onManage = onOpenRemoteControl,
+                                        onDismiss = { expandMenu = false },
                                     )
-                                }
-
-                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
-
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(2, 3),
-                                ) {
-                                    val levels = LogLevel.entries
-                                    for ((index, level) in levels.withIndex()) {
+                                    DropdownMenuGroup(
+                                        shapes = MenuDefaults.groupShape(1, 3),
+                                    ) {
                                         DropdownMenuItem(
-                                            text = { Text(level.name) },
-                                            onClick = {
-                                                viewModel.setLogLevel(level)
-                                                expandMenu = false
+                                            text = { Text(stringResource(Res.string.clear_logcat)) },
+                                            onClick = viewModel::clearLog,
+                                            leadingIcon = {
+                                                Icon(vectorResource(Res.drawable.delete_sweep), null)
                                             },
-                                            trailingIcon = {
-                                                RadioButton(
-                                                    selected = uiState.logLevel == level,
-                                                    onClick = null,
-                                                )
-                                            },
-                                            shape = MenuDefaults.itemShape(index, levels.size).shape,
+                                            colors = MenuDefaults.itemColors().copy(
+                                                leadingIconColor = MaterialTheme.colorScheme.error,
+                                            ),
+                                            shape = MenuDefaults.itemShape(0, 1).shape,
                                         )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
+
+                                    DropdownMenuGroup(
+                                        shapes = MenuDefaults.groupShape(2, 3),
+                                    ) {
+                                        val levels = LogLevel.entries
+                                        for ((index, level) in levels.withIndex()) {
+                                            DropdownMenuItem(
+                                                text = { Text(level.name) },
+                                                onClick = {
+                                                    viewModel.setLogLevel(level)
+                                                    expandMenu = false
+                                                },
+                                                trailingIcon = {
+                                                    RadioButton(
+                                                        selected = uiState.logLevel == level,
+                                                        onClick = null,
+                                                    )
+                                                },
+                                                shape = MenuDefaults.itemShape(index, levels.size).shape,
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                scrollBehavior = scrollBehavior,
-            )
+                    },
+                    windowInsets = windowInsets.only(
+                        WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
+                    ),
+                    scrollBehavior = scrollBehavior,
+                )
+
+                RemoteSessionBanner(
+                    windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
+                    remoteControl = remoteControl,
+                )
+            }
         },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current

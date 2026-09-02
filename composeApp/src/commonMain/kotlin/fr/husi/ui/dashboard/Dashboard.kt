@@ -442,7 +442,10 @@ fun DashboardScreen(
                             scrollBehavior = scrollBehavior,
                         )
                     }
-                    RemoteSessionBanner()
+                    RemoteSessionBanner(
+                        windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
+                        remoteControl = remoteControl,
+                    )
 
                     PrimaryTabRow(
                         selectedTabIndex = pagerState.currentPage,
