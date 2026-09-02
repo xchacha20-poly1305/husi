@@ -8,7 +8,6 @@ import (
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
-	"github.com/sagernet/sing/service"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
@@ -77,8 +76,6 @@ func (h *SessionHost) Run(ctx context.Context) error {
 	)
 
 	hostCtx := sessionBaseContext(runCtx)
-	holder := coresvc.NewInstanceContextHolder()
-	service.MustRegister[*coresvc.InstanceContextHolder](hostCtx, holder)
 
 	daemonSvc := &sessionDaemonService{
 		workingDir: workingDir,

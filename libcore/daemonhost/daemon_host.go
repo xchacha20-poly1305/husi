@@ -12,7 +12,6 @@ import (
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/sing/service"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
@@ -112,9 +111,6 @@ func (h *DaemonHost) run(ctx context.Context) error {
 		"core host is unusable, restarting the daemon",
 		"exiting so a working daemon can take over",
 	)
-
-	holder := coresvc.NewInstanceContextHolder()
-	service.MustRegister[*coresvc.InstanceContextHolder](hostCtx, holder)
 
 	registry := NewPeerRegistry()
 	owner := NewOwnerStore(registry)

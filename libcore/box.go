@@ -32,7 +32,7 @@ type boxInstance struct {
 }
 
 // newBoxInstance creates a boxInstance. forTest must be true for the surviving
-// StandaloneURLTest path (no platform log writer, no combinedapi assertion).
+// StandaloneURLTest path (no platform log writer).
 func newBoxInstance(config string, platformInterface PlatformInterface, forTest bool) (b *boxInstance, err error) {
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 

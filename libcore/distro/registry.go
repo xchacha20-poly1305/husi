@@ -1,6 +1,7 @@
 package distro
 
 import (
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/certificate"
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	"github.com/sagernet/sing-box/adapter/inbound"
@@ -34,6 +35,7 @@ import (
 	"github.com/sagernet/sing-box/protocol/wireguard"
 	_ "github.com/sagernet/sing-box/transport/v2rayquic"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/instancectx"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
 )
 
@@ -59,7 +61,7 @@ func InboundRegistry() *inbound.Registry {
 	return registry
 }
 
-func OutboundRegistry() *outbound.Registry {
+func OutboundRegistry() adapter.OutboundRegistry {
 	registry := outbound.NewRegistry()
 
 	direct.RegisterOutbound(registry)
@@ -85,7 +87,7 @@ func OutboundRegistry() *outbound.Registry {
 
 	registerPluginsOutbound(registry)
 
-	return registry
+	return instancectx.PublishingOutboundRegistry(registry)
 }
 
 func EndpointRegistry() *endpoint.Registry {

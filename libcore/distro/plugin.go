@@ -3,7 +3,6 @@ package distro
 import (
 	"github.com/sagernet/sing-box/adapter/outbound"
 
-	_ "github.com/xchacha20-poly1305/husi/libcore/v2/combinedapi"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/balancer"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/http"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/juicity"

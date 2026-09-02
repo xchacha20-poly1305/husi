@@ -78,7 +78,7 @@ func (s *coreService) SubscribeServiceEvents(
 }
 
 func defaultURLTest(host *Host, tag, link string, timeoutMs int32, options urltest.Flags) (int32, error) {
-	instanceCtx := host.holder.Get()
+	instanceCtx := host.liveInstanceContext()
 	if instanceCtx == nil {
 		return -1, E.New("instance context not available")
 	}

@@ -11,8 +11,8 @@ require (
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/cors v1.2.1
 	github.com/sagernet/sing v0.9.0-beta.4
-	github.com/sagernet/sing-box v1.14.0
-	github.com/sagernet/sing-tun v0.9.0-beta.4
+	github.com/sagernet/sing-box v1.14.1-0.20260901144000-5ee65a5ca9e6
+	github.com/sagernet/sing-tun v0.9.0-beta.4.0.20260901140551-bac2a6cb10ee
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.12.1
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55

@@ -11,7 +11,6 @@ import (
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/daemon"
-	"github.com/sagernet/sing/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,7 +32,6 @@ func startHost(t *testing.T) (socketPath string, cleanup func()) {
 		distro.ServiceRegistry(),
 		distro.CertificateProviderRegistry(),
 	)
-	service.MustRegister[*coresvc.InstanceContextHolder](ctx, coresvc.NewInstanceContextHolder())
 	host, err := coresvc.NewHost(coresvc.HostOptions{
 		Context:          ctx,
 		Version:          "bridge-test",

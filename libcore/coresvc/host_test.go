@@ -12,7 +12,6 @@ import (
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/daemon"
-	"github.com/sagernet/sing/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +29,7 @@ import (
 
 func testBaseContext(t *testing.T) context.Context {
 	t.Helper()
-	ctx := box.Context(
+	return box.Context(
 		t.Context(),
 		distro.InboundRegistry(),
 		distro.OutboundRegistry(),
@@ -39,9 +38,6 @@ func testBaseContext(t *testing.T) context.Context {
 		distro.ServiceRegistry(),
 		distro.CertificateProviderRegistry(),
 	)
-	holder := coresvc.NewInstanceContextHolder()
-	service.MustRegister[*coresvc.InstanceContextHolder](ctx, holder)
-	return ctx
 }
 
 func startTestHost(t *testing.T, opts coresvc.HostOptions) (*coresvc.Host, string) {
@@ -235,6 +231,40 @@ func TestStartMinimalConfigAndURLTest(t *testing.T) {
 	assert.GreaterOrEqual(t, resp.GetLatencyMs(), int32(0))
 
 	require.NoError(t, host.CloseService(5*time.Second))
+}
+
+// A config check builds a throwaway box, which publishes an instance context of
+// its own and then cancels it. The running instance must keep its own.
+func TestURLTestAfterCheckConfig(t *testing.T) {
+	t.Chdir(t.TempDir())
+
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = ln.Close() })
+	go http.Serve(ln, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	testURL := "http://" + ln.Addr().String() + "/"
+
+	host, socketPath := startTestHost(t, coresvc.HostOptions{})
+	config := `{
+  "log": {"level": "warn"},
+  "outbounds": [{"type": "direct", "tag": "direct"}]
+}`
+	require.NoError(t, host.StartOrReload(t.Context(), config))
+	require.NoError(t, host.Started().CheckConfig(t.Context(), config))
+
+	conn := dialGRPC(t, socketPath)
+	core := husiv1.NewCoreServiceClient(conn)
+	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
+	defer cancel()
+	resp, err := core.URLTest(ctx, &husiv1.URLTestRequest{
+		OutboundTag: "direct",
+		Link:        testURL,
+		TimeoutMs:   5000,
+	})
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, resp.GetLatencyMs(), int32(0))
 }
 
 func TestCloseWithWatchdogTimeout(t *testing.T) {

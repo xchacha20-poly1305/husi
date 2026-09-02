@@ -4,8 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sagernet/sing/service"
-
 	"github.com/stretchr/testify/require"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 )
@@ -26,7 +24,6 @@ func newRunningDaemonService(t *testing.T) *daemonDaemonService {
 	svc.clientGrace = 50 * time.Millisecond
 
 	hostCtx := sessionBaseContext(t.Context())
-	service.MustRegister[*coresvc.InstanceContextHolder](hostCtx, coresvc.NewInstanceContextHolder())
 	host, err := coresvc.NewHost(coresvc.HostOptions{
 		Context:          hostCtx,
 		Version:          "test",

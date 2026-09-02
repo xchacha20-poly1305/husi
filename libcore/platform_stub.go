@@ -193,3 +193,11 @@ func (p platformInterfaceStub) UsePlatformBridge() bool {
 func (p platformInterfaceStub) CreateBridge(_ adapter.BridgeOptions) (adapter.BridgeSession, error) {
 	return nil, os.ErrInvalid
 }
+
+func (p platformInterfaceStub) UsePlatformAutoRedirect() bool {
+	return false
+}
+
+func (p platformInterfaceStub) CreateAutoRedirect(_ adapter.AutoRedirectOptions) (adapter.AutoRedirectSession, error) {
+	return nil, os.ErrInvalid
+}

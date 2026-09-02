@@ -17,6 +17,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/instancectx"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -34,7 +35,7 @@ type Host struct {
 	appHandler       AppHandler
 
 	started *daemon.StartedService
-	holder  *InstanceContextHolder
+	holder  *instancectx.Holder
 	events  *eventBroadcaster
 
 	services      []ServiceRegistrar
@@ -81,10 +82,10 @@ func NewHost(options HostOptions) (*Host, error) {
 		return nil, E.New("missing context")
 	}
 	logMaxLines := max(options.LogMaxLines, 50)
-	holder := service.FromContext[*InstanceContextHolder](options.Context)
+	holder := service.FromContext[*instancectx.Holder](options.Context)
 	if holder == nil {
-		holder = NewInstanceContextHolder()
-		service.MustRegister[*InstanceContextHolder](options.Context, holder)
+		holder = instancectx.New()
+		service.MustRegister[*instancectx.Holder](options.Context, holder)
 	}
 	started := daemon.NewStartedService(daemon.ServiceOptions{
 		Context:     options.Context,
@@ -120,10 +121,6 @@ func (h *Host) PublishServiceEvent(event *husiv1.SubscribeServiceEventsResponse)
 
 func (h *Host) Started() *daemon.StartedService {
 	return h.started
-}
-
-func (h *Host) Holder() *InstanceContextHolder {
-	return h.holder
 }
 
 func (h *Host) SetAppHandler(handler AppHandler) {
@@ -261,6 +258,11 @@ func (h *Host) StartOrReload(ctx context.Context, config string) error {
 	if err != nil {
 		return err
 	}
+	// Claim the instance context now: the next box anyone builds, a config
+	// check included, publishes over the one this instance left behind.
+	if h.liveInstanceContext() == nil {
+		log.Warn("instance context: the started instance published none")
+	}
 	h.attachFileLogSink()
 	return nil
 }
@@ -297,7 +299,9 @@ func (h *Host) closeServiceWithWatchdog(closeFn func() error, timeout time.Durat
 	err := closeWithWatchdog(closeFn, timeout)
 	if errors.Is(err, ErrCloseTimeout) {
 		h.markStuck(err)
+		return err
 	}
+	h.holder.Clear()
 	return err
 }
 
@@ -327,8 +331,20 @@ func closeWithWatchdog(closeFn func() error, timeout time.Duration) error {
 	}
 }
 
+// InstanceContext returns the context of the running instance, falling back to
+// the host context while there is none.
 func (h *Host) InstanceContext() context.Context {
-	return cmp.Or[context.Context](h.holder.Get(), h.ctx)
+	return cmp.Or[context.Context](h.liveInstanceContext(), h.ctx)
+}
+
+// liveInstanceContext returns the context the running instance was built on, or
+// nil while nothing is running.
+func (h *Host) liveInstanceContext() context.Context {
+	instance := h.started.Instance()
+	if instance == nil {
+		return nil
+	}
+	return h.holder.Claim(instance.Box().Outbound())
 }
 
 func (h *Host) Close() error {
