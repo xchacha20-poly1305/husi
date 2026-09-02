@@ -320,22 +320,46 @@ class OpenVPNFmtTest {
     }
 
     @Test
-    fun `parseOpenVPNConfig rejects unpaired client certificate`() {
-        val error = assertFailsWith<IllegalStateException> {
-            parseOpenVPNConfig(
-                """
-                remote vpn.example.com 443
-                <ca>
-                test-ca
-                </ca>
-                <cert>
-                test-client-cert
-                </cert>
-                """.trimIndent(),
-            )
-        }
+    fun `parseOpenVPNConfig discards unpaired client certificate`() {
+        val bean = parseOpenVPNConfig(
+            """
+            remote vpn.example.com 443
+            client-cert-not-required
+            <ca>
+            test-ca
+            </ca>
+            <cert>
+            test-client-cert
+            </cert>
+            <auth-user-pass>
+            test-user
+            test-password
+            </auth-user-pass>
+            """.trimIndent(),
+        )
 
-        assertEquals("OpenVPN client certificate and private key must be provided together.", error.message)
+        assertEquals("", bean.clientCertificate)
+        assertEquals("", bean.clientKey)
+        assertEquals("test-user", bean.username)
+        assertEquals("test-password", bean.password)
+    }
+
+    @Test
+    fun `parseOpenVPNConfig discards unpaired client key`() {
+        val bean = parseOpenVPNConfig(
+            """
+            remote vpn.example.com 443
+            <ca>
+            test-ca
+            </ca>
+            <key>
+            test-client-key
+            </key>
+            """.trimIndent(),
+        )
+
+        assertEquals("", bean.clientCertificate)
+        assertEquals("", bean.clientKey)
     }
 
     @Test

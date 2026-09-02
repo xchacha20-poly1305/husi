@@ -135,15 +135,19 @@ fun parseOpenVPNConfig(conf: String): OpenVPNBean {
     check(bean.certificate.isNotBlank() || bean.peerFingerprint.isNotBlank()) {
         "OpenVPN configuration requires an inline <ca> block or peer-fingerprint."
     }
-    check(bean.clientCertificate.isBlank() == bean.clientKey.isBlank()) {
-        "OpenVPN client certificate and private key must be provided together."
-    }
+    bean.discardUnpairedClientCertificate()
     check(bean.controlWrapType.isBlank() || bean.controlWrapKey.isNotBlank()) {
         "OpenVPN control channel protection requires an inline key block."
     }
     // Only tls-auth is keyed per direction, the other wrappers reject a direction.
     if (bean.controlWrapType != "tls_auth") bean.controlWrapDirection = ""
     return bean.applyDefaultValues()
+}
+
+private fun OpenVPNBean.discardUnpairedClientCertificate() {
+    if (clientCertificate.isNotBlank() && clientKey.isNotBlank()) return
+    clientCertificate = ""
+    clientKey = ""
 }
 
 /**
