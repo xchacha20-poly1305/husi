@@ -484,7 +484,6 @@ private fun HusiTray(
 
     Tray(
         icon = painterResource(Res.drawable.ic_service_active),
-        iconRenderProperties = trayIconRenderProperties(TRAY_ICON_DP),
         tooltip = stringResource(Res.string.app_name),
         primaryAction = onOpenWindow,
         menuContent = {
@@ -531,7 +530,6 @@ private fun HusiTray(
             Item(
                 label = stringResource(Res.string.copy_terminal_proxy),
                 icon = painterResource(Res.drawable.content_copy),
-                iconRenderProperties = trayIconRenderProperties(MENU_ICON_DP),
             ) {
                 scope.launch(Dispatchers.Default) {
                     setSystemClipboardPlainText(currentProxyEnvCommand())
@@ -540,7 +538,6 @@ private fun HusiTray(
             Item(
                 label = stringResource(Res.string.exit),
                 icon = painterResource(Res.drawable.close),
-                iconRenderProperties = trayIconRenderProperties(MENU_ICON_DP),
                 shortcut = KeyShortcut(TrayKey.Q),
                 onClick = onExit,
             )
