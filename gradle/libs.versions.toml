@@ -37,7 +37,7 @@ aboutlibraries = "15.2.0"
 androidxTv = "1.1.0"
 nucleus = "2.5.7"
 composeNativeTray = "2.1.6"
-agp = "9.3.2"
+agp = "9.4.0"
 kotlinGradlePlugin = "2.4.10"
 
 [libraries]
