@@ -25,6 +25,7 @@ var (
 	_ adapter.OutboundGroup           = (*Outbound)(nil)
 	_ adapter.ConnectionHandler       = (*Outbound)(nil)
 	_ adapter.PacketConnectionHandler = (*Outbound)(nil)
+	_ adapter.Referrer                = (*Outbound)(nil)
 )
 
 type Outbound struct {
@@ -122,6 +123,10 @@ func (o *Outbound) Now() string {
 
 func (o *Outbound) All() []string {
 	return o.tags
+}
+
+func (o *Outbound) References() []string {
+	return []string{o.Now()}
 }
 
 func (o *Outbound) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
