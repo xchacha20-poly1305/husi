@@ -72,11 +72,13 @@ import fr.husi.resources.Res
 import fr.husi.resources.ascending
 import fr.husi.resources.by_destination
 import fr.husi.resources.by_download
+import fr.husi.resources.by_download_speed
 import fr.husi.resources.by_inbound
 import fr.husi.resources.by_matched_rule
 import fr.husi.resources.by_source
 import fr.husi.resources.by_time
 import fr.husi.resources.by_upload
+import fr.husi.resources.by_upload_speed
 import fr.husi.resources.cancel
 import fr.husi.resources.cleaning_services
 import fr.husi.resources.close
@@ -299,6 +301,8 @@ fun DashboardScreen(
                                                         TrafficSortMode.INBOUND -> Res.string.by_inbound
                                                         TrafficSortMode.UPLOAD -> Res.string.by_upload
                                                         TrafficSortMode.DOWNLOAD -> Res.string.by_download
+                                                        TrafficSortMode.UPLOAD_SPEED -> Res.string.by_upload_speed
+                                                        TrafficSortMode.DOWNLOAD_SPEED -> Res.string.by_download_speed
                                                         TrafficSortMode.SRC -> Res.string.by_source
                                                         TrafficSortMode.DST -> Res.string.by_destination
                                                         TrafficSortMode.MATCHED_RULE -> Res.string.by_matched_rule

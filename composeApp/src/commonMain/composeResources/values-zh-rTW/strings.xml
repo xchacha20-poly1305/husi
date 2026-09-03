@@ -511,6 +511,7 @@
     <string name="ntp_sync_interval">NTP 同步間隔</string>
     <string name="by_source">根據原</string>
     <string name="by_upload">根據上行</string>
+    <string name="by_upload_speed">根據上行速度</string>
     <string name="have_reset_network">所有網路均已重置</string>
     <string name="start_time">開始於</string>
     <string name="outbound_rule">出站規則</string>
@@ -522,12 +523,15 @@
     <string name="sort_mode">排序方式</string>
     <string name="by_time">根據時間</string>
     <string name="by_download">根據下行</string>
+    <string name="by_download_speed">根據下行速度</string>
     <string name="pinned_peer_certificate_chain_sha256">固定憑證鏈哈希</string>
     <string name="ensure_close_all">您確定要關閉 %1$s 連線嗎？</string>
     <string name="destination_address">目標地址</string>
     <string name="by_inbound">根據入站</string>
     <string name="by_matched_rule">根據命中規則</string>
     <string name="upload">上傳</string>
+    <string name="upload_speed">上傳速度</string>
+    <string name="download_speed">下載速度</string>
     <string name="by_destination">根據目標</string>
     <string name="inbound">入站</string>
     <string name="ip_version">IP 版本</string>

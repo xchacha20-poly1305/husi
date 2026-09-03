@@ -60,6 +60,7 @@ import fr.husi.resources.delete_forever
 import fr.husi.resources.destination_address
 import fr.husi.resources.done
 import fr.husi.resources.download
+import fr.husi.resources.download_speed
 import fr.husi.resources.http_host
 import fr.husi.resources.inbound
 import fr.husi.resources.ip_version
@@ -70,8 +71,10 @@ import fr.husi.resources.outbound_rule
 import fr.husi.resources.process
 import fr.husi.resources.protocol
 import fr.husi.resources.source_address
+import fr.husi.resources.speed
 import fr.husi.resources.start_time
 import fr.husi.resources.upload
+import fr.husi.resources.upload_speed
 import fr.husi.ui.RouteSettingsUiState
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -253,6 +256,28 @@ internal fun ConnectionDetailSheet(
                             isSelecting = isSelecting,
                         ) {
                             Text(Libcore.formatBytes(connection.downloadTotal))
+                        }
+                        ConnectionField(
+                            field = Res.string.upload_speed,
+                            isSelecting = isSelecting,
+                        ) {
+                            Text(
+                                stringResource(
+                                    Res.string.speed,
+                                    Libcore.formatBytes(connection.uploadSpeed),
+                                )
+                            )
+                        }
+                        ConnectionField(
+                            field = Res.string.download_speed,
+                            isSelecting = isSelecting,
+                        ) {
+                            Text(
+                                stringResource(
+                                    Res.string.speed,
+                                    Libcore.formatBytes(connection.downloadSpeed),
+                                )
+                            )
                         }
                         ConnectionField(
                             field = Res.string.start_time,
@@ -594,6 +619,8 @@ private fun PreviewConnectionDetailSheet() {
             network = "tcp",
             uploadTotal = 114514,
             downloadTotal = 1919810,
+            uploadSpeed = 1024,
+            downloadSpeed = 40960,
             startedAt = "2026-12-31 23:59:59",
             src = "127.0.0.1:54321",
             dst = "example.com:443",

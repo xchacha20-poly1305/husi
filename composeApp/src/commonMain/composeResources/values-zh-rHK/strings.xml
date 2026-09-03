@@ -75,6 +75,10 @@
     <string name="auto">自動</string>
     <string name="action_scan_china_apps">尋找國產應用程式</string>
     <string name="download">下載</string>
+    <string name="upload_speed">上傳速度</string>
+    <string name="download_speed">下載速度</string>
+    <string name="by_upload_speed">根據上行速度</string>
+    <string name="by_download_speed">根據下行速度</string>
     <string name="apply">套用</string>
     <string name="random">隨機</string>
     <string name="connection_test">連接測試</string>

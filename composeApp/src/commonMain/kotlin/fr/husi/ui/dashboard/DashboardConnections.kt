@@ -38,6 +38,7 @@ import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.theme.LogColors
 import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
+import fr.husi.resources.connection_speed
 import fr.husi.resources.connection_status_active
 import fr.husi.resources.connection_status_closed
 import fr.husi.resources.delete_forever
@@ -191,6 +192,15 @@ private fun ConnectionCard(
                         Res.string.traffic,
                         Libcore.formatBytes(connection.uploadTotal),
                         Libcore.formatBytes(connection.downloadTotal),
+                    ),
+                    fontSize = 14.sp,
+                )
+
+                Text(
+                    text = stringResource(
+                        Res.string.connection_speed,
+                        Libcore.formatBytes(connection.uploadSpeed),
+                        Libcore.formatBytes(connection.downloadSpeed),
                     ),
                     fontSize = 14.sp,
                 )

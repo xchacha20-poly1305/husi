@@ -19,6 +19,8 @@ data class ConnectionDetailState(
     val network: String = "",
     val uploadTotal: Long = 0L,
     val downloadTotal: Long = 0L,
+    val uploadSpeed: Long = 0L,
+    val downloadSpeed: Long = 0L,
     val startedAt: String = "",
     val closedAt: String = "",
     val src: String = "",

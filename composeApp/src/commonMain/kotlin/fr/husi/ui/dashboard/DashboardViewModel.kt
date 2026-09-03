@@ -16,9 +16,7 @@ import fr.husi.bg.DefaultNetworkListener
 import fr.husi.bg.SpeedStats
 import fr.husi.core.CoreClient
 import fr.husi.core.formatConnectionTime
-import fr.husi.core.isClosed
 import fr.husi.core.isNew
-import fr.husi.core.isUpdate
 import fr.husi.core.proxyDisplayName
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.urlTestOptions
@@ -28,6 +26,7 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.proto.daemon.ConnectionEvent
+import fr.husi.proto.daemon.ConnectionEventType
 import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.GroupItem
@@ -52,6 +51,7 @@ import kotlin.experimental.and
 import kotlin.experimental.inv
 import kotlin.experimental.or
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 
 @Immutable
 data class DashboardState(
@@ -181,8 +181,13 @@ class DashboardViewModel(
 
     companion object {
         private val LOOP_INTERVAL = 1000L.milliseconds
+        private val LOOP_INTERVAL_SECONDS = LOOP_INTERVAL.toDouble(DurationUnit.SECONDS)
 
         private const val GROUP_URL_TEST_CONCURRENCY = 10
+
+        private fun bytesPerSecond(intervalDelta: Long): Long {
+            return (intervalDelta / LOOP_INTERVAL_SECONDS).toLong()
+        }
     }
 
     init {
@@ -436,6 +441,8 @@ class DashboardViewModel(
             TrafficSortMode.DST -> ConnectionDetailState::dst
             TrafficSortMode.UPLOAD -> ConnectionDetailState::uploadTotal
             TrafficSortMode.DOWNLOAD -> ConnectionDetailState::downloadTotal
+            TrafficSortMode.UPLOAD_SPEED -> ConnectionDetailState::uploadSpeed
+            TrafficSortMode.DOWNLOAD_SPEED -> ConnectionDetailState::downloadSpeed
             TrafficSortMode.MATCHED_RULE -> ConnectionDetailState::matchedRule
             else -> throw IllegalArgumentException("Unsupported sort mode: $mode")
         }
@@ -635,36 +642,46 @@ class DashboardViewModel(
     }
 
     private fun handleConnectionEvent(event: ConnectionEvent) {
-        when {
-            event.isNew() -> {
+        when (event.type) {
+            ConnectionEventType.CONNECTION_EVENT_NEW -> {
                 val connection = event.connection ?: return
                 connections[event.id] = connection.toDetailState()
                 updateConnectionsSnapshot()
             }
 
-            event.isUpdate() -> {
-                val uplinkDelta = event.uplinkDelta
-                val downlinkDelta = event.downlinkDelta
-                if (uplinkDelta == 0L && downlinkDelta == 0L) return
+            ConnectionEventType.CONNECTION_EVENT_UPDATE -> {
                 val id = event.id
                 val current = connections[id] ?: return
+                val uplinkDelta = event.uplinkDelta
+                val downlinkDelta = event.downlinkDelta
+                val hasTraffic = uplinkDelta > 0L || downlinkDelta > 0L
+                val wasIdle = current.uploadSpeed == 0L && current.downloadSpeed == 0L
+                if (!hasTraffic && wasIdle) return
                 val updated = current.copy(
                     uploadTotal = current.uploadTotal + uplinkDelta,
                     downloadTotal = current.downloadTotal + downlinkDelta,
+                    uploadSpeed = bytesPerSecond(uplinkDelta),
+                    downloadSpeed = bytesPerSecond(downlinkDelta),
                 )
                 connections[id] = updated
                 updateConnectionSnapshot(updated)
             }
 
-            event.isClosed() -> {
+            ConnectionEventType.CONNECTION_EVENT_CLOSED -> {
                 val closedAt = formatConnectionTime(event.closedAt)
                 if (closedAt.isBlank()) return
                 val id = event.id
                 val current = connections[id] ?: return
                 if (current.closedAt == closedAt) return
-                connections[id] = current.copy(closedAt = closedAt)
+                connections[id] = current.copy(
+                    closedAt = closedAt,
+                    uploadSpeed = 0L,
+                    downloadSpeed = 0L,
+                )
                 updateConnectionsSnapshot()
             }
+
+            ConnectionEventType.UNRECOGNIZED -> {}
         }
     }
 

@@ -206,6 +206,8 @@ object TrafficSortMode {
     const val UPLOAD = 4
     const val DOWNLOAD = 5
     const val MATCHED_RULE = 6
+    const val UPLOAD_SPEED = 7
+    const val DOWNLOAD_SPEED = 8
 
     val values
         get() = listOf(
@@ -215,6 +217,8 @@ object TrafficSortMode {
             DST,
             UPLOAD,
             DOWNLOAD,
+            UPLOAD_SPEED,
+            DOWNLOAD_SPEED,
             MATCHED_RULE,
         )
 }

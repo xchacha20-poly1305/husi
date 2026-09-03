@@ -101,6 +101,7 @@
     <string name="allow_insecure">Allow Insecure</string>
     <string name="allow_insecure_sum">Disable certificate checking. When enabled, this configuration is as secure as plaintext</string>
     <string name="traffic" translatable="false">%1$s↑ %2$s↓</string>
+    <string name="connection_speed" translatable="false">%1$s/s↑ %2$s/s↓</string>
     <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirect： %3$s↑ %4$s↓</string>
     <string name="speed">%1$s/s</string>
     <string name="connection_test_testing">Testing…</string>
@@ -633,10 +634,14 @@
     <string name="by_destination">By Destination</string>
     <string name="by_upload">By Upload</string>
     <string name="by_download">By Download</string>
+    <string name="by_upload_speed">By Upload Speed</string>
+    <string name="by_download_speed">By Download Speed</string>
     <string name="pinned_peer_certificate_chain_sha256">Pinned certificate chain hash</string>
     <string name="by_inbound">By Inbound</string>
     <string name="by_matched_rule">By Matched Rule</string>
     <string name="upload">Upload</string>
+    <string name="upload_speed">Upload Speed</string>
+    <string name="download_speed">Download Speed</string>
     <string name="inbound">Inbound</string>
     <string name="ip_version">IP Version</string>
     <string name="outbound">Outbound</string>
