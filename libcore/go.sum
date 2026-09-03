@@ -42,8 +42,8 @@ github.com/ebitengine/purego v0.10.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLA
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/exclavenetwork/sing-juicity v0.3.1-0.20260902150036-addaf35d58bb h1:282PHXBuIDfnEu8Nzg5bpw86+It+voW7ZiKA+NyBNYU=
-github.com/exclavenetwork/sing-juicity v0.3.1-0.20260902150036-addaf35d58bb/go.mod h1:SNBD9qD+SR1RubUcIO6HXbx+5kvIu7ieEFeuAndzX/8=
+github.com/exclavenetwork/sing-juicity v0.3.1-0.20260902154326-b8f7ad562567 h1:u1wCWXb/TnYIusHbLF/G4KoCi9zeKbjVXlYiM8cJ70o=
+github.com/exclavenetwork/sing-juicity v0.3.1-0.20260902154326-b8f7ad562567/go.mod h1:SNBD9qD+SR1RubUcIO6HXbx+5kvIu7ieEFeuAndzX/8=
 github.com/florianl/go-nfqueue/v2 v2.1.0 h1:Fywt30TY/evxyDySpXjxQ1jsRW7nQbLpOhELqpr4068=
 github.com/florianl/go-nfqueue/v2 v2.1.0/go.mod h1:8PKUM5rYoVFO5IZV1bifx4/b0jHAglKkHXr9PRwzi4Y=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
