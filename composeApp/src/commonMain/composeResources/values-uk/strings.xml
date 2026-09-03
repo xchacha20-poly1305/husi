@@ -23,8 +23,6 @@
     <string name="show_stop">Показати кнопку зупинки</string>
     <string name="cag_misc">Різні налаштування</string>
     <string name="speed_interval">Інтервал оновлення сповіщення про швидкість</string>
-    <string name="ws_browser_forwarding_sum">Пересилайте відповідні WebSockets через браузер.</string>
-    <string name="ws_browser_forwarding">Переадресація браузера</string>
     <string name="cag_ws">Налаштування WebSocket</string>
     <string name="general_settings">Налаштування застосунку</string>
     <string name="inbound_settings">Вхідні налаштування</string>

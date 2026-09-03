@@ -60,8 +60,6 @@
     <string name="inbound_settings">تنظیمات ورودی</string>
     <string name="general_settings">تنظیمات برنامه</string>
     <string name="cag_ws">تنظیمات وب سوکت</string>
-    <string name="ws_browser_forwarding">ارسال مرورگر</string>
-    <string name="ws_browser_forwarding_sum">وب‌سوکت‌های مربوط را از طریق مرورگر ارسال کنید.</string>
     <string name="speed_interval">فاصله به‌روزرسانی اعلان سرعت</string>
     <string name="cag_misc">تنظیمات متفرقه</string>
     <string name="show_stop">نمایش دکمه توقف</string>

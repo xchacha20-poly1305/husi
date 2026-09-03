@@ -61,8 +61,6 @@
     <string name="general_settings">Ajustes de la app</string>
     <string name="cag_ws">Ajustes de WebSocket</string>
     <string name="ws_max_early_data" translatable="false">Max early data</string>
-    <string name="ws_browser_forwarding">Reenvío del navegador</string>
-    <string name="ws_browser_forwarding_sum">Reenvía los WebSockets correspondientes a través del navegador.</string>
     <string name="speed_interval">Interv. de actu. de notificación de velocidad</string>
     <string name="cag_misc">Otros ajustes</string>
     <string name="show_stop">Mostrar botón de detener</string>

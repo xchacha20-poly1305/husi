@@ -98,8 +98,6 @@
     <string name="show_stop">إظهار زر الإيقاف</string>
     <string name="cag_misc">إعدادات متنوعة</string>
     <string name="speed_interval">الفاصل الزمني لتحديث إشعار السرعة</string>
-    <string name="ws_browser_forwarding_sum">إعادة توجيه WebSockets المقابلة من خلال المتصفح.</string>
-    <string name="ws_browser_forwarding">إعادة توجيه المتصفح</string>
     <string name="cag_ws">إعدادات WebSocket</string>
     <string name="general_settings">إعدادات التطبيقات</string>
     <string name="inbound_settings">إعدادات الواردة</string>
