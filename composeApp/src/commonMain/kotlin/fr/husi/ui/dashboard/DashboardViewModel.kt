@@ -179,6 +179,9 @@ class DashboardViewModel(
     private var latestGroups: List<Group> = emptyList()
     private var latestOutbounds: List<GroupItem> = emptyList()
 
+    private var comparator = buildComparator(TrafficSortMode.START, false)
+    private val proxySetComparator = AtomicReference(buildProxySetComparator(ProxySetOrder.ORIGIN))
+
     companion object {
         private val LOOP_INTERVAL = 1000L.milliseconds
         private val LOOP_INTERVAL_SECONDS = LOOP_INTERVAL.toDouble(DurationUnit.SECONDS)
@@ -430,8 +433,6 @@ class DashboardViewModel(
     fun setSortMode(mode: Int) = runOnIoDispatcher {
         DataStore.trafficSortMode.set(mode)
     }
-
-    private var comparator = buildComparator(TrafficSortMode.START, false)
 
     private fun buildComparator(mode: Int, descending: Boolean): Comparator<ConnectionDetailState> {
         val primarySelector: (ConnectionDetailState) -> Comparable<*> = when (mode) {
@@ -746,8 +747,6 @@ class DashboardViewModel(
             || protocol?.contains(query) == true
             || processes?.any { it.contains(query) } == true
             || uid.toString().contains(query)
-
-    private var proxySetComparator = AtomicReference(buildProxySetComparator(ProxySetOrder.ORIGIN))
 
     private fun buildProxySetComparator(order: Int): Comparator<ProxyItem>? {
         return when (order) {
