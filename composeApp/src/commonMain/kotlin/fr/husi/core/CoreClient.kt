@@ -11,19 +11,23 @@ import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.proto.daemon.DefaultLogLevel
 import fr.husi.proto.daemon.Groups
 import fr.husi.proto.daemon.Log
+import fr.husi.proto.daemon.NetworkQualityTestProgress
 import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
 import fr.husi.proto.daemon.OpenVPNChallengeSubmission
 import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.proto.daemon.OutboundList
+import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.StartedAt
 import fr.husi.proto.daemon.Status
 import fr.husi.proto.daemon.Version
 import fr.husi.proto.daemon.clashMode
 import fr.husi.proto.daemon.closeConnectionRequest
+import fr.husi.proto.daemon.networkQualityTestRequest
 import fr.husi.proto.daemon.openConnectAuthChallengeCancel
 import fr.husi.proto.daemon.openVPNChallengeCancel
+import fr.husi.proto.daemon.sTUNTestRequest
 import fr.husi.proto.daemon.selectOutboundRequest
 import fr.husi.proto.daemon.setGroupExpandRequest
 import fr.husi.proto.daemon.subscribeConnectionsRequest
@@ -36,10 +40,7 @@ import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetVersionResponse
 import fr.husi.proto.v1.PluginProcessSpec
-import fr.husi.proto.v1.STUNTestResponse
 import fr.husi.proto.v1.SchemaKind
-import fr.husi.proto.v1.SpeedTestMode
-import fr.husi.proto.v1.SpeedTestResponse
 import fr.husi.proto.v1.StandaloneURLTestResponse
 import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.SubscribeServiceEventsResponse
@@ -56,8 +57,8 @@ import fr.husi.proto.v1.getVersionRequest
 import fr.husi.proto.v1.resetNetworkRequest
 import fr.husi.proto.v1.runTaskRequest
 import fr.husi.proto.v1.setStartAtBootRequest
-import fr.husi.proto.v1.speedTestRequest
-import fr.husi.proto.v1.sTUNTestRequest
+import fr.husi.proto.v1.standaloneNetworkQualityTestRequest
+import fr.husi.proto.v1.standaloneSTUNTestRequest
 import fr.husi.proto.v1.standaloneURLTestRequest
 import fr.husi.proto.v1.stopServiceRequest
 import fr.husi.proto.v1.subscribeServiceEventsRequest
@@ -150,15 +151,27 @@ interface CoreClient {
         socksProxyUrl: String,
     ): String
 
-    fun stunTest(server: String, socksProxyUrl: String): Flow<STUNTestResponse>
-    fun speedTest(
-        mode: SpeedTestMode,
-        url: String,
-        timeoutMs: Int,
-        uploadLengthBytes: Long,
-        socksProxyUrl: String,
-        userAgent: String,
-    ): Flow<SpeedTestResponse>
+    /**
+     * [standaloneStunTest] / [standaloneNetworkQualityTest] dials directly and is all a host
+     * with no service started can answer.
+     */
+
+    fun stunTest(server: String, outboundTag: String): Flow<STUNTestProgress>
+    fun standaloneStunTest(server: String): Flow<STUNTestProgress>
+    fun networkQualityTest(
+        configUrl: String,
+        outboundTag: String,
+        serial: Boolean,
+        maxRuntimeSeconds: Int,
+        http3: Boolean,
+    ): Flow<NetworkQualityTestProgress>
+
+    fun standaloneNetworkQualityTest(
+        configUrl: String,
+        serial: Boolean,
+        maxRuntimeSeconds: Int,
+        http3: Boolean,
+    ): Flow<NetworkQualityTestProgress>
 
     suspend fun resetNetwork()
     suspend fun runTask(taskId: String)
@@ -631,31 +644,57 @@ class BridgeCoreClient private constructor(
         return GetCertResponse.parseFrom(bytes).pem
     }
 
-    override fun stunTest(server: String, socksProxyUrl: String): Flow<STUNTestResponse> {
+    override fun stunTest(server: String, outboundTag: String): Flow<STUNTestProgress> {
         val request = sTUNTestRequest {
             this.server = server
-            this.socksProxyUrl = socksProxyUrl
+            this.outboundTag = outboundTag
         }.toByteArray()
-        return oneShotStream(Methods.STUN_TEST, request) { STUNTestResponse.parseFrom(it) }
+        return oneShotStream(Methods.START_STUN_TEST, request) { STUNTestProgress.parseFrom(it) }
     }
 
-    override fun speedTest(
-        mode: SpeedTestMode,
-        url: String,
-        timeoutMs: Int,
-        uploadLengthBytes: Long,
-        socksProxyUrl: String,
-        userAgent: String,
-    ): Flow<SpeedTestResponse> {
-        val request = speedTestRequest {
-            this.mode = mode
-            this.url = url
-            this.timeoutMs = timeoutMs
-            this.uploadLengthBytes = uploadLengthBytes
-            this.socksProxyUrl = socksProxyUrl
-            this.userAgent = userAgent
+    override fun standaloneStunTest(server: String): Flow<STUNTestProgress> {
+        val request = standaloneSTUNTestRequest {
+            this.server = server
         }.toByteArray()
-        return oneShotStream(Methods.SPEED_TEST, request) { SpeedTestResponse.parseFrom(it) }
+        return oneShotStream(Methods.STANDALONE_STUN_TEST, request) {
+            STUNTestProgress.parseFrom(it)
+        }
+    }
+
+    override fun networkQualityTest(
+        configUrl: String,
+        outboundTag: String,
+        serial: Boolean,
+        maxRuntimeSeconds: Int,
+        http3: Boolean,
+    ): Flow<NetworkQualityTestProgress> {
+        val request = networkQualityTestRequest {
+            this.configURL = configUrl
+            this.outboundTag = outboundTag
+            this.serial = serial
+            this.maxRuntimeSeconds = maxRuntimeSeconds
+            this.http3 = http3
+        }.toByteArray()
+        return oneShotStream(Methods.START_NETWORK_QUALITY_TEST, request) {
+            NetworkQualityTestProgress.parseFrom(it)
+        }
+    }
+
+    override fun standaloneNetworkQualityTest(
+        configUrl: String,
+        serial: Boolean,
+        maxRuntimeSeconds: Int,
+        http3: Boolean,
+    ): Flow<NetworkQualityTestProgress> {
+        val request = standaloneNetworkQualityTestRequest {
+            this.configUrl = configUrl
+            this.serial = serial
+            this.maxRuntimeSeconds = maxRuntimeSeconds
+            this.http3 = http3
+        }.toByteArray()
+        return oneShotStream(Methods.STANDALONE_NETWORK_QUALITY_TEST, request) {
+            NetworkQualityTestProgress.parseFrom(it)
+        }
     }
 
     /**
@@ -798,6 +837,8 @@ class BridgeCoreClient private constructor(
         const val CLOSE_CONNECTION = "/daemon.StartedService/CloseConnection"
         const val CLOSE_ALL_CONNECTIONS = "/daemon.StartedService/CloseAllConnections"
         const val SUBSCRIBE_OUTBOUNDS = "/daemon.StartedService/SubscribeOutbounds"
+        const val START_STUN_TEST = "/daemon.StartedService/StartSTUNTest"
+        const val START_NETWORK_QUALITY_TEST = "/daemon.StartedService/StartNetworkQualityTest"
         const val SUBSCRIBE_OPENCONNECT_STATUS = "/daemon.StartedService/SubscribeOpenConnectStatus"
         const val SUBMIT_OPENCONNECT_AUTH_RESPONSE =
             "/daemon.StartedService/SubmitOpenConnectAuthResponse"
@@ -817,8 +858,9 @@ class BridgeCoreClient private constructor(
         const val GENERATE_SCHEMA = "/husi.v1.ApplicationService/GenerateSchema"
         const val STANDALONE_URL_TEST = "/husi.v1.ApplicationService/StandaloneURLTest"
         const val GET_CERT = "/husi.v1.ApplicationService/GetCert"
-        const val STUN_TEST = "/husi.v1.ApplicationService/STUNTest"
-        const val SPEED_TEST = "/husi.v1.ApplicationService/SpeedTest"
+        const val STANDALONE_STUN_TEST = "/husi.v1.ApplicationService/StandaloneSTUNTest"
+        const val STANDALONE_NETWORK_QUALITY_TEST =
+            "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
 
         const val RUN_TASK = "/husi.v1.AppService/RunTask"
 

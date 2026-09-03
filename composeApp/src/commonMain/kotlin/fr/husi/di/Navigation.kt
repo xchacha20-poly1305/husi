@@ -32,10 +32,9 @@ import fr.husi.ui.settings.SettingsScreen
 import fr.husi.ui.tools.BackupScreen
 import fr.husi.ui.tools.DebugScreen
 import fr.husi.ui.tools.GetCertScreen
+import fr.husi.ui.tools.NetworkQualityScreen
 import fr.husi.ui.tools.NetworkScreen
 import fr.husi.ui.tools.RuleSetMatchScreen
-import fr.husi.ui.tools.SpeedtestScreen
-import fr.husi.ui.tools.SpeedTestScreenViewModel
 import fr.husi.ui.tools.StunScreen
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.module.dsl.scopedOf
@@ -47,7 +46,6 @@ import org.koin.dsl.onClose
 internal val commonNavigationModule = module {
     scope<MainScreenScope> {
         scopedOf(::MainViewModel) onClose { it?.close() }
-        viewModel { SpeedTestScreenViewModel(coreClient = get()) }
         scoped { (backStack: MutableList<NavKey>) ->
             Navigator(backStack)
         }
@@ -266,6 +264,7 @@ internal val commonNavigationModule = module {
             val navigator = get<Navigator>()
             StunScreen(
                 onBackPress = { navigator.popBackStack() },
+                onOpenRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
             )
         }
 
@@ -276,10 +275,11 @@ internal val commonNavigationModule = module {
             )
         }
 
-        navigation<NavRoutes.ToolsPage.SpeedTest> { _ ->
+        navigation<NavRoutes.ToolsPage.NetworkQuality> { _ ->
             val navigator = get<Navigator>()
-            SpeedtestScreen(
+            NetworkQualityScreen(
                 onBackPress = { navigator.popBackStack() },
+                onOpenRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
             )
         }
 

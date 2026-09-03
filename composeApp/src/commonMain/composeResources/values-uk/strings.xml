@@ -494,7 +494,6 @@
     <string name="by_source">За вихідною адресою</string>
     <string name="by_download">За скачуванням</string>
     <string name="pinned_peer_certificate_chain_sha256">Хеш ланцюжка закріпленого сертифіката</string>
-    <string name="speed_test">Тест швидкості</string>
     <string name="have_reset_network">Усі мережі було скинуто</string>
     <string name="ensure_close_all">Ви впевнені, що хочете закрити %1$s з'єднань?</string>
     <string name="by_inbound">За вхідним підключенням</string>

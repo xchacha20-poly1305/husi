@@ -495,7 +495,6 @@
     <string name="by_upload">По отправке</string>
     <string name="by_download">По получению</string>
     <string name="pinned_peer_certificate_chain_sha256">Хэш фиксированной цепочки сертификатов</string>
-    <string name="speed_test">Тест скорости</string>
     <string name="have_reset_network">Все сети были сброшены</string>
     <string name="ensure_close_all">Вы уверены, что хотите закрыть %1$s соединений?</string>
     <string name="by_inbound">По входящему подключению</string>
@@ -607,7 +606,6 @@
     <string name="connection_status">Статус соединения</string>
     <string name="connection_status_active">Активно</string>
     <string name="connection_status_closed">Закрыто</string>
-    <string name="upload_size">Отправляемый размер (байт)</string>
     <string name="can_not_be_empty">Не может быть пустым</string>
     <plurals name="delete_confirm_detail">
         <item quantity="one">Вы уверены, что хотите удалить этот профиль?\n\n%1$s</item>

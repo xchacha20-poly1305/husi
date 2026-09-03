@@ -1,11 +1,15 @@
 package libcore
 
 import (
+	"context"
 	"testing"
+
+	"github.com/sagernet/sing-box/daemon"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -50,4 +54,33 @@ func TestGenerateSchemaUnknownKind(t *testing.T) {
 	st, ok := status.FromError(err)
 	require.True(t, ok, "expected grpc status, got %v", err)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
+}
+
+type recordingSTUNStream struct {
+	grpc.ServerStream
+	ctx  context.Context
+	sent []*daemon.STUNTestProgress
+}
+
+func (s *recordingSTUNStream) Context() context.Context { return s.ctx }
+
+func (s *recordingSTUNStream) Send(progress *daemon.STUNTestProgress) error {
+	s.sent = append(s.sent, progress)
+	return nil
+}
+
+func TestStandaloneSTUNTestReportsFailureInStream(t *testing.T) {
+	service := NewApplicationService(nil, nil).(husiv1.ApplicationServiceServer)
+	stream := &recordingSTUNStream{ctx: t.Context()}
+	const unresolvableServer = "husi-test.invalid:3478"
+
+	err := service.StandaloneSTUNTest(&husiv1.StandaloneSTUNTestRequest{
+		Server: unresolvableServer,
+	}, stream)
+
+	require.NoError(t, err, "a failed test is a message, not an rpc error")
+	require.NotEmpty(t, stream.sent)
+	final := stream.sent[len(stream.sent)-1]
+	assert.True(t, final.GetIsFinal())
+	assert.NotEmpty(t, final.GetError())
 }

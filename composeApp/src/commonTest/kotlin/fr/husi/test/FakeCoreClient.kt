@@ -8,11 +8,13 @@ import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.proto.daemon.DefaultLogLevel
 import fr.husi.proto.daemon.Groups
 import fr.husi.proto.daemon.Log
+import fr.husi.proto.daemon.NetworkQualityTestProgress
 import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
 import fr.husi.proto.daemon.OpenVPNChallengeSubmission
 import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.proto.daemon.OutboundList
+import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.Status
 import fr.husi.proto.daemon.Version
@@ -21,10 +23,7 @@ import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetVersionResponse
 import fr.husi.proto.v1.PluginProcessSpec
-import fr.husi.proto.v1.STUNTestResponse
 import fr.husi.proto.v1.SchemaKind
-import fr.husi.proto.v1.SpeedTestMode
-import fr.husi.proto.v1.SpeedTestResponse
 import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.URLTestOptions
 import kotlinx.coroutines.flow.Flow
@@ -138,53 +137,94 @@ open class FakeCoreClient : CoreClient {
         socksProxyUrl: String,
     ): String = ""
 
-    override fun stunTest(server: String, socksProxyUrl: String): Flow<STUNTestResponse> = emptyFlow()
-
-    data class SpeedTestCall(
-        val mode: SpeedTestMode,
-        val url: String,
-        val timeoutMs: Int,
-        val uploadLengthBytes: Long,
-        val socksProxyUrl: String,
-        val userAgent: String,
+    /**
+     * [standalone] records which half of the pair answered, so a test can tell
+     * the running-service RPC from the direct-dialling one.
+     */
+    data class StunTestCall(
+        val server: String,
+        val outboundTag: String,
+        val standalone: Boolean,
     )
 
-    var lastSpeedTest: SpeedTestCall? = null
-    var speedTestCalls: Int = 0
-    var speedTestResponses: List<SpeedTestResponse> = listOf(
-        SpeedTestResponse.newBuilder()
-            .setBytesPerSec(1_024_000)
-            .setProgress(1.0)
-            .setBytesTransferred(1_024_000)
-            .build(),
-    )
-    var speedTestThrowable: Throwable? = null
+    var lastStunTest: StunTestCall? = null
+    var stunTestCalls: Int = 0
+    var stunTestProgresses: List<STUNTestProgress> = emptyList()
+    var stunTestThrowable: Throwable? = null
 
-    override fun speedTest(
-        mode: SpeedTestMode,
-        url: String,
-        timeoutMs: Int,
-        uploadLengthBytes: Long,
-        socksProxyUrl: String,
-        userAgent: String,
-    ): Flow<SpeedTestResponse> {
-        speedTestCalls += 1
-        lastSpeedTest = SpeedTestCall(
-            mode = mode,
-            url = url,
-            timeoutMs = timeoutMs,
-            uploadLengthBytes = uploadLengthBytes,
-            socksProxyUrl = socksProxyUrl,
-            userAgent = userAgent,
-        )
-        val error = speedTestThrowable
-        if (error != null) {
-            return flow { throw error }
+    override fun stunTest(server: String, outboundTag: String): Flow<STUNTestProgress> =
+        recordStunTest(StunTestCall(server, outboundTag, standalone = false))
+
+    override fun standaloneStunTest(server: String): Flow<STUNTestProgress> =
+        recordStunTest(StunTestCall(server, outboundTag = "", standalone = true))
+
+    private fun recordStunTest(call: StunTestCall): Flow<STUNTestProgress> {
+        stunTestCalls += 1
+        lastStunTest = call
+        return replay(stunTestProgresses, stunTestThrowable)
+    }
+
+    data class NetworkQualityTestCall(
+        val configUrl: String,
+        val outboundTag: String,
+        val serial: Boolean,
+        val maxRuntimeSeconds: Int,
+        val http3: Boolean,
+        val standalone: Boolean,
+    )
+
+    var lastNetworkQualityTest: NetworkQualityTestCall? = null
+    var networkQualityTestCalls: Int = 0
+    var networkQualityTestProgresses: List<NetworkQualityTestProgress> = emptyList()
+    var networkQualityTestThrowable: Throwable? = null
+
+    override fun networkQualityTest(
+        configUrl: String,
+        outboundTag: String,
+        serial: Boolean,
+        maxRuntimeSeconds: Int,
+        http3: Boolean,
+    ): Flow<NetworkQualityTestProgress> = recordNetworkQualityTest(
+        NetworkQualityTestCall(
+            configUrl = configUrl,
+            outboundTag = outboundTag,
+            serial = serial,
+            maxRuntimeSeconds = maxRuntimeSeconds,
+            http3 = http3,
+            standalone = false,
+        ),
+    )
+
+    override fun standaloneNetworkQualityTest(
+        configUrl: String,
+        serial: Boolean,
+        maxRuntimeSeconds: Int,
+        http3: Boolean,
+    ): Flow<NetworkQualityTestProgress> = recordNetworkQualityTest(
+        NetworkQualityTestCall(
+            configUrl = configUrl,
+            outboundTag = "",
+            serial = serial,
+            maxRuntimeSeconds = maxRuntimeSeconds,
+            http3 = http3,
+            standalone = true,
+        ),
+    )
+
+    private fun recordNetworkQualityTest(
+        call: NetworkQualityTestCall,
+    ): Flow<NetworkQualityTestProgress> {
+        networkQualityTestCalls += 1
+        lastNetworkQualityTest = call
+        return replay(networkQualityTestProgresses, networkQualityTestThrowable)
+    }
+
+    private fun <T> replay(messages: List<T>, throwable: Throwable?): Flow<T> = flow {
+        for (message in messages) {
+            emit(message)
         }
-        return flow {
-            for (response in speedTestResponses) {
-                emit(response)
-            }
+        if (throwable != null) {
+            throw throwable
         }
     }
 

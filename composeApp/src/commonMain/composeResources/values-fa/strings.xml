@@ -477,7 +477,6 @@
     <string name="mux_number">عدد چندگانگی (مالتی‌پلکس)</string>
     <string name="mux_max_connections">حداکثر تعداد اتصالات</string>
     <string name="mux_min_streams">حداقل جریان‌های داده</string>
-    <string name="speed_test">تست سرعت</string>
     <string name="sniff_timeout">مهلت زمانی شنود</string>
     <string name="network_cellular">اینترنت موبایل</string>
     <string name="network_ethernet">شبکه سیمی (اترنت)</string>

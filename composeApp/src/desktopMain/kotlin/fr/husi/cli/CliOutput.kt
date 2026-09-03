@@ -19,6 +19,12 @@ fun writeStderrLine(message: String) {
     printErrorLine(message)
 }
 
+fun writeProgress(message: String) {
+    if (!stderrIsTerminal) return
+    System.err.print("\r$message")
+    System.err.flush()
+}
+
 fun printErrorLine(message: String) {
     System.err.println(message)
 }

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package husi.v1;
 
+import "daemon/started_service.proto";
 import "husi/v1/core.proto";
 import "husi/v1/daemon.proto";
 
@@ -20,16 +21,22 @@ option java_package = "fr.husi.proto.v1";
 // schema generation is driven by husi's own option codegen. So this one is
 // husi's, unlike the core-scoped contract shared with sing-box verbatim.
 //
-// Network tools (GetCert, STUN, SpeedTest) execute in the core host so they
-// share the host's protocol registry, socks path and cancellation model —
+// Network tools (GetCert, the standalone tests) execute in the core host so
+// they share the host's protocol registry, socks path and cancellation model —
 // same placement as StandaloneURLTest (D6).
+//
+// The standalone STUN and network quality tests are the no-running-service half
+// of sing-box's pair: with a service started the UI calls
+// daemon.StartedService, which routes through a chosen outbound; with none it
+// calls these, which dial directly. Request shapes and progress messages are
+// sing-box's own, so the two halves differ only in where the dialer comes from.
 service ApplicationService {
   rpc CheckConfig(CheckConfigRequest) returns (CheckConfigResponse);
   rpc GenerateSchema(GenerateSchemaRequest) returns (GenerateSchemaResponse);
   rpc StandaloneURLTest(StandaloneURLTestRequest) returns (StandaloneURLTestResponse);
   rpc GetCert(GetCertRequest) returns (GetCertResponse);
-  rpc STUNTest(STUNTestRequest) returns (stream STUNTestResponse);
-  rpc SpeedTest(SpeedTestRequest) returns (stream SpeedTestResponse);
+  rpc StandaloneSTUNTest(StandaloneSTUNTestRequest) returns (stream daemon.STUNTestProgress);
+  rpc StandaloneNetworkQualityTest(StandaloneNetworkQualityTestRequest) returns (stream daemon.NetworkQualityTestProgress);
 }
 
 message CheckConfigRequest {
@@ -97,68 +104,19 @@ message GetCertResponse {
   string pem = 1;
 }
 
-// NAT mapping behaviour from a STUN test. Values mirror sing-box stun.NATMapping
-// (0 unknown, 2 endpoint-independent, 3 address-dependent, 4 address-and-port).
-enum NATMapping {
-  NAT_MAPPING_UNSPECIFIED = 0;
-  NAT_MAPPING_UNKNOWN = 1;
-  NAT_MAPPING_ENDPOINT_INDEPENDENT = 2;
-  NAT_MAPPING_ADDRESS_DEPENDENT = 3;
-  NAT_MAPPING_ADDRESS_AND_PORT_DEPENDENT = 4;
-}
-
-// NAT filtering behaviour from a STUN test. Values mirror sing-box
-// stun.NATFiltering.
-enum NATFiltering {
-  NAT_FILTERING_UNSPECIFIED = 0;
-  NAT_FILTERING_UNKNOWN = 1;
-  NAT_FILTERING_ENDPOINT_INDEPENDENT = 2;
-  NAT_FILTERING_ADDRESS_DEPENDENT = 3;
-  NAT_FILTERING_ADDRESS_AND_PORT_DEPENDENT = 4;
-}
-
-message STUNTestRequest {
+// Same fields as sing-box desktop.StandaloneSTUNTestRequest. There is no
+// outbound tag: with no service running there is nothing to route through.
+message StandaloneSTUNTestRequest {
+  // Empty selects sing-box's default STUN server.
   string server = 1;
-  // Optional socks proxy URL; empty dials directly.
-  string socks_proxy_url = 2;
 }
 
-// Progress and final result of a STUN test. The stream ends after a message
-// with done=true, or with a gRPC error status.
-message STUNTestResponse {
-  string external_address = 1;
-  int32 latency_ms = 2;
-  NATMapping mapping = 3;
-  NATFiltering filtering = 4;
-  bool nat_type_supported = 5;
-  // Host-formatted display strings so the UI does not reimplement NAT labels.
-  string mapping_display = 6;
-  string filtering_display = 7;
-  bool done = 8;
-}
-
-enum SpeedTestMode {
-  SPEED_TEST_MODE_UNSPECIFIED = 0;
-  SPEED_TEST_MODE_DOWNLOAD = 1;
-  SPEED_TEST_MODE_UPLOAD = 2;
-}
-
-message SpeedTestRequest {
-  SpeedTestMode mode = 1;
-  string url = 2;
-  int32 timeout_ms = 3;
-  // Body size for upload mode; ignored for download.
-  int64 upload_length_bytes = 4;
-  // Optional socks proxy URL; empty dials directly.
-  string socks_proxy_url = 5;
-  string user_agent = 6;
-}
-
-// Throttled (~10/s) progress for a speed test. The stream ends when the
-// transfer completes or the client cancels.
-message SpeedTestResponse {
-  int64 bytes_per_sec = 1;
-  // Fraction 0..1; negative means indeterminate (unknown content length).
-  double progress = 2;
-  int64 bytes_transferred = 3;
+// Same fields as sing-box desktop.StandaloneNetworkQualityTestRequest.
+message StandaloneNetworkQualityTestRequest {
+  // Empty selects sing-box's default responsiveness config URL.
+  string config_url = 1;
+  // Measure download and upload one after the other instead of together.
+  bool serial = 2;
+  int32 max_runtime_seconds = 3;
+  bool http3 = 4;
 }

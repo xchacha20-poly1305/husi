@@ -10,21 +10,29 @@ import com.github.ajalt.clikt.parameters.arguments.optional
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.int
 import fr.husi.APP_NAME
 import fr.husi.CLI_STREAM_TIMEOUT
 import fr.husi.DesktopMain
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreRpcException
+import fr.husi.core.NatBehaviour
+import fr.husi.core.NetworkQualityPhase
+import fr.husi.core.StunPhase
+import fr.husi.core.failure
 import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Connection
 import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.Log
+import fr.husi.proto.daemon.NetworkQualityTestProgress
+import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.Status
 import fr.husi.ui.LogLevel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
@@ -35,6 +43,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.format.format
 import kotlinx.datetime.offsetAt
+import java.util.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -104,6 +113,35 @@ internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
             runCatching { runBlocking { client.close() } }
         }
     }
+
+    protected suspend fun <T> consumeTestStream(
+        stream: Flow<T>,
+        isFinal: (T) -> Boolean,
+        errorMessage: (T) -> String,
+        onProgress: (T) -> Unit,
+        onResult: (T) -> Unit,
+    ) {
+        val finalProgress = try {
+            stream.first { progress ->
+                if (isFinal(progress)) {
+                    true
+                } else {
+                    onProgress(progress)
+                    false
+                }
+            }
+        } catch (_: NoSuchElementException) {
+            echo("The core host closed the test stream without a result.", err = true)
+            throw ProgramResult(1)
+        }
+        writeStderrLine("")
+        val error = errorMessage(finalProgress)
+        if (error.isNotEmpty()) {
+            echo(error, err = true)
+            throw ProgramResult(1)
+        }
+        onResult(finalProgress)
+    }
 }
 
 class ApiCommand : CliktCommand("api") {
@@ -128,6 +166,8 @@ class ApiCommand : CliktCommand("api") {
             ApiOutboundsCommand(),
             ApiGroupCommand(),
             ApiConnectionCommand(),
+            ApiNetworkQualityCommand(),
+            ApiStunCommand(),
             ApiOpenVPNCommand(),
             ApiOpenConnectCommand(),
         )
@@ -542,6 +582,230 @@ private class ApiConnectionCloseCommand : ApiClientCommand("close") {
             } else {
                 client.closeConnection(id!!)
             }
+        }
+    }
+}
+
+
+
+private class ApiNetworkQualityCommand : ApiClientCommand("networkquality") {
+
+    private companion object {
+        const val NETWORK_QUALITY_DEFAULT_MAX_RUNTIME_SECONDS = 20
+        const val NETWORK_QUALITY_RESULT_VALUE_WIDTH = 20
+        const val NETWORK_QUALITY_BPS_PER_KBPS = 1_000L
+        const val NETWORK_QUALITY_BPS_PER_MBPS = 1_000_000L
+        const val NETWORK_QUALITY_BPS_PER_GBPS = 1_000_000_000L
+        const val NETWORK_QUALITY_ACCURACY_MEDIUM = 1
+        const val NETWORK_QUALITY_ACCURACY_HIGH = 2
+    }
+
+    private val configUrl by option(
+        "--config-url",
+        help = "Network quality test config URL (default: Apple mensura)",
+    ).default("")
+
+    private val serial by option(
+        "--serial",
+        help = "Run download and upload tests sequentially instead of in parallel",
+    ).flag()
+
+    private val maxRuntime by option(
+        "--max-runtime",
+        help = "Network quality maximum runtime in seconds",
+    ).int().default(NETWORK_QUALITY_DEFAULT_MAX_RUNTIME_SECONDS)
+
+    private val http3 by option(
+        "--http3",
+        help = "Use HTTP/3 (QUIC) for measurement traffic",
+    ).flag()
+
+    private val outbound by option(
+        "-o",
+        "--outbound",
+        help = "Use specified tag instead of default outbound",
+    ).default("")
+
+    override fun help(context: Context) = "Run a network quality test"
+
+    override fun run() = withClient { client ->
+        writeStderrLine("==== NETWORK QUALITY TEST ====")
+        consumeTestStream(
+            stream = client.networkQualityTest(
+                configUrl = configUrl,
+                outboundTag = outbound,
+                serial = serial,
+                maxRuntimeSeconds = maxRuntime,
+                http3 = http3,
+            ),
+            isFinal = { it.isFinal },
+            errorMessage = { it.failure.orEmpty() },
+            onProgress = { progress ->
+                formatNetworkQualityProgress(progress, serial)?.let(::writeProgress)
+            },
+            onResult = { progress ->
+                writeStderrLine("-".repeat(40))
+                print(formatNetworkQualityResult(progress))
+            },
+        )
+    }
+
+    private fun formatNetworkQualityBitrate(bps: Long): String = when {
+        bps >= NETWORK_QUALITY_BPS_PER_GBPS -> {
+            String.format(Locale.US, "%.1f Gbps", bps.toDouble() / NETWORK_QUALITY_BPS_PER_GBPS)
+        }
+
+        bps >= NETWORK_QUALITY_BPS_PER_MBPS -> {
+            String.format(Locale.US, "%.1f Mbps", bps.toDouble() / NETWORK_QUALITY_BPS_PER_MBPS)
+        }
+
+        bps >= NETWORK_QUALITY_BPS_PER_KBPS -> {
+            String.format(Locale.US, "%.1f Kbps", bps.toDouble() / NETWORK_QUALITY_BPS_PER_KBPS)
+        }
+
+        else -> "$bps bps"
+    }
+
+    private fun formatNetworkQualityAccuracy(accuracy: Int): String = when (accuracy) {
+        NETWORK_QUALITY_ACCURACY_HIGH -> "High"
+        NETWORK_QUALITY_ACCURACY_MEDIUM -> "Medium"
+        else -> "Low"
+    }
+
+    private fun formatNetworkQualityProgress(
+        progress: NetworkQualityTestProgress,
+        serial: Boolean,
+    ): String? {
+        val phase = NetworkQualityPhase.ofWire(progress.phase)
+        if (!serial && phase != NetworkQualityPhase.Idle) {
+            val download = formatNetworkQualityBitrate(progress.downloadCapacity)
+            val upload = formatNetworkQualityBitrate(progress.uploadCapacity)
+            return "Download: $download  RPM: ${progress.downloadRPM}  Upload: $upload  RPM: ${progress.uploadRPM}"
+        }
+        return when (phase) {
+            NetworkQualityPhase.Idle -> if (progress.idleLatencyMs > 0) {
+                "Idle Latency: ${progress.idleLatencyMs} ms"
+            } else {
+                "Measuring idle latency..."
+            }
+
+            NetworkQualityPhase.Download -> {
+                "Download: ${formatNetworkQualityBitrate(progress.downloadCapacity)}  RPM: ${progress.downloadRPM}"
+            }
+
+            NetworkQualityPhase.Upload -> {
+                "Upload: ${formatNetworkQualityBitrate(progress.uploadCapacity)}  RPM: ${progress.uploadRPM}"
+            }
+
+            NetworkQualityPhase.Done -> null
+        }
+    }
+
+    private fun formatNetworkQualityResult(progress: NetworkQualityTestProgress): String {
+        val downloadCapacity = formatNetworkQualityBitrate(progress.downloadCapacity)
+            .padEnd(NETWORK_QUALITY_RESULT_VALUE_WIDTH)
+        val uploadCapacity = formatNetworkQualityBitrate(progress.uploadCapacity)
+            .padEnd(NETWORK_QUALITY_RESULT_VALUE_WIDTH)
+        val downloadRpm = "${progress.downloadRPM} RPM".padEnd(NETWORK_QUALITY_RESULT_VALUE_WIDTH)
+        val uploadRpm = "${progress.uploadRPM} RPM".padEnd(NETWORK_QUALITY_RESULT_VALUE_WIDTH)
+        return buildString {
+            append("Idle Latency:            ")
+            append(progress.idleLatencyMs)
+            append(" ms\n")
+            append("Download Capacity:       ")
+            append(downloadCapacity)
+            append(" Accuracy: ")
+            append(formatNetworkQualityAccuracy(progress.downloadCapacityAccuracy))
+            append('\n')
+            append("Upload Capacity:         ")
+            append(uploadCapacity)
+            append(" Accuracy: ")
+            append(formatNetworkQualityAccuracy(progress.uploadCapacityAccuracy))
+            append('\n')
+            append("Download Responsiveness: ")
+            append(downloadRpm)
+            append(" Accuracy: ")
+            append(formatNetworkQualityAccuracy(progress.downloadRPMAccuracy))
+            append('\n')
+            append("Upload Responsiveness:   ")
+            append(uploadRpm)
+            append(" Accuracy: ")
+            append(formatNetworkQualityAccuracy(progress.uploadRPMAccuracy))
+            append('\n')
+        }
+    }
+}
+
+private class ApiStunCommand : ApiClientCommand("stun") {
+
+    private companion object {
+        const val DEFAULT_STUN_SERVER = "stun.voipgate.com:3478"
+    }
+
+    private val server by option(
+        "--server",
+        help = "STUN server address",
+    ).default(DEFAULT_STUN_SERVER)
+
+    private val outbound by option(
+        "-o",
+        "--outbound",
+        help = "Use specified tag instead of default outbound",
+    ).default("")
+
+    override fun help(context: Context) = "Run a STUN test"
+
+    override fun run() = withClient { client ->
+        writeStderrLine("==== STUN TEST ====")
+        consumeTestStream(
+            stream = client.stunTest(server = server, outboundTag = outbound),
+            isFinal = { it.isFinal },
+            errorMessage = { it.failure.orEmpty() },
+            onProgress = { progress ->
+                formatStunProgress(progress)?.let(::writeProgress)
+            },
+            onResult = { progress ->
+                print(formatStunResult(progress))
+            },
+        )
+    }
+
+    private fun formatStunProgress(progress: STUNTestProgress): String? =
+        when (StunPhase.ofWire(progress.phase)) {
+            StunPhase.Binding -> if (progress.externalAddr.isNotEmpty()) {
+                "External Address: ${progress.externalAddr} (${progress.latencyMs} ms)"
+            } else {
+                "Sending binding request..."
+            }
+
+            StunPhase.NatMapping -> "Detecting NAT mapping behavior..."
+            StunPhase.NatFiltering -> "Detecting NAT filtering behavior..."
+            StunPhase.Done -> null
+        }
+
+    private fun formatStunNatBehaviour(behaviour: NatBehaviour): String = when (behaviour) {
+        NatBehaviour.EndpointIndependent -> "Endpoint Independent"
+        NatBehaviour.AddressDependent -> "Address Dependent"
+        NatBehaviour.AddressAndPortDependent -> "Address and Port Dependent"
+        NatBehaviour.Unknown -> "Unknown"
+    }
+
+    private fun formatStunResult(progress: STUNTestProgress): String = buildString {
+        append("External Address: ")
+        append(progress.externalAddr)
+        append('\n')
+        append("Latency:          ")
+        append(progress.latencyMs)
+        append(" ms\n")
+        if (progress.natTypeSupported) {
+            append("NAT Mapping:      ")
+            append(formatStunNatBehaviour(NatBehaviour.ofMapping(progress.natMapping)))
+            append('\n')
+            append("NAT Filtering:    ")
+            append(formatStunNatBehaviour(NatBehaviour.ofFiltering(progress.natFiltering)))
+            append('\n')
+        } else {
+            append("NAT Type Detection: not supported by server\n")
         }
     }
 }

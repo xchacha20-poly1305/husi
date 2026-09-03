@@ -527,6 +527,24 @@
     <string name="nat_filtering">NAT Filtering</string>
     <string name="nat_type_detection">NAT Type Detection</string>
     <string name="nat_type_not_supported">Not supported by the server</string>
+    <string name="nat_unknown">Unknown</string>
+    <string name="nat_endpoint_independent">Endpoint Independent</string>
+    <string name="nat_address_dependent">Address Dependent</string>
+    <string name="nat_address_and_port_dependent">Address and Port Dependent</string>
+    <string name="network_quality_test">Network quality</string>
+    <string name="network_quality_test_summary">Measure download and upload capacity and responsiveness (RPM) with Apple\'s networkQuality protocol.</string>
+    <string name="network_quality_config_url">Config URL</string>
+    <string name="network_quality_serial">Measure download and upload one after the other</string>
+    <string name="network_quality_max_runtime">Max runtime (s)</string>
+    <string name="network_quality_http3">Use HTTP/3</string>
+    <string name="download_capacity">Download capacity</string>
+    <string name="upload_capacity">Upload capacity</string>
+    <string name="download_responsiveness">Download responsiveness</string>
+    <string name="upload_responsiveness">Upload responsiveness</string>
+    <string name="idle_latency">Idle latency</string>
+    <string name="elapsed_time">Elapsed</string>
+    <string name="responsiveness_rpm">%1$s RPM</string>
+    <string name="outbound_default">Default</string>
     <string name="tools_network">Network</string>
     <string name="mtu" translatable="false">MTU</string>
     <string name="backup">Backup</string>
@@ -649,7 +667,6 @@
     <string name="edns_client_subnet" translatable="false">EDNS Client Subnet</string>
     <string name="have_reset_network">All network have been reset</string>
     <string name="ensure_close_all">Are you sure to close %1$s connections?</string>
-    <string name="speed_test">Speed Test</string>
     <string name="padding">Padding</string>
     <string name="custom_rule_provider">Custom Rule Provider</string>
     <string name="client_type">Client Type</string>
@@ -784,7 +801,6 @@
     <string name="connection_status">Connection Status</string>
     <string name="connection_status_active">Active</string>
     <string name="connection_status_closed">Closed</string>
-    <string name="upload_size">Upload Size</string>
     <string name="can_not_be_empty">Cann\'t be empty</string>
     <string name="juicity_provider">Juicity Provider</string>
     <plurals name="delete_confirm_detail">

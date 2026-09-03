@@ -37,8 +37,9 @@ import fr.husi.resources.arrow_back
 import fr.husi.resources.back
 import fr.husi.resources.get_cert
 import fr.husi.resources.get_cert_summary
+import fr.husi.resources.network_quality_test
+import fr.husi.resources.network_quality_test_summary
 import fr.husi.resources.rule_set_match
-import fr.husi.resources.speed_test
 import fr.husi.resources.start
 import fr.husi.resources.stun_test
 import fr.husi.resources.stun_test_summary
@@ -110,10 +111,10 @@ internal fun NetworkScreen(
                 )
                 PlatformNetworkTools(onOpenTool)
                 ActivityCard(
-                    title = stringResource(Res.string.speed_test),
-                    description = "",
+                    title = stringResource(Res.string.network_quality_test),
+                    description = stringResource(Res.string.network_quality_test_summary),
                     launch = {
-                        onOpenTool(NavRoutes.ToolsPage.SpeedTest)
+                        onOpenTool(NavRoutes.ToolsPage.NetworkQuality)
                     },
                 )
                 ActivityCard(

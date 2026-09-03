@@ -6,10 +6,9 @@ import fr.husi.DEFAULT_HTTP_BYPASS
 import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.GroupType
 import fr.husi.Key
+import fr.husi.NETWORK_QUALITY_CONFIG_URL
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.ProtocolProvider
-import fr.husi.SPEED_TEST_UPLOAD_URL
-import fr.husi.SPEED_TEST_URL
 import fr.husi.TrafficSortMode
 import fr.husi.TunImplementation
 import fr.husi.bg.ServiceState
@@ -140,6 +139,7 @@ object DataStore {
     val remoteDns = configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     val directDns = configurationStore.string(Key.DIRECT_DNS) { "local" }
     val mDNS = configurationStore.string(Key.MDNS) { "" }
+
     // Consumers strip "auto" back to an empty strategy, so it is the neutral default.
     val domainStrategyForDirect = configurationStore.string(Key.DOMAIN_STRATEGY_FOR_DIRECT) {
         DOMAIN_STRATEGY_AUTO
@@ -147,6 +147,7 @@ object DataStore {
     val domainStrategyForServer = configurationStore.string(Key.DOMAIN_STRATEGY_FOR_SERVER) {
         DOMAIN_STRATEGY_AUTO
     }
+
     // Using different outbound is a normal situation for proxy set.
     // And the application may not refresh their DNS cache in time.
     // So fake DNS is the best resolution. (With long-term practice by Clash and Surge.)
@@ -202,7 +203,8 @@ object DataStore {
     val connectionTestConcurrent = configurationStore.int(Key.CONNECTION_TEST_CONCURRENT) { 5 }
     val connectionTestTimeout = configurationStore.int(Key.CONNECTION_TEST_TIMEOUT) { 3000 }
     val connectionTestUnifiedDelay = configurationStore.boolean(Key.CONNECTION_TEST_UNIFIED_DELAY) { false }
-    val connectionTestIgnoreHandshakeTime = configurationStore.boolean(Key.CONNECTION_TEST_IGNORE_HANDSHAKE_TIME) { false }
+    val connectionTestIgnoreHandshakeTime =
+        configurationStore.boolean(Key.CONNECTION_TEST_IGNORE_HANDSHAKE_TIME) { false }
 
     val alwaysShowAddress = configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
     val blurredAddress = configurationStore.boolean(Key.BLURRED_ADDRESS)
@@ -224,10 +226,11 @@ object DataStore {
     val proxySetOrder = configurationStore.int(Key.PROXY_SET_ORDER)
     val dashboardWidgets = configurationStore.string(Key.DASHBOARD_WIDGETS)
 
-    val speedTestUrl = configurationStore.string(Key.SPEED_TEST_URL) { SPEED_TEST_URL }
-    val speedTestUploadURL = configurationStore.string(Key.SPEED_TEST_UPLOAD_URL) { SPEED_TEST_UPLOAD_URL }
-    val speedTestUploadLength = configurationStore.long(Key.SPEED_TEST_UPLOAD_LENGTH) { 10 * 1024 * 1024 }
-    val speedTestTimeout = configurationStore.int(Key.SPEED_TEST_TIMEOUT) { 20000 }
+    val networkQualityConfigUrl =
+        configurationStore.string(Key.NETWORK_QUALITY_CONFIG_URL) { NETWORK_QUALITY_CONFIG_URL }
+    val networkQualitySerial = configurationStore.boolean(Key.NETWORK_QUALITY_SERIAL) { false }
+    val networkQualityMaxRuntime = configurationStore.int(Key.NETWORK_QUALITY_MAX_RUNTIME) { 30 }
+    val networkQualityHttp3 = configurationStore.boolean(Key.NETWORK_QUALITY_HTTP3) { false }
 
     // ntp
     val ntpEnable = configurationStore.boolean(Key.ENABLE_NTP) { false }

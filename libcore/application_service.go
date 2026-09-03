@@ -2,7 +2,11 @@ package libcore
 
 import (
 	"context"
+	"time"
 
+	"github.com/sagernet/sing-box/common/networkquality"
+	"github.com/sagernet/sing-box/common/stun"
+	"github.com/sagernet/sing-box/daemon"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
@@ -116,14 +120,56 @@ func (s *applicationService) GetCert(ctx context.Context, req *husiv1.GetCertReq
 	return &husiv1.GetCertResponse{Pem: pem}, nil
 }
 
-func (s *applicationService) STUNTest(req *husiv1.STUNTestRequest, stream husiv1.ApplicationService_STUNTestServer) error {
-	err := runSTUNTest(stream.Context(), req.GetServer(), req.GetSocksProxyUrl(), stream)
-	return streamError(stream.Context(), err)
+func (s *applicationService) StandaloneSTUNTest(
+	req *husiv1.StandaloneSTUNTestRequest,
+	stream husiv1.ApplicationService_StandaloneSTUNTestServer,
+) error {
+	result, err := stun.Run(stun.Options{
+		Server:  req.GetServer(),
+		Context: stream.Context(),
+		OnProgress: func(progress stun.Progress) {
+			_ = stream.Send(daemon.NewSTUNTestProgress(progress))
+		},
+	})
+	if err != nil {
+		return streamError(stream.Context(), stream.Send(&daemon.STUNTestProgress{
+			IsFinal: true,
+			Error:   err.Error(),
+		}))
+	}
+	return streamError(stream.Context(), stream.Send(daemon.NewSTUNTestResult(result)))
 }
 
-func (s *applicationService) SpeedTest(req *husiv1.SpeedTestRequest, stream husiv1.ApplicationService_SpeedTestServer) error {
-	err := runSpeedTest(stream.Context(), req, stream)
-	return streamError(stream.Context(), err)
+func (s *applicationService) StandaloneNetworkQualityTest(
+	req *husiv1.StandaloneNetworkQualityTestRequest,
+	stream husiv1.ApplicationService_StandaloneNetworkQualityTestServer,
+) error {
+	client := networkquality.NewHTTPClient(nil)
+	defer client.CloseIdleConnections()
+
+	measurementClientFactory, err := networkquality.NewOptionalHTTP3Factory(nil, req.GetHttp3())
+	if err != nil {
+		return rpcError(err, codes.InvalidArgument)
+	}
+
+	result, err := networkquality.Run(networkquality.Options{
+		ConfigURL:            req.GetConfigUrl(),
+		HTTPClient:           client,
+		NewMeasurementClient: measurementClientFactory,
+		Serial:               req.GetSerial(),
+		MaxRuntime:           time.Duration(req.GetMaxRuntimeSeconds()) * time.Second,
+		Context:              stream.Context(),
+		OnProgress: func(progress networkquality.Progress) {
+			_ = stream.Send(daemon.NewNetworkQualityTestProgress(progress))
+		},
+	})
+	if err != nil {
+		return streamError(stream.Context(), stream.Send(&daemon.NetworkQualityTestProgress{
+			IsFinal: true,
+			Error:   err.Error(),
+		}))
+	}
+	return streamError(stream.Context(), stream.Send(daemon.NewNetworkQualityTestResult(result)))
 }
 
 // rpcError keeps a status an implementation already chose, and labels a plain

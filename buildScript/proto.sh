@@ -41,6 +41,7 @@ KEEP_STARTED_SERVICE_RPCS=(
   SubscribeServiceStatus SubscribeStatus
   SubscribeLog GetDefaultLogLevel ClearLogs
   SubscribeGroups SubscribeOutbounds SelectOutbound SetGroupExpand
+  StartSTUNTest StartNetworkQualityTest
   GetClashModeStatus SubscribeClashMode SetClashMode
   SubscribeConnections CloseConnection CloseAllConnections
   SubscribeOpenConnectStatus SubmitOpenConnectAuthResponse CancelOpenConnectAuthChallenge

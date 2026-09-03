@@ -29,7 +29,7 @@ sealed class NavRoutes : NavKey {
                         subclass(ToolsPage.Stun::class, ToolsPage.Stun.serializer())
                         subclass(ToolsPage.GetCert::class, ToolsPage.GetCert.serializer())
                         subclass(ToolsPage.VPNScanner::class, ToolsPage.VPNScanner.serializer())
-                        subclass(ToolsPage.SpeedTest::class, ToolsPage.SpeedTest.serializer())
+                        subclass(ToolsPage.NetworkQuality::class, ToolsPage.NetworkQuality.serializer())
                         subclass(ToolsPage.RuleSetMatch::class, ToolsPage.RuleSetMatch.serializer())
                         subclass(About::class, About.serializer())
                         subclass(Libraries::class, Libraries.serializer())
@@ -106,7 +106,7 @@ sealed class NavRoutes : NavKey {
         data object VPNScanner : ToolsPage()
 
         @Serializable
-        data object SpeedTest : ToolsPage()
+        data object NetworkQuality : ToolsPage()
 
         @Serializable
         data object RuleSetMatch : ToolsPage()

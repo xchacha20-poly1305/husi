@@ -1,8 +1,7 @@
 package fr.husi
 
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
-const val SPEED_TEST_URL = "http://speed.cloudflare.com/__down?bytes=20000000"
-const val SPEED_TEST_UPLOAD_URL = "http://speed.cloudflare.com/__up"
+const val NETWORK_QUALITY_CONFIG_URL = "https://mensura.cdn-apple.com/api/v1/gm/config"
 
 // Actually no "auto" domain strategy. It is legacy "let the core decide",
 // and every consumer strips it back to an empty strategy.
@@ -126,10 +125,10 @@ object Key {
     const val PROXY_SET_ORDER = "proxySetOrder"
     const val DASHBOARD_WIDGETS = "dashboardWidgets"
 
-    const val SPEED_TEST_URL = "speedTestURL"
-    const val SPEED_TEST_UPLOAD_URL = "speedTestUploadURL"
-    const val SPEED_TEST_UPLOAD_LENGTH = "speedTestUploadLength"
-    const val SPEED_TEST_TIMEOUT = "speedTestTimeout"
+    const val NETWORK_QUALITY_CONFIG_URL = "networkQualityConfigURL"
+    const val NETWORK_QUALITY_SERIAL = "networkQualitySerial"
+    const val NETWORK_QUALITY_MAX_RUNTIME = "networkQualityMaxRuntime"
+    const val NETWORK_QUALITY_HTTP3 = "networkQualityHTTP3"
 
     const val PROFILE_ID = "profileId"
     const val PROFILE_GROUP = "profileGroup"

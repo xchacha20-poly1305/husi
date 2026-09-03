@@ -8,6 +8,7 @@ package husiv1
 
 import (
 	context "context"
+	daemon "github.com/sagernet/sing-box/daemon"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -19,12 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ApplicationService_CheckConfig_FullMethodName       = "/husi.v1.ApplicationService/CheckConfig"
-	ApplicationService_GenerateSchema_FullMethodName    = "/husi.v1.ApplicationService/GenerateSchema"
-	ApplicationService_StandaloneURLTest_FullMethodName = "/husi.v1.ApplicationService/StandaloneURLTest"
-	ApplicationService_GetCert_FullMethodName           = "/husi.v1.ApplicationService/GetCert"
-	ApplicationService_STUNTest_FullMethodName          = "/husi.v1.ApplicationService/STUNTest"
-	ApplicationService_SpeedTest_FullMethodName         = "/husi.v1.ApplicationService/SpeedTest"
+	ApplicationService_CheckConfig_FullMethodName                  = "/husi.v1.ApplicationService/CheckConfig"
+	ApplicationService_GenerateSchema_FullMethodName               = "/husi.v1.ApplicationService/GenerateSchema"
+	ApplicationService_StandaloneURLTest_FullMethodName            = "/husi.v1.ApplicationService/StandaloneURLTest"
+	ApplicationService_GetCert_FullMethodName                      = "/husi.v1.ApplicationService/GetCert"
+	ApplicationService_StandaloneSTUNTest_FullMethodName           = "/husi.v1.ApplicationService/StandaloneSTUNTest"
+	ApplicationService_StandaloneNetworkQualityTest_FullMethodName = "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
 )
 
 // ApplicationServiceClient is the client API for ApplicationService service.
@@ -41,16 +42,22 @@ const (
 // schema generation is driven by husi's own option codegen. So this one is
 // husi's, unlike the core-scoped contract shared with sing-box verbatim.
 //
-// Network tools (GetCert, STUN, SpeedTest) execute in the core host so they
-// share the host's protocol registry, socks path and cancellation model —
+// Network tools (GetCert, the standalone tests) execute in the core host so
+// they share the host's protocol registry, socks path and cancellation model —
 // same placement as StandaloneURLTest (D6).
+//
+// The standalone STUN and network quality tests are the no-running-service half
+// of sing-box's pair: with a service started the UI calls
+// daemon.StartedService, which routes through a chosen outbound; with none it
+// calls these, which dial directly. Request shapes and progress messages are
+// sing-box's own, so the two halves differ only in where the dialer comes from.
 type ApplicationServiceClient interface {
 	CheckConfig(ctx context.Context, in *CheckConfigRequest, opts ...grpc.CallOption) (*CheckConfigResponse, error)
 	GenerateSchema(ctx context.Context, in *GenerateSchemaRequest, opts ...grpc.CallOption) (*GenerateSchemaResponse, error)
 	StandaloneURLTest(ctx context.Context, in *StandaloneURLTestRequest, opts ...grpc.CallOption) (*StandaloneURLTestResponse, error)
 	GetCert(ctx context.Context, in *GetCertRequest, opts ...grpc.CallOption) (*GetCertResponse, error)
-	STUNTest(ctx context.Context, in *STUNTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[STUNTestResponse], error)
-	SpeedTest(ctx context.Context, in *SpeedTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SpeedTestResponse], error)
+	StandaloneSTUNTest(ctx context.Context, in *StandaloneSTUNTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.STUNTestProgress], error)
+	StandaloneNetworkQualityTest(ctx context.Context, in *StandaloneNetworkQualityTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.NetworkQualityTestProgress], error)
 }
 
 type applicationServiceClient struct {
@@ -101,13 +108,13 @@ func (c *applicationServiceClient) GetCert(ctx context.Context, in *GetCertReque
 	return out, nil
 }
 
-func (c *applicationServiceClient) STUNTest(ctx context.Context, in *STUNTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[STUNTestResponse], error) {
+func (c *applicationServiceClient) StandaloneSTUNTest(ctx context.Context, in *StandaloneSTUNTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.STUNTestProgress], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ApplicationService_ServiceDesc.Streams[0], ApplicationService_STUNTest_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ApplicationService_ServiceDesc.Streams[0], ApplicationService_StandaloneSTUNTest_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[STUNTestRequest, STUNTestResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StandaloneSTUNTestRequest, daemon.STUNTestProgress]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -118,15 +125,15 @@ func (c *applicationServiceClient) STUNTest(ctx context.Context, in *STUNTestReq
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ApplicationService_STUNTestClient = grpc.ServerStreamingClient[STUNTestResponse]
+type ApplicationService_StandaloneSTUNTestClient = grpc.ServerStreamingClient[daemon.STUNTestProgress]
 
-func (c *applicationServiceClient) SpeedTest(ctx context.Context, in *SpeedTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SpeedTestResponse], error) {
+func (c *applicationServiceClient) StandaloneNetworkQualityTest(ctx context.Context, in *StandaloneNetworkQualityTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.NetworkQualityTestProgress], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ApplicationService_ServiceDesc.Streams[1], ApplicationService_SpeedTest_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ApplicationService_ServiceDesc.Streams[1], ApplicationService_StandaloneNetworkQualityTest_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[SpeedTestRequest, SpeedTestResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StandaloneNetworkQualityTestRequest, daemon.NetworkQualityTestProgress]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -137,7 +144,7 @@ func (c *applicationServiceClient) SpeedTest(ctx context.Context, in *SpeedTestR
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ApplicationService_SpeedTestClient = grpc.ServerStreamingClient[SpeedTestResponse]
+type ApplicationService_StandaloneNetworkQualityTestClient = grpc.ServerStreamingClient[daemon.NetworkQualityTestProgress]
 
 // ApplicationServiceServer is the server API for ApplicationService service.
 // All implementations must embed UnimplementedApplicationServiceServer
@@ -153,16 +160,22 @@ type ApplicationService_SpeedTestClient = grpc.ServerStreamingClient[SpeedTestRe
 // schema generation is driven by husi's own option codegen. So this one is
 // husi's, unlike the core-scoped contract shared with sing-box verbatim.
 //
-// Network tools (GetCert, STUN, SpeedTest) execute in the core host so they
-// share the host's protocol registry, socks path and cancellation model —
+// Network tools (GetCert, the standalone tests) execute in the core host so
+// they share the host's protocol registry, socks path and cancellation model —
 // same placement as StandaloneURLTest (D6).
+//
+// The standalone STUN and network quality tests are the no-running-service half
+// of sing-box's pair: with a service started the UI calls
+// daemon.StartedService, which routes through a chosen outbound; with none it
+// calls these, which dial directly. Request shapes and progress messages are
+// sing-box's own, so the two halves differ only in where the dialer comes from.
 type ApplicationServiceServer interface {
 	CheckConfig(context.Context, *CheckConfigRequest) (*CheckConfigResponse, error)
 	GenerateSchema(context.Context, *GenerateSchemaRequest) (*GenerateSchemaResponse, error)
 	StandaloneURLTest(context.Context, *StandaloneURLTestRequest) (*StandaloneURLTestResponse, error)
 	GetCert(context.Context, *GetCertRequest) (*GetCertResponse, error)
-	STUNTest(*STUNTestRequest, grpc.ServerStreamingServer[STUNTestResponse]) error
-	SpeedTest(*SpeedTestRequest, grpc.ServerStreamingServer[SpeedTestResponse]) error
+	StandaloneSTUNTest(*StandaloneSTUNTestRequest, grpc.ServerStreamingServer[daemon.STUNTestProgress]) error
+	StandaloneNetworkQualityTest(*StandaloneNetworkQualityTestRequest, grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]) error
 	mustEmbedUnimplementedApplicationServiceServer()
 }
 
@@ -185,11 +198,11 @@ func (UnimplementedApplicationServiceServer) StandaloneURLTest(context.Context, 
 func (UnimplementedApplicationServiceServer) GetCert(context.Context, *GetCertRequest) (*GetCertResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCert not implemented")
 }
-func (UnimplementedApplicationServiceServer) STUNTest(*STUNTestRequest, grpc.ServerStreamingServer[STUNTestResponse]) error {
-	return status.Error(codes.Unimplemented, "method STUNTest not implemented")
+func (UnimplementedApplicationServiceServer) StandaloneSTUNTest(*StandaloneSTUNTestRequest, grpc.ServerStreamingServer[daemon.STUNTestProgress]) error {
+	return status.Error(codes.Unimplemented, "method StandaloneSTUNTest not implemented")
 }
-func (UnimplementedApplicationServiceServer) SpeedTest(*SpeedTestRequest, grpc.ServerStreamingServer[SpeedTestResponse]) error {
-	return status.Error(codes.Unimplemented, "method SpeedTest not implemented")
+func (UnimplementedApplicationServiceServer) StandaloneNetworkQualityTest(*StandaloneNetworkQualityTestRequest, grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]) error {
+	return status.Error(codes.Unimplemented, "method StandaloneNetworkQualityTest not implemented")
 }
 func (UnimplementedApplicationServiceServer) mustEmbedUnimplementedApplicationServiceServer() {}
 func (UnimplementedApplicationServiceServer) testEmbeddedByValue()                            {}
@@ -284,27 +297,27 @@ func _ApplicationService_GetCert_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ApplicationService_STUNTest_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(STUNTestRequest)
+func _ApplicationService_StandaloneSTUNTest_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StandaloneSTUNTestRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ApplicationServiceServer).STUNTest(m, &grpc.GenericServerStream[STUNTestRequest, STUNTestResponse]{ServerStream: stream})
+	return srv.(ApplicationServiceServer).StandaloneSTUNTest(m, &grpc.GenericServerStream[StandaloneSTUNTestRequest, daemon.STUNTestProgress]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ApplicationService_STUNTestServer = grpc.ServerStreamingServer[STUNTestResponse]
+type ApplicationService_StandaloneSTUNTestServer = grpc.ServerStreamingServer[daemon.STUNTestProgress]
 
-func _ApplicationService_SpeedTest_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(SpeedTestRequest)
+func _ApplicationService_StandaloneNetworkQualityTest_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StandaloneNetworkQualityTestRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ApplicationServiceServer).SpeedTest(m, &grpc.GenericServerStream[SpeedTestRequest, SpeedTestResponse]{ServerStream: stream})
+	return srv.(ApplicationServiceServer).StandaloneNetworkQualityTest(m, &grpc.GenericServerStream[StandaloneNetworkQualityTestRequest, daemon.NetworkQualityTestProgress]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ApplicationService_SpeedTestServer = grpc.ServerStreamingServer[SpeedTestResponse]
+type ApplicationService_StandaloneNetworkQualityTestServer = grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]
 
 // ApplicationService_ServiceDesc is the grpc.ServiceDesc for ApplicationService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -332,13 +345,13 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "STUNTest",
-			Handler:       _ApplicationService_STUNTest_Handler,
+			StreamName:    "StandaloneSTUNTest",
+			Handler:       _ApplicationService_StandaloneSTUNTest_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "SpeedTest",
-			Handler:       _ApplicationService_SpeedTest_Handler,
+			StreamName:    "StandaloneNetworkQualityTest",
+			Handler:       _ApplicationService_StandaloneNetworkQualityTest_Handler,
 			ServerStreams: true,
 		},
 	},

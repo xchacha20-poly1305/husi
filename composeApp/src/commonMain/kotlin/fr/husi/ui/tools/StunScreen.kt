@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -46,16 +47,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
-import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.ButtonDefaults
 import fr.husi.compose.material3.Card
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
-import fr.husi.proto.v1.NATFiltering
-import fr.husi.proto.v1.NATMapping
+import fr.husi.core.NatBehaviour
+import fr.husi.core.StunPhase
+import fr.husi.core.remote.RemoteControlManager
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_back
 import fr.husi.resources.available
@@ -64,6 +67,11 @@ import fr.husi.resources.cancel
 import fr.husi.resources.error
 import fr.husi.resources.error_title
 import fr.husi.resources.latency
+import fr.husi.resources.more
+import fr.husi.resources.more_vert
+import fr.husi.resources.nat_address_and_port_dependent
+import fr.husi.resources.nat_address_dependent
+import fr.husi.resources.nat_endpoint_independent
 import fr.husi.resources.nat_external_address
 import fr.husi.resources.nat_filtering
 import fr.husi.resources.nat_mapping
@@ -71,19 +79,25 @@ import fr.husi.resources.nat_result_hint
 import fr.husi.resources.nat_stun_server_hint
 import fr.husi.resources.nat_type_detection
 import fr.husi.resources.nat_type_not_supported
-import fr.husi.resources.route_proxy
+import fr.husi.resources.nat_unknown
 import fr.husi.resources.start
 import fr.husi.resources.stun_attest_loading
 import fr.husi.resources.stun_test
 import fr.husi.ui.PreviewContainer
+import fr.husi.ui.remote.RemoteTargetMenuSection
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.koinInject
 
 @Composable
 internal fun StunScreen(
     modifier: Modifier = Modifier,
-    viewModel: StunScreenViewModel = viewModel { StunScreenViewModel() },
     onBackPress: () -> Unit,
+    onOpenRemoteControl: () -> Unit,
+    remoteControl: RemoteControlManager = koinInject(),
+    viewModel: StunScreenViewModel = viewModel {
+        StunScreenViewModel(remoteControl = remoteControl)
+    },
 ) {
     fun exit() {
         viewModel.cancel()
@@ -101,6 +115,8 @@ internal fun StunScreen(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val targetConnected by remoteControl.targetConnected.collectAsStateWithLifecycle()
+    var expandMenu by remember { mutableStateOf(false) }
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -120,6 +136,28 @@ internal fun StunScreen(
                     )
                 },
                 title = { Text(stringResource(Res.string.stun_test)) },
+                actions = {
+                    CapsuleActionButton {
+                        Box {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                                onClick = { expandMenu = true },
+                            )
+                            DropdownMenuPopup(
+                                expanded = expandMenu,
+                                onDismissRequest = { expandMenu = false },
+                            ) {
+                                RemoteTargetMenuSection(
+                                    groupIndex = 0,
+                                    groupCount = 1,
+                                    onManage = onOpenRemoteControl,
+                                    onDismiss = { expandMenu = false },
+                                )
+                            }
+                        }
+                    }
+                },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )
@@ -144,15 +182,15 @@ internal fun StunScreen(
                     label = { Text(stringResource(Res.string.nat_stun_server_hint)) },
                     singleLine = true,
                 )
-                OutlinedTextField(
-                    value = uiState.proxy,
-                    onValueChange = { viewModel.setProxy(it) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    label = { Text(stringResource(Res.string.route_proxy)) },
-                    singleLine = true,
-                )
+                if (targetConnected) {
+                    OutboundSelector(
+                        selectedTag = uiState.outboundTag,
+                        onSelect = { viewModel.setOutboundTag(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                    )
+                }
             }
 
             Row(
@@ -176,7 +214,7 @@ internal fun StunScreen(
                     Button(
                         onClick = {
                             keyboardController?.hide()
-                            viewModel.doTest()
+                            viewModel.doTest(targetConnected)
                         },
                         modifier = Modifier.padding(horizontal = 24.dp),
                     ) {
@@ -268,22 +306,16 @@ private fun StunReportContent(
             } else {
                 ResultLine(
                     label = stringResource(Res.string.nat_mapping),
-                    value = if (isDoing) {
-                        null
-                    } else {
-                        report.mappingDisplay
-                    },
-                    color = natMappingColor(report.mapping),
+                    value = natBehaviourLabel(report.mapping)
+                        .takeIf { report.phase > StunPhase.NatMapping },
+                    color = natBehaviourColor(report.mapping),
                 )
                 HorizontalDivider(modifier = Modifier.fillMaxWidth())
                 ResultLine(
                     label = stringResource(Res.string.nat_filtering),
-                    value = if (isDoing) {
-                        null
-                    } else {
-                        report.filteringDisplay
-                    },
-                    color = natFilteringColor(report.filtering),
+                    value = natBehaviourLabel(report.filtering)
+                        .takeIf { report.phase > StunPhase.NatFiltering },
+                    color = natBehaviourColor(report.filtering),
                 )
             }
         }
@@ -384,18 +416,21 @@ private fun PendingIndicator(modifier: Modifier = Modifier) {
     )
 }
 
-private fun natMappingColor(value: NATMapping): Color = when (value) {
-    NATMapping.NAT_MAPPING_ENDPOINT_INDEPENDENT -> Color.Green
-    NATMapping.NAT_MAPPING_ADDRESS_DEPENDENT -> Color.Yellow
-    NATMapping.NAT_MAPPING_ADDRESS_AND_PORT_DEPENDENT -> Color.Red
-    else -> Color.Unspecified
-}
+@Composable
+private fun natBehaviourLabel(value: NatBehaviour): String = stringResource(
+    when (value) {
+        NatBehaviour.Unknown -> Res.string.nat_unknown
+        NatBehaviour.EndpointIndependent -> Res.string.nat_endpoint_independent
+        NatBehaviour.AddressDependent -> Res.string.nat_address_dependent
+        NatBehaviour.AddressAndPortDependent -> Res.string.nat_address_and_port_dependent
+    },
+)
 
-private fun natFilteringColor(value: NATFiltering): Color = when (value) {
-    NATFiltering.NAT_FILTERING_ENDPOINT_INDEPENDENT -> Color.Green
-    NATFiltering.NAT_FILTERING_ADDRESS_DEPENDENT -> Color.Yellow
-    NATFiltering.NAT_FILTERING_ADDRESS_AND_PORT_DEPENDENT -> Color.Red
-    else -> Color.Unspecified
+private fun natBehaviourColor(value: NatBehaviour): Color = when (value) {
+    NatBehaviour.EndpointIndependent -> Color.Green
+    NatBehaviour.AddressDependent -> Color.Yellow
+    NatBehaviour.AddressAndPortDependent -> Color.Red
+    NatBehaviour.Unknown -> Color.Unspecified
 }
 
 @Preview
@@ -407,6 +442,7 @@ private fun PreviewStunScreen() {
         StunScreen(
             viewModel = viewModel,
             onBackPress = {},
+            onOpenRemoteControl = {},
         )
     }
 }

@@ -13,7 +13,7 @@ import org.koin.dsl.module
  * resets the [DataStore] configuration backing file so each test starts clean.
  *
  * Code under test that takes [HttpClientFactory] via constructor (e.g.
- * `SpeedTestScreenViewModel`) should be wired with [fakeHttp] explicitly.
+ * `OpenOnlineConfigUpdater`) should be wired with [fakeHttp] explicitly.
  */
 abstract class HusiHttpKoinTest : HusiKoinMainDispatcherTest() {
 
