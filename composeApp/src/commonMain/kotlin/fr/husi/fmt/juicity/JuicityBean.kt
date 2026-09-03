@@ -36,6 +36,8 @@ class JuicityBean : AbstractBean() {
     // public String congestionControl;
     var pinSHA256: String = ""
 
+    override val canSelfProtect get() = true
+
     override fun isInsecure(): ValidateResult {
         val result = super.isInsecure()
         if (shouldReturnFromInsecureCheck(result)) return result

@@ -94,6 +94,7 @@ class HysteriaBean : AbstractBean() {
     var initialPacketSize: Int = 0
 
     override val canMapping get() = protocol != PROTOCOL_FAKETCP
+    override val canSelfProtect get() = true
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()

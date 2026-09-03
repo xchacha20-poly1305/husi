@@ -45,6 +45,8 @@ abstract class AbstractBean : Serializable() {
     open val needUDPOverTCP get() = false
     open val canMapping get() = true
 
+    open val canSelfProtect get() = false
+
     open fun isInsecure(): ValidateResult {
         if (serverAddress.isIpAddress()) {
             if (serverAddress.startsWith("127.") || serverAddress.startsWith("::")) {

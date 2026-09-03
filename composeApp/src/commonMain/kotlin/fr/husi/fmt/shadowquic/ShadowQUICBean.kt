@@ -50,6 +50,8 @@ class ShadowQUICBean : AbstractBean() {
     var maxPaths: Int = 0
     var certificates: String = ""
 
+    override val canSelfProtect get() = true
+
     override fun isInsecure(): ValidateResult {
         val result = super.isInsecure()
         if (shouldReturnFromInsecureCheck(result)) return result

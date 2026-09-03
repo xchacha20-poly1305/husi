@@ -31,6 +31,8 @@ class MieruBean : AbstractBean() {
     var mtu: Int = 1400
     var trafficPattern: String = ""
 
+    override val canSelfProtect get() = true
+
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
         if (protocol.isEmpty()) protocol = PROTOCOL_TCP
