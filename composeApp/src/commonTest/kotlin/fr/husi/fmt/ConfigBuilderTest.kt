@@ -20,6 +20,7 @@ import fr.husi.platform.PlatformInfo
 import fr.husi.test.HusiKoinTest
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -2107,6 +2108,93 @@ class ConfigBuilderTest : HusiKoinTest() {
         )
     }
 
+    @Test
+    fun `buildConfig should suspend endpoints a proxy set may leave unselected`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val first = createOpenVPNProxy(
+            groupId = group.id,
+            order = 1,
+            name = "vpn-first",
+            host = "first.example.com",
+        )
+        val second = createOpenVPNProxy(
+            groupId = group.id,
+            order = 2,
+            name = "vpn-second",
+            host = "second.example.com",
+        )
+        val proxySet = createProxySet(
+            groupId = group.id,
+            order = 3,
+            name = "set",
+            proxies = listOf(first.id, second.id),
+        )
+
+        val endpoints = parseEndpoints(buildConfig(proxySet))
+
+        assertEquals(true, endpoints["vpn-first"]!!["on_demand"]?.jsonPrimitive?.boolean)
+        assertEquals(true, endpoints["vpn-second"]!!["on_demand"]?.jsonPrimitive?.boolean)
+    }
+
+    @Test
+    fun `buildConfig should keep a directly used endpoint always connected`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createOpenVPNProxy(
+            groupId = group.id,
+            order = 1,
+            name = "vpn",
+            host = "vpn.example.com",
+        )
+
+        assertEquals(null, parseEndpoints(buildConfig(proxy))["vpn"]!!["on_demand"])
+    }
+
+    @Test
+    fun `buildConfig should keep an endpoint exit shared by every member connected`() =
+        runBlocking {
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+
+            val exit = createOpenVPNProxy(
+                groupId = group.id,
+                order = 1,
+                name = "vpn",
+                host = "vpn.example.com",
+            )
+            val first = createSocksProxy(
+                groupId = group.id,
+                order = 2,
+                name = "first",
+                host = "1.1.1.1",
+                port = 1081,
+            )
+            val second = createSocksProxy(
+                groupId = group.id,
+                order = 3,
+                name = "second",
+                host = "2.2.2.2",
+                port = 1082,
+            )
+            val proxySet = createProxySet(
+                groupId = group.id,
+                order = 4,
+                name = "set",
+                proxies = listOf(first.id, second.id),
+            )
+            val chain = createChain(
+                groupId = group.id,
+                order = 5,
+                name = "chain",
+                proxies = listOf(exit.id, proxySet.id),
+            )
+
+            assertEquals(null, parseEndpoints(buildConfig(chain))["vpn"]!!["on_demand"])
+        }
+
     private fun parseOutbounds(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
             .jsonArray
@@ -2266,5 +2354,22 @@ class ConfigBuilderTest : HusiKoinTest() {
         )
         proxySet.id = SagerDatabase.proxyDao.addProxy(proxySet)
         return proxySet
+    }
+
+    private suspend fun createOpenVPNProxy(
+        groupId: Long,
+        order: Long,
+        name: String,
+        host: String,
+    ): ProxyEntity {
+        val proxy = ProxyEntity(groupId = groupId, userOrder = order).putBean(
+            OpenVPNBean().apply {
+                this.name = name
+                serverAddress = host
+                serverPort = 1194
+            }.applyDefaultValues(),
+        )
+        proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+        return proxy
     }
 }

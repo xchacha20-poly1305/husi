@@ -237,8 +237,8 @@ github.com/sagernet/sing v0.9.1-0.20260902140658-8bb71f553f8d h1:CNMj7HBWVOtytxk
 github.com/sagernet/sing v0.9.1-0.20260902140658-8bb71f553f8d/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
 github.com/sagernet/sing-anytls v0.0.0-20260904043735-a2775a3fbcad h1:RTlQTJJBOiMyV62yJA15GnhpqnRhG6y2ERmRjImL0ZI=
 github.com/sagernet/sing-anytls v0.0.0-20260904043735-a2775a3fbcad/go.mod h1:VRKLnj0ObEsN228h+zuzf91p+6sjtYE8SBaLPVsBy5o=
-github.com/sagernet/sing-box v1.14.1-0.20260904043856-7b47601ae77e h1:Gc9MjogxsJ5N1UnE7sI6VPFUfq0nk4m2SCQ3QB+xh+o=
-github.com/sagernet/sing-box v1.14.1-0.20260904043856-7b47601ae77e/go.mod h1:mPFsSDTCV1xJWN5fDwWGf9c7HtUQXT5KJ9H9CysBW7U=
+github.com/sagernet/sing-box v1.15.0-alpha.1 h1:F+SwOjZWU/lvjm3n0mki1N2By9+/1KyTwSXUnENDhHE=
+github.com/sagernet/sing-box v1.15.0-alpha.1/go.mod h1:mPFsSDTCV1xJWN5fDwWGf9c7HtUQXT5KJ9H9CysBW7U=
 github.com/sagernet/sing-mux v0.3.6-0.20260904043737-7e4c81a2011c h1:gKb6ts8i+rEErMMXHzjJNtr6oW+YGt+rXv5iIRftxUE=
 github.com/sagernet/sing-mux v0.3.6-0.20260904043737-7e4c81a2011c/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-openconnect v0.0.0-20260903200519-8b89c968949d h1:Jt/Tb0boIr/xRr4sWr2vC/rrVlYNoumZITLEQpqZ8UE=

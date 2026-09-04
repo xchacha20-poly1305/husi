@@ -744,13 +744,19 @@ object SingBoxOptions {
         var store_fakeip: Boolean? = null
 
         @JvmField
+        var store_dns: Boolean? = null
+
+        @JvmField
+        var buffer_size: Int? = null
+
+        @JvmField
+        var flush_interval: String? = null
+
+        @JvmField
         var store_rdrc: Boolean? = null
 
         @JvmField
         var rdrc_timeout: String? = null
-
-        @JvmField
-        var store_dns: Boolean? = null
 
     }
 
@@ -2885,6 +2891,9 @@ object SingBoxOptions {
 
         @JvmField
         var auto_redirect_reset_mark: Int? = null
+
+        @JvmField
+        var auto_redirect_tproxy_mark: Int? = null
 
         @JvmField
         var auto_redirect_nfqueue: Int? = null
@@ -5045,6 +5054,9 @@ object SingBoxOptions {
         @JvmField
         var workers: Int? = null
 
+        @JvmField
+        var on_demand: Boolean? = null
+
         // Generate note: nested type DialerOptions
         @JvmField
         var detour: String? = null
@@ -5312,6 +5324,9 @@ object SingBoxOptions {
         @JvmField
         var form_entries: MutableList<OpenConnectFormEntryOptions>? = null
 
+        @JvmField
+        var on_demand: Boolean? = null
+
     }
 
     @KxsSerializable
@@ -5560,6 +5575,9 @@ object SingBoxOptions {
 
         @JvmField
         var udp_timeout: Long? = null
+
+        @JvmField
+        var on_demand: Boolean? = null
 
     }
 

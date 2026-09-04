@@ -276,6 +276,37 @@ suspend fun buildConfig(
         )
     }
 
+    fun ResolvedChain.alwaysReferencedKeys(): Set<ChainEntryKey> {
+        val continuations = links.groupBy({ it.from }, { it.to })
+
+        fun reachableFrom(start: ChainEntryKey): Set<ChainEntryKey> {
+            val reached = LinkedHashSet<ChainEntryKey>()
+            val pending = ArrayDeque(listOf(start))
+            while (pending.isNotEmpty()) {
+                val key = pending.removeFirst()
+                if (!reached.add(key)) continue
+                pending += continuations[key].orEmpty()
+                pending += proxySetMembers[key].orEmpty().map { it.key }
+            }
+            return reached
+        }
+
+        val referenced = LinkedHashSet<ChainEntryKey>()
+        val pending = ArrayDeque(listOfNotNull(root?.key))
+        while (pending.isNotEmpty()) {
+            val key = pending.removeFirst()
+            if (!referenced.add(key)) continue
+            pending += continuations[key].orEmpty()
+            val members = proxySetMembers[key].orEmpty()
+            if (members.isNotEmpty()) {
+                pending += members
+                    .map { reachableFrom(it.key) }
+                    .reduce { shared, memberKeys -> shared intersect memberKeys }
+            }
+        }
+        return referenced
+    }
+
     val resolvingReferences = LinkedHashSet<Long>()
 
     fun List<Long>.requireNoDuplicateReferences(container: String) {
@@ -662,6 +693,7 @@ suspend fun buildConfig(
             }
 
             val entriesWithContinuation = resolvedChain.links.mapTo(HashSet()) { it.from }
+            val alwaysReferenced = resolvedChain.alwaysReferencedKeys()
 
             fun addDNSDirectForce(bean: AbstractBean) {
                 if (bean is ChainBean || bean is ProxySetBean) return
@@ -802,6 +834,10 @@ suspend fun buildConfig(
                             }
                             strategy = serverDomainStrategy
                         }.asKxsMap()
+                    }
+
+                    if (isEndpoint(this["type"].toString()) && entry.key !in alwaysReferenced) {
+                        this["on_demand"] = true
                     }
 
                     // custom JSON merge
@@ -1497,6 +1533,7 @@ suspend fun buildConfig(
             )
 
             // VPN with server-push DNS
+            // What if a endpoint on demand while using this DNS? This may be a bug, change it until user noticing it.
             for ((endpointTag, dnsType) in vpnWithPushDNS) {
                 val dnsTag = "dns-${endpointTag}"
                 val server = when (dnsType) {
