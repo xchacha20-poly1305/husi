@@ -73,7 +73,6 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.ktx.readableMessage
-import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_copy
 import fr.husi.resources.cancel
@@ -95,7 +94,6 @@ import fr.husi.resources.search_go
 import fr.husi.resources.share
 import fr.husi.ui.remote.RemoteSessionBanner
 import fr.husi.ui.remote.RemoteTargetMenuSection
-import fr.husi.utils.SendLog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
@@ -399,12 +397,14 @@ fun LogcatScreen(
                 },
                 onClick = {
                     scope.launch {
-                        val log = SendLog.buildLog(resolveRepository().externalAssetsDir)
-                        clipboard.setPlainText(log)
+                        clipboard.setPlainText(viewModel.buildExportLog().content)
                     }
                 },
             )
-            ShareActionRow(scope) { e ->
+            ShareActionRow(
+                scope = scope,
+                buildLog = viewModel::buildExportLog,
+            ) { e ->
                 snackbar.show(StringOrRes.Direct(e.readableMessage))
             }
         }

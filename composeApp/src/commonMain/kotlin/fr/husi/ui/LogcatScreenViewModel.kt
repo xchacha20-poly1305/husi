@@ -14,6 +14,10 @@ import fr.husi.ktx.Logs
 import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.LogLevel
+import fr.husi.repository.resolveRepository
+import fr.husi.utils.LogExport
+import fr.husi.utils.RemoteLogTarget
+import fr.husi.utils.SendLog
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -26,6 +30,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.context.GlobalContext
 
 @Immutable
@@ -102,6 +107,35 @@ class LogcatScreenViewModel(
             if (state.pause) return
             if (item.level.number > state.logLevel.number) return
             state.copy(logs = state.logs.adding(item))
+        }
+    }
+
+    suspend fun buildExportLog(): LogExport {
+        val session = remoteControl?.session?.value
+            ?: return withContext(Dispatchers.IO) {
+                SendLog.buildLocalLog(resolveRepository().externalAssetsDir)
+            }
+        val logLines = allLogs.map { it.message }
+        return SendLog.buildRemoteLog(
+            target = RemoteLogTarget(
+                name = session.server.name,
+                url = session.server.url,
+                version = fetchRemoteVersion(),
+                logLevel = fetchRemoteLogLevel().name,
+            ),
+            logLines = logLines,
+        )
+    }
+
+    private suspend fun fetchRemoteVersion(): String {
+        return try {
+            val version = coreClient.getVersion()
+            "husi ${version.version}, sing-box ${version.singBoxVersion}, ${version.buildEnvironment}"
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logs.w("get remote version", e)
+            "unknown"
         }
     }
 

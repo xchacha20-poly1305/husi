@@ -12,15 +12,20 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.send
 import fr.husi.resources.share
-import fr.husi.utils.SendLog
+import fr.husi.utils.LogExport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
+
+private const val LOG_CACHE_DIR_NAME = "log"
 
 @Composable
-internal actual fun ShareActionRow(scope: CoroutineScope, showSnackbar: suspend (Exception) -> Unit) {
+internal actual fun ShareActionRow(
+    scope: CoroutineScope,
+    buildLog: suspend () -> LogExport,
+    showSnackbar: suspend (Exception) -> Unit,
+) {
     val context = LocalContext.current
     SheetActionRow(
         text = stringResource(Res.string.share),
@@ -30,7 +35,7 @@ internal actual fun ShareActionRow(scope: CoroutineScope, showSnackbar: suspend 
         onClick = {
             scope.launch {
                 try {
-                    shareLogFile(context)
+                    shareLogFile(context, buildLog())
                 } catch (e: Exception) {
                     Logs.e(e)
                     showSnackbar(e)
@@ -40,13 +45,11 @@ internal actual fun ShareActionRow(scope: CoroutineScope, showSnackbar: suspend 
     )
 }
 
-private suspend fun shareLogFile(context: Context) {
-    val logFile = File.createTempFile(
-        context.packageName,
-        ".log",
-        File(resolveRepository().cacheDir, "log").also { it.mkdirs() },
-    ).apply {
-        writeText(SendLog.buildLog(resolveRepository().externalAssetsDir))
+private suspend fun shareLogFile(context: Context, export: LogExport) {
+    val repository = resolveRepository()
+    val logDir = repository.cacheDir.resolve(LOG_CACHE_DIR_NAME).also { it.mkdirs() }
+    val logFile = logDir.resolve(export.fileName).apply {
+        writeText(export.content)
     }
     context.startActivity(
         Intent.createChooser(
@@ -60,7 +63,7 @@ private suspend fun shareLogFile(context: Context) {
                         logFile,
                     ),
                 ),
-            resolveRepository().getString(Res.string.share),
+            repository.getString(Res.string.share),
         ).setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
     )
 }

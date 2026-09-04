@@ -27,11 +27,16 @@ object CrashReport {
         return format
     }
 
-    fun buildReportHeader(): String {
+    fun buildEnvironmentReport(): String {
         var report = ""
         report += "husi ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.FLAVOR.uppercase()}\n"
         report += "Date: ${getCurrentMilliSecondUTCTimeStamp()}\n\n"
         report += buildPlatformSystemInfoReport()
+        return report
+    }
+
+    fun buildReportHeader(): String {
+        var report = buildEnvironmentReport()
 
         try {
             report += "Settings: \n"
