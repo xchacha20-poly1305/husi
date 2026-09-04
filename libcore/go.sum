@@ -42,8 +42,8 @@ github.com/ebitengine/purego v0.10.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLA
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904055012-342aef37343b h1:maiRg5SrJs3U+7OqQsdgFJcC/1ba20KsLU0hb0bJBmE=
-github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904055012-342aef37343b/go.mod h1:SNBD9qD+SR1RubUcIO6HXbx+5kvIu7ieEFeuAndzX/8=
+github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904153201-e6f55d83049c h1:YKi/PbjrSKR+EqlzaPzrzKydccDfR5zQyCtErbDWZwo=
+github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904153201-e6f55d83049c/go.mod h1:QiJ2Fw+84od6FozwppgBbW4gPvZzkGGXVVPDS6zSPK4=
 github.com/florianl/go-nfqueue/v2 v2.1.0 h1:Fywt30TY/evxyDySpXjxQ1jsRW7nQbLpOhELqpr4068=
 github.com/florianl/go-nfqueue/v2 v2.1.0/go.mod h1:8PKUM5rYoVFO5IZV1bifx4/b0jHAglKkHXr9PRwzi4Y=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
@@ -245,8 +245,8 @@ github.com/sagernet/sing-openconnect v0.0.0-20260903200519-8b89c968949d h1:Jt/Tb
 github.com/sagernet/sing-openconnect v0.0.0-20260903200519-8b89c968949d/go.mod h1:4AKZLVcvY3r54UaK2Gbnm7aN8pOwdLz+y4EP0QFZ5Eg=
 github.com/sagernet/sing-openvpn v0.0.0-20260903200517-e060dda5b1f1 h1:Zn7+pNY5mX1e4DO8oKhTHz5sxqUKNdCWKbfZUtM26Qg=
 github.com/sagernet/sing-openvpn v0.0.0-20260903200517-e060dda5b1f1/go.mod h1:PWX7WygD8jpwfqfaGNySXpJYTn0SOwjBI1BKHHC2+Bw=
-github.com/sagernet/sing-quic v0.7.1-0.20260904043739-344d4a543cbf h1:5G8h4itwtpSh2VmhiKrCXhYiPArYVLMrU1Up7Rigx0Y=
-github.com/sagernet/sing-quic v0.7.1-0.20260904043739-344d4a543cbf/go.mod h1:rJFeVxbEej2iuyeCJ3drKW+p5rOgtLIW3XhZ6ty7Fig=
+github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e h1:2r0FRN0DBSfggWYtdH/69uW91kqEOByBWw/5hiCq6qU=
+github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e/go.mod h1:rJFeVxbEej2iuyeCJ3drKW+p5rOgtLIW3XhZ6ty7Fig=
 github.com/sagernet/sing-shadowsocks v0.2.8 h1:PURj5PRoAkqeHh2ZW205RWzN9E9RtKCVCzByXruQWfE=
 github.com/sagernet/sing-shadowsocks v0.2.8/go.mod h1:lo7TWEMDcN5/h5B8S0ew+r78ZODn6SwVaFhvB6H+PTI=
 github.com/sagernet/sing-shadowsocks2 v0.2.1 h1:dWV9OXCeFPuYGHb6IRqlSptVnSzOelnqqs2gQ2/Qioo=

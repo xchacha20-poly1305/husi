@@ -5,7 +5,7 @@ go 1.26
 require (
 	filippo.io/age v1.3.2
 	github.com/coder/websocket v1.8.15
-	github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904055012-342aef37343b
+	github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904153201-e6f55d83049c
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/klauspost/compress v1.19.2
 	github.com/miekg/dns v1.1.72
@@ -136,7 +136,7 @@ require (
 	github.com/sagernet/sing-mux v0.3.6-0.20260904043737-7e4c81a2011c // indirect
 	github.com/sagernet/sing-openconnect v0.0.0-20260903200519-8b89c968949d // indirect
 	github.com/sagernet/sing-openvpn v0.0.0-20260903200517-e060dda5b1f1 // indirect
-	github.com/sagernet/sing-quic v0.7.1-0.20260904043739-344d4a543cbf // indirect
+	github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1 // indirect
