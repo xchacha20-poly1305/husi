@@ -283,8 +283,8 @@ github.com/xchacha20-poly1305/anja v0.22.16 h1:l9qmqtDHCCQE8l/TngSw5wY0E26MWB/Ml
 github.com/xchacha20-poly1305/anja v0.22.16/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.5 h1:YswEIbhL0EmIFR9FetRBjHDK62nNr5puuTdLzsZ0KvI=
 github.com/xchacha20-poly1305/libping v0.10.5/go.mod h1:SXTHinnDLUAnAaMSy3sg5Ts07EUil3XQNt40+uOzgu8=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260904072859-42df201b0d52 h1:hVt36J3RAdUuq/9Ndr/wRkJpiMVWnH7/TkJWmLH0UCY=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260904072859-42df201b0d52/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260904152801-535ad468f115 h1:ZY6qO9bnYxkCtsALiZvnIEug/k3MehfX3tBdFXJKNqU=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260904152801-535ad468f115/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a h1:vEjuTXDMeO78XINy1UHJE58Un7mMwUBZYdJapnbYso4=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
 github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 h1:ilQV1hzziu+LLM3zUTJ0trRztfwgjqKnBWNtSRkbmwM=
