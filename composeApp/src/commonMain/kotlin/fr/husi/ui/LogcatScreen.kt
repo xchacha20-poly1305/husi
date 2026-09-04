@@ -279,7 +279,7 @@ fun LogcatScreen(
                                     DropdownMenuGroup(
                                         shapes = MenuDefaults.groupShape(2, 3),
                                     ) {
-                                        val levels = LogLevel.entries
+                                        val levels = logLevels
                                         for ((index, level) in levels.withIndex()) {
                                             DropdownMenuItem(
                                                 text = { Text(level.name) },

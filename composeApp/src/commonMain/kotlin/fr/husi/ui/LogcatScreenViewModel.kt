@@ -13,9 +13,11 @@ import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Log
+import fr.husi.proto.daemon.LogLevel
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,23 +32,14 @@ import org.koin.core.context.GlobalContext
 data class LogcatUiState(
     val pause: Boolean = false,
     val searchQuery: String? = null,
-    val logLevel: LogLevel = LogLevel.entries[DataStore.logLevel.getBlocking()],
+    val logLevel: LogLevel = LogLevel.WARN,
     val logs: PersistentList<LogEntry> = persistentListOf(),
     val errorMessage: String? = null,
     val connecting: Boolean = false,
     val isRemote: Boolean = false,
 )
 
-@Immutable
-enum class LogLevel {
-    PANIC,
-    FATAL,
-    ERROR,
-    WARN,
-    INFO,
-    DEBUG,
-    TRACE,
-}
+val logLevels: List<LogLevel> = LogLevel.entries - LogLevel.UNRECOGNIZED
 
 @Immutable
 data class LogEntry(
@@ -55,7 +48,7 @@ data class LogEntry(
 )
 
 fun Log.Message.toLogEntry(): LogEntry {
-    val level = LogLevel.entries.getOrNull(levelValue) ?: LogLevel.INFO
+    val level = LogLevel.forNumber(levelValue) ?: LogLevel.INFO
     return LogEntry(
         level = level,
         message = message,
@@ -77,14 +70,12 @@ class LogcatScreenViewModel(
     private val isRemote: Boolean
         get() = remoteControl?.isRemote == true
 
+    private val localLogLevel: LogLevel
+        get() = LogLevel.forNumber(DataStore.logLevel.getBlocking()) ?: LogLevel.WARN
+
     private var allLogs: PersistentList<LogEntry> = persistentListOf()
     val uiState: StateFlow<LogcatUiState>
-        field = MutableStateFlow(
-            LogcatUiState(
-                logLevel = LogLevel.entries.getOrNull(DataStore.logLevel.getBlocking())
-                    ?: LogLevel.WARN,
-            ),
-        )
+        field = MutableStateFlow(LogcatUiState(logLevel = localLogLevel))
     val searchTextFieldState = TextFieldState()
 
     private var job: Job? = null
@@ -100,7 +91,7 @@ class LogcatScreenViewModel(
 
     private fun refilterLogs(logLevel: LogLevel, query: String?): PersistentList<LogEntry> {
         return allLogs.filter { item ->
-            item.level.ordinal <= logLevel.ordinal
+            item.level.number <= logLevel.number
                     && query?.let { item.message.contains(it, ignoreCase = true) } ?: true
         }.toPersistentList()
     }
@@ -109,24 +100,41 @@ class LogcatScreenViewModel(
         allLogs = allLogs.adding(item)
         uiState.update { state ->
             if (state.pause) return
-            if (item.level.ordinal > state.logLevel.ordinal) return
+            if (item.level.number > state.logLevel.number) return
             state.copy(logs = state.logs.adding(item))
+        }
+    }
+
+    private suspend fun fetchRemoteLogLevel(): LogLevel {
+        return try {
+            LogLevel.forNumber(coreClient.getDefaultLogLevel().levelValue) ?: LogLevel.WARN
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logs.w("get remote log level", e)
+            LogLevel.WARN
         }
     }
 
     suspend fun initialize(isConnected: Boolean) {
         job?.cancel()
         allLogs = persistentListOf()
+        val remote = isRemote
         uiState.update {
             it.copy(
                 logs = persistentListOf(),
-                connecting = !isConnected && isRemote,
-                isRemote = isRemote,
+                logLevel = localLogLevel,
+                connecting = !isConnected && remote,
+                isRemote = remote,
             )
         }
         if (!isConnected) return
 
         job = viewModelScope.launch {
+            if (remote) {
+                val level = fetchRemoteLogLevel()
+                uiState.update { it.copy(logLevel = level) }
+            }
             try {
                 coreClient.subscribeLog().collect { batch ->
                     if (batch.reset) {

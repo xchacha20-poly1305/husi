@@ -24,11 +24,12 @@ import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Connection
 import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.Log
+import fr.husi.proto.daemon.LogLevel
 import fr.husi.proto.daemon.NetworkQualityTestProgress
 import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.Status
-import fr.husi.ui.LogLevel
+import fr.husi.ui.logLevels
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -313,14 +314,14 @@ private class ApiLogsCommand : ApiClientCommand("logs") {
     private fun parseApiLogLevel(value: String): Int {
         val normalized = value.trim()
         if (normalized.equals("warning", ignoreCase = true)) {
-            return LogLevel.WARN.ordinal
+            return LogLevel.WARN.number
         }
-        val match = LogLevel.entries.firstOrNull { it.name.equals(normalized, ignoreCase = true) }
+        val match = logLevels.firstOrNull { it.name.equals(normalized, ignoreCase = true) }
         if (match == null) {
             echo("unknown log level: $value", err = true)
             throw ProgramResult(1)
         }
-        return match.ordinal
+        return match.number
     }
 }
 
