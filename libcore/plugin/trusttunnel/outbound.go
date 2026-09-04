@@ -37,7 +37,7 @@ func RegisterOutbound(registry *outbound.Registry) {
 var (
 	_ adapter.FlowOutbound            = (*Outbound)(nil)
 	_ adapter.InterfaceUpdateListener = (*Outbound)(nil)
-	_ adapter.IdleConnectionCloser    = (*Outbound)(nil)
+	_ adapter.IdleConnectionKeeper    = (*Outbound)(nil)
 )
 
 type Outbound struct {
@@ -197,6 +197,10 @@ func (h *Outbound) WritePackets(packets [][]byte) error {
 		return os.ErrInvalid
 	}
 	return h.icmpPort.WritePackets(packets)
+}
+
+func (h *Outbound) SetKeepIdleConnections(keep bool) {
+	h.client.SetKeepIdleConnections(keep)
 }
 
 func (h *Outbound) CloseIdleConnections() {

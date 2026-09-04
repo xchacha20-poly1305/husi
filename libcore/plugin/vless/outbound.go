@@ -31,7 +31,7 @@ func RegisterOutbound(registry *outbound.Registry) {
 var (
 	_ adapter.Outbound                = (*Outbound)(nil)
 	_ adapter.InterfaceUpdateListener = (*Outbound)(nil)
-	_ adapter.IdleConnectionCloser    = (*Outbound)(nil)
+	_ adapter.IdleConnectionKeeper    = (*Outbound)(nil)
 )
 
 type Outbound struct {
@@ -147,10 +147,20 @@ func (h *Outbound) InterfaceUpdated(ctx context.Context) {
 	}
 }
 
+func (h *Outbound) SetKeepIdleConnections(keep bool) {
+	transportKeeper, isTransportKeeper := h.transport.(adapter.IdleConnectionKeeper)
+	if isTransportKeeper {
+		transportKeeper.SetKeepIdleConnections(keep)
+	}
+	if h.multiplexDialer != nil {
+		h.multiplexDialer.SetKeepIdleConnections(keep)
+	}
+}
+
 func (h *Outbound) CloseIdleConnections() {
-	transportCloser, isTransportCloser := h.transport.(adapter.IdleConnectionCloser)
-	if isTransportCloser {
-		transportCloser.CloseIdleConnections()
+	transportKeeper, isTransportKeeper := h.transport.(adapter.IdleConnectionKeeper)
+	if isTransportKeeper {
+		transportKeeper.CloseIdleConnections()
 	}
 	if h.multiplexDialer != nil {
 		h.multiplexDialer.CloseIdleConnections()
