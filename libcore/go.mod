@@ -20,7 +20,7 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.5
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.1-0.20260902150637-feb815d8cf0f
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.2
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/net v0.58.0
 	golang.org/x/sys v0.47.0
