@@ -5,13 +5,17 @@ go 1.26
 require (
 	filippo.io/age v1.3.2
 	github.com/coder/websocket v1.8.15
-	github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904055012-342aef37343b
+	github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904153201-e6f55d83049c
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/klauspost/compress v1.19.2
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/cors v1.2.1
-	github.com/sagernet/sing v0.9.1-0.20260902140658-8bb71f553f8d
-	github.com/sagernet/sing-box v1.15.0-alpha.1
+	github.com/sagernet/sing v0.9.1-0.20260904133552-ffcabb706b1c
+	github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be
+	github.com/sagernet/sing-box v1.15.0-alpha.2
+	github.com/sagernet/sing-mux v0.3.7-0.20260905054442-91d1502591ce
+	github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e
+	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
 	github.com/sagernet/sing-tun v0.9.1-0.20260902150540-98e457e39c90
 	github.com/sagernet/sing-vmess v0.2.8
 	github.com/stretchr/testify v1.12.1
@@ -20,7 +24,7 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.5
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260904072859-42df201b0d52
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260905130013-e86064869c7c
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/net v0.58.0
 	golang.org/x/sys v0.47.0
@@ -132,15 +136,11 @@ require (
 	github.com/sagernet/netlink v0.0.0-20260814022025-64455d367bbf // indirect
 	github.com/sagernet/nftables v0.3.0-mod.4 // indirect
 	github.com/sagernet/quic-go v0.61.0-sing-box-mod.7 // indirect
-	github.com/sagernet/sing-anytls v0.0.0-20260904043735-a2775a3fbcad // indirect
-	github.com/sagernet/sing-mux v0.3.6-0.20260904043737-7e4c81a2011c // indirect
 	github.com/sagernet/sing-openconnect v0.0.0-20260903200519-8b89c968949d // indirect
 	github.com/sagernet/sing-openvpn v0.0.0-20260903200517-e060dda5b1f1 // indirect
-	github.com/sagernet/sing-quic v0.7.1-0.20260904043739-344d4a543cbf // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1 // indirect
-	github.com/sagernet/sing-snell v0.0.0-20260904043742-138588f1fa53 // indirect
 	github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
 	github.com/sagernet/wireguard-go v0.0.5 // indirect

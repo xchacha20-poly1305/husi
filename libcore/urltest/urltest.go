@@ -11,10 +11,15 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/sagernet/sing-anytls"
 	"github.com/sagernet/sing-box/adapter"
 	boxurltest "github.com/sagernet/sing-box/common/urltest"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/protocol/group"
+	"github.com/sagernet/sing-mux"
+	"github.com/sagernet/sing-quic"
+	"github.com/sagernet/sing-snell"
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
@@ -22,6 +27,7 @@ import (
 	"github.com/sagernet/sing/service"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/sing-trusttunnel"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -134,8 +140,31 @@ func Run(
 	}
 }
 
-// Measure times a single HEAD request through detour.
-func Measure(ctx context.Context, link string, detour N.Dialer, flags Flags) (t uint16, err error) {
+// Measure times a HEAD request through detour. A multiplexed outbound is warmed
+// up with a preceding request that keeps its session alive, so the measured
+// request rides the established session instead of paying for the handshake.
+func Measure(ctx context.Context, link string, detour N.Dialer, flags Flags) (uint16, error) {
+	multiplexOutbound, isMultiplexOutbound := common.Cast[adapter.OutboundWithMultiplex](detour)
+	if isMultiplexOutbound && multiplexOutbound.MultiplexEnabled() {
+		_, err := measure(contextWithKeepSession(ctx), link, detour, flags)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return measure(ctx, link, detour, flags)
+}
+
+func contextWithKeepSession(ctx context.Context) context.Context {
+	ctx = adapter.ContextWithKeepSession(ctx)
+	ctx = mux.ContextWithKeepSession(ctx)
+	ctx = anytls.ContextWithKeepSession(ctx)
+	ctx = qtls.ContextWithKeepSession(ctx)
+	ctx = snell.ContextWithKeepSession(ctx)
+	ctx = trusttunnel.ContextWithKeepSession(ctx)
+	return ctx
+}
+
+func measure(ctx context.Context, link string, detour N.Dialer, flags Flags) (t uint16, err error) {
 	link = cmp.Or(link, defaultLink)
 	linkURL, err := url.Parse(link)
 	if err != nil {
@@ -181,18 +210,19 @@ func Measure(ctx context.Context, link string, detour N.Dialer, flags Flags) (t 
 		Timeout: C.TCPTimeout,
 	}
 	defer client.CloseIdleConnections()
-	times := 1
+	response, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer response.Body.Close()
 	if flags&UnifiedDelay != 0 {
-		times++
-	}
-	for range times {
-		var resp *http.Response
-		resp, err = client.Do(req)
+		start = time.Now()
+		response, err := client.Do(req)
 		if err != nil {
-			return
+			return 0, err
 		}
-		t = uint16(time.Since(start) / time.Millisecond)
-		_ = resp.Body.Close()
+		defer response.Body.Close()
 	}
+	t = uint16(time.Since(start) / time.Millisecond)
 	return
 }

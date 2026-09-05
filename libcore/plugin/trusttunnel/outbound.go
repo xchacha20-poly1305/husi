@@ -35,6 +35,7 @@ func RegisterOutbound(registry *outbound.Registry) {
 }
 
 var (
+	_ adapter.OutboundWithMultiplex   = (*Outbound)(nil)
 	_ adapter.FlowOutbound            = (*Outbound)(nil)
 	_ adapter.InterfaceUpdateListener = (*Outbound)(nil)
 	_ adapter.IdleConnectionKeeper    = (*Outbound)(nil)
@@ -102,13 +103,6 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		client:    client,
 		icmpPort:  port,
 	}, nil
-}
-
-func (h *Outbound) Start(stage adapter.StartStage) error {
-	if stage != adapter.StartStateStart {
-		return nil
-	}
-	return h.client.Start()
 }
 
 func (h *Outbound) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {

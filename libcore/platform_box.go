@@ -217,9 +217,9 @@ func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindC
 		return nil, err
 	}
 	return &adapter.ConnectionOwner{
-		UserId:              result.UserId,
-		AndroidPackageNames: result.androidPackageNames,
-		// ProcessPath: result.ProcessPath, // Not available in Android
+		UserId:       result.UserId,
+		PackageNames: result.androidPackageNames,
+		// ProcessPaths: not available in Android.
 	}, nil
 }
 
