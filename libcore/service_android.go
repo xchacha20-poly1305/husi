@@ -4,6 +4,7 @@ package libcore
 
 import (
 	"context"
+	"time"
 
 	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -82,8 +83,9 @@ func (s *Service) PublishServiceEvent(event []byte) error {
 }
 
 func (s *Service) Pause() {
-	s.access.RLock()
-	defer s.access.RUnlock()
+	s.access.Lock()
+	defer s.access.Unlock()
+	s.deviceSleptAt = time.Now().Round(0)
 	if s.host == nil {
 		return
 	}
@@ -95,14 +97,21 @@ func (s *Service) Pause() {
 }
 
 func (s *Service) Wake() {
-	s.access.RLock()
-	defer s.access.RUnlock()
+	s.access.Lock()
+	defer s.access.Unlock()
+	sleptFor := time.Since(s.deviceSleptAt)
+	const closeIdleConnectionsAfterSleep = 2 * time.Minute
+	sleptLongEnough := !s.deviceSleptAt.IsZero() && sleptFor >= closeIdleConnectionsAfterSleep
+	s.deviceSleptAt = time.Time{}
 	if s.host == nil {
 		return
 	}
 	instance := s.host.Started().Instance()
 	if instance == nil {
 		return
+	}
+	if sleptLongEnough && instance.Box() != nil {
+		instance.Box().CloseIdleConnections()
 	}
 	instance.PauseManager().DeviceWake()
 }

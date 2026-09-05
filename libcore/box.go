@@ -28,7 +28,6 @@ type boxInstance struct {
 
 	platformInterface PlatformInterface
 	urlTestHistory    *urltest.HistoryStorage
-	pauseManager      pause.Manager
 }
 
 // newBoxInstance creates a boxInstance. forTest must be true for the surviving
@@ -70,7 +69,6 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 		forTest:           forTest,
 		cancel:            cancel,
 		platformInterface: platformInterface,
-		pauseManager:      service.FromContext[pause.Manager](ctx),
 		urlTestHistory:    service.PtrFromContext[urltest.HistoryStorage](ctx),
 	}
 	return b, nil
