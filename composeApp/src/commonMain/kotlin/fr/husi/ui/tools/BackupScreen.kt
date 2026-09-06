@@ -52,7 +52,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.Logs
-import fr.husi.ktx.currentBackupFileTimestamp
+import fr.husi.ktx.fileNameTimestamp
 import fr.husi.ktx.readableMessage
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
@@ -132,7 +132,7 @@ internal fun BackupScreen(
     }
     LaunchedEffect(uiState.exported) {
         uiState.exported?.let {
-            val time = currentBackupFileTimestamp()
+            val time = fileNameTimestamp()
             val fileName = "husi_backup_${time}"
             exportFileLauncher.launch(suggestedName = fileName, defaultExtension = "json")
         }

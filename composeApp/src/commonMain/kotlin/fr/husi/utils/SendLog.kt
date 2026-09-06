@@ -1,7 +1,7 @@
 package fr.husi.utils
 
 import fr.husi.ktx.Logs
-import fr.husi.ktx.currentFileNameTimestamp
+import fr.husi.ktx.fileNameTimestamp
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -73,7 +73,7 @@ object SendLog {
 
     private fun buildFileName(targetName: String): String {
         val safeName = targetName.replace(unsafeFileNameCharacters, "-")
-        return "$FILE_NAME_PREFIX-$safeName-${currentFileNameTimestamp()}$FILE_NAME_EXTENSION"
+        return "$FILE_NAME_PREFIX-$safeName-${fileNameTimestamp()}$FILE_NAME_EXTENSION"
     }
 
     private fun getCoreLog(externalAssetsDir: File): String {

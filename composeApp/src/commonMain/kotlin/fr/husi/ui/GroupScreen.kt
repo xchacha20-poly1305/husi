@@ -66,7 +66,7 @@ import fr.husi.compose.withNavigation
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.toUniversalLink
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.formatTime
+import fr.husi.ktx.DisplayTime
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -121,32 +121,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format.char
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.time.Instant
-
-private val subscriptionDateFormat = LocalDateTime.Format {
-    year()
-    char('-')
-    monthNumber()
-    char('-')
-    day()
-    char(' ')
-    hour()
-    char(':')
-    minute()
-}
-
-private fun formatSubscriptionUpdateTime(epochSeconds: Long): String {
-    val dateTime = Instant.fromEpochSeconds(epochSeconds)
-        .toLocalDateTime(TimeZone.currentSystemDefault())
-    return subscriptionDateFormat.format(dateTime)
-}
 
 @Composable
 fun GroupScreen(
@@ -701,7 +679,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                     Text(
                                         text = stringResource(
                                             Res.string.subscription_expire,
-                                            formatTime(subscription.expiryDate * 1000L),
+                                            DisplayTime.date(Instant.fromEpochSeconds(subscription.expiryDate)),
                                         ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -715,8 +693,10 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                 Text(
                                     text = stringResource(
                                         Res.string.subscription_last_updated,
-                                        formatSubscriptionUpdateTime(
-                                            state.group.subscription!!.lastUpdated.toLong(),
+                                        DisplayTime.dateTime(
+                                            Instant.fromEpochSeconds(
+                                                state.group.subscription!!.lastUpdated.toLong(),
+                                            ),
                                         ),
                                     ),
                                     style = MaterialTheme.typography.bodySmall,

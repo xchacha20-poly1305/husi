@@ -22,7 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Text
-import fr.husi.ktx.formatLocalDateTime
+import fr.husi.ktx.DisplayTime
 import fr.husi.ktx.readableMessage
 import fr.husi.resources.Res
 import fr.husi.resources.action_openvpn
@@ -54,6 +54,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Composable
 internal fun OpenVPNStatusSection(
@@ -254,7 +255,7 @@ private fun TunnelInfoContent(info: OpenVPNTunnelInfoState) {
         if (info.connectedSince > 0) {
             VpnStatusInfoRow(
                 stringResource(Res.string.connected_since),
-                formatLocalDateTime(info.connectedSince),
+                DisplayTime.dateTime(Instant.fromEpochSeconds(info.connectedSince)),
             )
         }
     }

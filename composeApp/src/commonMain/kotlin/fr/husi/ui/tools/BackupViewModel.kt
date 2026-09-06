@@ -14,7 +14,7 @@ import fr.husi.fmt.BeanConverters
 import fr.husi.ktx.Logs
 import fr.husi.ktx.b64Decode
 import fr.husi.ktx.b64EncodeUrlSafe
-import fr.husi.ktx.currentBackupFileTimestamp
+import fr.husi.ktx.fileNameTimestamp
 import fr.husi.ktx.kxs
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
@@ -121,7 +121,7 @@ internal class BackupViewModel : ViewModel() {
         val content =
             createBackup(state.backupGroupsAndConfig, state.backupRules, state.backupSettings)
 
-        val time = currentBackupFileTimestamp()
+        val time = fileNameTimestamp()
         val fileName = "husi_backup_${time}.json"
         try {
             val file = createFile(fileName)

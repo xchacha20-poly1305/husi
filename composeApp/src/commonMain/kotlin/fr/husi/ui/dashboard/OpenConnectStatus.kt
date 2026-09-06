@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Text
-import fr.husi.ktx.formatLocalDateTime
+import fr.husi.ktx.DisplayTime
 import fr.husi.resources.Res
 import fr.husi.resources.action_openconnect
 import fr.husi.resources.auth_open_url
@@ -45,6 +45,7 @@ import fr.husi.vpn.buildResult
 import fr.husi.ui.openconnect.initialAuthFormValues
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Instant
 
 @Composable
 internal fun OpenConnectStatusSection(
@@ -242,7 +243,7 @@ private fun TunnelInfoContent(info: OpenConnectTunnelInfoState) {
         if (info.connectedSince > 0) {
             VpnStatusInfoRow(
                 stringResource(Res.string.connected_since),
-                formatLocalDateTime(info.connectedSince),
+                DisplayTime.dateTime(Instant.fromEpochSeconds(info.connectedSince)),
             )
         }
     }

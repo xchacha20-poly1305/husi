@@ -280,7 +280,3 @@ fun <T : Serializable> T.applyDefaultValues(): T {
 fun String.substringBetween(after: String, before: String): String {
     return substringAfter(after).substringBefore(before)
 }
-
-fun formatTime(millis: Long): String {
-    return formatDate(millis)
-}
