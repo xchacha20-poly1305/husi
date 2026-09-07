@@ -183,31 +183,46 @@ var (
 )
 
 func (w *logWriter) Write(p []byte) (n int, err error) {
+	w.access.Lock()
+	defer w.access.Unlock()
 	for _, writer := range w.writers {
-		var unlock func() error
-		if file, isFile := writer.(*os.File); isFile {
-			_ = oscall.Flock(file)
-			unlock = func() error { return oscall.FUnlock(file) }
-		}
-		_, _ = writer.Write(p)
-		if unlock != nil {
-			_ = unlock()
-		}
+		withFileLock(writer, func() {
+			_, _ = writer.Write(p)
+		})
 	}
 	return len(p), nil
 }
 
 func (w *logWriter) truncate() {
+	w.access.Lock()
+	defer w.access.Unlock()
 	for _, writer := range w.writers {
-		if file, isFile := writer.(*os.File); isFile {
-			_ = oscall.Flock(file)
-			_ = file.Truncate(0)
-			_ = oscall.FUnlock(file)
+		file, isFile := writer.(*os.File)
+		if !isFile {
+			continue
 		}
+		withFileLock(file, func() {
+			_ = file.Truncate(0)
+		})
 	}
 }
 
+func withFileLock(writer io.Writer, action func()) {
+	file, isFile := writer.(*os.File)
+	if !isFile {
+		action()
+		return
+	}
+	lockTaken := oscall.Flock(file) == nil
+	if lockTaken {
+		defer func() { _ = oscall.FUnlock(file) }()
+	}
+	action()
+}
+
 func (w *logWriter) Close() error {
+	w.access.Lock()
+	defer w.access.Unlock()
 	var errs []error
 	for _, writer := range w.writers {
 		err := common.Close(writer)
