@@ -72,6 +72,17 @@
 # DBus interface is only ever reached by name.
 -keep interface * extends org.freedesktop.dbus.interfaces.DBusInterface { *; }
 
+# FileKit's XDG file chooser registers its portal Response handler by looking
+# the method up reflectively, so the shrinker sees no caller and deletes it:
+#   IllegalStateException: No compatible DBusConnection signal-registration
+#   method found
+-keepclassmembers class * extends org.freedesktop.dbus.connections.AbstractConnection {
+    java.lang.AutoCloseable addGenericSigHandler(...);
+    java.lang.AutoCloseable addSigHandler(...);
+    void removeGenericSigHandler(...);
+    void removeSigHandler(...);
+}
+
 # FileKit 0.15.0 ships an ImageBitmap.encodeToByteArray() helper compiled
 # against skiko < 0.150, where Image.encodeToData took (format, quality).
 # Compose 1.12.0 brings skiko 0.150, which added a pngCompressionLevel
