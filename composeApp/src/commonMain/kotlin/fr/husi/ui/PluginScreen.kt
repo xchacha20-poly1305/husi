@@ -84,7 +84,6 @@ fun PluginScreen(
     val isExpert by DataStore.isExpert.collectAsStateWithLifecycle()
 
     val notInstalledPlugins = remember(plugins) {
-        if (!PlatformInfo.isAndroid) return@remember emptyList<PluginEntry>()
         val installedIDs = plugins.mapTo(mutableSetOf()) { it.id }
         enumEntries<PluginEntry>().filter { it.pluginId !in installedIDs }
     }
@@ -131,7 +130,7 @@ fun PluginScreen(
                 ) {
                     installedPlugins(plugins, openPluginCard, uriHandler::openUri)
                     notInstalledPlugins(notInstalledPlugins) {
-                        uriHandler.openUri(it.downloadSource.apk)
+                        uriHandler.openUri(it.platformDownloadUri)
                     }
                     platformPluginPreferences(isExpert, ::needRestart)
                 }
@@ -184,15 +183,7 @@ private fun LazyListScope.installedPlugins(
                             description = "v${plugin.version}",
                             onClick = { openPluginCard(plugin) },
                             onLongClick = {
-                                plugin.entry?.let {
-                                    openUri(
-                                        if (PlatformInfo.isAndroid) {
-                                            it.downloadSource.apk
-                                        } else {
-                                            it.downloadSource.binary
-                                        },
-                                    )
-                                }
+                                plugin.entry?.let { openUri(it.platformDownloadUri) }
                             },
                         )
                     }
@@ -215,9 +206,12 @@ private fun LazyListScope.installedPlugins(
     }
 }
 
+private val PluginEntry.platformDownloadUri: String
+    get() = if (PlatformInfo.isAndroid) downloadSource.apk else downloadSource.binary
+
 private fun LazyListScope.notInstalledPlugins(
     plugins: List<PluginEntry>,
-    onInstall: (PluginEntry) -> Unit,
+    onDownload: (PluginEntry) -> Unit,
 ) {
     if (plugins.isEmpty()) return
     item("not_installed_plugins_card") {
@@ -247,7 +241,7 @@ private fun LazyListScope.notInstalledPlugins(
                         },
                         title = stringResource(plugin.displayName),
                         description = stringResource(Res.string.plugin_not_installed_summary),
-                        onClick = { onInstall(plugin) },
+                        onClick = { onDownload(plugin) },
                     )
                 }
             }
