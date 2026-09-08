@@ -875,6 +875,8 @@
     <string name="tun_strict_route">Tun strict route</string>
     <string name="tun_auto_redirect">Tun auto redirect</string>
     <string name="no_plugin_found">No plugin found!</string>
+    <string name="plugin_not_installed">Not installed</string>
+    <string name="plugin_not_installed_summary">Tap to open the download page</string>
     <string name="traffic_pattern">Traffic Pattern</string>
     <string name="route_invert">Invert Match</string>
     <string name="latency">Latency</string>

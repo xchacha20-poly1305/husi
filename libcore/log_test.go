@@ -12,6 +12,7 @@ import (
 	"time"
 
 	F "github.com/sagernet/sing/common/format"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
