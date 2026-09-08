@@ -10,9 +10,9 @@ require (
 	github.com/klauspost/compress v1.19.2
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/cors v1.2.1
-	github.com/sagernet/sing v0.9.1-0.20260904133552-ffcabb706b1c
+	github.com/sagernet/sing v0.9.3-0.20260906082413-0113c392f609
 	github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be
-	github.com/sagernet/sing-box v1.15.0-alpha.2
+	github.com/sagernet/sing-box v1.14.1-0.20260906082624-60b504a1c74a
 	github.com/sagernet/sing-mux v0.3.7-0.20260905054442-91d1502591ce
 	github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e
 	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
@@ -24,7 +24,7 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.5
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260905130013-e86064869c7c
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260906073641-f530c1610baa
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/net v0.58.0
 	golang.org/x/sys v0.47.0

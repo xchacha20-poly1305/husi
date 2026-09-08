@@ -233,12 +233,12 @@ github.com/sagernet/nftables v0.3.0-mod.4 h1:vnOtcDYeSXv2e5RoRuGH0lrpttQFJ8iC4IC
 github.com/sagernet/nftables v0.3.0-mod.4/go.mod h1:8kslHG4VvYNihcco+i6uxIX7qbT8A56T0y5q7U44ZaQ=
 github.com/sagernet/quic-go v0.61.0-sing-box-mod.7 h1:sW2O+DoNF+my1PGlSZ3zG2N+fdxLR3DC0l4sXCM0lBE=
 github.com/sagernet/quic-go v0.61.0-sing-box-mod.7/go.mod h1:hmLC8GJPp+BrpBgrgJnacvI4fZGIhasuy1ROJJ8GR4E=
-github.com/sagernet/sing v0.9.1-0.20260904133552-ffcabb706b1c h1:kFzNdBOw0tpTjNyYfyOMhO/RGM2uZ5jF/VeUxBwS7X0=
-github.com/sagernet/sing v0.9.1-0.20260904133552-ffcabb706b1c/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
+github.com/sagernet/sing v0.9.3-0.20260906082413-0113c392f609 h1:YqwK8UB6Uj9vzsGrLqd6QybFR9hVG9UOLOBkExl+qdA=
+github.com/sagernet/sing v0.9.3-0.20260906082413-0113c392f609/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
 github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be h1:0uMXu8kcJU0XLc2vfjGH6q6khmECCc5WYpD9dqlu1Xg=
 github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be/go.mod h1:VRKLnj0ObEsN228h+zuzf91p+6sjtYE8SBaLPVsBy5o=
-github.com/sagernet/sing-box v1.15.0-alpha.2 h1:GoxIZ1C0HE8/DwMHXOijKmnoXL2kvjW343Ej+r/ihNo=
-github.com/sagernet/sing-box v1.15.0-alpha.2/go.mod h1:gBpiFqbK1iGzNboj8pGM5lEXeq2BOIK6j5HAv3YcrRU=
+github.com/sagernet/sing-box v1.14.1-0.20260906082624-60b504a1c74a h1:X7Hu2MCjt+jyI9Oz+b909vEc15dTGIKudO2by2zqtwM=
+github.com/sagernet/sing-box v1.14.1-0.20260906082624-60b504a1c74a/go.mod h1:4HDg0qJEdj4pRowqs+6h/WAe68atbvSgGr9oRLKi6PY=
 github.com/sagernet/sing-mux v0.3.7-0.20260905054442-91d1502591ce h1:ay1pGbzMF4e7iggj+uESNhwMNPbZZajDghcdC4P92Dc=
 github.com/sagernet/sing-mux v0.3.7-0.20260905054442-91d1502591ce/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-openconnect v0.0.0-20260903200519-8b89c968949d h1:Jt/Tb0boIr/xRr4sWr2vC/rrVlYNoumZITLEQpqZ8UE=
@@ -283,8 +283,8 @@ github.com/xchacha20-poly1305/anja v0.22.16 h1:l9qmqtDHCCQE8l/TngSw5wY0E26MWB/Ml
 github.com/xchacha20-poly1305/anja v0.22.16/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.5 h1:YswEIbhL0EmIFR9FetRBjHDK62nNr5puuTdLzsZ0KvI=
 github.com/xchacha20-poly1305/libping v0.10.5/go.mod h1:SXTHinnDLUAnAaMSy3sg5Ts07EUil3XQNt40+uOzgu8=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260905130013-e86064869c7c h1:vXY3DlEj1IXw700rJDSfIz56vAFK0Q9TBkTCUQvfW1Y=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260905130013-e86064869c7c/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260906073641-f530c1610baa h1:/1VvMgFwQII72mI5p9aKcBOrMMTjOmyOpH1BTnkxRRg=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260906073641-f530c1610baa/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a h1:vEjuTXDMeO78XINy1UHJE58Un7mMwUBZYdJapnbYso4=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
 github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 h1:ilQV1hzziu+LLM3zUTJ0trRztfwgjqKnBWNtSRkbmwM=
