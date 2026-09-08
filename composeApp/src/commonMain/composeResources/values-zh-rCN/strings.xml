@@ -424,7 +424,7 @@
     <string name="pre_shared_key">预共享密钥</string>
     <string name="resolve_destination_summary">如果目标地址是一个域, 则根据 IPv6 策略传出（与 FakeDNS 冲突）</string>
     <string name="resolve_destination">解析目标地址</string>
-    <string name="tun_implementation">TUN 实现</string>
+    <string name="tun_ip_stack">TUN IP 栈</string>
     <string name="profile_traffic_statistics_summary">禁用后将不统计使用的流量</string>
     <string name="app_statistics_disabled">应用流量统计已禁用</string>
     <string name="pcap_notice">Pcap 文件将被保存到 %1$s</string>

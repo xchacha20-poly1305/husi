@@ -55,7 +55,7 @@ class RoomToDataStoreMigration(
                 Key.LOG_LEVEL,
                 Key.PROVIDER_HYSTERIA2,
                 Key.PROVIDER_JUICITY,
-                Key.TUN_IMPLEMENTATION,
+                // Key.TUN_IMPLEMENTATION,
                 Key.CERT_PROVIDER,
                 Key.NTP_PORT,
                 Key.UPLOAD_SPEED,

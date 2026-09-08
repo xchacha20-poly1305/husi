@@ -397,7 +397,7 @@
     <string name="menu_log">記錄檔</string>
     <string name="profile_traffic_statistics_summary">當停用時，使用的流量將不會被統計</string>
     <string name="app_statistics_disabled">應用程式流量統計資料被停用</string>
-    <string name="tun_implementation">TUN 實作</string>
+    <string name="tun_ip_stack">TUN IP 棧</string>
     <string name="resolve_destination">解析目的地位址</string>
     <string name="clear_logcat">清除記錄檔</string>
     <string name="wireguard_local_address">本機位址</string>

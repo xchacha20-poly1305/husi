@@ -32,7 +32,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
-import fr.husi.TunImplementation
+import fr.husi.TunIpStack
 import fr.husi.bg.BackendState
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -97,7 +97,7 @@ import fr.husi.resources.theme
 import fr.husi.resources.traffic
 import fr.husi.resources.transgender
 import fr.husi.resources.translate
-import fr.husi.resources.tun_implementation
+import fr.husi.resources.tun_ip_stack
 import fr.husi.resources.wb_sunny
 import fr.husi.ui.AppLanguage
 import fr.husi.ui.AutoConnectPreference
@@ -325,35 +325,37 @@ internal fun GeneralSettingsGroup(
         valueToText = { AnnotatedString(stringResource(serviceModeText(it))) },
     )
 
-    fun tunImplText(value: Int): String = when (value) {
-        TunImplementation.GVISOR -> "gVisor"
-        TunImplementation.SYSTEM -> "System"
-        TunImplementation.MIXED -> "Mixed"
+    fun tunIpStackText(value: Int): String = when (value) {
+        TunIpStack.GVISOR -> "gVisor"
+        TunIpStack.SYSTEM -> "System"
+        TunIpStack.MIXED -> "Mixed"
+        TunIpStack.GO -> "Go"
         else -> error("impossible")
     }
 
-    val tunValue by DataStore.tunImplementation.collectAsStateWithLifecycle()
+    val tunIpStackValue by DataStore.tunIpStack.collectAsStateWithLifecycle()
     ListPreference(
-        value = tunValue,
+        value = tunIpStackValue,
         onValueChange = {
-            DataStore.tunImplementation.setBlocking(it)
+            DataStore.tunIpStack.setBlocking(it)
             needReload()
         },
         values = listOf(
-            TunImplementation.GVISOR,
-            TunImplementation.SYSTEM,
-            TunImplementation.MIXED,
+            TunIpStack.GO,
+            TunIpStack.MIXED,
+            TunIpStack.GVISOR,
+            TunIpStack.SYSTEM,
         ),
-        title = { Text(stringResource(Res.string.tun_implementation)) },
+        title = { Text(stringResource(Res.string.tun_ip_stack)) },
         icon = {
             MaskedIcon(
                 Res.drawable.flip_camera_android,
                 color = IconMaskColors.IconLightBlue,
             )
         },
-        summary = { Text(tunImplText(tunValue)) },
+        summary = { Text(tunIpStackText(tunIpStackValue)) },
         type = ListPreferenceType.DROPDOWN_MENU,
-        valueToText = { AnnotatedString(tunImplText(it)) },
+        valueToText = { AnnotatedString(tunIpStackText(it)) },
     )
 
     val mtuValue by DataStore.mtu.collectAsStateWithLifecycle()

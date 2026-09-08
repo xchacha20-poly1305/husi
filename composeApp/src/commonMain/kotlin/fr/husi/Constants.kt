@@ -112,7 +112,7 @@ object Key {
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
 
-    const val TUN_IMPLEMENTATION = "tunImplementation"
+    const val TUN_IP_STACK = "tunIpStack"
     const val PROFILE_TRAFFIC_STATISTICS = "profileTrafficStatistics"
 
     const val CERT_PROVIDER = "certProvider"
@@ -153,10 +153,11 @@ fun logLevelString(level: Int): String = when (level) {
     else -> "info"
 }
 
-object TunImplementation {
+object TunIpStack {
     const val GVISOR = 0
     const val SYSTEM = 1
     const val MIXED = 2
+    const val GO = 3
 }
 
 object GroupType {
