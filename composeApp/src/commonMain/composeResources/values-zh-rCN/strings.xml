@@ -764,6 +764,8 @@
     <string name="tun_strict_route">Tun 严格路由</string>
     <string name="tun_auto_redirect">Tun 自动重定向</string>
     <string name="no_plugin_found">没有找到任何插件！</string>
+    <string name="plugin_not_installed">未安装</string>
+    <string name="plugin_not_installed_summary">点击下载并安装</string>
     <string name="traffic_pattern">流量模式</string>
     <string name="route_invert">反转匹配</string>
     <string name="latency">延迟</string>
