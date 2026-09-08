@@ -36,13 +36,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Text
+import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.fmt.PluginEntry
