@@ -20,11 +20,9 @@ import org.koin.core.context.GlobalContext
 /**
  * Lifecycle-only binder to :bg. State / speed / alerts arrive over gRPC via
  * [ServiceEventMirror]; this connection exists so BIND_AUTO_CREATE starts and
- * keeps the background process alive. QuickToggle observes
- * [BackendState.connected] through the same connection.
+ * keeps the background process alive.
  */
 class SagerConnection(
-    private var connectionId: Int,
     private var listenForDeath: Boolean = false,
     private val mirror: ServiceEventMirror = GlobalContext.get().get(),
 ) : ServiceConnection, IBinder.DeathRecipient {
@@ -36,11 +34,6 @@ class SagerConnection(
                 Key.MODE_VPN -> VpnService::class
                 else -> throw UnknownError()
             }.java
-
-        const val CONNECTION_ID_SHORTCUT = 0
-        const val CONNECTION_ID_TILE = 1
-        const val CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND = 2
-        const val CONNECTION_ID_MAIN_ACTIVITY_BACKGROUND = 3
     }
 
     private var connectionActive = false
@@ -49,10 +42,6 @@ class SagerConnection(
     private var binder: IBinder? = null
     private var scope: CoroutineScope? = null
     private var mirrorJob: Job? = null
-
-    fun updateConnectionId(id: Int) {
-        connectionId = id
-    }
 
     override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
         this.binder = binder

@@ -26,8 +26,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 class MainActivity : ComposeActivity(), AndroidScopeComponent {
 
     override val scope by activityRetainedScope()
-    private val serviceConnection =
-        SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
+    private val serviceConnection = SagerConnection(listenForDeath = true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,16 +72,6 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
 
         val uri = intent.data ?: return
         DeepLinkDispatcher.emit(uri.toString())
-    }
-
-    override fun onStart() {
-        serviceConnection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
-        super.onStart()
-    }
-
-    override fun onStop() {
-        serviceConnection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_BACKGROUND)
-        super.onStop()
     }
 
     override fun onDestroy() {

@@ -29,8 +29,6 @@ import androidx.core.content.getSystemService
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import fr.husi.bg.BackendState
-import fr.husi.bg.SagerConnection
 import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
 import fr.husi.lib.R
@@ -40,8 +38,6 @@ import fr.husi.resources.quick_toggle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -52,7 +48,6 @@ class QuickToggleShortcut : Activity() {
         const val EXTRA_PROFILE_ID = "profile_id"
     }
 
-    private val connection = SagerConnection(SagerConnection.CONNECTION_ID_SHORTCUT)
     private var profileId = -1L
     private var job: Job? = null
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
@@ -84,36 +79,37 @@ class QuickToggleShortcut : Activity() {
             finish()
         } else {
             profileId = intent.getLongExtra(EXTRA_PROFILE_ID, -1L)
-            connection.connect(this)
             if (Build.VERSION.SDK_INT >= 25) {
                 getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
             }
             job = scope.launch {
-                BackendState.connected.filter { it }.first()
-                val state = DataStore.serviceState
-                when {
-                    state.canStop -> {
-                        if (profileId == DataStore.selectedProxy.get() || profileId == -1L) {
-                            resolveRepository().stopService()
-                        } else {
-                            DataStore.selectedProxy.set(profileId)
-                            resolveRepository().reloadService()
-                        }
-                    }
-
-                    state == ServiceState.Stopped -> {
-                        if (profileId >= 0L) DataStore.selectedProxy.set(profileId)
-                        resolveRepository().startService()
-                    }
-                }
+                toggle()
                 finish()
+            }
+        }
+    }
+
+    private suspend fun toggle() {
+        val state = DataStore.serviceState
+        when {
+            state.canStop -> {
+                if (profileId == DataStore.selectedProxy.get() || profileId == -1L) {
+                    resolveRepository().stopService()
+                } else {
+                    DataStore.selectedProxy.set(profileId)
+                    resolveRepository().reloadService()
+                }
+            }
+
+            state == ServiceState.Stopped || state == ServiceState.Idle -> {
+                if (profileId >= 0L) DataStore.selectedProxy.set(profileId)
+                resolveRepository().startService()
             }
         }
     }
 
     override fun onDestroy() {
         job?.cancel()
-        connection.disconnect(this)
         super.onDestroy()
     }
 }
