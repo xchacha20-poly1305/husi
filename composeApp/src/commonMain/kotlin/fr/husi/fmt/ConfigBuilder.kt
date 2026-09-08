@@ -117,6 +117,9 @@ const val TAG_DNS_MDNS = "dns-mdns"
 const val TAG_SERVICE_ANCHOR = "service-anchor"
 const val TAG_SERVICE_PROTECT = "service-protect"
 
+// HTTP client
+const val TAG_HTTP_CLIENT_DEFAULT = "http-default"
+
 const val LOCALHOST4 = "127.0.0.1"
 const val LOCALHOST_NAME = "localhost"
 private const val ANCHOR_PORT = 45947
@@ -1621,6 +1624,16 @@ suspend fun buildConfig(
         }
         route!!.final_ = mainTag
         if (!forTest) dns!!.final_ = TAG_DNS_REMOTE
+
+        if (forExport) {
+            http_clients = mutableListOf(
+                SingBoxOptions.HTTPClient().apply {
+                    tag = TAG_HTTP_CLIENT_DEFAULT
+                    detour = mainTag
+                },
+            )
+            route!!.default_http_client = TAG_HTTP_CLIENT_DEFAULT
+        }
 
         // mapping for plugin
         for ((serverInfo, inboundTags) in mappingOverride) {

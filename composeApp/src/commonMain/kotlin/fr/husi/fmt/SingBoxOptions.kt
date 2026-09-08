@@ -168,6 +168,9 @@ object SingBoxOptions {
         var ntp: NTPOptions? = null
 
         @JvmField
+        var http_clients: MutableList<HTTPClient>? = null
+
+        @JvmField
         var inbounds: MutableList<Inbound>? = null
 
         @JvmField
@@ -271,6 +274,9 @@ object SingBoxOptions {
 
         @JvmField
         var default_fallback_delay: String? = null
+
+        @JvmField
+        var default_http_client: String? = null
 
     }
 

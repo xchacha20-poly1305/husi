@@ -2259,6 +2259,40 @@ class ConfigBuilderTest : HusiKoinTest() {
         )
     }
 
+    @Test
+    fun `buildConfig for export should route the default HTTP client to the main outbound`() =
+        runBlocking {
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = createSocksProxy(
+                groupId = group.id,
+                order = 1,
+                name = "main",
+                host = "1.1.1.1",
+                port = 1080,
+            )
+
+            val result = buildConfig(proxy, forExport = true)
+            val httpClients = Json.parseToJsonElement(result.config)
+                .jsonObject["http_clients"]!!
+                .jsonArray
+                .map { it.jsonObject }
+
+            assertEquals(1, httpClients.size)
+            assertEquals(
+                TAG_HTTP_CLIENT_DEFAULT,
+                httpClients.single()["tag"]?.jsonPrimitive?.content,
+            )
+            assertEquals(
+                result.mainTag,
+                httpClients.single()["detour"]?.jsonPrimitive?.content,
+            )
+            assertEquals(
+                TAG_HTTP_CLIENT_DEFAULT,
+                parseRouteOptions(result)["default_http_client"]?.jsonPrimitive?.content,
+            )
+        }
+
     private fun parseRouteOptions(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["route"]!!.jsonObject
 
