@@ -4,7 +4,6 @@ package libcore
 
 import (
 	"context"
-	"time"
 
 	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -85,7 +84,6 @@ func (s *Service) PublishServiceEvent(event []byte) error {
 func (s *Service) Pause() {
 	s.access.Lock()
 	defer s.access.Unlock()
-	s.deviceSleptAt = time.Now().Round(0)
 	if s.host == nil {
 		return
 	}
@@ -93,16 +91,18 @@ func (s *Service) Pause() {
 	if instance == nil {
 		return
 	}
-	instance.PauseManager().DevicePause()
+	box := instance.Box()
+	pauseManager := instance.PauseManager()
+	if box == nil || pauseManager == nil {
+		return
+	}
+	box.CloseIdleConnections()
+	pauseManager.DevicePause()
 }
 
 func (s *Service) Wake() {
 	s.access.Lock()
 	defer s.access.Unlock()
-	sleptFor := time.Since(s.deviceSleptAt)
-	const closeIdleConnectionsAfterSleep = 2 * time.Minute
-	sleptLongEnough := !s.deviceSleptAt.IsZero() && sleptFor >= closeIdleConnectionsAfterSleep
-	s.deviceSleptAt = time.Time{}
 	if s.host == nil {
 		return
 	}
@@ -110,10 +110,11 @@ func (s *Service) Wake() {
 	if instance == nil {
 		return
 	}
-	if sleptLongEnough && instance.Box() != nil {
-		instance.Box().CloseIdleConnections()
+	pauseManager := instance.PauseManager()
+	if pauseManager == nil {
+		return
 	}
-	instance.PauseManager().DeviceWake()
+	pauseManager.DeviceWake()
 }
 
 func (s *Service) ResetNetwork() {

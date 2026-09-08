@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"sync"
-	"time"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
@@ -24,7 +23,6 @@ type Service struct {
 	// pluginWorkingDir is the parent directory for transient URL-test plugin
 	// pools and (on Android) the long-lived StartService plugin pool.
 	pluginWorkingDir string
-	deviceSleptAt    time.Time
 }
 
 func (s *Service) SetPluginWorkingDir(dir string) {
