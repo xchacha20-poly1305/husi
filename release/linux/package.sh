@@ -193,6 +193,7 @@ load_metadata() {
     URL_SCHEME_MIME_TYPES="$(desktop_url_scheme_mime_types)"
     METAINFO_RELATIVE_PATH="usr/share/metainfo/$PACKAGE_NAME.metainfo.xml"
     POLKIT_ACTION_RELATIVE_PATH="usr/share/polkit-1/actions/$PACKAGE_NAME.policy"
+    DAEMON_POLKIT_ACTION_RELATIVE_PATH="usr/share/polkit-1/actions/husi-daemon.policy"
 }
 
 resolve_tag_epoch() {
@@ -448,15 +449,17 @@ prepare_rootfs() {
     local metainfo_template="$ROOT_DIR/release/linux/desktop/husi.metainfo.xml"
     local daemon_unit_template="$ROOT_DIR/release/linux/desktop/husi-daemon.service"
     local polkit_action_template="$ROOT_DIR/release/linux/desktop/husi.policy"
+    local daemon_polkit_action_source="$ROOT_DIR/libcore/daemonhost/husi-daemon.policy"
     local main_launcher="$bin_dir/$PACKAGE_NAME"
     local core_path="/usr/lib/$PACKAGE_NAME/bin/husi-core"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
     local metainfo_path="$rootfs/$METAINFO_RELATIVE_PATH"
     local daemon_unit_path="$rootfs/etc/systemd/system/husi-daemon.service"
     local polkit_action_path="$rootfs/$POLKIT_ACTION_RELATIVE_PATH"
+    local daemon_polkit_action_path="$rootfs/$DAEMON_POLKIT_ACTION_RELATIVE_PATH"
     local startup_wm_class="${PACKAGE_NAME//./-}-DesktopMainKt"
 
-    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$metainfo_template" || ! -f "$daemon_unit_template" || ! -f "$polkit_action_template" ]]; then
+    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$metainfo_template" || ! -f "$daemon_unit_template" || ! -f "$polkit_action_template" || ! -f "$daemon_polkit_action_source" ]]; then
         error "Missing launcher templates under release/linux/desktop"
         exit 1
     fi
@@ -528,6 +531,15 @@ prepare_rootfs() {
         "$APP_NAME_ZH_TW_PLACEHOLDER" "$APP_NAME_ZH_TW" \
         "$APP_URL_PLACEHOLDER" "$APP_URL" \
         "$CORE_PATH_PLACEHOLDER" "$core_path"
+
+    # Verbatim copy of libcore/daemonhost/husi-daemon.policy — never a
+    # template. Native-package postinstall enables the daemon without
+    # running `service install`, so the file has to ship here. husi-core
+    # embeds the same bytes and writes them to the same path for tarball /
+    # manual install; both paths therefore register one action id, never a
+    # duplicate. The pkexec manage-daemon action is the rendered template
+    # copied just above (husi.policy).
+    cp "$daemon_polkit_action_source" "$daemon_polkit_action_path"
 
     # The account the unit runs as. postinstall.sh applies it, for the
     # distributions whose package manager does not pick sysusers.d up itself.
@@ -616,6 +628,7 @@ EOF
     write_content_entry "$config_file" "$rootfs/etc/systemd/system/husi-daemon.service" "/etc/systemd/system/husi-daemon.service" ""
     write_content_entry "$config_file" "$rootfs/usr/lib/sysusers.d/husi.conf" "/usr/lib/sysusers.d/husi.conf" ""
     write_content_entry "$config_file" "$rootfs/$POLKIT_ACTION_RELATIVE_PATH" "/$POLKIT_ACTION_RELATIVE_PATH" ""
+    write_content_entry "$config_file" "$rootfs/$DAEMON_POLKIT_ACTION_RELATIVE_PATH" "/$DAEMON_POLKIT_ACTION_RELATIVE_PATH" ""
 
     local icon_path="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     if [[ -f "$icon_path" ]]; then

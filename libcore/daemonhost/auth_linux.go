@@ -3,9 +3,12 @@
 package daemonhost
 
 import (
+	"bytes"
 	"context"
 	"net"
+	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"syscall"
@@ -100,10 +103,15 @@ func linuxPeerIdentity(connection net.Conn) (PeerIdentity, error) {
 	if peerCredentials == nil || peerCredentials.Pid <= 0 {
 		return PeerIdentity{}, E.New("daemon peer has invalid credentials")
 	}
+	startTime, err := linuxProcessStartTime(peerCredentials.Pid)
+	if err != nil {
+		return PeerIdentity{}, E.Cause(err, "identify daemon peer process")
+	}
 	identity := PeerIdentity{
-		UID: peerCredentials.Uid,
-		GID: peerCredentials.Gid,
-		PID: peerCredentials.Pid,
+		UID:              peerCredentials.Uid,
+		GID:              peerCredentials.Gid,
+		PID:              peerCredentials.Pid,
+		ProcessStartTime: startTime,
 	}
 	if u, lookupErr := user.LookupId(strconv.FormatUint(uint64(identity.UID), 10)); lookupErr == nil {
 		identity.Username = u.Username
@@ -112,6 +120,27 @@ func linuxPeerIdentity(connection net.Conn) (PeerIdentity, error) {
 		}
 	}
 	return identity, nil
+}
+
+func linuxProcessStartTime(processID int32) (uint64, error) {
+	const startTimeField = 19
+	content, err := os.ReadFile(filepath.Join("/proc", strconv.FormatInt(int64(processID), 10), "stat"))
+	if err != nil {
+		return 0, err
+	}
+	commandEnd := bytes.LastIndexByte(content, ')')
+	if commandEnd < 0 {
+		return 0, E.New("invalid process stat")
+	}
+	fields := bytes.Fields(content[commandEnd+1:])
+	if len(fields) <= startTimeField {
+		return 0, E.New("incomplete process stat")
+	}
+	startTime, err := strconv.ParseUint(string(fields[startTimeField]), 10, 64)
+	if err != nil {
+		return 0, E.Cause(err, "parse process start time")
+	}
+	return startTime, nil
 }
 
 func (c *authenticatedConnection) peerConnectionIdentity() PeerIdentity {

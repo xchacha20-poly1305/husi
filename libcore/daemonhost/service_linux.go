@@ -82,6 +82,13 @@ func ServiceInstall(workingDir string) error {
 	if err != nil {
 		return E.Cause(err, "write systemd unit")
 	}
+	// Failure is not fatal: the daemon still runs. Take-over is what
+	// stops working without this file.
+	err = installPolkitAction()
+	if err != nil {
+		log.Warn("taking the daemon over from another user will be refused: ", err)
+	}
+
 	err = runSystemctl("daemon-reload")
 	if err != nil {
 		return err
@@ -164,9 +171,18 @@ func ServiceUninstall(workingDir string, purge bool) error {
 	_ = runSystemctl("daemon-reload")
 
 	// Only the portable copy is ours to delete. Package-managed pairs
-	// (deb/rpm/pacman) stay in place for the package manager.
+	// (deb/rpm/pacman) stay in place for the package manager, and so does the
+	// polkit action they ship alongside it.
 	if err := removePair(defaultInstallBin); err != nil {
 		return err
+	}
+	if packageManaged, err := runsFromPackageDirectory(); err != nil {
+		log.Warn("locate the running executable: ", err)
+	} else if !packageManaged {
+		err := removePolkitAction()
+		if err != nil {
+			log.Warn(err)
+		}
 	}
 	_ = os.Remove(filepath.Dir(defaultInstallBin))
 	_ = os.Remove(DefaultSocketPath())
@@ -180,6 +196,20 @@ func ServiceUninstall(workingDir string, purge bool) error {
 		}
 	}
 	return nil
+}
+
+func runsFromPackageDirectory() (bool, error) {
+	executablePath, err := os.Executable()
+	if err != nil {
+		return false, err
+	}
+	installBin, useInPlace, err := resolveInstallBinary(executablePath)
+	if err != nil {
+		return false, err
+	}
+	// The portable copy also lands in a protected directory, so being in one
+	// is not enough to belong to a package.
+	return useInPlace && installBin != defaultInstallBin, nil
 }
 
 func ServiceStart() error {

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD polkit Policy Configuration 1.0//EN"
+"http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
+<!--
+  polkit action for taking over a daemon another user already owns.
+  Two install paths drop this file at the same path
+  (usr/share/polkit-1/actions/husi-daemon.policy) with the same bytes:
+  husi-core embeds it and writes it during `service install` (tarball /
+  manual), and release/linux/package.sh copies it into native packages
+  whose postinstall enables the daemon without ever running
+  `service install`. One path, one action id; never a duplicate.
+
+  This is a different file from release/linux/desktop/husi.policy, which
+  is a rendered template for the pkexec manage-daemon action and must
+  stay in the package because it is needed before any daemon exists.
+
+  org.freedesktop.policykit.owner is unix-user:husi because polkit only
+  lets root, or the identity named as the action owner, call
+  CheckAuthorization for a subject other than itself — and the daemon
+  runs as the unprivileged husi account (see service_user_linux.go).
+-->
+<policyconfig>
+
+  <vendor>Husi</vendor>
+  <vendor_url>https://github.com/xchacha20-poly1305/husi</vendor_url>
+
+  <action id="fr.husi.take-over-service">
+    <description>Take over the Husi system daemon</description>
+    <description xml:lang="zh_CN">接管虎兕系统守护进程</description>
+    <description xml:lang="zh_TW">接管虎兕系統守護行程</description>
+    <message>Authentication is required to take the Husi system daemon over from the user who currently owns it.</message>
+    <message xml:lang="zh_CN">从当前拥有虎兕系统守护进程的用户手中接管它需要身份验证。</message>
+    <message xml:lang="zh_TW">從目前擁有虎兕系統守護行程的使用者手中接管它需要身分驗證。</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.owner">unix-user:husi</annotate>
+  </action>
+
+</policyconfig>

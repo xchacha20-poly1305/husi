@@ -82,6 +82,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
@@ -779,7 +780,7 @@ class BridgeCoreClient private constructor(
     }
 
     override suspend fun takeOverService() {
-        unary(Methods.TAKE_OVER_SERVICE, takeOverServiceRequest { }.toByteArray())
+        unary(Methods.TAKE_OVER_SERVICE, takeOverServiceRequest { }.toByteArray(), TAKE_OVER_TIMEOUT)
     }
 
     override suspend fun startService(request: StartServiceRequest) {
@@ -876,6 +877,13 @@ class BridgeCoreClient private constructor(
 
     companion object {
         private val DEFAULT_UNARY_TIMEOUT = 10.seconds
+
+        /**
+         * Longer than [DEFAULT_UNARY_TIMEOUT]: take-over blocks on a human
+         * typing an administrator password, and ten seconds would cancel
+         * the prompt.
+         */
+        private val TAKE_OVER_TIMEOUT = 10.minutes
 
         /** google.protobuf.Empty serializes to zero bytes. */
         private val EMPTY_PROTO = ByteArray(0)

@@ -24,6 +24,9 @@ type PeerIdentity struct {
 	GID uint32
 	// PID is the peer process id on all platforms.
 	PID int32
+	// ProcessStartTime pins PID to one process life on Linux so a recycled
+	// pid cannot inherit another process's authorization. Zero elsewhere.
+	ProcessStartTime uint64
 	// SID is the peer user SID on Windows. Empty on unix.
 	SID string
 	// SessionID is the Windows interactive session id. Zero on unix.
@@ -152,13 +155,25 @@ type Authorizer interface {
 type OwnerAuthorizer struct {
 	owner    *OwnerStore
 	allowAll bool
+	// takeOver gates TakeOverService for a peer that does not own the service
+	// yet. Tests replace it; production asks the platform.
+	takeOver func(ctx context.Context, identity PeerIdentity) error
 }
 
 // NewOwnerAuthorizer builds an authorizer. allowAll disables checks (dev TCP).
 func NewOwnerAuthorizer(owner *OwnerStore, allowAll bool) *OwnerAuthorizer {
-	return &OwnerAuthorizer{owner: owner, allowAll: allowAll}
+	return &OwnerAuthorizer{
+		owner:    owner,
+		allowAll: allowAll,
+		takeOver: authorizeTakeOver,
+	}
 }
 
+// Authorize permits public methods, the current owner, and a take-over
+// that the platform authorizes. TakeOverService is not public: without
+// the takeOver seam any local user could seize the world-accessible
+// socket and start an arbitrary config. The owner taking over its own
+// service is not prompted.
 func (a *OwnerAuthorizer) Authorize(ctx context.Context, method string) error {
 	if a == nil || a.allowAll {
 		return nil
@@ -170,17 +185,19 @@ func (a *OwnerAuthorizer) Authorize(ctx context.Context, method string) error {
 	if err != nil {
 		return status.Error(codes.Unauthenticated, err.Error())
 	}
-	if a.owner == nil || !a.owner.IsOwner(identity) {
-		return status.Error(codes.PermissionDenied, "the service is owned by another user")
+	if a.owner != nil && a.owner.IsOwner(identity) {
+		return nil
 	}
-	return nil
+	if method == husiv1.DaemonService_TakeOverService_FullMethodName {
+		return a.takeOver(ctx, identity)
+	}
+	return status.Error(codes.PermissionDenied, "the service is owned by another user")
 }
 
 func publicMethod(method string) bool {
 	switch method {
 	case husiv1.DaemonService_GetDaemonInfo_FullMethodName,
-		husiv1.DaemonService_ClaimService_FullMethodName,
-		husiv1.DaemonService_TakeOverService_FullMethodName:
+		husiv1.DaemonService_ClaimService_FullMethodName:
 		return true
 	}
 	// Health probes must work before claim so UI can discover a live daemon.
