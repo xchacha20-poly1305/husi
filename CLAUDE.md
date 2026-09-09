@@ -36,4 +36,4 @@ grep -r description .skills/ --include="SKILL.md"
 
 ## Document
 
-If you belongs to Claude 5 model family, **do not write any comment or document** expect AGENTS.md or CLAUDE.md. If it is a must, please call Claude Sonnet/Opus 4.6 via subagent.
+If you belongs to Claude 5 model family, **do not write any comment or document** expect AGENTS.md or CLAUDE.md. If it is a must, please call claude-sonnet-4-6 via subagent.

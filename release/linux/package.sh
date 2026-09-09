@@ -192,6 +192,7 @@ load_metadata() {
     source_desktop_jre_modules
     URL_SCHEME_MIME_TYPES="$(desktop_url_scheme_mime_types)"
     METAINFO_RELATIVE_PATH="usr/share/metainfo/$PACKAGE_NAME.metainfo.xml"
+    POLKIT_ACTION_RELATIVE_PATH="usr/share/polkit-1/actions/$PACKAGE_NAME.policy"
 }
 
 resolve_tag_epoch() {
@@ -446,19 +447,21 @@ prepare_rootfs() {
     local desktop_entry_template="$ROOT_DIR/release/linux/desktop/husi.desktop"
     local metainfo_template="$ROOT_DIR/release/linux/desktop/husi.metainfo.xml"
     local daemon_unit_template="$ROOT_DIR/release/linux/desktop/husi-daemon.service"
+    local polkit_action_template="$ROOT_DIR/release/linux/desktop/husi.policy"
     local main_launcher="$bin_dir/$PACKAGE_NAME"
     local core_path="/usr/lib/$PACKAGE_NAME/bin/husi-core"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
     local metainfo_path="$rootfs/$METAINFO_RELATIVE_PATH"
     local daemon_unit_path="$rootfs/etc/systemd/system/husi-daemon.service"
+    local polkit_action_path="$rootfs/$POLKIT_ACTION_RELATIVE_PATH"
     local startup_wm_class="${PACKAGE_NAME//./-}-DesktopMainKt"
 
-    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$metainfo_template" || ! -f "$daemon_unit_template" ]]; then
+    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$metainfo_template" || ! -f "$daemon_unit_template" || ! -f "$polkit_action_template" ]]; then
         error "Missing launcher templates under release/linux/desktop"
         exit 1
     fi
 
-    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/metainfo" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system" "$rootfs/usr/lib/sysusers.d"
+    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/metainfo" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system" "$rootfs/usr/lib/sysusers.d" "$(dirname "$polkit_action_path")"
     cp "$INPUT_JAR" "$app_dir/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$main_launcher"
     chmod 755 "$main_launcher"
@@ -505,6 +508,25 @@ prepare_rootfs() {
     render_template \
         "$daemon_unit_template" \
         "$daemon_unit_path" \
+        "$CORE_PATH_PLACEHOLDER" "$core_path"
+
+    # Packages only: prepare_appdir and build_tarball both read out of this
+    # same rootfs, but each copies an explicit list of paths (the app
+    # subtree, the desktop entry, the icon, the metainfo) rather than the
+    # whole rootfs, so the action stays in the packages without anything
+    # having to exclude it. That matters because their husi-core lives under
+    # a user-writable prefix, and exec.path below must stay the package-owned
+    # $core_path or the action would let an admin approve a dialog about
+    # installing the daemon while actually running user-controlled code as
+    # root.
+    render_template \
+        "$polkit_action_template" \
+        "$polkit_action_path" \
+        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
+        "$APP_NAME_PLACEHOLDER" "$APP_NAME" \
+        "$APP_NAME_ZH_CN_PLACEHOLDER" "$APP_NAME_ZH_CN" \
+        "$APP_NAME_ZH_TW_PLACEHOLDER" "$APP_NAME_ZH_TW" \
+        "$APP_URL_PLACEHOLDER" "$APP_URL" \
         "$CORE_PATH_PLACEHOLDER" "$core_path"
 
     # The account the unit runs as. postinstall.sh applies it, for the
@@ -593,6 +615,7 @@ EOF
     write_content_entry "$config_file" "$rootfs/$METAINFO_RELATIVE_PATH" "/$METAINFO_RELATIVE_PATH" ""
     write_content_entry "$config_file" "$rootfs/etc/systemd/system/husi-daemon.service" "/etc/systemd/system/husi-daemon.service" ""
     write_content_entry "$config_file" "$rootfs/usr/lib/sysusers.d/husi.conf" "/usr/lib/sysusers.d/husi.conf" ""
+    write_content_entry "$config_file" "$rootfs/$POLKIT_ACTION_RELATIVE_PATH" "/$POLKIT_ACTION_RELATIVE_PATH" ""
 
     local icon_path="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     if [[ -f "$icon_path" ]]; then

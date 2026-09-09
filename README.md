@@ -305,7 +305,10 @@ Neither format is built by default, but releases ship both.
 The daemon is the one privileged piece in all of this. The native packages install
 and enable it themselves; everywhere else it is an explicit, optional step, either
 `--with-daemon`, the Settings entry, or `husi-core service install` as root. The
-first two go through `pkexec` and so need polkit.
+first two go through `pkexec` and so need polkit. The native packages also ship a
+polkit action for this, so the prompt names the daemon instead of showing a raw
+binary path; the tarball and AppImage keep the generic pkexec prompt, because
+their `husi-core` sits under a user-writable prefix.
 
 Linux desktop data directory is `$XDG_CONFIG_HOME/husi/` if set, otherwise
 `$HOME/.config/husi/`.

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD polkit Policy Configuration 1.0//EN"
+"http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
+<!--
+  polkit action, rendered by release/linux/package.sh into
+  usr/share/polkit-1/actions/. Without it, pkexec falls back to the generic
+  org.freedesktop.policykit.exec action, whose dialog names only a bare path
+  and says nothing about what is being installed; this action gives the
+  prompt a real, translated description instead.
+  The exec.path annotation below names one absolute, package-owned husi-core,
+  and exec.argv1 pins the first argument to "service" — together they cover
+  only "service install" / "service uninstall", never "run", which would run
+  sing-box as root with an arbitrary config.
+-->
+<policyconfig>
+
+  <vendor>__HUSI_APP_NAME__</vendor>
+  <vendor_url>__HUSI_APP_URL__</vendor_url>
+
+  <action id="__HUSI_PACKAGE_NAME__.manage-daemon">
+    <description>Manage the __HUSI_APP_NAME__ system daemon</description>
+    <description xml:lang="zh_CN">管理 __HUSI_APP_NAME_ZH_CN__ 系统守护进程</description>
+    <description xml:lang="zh_TW">管理 __HUSI_APP_NAME_ZH_TW__ 系統守護行程</description>
+    <message>Authentication is required to install or remove the __HUSI_APP_NAME__ system daemon, which TUN mode needs.</message>
+    <message xml:lang="zh_CN">安装或移除 __HUSI_APP_NAME_ZH_CN__ 系统守护进程需要身份验证，TUN 模式依赖该守护进程。</message>
+    <message xml:lang="zh_TW">安裝或移除 __HUSI_APP_NAME_ZH_TW__ 系統守護行程需要身分驗證，TUN 模式依賴該守護行程。</message>
+    <icon_name>__HUSI_PACKAGE_NAME__</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">__HUSI_CORE_PATH__</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">service</annotate>
+  </action>
+
+</policyconfig>
