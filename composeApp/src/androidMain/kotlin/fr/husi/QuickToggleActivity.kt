@@ -21,71 +21,48 @@
 package fr.husi
 
 import android.app.Activity
-import android.content.Intent
 import android.content.pm.ShortcutManager
 import android.os.Build
 import android.os.Bundle
 import androidx.core.content.getSystemService
-import androidx.core.content.pm.ShortcutInfoCompat
-import androidx.core.content.pm.ShortcutManagerCompat
-import androidx.core.graphics.drawable.IconCompat
 import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
-import fr.husi.lib.R
 import fr.husi.repository.resolveRepository
-import fr.husi.resources.Res
-import fr.husi.resources.quick_toggle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
-@Suppress("DEPRECATION")
-class QuickToggleShortcut : Activity() {
+class QuickToggleActivity : Activity() {
 
     companion object {
         const val EXTRA_PROFILE_ID = "profile_id"
+
+        const val SHORTCUT_ID_TOGGLE = "toggle"
+        const val SHORTCUT_ID_PROFILE_PREFIX = "shortcut-profile-"
+
+        private const val NO_PROFILE_ID = -1L
+
+        fun shortcutId(profileId: Long): String = if (profileId >= 0) {
+            SHORTCUT_ID_PROFILE_PREFIX + profileId
+        } else {
+            SHORTCUT_ID_TOGGLE
+        }
     }
 
-    private var profileId = -1L
+    private var profileId = NO_PROFILE_ID
     private var job: Job? = null
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (intent.action == Intent.ACTION_CREATE_SHORTCUT) {
-            setResult(
-                RESULT_OK,
-                ShortcutManagerCompat.createShortcutResultIntent(
-                    this,
-                    ShortcutInfoCompat.Builder(this, "toggle")
-                        .setIntent(
-                            Intent(
-                                this,
-                                QuickToggleShortcut::class.java,
-                            ).setAction(Intent.ACTION_MAIN),
-                        )
-                        .setIcon(
-                            IconCompat.createWithResource(
-                                this,
-                                R.drawable.ic_qu_shadowsocks_launcher,
-                            ),
-                        )
-                        .setShortLabel(runBlocking { resolveRepository().getString(Res.string.quick_toggle) })
-                        .build(),
-                ),
-            )
+        profileId = intent.getLongExtra(EXTRA_PROFILE_ID, NO_PROFILE_ID)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            getSystemService<ShortcutManager>()!!.reportShortcutUsed(shortcutId(profileId))
+        }
+        job = scope.launch {
+            toggle()
             finish()
-        } else {
-            profileId = intent.getLongExtra(EXTRA_PROFILE_ID, -1L)
-            if (Build.VERSION.SDK_INT >= 25) {
-                getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
-            }
-            job = scope.launch {
-                toggle()
-                finish()
-            }
         }
     }
 
@@ -93,7 +70,7 @@ class QuickToggleShortcut : Activity() {
         val state = DataStore.serviceState
         when {
             state.canStop -> {
-                if (profileId == DataStore.selectedProxy.get() || profileId == -1L) {
+                if (profileId == DataStore.selectedProxy.get() || profileId == NO_PROFILE_ID) {
                     resolveRepository().stopService()
                 } else {
                     DataStore.selectedProxy.set(profileId)

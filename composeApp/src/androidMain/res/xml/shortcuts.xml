@@ -7,7 +7,7 @@
         android:shortcutShortLabel="@string/quick_toggle">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetClass="fr.husi.QuickToggleShortcut"
+            android:targetClass="fr.husi.QuickToggleActivity"
             android:targetPackage="fr.husi" />
     </shortcut>
     <shortcut

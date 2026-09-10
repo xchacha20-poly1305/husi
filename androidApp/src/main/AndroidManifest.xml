@@ -211,11 +211,18 @@
             android:taskAffinity=""
             android:theme="@style/Theme.Dialog" />
         <activity
-            android:name=".QuickToggleShortcut"
+            android:name=".QuickToggleActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:process=":bg"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name=".CreateQuickToggleShortcutActivity"
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/quick_toggle"
-            android:launchMode="singleTask"
             android:process=":bg"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">

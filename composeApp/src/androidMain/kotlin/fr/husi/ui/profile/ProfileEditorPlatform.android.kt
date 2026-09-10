@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import fr.husi.QuickToggleShortcut
+import fr.husi.QuickToggleActivity
 import fr.husi.database.ProxyEntity
 import fr.husi.lib.R
 import fr.husi.resources.Res
@@ -29,7 +29,7 @@ internal actual fun ShortcutMenuItem(entity: ProxyEntity, postClick: () -> Unit)
         onClick = {
             val name = entity.displayName()
             val shortcut = ShortcutInfoCompat
-                .Builder(context, "shortcut-profile-${entity.id}")
+                .Builder(context, QuickToggleActivity.shortcutId(entity.id))
                 .setShortLabel(name)
                 .setLongLabel(name)
                 .setIcon(
@@ -39,9 +39,9 @@ internal actual fun ShortcutMenuItem(entity: ProxyEntity, postClick: () -> Unit)
                     ),
                 )
                 .setIntent(
-                    Intent(context, QuickToggleShortcut::class.java)
+                    Intent(context, QuickToggleActivity::class.java)
                         .setAction(Intent.ACTION_MAIN)
-                        .putExtra(QuickToggleShortcut.EXTRA_PROFILE_ID, entity.id),
+                        .putExtra(QuickToggleActivity.EXTRA_PROFILE_ID, entity.id),
                 )
                 .build()
             ShortcutManagerCompat.requestPinShortcut(context, shortcut, null)
