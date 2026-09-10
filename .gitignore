@@ -25,9 +25,7 @@ go.work*
 
 # Vibe coding
 .claude
-.gemini
 .codex
-.agents
 
 # submodules
 /external
