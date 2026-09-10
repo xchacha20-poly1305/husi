@@ -28,6 +28,7 @@ import fr.husi.fmt.shadowsocks.pluginToLocal
 import fr.husi.ktx.Logs
 import fr.husi.ktx.addPathSegments
 import fr.husi.ktx.applyDefaultValues
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
 import fr.husi.libcore.URL
@@ -114,7 +115,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             val userId = token.userId
             if (userId.isBlank()) error("Missing field: userId")
             baseLink.addPathSegments(userId)
-            certSha256 = token.certSha256
+            certSha256 = token.certSha256?.blankAsNull()
         } catch (e: Exception) {
             Logs.e("OOC token check failed, token = ${subscription.token}", e)
             error(repository.getString(Res.string.ooc_subscription_token_invalid))
@@ -130,7 +131,9 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             }
             // Strict !!!
             restrictedTLS()
-            if (certSha256 != null) pinnedSHA256(certSha256)
+            certSha256?.let {
+                pinnedSHA256(it)
+            }
         }.newRequest().apply {
             setURL(baseLink.string)
             setUserAgent(generateUserAgent(subscription.customUserAgent))

@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -110,6 +111,7 @@ type httpClient struct {
 	tls           tls.Config
 	client        http.Client
 	transport     http.Transport
+	pinnedSHA256  string
 	ageIdentities []age.Identity
 }
 
@@ -133,31 +135,36 @@ func (c *httpClient) RestrictedTLS() {
 }
 
 func (c *httpClient) PinnedSHA256(sumHex string) {
+	c.pinnedSHA256 = strings.ToLower(strings.TrimSpace(sumHex))
 	c.tls.InsecureSkipVerify = true
-	c.tls.VerifyPeerCertificate = func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
-		opts := x509.VerifyOptions{
-			DNSName:       c.tls.ServerName,
-			Roots:         c.tls.RootCAs,
-			Intermediates: x509.NewCertPool(),
-		}
-		if c.tls.Time != nil {
-			opts.CurrentTime = c.tls.Time()
-		}
-		for _, rawCert := range rawCerts[1:] {
-			cert, _ := x509.ParseCertificate(rawCert)
-			opts.Intermediates.AddCert(cert)
-		}
-		cert, _ := x509.ParseCertificate(rawCerts[0])
-		_, err := cert.Verify(opts)
-		if err == nil {
-			return nil
-		}
-		certSum := sha256.Sum256(rawCerts[0])
-		if sumHex == hex.EncodeToString(certSum[:]) {
-			return nil
-		}
+	c.tls.VerifyConnection = c.verifyConnection
+}
+
+func (c *httpClient) verifyConnection(state tls.ConnectionState) error {
+	if len(state.PeerCertificates) == 0 {
+		return E.New("missing peer certificate")
+	}
+	certificate := state.PeerCertificates[0]
+	certSum := sha256.Sum256(certificate.Raw)
+	if c.pinnedSHA256 == hex.EncodeToString(certSum[:]) {
+		return nil
+	}
+
+	options := x509.VerifyOptions{
+		DNSName:       c.tls.ServerName,
+		Roots:         c.tls.RootCAs,
+		Intermediates: x509.NewCertPool(),
+	}
+	if c.tls.Time != nil {
+		options.CurrentTime = c.tls.Time()
+	}
+	for _, intermediate := range state.PeerCertificates[1:] {
+		options.Intermediates.AddCert(intermediate)
+	}
+	if _, err := certificate.Verify(options); err != nil {
 		return E.Errors(err, E.New("cert sha256 not matched"))
 	}
+	return nil
 }
 
 func (c *httpClient) UseSocks5(port int32, username, password string) {
@@ -267,6 +274,9 @@ func (r *httpRequest) SetTimeout(timeout int32) {
 }
 
 func (r *httpRequest) Execute() (HTTPResponse, error) {
+	if r.pinnedSHA256 != "" {
+		r.tls.ServerName = r.request.URL.Hostname()
+	}
 	response, err := r.client.Do(&r.request)
 	if err != nil {
 		return nil, err
