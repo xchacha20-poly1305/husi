@@ -78,6 +78,12 @@ jobs:
           name: android
           path: androidApp/build/outputs/apk/**/*.apk
           if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mapping-android
+          path: androidApp/build/outputs/mapping/fossRelease/mapping.txt
+          if-no-files-found: error
+          compression-level: 9
 
   desktop:
     name: desktop (${{ matrix.id }})
@@ -285,15 +291,39 @@ jobs:
           name: desktop-${{ matrix.id }}
           path: composeApp/build/compose/packages
           if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mapping-${{ matrix.id }}
+          path: composeApp/build/compose/mapping/*-mapping.txt
+          if-no-files-found: error
+          compression-level: 9
 
   publish:
     needs: [android, desktop]
     if: ${{ !inputs.no-publish }}
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/download-artifact@v8
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v8
         with:
+          pattern: android
           path: release-artifacts
+      - name: Download desktop artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: desktop-*
+          path: release-artifacts
+      - name: Download R8 mappings
+        uses: actions/download-artifact@v8
+        with:
+          pattern: mapping-*
+          path: mapping
+      - name: Bundle R8 mappings
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          cd mapping
+          zip -9 -r -q "$GITHUB_WORKSPACE/release-artifacts/mapping-$RELEASE_TAG.zip" .
       - name: Publish GitHub Release
         env:
           GH_REPO: ${{ github.repository }}

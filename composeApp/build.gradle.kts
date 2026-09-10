@@ -260,6 +260,27 @@ tasks.matching { it.name.startsWith("compile") }.configureEach {
 val desktopPackageName = packageNameProvider.get().trim()
 val desktopVersion = versionNameProvider.get().trim()
 val desktopTargetFormats = emptySet<TargetFormat>()
+val desktopArtifactBaseName =
+    "$desktopPackageName-${desktopTarget.platform.id}-${desktopTarget.arch.packageJarArchToken}-$desktopVersion"
+val desktopProguardMappingFile =
+    layout.buildDirectory.file("compose/mapping/$desktopArtifactBaseName-mapping.txt")
+
+tasks.matching { it.name == "proguardReleaseJars" }.configureEach {
+    outputs.file(desktopProguardMappingFile)
+}
+
+val generateDesktopProguardMappingConfig = tasks.register("generateDesktopProguardMappingConfig") {
+    description = "Writes the ProGuard rule that keeps the desktop release mapping."
+    val configurationFile = layout.buildDirectory.file("compose/mapping/print-mapping.pro")
+    val mappingFile = desktopProguardMappingFile
+    inputs.property("mappingFileName", "$desktopArtifactBaseName-mapping.txt")
+    outputs.file(configurationFile)
+    doLast {
+        val mapping = mappingFile.get().asFile
+        mapping.parentFile.mkdirs()
+        configurationFile.get().asFile.writeText("-printmapping '${mapping.invariantSeparatorsPath}'\n")
+    }
+}
 
 val generateBuildConfig = tasks.register("generateBuildConfig") {
     description = "Generates the shared BuildConfig Kotlin source."
@@ -455,7 +476,9 @@ compose.desktop {
             licenseFile.set(rootProject.layout.projectDirectory.file("LICENSE"))
         }
         buildTypes.release.proguard {
-            configurationFiles.from(project.file("r8-desktop.pro"))
+            // Not real obfuscate, just for output mapping.
+            obfuscate.set(true)
+            configurationFiles.from(project.file("r8-desktop.pro"), generateDesktopProguardMappingConfig)
         }
     }
 }
@@ -524,9 +547,7 @@ tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach 
         val composeTrayNativeKeepPrefixes = desktopTarget.composeTrayNativeKeepPrefixes
         val nucleusNativeKeepPrefixes = desktopTarget.nucleusNativeKeepPrefixes
         val skikoNativeKeepEntries = desktopTarget.skikoNativeKeepEntries
-        val targetJarName =
-            "$desktopPackageName-${desktopTarget.platform.id}-${desktopTarget.arch.packageJarArchToken}-$desktopVersion.jar"
-        val targetJar = layout.buildDirectory.file("compose/jars/$targetJarName")
+        val targetJar = layout.buildDirectory.file("compose/jars/$desktopArtifactBaseName.jar")
 
         outputs.file(targetJar)
 
