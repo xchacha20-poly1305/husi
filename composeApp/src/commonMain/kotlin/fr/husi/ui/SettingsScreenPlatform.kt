@@ -73,4 +73,7 @@ internal expect fun PlatformMiscOptions(needReload: () -> Unit)
 internal expect fun DisableProcessTextPreference()
 
 @Composable
+internal expect fun EnableTaskerPreference()
+
+@Composable
 internal expect fun HideLauncherIconPreference()

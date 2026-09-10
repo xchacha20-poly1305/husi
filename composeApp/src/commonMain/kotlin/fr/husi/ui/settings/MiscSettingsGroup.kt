@@ -37,6 +37,7 @@ import fr.husi.resources.test_concurrency
 import fr.husi.resources.test_timeout
 import fr.husi.resources.timer
 import fr.husi.ui.DisableProcessTextPreference
+import fr.husi.ui.EnableTaskerPreference
 import fr.husi.ui.HideLauncherIconPreference
 import fr.husi.ui.PlatformMiscOptions
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -163,5 +164,6 @@ internal fun MiscSettingsGroup(
     )
 
     DisableProcessTextPreference()
+    EnableTaskerPreference()
     HideLauncherIconPreference()
 }

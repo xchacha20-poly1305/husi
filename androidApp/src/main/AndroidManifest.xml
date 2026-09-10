@@ -342,7 +342,9 @@
         <receiver
             android:name="fr.husi.tasker.TaskerReceiver"
             android:directBootAware="true"
+            android:enabled="false"
             android:exported="true"
+            android:permission="com.twofortyfouram.locale.permission.FIRE_SETTING"
             android:process=":bg"
             tools:ignore="ExportedReceiver">
             <intent-filter>
@@ -352,6 +354,7 @@
 
         <activity
             android:name="fr.husi.tasker.TaskerActivity"
+            android:enabled="false"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />

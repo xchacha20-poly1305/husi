@@ -29,6 +29,9 @@ import kotlinx.coroutines.runBlocking
 class TaskerReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != TaskerBundle.ACTION_FIRE_SETTING) return
+        if (!DataStore.enableTasker.getBlocking()) return
+
         val settings = TaskerBundle.fromIntent(intent)
         when (settings.action) {
             TaskerBundle.ACTION_START -> {

@@ -478,5 +478,9 @@ internal actual fun DisableProcessTextPreference() {
 }
 
 @Composable
+internal actual fun EnableTaskerPreference() {
+}
+
+@Composable
 internal actual fun HideLauncherIconPreference() {
 }

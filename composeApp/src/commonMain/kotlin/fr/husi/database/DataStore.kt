@@ -219,6 +219,7 @@ object DataStore {
     val certProvider = configurationStore.int(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
     val disableProcessText = configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
     val hideLauncherIcon = configurationStore.boolean(Key.HIDE_LAUNCHER_ICON)
+    val enableTasker = configurationStore.boolean(Key.ENABLE_TASKER) { false }
 
     val trafficDescending = configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
     val trafficSortMode = configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }

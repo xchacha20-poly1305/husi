@@ -33,6 +33,8 @@ class TaskerBundle(val bundle: Bundle) {
 
         const val KEY_PROFILE_ID = "profile"
 
+        const val ACTION_FIRE_SETTING = "com.twofortyfouram.locale.intent.action.FIRE_SETTING"
+
         const val EXTRA_STRING_BLURB = "com.twofortyfouram.locale.intent.extra.BLURB"
         const val EXTRA_BUNDLE = "com.twofortyfouram.locale.intent.extra.BUNDLE"
     }

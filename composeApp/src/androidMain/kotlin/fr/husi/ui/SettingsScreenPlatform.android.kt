@@ -2,6 +2,7 @@ package fr.husi.ui
 
 import android.app.Activity
 import android.content.ComponentName
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
@@ -19,6 +20,7 @@ import fr.husi.LauncherIcon
 import fr.husi.compose.HostTextField
 import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
@@ -36,11 +38,14 @@ import fr.husi.resources.allow_apps_bypass_vpn
 import fr.husi.resources.apps
 import fr.husi.resources.auto_connect
 import fr.husi.resources.auto_connect_summary
+import fr.husi.resources.bolt
 import fr.husi.resources.cancel
 import fr.husi.resources.data_usage
 import fr.husi.resources.developer_board
 import fr.husi.resources.disable_process_text
 import fr.husi.resources.domain
+import fr.husi.resources.enable_tasker
+import fr.husi.resources.enable_tasker_summary
 import fr.husi.resources.format_align_left
 import fr.husi.resources.hide_launcher_icon
 import fr.husi.resources.hide_launcher_icon_confirm
@@ -65,6 +70,8 @@ import fr.husi.resources.update_proxy_apps_when_install
 import fr.husi.resources.visibility_off
 import fr.husi.resources.vpn_session_name
 import fr.husi.resources.vpn_session_name_summary
+import fr.husi.tasker.TaskerActivity
+import fr.husi.tasker.TaskerReceiver
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 
@@ -330,25 +337,31 @@ internal actual fun rememberAppLanguageController(defaultTag: String): AppLangua
     }
 }
 
+private const val PROCESS_TEXT_ALIAS = "fr.husi.ui.ProcessTextActivityAlias"
+
+private fun Context.setComponentEnabled(component: ComponentName, enabled: Boolean) {
+    packageManager.setComponentEnabledSetting(
+        component,
+        if (enabled) {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        } else {
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        },
+        PackageManager.DONT_KILL_APP,
+    )
+}
+
 @Composable
 internal actual fun DisableProcessTextPreference() {
     val value by DataStore.disableProcessText.collectAsStateWithLifecycle()
     val context = LocalContext.current
     SwitchPreference(
         value = value,
-        onValueChange = {
-            DataStore.disableProcessText.setBlocking(it)
-            context.packageManager.setComponentEnabledSetting(
-                ComponentName(
-                    context,
-                    "fr.husi.ui.ProcessTextActivityAlias",
-                ),
-                if (it) {
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-                } else {
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                },
-                PackageManager.DONT_KILL_APP,
+        onValueChange = { disabled ->
+            DataStore.disableProcessText.setBlocking(disabled)
+            context.setComponentEnabled(
+                ComponentName(context, PROCESS_TEXT_ALIAS),
+                !disabled,
             )
         },
         title = { Text(stringResource(Res.string.disable_process_text)) },
@@ -358,6 +371,35 @@ internal actual fun DisableProcessTextPreference() {
                 color = IconMaskColors.IconWarmGray,
             )
         },
+    )
+}
+
+@Composable
+internal actual fun EnableTaskerPreference() {
+    val value by DataStore.enableTasker.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    SwitchPreference(
+        value = value,
+        onValueChange = { enabled ->
+            DataStore.enableTasker.setBlocking(enabled)
+            context.setComponentEnabled(
+                ComponentName(context, TaskerReceiver::class.java),
+                enabled,
+            )
+            context.setComponentEnabled(
+                ComponentName(context, TaskerActivity::class.java),
+                enabled,
+            )
+        },
+        title = { Text(stringResource(Res.string.enable_tasker)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.bolt,
+                color = IconMaskColors.IconLavender,
+                shape = IconMaskShapes.risk(),
+            )
+        },
+        summary = { Text(stringResource(Res.string.enable_tasker_summary)) },
     )
 }
 

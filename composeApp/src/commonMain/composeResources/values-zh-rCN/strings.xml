@@ -686,6 +686,8 @@
     <string name="tasker_blurb_start_profile">启动配置 %1$s</string>
     <string name="process">进程</string>
     <string name="disable_process_text">禁用 Process Text</string>
+    <string name="enable_tasker">启用 Tasker 插件</string>
+    <string name="enable_tasker_summary">允许自动化应用启动和停止服务。任何申请了 Tasker 权限的应用都能借此开关隧道。</string>
     <string name="hide_launcher_icon">隐藏桌面图标</string>
     <string name="hide_launcher_icon_summary">在拨号界面输入 %1$s 可恢复图标</string>
     <string name="hide_launcher_icon_confirm">应用将从桌面消失。在电话应用的拨号界面输入 %1$s 即可重新显示。继续前请记下此代码。</string>
