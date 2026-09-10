@@ -77,7 +77,7 @@ object Plugins {
         .filterTo(HashSet()) { it.isNotBlank() && it != "." }
 
     private val ownCertificates: Set<String> by lazy {
-        PackageCache.packageManager.signingCertificates(PackageCache.context.packageName)
+        PackageCache.packageManager.signingCertificates(PackageCache.selfPackageName)
     }
 
     fun isPlugin(pkg: PackageInfo): Boolean {

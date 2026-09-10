@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package fr.husi.utils
 
 import android.Manifest
@@ -10,11 +12,12 @@ import fr.husi.plugin.Plugins
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 object PackageCache {
-    lateinit var context: Context
     lateinit var packageManager: PackageManager
+    lateinit var selfPackageName: String
 
     lateinit var installedPackages: Map<String, PackageInfo>
     lateinit var installedPluginPackages: Map<String, PackageInfo>
@@ -22,15 +25,16 @@ object PackageCache {
     lateinit var packageMap: Map<String, Int>
     val uidMap = HashMap<Int, HashSet<String>>()
     val loaded = Mutex(true)
-    var registerd = AtomicBoolean(false)
+    private val registered = AtomicBoolean(false)
 
     // called from init (suspend)
     fun register(context: Context) {
-        if (registerd.getAndSet(true)) return
-        this.context = context.applicationContext
-        packageManager = this.context.packageManager
+        if (registered.exchange(true)) return
+        val applicationContext = context.applicationContext
+        packageManager = applicationContext.packageManager
+        selfPackageName = applicationContext.packageName
         reload()
-        this.context.listenForPackageChanges(false) {
+        applicationContext.listenForPackageChanges(false) {
             reload()
             labelMap.clear()
         }
@@ -82,9 +86,8 @@ object PackageCache {
         if (::packageMap.isInitialized) {
             return
         }
-        if (!registerd.get()) {
+        if (!registered.load()) {
             error("PackageCache.register(context) must be called before awaitLoadSync()")
-            return
         }
         runBlocking {
             loaded.withLock {
