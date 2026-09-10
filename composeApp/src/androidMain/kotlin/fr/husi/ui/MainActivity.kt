@@ -43,10 +43,11 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
                 }
         }
 
-        when (intent.action) {
-            Intent.ACTION_VIEW -> onNewIntent(intent)
-            else -> {}
-        }
+        val isFreshLaunch = savedInstanceState == null
+        if (isFreshLaunch) dispatchDeepLink(intent)
+        val initialProcessText = intent
+            .takeIf { isFreshLaunch && it.action == Intent.ACTION_PROCESS_TEXT }
+            ?.getStringExtra(Intent.EXTRA_PROCESS_TEXT)
 
         setContent {
             val permissionPlatform = rememberAndroidPermissionPlatform()
@@ -57,9 +58,7 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
                     AppTheme {
                         MainScreen(
                             moveToBackground = { moveTaskToBack(true) },
-                            initialProcessText = intent
-                                .takeIf { it.action == Intent.ACTION_PROCESS_TEXT }
-                                ?.getStringExtra(Intent.EXTRA_PROCESS_TEXT),
+                            initialProcessText = initialProcessText,
                         )
                     }
                 }
@@ -70,6 +69,12 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
+        setIntent(intent)
+        dispatchDeepLink(intent)
+    }
+
+    private fun dispatchDeepLink(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW) return
         val uri = intent.data ?: return
         DeepLinkDispatcher.emit(uri.toString())
     }
