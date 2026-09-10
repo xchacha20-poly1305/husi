@@ -200,7 +200,10 @@ class ServiceNotification(
                 0,
                 runBlocking { resolveRepository().getString(Res.string.reset_connections) },
                 PendingIntent.getBroadcast(
-                    service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS), flags,
+                    service,
+                    0,
+                    Intent(Action.RESET_UPSTREAM_CONNECTIONS).setPackage(service.packageName),
+                    flags,
                 ),
             ).setShowsUserInterface(false).build()
             it.addAction(resetUpstreamAction)
