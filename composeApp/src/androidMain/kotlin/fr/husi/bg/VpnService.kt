@@ -17,6 +17,7 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.listByLineIgnoringComments
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -266,9 +267,7 @@ class VpnService : BaseVpnService(),
                 ProxyInfo.buildDirectProxy(
                     LOCALHOST4,
                     DataStore.mixedPort.getBlocking(),
-                    DataStore.httpProxyBypass.getBlocking().lines().mapNotNull { line ->
-                        line.trim().takeIf { it.isNotBlank() && !it.startsWith("#") }
-                    },
+                    DataStore.httpProxyBypass.getBlocking().listByLineIgnoringComments(),
                 ).also {
                     Logs.d("Appended HTTP info: $it")
                 },

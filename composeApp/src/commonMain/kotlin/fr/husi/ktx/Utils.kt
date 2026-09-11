@@ -132,6 +132,13 @@ fun String.listByLineOrComma(): List<String> {
     return splitToSequence(",", "\n").map { it.trim() }.filter { it.isNotEmpty() }.toList()
 }
 
+fun String.listByLineIgnoringComments(): List<String> {
+    return lineSequence()
+        .map { it.trim() }
+        .filter { it.isNotEmpty() && !it.startsWith("#") }
+        .toList()
+}
+
 fun Closeable.closeQuietly() {
     try {
         close()

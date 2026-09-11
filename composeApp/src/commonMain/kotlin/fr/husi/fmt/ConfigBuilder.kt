@@ -81,6 +81,7 @@ import fr.husi.ktx.defaultOr
 import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.kxs
+import fr.husi.ktx.listByLineIgnoringComments
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.mergeJson
 import fr.husi.ktx.mkPort
@@ -128,6 +129,42 @@ private const val ANCHOR_PORT = 45947
 const val CONFIG_SCHEMA_URL = "https://sing-box.sagernet.org/schema.json"
 
 val DNS_QUERY_TYPE_ADDRESS get() = listOf("A", "AAAA")
+
+private class DNSServerGroup(val primaryTag: String, serverCount: Int) {
+    val serverTags = List(serverCount) { index ->
+        if (index == 0) {
+            primaryTag
+        } else {
+            "$primaryTag-$index"
+        }
+    }
+    val races get() = serverTags.size > 1
+
+    fun routeRules(buildBasicRules: DNSRule_Default.() -> Unit): List<JSONMap> {
+        if (!races) {
+            return listOf(
+                DNSRule_Default().apply {
+                    buildBasicRules()
+                    server = primaryTag
+                }.asKxsMap(),
+            )
+        }
+        return serverTags.map { serverTag ->
+            DNSRule_Default().apply {
+                buildBasicRules()
+                action = SingBoxOptions.ACTION_EVALUATE
+                server = serverTag
+                tag = serverTag
+            }.asKxsMap()
+        } + serverTags.map { serverTag ->
+            DNSRule_Default().apply {
+                match_response = JsonPrimitive(serverTag)
+                action = SingBoxOptions.ACTION_RESPOND
+                race = true
+            }.asKxsMap()
+        }
+    }
+}
 
 class ConfigBuildResult(
     val mainTag: String,
@@ -423,16 +460,13 @@ suspend fun buildConfig(
     } else {
         LOCALHOST4
     }
-    val remoteDns = DataStore.remoteDns.get()
-        .split("\n")
-        .mapNotNull { dns ->
-            dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") }
-        }
-    val directDNS = DataStore.directDns.get()
-        .split("\n")
-        .mapNotNull { dns ->
-            dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") }
-        }
+    val remoteDns = DataStore.remoteDns.get().listByLineIgnoringComments()
+    val directDNS = DataStore.directDns.get().listByLineIgnoringComments()
+    if (remoteDns.isEmpty()) error("missing remote DNS")
+    if (directDNS.isEmpty()) error("missing direct DNS")
+    val remoteDNSGroup = DNSServerGroup(TAG_DNS_REMOTE, remoteDns.size)
+    val directDNSGroup = DNSServerGroup(TAG_DNS_DIRECT, directDNS.size)
+    val fakeDNSGroup = DNSServerGroup(TAG_DNS_FAKE, 1)
     val mDNSInterfaces = DataStore.mDNS.get()
         .blankAsNull()
         ?.listByLineOrComma()
@@ -441,20 +475,16 @@ suspend fun buildConfig(
     val useFakeDns = !forTest && DataStore.enableFakeDns.get()
     val fakeDNSForAll = useFakeDns && DataStore.fakeDNSForAll.get()
     val dnsHosts = DataStore.dnsHosts.get()
-        .blankAsNull()
-        ?.lineSequence()
-        ?.mapNotNullTo(mutableListOf()) { line ->
-            val trimmed = line.trim()
-            // Promote the compatibility.
-            if (trimmed.isEmpty() || trimmed.startsWith("#")) return@mapNotNullTo null
-            val tokens = trimmed.split("\\s+".toRegex()) // Handle direct copy from host file.
-            if (tokens.size < 2) return@mapNotNullTo null
+        .listByLineIgnoringComments()
+        .mapNotNull { line ->
+            val tokens = line.split("\\s+".toRegex()) // Handle direct copy from host file.
+            if (tokens.size < 2) return@mapNotNull null
             val host = tokens[0]
             val ips = tokens.drop(1).toMutableList()
             host to ips
         }
-        ?.toMap()
-        ?.takeIf { it.isNotEmpty() }
+        .toMap()
+        .takeIf { it.isNotEmpty() }
     val externalIndexMap = ArrayList<IndexEntity>()
     val networkStrategy = DataStore.networkStrategy.get()
     val networkInterfaceStrategy = DataStore.networkInterfaceType.get()
@@ -1103,7 +1133,7 @@ suspend fun buildConfig(
 
                 fun buildDnsRules(
                     action: String? = null,
-                    server: String? = null,
+                    group: DNSServerGroup? = null,
                     useFakeQueryScope: Boolean = false,
                 ): MutableList<JSONMap>? {
                     val hasResponseRule = DNSRule_Default().apply {
@@ -1112,7 +1142,7 @@ suspend fun buildConfig(
                     val terminalAction = if (
                         hasResponseRule &&
                         action == SingBoxOptions.ACTION_ROUTE &&
-                        server == TAG_DNS_REMOTE
+                        group?.primaryTag == TAG_DNS_REMOTE
                     ) {
                         SingBoxOptions.ACTION_RESPOND
                     } else {
@@ -1127,16 +1157,21 @@ suspend fun buildConfig(
                         this.server = if (terminalAction == SingBoxOptions.ACTION_RESPOND) {
                             null
                         } else {
-                            server
+                            group?.primaryTag
                         }
                     }
                     if (!hasResponseRule) {
-                        return terminalRule.takeIf { !it.checkEmpty() }
-                            ?.let { mutableListOf(it.asKxsMap()) }
+                        if (terminalRule.checkEmpty()) return null
+                        if (group?.races == true && terminalAction == SingBoxOptions.ACTION_ROUTE) {
+                            return group.routeRules {
+                                applyDnsBase(useFakeQueryScope)
+                            }.toMutableList()
+                        }
+                        return mutableListOf(terminalRule.asKxsMap())
                     }
                     val evaluateRule = DNSRule_Default().applyDnsBase(useFakeQueryScope).apply {
                         this.action = SingBoxOptions.ACTION_EVALUATE
-                        this.server = TAG_DNS_REMOTE
+                        this.server = remoteDNSGroup.primaryTag
                     }
                     return mutableListOf(
                         evaluateRule.asKxsMap(),
@@ -1154,10 +1189,10 @@ suspend fun buildConfig(
                                 if (dnsRuleList == null) {
                                     dnsRuleList = buildDnsRules(
                                         action = SingBoxOptions.ACTION_ROUTE,
-                                        server = if (fakeDNSForAll) {
-                                            TAG_DNS_FAKE
+                                        group = if (fakeDNSForAll) {
+                                            fakeDNSGroup
                                         } else {
-                                            TAG_DNS_DIRECT
+                                            directDNSGroup
                                         },
                                     )
                                 }
@@ -1168,10 +1203,10 @@ suspend fun buildConfig(
                                 if (dnsRuleList == null) {
                                     dnsRuleList = buildDnsRules(
                                         action = SingBoxOptions.ACTION_ROUTE,
-                                        server = if (useFakeDns) {
-                                            TAG_DNS_FAKE
+                                        group = if (useFakeDns) {
+                                            fakeDNSGroup
                                         } else {
-                                            TAG_DNS_REMOTE
+                                            remoteDNSGroup
                                         },
                                         useFakeQueryScope = useFakeDns,
                                     )
@@ -1400,33 +1435,31 @@ suspend fun buildConfig(
             }
         }
 
-        // remote dns obj
-        remoteDns.firstOrNull()?.let {
+        remoteDNSGroup.serverTags.zip(remoteDns).forEach { (tag, link) ->
             dns!!.servers!!.add(
                 buildDNSServer(
-                    it,
+                    link,
                     mainTag,
-                    TAG_DNS_REMOTE,
+                    tag,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_DIRECT
                     },
                 ),
             )
-        } ?: error("missing remote DNS")
+        }
 
-        // add directDNS objects here
-        directDNS.firstOrNull()?.let {
+        directDNSGroup.serverTags.zip(directDNS).forEach { (tag, link) ->
             dns!!.servers!!.add(
                 buildDNSServer(
-                    it,
+                    link,
                     null,
-                    TAG_DNS_DIRECT,
+                    tag,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_LOCAL
                     },
                 ),
             )
-        } ?: error("missing direct DNS")
+        }
 
         // underlyingDns
         dns!!.servers!!.add(
@@ -1594,19 +1627,17 @@ suspend fun buildConfig(
             }
 
             // clash mode
-            dns!!.rules!!.add(
+            dns!!.rules!!.addAll(
                 0,
-                DNSRule_Default().apply {
+                remoteDNSGroup.routeRules {
                     clash_mode = RuleEntity.MODE_GLOBAL
-                    server = TAG_DNS_REMOTE
-                }.asKxsMap(),
+                },
             )
-            dns!!.rules!!.add(
+            dns!!.rules!!.addAll(
                 0,
-                DNSRule_Default().apply {
+                directDNSGroup.routeRules {
                     clash_mode = RuleEntity.MODE_DIRECT
-                    server = TAG_DNS_DIRECT
-                }.asKxsMap(),
+                },
             )
             dns!!.rules!!.add(
                 0,
@@ -1617,18 +1648,20 @@ suspend fun buildConfig(
             )
 
             if (domainListDNSDirectForce.isNotEmpty()) {
-                dns!!.rules!!.add(
+                dns!!.rules!!.addAll(
                     0,
-                    DNSRule_Default().apply {
+                    directDNSGroup.routeRules {
                         domain = domainListDNSDirectForce.distinct().toMutableList()
-                        server = TAG_DNS_DIRECT
-                    }.asKxsMap(),
+                    },
                 )
             }
 
+            if (remoteDNSGroup.races) {
+                dns!!.rules!!.addAll(remoteDNSGroup.routeRules {})
+            }
         }
         route!!.final_ = mainTag
-        if (!forTest) dns!!.final_ = TAG_DNS_REMOTE
+        if (!forTest) dns!!.final_ = remoteDNSGroup.primaryTag
 
         if (forExport) {
             http_clients = mutableListOf(
