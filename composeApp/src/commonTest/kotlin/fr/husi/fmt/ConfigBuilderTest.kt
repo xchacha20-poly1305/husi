@@ -20,6 +20,7 @@ import fr.husi.platform.PlatformInfo
 import fr.husi.test.HusiKoinTest
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -1997,6 +1998,293 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig with one remote and one direct DNS keeps single server tags`() = runBlocking {
+        disableFakeDns()
+        DataStore.remoteDns.set("tcp://1.1.1.1")
+        DataStore.directDns.set("local")
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        val result = buildConfig(proxy)
+        val dnsServers = parseDnsServers(result)
+        val dnsRules = parseDnsRules(result)
+
+        assertNotNull(dnsServers[TAG_DNS_REMOTE])
+        assertNotNull(dnsServers[TAG_DNS_DIRECT])
+        assertEquals(null, dnsServers["$TAG_DNS_REMOTE-1"])
+        assertEquals(null, dnsServers["$TAG_DNS_DIRECT-1"])
+        assertEquals(TAG_DNS_REMOTE, parseDnsFinal(result))
+        assertEquals(
+            -1,
+            dnsRules.indexOfFirst { it["race"]?.jsonPrimitive?.boolean == true },
+        )
+        val globalRule = dnsRules.first {
+            it["clash_mode"]?.jsonPrimitive?.content == RuleEntity.MODE_GLOBAL
+        }
+        assertEquals(TAG_DNS_REMOTE, globalRule["server"]?.jsonPrimitive?.content)
+        assertEquals(null, globalRule["action"])
+        val directRule = dnsRules.first {
+            it["clash_mode"]?.jsonPrimitive?.content == RuleEntity.MODE_DIRECT
+        }
+        assertEquals(TAG_DNS_DIRECT, directRule["server"]?.jsonPrimitive?.content)
+        assertEquals(null, directRule["action"])
+    }
+
+    @Test
+    fun `buildConfig with two remote DNS servers races them`() = runBlocking {
+        disableFakeDns()
+        DataStore.remoteDns.set("1.1.1.1\n8.8.8.8")
+        DataStore.directDns.set("local")
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        val result = buildConfig(proxy)
+        val dnsServers = parseDnsServers(result)
+        val dnsRules = parseDnsRules(result)
+        val remote1 = "$TAG_DNS_REMOTE-1"
+
+        assertEquals("main", dnsServers[TAG_DNS_REMOTE]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("main", dnsServers[remote1]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals(TAG_DNS_REMOTE, parseDnsFinal(result))
+
+        val lastRules = dnsRules.takeLast(4)
+        assertRaceBlock(lastRules, listOf(TAG_DNS_REMOTE, remote1))
+        lastRules.take(2).forEach { rule ->
+            assertEquals(null, rule["clash_mode"])
+            assertEquals(null, rule["domain"])
+        }
+
+        val globalStart = dnsRules.indexOfFirst {
+            it["clash_mode"]?.jsonPrimitive?.content == RuleEntity.MODE_GLOBAL
+        }
+        assertTrue(globalStart >= 0)
+        val globalBlock = dnsRules.subList(globalStart, globalStart + 4)
+        assertRaceBlock(globalBlock, listOf(TAG_DNS_REMOTE, remote1))
+        globalBlock.take(2).forEach { rule ->
+            assertEquals(
+                RuleEntity.MODE_GLOBAL,
+                rule["clash_mode"]?.jsonPrimitive?.content,
+            )
+        }
+        globalBlock.takeLast(2).forEach { rule ->
+            assertEquals(null, rule["clash_mode"])
+            assertEquals(null, rule["server"])
+        }
+    }
+
+    @Test
+    fun `buildConfig with two direct DNS servers races them`() = runBlocking {
+        disableFakeDns()
+        DataStore.remoteDns.set("1.1.1.1")
+        DataStore.directDns.set("1.0.0.1\n8.8.4.4")
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "proxy.example.com",
+            port = 1080,
+        )
+
+        val result = buildConfig(proxy)
+        val dnsServers = parseDnsServers(result)
+        val dnsRules = parseDnsRules(result)
+        val direct1 = "$TAG_DNS_DIRECT-1"
+
+        assertNotNull(dnsServers[TAG_DNS_DIRECT])
+        assertNotNull(dnsServers[direct1])
+
+        val forceStart = dnsRules.indexOfFirst { rule ->
+            rule["domain"]?.jsonArray?.any { it.jsonPrimitive.content == "proxy.example.com" } == true
+        }
+        assertTrue(forceStart >= 0)
+        val forceBlock = dnsRules.subList(forceStart, forceStart + 4)
+        assertRaceBlock(forceBlock, listOf(TAG_DNS_DIRECT, direct1))
+        forceBlock.take(2).forEach { rule ->
+            assertTrue(
+                rule["domain"]!!.jsonArray.map { it.jsonPrimitive.content }
+                    .contains("proxy.example.com"),
+            )
+        }
+        forceBlock.takeLast(2).forEach { rule ->
+            assertEquals(null, rule["domain"])
+        }
+
+        val directModeStart = dnsRules.indexOfFirst {
+            it["clash_mode"]?.jsonPrimitive?.content == RuleEntity.MODE_DIRECT
+        }
+        assertTrue(directModeStart >= 0)
+        val directModeBlock = dnsRules.subList(directModeStart, directModeStart + 4)
+        assertRaceBlock(directModeBlock, listOf(TAG_DNS_DIRECT, direct1))
+        directModeBlock.take(2).forEach { rule ->
+            assertEquals(
+                RuleEntity.MODE_DIRECT,
+                rule["clash_mode"]?.jsonPrimitive?.content,
+            )
+        }
+        directModeBlock.takeLast(2).forEach { rule ->
+            assertEquals(null, rule["clash_mode"])
+        }
+    }
+
+    @Test
+    fun `buildConfig should race request-based proxy DNS rules across remote servers`() =
+        runBlocking {
+            disableFakeDns()
+            DataStore.remoteDns.set("1.1.1.1\n8.8.8.8")
+            DataStore.directDns.set("local")
+
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = createSocksProxy(
+                groupId = group.id,
+                order = 1,
+                name = "main",
+                host = "1.1.1.1",
+                port = 1080,
+            )
+            ProfileManager.createRule(
+                RuleEntity(
+                    enabled = true,
+                    name = "dns-domains-proxy",
+                    domains = "full:example.com\ndomain:example.org",
+                    outbound = RuleEntity.OUTBOUND_PROXY,
+                ),
+            )
+
+            val dnsRules = parseDnsRules(buildConfig(proxy))
+            val start = dnsRules.indexOfFirst { rule ->
+                rule["domain"]?.jsonArray?.map { it.jsonPrimitive.content } == listOf("example.com")
+            }
+            assertTrue(start >= 0)
+            val block = dnsRules.subList(start, start + 4)
+            assertRaceBlock(block, listOf(TAG_DNS_REMOTE, "$TAG_DNS_REMOTE-1"))
+            block.take(2).forEach { rule ->
+                assertEquals(
+                    listOf("example.com"),
+                    rule["domain"]!!.jsonArray.map { it.jsonPrimitive.content },
+                )
+                assertEquals(
+                    listOf("example.org"),
+                    rule["domain_suffix"]!!.jsonArray.map { it.jsonPrimitive.content },
+                )
+            }
+            block.takeLast(2).forEach { rule ->
+                assertEquals(null, rule["domain"])
+                assertEquals(null, rule["domain_suffix"])
+            }
+        }
+
+    @Test
+    fun `buildConfig should route request-based proxy DNS rules to fake DNS without racing`() =
+        runBlocking {
+            DataStore.enableFakeDns.set(true)
+            DataStore.fakeDNSForAll.set(false)
+            DataStore.remoteDns.set("1.1.1.1\n8.8.8.8")
+            DataStore.directDns.set("local")
+
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = createSocksProxy(
+                groupId = group.id,
+                order = 1,
+                name = "main",
+                host = "1.1.1.1",
+                port = 1080,
+            )
+            ProfileManager.createRule(
+                RuleEntity(
+                    enabled = true,
+                    name = "dns-domains-proxy",
+                    domains = "full:example.com\ndomain:example.org",
+                    outbound = RuleEntity.OUTBOUND_PROXY,
+                ),
+            )
+
+            val dnsRules = parseDnsRules(buildConfig(proxy))
+            val rule = dnsRules.first {
+                it["domain"]?.jsonArray?.map { item -> item.jsonPrimitive.content } ==
+                    listOf("example.com")
+            }
+            assertEquals(TAG_DNS_FAKE, rule["server"]?.jsonPrimitive?.content)
+            assertEquals(null, rule["race"])
+            assertEquals(
+                -1,
+                dnsRules.indexOfFirst {
+                    it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE &&
+                        it["domain"] != null
+                },
+            )
+        }
+
+    @Test
+    fun `buildConfig should keep response-based DNS rules un-raced with two remotes`() =
+        runBlocking {
+            disableFakeDns()
+            DataStore.remoteDns.set("1.1.1.1\n8.8.8.8")
+            DataStore.directDns.set("local")
+
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = createSocksProxy(
+                groupId = group.id,
+                order = 1,
+                name = "main",
+                host = "1.1.1.1",
+                port = 1080,
+            )
+            ProfileManager.createRule(
+                RuleEntity(
+                    enabled = true,
+                    name = "dns-geoip-proxy",
+                    ip = "set+dns:geoip-cn",
+                    outbound = RuleEntity.OUTBOUND_PROXY,
+                ),
+            )
+
+            val dnsRules = parseDnsRules(buildConfig(proxy))
+            val evaluateIndex = dnsRules.indexOfFirst {
+                it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE &&
+                    it["tag"] == null
+            }
+            assertTrue(evaluateIndex >= 0)
+            val evaluateRule = dnsRules[evaluateIndex]
+            assertEquals(TAG_DNS_REMOTE, evaluateRule["server"]?.jsonPrimitive?.content)
+            assertEquals(null, evaluateRule["tag"])
+
+            val responseRule = dnsRules[evaluateIndex + 1]
+            assertEquals(
+                SingBoxOptions.ACTION_RESPOND,
+                responseRule["action"]?.jsonPrimitive?.content,
+            )
+            assertEquals("true", responseRule["match_response"]?.jsonPrimitive?.content)
+            assertEquals(null, responseRule["server"])
+            assertEquals(null, responseRule["race"])
+            assertEquals(
+                listOf("geoip-cn"),
+                responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+            )
+        }
+
+    @Test
     fun `chain traffic covers every hop and the chain itself`() = runBlocking {
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -2217,6 +2505,31 @@ class ConfigBuilderTest : HusiKoinTest() {
             .jsonObject["rules"]!!
             .jsonArray
             .map { it.jsonObject }
+
+    private fun parseDnsFinal(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.config).jsonObject["dns"]!!
+            .jsonObject["final"]!!.jsonPrimitive.content
+
+    private fun assertRaceBlock(rules: List<JsonObject>, tags: List<String>) {
+        assertEquals(tags.size * 2, rules.size)
+        tags.forEachIndexed { index, tag ->
+            val evaluate = rules[index]
+            assertEquals(
+                SingBoxOptions.ACTION_EVALUATE,
+                evaluate["action"]?.jsonPrimitive?.content,
+            )
+            assertEquals(tag, evaluate["server"]?.jsonPrimitive?.content)
+            assertEquals(tag, evaluate["tag"]?.jsonPrimitive?.content)
+            val respond = rules[tags.size + index]
+            assertEquals(
+                SingBoxOptions.ACTION_RESPOND,
+                respond["action"]?.jsonPrimitive?.content,
+            )
+            assertEquals(tag, respond["match_response"]?.jsonPrimitive?.content)
+            assertEquals(true, respond["race"]?.jsonPrimitive?.boolean)
+            assertEquals(null, respond["server"])
+        }
+    }
 
     @Test
     fun `buildConfig for export should resolve asset rule sets from their own URL`() = runBlocking {
