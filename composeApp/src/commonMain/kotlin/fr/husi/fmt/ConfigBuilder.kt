@@ -565,7 +565,12 @@ suspend fun buildConfig(
                         TunIpStack.GVISOR -> "gvisor"
                         TunIpStack.SYSTEM -> "system"
                         TunIpStack.MIXED -> "mixed"
-                        else -> "go"
+                        else -> {
+                            if (PlatformInfo.isLinux) {
+                                multi_queue = true
+                            }
+                            "go"
+                        }
                     }
                     mtu = DataStore.mtu.get()
                     // Hijack intercepts port 53 at the TUN layer and calls
