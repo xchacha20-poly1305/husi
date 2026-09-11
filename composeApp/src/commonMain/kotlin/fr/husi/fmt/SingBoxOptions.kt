@@ -2977,6 +2977,9 @@ object SingBoxOptions {
         var stack: String? = null
 
         @JvmField
+        var multi_queue: Boolean? = null
+
+        @JvmField
         var platform: Inbound_TunPlatformOptions? = null
 
         // Generate note: nested type InboundOptions

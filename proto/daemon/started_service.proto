@@ -1,4 +1,4 @@
-// Vendored from github.com/sagernet/sing-box v1.14.1-0.20260908110126-55539a0d045b by `make proto`.
+// Vendored from github.com/sagernet/sing-box v1.14.1-0.20260910140932-f6ce1d5be042 by `make proto`.
 // Trimmed to the RPCs husi actually calls; the rest of the upstream
 // schema is not copied.
 // Do not edit: husi is wire compatible with sing-box here, so every
