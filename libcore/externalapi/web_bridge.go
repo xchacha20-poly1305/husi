@@ -13,7 +13,6 @@ import (
 	"github.com/sagernet/cors"
 	"github.com/sagernet/sing-box/log"
 
-	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 )
 
@@ -151,7 +150,7 @@ func (w *webResponseWriter) Flush() {
 func (w *webResponseWriter) prepareHeaders() {
 	rawHeader := w.rawWriter.Header()
 	for key, values := range w.header {
-		canonicalKey := http.CanonicalHeaderKey(strings.TrimPrefix(key, http2.TrailerPrefix))
+		canonicalKey := http.CanonicalHeaderKey(strings.TrimPrefix(key, http.TrailerPrefix))
 		if canonicalKey == "Trailer" {
 			continue
 		}
@@ -182,7 +181,7 @@ func (w *webResponseWriter) writeTrailerFrame() {
 	}
 	trailerHeader := make(http.Header)
 	for key, values := range w.header {
-		lowerKey := strings.ToLower(strings.TrimPrefix(key, http2.TrailerPrefix))
+		lowerKey := strings.ToLower(strings.TrimPrefix(key, http.TrailerPrefix))
 		if lowerKey == "trailer" || flushedKeys[lowerKey] {
 			continue
 		}
