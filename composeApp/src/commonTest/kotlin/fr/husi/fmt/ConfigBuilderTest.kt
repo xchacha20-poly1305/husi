@@ -258,11 +258,11 @@ class ConfigBuilderTest : HusiKoinTest() {
         val tags = outbounds.map { it["tag"]!!.jsonPrimitive.content }
 
         assertEquals(tags.size, tags.toSet().size)
-        assertEquals(1, result.tagToID.values.count { it == terminal.id })
-        assertEquals(1, result.tagToID.values.count { it == member.id })
-        assertEquals(1, result.tagToID.values.count { it == proxySet.id })
-        assertEquals(1, result.tagToID.values.count { it == entry.id })
-        assertEquals("entry", result.mainTag)
+        assertEquals(1, result.metadata.tagToID.values.count { it == terminal.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == member.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == proxySet.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == entry.id })
+        assertEquals("entry", result.metadata.mainTag)
         assertEquals(
             "set",
             outbounds.single { it["tag"]?.jsonPrimitive?.content == "entry" }["detour"]
@@ -317,8 +317,8 @@ class ConfigBuilderTest : HusiKoinTest() {
             listOf("second", "first"),
             outbounds["set"]!!["outbounds"]!!.jsonArray.map { it.jsonPrimitive.content },
         )
-        assertEquals(1, result.tagToID.values.count { it == first.id })
-        assertEquals(1, result.tagToID.values.count { it == second.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == first.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == second.id })
     }
 
     @Test
@@ -375,7 +375,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             it["domain"]?.jsonArray?.map { item -> item.jsonPrimitive.content } == listOf(domain)
         }
 
-        assertEquals(2, result.tagToID.values.count { it == target.id })
+        assertEquals(2, result.metadata.tagToID.values.count { it == target.id })
         assertEquals("target", ruleFor("target.example")["outbound"]?.jsonPrimitive?.content)
         assertEquals(
             "target-0",
@@ -413,8 +413,8 @@ class ConfigBuilderTest : HusiKoinTest() {
         val tags = outbounds.map { it["tag"]!!.jsonPrimitive.content }
 
         assertEquals(tags.size, tags.toSet().size)
-        assertEquals(1, result.tagToID.values.count { it == member.id })
-        assertEquals(1, result.tagToID.values.count { it == proxySet.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == member.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == proxySet.id })
         assertEquals(1, tags.count { it == "member" })
         assertEquals(1, tags.count { it == "set" })
         assertEquals(
@@ -463,9 +463,9 @@ class ConfigBuilderTest : HusiKoinTest() {
         val outbounds = parseOutboundList(result)
         val tags = outbounds.map { it["tag"]!!.jsonPrimitive.content }
         assertEquals(tags.size, tags.toSet().size)
-        assertEquals(1, result.tagToID.values.count { it == memberA.id })
-        assertEquals(1, result.tagToID.values.count { it == memberB.id })
-        assertEquals(1, result.tagToID.values.count { it == proxySet.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == memberA.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == memberB.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == proxySet.id })
         assertEquals(1, tags.count { it == "group-set" })
         assertEquals(1, tags.count { it == "group-member-a" })
         assertEquals(1, tags.count { it == "group-member-b" })
@@ -517,8 +517,8 @@ class ConfigBuilderTest : HusiKoinTest() {
                 .single { it["tag"]?.jsonPrimitive?.content == "mixed-set" }["outbounds"]!!
                 .jsonArray.map { it.jsonPrimitive.content },
         )
-        assertEquals(1, result.tagToID.values.count { it == memberA.id })
-        assertEquals(1, result.tagToID.values.count { it == memberB.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == memberA.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == memberB.id })
     }
 
     @Test
@@ -555,7 +555,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         val result = buildConfig(proxySet, forTest = true)
         val outbounds = parseOutbounds(result)
 
-        assertEquals("set", result.mainTag)
+        assertEquals("set", result.metadata.mainTag)
         assertEquals(
             listOf("entry"),
             outbounds["set"]!!["outbounds"]!!.jsonArray.map { it.jsonPrimitive.content },
@@ -598,11 +598,11 @@ class ConfigBuilderTest : HusiKoinTest() {
         val tags = outboundList.map { it["tag"]!!.jsonPrimitive.content }
         val outbounds = outboundList.associateBy { it["tag"]!!.jsonPrimitive.content }
 
-        assertEquals("outer-set", result.mainTag)
+        assertEquals("outer-set", result.metadata.mainTag)
         assertEquals(tags.size, tags.toSet().size)
-        assertEquals(1, result.tagToID.values.count { it == outerSet.id })
-        assertEquals(1, result.tagToID.values.count { it == innerSet.id })
-        assertEquals(1, result.tagToID.values.count { it == leaf.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == outerSet.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == innerSet.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == leaf.id })
         assertEquals(
             listOf("inner-set"),
             outbounds["outer-set"]!!["outbounds"]!!.jsonArray.map { it.jsonPrimitive.content },
@@ -669,11 +669,11 @@ class ConfigBuilderTest : HusiKoinTest() {
         val tags = outboundList.map { it["tag"]!!.jsonPrimitive.content }
         val outbounds = outboundList.associateBy { it["tag"]!!.jsonPrimitive.content }
 
-        assertEquals("root-set", result.mainTag)
+        assertEquals("root-set", result.metadata.mainTag)
         assertEquals(tags.size, tags.toSet().size)
-        assertEquals(1, result.tagToID.values.count { it == rootSet.id })
-        assertEquals(1, result.tagToID.values.count { it == innerSet.id })
-        assertEquals(1, result.tagToID.values.count { it == innerEntry.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == rootSet.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == innerSet.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == innerEntry.id })
         assertEquals(
             listOf("inner-set"),
             outbounds["root-set"]!!["outbounds"]!!.jsonArray.map { it.jsonPrimitive.content },
@@ -868,8 +868,8 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         val result = buildConfig(proxy, forTest = true)
 
-        assertEquals("orphan", result.mainTag)
-        assertEquals(proxy.id, result.tagToID["orphan"])
+        assertEquals("orphan", result.metadata.mainTag)
+        assertEquals(proxy.id, result.metadata.tagToID["orphan"])
     }
 
     @Test
@@ -929,12 +929,12 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals(tags.size, tags.toSet().size)
         assertTrue(firstEntryTag != secondEntryTag)
         assertTrue(firstExitTag != secondExitTag)
-        assertEquals(2, result.tagToID.values.count { it == sharedEntry.id })
-        assertEquals(2, result.tagToID.values.count { it == sharedExit.id })
-        assertEquals(sharedEntry.id, result.tagToID[firstEntryTag])
-        assertEquals(sharedEntry.id, result.tagToID[secondEntryTag])
-        assertEquals(sharedExit.id, result.tagToID[firstExitTag])
-        assertEquals(sharedExit.id, result.tagToID[secondExitTag])
+        assertEquals(2, result.metadata.tagToID.values.count { it == sharedEntry.id })
+        assertEquals(2, result.metadata.tagToID.values.count { it == sharedExit.id })
+        assertEquals(sharedEntry.id, result.metadata.tagToID[firstEntryTag])
+        assertEquals(sharedEntry.id, result.metadata.tagToID[secondEntryTag])
+        assertEquals(sharedExit.id, result.metadata.tagToID[firstExitTag])
+        assertEquals(sharedExit.id, result.metadata.tagToID[secondExitTag])
         assertEquals(null, outbounds[firstExitTag]!!["detour"])
         assertEquals(
             "first-set",
@@ -988,7 +988,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         )
 
         val result = buildConfig(proxySet, forTest = true)
-        val externalEntries = result.externalIndex
+        val externalEntries = result.metadata.externalIndex
             .flatMap { it.chain.values }
             .filter { it.id == external.id }
 
@@ -1023,7 +1023,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         val result = buildConfig(root, forTest = true)
         val outbounds = parseOutbounds(result)
-        val sharedTags = result.tagToID.filterValues { it == shared.id }.keys.toList()
+        val sharedTags = result.metadata.tagToID.filterValues { it == shared.id }.keys.toList()
 
         assertEquals(2, sharedTags.size)
         assertEquals(2, sharedTags.toSet().size)
@@ -1097,18 +1097,18 @@ class ConfigBuilderTest : HusiKoinTest() {
         val memberTags = outbounds["branch-set"]!!["outbounds"]!!.jsonArray
             .map { it.jsonPrimitive.content }
 
-        assertEquals("branch-set", result.mainTag)
+        assertEquals("branch-set", result.metadata.mainTag)
         assertEquals(tags.size, tags.toSet().size)
         assertEquals(2, memberTags.size)
         assertEquals(2, memberTags.toSet().size)
-        assertTrue(memberTags.all { result.tagToID[it] == sharedLeaf.id })
-        assertEquals(2, result.tagToID.values.count { it == sharedLeaf.id })
+        assertTrue(memberTags.all { result.metadata.tagToID[it] == sharedLeaf.id })
+        assertEquals(2, result.metadata.tagToID.values.count { it == sharedLeaf.id })
 
         val exitTags = memberTags.map { memberTag ->
             outbounds[memberTag]!!["detour"]!!.jsonPrimitive.content
         }
         assertEquals(setOf("first-exit", "second-exit"), exitTags.toSet())
-        assertEquals(setOf(firstExit.id, secondExit.id), exitTags.map { result.tagToID[it] }.toSet())
+        assertEquals(setOf(firstExit.id, secondExit.id), exitTags.map { result.metadata.tagToID[it] }.toSet())
         assertEquals("outer-exit", outbounds["first-exit"]!!["detour"]?.jsonPrimitive?.content)
         assertEquals("outer-exit", outbounds["second-exit"]!!["detour"]?.jsonPrimitive?.content)
         assertEquals(null, outbounds["outer-exit"]!!["detour"])
@@ -1156,11 +1156,11 @@ class ConfigBuilderTest : HusiKoinTest() {
             .single().jsonPrimitive.content
 
         assertEquals("entry", memberTag)
-        assertEquals(entry.id, result.tagToID[memberTag])
+        assertEquals(entry.id, result.metadata.tagToID[memberTag])
         assertEquals("exit", outbounds[memberTag]!!["detour"]?.jsonPrimitive?.content)
         assertEquals(null, outbounds["exit"]!!["detour"])
-        assertEquals(1, result.tagToID.values.count { it == entry.id })
-        assertEquals(1, result.tagToID.values.count { it == exit.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == entry.id })
+        assertEquals(1, result.metadata.tagToID.values.count { it == exit.id })
     }
 
     @Test
@@ -1295,9 +1295,9 @@ class ConfigBuilderTest : HusiKoinTest() {
         val secondMemberTag = secondSelector["outbounds"]!!.jsonArray.single().jsonPrimitive.content
 
         assertTrue(firstMemberTag != secondMemberTag)
-        assertEquals(2, result.tagToID.values.count { it == member.id })
-        assertEquals(member.id, result.tagToID[firstMemberTag])
-        assertEquals(member.id, result.tagToID[secondMemberTag])
+        assertEquals(2, result.metadata.tagToID.values.count { it == member.id })
+        assertEquals(member.id, result.metadata.tagToID[firstMemberTag])
+        assertEquals(member.id, result.metadata.tagToID[secondMemberTag])
         assertEquals(
             "first-set",
             outbounds.single { it["tag"]?.jsonPrimitive?.content == secondMemberTag }["detour"]
@@ -1347,7 +1347,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         val outbounds = parseOutbounds(result)
         val endpoints = parseEndpoints(result)
 
-        assertEquals("urltest", result.mainTag)
+        assertEquals("urltest", result.metadata.mainTag)
         assertEquals(
             SingBoxOptions.TYPE_URLTEST,
             outbounds["urltest"]!!["type"]?.jsonPrimitive?.content,
@@ -1363,7 +1363,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         )
         assertEquals("exit", endpoints["endpoint"]!!["detour"]?.jsonPrimitive?.content)
         assertEquals(null, outbounds["exit"]!!["detour"])
-        assertEquals(endpoint.id, result.tagToID["endpoint"])
+        assertEquals(endpoint.id, result.metadata.tagToID["endpoint"])
     }
 
     @Test
@@ -1419,7 +1419,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         }
         val mappingTag = mappingRule["inbound"]!!.jsonArray.single().jsonPrimitive.content
 
-        assertEquals("set", result.mainTag)
+        assertEquals("set", result.metadata.mainTag)
         assertEquals(
             listOf("external"),
             outbounds["set"]!!["outbounds"]!!.jsonArray.map { it.jsonPrimitive.content },
@@ -1434,7 +1434,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals("tail", outbounds["member-exit"]!!["detour"]?.jsonPrimitive?.content)
         assertEquals(
             1,
-            result.externalIndex.flatMap { it.chain.values }.count { it.id == external.id },
+            result.metadata.externalIndex.flatMap { it.chain.values }.count { it.id == external.id },
         )
     }
 
@@ -1474,7 +1474,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             ),
         )
 
-        val externalEntries = buildConfig(chain).externalIndex
+        val externalEntries = buildConfig(chain).metadata.externalIndex
             .flatMap { it.chain.entries }
             .filter { it.value.id == external.id }
 
@@ -2312,10 +2312,10 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         val result = buildConfig(chain, forTest = true)
 
-        assertEquals("entry", result.mainTag)
+        assertEquals("entry", result.metadata.mainTag)
         assertEquals(
             setOf(entry.id, exit.id, chain.id),
-            result.trafficProfiles.mapTo(HashSet()) { it.id },
+            result.metadata.trafficProfiles.mapTo(HashSet()) { it.id },
         )
         assertEquals(
             mapOf(
@@ -2325,7 +2325,7 @@ class ConfigBuilderTest : HusiKoinTest() {
                 ),
                 "exit" to TrafficNode(profileIDs = setOf(exit.id, chain.id)),
             ),
-            result.trafficGraph,
+            result.metadata.trafficGraph,
             "both hops earn traffic for the chain that owns them",
         )
     }
@@ -2371,10 +2371,10 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         val result = buildConfig(proxySet, forTest = true)
 
-        assertEquals("set-main", result.mainTag)
+        assertEquals("set-main", result.metadata.mainTag)
         assertEquals(
             setOf(proxySet.id, memberChain.id, memberEntry.id, memberExit.id, plainMember.id),
-            result.trafficProfiles.mapTo(HashSet()) { it.id },
+            result.metadata.trafficProfiles.mapTo(HashSet()) { it.id },
         )
 
         assertEquals(
@@ -2392,7 +2392,7 @@ class ConfigBuilderTest : HusiKoinTest() {
                 ),
                 "plain-member" to TrafficNode(profileIDs = setOf(plainMember.id)),
             ),
-            result.trafficGraph,
+            result.metadata.trafficGraph,
         )
     }
 
@@ -2484,30 +2484,30 @@ class ConfigBuilderTest : HusiKoinTest() {
         }
 
     private fun parseOutbounds(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["outbounds"]!!
             .jsonArray
             .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
             .mapValues { it.value.jsonObject }
 
     private fun parseOutboundList(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["outbounds"]!!
             .jsonArray
             .map { it.jsonObject }
 
     private fun parseEndpoints(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["endpoints"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["endpoints"]!!
             .jsonArray
             .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
             .mapValues { it.value.jsonObject }
 
     private fun parseDnsRules(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["dns"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["dns"]!!
             .jsonObject["rules"]!!
             .jsonArray
             .map { it.jsonObject }
 
     private fun parseDnsFinal(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["dns"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["dns"]!!
             .jsonObject["final"]!!.jsonPrimitive.content
 
     private fun assertRaceBlock(rules: List<JsonObject>, tags: List<String>) {
@@ -2586,7 +2586,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             )
 
             val result = buildConfig(proxy, forExport = true)
-            val httpClients = Json.parseToJsonElement(result.config)
+            val httpClients = Json.parseToJsonElement(result.configJson)
                 .jsonObject["http_clients"]!!
                 .jsonArray
                 .map { it.jsonObject }
@@ -2597,7 +2597,7 @@ class ConfigBuilderTest : HusiKoinTest() {
                 httpClients.single()["tag"]?.jsonPrimitive?.content,
             )
             assertEquals(
-                result.mainTag,
+                result.metadata.mainTag,
                 httpClients.single()["detour"]?.jsonPrimitive?.content,
             )
             assertEquals(
@@ -2607,16 +2607,16 @@ class ConfigBuilderTest : HusiKoinTest() {
         }
 
     private fun parseRouteOptions(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["route"]!!.jsonObject
+        Json.parseToJsonElement(result.configJson).jsonObject["route"]!!.jsonObject
 
     private fun parseRouteRules(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["route"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["route"]!!
             .jsonObject["rules"]!!
             .jsonArray
             .map { it.jsonObject }
 
     private fun parseDnsServers(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["dns"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["dns"]!!
             .jsonObject["servers"]!!
             .jsonArray
             .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
@@ -2637,7 +2637,7 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     private fun parseTunInbound(result: ConfigBuildResult) =
-        Json.parseToJsonElement(result.config).jsonObject["inbounds"]!!
+        Json.parseToJsonElement(result.configJson).jsonObject["inbounds"]!!
             .jsonArray
             .first { it.jsonObject["tag"]!!.jsonPrimitive.content == TAG_TUN }
             .jsonObject

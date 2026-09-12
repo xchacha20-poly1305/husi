@@ -205,7 +205,7 @@ class VpnService : BaseVpnService(),
         val packageName = packageName
         val proxyApps = DataStore.proxyApps.getBlocking()
         var bypass = DataStore.bypassMode.getBlocking()
-        val needBypassRootUid = data.proxy!!.config.trafficProfiles.any {
+        val needBypassRootUid = data.proxy!!.metadata.trafficProfiles.any {
             it.hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
         }
 

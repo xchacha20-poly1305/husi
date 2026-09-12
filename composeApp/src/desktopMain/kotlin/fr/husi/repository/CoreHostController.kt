@@ -515,18 +515,18 @@ internal class CoreHostController(
             val config = buildConfig(profile)
             cacheFiles.clear()
             val pluginConfigs = initPlugins(
-                config = config,
+                metadata = config.metadata,
                 isVPN = isVPN,
                 cacheFiles = cacheFiles,
             )
             val pluginSpecs = buildPluginSpecs(
-                config = config,
+                metadata = config.metadata,
                 pluginConfigs = pluginConfigs,
                 isVPN = isVPN,
             )
 
             val request = startServiceRequest {
-                this.config = config.config
+                this.config = config.configJson
                 plugins.addAll(pluginSpecs)
                 clientMetadata = clientMetadata {
                     profileId = profile.id
@@ -539,7 +539,7 @@ internal class CoreHostController(
 
             trafficLooper = TrafficLooper(
                 coreClient = coreClient,
-                config = config,
+                metadata = config.metadata,
                 scope = scope,
             )
             trafficLooper?.start()

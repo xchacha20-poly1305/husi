@@ -7,7 +7,7 @@ import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
-import fr.husi.fmt.ConfigBuildResult
+import fr.husi.fmt.ConfigMetadata
 import fr.husi.ktx.Logs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -22,7 +22,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class TrafficLooper(
     private val coreClient: CoreClient,
-    private val config: ConfigBuildResult,
+    private val metadata: ConfigMetadata,
     private val scope: CoroutineScope,
     private val onSpeedUpdate: (suspend (SpeedStats) -> Unit)? = null,
 ) {
@@ -34,8 +34,8 @@ class TrafficLooper(
     }
 
     private var job: Job? = null
-    private val aggregator = OutboundTrafficAggregator(config.trafficGraph)
-    private val profiles = config.trafficProfiles.associate { it.id to ProfileTraffic(it) }
+    private val aggregator = OutboundTrafficAggregator(metadata.trafficGraph)
+    private val profiles = metadata.trafficProfiles.associate { it.id to ProfileTraffic(it) }
 
     /** Proxied bytes since this service started, for the session counter in the UI. */
     private var sessionTx = 0L

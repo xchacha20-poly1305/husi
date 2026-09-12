@@ -2,7 +2,7 @@ package fr.husi.bg
 
 import com.google.protobuf.ByteString
 import fr.husi.database.DataStore
-import fr.husi.fmt.ConfigBuildResult
+import fr.husi.fmt.ConfigMetadata
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.hysteria.buildHysteriaConfig
 import fr.husi.fmt.juicity.JuicityBean
@@ -24,7 +24,7 @@ import fr.husi.repository.resolveRepository
 import java.io.File
 
 fun initPlugins(
-    config: ConfigBuildResult,
+    metadata: ConfigMetadata,
     isVPN: Boolean,
     cacheFiles: MutableList<File>,
 ): Map<Int, Pair<Int, String>> {
@@ -32,7 +32,7 @@ fun initPlugins(
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     val logLevel = DataStore.logLevel.getBlocking()
     val shouldProtect = isVPN && PlatformInfo.isAndroid
-    for ((chain) in config.externalIndex) {
+    for ((chain) in metadata.externalIndex) {
         chain.entries.forEach { (port, profile) ->
             when (val bean = profile.requireBean()) {
                 is MieruBean -> {
@@ -81,7 +81,7 @@ fun initPlugins(
 }
 
 fun buildPluginSpecs(
-    config: ConfigBuildResult,
+    metadata: ConfigMetadata,
     pluginConfigs: Map<Int, Pair<Int, String>>,
     isVPN: Boolean,
 ): List<PluginProcessSpec> {
@@ -96,7 +96,7 @@ fun buildPluginSpecs(
         ?.absolutePath
         ?.let { sharedEnv["SSL_CERT_FILE"] = it }
 
-    for ((chain) in config.externalIndex) {
+    for ((chain) in metadata.externalIndex) {
         chain.entries.forEach { (port, profile) ->
             val bean = profile.requireBean()
             val (_, cfg) = pluginConfigs[port] ?: return@forEach

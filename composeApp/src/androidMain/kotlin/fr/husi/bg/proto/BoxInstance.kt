@@ -5,6 +5,7 @@ import fr.husi.bg.buildPluginSpecs
 import fr.husi.bg.initPlugins
 import fr.husi.database.ProxyEntity
 import fr.husi.fmt.ConfigBuildResult
+import fr.husi.fmt.ConfigMetadata
 import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
 import fr.husi.proto.v1.clientMetadata
@@ -17,7 +18,9 @@ abstract class BoxInstance(
     val profile: ProxyEntity,
 ) : AbstractInstance {
 
-    lateinit var config: ConfigBuildResult
+    lateinit var metadata: ConfigMetadata
+
+    private var pendingConfigJson: String? = null
 
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     private val externalInstances = hashMapOf<Int, AbstractInstance>()
@@ -30,30 +33,33 @@ abstract class BoxInstance(
      * must not wait for [hasInstance].
      */
     fun isInitialized(): Boolean {
-        return ::config.isInitialized
+        return ::metadata.isInitialized
     }
 
-    protected open suspend fun buildConfig() {
-        config = buildConfig(profile)
+    protected open suspend fun buildConfig(): ConfigBuildResult {
+        return buildConfig(profile)
     }
 
     open suspend fun init(isVPN: Boolean) {
         this.isVPN = isVPN
-        buildConfig()
+        val result = buildConfig()
+        metadata = result.metadata
+        pendingConfigJson = result.configJson
         // Fail fast on missing plugins before the foreground service escalates.
-        pluginConfigs.putAll(initPlugins(config, isVPN, cacheFiles))
+        pluginConfigs.putAll(initPlugins(metadata, isVPN, cacheFiles))
     }
 
     override fun launch() {
-        for ((chain) in config.externalIndex) {
+        for ((chain) in metadata.externalIndex) {
             chain.entries.forEach { (port, _) ->
                 if (externalInstances.containsKey(port)) {
                     externalInstances[port]!!.launch()
                 }
             }
         }
-        val specs = buildPluginSpecs(config, pluginConfigs, isVPN)
-        val configJson = config.config
+        val specs = buildPluginSpecs(metadata, pluginConfigs, isVPN)
+        val configJson = checkNotNull(pendingConfigJson) { "instance already launched" }
+        pendingConfigJson = null
         val request = startServiceRequest {
             this.config = configJson
             plugins.addAll(specs)

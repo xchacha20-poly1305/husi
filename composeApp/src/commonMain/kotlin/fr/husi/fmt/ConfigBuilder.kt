@@ -13,7 +13,7 @@ import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyEntity.Companion.TYPE_CONFIG
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
-import fr.husi.fmt.ConfigBuildResult.IndexEntity
+import fr.husi.fmt.ConfigMetadata.IndexEntity
 import fr.husi.fmt.SingBoxOptions.CacheFileOptions
 import fr.husi.fmt.SingBoxOptions.DNSRule_Default
 import fr.husi.fmt.SingBoxOptions.DomainResolveOptions
@@ -167,14 +167,18 @@ private class DNSServerGroup(val primaryTag: String, serverCount: Int) {
 }
 
 class ConfigBuildResult(
+    val configJson: String,
+    val metadata: ConfigMetadata,
+)
+
+class ConfigMetadata(
     val mainTag: String,
-    var config: String,
-    var externalIndex: List<IndexEntity>,
+    val externalIndex: List<IndexEntity>,
     val trafficProfiles: List<ProxyEntity>,
     val tagToID: Map<String, Long>,
     val trafficGraph: Map<String, TrafficNode> = emptyMap(),
 ) {
-    data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
+    data class IndexEntity(val chain: LinkedHashMap<Int, ProxyEntity>)
 }
 
 data class TrafficNode(
@@ -195,11 +199,13 @@ suspend fun buildConfig(
         if (bean.type == ConfigBean.TYPE_CONFIG) {
             val tagProxy = bean.displayName()
             return ConfigBuildResult(
-                tagProxy,
                 bean.config,
-                listOf(),
-                listOf(proxy),
-                mapOf(tagProxy to proxy.id),
+                ConfigMetadata(
+                    mainTag = tagProxy,
+                    externalIndex = listOf(),
+                    trafficProfiles = listOf(proxy),
+                    tagToID = mapOf(tagProxy to proxy.id),
+                ),
             )
         }
     }
@@ -1702,12 +1708,14 @@ suspend fun buildConfig(
             }
         }
         ConfigBuildResult(
-            mainTag,
             kxs.encodeToString(optionsMap.toJsonElementKxs()),
-            externalIndexMap,
-            trafficProfiles.values.toList(),
-            tagToID,
-            trafficGraph,
+            ConfigMetadata(
+                mainTag = mainTag,
+                externalIndex = externalIndexMap,
+                trafficProfiles = trafficProfiles.values.toList(),
+                tagToID = tagToID,
+                trafficGraph = trafficGraph,
+            ),
         )
     }
 

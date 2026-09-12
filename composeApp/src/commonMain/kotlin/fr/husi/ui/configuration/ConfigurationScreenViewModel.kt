@@ -468,15 +468,15 @@ class ConfigurationScreenViewModel(
             // isVPN=false: standalone URL test has no protect env, matching the
             // previous in-process path. Cert material still lands in cacheDir via
             // hysteria/shadowquic builders and is cleaned up below.
-            val plugins = if (config.externalIndex.any { it.chain.isNotEmpty() }) {
-                val pluginConfigs = initPlugins(config, false, cacheFiles)
-                buildPluginSpecs(config, pluginConfigs, false)
+            val plugins = if (config.metadata.externalIndex.any { it.chain.isNotEmpty() }) {
+                val pluginConfigs = initPlugins(config.metadata, false, cacheFiles)
+                buildPluginSpecs(config.metadata, pluginConfigs, false)
             } else {
                 emptyList()
             }
 
             val result = coreClient.standaloneUrlTest(
-                config.config,
+                config.configJson,
                 "",
                 testURL,
                 testTimeout,

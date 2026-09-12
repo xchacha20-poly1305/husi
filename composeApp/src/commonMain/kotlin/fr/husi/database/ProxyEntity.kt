@@ -335,14 +335,14 @@ data class ProxyEntity(
         return with(requireBean()) {
             StringBuilder().apply {
                 val config = buildConfig(this@ProxyEntity, forExport = true)
-                append(config.config)
+                append(config.configJson)
 
-                if (!config.externalIndex.all { it.chain.isEmpty() }) {
+                if (!config.metadata.externalIndex.all { it.chain.isEmpty() }) {
                     name = "profiles.txt"
                 }
 
                 val logLevel = DataStore.logLevel.get()
-                for ((chain) in config.externalIndex) {
+                for ((chain) in config.metadata.externalIndex) {
                     chain.entries.forEach { (port, profile) ->
                         when (val bean = profile.requireBean()) {
                             is MieruBean -> {
