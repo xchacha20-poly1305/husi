@@ -31,6 +31,7 @@ import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.GroupItem
 import fr.husi.proto.v1.URLTestOptions
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -38,8 +39,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -76,7 +77,7 @@ data class DashboardState(
     val networkInterfaces: List<NetworkInterfaceInfo> = emptyList(),
 
     val connections: List<ConnectionDetailState> = emptyList(),
-    val filteredConnections: List<ConnectionDetailState> = emptyList(),
+    val activeConnectionCount: Int = 0,
     val selectedConnection: ConnectionDetailState? = null,
 
     val proxySets: List<ProxySet> = emptyList(),
@@ -92,9 +93,15 @@ data class DashboardState(
         const val SHOW_TRACKER_CLOSED: Byte = 2
     }
 
-    val showActivate = queryOptions and SHOW_TRACKER_ACTIVELY != 0.toByte()
-    val showClosed = queryOptions and SHOW_TRACKER_CLOSED != 0.toByte()
+    val showActivate = queryOptions.showsActiveConnections()
+    val showClosed = queryOptions.showsClosedConnections()
 }
+
+private fun Byte.showsActiveConnections(): Boolean =
+    this and DashboardState.SHOW_TRACKER_ACTIVELY != 0.toByte()
+
+private fun Byte.showsClosedConnections(): Boolean =
+    this and DashboardState.SHOW_TRACKER_CLOSED != 0.toByte()
 
 @Immutable
 data class NetworkInterfaceInfo(
@@ -144,6 +151,17 @@ data class GroupUrlTestProgress(
 )
 
 @Immutable
+private data class ConnectionQuery(
+    val sortMode: Int,
+    val isDescending: Boolean,
+    val queryOptions: Byte,
+    val search: String,
+) {
+    val showActive = queryOptions.showsActiveConnections()
+    val showClosed = queryOptions.showsClosedConnections()
+}
+
+@Immutable
 data class ProxyItem(
     val tag: String = "",
     val type: String = "",
@@ -156,6 +174,7 @@ class DashboardViewModel(
     private val loadPlatformNetworkInfo: suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>,
     coreClient: CoreClient? = null,
     private val remoteControl: RemoteControlManager? = null,
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val coreClientOverride = coreClient
 
@@ -172,6 +191,8 @@ class DashboardViewModel(
     val searchTextFieldState = TextFieldState()
 
     private val connections = LinkedHashMap<String, ConnectionDetailState>()
+    private val closedConnectionOrder = ArrayDeque<String>()
+    private val connectionSnapshot = MutableStateFlow<List<ConnectionDetailState>>(emptyList())
 
     /** The connection whose detail sheet is open, if any. */
     private var selectedUuid: String? = null
@@ -179,7 +200,6 @@ class DashboardViewModel(
     private var latestGroups: List<Group> = emptyList()
     private var latestOutbounds: List<GroupItem> = emptyList()
 
-    private var comparator = buildComparator(TrafficSortMode.START, false)
     private val proxySetComparator = AtomicReference(buildProxySetComparator(ProxySetOrder.ORIGIN))
 
     companion object {
@@ -188,43 +208,42 @@ class DashboardViewModel(
 
         private const val GROUP_URL_TEST_CONCURRENCY = 10
 
+        internal const val MAX_CLOSED_CONNECTIONS = 1000
+
         private fun bytesPerSecond(intervalDelta: Long): Long {
             return (intervalDelta / LOOP_INTERVAL_SECONDS).toLong()
         }
     }
 
     init {
-        viewModelScope.launch {
-            DataStore.trafficSortMode.flow().combine(
-                DataStore.trafficDescending.flow(),
-            ) { mode, isDescending ->
-                mode to isDescending
-            }.collectLatest { (mode, isDescending) ->
-                comparator = buildComparator(mode, isDescending)
-                uiState.update { state ->
-                    state.copy(
-                        sortMode = mode,
-                        isDescending = isDescending,
-                    )
-                }
-                updateConnectionsSnapshot()
+        val connectionQuery = combine(
+            DataStore.trafficSortMode.flow(),
+            DataStore.trafficDescending.flow(),
+            DataStore.trafficConnectionQuery.flow(),
+            snapshotFlow { searchTextFieldState.text.toString() },
+        ) { sortMode, isDescending, queryOptions, search ->
+            ConnectionQuery(sortMode, isDescending, queryOptions.toByte(), search)
+        }.onEach { query ->
+            uiState.update { state ->
+                state.copy(
+                    sortMode = query.sortMode,
+                    isDescending = query.isDescending,
+                    queryOptions = query.queryOptions,
+                )
             }
         }
-        viewModelScope.launch {
-            DataStore.trafficConnectionQuery.flow().collectLatest {
-                uiState.update { state ->
-                    state.copy(
-                        queryOptions = it.toByte(),
-                    )
+        viewModelScope.launch(computeDispatcher) {
+            combine(connectionSnapshot, connectionQuery, ::Pair)
+                .conflate()
+                .collect { (snapshot, query) ->
+                    val visible = visibleConnections(snapshot, query)
+                    uiState.update { state ->
+                        state.copy(
+                            connections = visible,
+                            activeConnectionCount = snapshot.count { !it.isClosed },
+                        )
+                    }
                 }
-                updateConnectionsSnapshot()
-            }
-        }
-        viewModelScope.launch {
-            snapshotFlow { searchTextFieldState.text.toString() }
-                .drop(1)
-                .distinctUntilChanged()
-                .collectLatest { updateConnectionsSnapshot() }
         }
         viewModelScope.launch {
             DataStore.proxySetOrder.flow()
@@ -289,12 +308,14 @@ class DashboardViewModel(
         connectionsJob?.cancel()
         clashModeJob?.cancel()
         connections.clear()
+        closedConnectionOrder.clear()
+        connectionSnapshot.value = emptyList()
         latestGroups = emptyList()
         latestOutbounds = emptyList()
         uiState.update { state ->
             state.copy(
                 connections = emptyList(),
-                filteredConnections = emptyList(),
+                activeConnectionCount = 0,
                 proxySets = emptyList(),
                 selectedClashMode = "",
                 clashModes = emptyList(),
@@ -406,20 +427,9 @@ class DashboardViewModel(
     }
 
     fun togglePause() {
-        uiState.update { state ->
-            val newPause = !state.isPause
-            if (newPause) {
-                state.copy(isPause = true)
-            } else {
-                val all = buildConnections(state)
-                val query = searchTextFieldState.text.toString()
-                state.copy(
-                    isPause = false,
-                    connections = all,
-                    filteredConnections = buildFilteredConnections(all, query),
-                )
-            }
-        }
+        val isPause = !uiState.value.isPause
+        uiState.update { state -> state.copy(isPause = isPause) }
+        if (!isPause) publishConnections()
     }
 
     fun clearSearchQuery() {
@@ -566,40 +576,29 @@ class DashboardViewModel(
         }
     }
 
-    private fun buildConnections(state: DashboardState): List<ConnectionDetailState> {
-        val showActive = state.showActivate
-        val showClosed = state.showClosed
-        return connections.values
-            .filter { connection ->
-                val show = if (connection.isClosed) {
-                    showClosed
-                } else {
-                    showActive
-                }
-                show
-            }
-            .sortedWith(comparator)
-    }
-
-    private fun buildFilteredConnections(
-        all: List<ConnectionDetailState>,
-        query: String,
+    private fun visibleConnections(
+        snapshot: List<ConnectionDetailState>,
+        query: ConnectionQuery,
     ): List<ConnectionDetailState> {
-        if (query.isEmpty()) return all
-        return all.filter { it.match(query) }
+        val search = query.search
+        return snapshot
+            .filter { connection ->
+                val show = if (connection.isClosed) query.showClosed else query.showActive
+                show && (search.isEmpty() || connection.match(search))
+            }
+            .sortedWith(buildComparator(query.sortMode, query.isDescending))
     }
 
-    private fun updateConnectionsSnapshot() {
-        uiState.update { state ->
-            if (state.isPause) return
-            val all = buildConnections(state)
-            val query = searchTextFieldState.text.toString()
-            state.copy(
-                connections = all,
-                filteredConnections = buildFilteredConnections(all, query),
-                selectedConnection = selectedConnection(),
-            )
-        }
+    private fun publishConnections() {
+        if (uiState.value.isPause) return
+        refreshSelectedConnection()
+        connectionSnapshot.value = connections.values.toList()
+    }
+
+    private fun refreshSelectedConnection() {
+        val uuid = selectedUuid ?: return
+        val selected = connections[uuid]
+        uiState.update { state -> state.copy(selectedConnection = selected) }
     }
 
     /**
@@ -611,12 +610,8 @@ class DashboardViewModel(
     fun selectConnection(uuid: String?) {
         selectedUuid = uuid
         uiState.update { state ->
-            state.copy(selectedConnection = selectedConnection())
+            state.copy(selectedConnection = uuid?.let(connections::get))
         }
-    }
-
-    private fun selectedConnection(): ConnectionDetailState? {
-        return selectedUuid?.let { uuid -> connections[uuid] }
     }
 
     internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {
@@ -629,124 +624,91 @@ class DashboardViewModel(
     private fun handleConnectionEvents(events: ConnectionEvents) {
         if (events.reset) {
             connections.clear()
+            closedConnectionOrder.clear()
             for (event in events.eventsList) {
                 if (!event.isNew()) continue
                 val connection = event.connection ?: continue
-                connections[event.id] = connection.toDetailState()
+                putConnection(event.id, connection.toDetailState())
             }
-            updateConnectionsSnapshot()
-            return
+        } else {
+            var changed = false
+            for (event in events.eventsList) {
+                if (handleConnectionEvent(event)) changed = true
+            }
+            if (!changed) return
         }
-        for (event in events.eventsList) {
-            handleConnectionEvent(event)
+        evictOverflowClosedConnections()
+        publishConnections()
+    }
+
+    private fun putConnection(id: String, connection: ConnectionDetailState) {
+        connections[id] = connection
+        if (connection.isClosed) closedConnectionOrder.addLast(id)
+    }
+
+    private fun evictOverflowClosedConnections() {
+        while (closedConnectionOrder.size > MAX_CLOSED_CONNECTIONS) {
+            val id = closedConnectionOrder.removeFirst()
+            if (connections[id]?.isClosed == true) connections.remove(id)
         }
     }
 
-    private fun handleConnectionEvent(event: ConnectionEvent) {
+    private fun handleConnectionEvent(event: ConnectionEvent): Boolean {
         when (event.type) {
             ConnectionEventType.CONNECTION_EVENT_NEW -> {
-                val connection = event.connection ?: return
-                connections[event.id] = connection.toDetailState()
-                updateConnectionsSnapshot()
+                val connection = event.connection ?: return false
+                putConnection(event.id, connection.toDetailState())
+                return true
             }
 
             ConnectionEventType.CONNECTION_EVENT_UPDATE -> {
                 val id = event.id
-                val current = connections[id] ?: return
+                val current = connections[id] ?: return false
                 val uplinkDelta = event.uplinkDelta
                 val downlinkDelta = event.downlinkDelta
                 val hasTraffic = uplinkDelta > 0L || downlinkDelta > 0L
                 val wasIdle = current.uploadSpeed == 0L && current.downloadSpeed == 0L
-                if (!hasTraffic && wasIdle) return
-                val updated = current.copy(
+                if (!hasTraffic && wasIdle) return false
+                connections[id] = current.copy(
                     uploadTotal = current.uploadTotal + uplinkDelta,
                     downloadTotal = current.downloadTotal + downlinkDelta,
                     uploadSpeed = bytesPerSecond(uplinkDelta),
                     downloadSpeed = bytesPerSecond(downlinkDelta),
                 )
-                connections[id] = updated
-                updateConnectionSnapshot(updated)
+                return true
             }
 
             ConnectionEventType.CONNECTION_EVENT_CLOSED -> {
                 val closedAt = formatConnectionTime(event.closedAt)
-                if (closedAt.isBlank()) return
+                if (closedAt.isBlank()) return false
                 val id = event.id
-                val current = connections[id] ?: return
-                if (current.closedAt == closedAt) return
-                connections[id] = current.copy(
-                    closedAt = closedAt,
-                    uploadSpeed = 0L,
-                    downloadSpeed = 0L,
+                val current = connections[id] ?: return false
+                if (current.closedAt == closedAt) return false
+                putConnection(
+                    id,
+                    current.copy(
+                        closedAt = closedAt,
+                        uploadSpeed = 0L,
+                        downloadSpeed = 0L,
+                    ),
                 )
-                updateConnectionsSnapshot()
+                return true
             }
 
-            ConnectionEventType.UNRECOGNIZED -> {}
-        }
-    }
-
-    private fun updateConnectionSnapshot(updated: ConnectionDetailState) {
-        uiState.update { state ->
-            if (state.isPause) return
-            val show = if (updated.isClosed) {
-                state.showClosed
-            } else {
-                state.showActivate
-            }
-            // Update connections (status-filtered only)
-            val current = state.connections
-            val index = current.indexOfFirst { it.uuid == updated.uuid }
-            val newConnections = if (!show) {
-                if (index < 0) current
-                else current.toMutableList().also { it.removeAt(index) }
-            } else if (index >= 0) {
-                current.toMutableList().also { it[index] = updated }
-            } else {
-                current.toMutableList().also { it.add(updated) }
-            }
-            if (newConnections !== current) {
-                (newConnections as? MutableList)?.sortWith(comparator)
-            }
-            // Update filteredConnections (status + search)
-            val query = searchTextFieldState.text.toString()
-            val matchesSearch = show && (query.isEmpty() || updated.match(query))
-            val currentFiltered = state.filteredConnections
-            val filteredIndex = currentFiltered.indexOfFirst { it.uuid == updated.uuid }
-            val newFiltered = if (!matchesSearch) {
-                if (filteredIndex < 0) currentFiltered
-                else currentFiltered.toMutableList().also { it.removeAt(filteredIndex) }
-            } else if (filteredIndex >= 0) {
-                currentFiltered.toMutableList().also { it[filteredIndex] = updated }
-            } else {
-                currentFiltered.toMutableList().also { it.add(updated) }
-            }
-            if (newFiltered !== currentFiltered) {
-                (newFiltered as? MutableList)?.sortWith(comparator)
-            }
-            val newSelected = if (updated.uuid == selectedUuid) {
-                updated
-            } else {
-                state.selectedConnection
-            }
-            state.copy(
-                connections = newConnections,
-                filteredConnections = newFiltered,
-                selectedConnection = newSelected,
-            )
+            ConnectionEventType.UNRECOGNIZED -> return false
         }
     }
 
     private fun ConnectionDetailState.match(query: String) = dst.contains(query)
-            || network.contains(query)
-            || host.contains(query)
-            || startedAt.contains(query)
-            || matchedRule.contains(query)
-            || outbound.contains(query)
-            || chain.contains(query)
-            || protocol?.contains(query) == true
-            || processes?.any { it.contains(query) } == true
-            || uid.toString().contains(query)
+        || network.contains(query)
+        || host.contains(query)
+        || startedAt.contains(query)
+        || matchedRule.contains(query)
+        || outbound.contains(query)
+        || chain.contains(query)
+        || protocol?.contains(query) == true
+        || processes?.any { it.contains(query) } == true
+        || uid.toString().contains(query)
 
     private fun buildProxySetComparator(order: Int): Comparator<ProxyItem>? {
         return when (order) {

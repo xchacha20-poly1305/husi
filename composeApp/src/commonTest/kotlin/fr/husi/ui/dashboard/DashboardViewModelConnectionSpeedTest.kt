@@ -31,6 +31,7 @@ class DashboardViewModelConnectionSpeedTest : HusiKoinMainDispatcherTest() {
     private fun newViewModel() = DashboardViewModel(
         loadPlatformNetworkInfo = { Triple(emptyList(), null, null) },
         coreClient = coreClient,
+        computeDispatcher = dispatcher,
     )
 
     private suspend fun emitNew(vararg ids: String) {

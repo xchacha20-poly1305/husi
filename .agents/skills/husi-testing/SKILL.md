@@ -262,6 +262,13 @@ restore them yourself in `@AfterTest`.
 - **`uiEvent.first()` returns immediately with the wrong event** (or never returns). You started
   collecting *after* the producer emitted, into a 0-replay `SharedFlow`. Wrap the collection in
   `backgroundScope.async { flow.first() }` *before* triggering the producer.
+- **A `snapshotFlow { … }` collector in the ViewModel never fires.** Writing to the Compose state
+  it reads (a `TextFieldState`, a `mutableStateOf`) lands in the global snapshot immediately, but
+  the observers behind `snapshotFlow` only wake on an *apply notification*. In the app the
+  recomposer sends one every frame; a unit test has no Compose runtime, so it must send its own:
+  `Snapshot.sendApplyNotifications()` (from `androidx.compose.runtime.snapshots`) after the write
+  and before `advanceUntilIdle()`. See
+  `commonTest/kotlin/fr/husi/ui/dashboard/DashboardViewModelConnectionListTest.kt`.
 - **`DataStore` access throws `IllegalStateException: KoinApplicationException`.** You extended
   `MainDispatcherTest` instead of `HusiKoinMainDispatcherTest`. `DataStore.configurationStore`'s
   factory calls `resolveRepository()` which needs Koin.

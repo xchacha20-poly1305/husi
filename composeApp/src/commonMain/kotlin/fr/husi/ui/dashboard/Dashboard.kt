@@ -195,6 +195,12 @@ fun DashboardScreen(
         if (pagerState.currentPage != PAGE_STATUS) isEditingDashboard = false
     }
 
+    LaunchedEffect(searchBarState.currentValue) {
+        if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+            dashboardViewModel.clearSearchQuery()
+        }
+    }
+
     LaunchedEffect(remoteSession?.server?.id, targetConnected) {
         dashboardViewModel.initialize(targetConnected)
     }
@@ -545,7 +551,7 @@ fun DashboardScreen(
         inputField = searchInputField,
     ) {
         DashboardConnectionsScreen(
-            uiState = uiState.copy(connections = uiState.filteredConnections),
+            uiState = uiState,
             bottomPadding = 0.dp,
             resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
             closeConnection = { uuid ->
@@ -594,7 +600,7 @@ fun DashboardScreen(
             Icon(vectorResource(Res.drawable.warning_amber), null)
         },
         title = { Text(stringResource(Res.string.reset_connections)) },
-        text = { Text(stringResource(Res.string.ensure_close_all, uiState.connections.size)) },
+        text = { Text(stringResource(Res.string.ensure_close_all, uiState.activeConnectionCount)) },
     )
 
 }
