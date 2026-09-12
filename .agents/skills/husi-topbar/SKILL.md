@@ -6,7 +6,7 @@ description: Husi project's topbar design system. Use whenever adding a new scre
 # Husi Topbar Design
 
 Husi replaces Material 3's default `TopAppBar` / `AppBarWithSearch` with a set of in-house "capsule"
-components. All of them live in `composeApp/src/commonMain/kotlin/fr/husi/compose/CapsuleTopBar.kt`.
+components. All of them live in `composeApp/src/commonMain/kotlin/fr/husi/compose/Capsule.kt`.
 
 Before writing any topbar, answer one question first: **does the topbar sit directly above the
 scrollable content, or is there something else (tabs, search, etc.) attached underneath?** That
@@ -315,4 +315,4 @@ What does your topBar look like?
   `composeApp/src/commonMain/kotlin/fr/husi/ui/configuration/ConfigurationScreen.kt`
 - Pattern B (Material 3 SearchBar special case):
   `composeApp/src/androidMain/kotlin/fr/husi/ui/AbstractAppList.kt`
-- Component source: `composeApp/src/commonMain/kotlin/fr/husi/compose/CapsuleTopBar.kt`
+- Component source: `composeApp/src/commonMain/kotlin/fr/husi/compose/Capsule.kt`

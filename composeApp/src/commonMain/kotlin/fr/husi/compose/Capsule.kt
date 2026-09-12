@@ -46,7 +46,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -118,16 +117,41 @@ fun CapsuleTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     capsuleSpacing: Dp = CapsuleDefaults.Spacing,
 ) {
+    CapsuleBarLayout(
+        modifier = modifier,
+        navigationIcon = navigationIcon,
+        windowInsets = windowInsets,
+        scrollBehavior = scrollBehavior,
+        capsuleSpacing = capsuleSpacing,
+        actions = actions,
+    ) {
+        if (title != null) {
+            Box(modifier = Modifier.weight(1f)) {
+                PillCapsule {
+                    title()
+                }
+            }
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun CapsuleBarLayout(
+    modifier: Modifier,
+    navigationIcon: (@Composable () -> Unit)?,
+    windowInsets: WindowInsets,
+    scrollBehavior: TopAppBarScrollBehavior?,
+    capsuleSpacing: Dp,
+    actions: @Composable RowScope.() -> Unit,
+    center: @Composable RowScope.() -> Unit,
+) {
     SetHeightOffsetLimit(scrollBehavior)
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .windowInsetsPadding(windowInsets)
-            .then(
-                scrollBehavior?.let {
-                    Modifier.nestedScroll(it.nestedScrollConnection)
-                } ?: Modifier,
-            ),
+            .windowInsetsPadding(windowInsets),
     ) {
         Row(
             modifier = Modifier
@@ -145,15 +169,7 @@ fun CapsuleTopBar(
                 }
             }
 
-            if (title != null) {
-                Box(modifier = Modifier.weight(1f)) {
-                    PillCapsule {
-                        title()
-                    }
-                }
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-            }
+            center()
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(capsuleSpacing),
@@ -206,42 +222,20 @@ fun CapsuleSearchTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     capsuleSpacing: Dp = CapsuleDefaults.Spacing,
 ) {
-    SetHeightOffsetLimit(scrollBehavior)
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .windowInsetsPadding(windowInsets),
+    CapsuleBarLayout(
+        modifier = modifier,
+        navigationIcon = navigationIcon,
+        windowInsets = windowInsets,
+        scrollBehavior = scrollBehavior,
+        capsuleSpacing = capsuleSpacing,
+        actions = actions,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = CapsuleDefaults.HorizontalPadding,
-                    vertical = CapsuleDefaults.VerticalPadding,
-                ),
-            horizontalArrangement = Arrangement.spacedBy(capsuleSpacing),
-            verticalAlignment = Alignment.CenterVertically,
+        CapsuleSearchPill(
+            modifier = Modifier.weight(1f),
+            onClick = onSearchPillClick,
+            onLongClick = onSearchPillLongPress,
         ) {
-            if (navigationIcon != null) {
-                CapsuleSurface(modifier = Modifier.size(CapsuleDefaults.Size)) {
-                    navigationIcon()
-                }
-            }
-
-            CapsuleSearchPill(
-                modifier = Modifier.weight(1f),
-                onClick = onSearchPillClick,
-                onLongClick = onSearchPillLongPress,
-            ) {
-                inputField()
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(capsuleSpacing),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                actions()
-            }
+            inputField()
         }
     }
 }
