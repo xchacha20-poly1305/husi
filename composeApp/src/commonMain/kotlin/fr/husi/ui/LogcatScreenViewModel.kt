@@ -25,13 +25,22 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.context.GlobalContext
+
+private const val MAX_LOG_ENTRIES = 3000
+
+private const val LOG_TRIM_SLACK = 500
+
+private const val UI_STATE_STOP_TIMEOUT = 5000L
 
 @Immutable
 data class LogcatUiState(
@@ -60,6 +69,50 @@ fun Log.Message.toLogEntry(): LogEntry {
     )
 }
 
+@Immutable
+private data class LogcatFilter(
+    val logLevel: LogLevel,
+    val searchQuery: String? = null,
+) {
+    fun accepts(entry: LogEntry): Boolean {
+        if (entry.level.number > logLevel.number) return false
+        return searchQuery == null || entry.message.contains(searchQuery, ignoreCase = true)
+    }
+}
+
+@Immutable
+private data class LogcatStatus(
+    val errorMessage: String? = null,
+    val connecting: Boolean = false,
+    val isRemote: Boolean = false,
+)
+
+private fun PersistentList<LogEntry>.appendBounded(
+    entries: List<LogEntry>,
+): PersistentList<LogEntry> {
+    val appended = addingAll(entries)
+    if (appended.size <= MAX_LOG_ENTRIES + LOG_TRIM_SLACK) return appended
+    return appended.subList(appended.size - MAX_LOG_ENTRIES, appended.size).toPersistentList()
+}
+
+private fun buildUiState(
+    liveLogs: PersistentList<LogEntry>,
+    pausedLogs: PersistentList<LogEntry>?,
+    filter: LogcatFilter,
+    status: LogcatStatus,
+): LogcatUiState {
+    val displayed = pausedLogs ?: liveLogs
+    return LogcatUiState(
+        pause = pausedLogs != null,
+        searchQuery = filter.searchQuery,
+        logLevel = filter.logLevel,
+        logs = displayed.filter(filter::accepts).toPersistentList(),
+        errorMessage = status.errorMessage,
+        connecting = status.connecting,
+        isRemote = status.isRemote,
+    )
+}
+
 @Stable
 class LogcatScreenViewModel(
     coreClient: CoreClient? = null,
@@ -78,9 +131,30 @@ class LogcatScreenViewModel(
     private val localLogLevel: LogLevel
         get() = LogLevel.forNumber(DataStore.logLevel.getBlocking()) ?: LogLevel.WARN
 
-    private var allLogs: PersistentList<LogEntry> = persistentListOf()
-    val uiState: StateFlow<LogcatUiState>
-        field = MutableStateFlow(LogcatUiState(logLevel = localLogLevel))
+    private val liveLogs = MutableStateFlow(persistentListOf<LogEntry>())
+
+    private val pausedLogs = MutableStateFlow<PersistentList<LogEntry>?>(null)
+
+    private val filter = MutableStateFlow(LogcatFilter(logLevel = localLogLevel))
+    private val status = MutableStateFlow(LogcatStatus())
+
+    val uiState: StateFlow<LogcatUiState> = combine(
+        liveLogs,
+        pausedLogs,
+        filter,
+        status,
+        ::buildUiState,
+    ).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(UI_STATE_STOP_TIMEOUT),
+        initialValue = buildUiState(
+            liveLogs = liveLogs.value,
+            pausedLogs = pausedLogs.value,
+            filter = filter.value,
+            status = status.value,
+        ),
+    )
+
     val searchTextFieldState = TextFieldState()
 
     private var job: Job? = null
@@ -94,28 +168,12 @@ class LogcatScreenViewModel(
         }
     }
 
-    private fun refilterLogs(logLevel: LogLevel, query: String?): PersistentList<LogEntry> {
-        return allLogs.filter { item ->
-            item.level.number <= logLevel.number
-                    && query?.let { item.message.contains(it, ignoreCase = true) } ?: true
-        }.toPersistentList()
-    }
-
-    private fun appendLogs(item: LogEntry) {
-        allLogs = allLogs.adding(item)
-        uiState.update { state ->
-            if (state.pause) return
-            if (item.level.number > state.logLevel.number) return
-            state.copy(logs = state.logs.adding(item))
-        }
-    }
-
     suspend fun buildExportLog(): LogExport {
         val session = remoteControl?.session?.value
             ?: return withContext(Dispatchers.IO) {
                 SendLog.buildLocalLog(resolveRepository().externalAssetsDir)
             }
-        val logLines = allLogs.map { it.message }
+        val logLines = liveLogs.value.map { it.message }
         return SendLog.buildRemoteLog(
             target = RemoteLogTarget(
                 name = session.server.name,
@@ -152,34 +210,26 @@ class LogcatScreenViewModel(
 
     suspend fun initialize(isConnected: Boolean) {
         job?.cancel()
-        allLogs = persistentListOf()
+        liveLogs.value = persistentListOf()
+        pausedLogs.value = null
         val remote = isRemote
-        uiState.update {
-            it.copy(
-                logs = persistentListOf(),
-                logLevel = localLogLevel,
-                connecting = !isConnected && remote,
-                isRemote = remote,
-            )
-        }
+        filter.update { it.copy(logLevel = localLogLevel) }
+        status.value = LogcatStatus(
+            connecting = !isConnected && remote,
+            isRemote = remote,
+        )
         if (!isConnected) return
 
         job = viewModelScope.launch {
             if (remote) {
                 val level = fetchRemoteLogLevel()
-                uiState.update { it.copy(logLevel = level) }
+                filter.update { it.copy(logLevel = level) }
             }
             try {
                 coreClient.subscribeLog().collect { batch ->
-                    if (batch.reset) {
-                        allLogs = persistentListOf()
-                        uiState.update { state ->
-                            if (state.pause) state else state.copy(logs = persistentListOf())
-                        }
-                    }
-                    for (message in batch.messagesList) {
-                        appendLogs(message.toLogEntry())
-                    }
+                    if (batch.reset) clearLogBuffers()
+                    val entries = batch.messagesList.map { it.toLogEntry() }
+                    liveLogs.update { it.appendBounded(entries) }
                 }
             } catch (e: Exception) {
                 Logs.w("subscribe logs", e)
@@ -192,18 +242,13 @@ class LogcatScreenViewModel(
         super.onCleared()
     }
 
+    private fun clearLogBuffers() {
+        liveLogs.value = persistentListOf()
+        pausedLogs.update { snapshot -> snapshot?.let { persistentListOf() } }
+    }
+
     fun togglePause() {
-        uiState.update { state ->
-            val newPause = !state.pause
-            state.copy(
-                pause = newPause,
-                logs = if (newPause) {
-                    state.logs
-                } else {
-                    refilterLogs(state.logLevel, state.searchQuery)
-                },
-            )
-        }
+        pausedLogs.update { snapshot -> if (snapshot == null) liveLogs.value else null }
     }
 
     fun clearLog() = viewModelScope.launch(Dispatchers.IO) {
@@ -215,34 +260,15 @@ class LogcatScreenViewModel(
         } catch (e: Exception) {
             Logs.w("clear log", e)
         }
-        allLogs = persistentListOf()
-        uiState.update { it.copy(logs = persistentListOf()) }
+        clearLogBuffers()
     }
 
     fun setLogLevel(level: LogLevel) {
-        uiState.update { state ->
-            state.copy(
-                logLevel = level,
-                logs = if (state.pause) {
-                    state.logs
-                } else {
-                    refilterLogs(level, state.searchQuery)
-                },
-            )
-        }
+        filter.update { it.copy(logLevel = level) }
     }
 
     fun setSearchQuery(query: String?) {
-        uiState.update { state ->
-            state.copy(
-                searchQuery = query,
-                logs = if (state.pause) {
-                    state.logs
-                } else {
-                    refilterLogs(state.logLevel, query)
-                },
-            )
-        }
+        filter.update { it.copy(searchQuery = query) }
     }
 
     fun clearSearchQuery() {
