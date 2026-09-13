@@ -1,9 +1,3 @@
-<a href="https://apt.izzysoft.de/fdroid/index/apk/fr.husi/">
-    <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png"
-    alt="Get it on IzzyOnDroid"
-    height="80">
-</a>
-
 # Husi (虎兕)
 
 Husi is a non-professional proxy-set-based multiplatform proxy tool set.
