@@ -1,5 +1,8 @@
 package fr.husi.ui.jsoneditor
 
+import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.util.fastCoerceAtMost
+
 enum class ConfigJsonTokenType {
     STRING,
     NUMBER,
@@ -18,7 +21,44 @@ data class ConfigJsonToken(
 class ConfigJsonDocument private constructor(
     val text: String,
     val tokens: List<ConfigJsonToken>,
+    private val lineStarts: IntArray,
 ) {
+
+    val lineCount: Int get() = lineStarts.size
+
+    fun tokensInLines(lines: IntRange): List<ConfigJsonToken> {
+        if (tokens.isEmpty() || lines.isEmpty()) return emptyList()
+        if (lines.last < 0 || lines.first > lineStarts.lastIndex) return emptyList()
+        val firstLine = lines.first.fastCoerceAtLeast(0)
+        val lastLine = lines.last.fastCoerceAtMost(lineStarts.lastIndex)
+        val from = lineStarts[firstLine]
+        val until = if (lastLine == lineStarts.lastIndex) {
+            text.length
+        } else {
+            lineStarts[lastLine + 1]
+        }
+        return tokens.subList(firstTokenEndingAfter(from), firstTokenStartingAtOrAfter(until))
+    }
+
+    private fun firstTokenEndingAfter(offset: Int): Int {
+        var low = 0
+        var high = tokens.size
+        while (low < high) {
+            val middle = (low + high) / 2
+            if (tokens[middle].end <= offset) low = middle + 1 else high = middle
+        }
+        return low
+    }
+
+    private fun firstTokenStartingAtOrAfter(offset: Int): Int {
+        var low = 0
+        var high = tokens.size
+        while (low < high) {
+            val middle = (low + high) / 2
+            if (tokens[middle].start < offset) low = middle + 1 else high = middle
+        }
+        return low
+    }
 
     companion object {
         fun parse(text: String): ConfigJsonDocument {
@@ -70,7 +110,15 @@ class ConfigJsonDocument private constructor(
                     }
                 }
             }
-            return ConfigJsonDocument(text, tokens)
+            return ConfigJsonDocument(text, tokens, lineStartsOf(text))
+        }
+
+        private fun lineStartsOf(text: String): IntArray {
+            val starts = mutableListOf(0)
+            for (index in text.indices) {
+                if (text[index] == '\n') starts += index + 1
+            }
+            return starts.toIntArray()
         }
     }
 }

@@ -17,12 +17,17 @@ import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
 import fr.husi.resources.ok
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -45,11 +50,17 @@ data class ConfigEditUiState(
     val selectedSchemaCompletion: Int = 0,
 )
 
+private data class EditorPosition(
+    val text: String,
+    val cursor: Int,
+)
+
 @Stable
 class ConfigEditViewModel(
     initialText: String,
     schema: ConfigSchema = ConfigSchema.CONFIG,
     private val coreClient: CoreClient = GlobalContext.get().get(),
+    completionDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     val uiEvent: SharedFlow<ConfigEditUiEvent>
@@ -69,9 +80,18 @@ class ConfigEditViewModel(
 
     private var lastText: String = ""
     private val schemaCompleter = schema.completer
+    private val editorPosition = MutableStateFlow<EditorPosition?>(null)
 
     init {
         initialize(initialText)
+        viewModelScope.launch(completionDispatcher) {
+            editorPosition.filterNotNull().collectLatest { position ->
+                val completions = schemaCompleter.complete(position.text, position.cursor)
+                uiState.update {
+                    it.copy(schemaCompletions = completions, selectedSchemaCompletion = 0)
+                }
+            }
+        }
     }
 
     fun initialize(initialText: String) {
@@ -97,18 +117,21 @@ class ConfigEditViewModel(
 
     fun onEditorChange(text: String, selection: TextRange) {
         onTextChange(text)
-        uiState.value = uiState.value.copy(
-            schemaCompletions = schemaCompleter.complete(text, selection.end),
-            selectedSchemaCompletion = 0,
-        )
+        editorPosition.value = EditorPosition(text, selection.end)
     }
 
     fun selectSchemaCompletion(offset: Int) {
-        val completions = uiState.value.schemaCompletions
-        if (completions.isEmpty()) return
-        uiState.value = uiState.value.copy(
-            selectedSchemaCompletion = (uiState.value.selectedSchemaCompletion + offset).mod(completions.size),
-        )
+        uiState.update { state ->
+            val completions = state.schemaCompletions
+            if (completions.isEmpty()) {
+                state
+            } else {
+                state.copy(
+                    selectedSchemaCompletion = (state.selectedSchemaCompletion + offset)
+                        .mod(completions.size),
+                )
+            }
+        }
     }
 
     fun insertText(insertion: String) {
@@ -182,10 +205,12 @@ class ConfigEditViewModel(
     }
 
     private fun updateUndoRedoState() {
-        uiState.value = uiState.value.copy(
-            canUndo = historyPointer > 0,
-            canRedo = historyPointer < historyStack.size - 1,
-        )
+        uiState.update {
+            it.copy(
+                canUndo = historyPointer > 0,
+                canRedo = historyPointer < historyStack.size - 1,
+            )
+        }
     }
 
     fun formatCurrentText() {

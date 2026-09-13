@@ -47,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -442,15 +443,6 @@ private fun ConfigEditScreenContent(
         )
     }
 
-    val outputTransformation = remember(syntaxStyles) {
-        OutputTransformation {
-            val text = asCharSequence().toString()
-            for ((type, start, end) in configJsonEngine.document(text).tokens) {
-                addStyle(syntaxStyles.getValue(type), start, end)
-            }
-        }
-    }
-
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -507,11 +499,30 @@ private fun ConfigEditScreenContent(
             var editorPosition by remember { mutableStateOf<Offset?>(null) }
             var cursorRect by remember { mutableStateOf<Rect?>(null) }
             var editorFocused by remember { mutableStateOf(false) }
+            var lineHeightPx by remember { mutableIntStateOf(0) }
             val editorMinHeight = (
                     with(density) { editorHeightPx.toDp() } - extraHeight
                     ).coerceAtLeast(0.dp)
             val focusRequester = remember { FocusRequester() }
             val verticalScrollState = rememberScrollState()
+            val topPaddingPx = with(density) { innerPadding.calculateTopPadding().roundToPx() }
+            val highlightLines = remember(topPaddingPx) {
+                derivedStateOf {
+                    highlightedLineRange(
+                        scrollOffsetPx = verticalScrollState.value - topPaddingPx,
+                        viewportHeightPx = editorHeightPx,
+                        lineHeightPx = lineHeightPx,
+                    )
+                }
+            }
+            val outputTransformation = remember(syntaxStyles, highlightLines) {
+                OutputTransformation {
+                    val document = configJsonEngine.document(asCharSequence().toString())
+                    for ((type, start, end) in document.tokensInLines(highlightLines.value)) {
+                        addStyle(syntaxStyles.getValue(type), start, end)
+                    }
+                }
+            }
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -577,7 +588,13 @@ private fun ConfigEditScreenContent(
                         lineLimits = TextFieldLineLimits.MultiLine(),
                         outputTransformation = outputTransformation,
                         onTextLayout = { getResult ->
-                            cursorRect = getResult()?.getCursorRect(viewModel.textFieldState.selection.end)
+                            val layout = getResult()
+                            if (layout != null && layout.lineCount > 0) {
+                                lineHeightPx =
+                                    (layout.getLineBottom(0) - layout.getLineTop(0)).toInt()
+                            }
+                            cursorRect =
+                                layout?.getCursorRect(viewModel.textFieldState.selection.end)
                         },
                     )
                     Spacer(modifier = Modifier.height(extraHeight))

@@ -67,4 +67,4 @@ private fun loadSchema(schema: ConfigSchema): String {
 }
 
 private fun schemaCompleter(content: String) =
-    ConfigSchemaCompleter(Json.parseToJsonElement(content).jsonObject, configJsonEngine)
+    ConfigSchemaCompleter(Json.parseToJsonElement(content).jsonObject)
