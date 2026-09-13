@@ -4,18 +4,22 @@ import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastCoerceAtMost
 
 enum class ConfigJsonTokenType {
+    OBJECT_KEY,
     STRING,
     NUMBER,
     BOOLEAN,
     NULL,
     PUNCTUATION,
-    INVALID,
+    INVALID;
+
+    val isStringLiteral: Boolean get() = this == OBJECT_KEY || this == STRING
 }
 
 data class ConfigJsonToken(
     val type: ConfigJsonTokenType,
     val start: Int,
     val end: Int,
+    val isTerminated: Boolean = true,
 )
 
 class ConfigJsonDocument private constructor(
@@ -76,6 +80,7 @@ class ConfigJsonDocument private constructor(
                         '"' -> {
                             index++
                             var escaped = false
+                            var terminated = false
                             while (index < text.length) {
                                 val current = text[index++]
                                 if (escaped) {
@@ -83,10 +88,16 @@ class ConfigJsonDocument private constructor(
                                 } else if (current == '\\') {
                                     escaped = true
                                 } else if (current == '"') {
+                                    terminated = true
                                     break
                                 }
                             }
-                            add(ConfigJsonToken(ConfigJsonTokenType.STRING, start, index))
+                            val type = if (isFollowedByColon(text, index)) {
+                                ConfigJsonTokenType.OBJECT_KEY
+                            } else {
+                                ConfigJsonTokenType.STRING
+                            }
+                            add(ConfigJsonToken(type, start, index, terminated))
                         }
 
                         '-', in '0'..'9' -> {
@@ -111,6 +122,12 @@ class ConfigJsonDocument private constructor(
                 }
             }
             return ConfigJsonDocument(text, tokens, lineStartsOf(text))
+        }
+
+        private fun isFollowedByColon(text: String, from: Int): Boolean {
+            var index = from
+            while (index < text.length && text[index].isWhitespace()) index++
+            return index < text.length && text[index] == ':'
         }
 
         private fun lineStartsOf(text: String): IntArray {

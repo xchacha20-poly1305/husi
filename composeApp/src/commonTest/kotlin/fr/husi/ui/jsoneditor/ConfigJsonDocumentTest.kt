@@ -14,6 +14,7 @@ class ConfigJsonDocumentTest {
 
         assertEquals(
             setOf(
+                ConfigJsonTokenType.OBJECT_KEY,
                 ConfigJsonTokenType.STRING,
                 ConfigJsonTokenType.NUMBER,
                 ConfigJsonTokenType.BOOLEAN,
@@ -28,9 +29,36 @@ class ConfigJsonDocumentTest {
     fun `lexer keeps escaped quote inside a string`() {
         val text = """{"key":"escaped \" quote"}"""
 
-        val strings = ConfigJsonDocument.parse(text).tokens.filter { it.type == ConfigJsonTokenType.STRING }
+        val strings = ConfigJsonDocument.parse(text).tokens.filter { it.type.isStringLiteral }
 
         assertEquals(listOf("\"key\"", "\"escaped \\\" quote\""), strings.map { text.substring(it.start, it.end) })
+    }
+
+    @Test
+    fun `lexer tells an object key from a string value`() {
+        val text = """{"key" : "value", "array": ["item"]}"""
+
+        val strings = ConfigJsonDocument.parse(text).tokens.filter { it.type.isStringLiteral }
+
+        assertEquals(
+            listOf(
+                ConfigJsonTokenType.OBJECT_KEY,
+                ConfigJsonTokenType.STRING,
+                ConfigJsonTokenType.OBJECT_KEY,
+                ConfigJsonTokenType.STRING,
+            ),
+            strings.map { it.type },
+        )
+    }
+
+    @Test
+    fun `lexer reports whether a string has its closing quote`() {
+        val text = """{"key":"escaped \""""
+
+        val tokens = ConfigJsonDocument.parse(text).tokens
+
+        assertEquals(true, tokens.first { it.type == ConfigJsonTokenType.OBJECT_KEY }.isTerminated)
+        assertEquals(false, tokens.last().isTerminated)
     }
 
     @Test

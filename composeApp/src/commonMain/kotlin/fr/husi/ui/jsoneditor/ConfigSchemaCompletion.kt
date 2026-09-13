@@ -140,10 +140,10 @@ class ConfigSchemaCompleter(
 
         for (token in document.tokens) {
             if (token.start >= safeCursor) break
-            if (token.type == ConfigJsonTokenType.STRING) {
+            if (token.type.isStringLiteral) {
                 val stringIsKey = !frames.last().isArray &&
                     previousMeaningful(text, token.start - 1) in setOf('{', ',')
-                val isClosed = token.end - token.start >= 2 && text[token.end - 1] == '"'
+                val isClosed = token.isTerminated
                 val isInside = if (isClosed) safeCursor < token.end else safeCursor <= token.end
                 if (isInside) {
                     val contentStart = token.start + 1

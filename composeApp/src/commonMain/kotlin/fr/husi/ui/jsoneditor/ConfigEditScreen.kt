@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -79,7 +78,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -430,18 +428,7 @@ private fun ConfigEditScreenContent(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     val colorScheme = MaterialTheme.colorScheme
-    val syntaxStyles = remember(colorScheme) {
-        mapOf(
-            ConfigJsonTokenType.STRING to SpanStyle(color = Color(0xFFE6DB74)),
-            ConfigJsonTokenType.NUMBER to SpanStyle(color = Color(0xFF66D9EE)),
-            ConfigJsonTokenType.BOOLEAN to SpanStyle(color = Color(0xFFFA2772)),
-            ConfigJsonTokenType.NULL to SpanStyle(color = Color(0xFFA7E22E)),
-            ConfigJsonTokenType.PUNCTUATION to SpanStyle(
-                color = colorScheme.onSurface.copy(alpha = 0.7f),
-            ),
-            ConfigJsonTokenType.INVALID to SpanStyle(color = colorScheme.error),
-        )
-    }
+    val syntaxStyles = remember(colorScheme) { ConfigJsonSyntaxStyles(colorScheme) }
 
     Scaffold(
         modifier = modifier
@@ -516,12 +503,7 @@ private fun ConfigEditScreenContent(
                 }
             }
             val outputTransformation = remember(syntaxStyles, highlightLines) {
-                OutputTransformation {
-                    val document = configJsonEngine.document(asCharSequence().toString())
-                    for ((type, start, end) in document.tokensInLines(highlightLines.value)) {
-                        addStyle(syntaxStyles.getValue(type), start, end)
-                    }
-                }
+                configJsonOutputTransformation(syntaxStyles) { highlightLines.value }
             }
             Row(
                 modifier = Modifier
