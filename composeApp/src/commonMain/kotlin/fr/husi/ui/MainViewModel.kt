@@ -5,12 +5,10 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import fr.husi.GroupType
 import fr.husi.Key
-import fr.husi.bg.AppUpdateChecker
+import fr.husi.bg.AppUpdateAutoChecker
 import fr.husi.bg.AppUpdateInfo
-import fr.husi.bg.AppUpdateInstaller
+import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
-import fr.husi.bg.shouldAutoCheck
-import fr.husi.bg.todayEpochDay
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
@@ -35,7 +33,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -67,6 +67,7 @@ class MainViewModel(
     private val repository: Repository = resolveRepository(),
     private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
     private val snackbar: SnackbarEmitter = SnackbarEmitter(),
+    private val appUpdateChecker: AppUpdateAutoChecker = AppUpdateAutoChecker(),
 ) : AutoCloseable {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -116,33 +117,14 @@ class MainViewModel(
         }
 
         scope.launch {
-            checkAppUpdateIfDue()
+            BackendState.status
+                .map { it.state.connected }
+                .distinctUntilChanged()
+                .collect { connected ->
+                    if (appUpdate.value != null) return@collect
+                    appUpdateChecker.checkIfDue(connected)?.let { appUpdate.value = it }
+                }
         }
-    }
-
-    private suspend fun checkAppUpdateIfDue() {
-        if (!AppUpdateInstaller.isSupported) return
-
-        val today = todayEpochDay()
-        val due = shouldAutoCheck(
-            enabled = DataStore.appUpdateAutoCheck.get(),
-            onlyWhenConnected = DataStore.appUpdateOnlyWhenConnected.get(),
-            connected = DataStore.serviceState.connected,
-            lastCheckEpochDay = DataStore.appUpdateLastCheckEpochDay.get(),
-            todayEpochDay = today,
-        )
-        if (!due) return
-
-        DataStore.appUpdateLastCheckEpochDay.set(today)
-        val found = try {
-            AppUpdateChecker().check()
-        } catch (e: Exception) {
-            Logs.e("check app update", e)
-            return
-        } ?: return
-
-        if (found.version == DataStore.appUpdateSkippedVersion.get()) return
-        appUpdate.value = found
     }
 
     fun dismissAppUpdate() {

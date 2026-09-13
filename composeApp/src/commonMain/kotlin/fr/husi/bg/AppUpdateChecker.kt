@@ -3,6 +3,7 @@ package fr.husi.bg
 import fr.husi.BuildConfig
 import fr.husi.HUSI_REPOSITORY
 import fr.husi.database.DataStore
+import fr.husi.ktx.Logs
 import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
@@ -41,6 +42,43 @@ fun shouldAutoCheck(
     if (!enabled) return false
     if (onlyWhenConnected && !connected) return false
     return lastCheckEpochDay != todayEpochDay
+}
+
+fun interface AppUpdateFetcher {
+    suspend fun check(): AppUpdateInfo?
+}
+
+class AppUpdateAutoChecker(
+    private val fetcher: AppUpdateFetcher = AppUpdateFetcher { AppUpdateChecker().check() },
+    private val isSupported: Boolean = AppUpdateInstaller.isSupported,
+    private val today: () -> Long = ::todayEpochDay,
+) {
+
+    suspend fun checkIfDue(connected: Boolean): AppUpdateInfo? {
+        if (!isSupported) return null
+
+        val todayEpochDay = today()
+        val due = shouldAutoCheck(
+            enabled = DataStore.appUpdateAutoCheck.get(),
+            onlyWhenConnected = DataStore.appUpdateOnlyWhenConnected.get(),
+            connected = connected,
+            lastCheckEpochDay = DataStore.appUpdateLastCheckEpochDay.get(),
+            todayEpochDay = todayEpochDay,
+        )
+        if (!due) return null
+
+        val found = try {
+            fetcher.check()
+        } catch (e: Exception) {
+            Logs.e("check app update", e)
+            return null
+        }
+        DataStore.appUpdateLastCheckEpochDay.set(todayEpochDay)
+        if (found == null) return null
+
+        if (found.version == DataStore.appUpdateSkippedVersion.get()) return null
+        return found
+    }
 }
 
 private val ABI_PREFERENCE = listOf("x86_64", "x86", "arm64-v8a", "armeabi-v7a")

@@ -1,5 +1,6 @@
 package fr.husi.di
 
+import fr.husi.bg.AppUpdateAutoChecker
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.core.BridgeCoreClient
@@ -45,6 +46,7 @@ private fun commonUiModule() = module {
             },
         )
     }
+    single { AppUpdateAutoChecker() }
     singleOf(::ImportLinkInteractor)
     singleOf(::OpenConnectAuthController)
     single { OpenVPNAuthController(coreClient = get()) }
