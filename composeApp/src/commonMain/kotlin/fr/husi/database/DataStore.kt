@@ -10,7 +10,6 @@ import fr.husi.NETWORK_QUALITY_CONFIG_URL
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.ProtocolProvider
 import fr.husi.TrafficSortMode
-import fr.husi.TunIpStack
 import fr.husi.bg.ServiceState
 import fr.husi.compose.theme.DEFAULT
 import fr.husi.database.preference.DataStorePreferenceDataStore
@@ -214,7 +213,6 @@ object DataStore {
     val providerJuicity = configurationStore.int(Key.PROVIDER_JUICITY) { ProtocolProvider.PLUGIN }
     val providerNaive = configurationStore.int(Key.PROVIDER_NAIVE) { ProtocolProvider.CORE }
 
-    val tunIpStack = configurationStore.int(Key.TUN_IP_STACK) { TunIpStack.GO }
     val profileTrafficStatistics = configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
     val certProvider = configurationStore.int(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
     val disableProcessText = configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)

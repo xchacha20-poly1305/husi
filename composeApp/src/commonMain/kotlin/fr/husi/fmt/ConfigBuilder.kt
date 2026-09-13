@@ -4,7 +4,6 @@ import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.RuleProvider
-import fr.husi.TunIpStack
 import fr.husi.bg.VpnConstants
 import fr.husi.bg.routeGeoDir
 import fr.husi.database.DataStore
@@ -597,16 +596,8 @@ suspend fun buildConfig(
                 Inbound_TunOptions().apply {
                     type = SingBoxOptions.TYPE_TUN
                     tag = TAG_TUN
-                    stack = when (DataStore.tunIpStack.get()) {
-                        TunIpStack.GVISOR -> "gvisor"
-                        TunIpStack.SYSTEM -> "system"
-                        TunIpStack.MIXED -> "mixed"
-                        else -> {
-                            if (PlatformInfo.isLinux) {
-                                multi_queue = true
-                            }
-                            "go"
-                        }
+                    if (PlatformInfo.isLinux) {
+                        multi_queue = true
                     }
                     mtu = DataStore.mtu.get()
                     // Hijack intercepts port 53 at the TUN layer and calls

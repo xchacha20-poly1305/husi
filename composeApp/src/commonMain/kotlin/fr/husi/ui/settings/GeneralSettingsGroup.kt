@@ -32,7 +32,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
-import fr.husi.TunIpStack
 import fr.husi.bg.BackendState
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -71,7 +70,6 @@ import fr.husi.resources.developer_board
 import fr.husi.resources.developer_mode
 import fr.husi.resources.disable
 import fr.husi.resources.enable
-import fr.husi.resources.flip_camera_android
 import fr.husi.resources.follow_system
 import fr.husi.resources.insecure_warn
 import fr.husi.resources.language
@@ -97,7 +95,6 @@ import fr.husi.resources.theme
 import fr.husi.resources.traffic
 import fr.husi.resources.transgender
 import fr.husi.resources.translate
-import fr.husi.resources.tun_ip_stack
 import fr.husi.resources.wb_sunny
 import fr.husi.ui.AppLanguage
 import fr.husi.ui.AutoConnectPreference
@@ -323,39 +320,6 @@ internal fun GeneralSettingsGroup(
         summary = { Text(stringResource(serviceModeText(serviceModeValue))) },
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringResource(serviceModeText(it))) },
-    )
-
-    fun tunIpStackText(value: Int): String = when (value) {
-        TunIpStack.GVISOR -> "gVisor"
-        TunIpStack.SYSTEM -> "System"
-        TunIpStack.MIXED -> "Mixed"
-        TunIpStack.GO -> "Go"
-        else -> error("impossible")
-    }
-
-    val tunIpStackValue by DataStore.tunIpStack.collectAsStateWithLifecycle()
-    ListPreference(
-        value = tunIpStackValue,
-        onValueChange = {
-            DataStore.tunIpStack.setBlocking(it)
-            needReload()
-        },
-        values = listOf(
-            TunIpStack.GO,
-            TunIpStack.MIXED,
-            TunIpStack.GVISOR,
-            TunIpStack.SYSTEM,
-        ),
-        title = { Text(stringResource(Res.string.tun_ip_stack)) },
-        icon = {
-            MaskedIcon(
-                Res.drawable.flip_camera_android,
-                color = IconMaskColors.IconLightBlue,
-            )
-        },
-        summary = { Text(tunIpStackText(tunIpStackValue)) },
-        type = ListPreferenceType.DROPDOWN_MENU,
-        valueToText = { AnnotatedString(tunIpStackText(it)) },
     )
 
     val mtuValue by DataStore.mtu.collectAsStateWithLifecycle()
