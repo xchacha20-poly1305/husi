@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-GO_VERSION="1.27.0"
+GO_VERSION="1.27.1"
 RUST_VERSION="1.98.0"
 JAVA_VERSION="21"
 # https://github.com/JetBrains/JetBrainsRuntime
@@ -24,7 +24,7 @@ MACOS_SDK_VERSION="26.5"
 MACOS_SDK_COMMIT="896cd40df984b847d486723edce50e247385617e"
 
 # https://github.com/Dreamacro/maxmind-geoip
-GEOIP_VERSION="20260812"
+GEOIP_VERSION="20260912"
 
 # https://github.com/v2fly/domain-list-community
 GEOSITE_VERSION="20260908094002"

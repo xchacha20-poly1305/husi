@@ -13,7 +13,7 @@ require (
 	github.com/sagernet/cors v1.2.1
 	github.com/sagernet/sing v0.9.4-0.20260912053229-7776850263cd
 	github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be
-	github.com/sagernet/sing-box v1.14.1-0.20260913030646-68b74f9516a2
+	github.com/sagernet/sing-box v1.15.0-alpha.3
 	github.com/sagernet/sing-mux v0.3.7-0.20260905054442-91d1502591ce
 	github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e
 	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
