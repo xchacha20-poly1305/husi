@@ -14,8 +14,6 @@ import fr.husi.libcore.resolveHttpClientFactory
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import java.io.File
 import kotlin.time.Clock
 
@@ -158,12 +156,6 @@ internal suspend fun updateSingleRouteAsset(
 
 internal class NoUpdateException : Exception()
 
-@Serializable
-private data class GithubRelease(
-    @SerialName("tag_name")
-    val tagName: String = "",
-)
-
 internal data class GithubRepository(
     val author: String,
     val name: String,
@@ -245,14 +237,8 @@ internal fun buildGithubAssetSources(provider: Int, versionFiles: List<File>): L
     }
 }
 
-internal fun githubApiReleaseUrl(fullName: String): String =
-    "https://api.github.com/repos/$fullName/releases/latest"
-
 internal fun githubCodloadTarGzUrl(fullName: String, branchName: String): String =
     "https://codeload.github.com/$fullName/tar.gz/refs/heads/$branchName"
-
-internal fun githubReleaseDownloadUrl(fullName: String, tag: String, assetName: String): String =
-    "https://github.com/$fullName/releases/download/$tag/$assetName"
 
 internal sealed class UpdateInfo {
     data class Github(val source: GithubAssetSource, val newVersion: String) : UpdateInfo()
@@ -428,7 +414,7 @@ internal class GithubAssetUpdater(
     }
 
     private fun fetchVersion(repository: GithubRepository): String {
-        val body = remoteSource.fetchString(githubApiReleaseUrl(repository.fullName))
+        val body = remoteSource.fetchString(githubApiLatestReleaseUrl(repository.fullName))
         return kxs.decodeFromString<GithubRelease>(body).tagName.blankAsNull().orEmpty()
     }
 }
@@ -443,7 +429,7 @@ internal class GithubReleaseZipUpdater(
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
 
     override suspend fun check(): List<UpdateInfo> {
-        val body = remoteSource.fetchString(githubApiReleaseUrl(source.repository.fullName))
+        val body = remoteSource.fetchString(githubApiLatestReleaseUrl(source.repository.fullName))
         val latestVersion = kxs.decodeFromString<GithubRelease>(body)
             .tagName.blankAsNull().orEmpty()
         val currentVersion = source.versionFile.takeIf(File::isFile)

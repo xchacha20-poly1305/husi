@@ -49,6 +49,9 @@ internal expect fun AutoConnectPreference(showMessage: (String) -> Unit)
 internal expect fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit)
 
 @Composable
+internal expect fun PlatformAppUpdateSettingsGroup()
+
+@Composable
 internal expect fun PlatformGeneralOptions(needReload: () -> Unit)
 
 @Composable

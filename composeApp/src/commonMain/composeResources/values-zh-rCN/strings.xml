@@ -838,4 +838,33 @@
     <string name="remote_test_success">已连接到 %1$s</string>
     <string name="remote_uptime">已运行 %1$s</string>
     <string name="remote_delete_confirm">确定删除此远程服务器？</string>
+
+    <string name="app_update_settings">应用更新</string>
+    <string name="app_update_auto_check">自动检查更新</string>
+    <string name="app_update_auto_check_sum">每天启动时检查一次</string>
+    <string name="app_update_pre_release">接收预发布版本</string>
+    <string name="app_update_pre_release_sum">提供 Alpha、Beta 和候选发布版本</string>
+    <string name="app_update_only_when_connected">仅在已连接时检查</string>
+    <string name="app_update_only_when_connected_sum">仅在代理运行时执行自动检查</string>
+    <string name="app_update_token">GitHub 令牌</string>
+    <string name="app_update_use_shizuku">通过 Shizuku 静默安装</string>
+    <string name="app_update_use_shizuku_sum">安装下载的包时不显示系统安装提示</string>
+    <string name="app_update_shizuku_not_installed">Shizuku 未安装</string>
+    <string name="app_update_shizuku_not_running">Shizuku 已安装但未运行</string>
+    <string name="app_update_shizuku_unsupported">此 Shizuku 版本过旧</string>
+    <string name="app_update_shizuku_denied">Shizuku 权限被拒绝</string>
+    <string name="app_update_check_now">立即检查更新</string>
+    <string name="app_update_checking">检查中…</string>
+    <string name="app_update_never_checked">从未检查</string>
+    <string name="app_update_last_check">上次检查：%1$s</string>
+    <string name="app_update_up_to_date">已是最新版本</string>
+    <string name="app_update_available">版本 %1$s 可用</string>
+    <string name="app_update_download">更新</string>
+    <string name="app_update_open_release">打开发布页面</string>
+    <string name="app_update_skip_version">跳过此版本</string>
+    <string name="app_update_later">稍后</string>
+    <string name="app_update_downloading">下载中… %1$d%%</string>
+    <string name="app_update_installing">安装中…</string>
+    <string name="app_update_install_failed">安装失败：%1$s</string>
+    <string name="app_update_no_matching_asset">没有与此设备匹配的安装包。请打开发布页面手动下载。</string>
 </resources>

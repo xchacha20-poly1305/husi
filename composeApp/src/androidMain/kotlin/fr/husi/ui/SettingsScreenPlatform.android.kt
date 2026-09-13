@@ -72,6 +72,7 @@ import fr.husi.resources.vpn_session_name
 import fr.husi.resources.vpn_session_name_summary
 import fr.husi.tasker.TaskerActivity
 import fr.husi.tasker.TaskerReceiver
+import fr.husi.ui.settings.AppUpdateSettingsGroup
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 
@@ -94,6 +95,11 @@ internal actual fun AutoConnectPreference(showMessage: (String) -> Unit) {
 
 @Composable
 internal actual fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit) {
+}
+
+@Composable
+internal actual fun PlatformAppUpdateSettingsGroup() {
+    AppUpdateSettingsGroup()
 }
 
 @Composable

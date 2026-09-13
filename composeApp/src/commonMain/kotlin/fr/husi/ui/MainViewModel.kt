@@ -5,7 +5,12 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import fr.husi.GroupType
 import fr.husi.Key
+import fr.husi.bg.AppUpdateChecker
+import fr.husi.bg.AppUpdateInfo
+import fr.husi.bg.AppUpdateInstaller
 import fr.husi.bg.DeepLinkDispatcher
+import fr.husi.bg.shouldAutoCheck
+import fr.husi.bg.todayEpochDay
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
@@ -72,6 +77,9 @@ class MainViewModel(
     val dialogEvent: SharedFlow<MainAlertDialogEvent>
         field = MutableSharedFlow<MainAlertDialogEvent>()
 
+    val appUpdate: StateFlow<AppUpdateInfo?>
+        field = MutableStateFlow<AppUpdateInfo?>(null)
+
     private fun alertDialog(
         message: StringOrRes,
         title: StringOrRes = StringOrRes.Res(Res.string.error_title),
@@ -106,6 +114,44 @@ class MainViewModel(
                 }
             }
         }
+
+        scope.launch {
+            checkAppUpdateIfDue()
+        }
+    }
+
+    private suspend fun checkAppUpdateIfDue() {
+        if (!AppUpdateInstaller.isSupported) return
+
+        val today = todayEpochDay()
+        val due = shouldAutoCheck(
+            enabled = DataStore.appUpdateAutoCheck.get(),
+            onlyWhenConnected = DataStore.appUpdateOnlyWhenConnected.get(),
+            connected = DataStore.serviceState.connected,
+            lastCheckEpochDay = DataStore.appUpdateLastCheckEpochDay.get(),
+            todayEpochDay = today,
+        )
+        if (!due) return
+
+        DataStore.appUpdateLastCheckEpochDay.set(today)
+        val found = try {
+            AppUpdateChecker().check()
+        } catch (e: Exception) {
+            Logs.e("check app update", e)
+            return
+        } ?: return
+
+        if (found.version == DataStore.appUpdateSkippedVersion.get()) return
+        appUpdate.value = found
+    }
+
+    fun dismissAppUpdate() {
+        appUpdate.value = null
+    }
+
+    fun skipAppUpdate() = scope.launch {
+        appUpdate.value?.let { DataStore.appUpdateSkippedVersion.set(it.version) }
+        appUpdate.value = null
     }
 
     fun resetUrlTestStatus() {

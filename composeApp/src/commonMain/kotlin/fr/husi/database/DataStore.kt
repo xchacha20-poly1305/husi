@@ -1,5 +1,6 @@
 package fr.husi.database
 
+import fr.husi.BuildConfig
 import fr.husi.CONNECTION_TEST_URL
 import fr.husi.CertProvider
 import fr.husi.DEFAULT_HTTP_BYPASS
@@ -20,6 +21,7 @@ import fr.husi.database.preference.port
 import fr.husi.database.preference.preferenceStoreScope
 import fr.husi.database.preference.string
 import fr.husi.database.preference.stringSet
+import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.first
@@ -248,5 +250,17 @@ object DataStore {
     val desktopNavRailWidth = configurationStore.int(Key.DESKTOP_NAV_RAIL_WIDTH) { 220 }
 
     val activeRemoteServerId = configurationStore.long(Key.ACTIVE_REMOTE_SERVER_ID)
+
+    // app update
+
+    val appUpdateAutoCheck = configurationStore.boolean(Key.APP_UPDATE_AUTO_CHECK)
+    val appUpdatePreRelease = configurationStore.boolean(Key.APP_UPDATE_PRE_RELEASE) {
+        Libcore.isPreRelease(BuildConfig.VERSION_NAME)
+    }
+    val appUpdateOnlyWhenConnected = configurationStore.boolean(Key.APP_UPDATE_ONLY_WHEN_CONNECTED)
+    val appUpdateToken = configurationStore.string(Key.APP_UPDATE_TOKEN)
+    val appUpdateUseShizuku = configurationStore.boolean(Key.APP_UPDATE_USE_SHIZUKU)
+    val appUpdateLastCheckEpochDay = configurationStore.long(Key.APP_UPDATE_LAST_CHECK_EPOCH_DAY) { 0L }
+    val appUpdateSkippedVersion = configurationStore.string(Key.APP_UPDATE_SKIPPED_VERSION)
 
 }

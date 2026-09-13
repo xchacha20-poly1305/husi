@@ -73,6 +73,7 @@ sealed class NavRoutes : NavKey {
             Inbound,
             Misc,
             Ntp,
+            AppUpdate,
         }
     }
 

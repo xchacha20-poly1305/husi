@@ -32,6 +32,7 @@ import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
+import fr.husi.resources.app_update_settings
 import fr.husi.resources.apply
 import fr.husi.resources.arrow_back
 import fr.husi.resources.back
@@ -48,6 +49,7 @@ import fr.husi.resources.system_daemon
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
+import fr.husi.ui.PlatformAppUpdateSettingsGroup
 import fr.husi.ui.PlatformDaemonSettingsGroup
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -113,6 +115,7 @@ fun SettingsPageScreen(
         NavRoutes.SettingsPage.Kind.Inbound -> Res.string.inbound_settings
         NavRoutes.SettingsPage.Kind.Misc -> Res.string.cag_misc
         NavRoutes.SettingsPage.Kind.Ntp -> Res.string.ntp_category
+        NavRoutes.SettingsPage.Kind.AppUpdate -> Res.string.app_update_settings
     }
 
     Scaffold(
@@ -179,6 +182,7 @@ fun SettingsPageScreen(
                             NavRoutes.SettingsPage.Kind.Ntp -> NtpSettingsGroup(
                                 needReload = { needReload() },
                             )
+                            NavRoutes.SettingsPage.Kind.AppUpdate -> PlatformAppUpdateSettingsGroup()
                         }
                     }
                 }

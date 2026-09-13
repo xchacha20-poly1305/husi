@@ -37,6 +37,9 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.husi.BuildConfig
+import fr.husi.HUSI_REPOSITORY
+import fr.husi.bg.githubLatestReleasePageUrl
+import fr.husi.bg.githubReleasesPageUrl
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.SimpleIconButton
@@ -97,9 +100,9 @@ fun AboutScreen(
     val releaseLink = remember(BuildConfig.VERSION_NAME) {
         val isPreVersion = Libcore.isPreRelease(BuildConfig.VERSION_NAME)
         if (isPreVersion) {
-            "https://github.com/xchacha20-poly1305/husi/releases"
+            githubReleasesPageUrl(HUSI_REPOSITORY)
         } else {
-            "https://github.com/xchacha20-poly1305/husi/releases/latest"
+            githubLatestReleasePageUrl(HUSI_REPOSITORY)
         }
     }
     val boxVersion = remember { Libcore.versionBox() }

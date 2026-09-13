@@ -716,4 +716,33 @@
     <string name="ipv4" translatable="false">IPv4</string>
     <string name="ipv6" translatable="false">IPv6</string>
     <string name="connected_since">連線時間</string>
+
+    <string name="app_update_settings">應用程式更新</string>
+    <string name="app_update_auto_check">自動檢查更新</string>
+    <string name="app_update_auto_check_sum">每天啟動時檢查一次</string>
+    <string name="app_update_pre_release">接收預發布版本</string>
+    <string name="app_update_pre_release_sum">提供 Alpha、Beta 和候選發布版本</string>
+    <string name="app_update_only_when_connected">僅在已連線時檢查</string>
+    <string name="app_update_only_when_connected_sum">僅在代理執行時執行自動檢查</string>
+    <string name="app_update_token">GitHub 權杖</string>
+    <string name="app_update_use_shizuku">透過 Shizuku 靜默安裝</string>
+    <string name="app_update_use_shizuku_sum">安裝下載的套件時不顯示系統安裝提示</string>
+    <string name="app_update_shizuku_not_installed">Shizuku 未安裝</string>
+    <string name="app_update_shizuku_not_running">Shizuku 已安裝但未執行</string>
+    <string name="app_update_shizuku_unsupported">此 Shizuku 版本過舊</string>
+    <string name="app_update_shizuku_denied">Shizuku 權限被拒絕</string>
+    <string name="app_update_check_now">立即檢查更新</string>
+    <string name="app_update_checking">檢查中…</string>
+    <string name="app_update_never_checked">從未檢查</string>
+    <string name="app_update_last_check">上次檢查：%1$s</string>
+    <string name="app_update_up_to_date">已是最新版本</string>
+    <string name="app_update_available">版本 %1$s 可用</string>
+    <string name="app_update_download">更新</string>
+    <string name="app_update_open_release">開啟發布頁面</string>
+    <string name="app_update_skip_version">跳過此版本</string>
+    <string name="app_update_later">稍後</string>
+    <string name="app_update_downloading">下載中… %1$d%%</string>
+    <string name="app_update_installing">安裝中…</string>
+    <string name="app_update_install_failed">安裝失敗：%1$s</string>
+    <string name="app_update_no_matching_asset">沒有與此裝置匹配的安裝套件。請開啟發布頁面手動下載。</string>
 </resources>

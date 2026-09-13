@@ -6,6 +6,7 @@ import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.HTTPResponse
 import fr.husi.libcore.HttpClientFactory
 import fr.husi.libcore.URL
+import java.io.File
 
 /**
  * In-memory replacement for [HttpClientFactory] used by tests.
@@ -25,6 +26,12 @@ class FakeHttpClientFactory : HttpClientFactory {
 
     /** Number of [CopyCallback.update] callbacks driven during writeTo / setContentZero. */
     var nextChunkCount: Int = 4
+
+    /**
+     * Bytes the next [HTTPResponse.writeTo] actually writes to disk. Leave it null to
+     * write exactly [nextDownloadBytes]; set it to model a truncated download.
+     */
+    var nextWrittenBytes: Long? = null
 
     /** When non-null, the next [HTTPRequest.execute] throws this instead of returning a response. */
     var nextThrowable: Throwable? = null
@@ -143,7 +150,9 @@ class FakeHTTPResponse(private val factory: FakeHttpClientFactory) : HTTPRespons
 
     override fun writeTo(target: String, callback: CopyCallback) {
         writeToTarget = target
-        callback.drive(factory.nextDownloadBytes, factory.nextChunkCount)
+        val written = factory.nextWrittenBytes ?: factory.nextDownloadBytes
+        File(target).writeBytes(ByteArray(written.toInt()))
+        callback.drive(factory.nextDownloadBytes, written, factory.nextChunkCount)
     }
 }
 
@@ -188,11 +197,14 @@ class FakeURL(private val raw: String) : URL {
         throw UnsupportedOperationException("FakeURL only implements scheme/host accessors")
 }
 
-private fun CopyCallback.drive(totalBytes: Long, chunkCount: Int) {
-    setLength(totalBytes)
+private fun CopyCallback.drive(totalBytes: Long, chunkCount: Int) =
+    drive(totalBytes, totalBytes, chunkCount)
+
+private fun CopyCallback.drive(reportedLength: Long, copiedBytes: Long, chunkCount: Int) {
+    setLength(reportedLength)
     val chunks = chunkCount.coerceAtLeast(1)
-    val per = totalBytes / chunks
-    val remainder = totalBytes - per * chunks
+    val per = copiedBytes / chunks
+    val remainder = copiedBytes - per * chunks
     repeat(chunks - 1) { update(per) }
     update(per + remainder)
 }

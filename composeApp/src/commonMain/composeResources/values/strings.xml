@@ -907,4 +907,33 @@
     <string name="ipv4" translatable="false">IPv4</string>
     <string name="ipv6" translatable="false">IPv6</string>
     <string name="connected_since">Connected since</string>
+
+    <string name="app_update_settings">App Update</string>
+    <string name="app_update_auto_check">Check for updates automatically</string>
+    <string name="app_update_auto_check_sum">Check once a day when the app starts</string>
+    <string name="app_update_pre_release">Receive pre-releases</string>
+    <string name="app_update_pre_release_sum">Offer alpha, beta and release candidate builds</string>
+    <string name="app_update_only_when_connected">Only check while connected</string>
+    <string name="app_update_only_when_connected_sum">Skip the automatic check unless the proxy is running</string>
+    <string name="app_update_token">GitHub token</string>
+    <string name="app_update_use_shizuku">Install silently with Shizuku</string>
+    <string name="app_update_use_shizuku_sum">Install the downloaded package without the system installer prompt</string>
+    <string name="app_update_shizuku_not_installed">Shizuku is not installed</string>
+    <string name="app_update_shizuku_not_running">Shizuku is installed but not running</string>
+    <string name="app_update_shizuku_unsupported">This Shizuku version is too old</string>
+    <string name="app_update_shizuku_denied">Shizuku permission was denied</string>
+    <string name="app_update_check_now">Check for updates now</string>
+    <string name="app_update_checking">Checking…</string>
+    <string name="app_update_never_checked">Never checked</string>
+    <string name="app_update_last_check">Last checked on %1$s</string>
+    <string name="app_update_up_to_date">Already up to date</string>
+    <string name="app_update_available">Version %1$s is available</string>
+    <string name="app_update_download">Update</string>
+    <string name="app_update_open_release">Open release page</string>
+    <string name="app_update_skip_version">Skip this version</string>
+    <string name="app_update_later">Later</string>
+    <string name="app_update_downloading">Downloading… %1$d%%</string>
+    <string name="app_update_installing">Installing…</string>
+    <string name="app_update_install_failed">Install failed: %1$s</string>
+    <string name="app_update_no_matching_asset">No package matches this device. Open the release page to download it manually.</string>
 </resources>

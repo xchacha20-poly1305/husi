@@ -117,14 +117,6 @@ class RouteAssetUpdatesTest {
     // region URL construction
 
     @Test
-    fun `githubApiReleaseUrl includes repository full name`() {
-        assertEquals(
-            "https://api.github.com/repos/SagerNet/sing-geoip/releases/latest",
-            githubApiReleaseUrl("SagerNet/sing-geoip"),
-        )
-    }
-
-    @Test
     fun `githubCodloadTarGzUrl includes full name and branch`() {
         assertEquals(
             "https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set-unstable",
@@ -172,7 +164,7 @@ class RouteAssetUpdatesTest {
 
         assertEquals(1, updates.size)
         assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
-        verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geoip")) }
+        verify { remoteSource.fetchString(githubApiLatestReleaseUrl("SagerNet/sing-geoip")) }
     }
 
     @Test
@@ -250,8 +242,8 @@ class RouteAssetUpdatesTest {
 
         updater.check()
 
-        verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geoip")) }
-        verify { remoteSource.fetchString(githubApiReleaseUrl("SagerNet/sing-geosite")) }
+        verify { remoteSource.fetchString(githubApiLatestReleaseUrl("SagerNet/sing-geoip")) }
+        verify { remoteSource.fetchString(githubApiLatestReleaseUrl("SagerNet/sing-geosite")) }
     }
 
     // endregion
@@ -282,7 +274,7 @@ class RouteAssetUpdatesTest {
 
         assertEquals(1, updates.size)
         assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
-        verify { remoteSource.fetchString(githubApiReleaseUrl("runetfreedom/russia-v2ray-rules-dat")) }
+        verify { remoteSource.fetchString(githubApiLatestReleaseUrl("runetfreedom/russia-v2ray-rules-dat")) }
     }
 
     @Test

@@ -117,6 +117,10 @@ internal actual fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit) {
 }
 
 @Composable
+internal actual fun PlatformAppUpdateSettingsGroup() {
+}
+
+@Composable
 private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
     val repository = resolveDesktopRepository()
     val hostState by repository.coreHostState.collectAsStateWithLifecycle()

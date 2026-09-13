@@ -1,5 +1,7 @@
 package fr.husi
 
+const val HUSI_REPOSITORY = "xchacha20-poly1305/husi"
+
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
 const val NETWORK_QUALITY_CONFIG_URL = "https://mensura.cdn-apple.com/api/v1/gm/config"
 
@@ -124,6 +126,15 @@ object Key {
     const val TRAFFIC_CONNECTION_QUERY = "trafficConnectionQuery"
     const val PROXY_SET_ORDER = "proxySetOrder"
     const val DASHBOARD_WIDGETS = "dashboardWidgets"
+
+    // App Update Settings
+    const val APP_UPDATE_AUTO_CHECK = "appUpdateAutoCheck"
+    const val APP_UPDATE_PRE_RELEASE = "appUpdatePreRelease"
+    const val APP_UPDATE_ONLY_WHEN_CONNECTED = "appUpdateOnlyWhenConnected"
+    const val APP_UPDATE_TOKEN = "appUpdateToken"
+    const val APP_UPDATE_USE_SHIZUKU = "appUpdateUseShizuku"
+    const val APP_UPDATE_LAST_CHECK_EPOCH_DAY = "appUpdateLastCheckEpochDay"
+    const val APP_UPDATE_SKIPPED_VERSION = "appUpdateSkippedVersion"
 
     const val NETWORK_QUALITY_CONFIG_URL = "networkQualityConfigURL"
     const val NETWORK_QUALITY_SERIAL = "networkQualitySerial"
