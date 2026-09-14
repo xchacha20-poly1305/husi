@@ -6,6 +6,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sagernet/sing-box"
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
@@ -57,16 +59,48 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 
 // standaloneURLTest measures an outbound in a throwaway instance,
 // leaving the running instance untouched.
-func standaloneURLTest(config, tag, link string, timeoutMs int32, options urltest.Flags, platformInterface PlatformInterface) (int32, error) {
-	instance, err := newBoxInstance(config, platformInterface, true)
+func standaloneURLTest(config, tag, link string, timeoutMs int32, options urltest.Flags, platformInterface PlatformInterface) (latency int32, err error) {
+	defer catchPanic("standaloneURLTest", func(panicErr error) {
+		latency, err = -1, panicErr
+	})
+
+	ctx := baseContext(platformInterface)
+	boxOptions, err := parseConfig(ctx, config)
 	if err != nil {
+		return -1, err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	registerPlatformInterface(ctx, platformInterface, true)
+
+	instance, err := box.New(box.Options{
+		Options: boxOptions,
+		Context: ctx,
+	})
+	if err != nil {
+		cancel()
 		return -1, E.Cause(err, "create instance")
 	}
-	defer instance.Close()
+	defer closeBoxTimeout(instance, cancel)
+
 	err = instance.Start()
 	if err != nil {
 		return -1, E.Cause(err, "start instance")
 	}
-	// History storage is on the instance context for the forTest path.
-	return urltest.RunTag(instance.ctx, instance.Outbound(), tag, link, timeoutMs, options)
+	return urltest.RunTag(ctx, instance.Outbound(), tag, link, timeoutMs, options)
+}
+
+func closeBoxTimeout(instance *box.Box, cancel context.CancelFunc) {
+	done := make(chan struct{})
+	go func() {
+		defer catchPanic("box.Close", func(error) {})
+		defer close(done)
+		cancel()
+		_ = instance.Close()
+	}()
+	select {
+	case <-done:
+	case <-time.After(C.FatalStopTimeout):
+		// What can I do?
+	}
 }
