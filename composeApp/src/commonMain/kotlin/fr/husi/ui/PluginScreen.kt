@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.collectAsStateWithLifecycle
@@ -62,7 +63,6 @@ import fr.husi.resources.plugin_not_installed_summary
 import fr.husi.resources.version_x
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.enums.enumEntries

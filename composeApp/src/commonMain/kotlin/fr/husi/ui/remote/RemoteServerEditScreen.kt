@@ -35,6 +35,7 @@ import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.fadingEdge
@@ -69,7 +70,6 @@ import fr.husi.resources.wifi_find
 import fr.husi.ui.PreviewContainer
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 

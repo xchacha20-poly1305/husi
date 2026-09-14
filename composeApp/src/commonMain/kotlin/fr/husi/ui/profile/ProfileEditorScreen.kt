@@ -50,6 +50,7 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
@@ -87,7 +88,6 @@ import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollba
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource

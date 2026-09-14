@@ -6,16 +6,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -54,10 +55,9 @@ import fr.husi.resources.cancel
 import fr.husi.resources.not_set
 import fr.husi.resources.ok
 import fr.husi.resources.password
-import fr.husi.resources.settings
 import fr.husi.resources.wifi
 import me.zhanghai.compose.preference.PreferenceCategory
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
+import me.zhanghai.compose.preference.ProvidePreferenceLocals as BaseProvidePreferenceLocals
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -72,19 +72,19 @@ object PreferenceType {
 }
 
 /**
- * Not only support icon, but also use spacer as icon if not set.
- * */
+ * A header naming the group that follows it.
+ *
+ * The title is indented so that it sits just inside the group's left edge rather than lining up
+ * with the rows' text, which is where a native Android preference category puts it.
+ */
 @Composable
 fun PreferenceCategory(
     modifier: Modifier = Modifier,
-    icon: @Composable () -> Unit = { Spacer(Modifier.size(24.dp)) },
     text: @Composable () -> Unit,
 ) {
     PreferenceCategory(
         title = {
-            Row {
-                icon()
-                Spacer(Modifier.padding(8.dp))
+            Box(Modifier.padding(start = PreferenceGroupDefaults.CategoryTitleIndent)) {
                 text()
             }
         },
@@ -270,19 +270,43 @@ fun <T> OrderedMultiselectPreference(
 }
 
 object PreferenceGroupDefaults {
-    /** Radius of the group as a whole, matching a menu's standalone group shape. */
-    val groupShape: Shape
-        @Composable get() = MaterialTheme.shapes.large
+    /**
+     * Radius of the group as a whole. The pair of radii is spelled out here rather than taken from
+     * [MaterialTheme.shapes] so that the outer and inner corners cannot drift apart.
+     */
+    val GroupCornerRadius = 20.dp
 
     /** Radius of a single row. Rows at the edges are rounded up by the group's clip. */
-    val itemShape: Shape
-        @Composable get() = MaterialTheme.shapes.extraSmall
+    val ItemCornerRadius = 4.dp
 
+    val groupShape: Shape
+        @Composable get() = RoundedCornerShape(GroupCornerRadius)
+
+    val itemShape: Shape
+        @Composable get() = RoundedCornerShape(ItemCornerRadius)
+
+    /** A row is brighter than the ground it sits on; see [screenContainerColor]. */
     val itemContainerColor: Color
-        @Composable get() = MaterialTheme.colorScheme.surfaceContainer
+        @Composable get() = MaterialTheme.colorScheme.surfaceBright
+
+    /**
+     * Ground that a preference list sits on.
+     *
+     * It is darker than [itemContainerColor] so that rows read as raised entries, which is the
+     * relationship a native Android preference page uses in both light and dark themes.
+     * [ProvidePreferenceLocals] paints it.
+     */
+    val screenContainerColor: Color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainerLow
 
     /** Gap that separates two rows, matching a menu's group spacing. */
     val ItemSpacing = 2.dp
+
+    /** Height every row reaches, so that rows without an icon match rows with one. */
+    val ItemMinHeight = 72.dp
+
+    /** Distance from the group's left edge to a [PreferenceCategory] title. */
+    val CategoryTitleIndent = 8.dp
 
     /** Arrangement for a nested column of rows, such as the body of an `AnimatedVisibility`. */
     val itemArrangement: Arrangement.Vertical = Arrangement.spacedBy(ItemSpacing)
@@ -297,10 +321,18 @@ object PreferenceGroupDefaults {
 @Composable
 fun PreferenceItemSurface(content: @Composable () -> Unit) {
     Surface(
+        modifier = Modifier.heightIn(min = PreferenceGroupDefaults.ItemMinHeight),
         shape = PreferenceGroupDefaults.itemShape,
         color = PreferenceGroupDefaults.itemContainerColor,
         content = content,
     )
+}
+
+@Composable
+fun ProvidePreferenceLocals(content: @Composable () -> Unit) {
+    Box(modifier = Modifier.background(PreferenceGroupDefaults.screenContainerColor)) {
+        BaseProvidePreferenceLocals(content = content)
+    }
 }
 
 /**
@@ -430,15 +462,7 @@ private fun PreviewCustomPreference() {
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            PreferenceCategory(
-                icon = {
-                    Icon(
-                        vectorResource(Res.drawable.settings),
-                        contentDescription = null,
-                    )
-                },
-                text = { Text("Account Settings") },
-            )
+            PreferenceCategory(text = { Text("Account Settings") })
 
             Spacer(Modifier.height(16.dp))
 

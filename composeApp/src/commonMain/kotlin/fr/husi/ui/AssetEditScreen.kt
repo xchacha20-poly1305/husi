@@ -34,6 +34,7 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.MaskedIcon
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.TextFieldPreference
@@ -73,7 +74,6 @@ import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollba
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 

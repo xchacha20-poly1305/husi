@@ -40,6 +40,7 @@ import fr.husi.compose.ListPreference
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.PreferenceType
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
@@ -113,7 +114,6 @@ import fr.husi.resources.vpn_key
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 

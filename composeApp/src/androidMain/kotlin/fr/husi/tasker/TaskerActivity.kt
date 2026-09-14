@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material3.AlertDialog
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import fr.husi.compose.material3.Text
@@ -84,7 +85,6 @@ import fr.husi.ui.ComposeActivity
 import fr.husi.ui.configuration.ProfileSelectSheet
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 

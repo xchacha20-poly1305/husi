@@ -58,6 +58,7 @@ import fr.husi.compose.MaskedIcon
 import fr.husi.compose.MultiSelectListPreference
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
@@ -169,7 +170,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import me.zhanghai.compose.preference.ListPreferenceType
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.io.File

@@ -22,10 +22,12 @@ import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextFieldPreference
 ```
 
-Only `ListPreferenceType` and `ProvidePreferenceLocals` still come from
-`me.zhanghai.compose.preference` at a call site; neither is a row. `PreferenceCategory` also has a
-wrapper in `fr.husi.compose`, but that one deliberately gets **no** item surface: it is a header
-that sits *outside* the group.
+`ListPreferenceType` is the only thing a call site still takes from `me.zhanghai.compose.preference`;
+it is not a row. `ProvidePreferenceLocals` has a wrapper in `fr.husi.compose` too — it provides the
+upstream locals *and* paints `PreferenceGroupDefaults.screenContainerColor`, the ground rows sit on,
+so a screen that imports the upstream one loses every group's edges. `PreferenceCategory` likewise
+has a wrapper, but that one deliberately gets **no** item surface: it is a header that sits
+*outside* the group.
 
 If a row type is needed that has no wrapper yet, add one to `PreferenceItems.kt` rather than
 importing upstream at the call site.
@@ -43,6 +45,11 @@ preferenceGroup {
     GeneralSettingsGroup(...)
 }
 ```
+
+`PreferenceCategory` takes only `text`. It has no icon slot: the title is indented
+`PreferenceGroupDefaults.CategoryTitleIndent` so that it lands just inside the group's left edge,
+which is where a native Android category title sits — it does not line up with the rows' text, and
+padding it out to the width of the icon column is a regression, not an alignment fix.
 
 Compose conditional sections directly in `LazyListScope` and use
 `preferenceGroup` for each group. Do not wrap a group in a separate `item` or
@@ -66,7 +73,26 @@ group only supplies the large outer radius. There are no divider lines, and ther
 
 `preferenceGroup` is a transparent `Column` clipped to `PreferenceGroupDefaults.groupShape`, laid
 out with `PreferenceGroupDefaults.itemArrangement` (a 2dp gap). Each row draws
-`PreferenceGroupDefaults.itemShape` in `itemContainerColor`.
+`PreferenceGroupDefaults.itemShape` in `itemContainerColor`, and reaches at least `ItemMinHeight`
+so that a row without an icon is as tall as a row with one.
+
+The numbers match the AOSP SettingsLib expressive preference page and are chosen as a set:
+
+| Default                | Value                | AOSP counterpart                           |
+|------------------------|----------------------|--------------------------------------------|
+| `GroupCornerRadius`    | 20dp                 | `settingslib_preference_corner_radius`     |
+| `ItemCornerRadius`     | 4dp                  | inner corners of `settingslib_round_background_*` |
+| `ItemMinHeight`        | 72dp                 | `ExpressivePreferenceRootLayoutStyle`      |
+| `itemContainerColor`   | `surfaceBright`      | `settingslib_materialColorSurfaceBright`   |
+| `screenContainerColor` | `surfaceContainerLow`| Settings' `android:colorBackground`        |
+| `CategoryTitleIndent`  | 8dp                  | category's inner `paddingStart`            |
+
+The radii are literal dp rather than `MaterialTheme.shapes` entries on purpose: the outer and inner
+radius only read as one group if they move together, and `shapes.large` is 16dp, not 20dp.
+
+A row is **brighter** than the ground it sits on, not darker. That is why every preference screen
+wraps its list in `fr.husi.compose.ProvidePreferenceLocals`, which paints `screenContainerColor`
+behind it; a screen that skips it leaves rows invisible against a light background.
 
 Rows never pass a position. A row's own corners are always small, and the group's clip rounds the
 first and last row up to the large radius, because the intersection of a small corner with the
@@ -161,7 +187,7 @@ Before finishing, run targeted searches:
 
 ```bash
 rg -n "PreferenceDivider|HorizontalDivider" composeApp/src/commonMain/kotlin/fr/husi/ui/settings composeApp/src/commonMain/kotlin/fr/husi/ui/profile
-rg -n "^import me\\.zhanghai\\.compose\\.preference\\.(Preference|SwitchPreference|TwoTargetSwitchPreference|ListPreference|MultiSelectListPreference|TextFieldPreference|SliderPreference)$" composeApp/src
+rg -n "^import me\\.zhanghai\\.compose\\.preference\\.(Preference|SwitchPreference|TwoTargetSwitchPreference|ListPreference|MultiSelectListPreference|TextFieldPreference|SliderPreference|ProvidePreferenceLocals)$" composeApp/src
 rg -n "LazyListScope\\.(autoConnect|platformGeneralOptions|platformSecurityOptions|meteredNetworkSetting|platformRouteOptions|platformMiscOptions|disableProcessText|httpProxyBypass)" composeApp/src
 rg -n "icon = \\{\\s*Icon\\(" composeApp/src/commonMain/kotlin/fr/husi/ui/settings/ composeApp/src/androidMain/kotlin/fr/husi/ui/SettingsScreenPlatform.android.kt composeApp/src/desktopMain/kotlin/fr/husi/ui/SettingsScreenPlatform.desktop.kt
 rg -n "IconMaskShapes\\.(risk|credential|route)\\(\\)" composeApp/src/commonMain/kotlin/fr/husi/ui composeApp/src/commonMain/kotlin/fr/husi/compose/Preference.kt
