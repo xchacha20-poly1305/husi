@@ -1,5 +1,6 @@
 package fr.husi.ui
 
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.flow.Flow
@@ -48,8 +49,7 @@ internal expect fun AutoConnectPreference(showMessage: (String) -> Unit)
 @Composable
 internal expect fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit)
 
-@Composable
-internal expect fun PlatformAppUpdateSettingsGroup()
+internal expect fun LazyListScope.platformAppUpdateSettings()
 
 @Composable
 internal expect fun PlatformGeneralOptions(needReload: () -> Unit)

@@ -137,7 +137,9 @@ class AppUpdateChecker(
         }
         val body = fetchString(url)
         return if (acceptPreRelease) {
-            kxs.decodeFromString<List<GithubRelease>>(body).firstOrNull { !it.draft }
+            kxs.decodeFromString<List<GithubRelease>>(body).firstOrNull {
+                !it.draft && !it.tagName.startsWith(PLUGIN_RELEASE_TAG_PREFIX)
+            }
         } else {
             kxs.decodeFromString<GithubRelease>(body)
         }

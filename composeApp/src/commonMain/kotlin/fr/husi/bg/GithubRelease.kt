@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 
 private const val RELEASE_LIST_PAGE_SIZE = 10
 
+internal const val PLUGIN_RELEASE_TAG_PREFIX = "plugin-"
+
 @Serializable
 internal data class GithubRelease(
     @SerialName("tag_name")
@@ -34,6 +36,8 @@ internal fun GithubReleaseAsset.sha256Hex(): String? = digest
     ?.lowercase()
     ?.blankAsNull()
 
+internal const val GITHUB_NEW_TOKEN_URL = "https://github.com/settings/tokens/new?description=husi"
+
 internal fun githubApiLatestReleaseUrl(fullName: String): String =
     "https://api.github.com/repos/$fullName/releases/latest"
 
@@ -41,10 +45,12 @@ internal fun githubApiReleasesUrl(fullName: String): String =
     "https://api.github.com/repos/$fullName/releases?per_page=$RELEASE_LIST_PAGE_SIZE"
 
 internal fun githubReleaseDownloadUrl(fullName: String, tag: String, assetName: String): String =
-    "https://github.com/$fullName/releases/download/$tag/$assetName"
+    "${githubRepositoryUrl(fullName)}/releases/download/$tag/$assetName"
+
+internal fun githubRepositoryUrl(fullName: String): String = "https://github.com/$fullName"
 
 internal fun githubReleasesPageUrl(fullName: String): String =
-    "https://github.com/$fullName/releases"
+    "${githubRepositoryUrl(fullName)}/releases"
 
 internal fun githubLatestReleasePageUrl(fullName: String): String =
     "${githubReleasesPageUrl(fullName)}/latest"

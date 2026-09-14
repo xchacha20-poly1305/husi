@@ -318,6 +318,15 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     }
 
     @Test
+    fun `check skips plugin releases in the release list`() = runTest {
+        DataStore.appUpdatePreRelease.set(true)
+        val plugin = release("plugin-mieru-v3.37.0-0", assets = listOf("mieru-plugin.apk"))
+        fakeHttp.nextResponseContent = "[$plugin,${release("2.0.0")}]".encodeToByteArray()
+
+        assertEquals("2.0.0", checker().check()?.version)
+    }
+
+    @Test
     fun `check skips draft releases in the release list`() = runTest {
         DataStore.appUpdatePreRelease.set(true)
         val draft = release("9.9.9").replace("\"draft\": false", "\"draft\": true")

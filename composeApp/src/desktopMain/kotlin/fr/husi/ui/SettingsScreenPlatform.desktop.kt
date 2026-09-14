@@ -1,5 +1,6 @@
 package fr.husi.ui
 
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -116,8 +117,7 @@ internal actual fun PlatformDaemonSettingsGroup(showMessage: (String) -> Unit) {
     DaemonOptionsGroup(showMessage = showMessage)
 }
 
-@Composable
-internal actual fun PlatformAppUpdateSettingsGroup() {
+internal actual fun LazyListScope.platformAppUpdateSettings() {
 }
 
 @Composable

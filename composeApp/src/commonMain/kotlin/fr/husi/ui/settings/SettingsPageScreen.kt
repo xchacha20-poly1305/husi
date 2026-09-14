@@ -49,8 +49,8 @@ import fr.husi.resources.system_daemon
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
-import fr.husi.ui.PlatformAppUpdateSettingsGroup
 import fr.husi.ui.PlatformDaemonSettingsGroup
+import fr.husi.ui.platformAppUpdateSettings
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.Dispatchers
@@ -148,42 +148,56 @@ fun SettingsPageScreen(
                         .fadingEdge(listState),
                     contentPadding = contentPadding,
                 ) {
-                    preferenceGroup {
-                        when (kind) {
-                            NavRoutes.SettingsPage.Kind.General -> GeneralSettingsGroup(
+                    when (kind) {
+                        NavRoutes.SettingsPage.Kind.General -> preferenceGroup {
+                            GeneralSettingsGroup(
                                 needReload = { needReload() },
                                 needRestart = { needRestart() },
                                 showMessage = { message ->
                                     snackbar.show(StringOrRes.Direct(message))
                                 },
                             )
-                            NavRoutes.SettingsPage.Kind.Daemon -> PlatformDaemonSettingsGroup(
+                        }
+                        NavRoutes.SettingsPage.Kind.Daemon -> preferenceGroup {
+                            PlatformDaemonSettingsGroup(
                                 showMessage = { message ->
                                     snackbar.show(StringOrRes.Direct(message))
                                 },
                             )
-                            NavRoutes.SettingsPage.Kind.Route -> RouteSettingsGroup(
+                        }
+                        NavRoutes.SettingsPage.Kind.Route -> preferenceGroup {
+                            RouteSettingsGroup(
                                 needReload = { needReload() },
                                 openAppManager = openAppManager,
                             )
-                            NavRoutes.SettingsPage.Kind.Protocol -> ProtocolSettingsGroup(
+                        }
+                        NavRoutes.SettingsPage.Kind.Protocol -> preferenceGroup {
+                            ProtocolSettingsGroup(
                                 needReload = { needReload() },
                             )
-                            NavRoutes.SettingsPage.Kind.Dns -> DnsSettingsGroup(
+                        }
+                        NavRoutes.SettingsPage.Kind.Dns -> preferenceGroup {
+                            DnsSettingsGroup(
                                 needReload = { needReload() },
                             )
-                            NavRoutes.SettingsPage.Kind.Inbound -> InboundSettingsGroup(
+                        }
+                        NavRoutes.SettingsPage.Kind.Inbound -> preferenceGroup {
+                            InboundSettingsGroup(
                                 needReload = { needReload() },
                             )
-                            NavRoutes.SettingsPage.Kind.Misc -> MiscSettingsGroup(
+                        }
+                        NavRoutes.SettingsPage.Kind.Misc -> preferenceGroup {
+                            MiscSettingsGroup(
                                 needReload = { needReload() },
                                 needRestart = { needRestart() },
                             )
-                            NavRoutes.SettingsPage.Kind.Ntp -> NtpSettingsGroup(
+                        }
+                        NavRoutes.SettingsPage.Kind.Ntp -> preferenceGroup {
+                            NtpSettingsGroup(
                                 needReload = { needReload() },
                             )
-                            NavRoutes.SettingsPage.Kind.AppUpdate -> PlatformAppUpdateSettingsGroup()
                         }
+                        NavRoutes.SettingsPage.Kind.AppUpdate -> platformAppUpdateSettings()
                     }
                 }
 

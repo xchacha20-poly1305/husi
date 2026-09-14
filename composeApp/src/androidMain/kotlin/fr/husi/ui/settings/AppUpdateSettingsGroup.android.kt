@@ -1,18 +1,24 @@
 package fr.husi.ui.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.bg.AppUpdateChecker
 import fr.husi.bg.AppUpdateInfo
 import fr.husi.bg.AppUpdateInstaller
+import fr.husi.bg.GITHUB_NEW_TOKEN_URL
 import fr.husi.bg.ShizukuAvailability
+import fr.husi.bg.isObtainiumInstalled
+import fr.husi.bg.obtainiumAddAppLink
 import fr.husi.bg.todayEpochDay
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -20,8 +26,10 @@ import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.Preference
 import fr.husi.compose.SwitchPreference
+import fr.husi.compose.TextButton
 import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Text
+import fr.husi.compose.preferenceGroup
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
@@ -32,6 +40,8 @@ import fr.husi.resources.app_update_check_now
 import fr.husi.resources.app_update_checking
 import fr.husi.resources.app_update_last_check
 import fr.husi.resources.app_update_never_checked
+import fr.husi.resources.app_update_obtainium
+import fr.husi.resources.app_update_obtainium_sum
 import fr.husi.resources.app_update_only_when_connected
 import fr.husi.resources.app_update_only_when_connected_sum
 import fr.husi.resources.app_update_pre_release
@@ -41,9 +51,11 @@ import fr.husi.resources.app_update_shizuku_not_installed
 import fr.husi.resources.app_update_shizuku_not_running
 import fr.husi.resources.app_update_shizuku_unsupported
 import fr.husi.resources.app_update_token
+import fr.husi.resources.app_update_token_create
 import fr.husi.resources.app_update_up_to_date
 import fr.husi.resources.app_update_use_shizuku
 import fr.husi.resources.app_update_use_shizuku_sum
+import fr.husi.resources.apps
 import fr.husi.resources.cached
 import fr.husi.resources.fiber_smart_record
 import fr.husi.resources.password
@@ -57,10 +69,21 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
 
+internal fun LazyListScope.appUpdateSettings() {
+    preferenceGroup {
+        AppUpdateSettingsGroup()
+    }
+    if (!isObtainiumInstalled()) return
+    preferenceGroup {
+        ObtainiumPreference()
+    }
+}
+
 @Composable
-internal fun AppUpdateSettingsGroup() {
+private fun AppUpdateSettingsGroup() {
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarEmitter.current
+    val uriHandler = LocalUriHandler.current
 
     val autoCheck by DataStore.appUpdateAutoCheck.collectAsStateWithLifecycle()
     val preRelease by DataStore.appUpdatePreRelease.collectAsStateWithLifecycle()
@@ -141,6 +164,12 @@ internal fun AppUpdateSettingsGroup() {
                 shape = IconMaskShapes.credential(),
             )
         },
+        dialogFooter = {
+            TextButton(
+                text = stringResource(Res.string.app_update_token_create),
+                onClick = { uriHandler.openUri(GITHUB_NEW_TOKEN_URL) },
+            )
+        },
     )
 
     SwitchPreference(
@@ -195,6 +224,20 @@ internal fun AppUpdateSettingsGroup() {
             },
         )
     }
+}
+
+@Composable
+private fun ObtainiumPreference() {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    val preRelease by DataStore.appUpdatePreRelease.collectAsStateWithLifecycle()
+
+    Preference(
+        title = { Text(stringResource(Res.string.app_update_obtainium)) },
+        icon = { MaskedIcon(Res.drawable.apps, color = IconMaskColors.IconLightOrange) },
+        summary = { Text(stringResource(Res.string.app_update_obtainium_sum)) },
+        onClick = { uriHandler.openUri(obtainiumAddAppLink(context.packageName, preRelease)) },
+    )
 }
 
 @Composable

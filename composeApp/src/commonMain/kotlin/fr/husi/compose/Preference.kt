@@ -105,6 +105,7 @@ fun PasswordPreference(
             color = IconMaskColors.IconCoral,
         )
     },
+    dialogFooter: @Composable (() -> Unit)? = null,
 ) {
     TextFieldPreference(
         value = value,
@@ -124,20 +125,23 @@ fun PasswordPreference(
         },
         valueToText = { it },
         textField = { textFieldValue, onTextFieldValueChange, onOk ->
-            OutlinedTextField(
-                value = textFieldValue,
-                onValueChange = onTextFieldValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                // visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { onOk() },
-                ),
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                OutlinedTextField(
+                    value = textFieldValue,
+                    onValueChange = onTextFieldValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    // visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { onOk() },
+                    ),
+                )
+                dialogFooter?.invoke()
+            }
         },
     )
 }

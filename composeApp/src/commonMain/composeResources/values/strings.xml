@@ -916,6 +916,7 @@
     <string name="app_update_only_when_connected">Only check while connected</string>
     <string name="app_update_only_when_connected_sum">Skip the automatic check unless the proxy is running</string>
     <string name="app_update_token">GitHub token</string>
+    <string name="app_update_token_create">Create one on GitHub</string>
     <string name="app_update_use_shizuku">Install silently with Shizuku</string>
     <string name="app_update_use_shizuku_sum">Install the downloaded package without the system installer prompt</string>
     <string name="app_update_shizuku_not_installed">Shizuku is not installed</string>
@@ -923,6 +924,8 @@
     <string name="app_update_shizuku_unsupported">This Shizuku version is too old</string>
     <string name="app_update_shizuku_denied">Shizuku permission was denied</string>
     <string name="app_update_check_now">Check for updates now</string>
+    <string name="app_update_obtainium">Track in Obtainium</string>
+    <string name="app_update_obtainium_sum">Hand the release source to the installed Obtainium</string>
     <string name="app_update_checking">Checking…</string>
     <string name="app_update_never_checked">Never checked</string>
     <string name="app_update_last_check">Last checked on %1$s</string>
