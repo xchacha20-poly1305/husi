@@ -4,6 +4,7 @@ import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlinx.coroutines.test.runTest
@@ -91,5 +92,29 @@ class JuicityFmtTest {
         val outbound = buildSingBoxOutboundJuicityBean(bean)
 
         assertNull(outbound.pin_cert_sha256)
+    }
+
+    @Test
+    fun `clone should keep the bean a JuicityBean`() {
+        val source = JuicityBean().apply {
+            serverAddress = "example.com"
+            serverPort = 8443
+            uuid = "test-uuid"
+            password = "secret"
+            sni = "sni.example.com"
+            allowInsecure = true
+            pinSHA256 = "sha256hash"
+        }
+
+        val restored = source.clone()
+
+        assertIs<JuicityBean>(restored)
+        assertEquals("example.com", restored.serverAddress)
+        assertEquals(8443, restored.serverPort)
+        assertEquals("test-uuid", restored.uuid)
+        assertEquals("secret", restored.password)
+        assertEquals("sni.example.com", restored.sni)
+        assertEquals(true, restored.allowInsecure)
+        assertEquals("sha256hash", restored.pinSHA256)
     }
 }
