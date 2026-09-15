@@ -108,6 +108,8 @@
     <string name="speed_detail">代理： %1$s↑ %2$s↓\n直連： %3$s↑ %4$s↓</string>
     <string name="cag_dns">DNS 設定</string>
     <string name="direct_dns">直連 DNS</string>
+    <string name="outbound_dns">出站 DNS</string>
+    <string name="outbound_dns_sum">解析出站伺服器地址。未設定時使用直連 DNS</string>
     <string name="dns_hosts">域名重寫</string>
     <string name="dns_only">僅 DNS</string>
     <string name="encryption">加密</string>

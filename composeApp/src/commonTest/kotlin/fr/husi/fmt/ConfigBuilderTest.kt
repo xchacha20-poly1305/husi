@@ -2483,6 +2483,108 @@ class ConfigBuilderTest : HusiKoinTest() {
             assertEquals(null, parseEndpoints(buildConfig(chain))["vpn"]!!["on_demand"])
         }
 
+    @Test
+    fun `buildConfig without outbound DNS resolves server addresses by direct DNS`() = runBlocking {
+        disableFakeDns()
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "server.example.com",
+            port = 1080,
+        )
+
+        val result = buildConfig(proxy)
+
+        assertEquals(null, parseDnsServers(result)[TAG_DNS_OUTBOUND])
+        assertEquals(
+            TAG_DNS_DIRECT,
+            serverDomainRule(result, "server.example.com")["server"]?.jsonPrimitive?.content,
+        )
+    }
+
+    @Test
+    fun `buildConfig with group outbound DNS resolves server addresses by it`() = runBlocking {
+        disableFakeDns()
+
+        val group = ProxyGroup(name = "group", outboundDns = "tcp://1.1.1.1").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "server.example.com",
+            port = 1080,
+        )
+
+        val result = buildConfig(proxy)
+        val server = assertNotNull(parseDnsServers(result)[TAG_DNS_OUTBOUND])
+
+        assertEquals(SingBoxOptions.DNS_TYPE_TCP, server["type"]?.jsonPrimitive?.content)
+        assertEquals("1.1.1.1", server["server"]?.jsonPrimitive?.content)
+        assertEquals(null, server["detour"])
+        assertEquals(
+            TAG_DNS_LOCAL,
+            server["domain_resolver"]?.jsonObject?.get("server")?.jsonPrimitive?.content,
+        )
+        assertEquals(
+            TAG_DNS_OUTBOUND,
+            serverDomainRule(result, "server.example.com")["server"]?.jsonPrimitive?.content,
+        )
+    }
+
+    @Test
+    fun `buildConfig gives each group its own outbound DNS server`() = runBlocking {
+        disableFakeDns()
+
+        val sharedGroup = ProxyGroup(name = "shared", outboundDns = "tcp://1.1.1.1")
+            .applyDefaultValues()
+        sharedGroup.id = SagerDatabase.groupDao.createGroup(sharedGroup)
+        val otherGroup = ProxyGroup(name = "other", outboundDns = "tcp://8.8.8.8").applyDefaultValues()
+        otherGroup.id = SagerDatabase.groupDao.createGroup(otherGroup)
+
+        val exit = createSocksProxy(
+            groupId = sharedGroup.id,
+            order = 1,
+            name = "exit",
+            host = "exit.example.com",
+            port = 1080,
+        )
+        val front = createSocksProxy(
+            groupId = otherGroup.id,
+            order = 2,
+            name = "front",
+            host = "front.example.com",
+            port = 1080,
+        )
+        val chain = createChain(
+            groupId = sharedGroup.id,
+            order = 3,
+            name = "chain",
+            proxies = listOf(exit.id, front.id),
+        )
+
+        val result = buildConfig(chain)
+        val servers = parseDnsServers(result)
+
+        fun serverAddressOf(domain: String): String? {
+            val tag = serverDomainRule(result, domain)["server"]!!.jsonPrimitive.content
+            assertTrue(tag.startsWith(TAG_DNS_OUTBOUND))
+            return assertNotNull(servers[tag])["server"]?.jsonPrimitive?.content
+        }
+
+        assertEquals("1.1.1.1", serverAddressOf("exit.example.com"))
+        assertEquals("8.8.8.8", serverAddressOf("front.example.com"))
+    }
+
+    private fun serverDomainRule(result: ConfigBuildResult, domain: String) =
+        parseDnsRules(result).first { rule ->
+            rule["domain"]?.jsonArray?.any { it.jsonPrimitive.content == domain } == true
+        }
+
     private fun parseOutbounds(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.configJson).jsonObject["outbounds"]!!
             .jsonArray

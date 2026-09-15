@@ -108,6 +108,7 @@ const val TAG_BRIDGE = "bridge"
 // DNS
 const val TAG_DNS_REMOTE = "dns-remote"
 const val TAG_DNS_DIRECT = "dns-direct"
+const val TAG_DNS_OUTBOUND = "dns-outbound"
 const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
 const val TAG_DNS_HOSTS = "dns-hosts"
@@ -163,6 +164,39 @@ private class DNSServerGroup(val primaryTag: String, serverCount: Int) {
             }.asKxsMap()
         }
     }
+}
+
+private class PreResolveDomains(
+    private val defaultGroup: DNSServerGroup,
+) {
+    private val groupsByLink = LinkedHashMap<String, DNSServerGroup>()
+    private val domainsByGroup = LinkedHashMap<DNSServerGroup, MutableSet<String>>()
+
+    val dedicatedServers: Map<String, DNSServerGroup>
+        get() = groupsByLink.filterValues { domainsByGroup.containsKey(it) }
+
+    private fun register(link: String): DNSServerGroup = groupsByLink.getOrPut(link) {
+        val tag = if (groupsByLink.isEmpty()) {
+            TAG_DNS_OUTBOUND
+        } else {
+            "$TAG_DNS_OUTBOUND-${groupsByLink.size}"
+        }
+        DNSServerGroup(tag, 1)
+    }
+
+    fun groupOf(link: String?): DNSServerGroup {
+        return link?.blankAsNull()?.let(::register) ?: defaultGroup
+    }
+
+    fun add(domain: String, group: DNSServerGroup = defaultGroup) {
+        domainsByGroup.getOrPut(group) { mutableSetOf() }.add(domain)
+    }
+
+    fun rules(): List<JSONMap> = domainsByGroup.entries
+        .sortedBy { it.key === defaultGroup }
+        .flatMap { (group, domains) ->
+            group.routeRules { domain = domains.toMutableList() }
+        }
 }
 
 class ConfigBuildResult(
@@ -456,8 +490,7 @@ suspend fun buildConfig(
             ).associateBy { it.id }
         }
     val userDNSRuleList = mutableListOf<JSONMap>()
-    val domainListDNSDirectForce = mutableSetOf<String>()
-    val bypassDNSBeans = hashSetOf<AbstractBean>()
+    val bypassDNSProfiles = mutableListOf<ProxyEntity>()
     val isVPN = DataStore.serviceMode.get() == Key.MODE_VPN
     val allowAccess = DataStore.allowAccess.get()
     val bind = if (!forTest && allowAccess) {
@@ -466,12 +499,43 @@ suspend fun buildConfig(
         LOCALHOST4
     }
     val remoteDns = DataStore.remoteDns.get().listByLineIgnoringComments()
+    require(remoteDns.isNotEmpty()) { "missing remote DNS" }
     val directDNS = DataStore.directDns.get().listByLineIgnoringComments()
-    if (remoteDns.isEmpty()) error("missing remote DNS")
-    if (directDNS.isEmpty()) error("missing direct DNS")
+    require(directDNS.isNotEmpty()) { "missing direct DNS" }
     val remoteDNSGroup = DNSServerGroup(TAG_DNS_REMOTE, remoteDns.size)
     val directDNSGroup = DNSServerGroup(TAG_DNS_DIRECT, directDNS.size)
     val fakeDNSGroup = DNSServerGroup(TAG_DNS_FAKE, 1)
+    val preResolveDomains = PreResolveDomains(directDNSGroup)
+    val outboundDnsByGroup = if (forTest) {
+        emptyMap()
+    } else {
+        SagerDatabase.groupDao.allGroups().first().mapNotNull { group ->
+            group.outboundDns?.blankAsNull()?.let { group.id to it }
+        }.toMap()
+    }
+
+    fun addServerDomains(entity: ProxyEntity) {
+        val bean = entity.requireBean()
+        if (bean is ChainBean || bean is ProxySetBean) return
+        val dnsGroup = preResolveDomains.groupOf(outboundDnsByGroup[entity.groupId])
+
+        var serverAddress = bean.serverAddress
+        if (bean is ConfigBean) {
+            bean.config.toJsonMapKxs()["server"]?.let { serverAddress = it.toString() }
+        }
+        if (serverAddress.isNotBlank() && !serverAddress.isIpAddress()) {
+            preResolveDomains.add(serverAddress, dnsGroup)
+        }
+
+        if (bean is ShadowQUICBean && bean.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
+            for (path in bean.extraPaths.lines()) {
+                val address = path.substringBeforeLast(":", "").blankAsNull() ?: continue
+                if (!address.isIpAddress()) {
+                    preResolveDomains.add(address, dnsGroup)
+                }
+            }
+        }
+    }
     val mDNSInterfaces = DataStore.mDNS.get()
         .blankAsNull()
         ?.listByLineOrComma()
@@ -539,7 +603,7 @@ suspend fun buildConfig(
             interval = DataStore.ntpInterval.get()
 
             if (!server!!.isIpAddress()) {
-                domainListDNSDirectForce.add(server!!)
+                preResolveDomains.add(server!!)
             }
         }
 
@@ -731,35 +795,15 @@ suspend fun buildConfig(
             val entriesWithContinuation = resolvedChain.links.mapTo(HashSet()) { it.from }
             val alwaysReferenced = resolvedChain.alwaysReferencedKeys()
 
-            fun addDNSDirectForce(bean: AbstractBean) {
-                if (bean is ChainBean || bean is ProxySetBean) return
-
-                bean.serverAddress.takeIf { it.isNotBlank() }?.let { address ->
-                    if (!address.isIpAddress()) {
-                        domainListDNSDirectForce.add(address)
-                    }
-                }
-
-                if (bean is ShadowQUICBean && bean.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
-                    bean.extraPaths.lines().forEach {
-                        val address = it.substringBeforeLast(":", "").blankAsNull()
-                            ?: return@forEach
-                        if (!address.isIpAddress()) {
-                            domainListDNSDirectForce.add(address)
-                        }
-                    }
-                }
-            }
-
             // Resolve DNS for every actual dial target. A flattened iteration is ambiguous when
             // a selector contains several chains with independent exits.
             for (entry in profileList) {
                 if (entry.key in entriesWithContinuation) {
-                    addDNSDirectForce(entry.entity.requireBean())
+                    addServerDomains(entry.entity)
                 }
             }
             for (exit in resolvedChain.exits) {
-                profileEntriesByKey[exit.key]?.entity?.requireBean()?.let(::addDNSDirectForce)
+                profileEntriesByKey[exit.key]?.entity?.let(::addServerDomains)
             }
 
             profileList.forEach { entry ->
@@ -940,7 +984,7 @@ suspend fun buildConfig(
 
             // Keep terminal profiles available for the bypass lookup pass below.
             for (exit in resolvedChain.exits) {
-                profileEntriesByKey[exit.key]?.entity?.requireBean()?.let(bypassDNSBeans::add)
+                profileEntriesByKey[exit.key]?.entity?.let(bypassDNSProfiles::add)
             }
 
             for (link in resolvedChain.links) {
@@ -1401,21 +1445,7 @@ suspend fun buildConfig(
         }
 
         // Bypass lookup for the terminal profiles in each expanded graph.
-        bypassDNSBeans.forEach {
-            if (it is ChainBean || it is ProxySetBean) return@forEach
-            var serverAddr = it.serverAddress
-
-            if (it is ConfigBean) {
-                val config = it.config.toJsonMapKxs()
-                config["server"]?.let { server ->
-                    serverAddr = server.toString()
-                }
-            }
-
-            if (serverAddr.isNotBlank() && !serverAddr.isIpAddress()) {
-                domainListDNSDirectForce.add(serverAddr)
-            }
-        }
+        bypassDNSProfiles.forEach(::addServerDomains)
 
         remoteDns.forEach {
             var address = it
@@ -1425,7 +1455,7 @@ suspend fun buildConfig(
             try {
                 Libcore.parseURL("https://$address").apply {
                     if (!host.isIpAddress()) {
-                        domainListDNSDirectForce.add(host)
+                        preResolveDomains.add(host)
                     }
                 }
             } catch (_: Exception) {
@@ -1451,6 +1481,19 @@ suspend fun buildConfig(
                     link,
                     null,
                     tag,
+                    DomainResolveOptions().apply {
+                        server = TAG_DNS_LOCAL
+                    },
+                ),
+            )
+        }
+
+        preResolveDomains.dedicatedServers.forEach { (link, group) ->
+            dns!!.servers!!.add(
+                buildDNSServer(
+                    link,
+                    null,
+                    group.primaryTag,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_LOCAL
                     },
@@ -1644,14 +1687,7 @@ suspend fun buildConfig(
                 }.asKxsMap(),
             )
 
-            if (domainListDNSDirectForce.isNotEmpty()) {
-                dns!!.rules!!.addAll(
-                    0,
-                    directDNSGroup.routeRules {
-                        domain = domainListDNSDirectForce.distinct().toMutableList()
-                    },
-                )
-            }
+            dns!!.rules!!.addAll(0, preResolveDomains.rules())
 
             if (remoteDNSGroup.races) {
                 dns!!.rules!!.addAll(remoteDNSGroup.routeRules {})

@@ -14,19 +14,22 @@ import fr.husi.io.BinaryOutput
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.repository.resolveRepository
-import kotlinx.coroutines.flow.Flow
 import fr.husi.resources.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 
 /**
  * A group is a container of proxies.
- * NEVER add options that re-configs proxies when building config.
- * The options re-configs proxies leads to ambiguous: what should we do if a proxy set / chain
- * imports proxy in other groups, while its groups also have per-group override options.
- * Negative example: font/landing proxy, group-level uTLS fingerprint, or make a group selector.
  *
- * [SubscriptionBean.forceResolve] is an exception. Because it is strong coupling with subscription,
- * and it does not modify proxies when building config.
+ * A group-level option is only allowed if it acts on a proxy's own server address. Every proxy
+ * belongs to exactly one group, so such an option stays unambiguous even when a chain or proxy
+ * set imports proxies from other groups. [SubscriptionBean.forceResolve] and [outboundDns] are
+ * examples of this kind.
+ *
+ * NEVER add an option that acts on the traffic passing through a proxy: front/landing proxy,
+ * group-level uTLS fingerprint, or making a group a selector. That traffic can belong to whoever
+ * referenced the proxy through a chain or proxy set in another group, so there is no single
+ * group whose option should apply.
  */
 @Entity(tableName = "proxy_groups")
 data class ProxyGroup(
@@ -37,10 +40,7 @@ data class ProxyGroup(
     var type: Int = GroupType.BASIC,
     var subscription: SubscriptionBean? = null,
     var order: Int = GroupOrder.ORIGIN,
-
-    // TODO remove them on next database bump
-    var frontProxy: Long = -1L,
-    var landingProxy: Long = -1L,
+    var outboundDns: String? = null,
 ) : Serializable() {
 
     @Transient
@@ -60,7 +60,7 @@ data class ProxyGroup(
             subscription.serializeForShare(output)
 
         } else {
-            output.writeInt(0)
+            output.writeInt(1)
             output.writeLong(id)
             output.writeLong(userOrder)
             output.writeBoolean(ungrouped)
@@ -71,6 +71,7 @@ data class ProxyGroup(
                 subscription?.serializeToBuffer(output)
             }
             output.writeInt(order)
+            output.writeString(outboundDns)
         }
     }
 
@@ -100,6 +101,9 @@ data class ProxyGroup(
                 subscription.deserializeFromBuffer(input)
             }
             order = input.readInt()
+            if (version >= 1) {
+                outboundDns = input.readNullableString()
+            }
         }
     }
 

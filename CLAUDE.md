@@ -37,3 +37,4 @@ grep -r description .agents/skills/ --include="SKILL.md"
 ## Document
 
 If you belongs to Claude 5 model family, **do not write any comment or document** expect AGENTS.md or CLAUDE.md. If it is a must, please call `claude-sonnet-4-6` (You should write the full model name instead of `sonnet`, which links to later version of sonnet.) via subagent.
+You can only tell your subagent the overview, and can't give them the full comment because Claude whose version greater than 5 has poor language expression.

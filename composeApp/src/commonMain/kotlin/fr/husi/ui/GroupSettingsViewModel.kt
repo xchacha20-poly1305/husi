@@ -29,6 +29,7 @@ internal data class GroupSettingsUiState(
     val name: String = "",
     val type: Int = GroupType.BASIC,
     val order: Int = GroupOrder.ORIGIN,
+    val outboundDns: String = "",
 
     val subscriptionType: Int = SubscriptionType.RAW,
     val subscriptionToken: String = "",
@@ -83,6 +84,7 @@ internal class GroupSettingsViewModel(
                 name = group.name ?: "",
                 type = group.type,
                 order = group.order,
+                outboundDns = group.outboundDns ?: "",
 
                 subscriptionType = subscription.type,
                 subscriptionToken = subscription.token,
@@ -131,6 +133,7 @@ internal class GroupSettingsViewModel(
         name = state.name.blankAsNull() ?: "My Group"
         type = state.type
         order = state.order
+        outboundDns = state.outboundDns.blankAsNull()
 
         if (type == GroupType.SUBSCRIPTION) {
             subscription = (subscription ?: SubscriptionBean().applyDefaultValues()).apply {
@@ -168,6 +171,12 @@ internal class GroupSettingsViewModel(
     fun setOrder(order: Int) = viewModelScope.launch {
         uiState.update {
             it.copy(order = order)
+        }
+    }
+
+    fun setOutboundDns(outboundDns: String) = viewModelScope.launch {
+        uiState.update {
+            it.copy(outboundDns = outboundDns)
         }
     }
 

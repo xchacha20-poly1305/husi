@@ -98,6 +98,8 @@ import fr.husi.resources.no_thanks
 import fr.husi.resources.ok
 import fr.husi.resources.ooc_subscription_token
 import fr.husi.resources.oocv1
+import fr.husi.resources.outbound_dns
+import fr.husi.resources.outbound_dns_sum
 import fr.husi.resources.question_mark
 import fr.husi.resources.raw
 import fr.husi.resources.security
@@ -320,6 +322,25 @@ private fun LazyListScope.groupSettings(
             summary = { Text(stringResource(groupOrder(uiState.order))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(groupOrder(it))) },
+        )
+        TextFieldPreference(
+            value = uiState.outboundDns,
+            onValueChange = { viewModel.setOutboundDns(it) },
+            title = { Text(stringResource(Res.string.outbound_dns)) },
+            textToValue = { it },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.dns,
+                    color = IconMaskColors.IconLightGreen,
+                )
+            },
+            summary = {
+                Text(
+                    uiState.outboundDns.blankAsNull()
+                        ?: stringResource(Res.string.outbound_dns_sum),
+                )
+            },
+            valueToText = { it },
         )
     }
 

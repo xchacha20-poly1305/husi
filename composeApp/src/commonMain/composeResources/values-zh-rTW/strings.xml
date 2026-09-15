@@ -178,6 +178,8 @@
     <string name="dns_only">僅 DNS</string>
     <string name="direct_dns">直連 DNS</string>
     <string name="remote_dns">遠端 DNS</string>
+    <string name="outbound_dns">出站 DNS</string>
+    <string name="outbound_dns_sum">解析出站伺服器位址。未設定時使用直連 DNS</string>
     <string name="connection_test_available_http">成功：HTTP 握手花費 %1$d 毫秒</string>
     <string name="allow_insecure_sum">停用憑證檢查。啟用後，此配置就跟明文一樣沒有安全性可言</string>
     <string name="allow_insecure">允許不安全的連線</string>
