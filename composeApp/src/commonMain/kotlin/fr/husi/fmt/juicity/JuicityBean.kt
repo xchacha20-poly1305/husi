@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
-import fr.husi.fmt.tuic.TuicBean
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
 import fr.husi.resources.Res
@@ -74,8 +73,8 @@ class JuicityBean : AbstractBean() {
     override val defaultPort get() = 443
     override val canTCPing get() = false
 
-    override fun clone(): AbstractBean {
-        return BeanConverters.deserialize(TuicBean(), BeanConverters.serialize(this))
+    override fun clone(): JuicityBean {
+        return BeanConverters.deserialize(JuicityBean(), BeanConverters.serialize(this))
     }
 
 }
