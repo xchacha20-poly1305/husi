@@ -743,7 +743,7 @@
     <string name="app_update_open_release">開啟發布頁面</string>
     <string name="app_update_skip_version">跳過此版本</string>
     <string name="app_update_later">稍後</string>
-    <string name="app_update_downloading">下載中… %1$d%%</string>
+    <string name="app_update_downloading">下載中… %1$d%</string>
     <string name="app_update_installing">安裝中…</string>
     <string name="app_update_install_failed">安裝失敗：%1$s</string>
     <string name="app_update_no_matching_asset">沒有與此裝置匹配的安裝套件。請開啟發布頁面手動下載。</string>

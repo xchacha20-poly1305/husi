@@ -865,7 +865,7 @@
     <string name="app_update_open_release">打开发布页面</string>
     <string name="app_update_skip_version">跳过此版本</string>
     <string name="app_update_later">稍后</string>
-    <string name="app_update_downloading">下载中… %1$d%%</string>
+    <string name="app_update_downloading">下载中… %1$d%</string>
     <string name="app_update_installing">安装中…</string>
     <string name="app_update_install_failed">安装失败：%1$s</string>
     <string name="app_update_no_matching_asset">没有与此设备匹配的安装包。请打开发布页面手动下载。</string>

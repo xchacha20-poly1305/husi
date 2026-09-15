@@ -937,7 +937,7 @@
     <string name="app_update_open_release">Open release page</string>
     <string name="app_update_skip_version">Skip this version</string>
     <string name="app_update_later">Later</string>
-    <string name="app_update_downloading">Downloading… %1$d%%</string>
+    <string name="app_update_downloading">Downloading… %1$d%</string>
     <string name="app_update_installing">Installing…</string>
     <string name="app_update_install_failed">Install failed: %1$s</string>
     <string name="app_update_no_matching_asset">No package matches this device. Open the release page to download it manually.</string>
