@@ -8,6 +8,7 @@ enum class AppPermission {
     WifiInfo,
     Camera,
     LocalNetwork,
+    InstallPackages,
 }
 
 interface PermissionPlatform {

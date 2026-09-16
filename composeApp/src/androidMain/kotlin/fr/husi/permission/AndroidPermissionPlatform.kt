@@ -71,6 +71,14 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
         onLocalNetworkResult = {}
     }
 
+    var onInstallPackagesResult by remember { mutableStateOf<(Boolean) -> Unit>({}) }
+    val installPackagesLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        onInstallPackagesResult(context.canInstallPackages())
+        onInstallPackagesResult = {}
+    }
+
     return remember(
         context,
         queryInstalledAppsLauncher,
@@ -79,6 +87,7 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
         backgroundLocationLauncher,
         cameraLauncher,
         localNetworkLauncher,
+        installPackagesLauncher,
     ) {
         object : PermissionPlatform {
             private val supportsPostNotificationPermission: Boolean
@@ -87,6 +96,8 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
                 get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
             private val supportsLocalNetworkPermission: Boolean
                 get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN
+            private val supportsInstallPackagesPermission: Boolean
+                get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
             override fun hasPermission(permission: AppPermission): Boolean {
                 return when (permission) {
@@ -115,6 +126,8 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
                             context.hasGrantedPermission(Permission.LocalNetwork)
                         }
                     }
+
+                    AppPermission.InstallPackages -> context.canInstallPackages()
                 }
             }
 
@@ -145,6 +158,8 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
                             context.hasPlatformPermission(Permission.LocalNetwork)
                         }
                     }
+
+                    AppPermission.InstallPackages -> supportsInstallPackagesPermission
                 }
             }
 
@@ -181,6 +196,14 @@ fun rememberAndroidPermissionPlatform(): PermissionPlatform {
                     AppPermission.LocalNetwork -> {
                         onLocalNetworkResult = onResult
                         localNetworkLauncher.launch(Permission.LocalNetwork)
+                    }
+
+                    AppPermission.InstallPackages -> {
+                        onInstallPackagesResult = onResult
+                        installPackagesLauncher.launch(
+                            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+                                .setData("package:${context.packageName}".toUri()),
+                        )
                     }
                 }
             }
@@ -243,6 +266,9 @@ private object Permission {
 
 private fun Context.hasGrantedPermission(permission: String): Boolean =
     ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+
+private fun Context.canInstallPackages(): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.O || packageManager.canRequestPackageInstalls()
 
 private fun Context.hasPlatformPermission(permission: String): Boolean = try {
     packageManager.getPermissionInfo(permission, 0) != null

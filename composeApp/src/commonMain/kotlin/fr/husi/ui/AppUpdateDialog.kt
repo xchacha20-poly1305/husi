@@ -24,6 +24,8 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
+import fr.husi.permission.AppPermission
+import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.app_update_available
@@ -34,6 +36,7 @@ import fr.husi.resources.app_update_installing
 import fr.husi.resources.app_update_no_matching_asset
 import fr.husi.resources.app_update_open_release
 import fr.husi.resources.app_update_skip_version
+import fr.husi.resources.permission_denied
 import fr.husi.resources.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -57,6 +60,7 @@ fun AppUpdateDialog(
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarEmitter.current
     val uriHandler = LocalUriHandler.current
+    val permission = LocalPermissionPlatform.current
 
     var step by remember { mutableStateOf<AppUpdateStep>(AppUpdateStep.Idle) }
     val busy = step != AppUpdateStep.Idle
@@ -91,11 +95,29 @@ fun AppUpdateDialog(
         }
     }
 
+    fun requestInstallPermissionThenUpdate() {
+        scope.launch {
+            if (AppUpdateInstaller.installsWithShizuku() ||
+                permission.hasPermission(AppPermission.InstallPackages)
+            ) {
+                startUpdate()
+                return@launch
+            }
+            permission.requestPermission(AppPermission.InstallPackages) { granted ->
+                if (granted) {
+                    startUpdate()
+                } else {
+                    snackbar.show(StringOrRes.Res(Res.string.permission_denied))
+                }
+            }
+        }
+    }
+
     ScrollableDialog(
         onDismissRequest = { if (!busy) onDismissRequest() },
         confirmButton = {
             if (canDownload) {
-                TextButton(onClick = ::startUpdate, enabled = !busy) {
+                TextButton(onClick = ::requestInstallPermissionThenUpdate, enabled = !busy) {
                     Text(stringResource(Res.string.app_update_download))
                 }
             } else {

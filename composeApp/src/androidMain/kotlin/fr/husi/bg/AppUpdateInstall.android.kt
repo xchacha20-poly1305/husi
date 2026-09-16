@@ -23,13 +23,15 @@ actual object AppUpdateInstaller {
     actual suspend fun requestShizukuPermission(): ShizukuAvailability =
         ShizukuState.requestPermission()
 
+    actual suspend fun installsWithShizuku(): Boolean =
+        DataStore.appUpdateUseShizuku.get() &&
+            ShizukuState.availability.value == ShizukuAvailability.Granted
+
     actual suspend fun install(apk: File): ApkInstallResult {
         stopRunningService()
 
         val context = resolveAndroidRepository().context
-        if (DataStore.appUpdateUseShizuku.get() &&
-            ShizukuState.availability.value == ShizukuAvailability.Granted
-        ) {
+        if (installsWithShizuku()) {
             try {
                 val host = ShizukuApkInstallSessionHost(context.packageName)
                 when (val result = installApk(context, host, apk)) {

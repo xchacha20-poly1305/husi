@@ -854,6 +854,8 @@
     <string name="app_update_shizuku_not_running">Shizuku 已安装但未运行</string>
     <string name="app_update_shizuku_unsupported">此 Shizuku 版本过旧</string>
     <string name="app_update_shizuku_denied">Shizuku 权限被拒绝</string>
+    <string name="app_update_install_permission">允许安装应用</string>
+    <string name="app_update_install_permission_sum">使用系统安装程序安装更新时需要此权限</string>
     <string name="app_update_check_now">立即检查更新</string>
     <string name="app_update_checking">检查中…</string>
     <string name="app_update_never_checked">从未检查</string>

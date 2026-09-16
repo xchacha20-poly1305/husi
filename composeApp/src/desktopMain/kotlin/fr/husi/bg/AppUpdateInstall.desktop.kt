@@ -16,6 +16,8 @@ actual object AppUpdateInstaller {
     actual suspend fun requestShizukuPermission(): ShizukuAvailability =
         ShizukuAvailability.NotInstalled
 
+    actual suspend fun installsWithShizuku(): Boolean = false
+
     actual suspend fun install(apk: File): ApkInstallResult =
         throw UnsupportedOperationException("in-app update is Android only")
 }

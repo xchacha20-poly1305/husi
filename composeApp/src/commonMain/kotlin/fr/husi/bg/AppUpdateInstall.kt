@@ -27,5 +27,7 @@ expect object AppUpdateInstaller {
 
     suspend fun requestShizukuPermission(): ShizukuAvailability
 
+    suspend fun installsWithShizuku(): Boolean
+
     suspend fun install(apk: File): ApkInstallResult
 }

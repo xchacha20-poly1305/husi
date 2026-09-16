@@ -33,11 +33,16 @@ import fr.husi.compose.preferenceGroup
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
+import fr.husi.permission.AppPermission
+import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.resources.Res
+import fr.husi.resources.android
 import fr.husi.resources.app_update_auto_check
 import fr.husi.resources.app_update_auto_check_sum
 import fr.husi.resources.app_update_check_now
 import fr.husi.resources.app_update_checking
+import fr.husi.resources.app_update_install_permission
+import fr.husi.resources.app_update_install_permission_sum
 import fr.husi.resources.app_update_last_check
 import fr.husi.resources.app_update_never_checked
 import fr.husi.resources.app_update_obtainium
@@ -92,9 +97,15 @@ private fun AppUpdateSettingsGroup() {
     val useShizuku by DataStore.appUpdateUseShizuku.collectAsStateWithLifecycle()
     val lastCheckEpochDay by DataStore.appUpdateLastCheckEpochDay.collectAsStateWithLifecycle()
 
+    val permission = LocalPermissionPlatform.current
+    var installPermissionGranted by remember {
+        mutableStateOf(permission.hasPermission(AppPermission.InstallPackages))
+    }
+
     val shizuku by AppUpdateInstaller.shizukuAvailability.collectAsStateWithLifecycle()
     LifecycleResumeEffect(Unit) {
         AppUpdateInstaller.refreshShizukuAvailability()
+        installPermissionGranted = permission.hasPermission(AppPermission.InstallPackages)
         onPauseOrDispose {}
     }
 
@@ -171,6 +182,29 @@ private fun AppUpdateSettingsGroup() {
             )
         },
     )
+
+    if (permission.canRequestPermission(AppPermission.InstallPackages)) {
+        Preference(
+            title = { Text(stringResource(Res.string.app_update_install_permission)) },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.android,
+                    color = IconMaskColors.IconLightGreen,
+                    shape = IconMaskShapes.risk(),
+                )
+            },
+            summary = if (installPermissionGranted) {
+                null
+            } else {
+                { Text(stringResource(Res.string.app_update_install_permission_sum)) }
+            },
+            onClick = {
+                permission.requestPermission(AppPermission.InstallPackages) { granted ->
+                    installPermissionGranted = granted
+                }
+            },
+        )
+    }
 
     SwitchPreference(
         value = useShizuku,

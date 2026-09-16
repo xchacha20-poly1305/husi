@@ -924,6 +924,8 @@
     <string name="app_update_shizuku_not_running">Shizuku is installed but not running</string>
     <string name="app_update_shizuku_unsupported">This Shizuku version is too old</string>
     <string name="app_update_shizuku_denied">Shizuku permission was denied</string>
+    <string name="app_update_install_permission">Allow installing apps</string>
+    <string name="app_update_install_permission_sum">Required to install updates with the system installer</string>
     <string name="app_update_check_now">Check for updates now</string>
     <string name="app_update_obtainium">Track in Obtainium</string>
     <string name="app_update_obtainium_sum">Hand the release source to the installed Obtainium</string>
