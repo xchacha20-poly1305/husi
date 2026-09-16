@@ -12,8 +12,10 @@ import fr.husi.bg.AppChangeReceiver
 import fr.husi.bg.DefaultNetworkMonitor
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.SubscriptionUpdater
+import fr.husi.bg.migrateCustomRouteAssets
 import fr.husi.compose.clearClipboardImageCache
 import fr.husi.database.DataStore
+import fr.husi.database.SagerDatabase
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.runOnDefaultDispatcher
@@ -28,6 +30,7 @@ import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
 import go.Seq
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import androidx.work.Configuration as WorkConfiguration
@@ -81,8 +84,14 @@ class Application : Application(),
         externalAssets.mkdirs()
         val rulesProvider = DataStore.rulesProvider.getBlocking()
         val isExpert = DataStore.isExpert.getBlocking()
-        if (isBgProcess && rulesProvider == RuleProvider.OFFICIAL) {
-            runBlocking { copyBundledRuleSetAssetsIfNeeded() }
+        runBlocking {
+            if (isBgProcess && rulesProvider == RuleProvider.OFFICIAL) {
+                copyBundledRuleSetAssetsIfNeeded()
+            }
+            migrateCustomRouteAssets(
+                externalAssets,
+                SagerDatabase.assetDao.getAll().first().map { it.name },
+            )
         }
         Libcore.initCore(
             isBgProcess,

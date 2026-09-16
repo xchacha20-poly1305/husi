@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.bg.RouteAssetUpdater
-import fr.husi.bg.routeGeoDir
+import fr.husi.bg.routeCustomGeoDir
 import fr.husi.database.AssetEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.SingBoxOptions
@@ -21,7 +21,6 @@ import fr.husi.resources.filename_too_long_characters
 import fr.husi.resources.invalid_filename
 import fr.husi.resources.path_too_long_bytes
 import fr.husi.resources.path_too_long_characters
-import fr.husi.resources.warn_starte_with_geo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -139,7 +138,7 @@ internal class AssetEditViewModel(
                 text = text,
             )
         }
-        val file = routeGeoDir(resolveRepository().externalAssetsDir).resolve(text)
+        val file = routeCustomGeoDir(resolveRepository().externalAssetsDir).resolve(text)
         if (file.canonicalFile.name != text) {
             return StringOrRes.Res(Res.string.invalid_filename)
         }
@@ -156,9 +155,6 @@ internal class AssetEditViewModel(
         }
         if (!text.endsWith(SingBoxOptions.RULE_SET_FILE_SUFFIX)) {
             return StringOrRes.Res(Res.string.expect_srs)
-        }
-        if (text.startsWith("geosite-") || text.startsWith("geoip-")) {
-            return StringOrRes.Res(Res.string.warn_starte_with_geo)
         }
         return null
     }

@@ -57,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.RuleProvider
 import fr.husi.bg.RouteAssetUpdater
+import fr.husi.bg.createRouteCustomGeoDir
 import fr.husi.bg.createRouteGeoDir
 import fr.husi.bg.currentEpochSeconds
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -127,7 +128,8 @@ internal fun AssetsScreen(
     val cacheDir = resolveRepository().cacheDir
     val assetsDir = resolveRepository().externalAssetsDir
     val geoDir = remember { createRouteGeoDir(assetsDir) }
-    val viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel(assetsDir, geoDir) }
+    val customGeoDir = remember { createRouteCustomGeoDir(assetsDir) }
+    val viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel(assetsDir, customGeoDir) }
     val scope = rememberCoroutineScope()
     val activeResultKeys = remember { mutableStateListOf<String>() }
     val rulesProvider by DataStore.rulesProvider.collectAsStateWithLifecycle()
@@ -150,12 +152,12 @@ internal fun AssetsScreen(
     fun handleAssetEditResult(result: AssetEditResult) {
         when (result) {
             is AssetEditResult.ShouldUpdate -> {
-                viewModel.updateSingleAsset(File(geoDir, result.assetName))
+                viewModel.updateSingleAsset(customGeoDir.resolve(result.assetName))
             }
 
             is AssetEditResult.Deleted -> {
                 scope.launch(Dispatchers.IO) {
-                    viewModel.deleteAssets(listOf(File(geoDir, result.assetName)))
+                    viewModel.deleteAssets(listOf(customGeoDir.resolve(result.assetName)))
                 }
             }
 
@@ -574,7 +576,9 @@ private fun AssetCard(
 @Composable
 private fun PreviewAssetCards() {
     PreviewContainer {
-        val geoDir = remember { createRouteGeoDir(resolveRepository().externalAssetsDir) }
+        val assetsDir = resolveRepository().externalAssetsDir
+        val geoDir = remember { createRouteGeoDir(assetsDir) }
+        val customGeoDir = remember { createRouteCustomGeoDir(assetsDir) }
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -599,6 +603,17 @@ private fun PreviewAssetCards() {
                     isUpdating = true,
                 ),
                 globalAutoUpdateDelay = 4400,
+                enabled = true,
+                onEditAsset = {},
+                onUpdateAsset = {},
+            )
+            AssetCard(
+                asset = AssetItem(
+                    file = customGeoDir.resolve("geosite-foo.srs"),
+                    version = "20260828",
+                    builtIn = false,
+                ),
+                globalAutoUpdateDelay = 0,
                 enabled = true,
                 onEditAsset = {},
                 onUpdateAsset = {},

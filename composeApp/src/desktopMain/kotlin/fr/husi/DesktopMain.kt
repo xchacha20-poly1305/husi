@@ -37,12 +37,14 @@ import fr.husi.bg.InstanceRestoreBus
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
+import fr.husi.bg.migrateCustomRouteAssets
 import fr.husi.cli.ApiCommand
 import fr.husi.cli.directory
 import fr.husi.cli.libcoreLoadFailureMessage
 import fr.husi.compose.setSystemClipboardPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
+import fr.husi.database.SagerDatabase
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
 import fr.husi.ktx.exitApplication
@@ -70,6 +72,7 @@ import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
@@ -427,10 +430,14 @@ class DesktopMain(
 
         val rulesProvider = DataStore.rulesProvider.getBlocking()
         val isOfficialProvider = rulesProvider == RuleProvider.OFFICIAL
-        if (isOfficialProvider) {
-            runBlocking {
+        runBlocking {
+            if (isOfficialProvider) {
                 copyBundledRuleSetAssetsIfNeeded()
             }
+            migrateCustomRouteAssets(
+                repository.externalAssetsDir,
+                SagerDatabase.assetDao.getAll().first().map { it.name },
+            )
         }
         try {
             // First touch of the Libcore class in this process: loads the JNI library.

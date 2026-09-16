@@ -308,7 +308,11 @@ fun DNSRule_Default.makeProcessRule(list: List<RuleItem>) {
 
 sealed interface RuleSetSource {
 
-    data class Local(val geoDir: String) : RuleSetSource
+    data class Local(
+        val geoDir: String,
+        val customGeoDir: String,
+        val assets: List<AssetEntity>,
+    ) : RuleSetSource
 
     data class Remote(
         val geoipPrefix: String,
@@ -342,27 +346,44 @@ fun MyOptions.buildRuleSets(source: RuleSetSource) {
 
     val sorted = names.sorted()
     val ruleSets = when (source) {
-        is RuleSetSource.Local -> listOf(
-            RuleSet_Local().apply {
-                tag = sorted.toMutableList()
-                type = SingBoxOptions.RULE_SET_TYPE_LOCAL
-                format = SingBoxOptions.RULE_SET_FORMAT_BINARY
-                path = "${source.geoDir}/$RULE_SET_PLACEHOLDER_FILE"
-            },
-        )
-
+        is RuleSetSource.Local -> source.buildLocalRuleSets(sorted)
         is RuleSetSource.Remote -> source.buildRemoteRuleSets(sorted)
     }
 
     route!!.rule_set = ruleSets.toMutableList()
 }
 
-private fun RuleSetSource.Remote.buildRemoteRuleSets(sorted: List<String>): List<RuleSet_Remote> {
-    val assetsByTag = assets.filter {
-        it.name.endsWith(SingBoxOptions.RULE_SET_FILE_SUFFIX) && it.url.isNotBlank()
+private fun List<AssetEntity>.customAssetsByTag(): Map<String, AssetEntity> {
+    return filter {
+        it.name.endsWith(SingBoxOptions.RULE_SET_FILE_SUFFIX)
     }.associateBy {
         it.name.removeSuffix(SingBoxOptions.RULE_SET_FILE_SUFFIX)
     }
+}
+
+private fun RuleSetSource.Local.buildLocalRuleSets(sorted: List<String>): List<RuleSet_Local> {
+    val customTags = assets.customAssetsByTag().keys
+    val (assetTags, managedTags) = sorted.partition { customTags.contains(it) }
+
+    return buildList {
+        if (managedTags.isNotEmpty()) {
+            add(buildLocalRuleSet(tags = managedTags, dir = geoDir))
+        }
+        if (assetTags.isNotEmpty()) {
+            add(buildLocalRuleSet(tags = assetTags, dir = customGeoDir))
+        }
+    }
+}
+
+private fun buildLocalRuleSet(tags: List<String>, dir: String) = RuleSet_Local().apply {
+    tag = tags.toMutableList()
+    type = SingBoxOptions.RULE_SET_TYPE_LOCAL
+    format = SingBoxOptions.RULE_SET_FORMAT_BINARY
+    path = "$dir/$RULE_SET_PLACEHOLDER_FILE"
+}
+
+private fun RuleSetSource.Remote.buildRemoteRuleSets(sorted: List<String>): List<RuleSet_Remote> {
+    val assetsByTag = assets.customAssetsByTag().filterValues { it.url.isNotBlank() }
     val (assetTags, repositoryTags) = sorted.partition { assetsByTag.containsKey(it) }
 
     val repositoryRuleSets = repositoryTags.groupBy { it.startsWith(GEOIP_TAG_PREFIX) }

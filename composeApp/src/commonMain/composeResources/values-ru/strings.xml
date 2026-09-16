@@ -586,7 +586,6 @@
     <string name="assets_settings">Данные ресурса</string>
     <string name="import_url">Импорт из URL</string>
     <string name="expect_srs">Ожидается, что имя файла заканчивается на \".srs\"</string>
-    <string name="warn_starte_with_geo">Файлы, имя которых начинается с \"geosite-\" или \"geoip-\", могут быть удалены.</string>
     <string name="duplicate_name">Дубликат имени</string>
     <string name="sniff">Сниффер трафика</string>
     <string name="saved_to_download">Файл сохранен в каталоге загрузок (Download).</string>

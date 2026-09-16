@@ -795,7 +795,6 @@
     <string name="import_url">Import URL</string>
     <string name="duplicate_name">Duplicate Name</string>
     <string name="expect_srs">Expect filename ends with \".srs\"</string>
-    <string name="warn_starte_with_geo">Filename starts with \"geosite-\" or \"geoip-\" may be cleaned.</string>
     <string name="permission_denied">Permission denied</string>
     <string name="save_to_system">Save to System</string>
     <string name="saved_to_download">File has saved to Download directory.</string>

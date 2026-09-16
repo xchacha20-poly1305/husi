@@ -173,7 +173,9 @@ class SingBoxOptionsUtilKtTest {
         }
         val localPath = "/data/local_rules"
 
-        options.buildRuleSets(RuleSetSource.Local(localPath))
+        options.buildRuleSets(
+            RuleSetSource.Local(localPath, "/data/custom_rules", emptyList()),
+        )
 
         val expectedTags = setOf("geosite-facebook", "geoip-us")
         val ruleSets = options.requireRuleSets()
@@ -429,11 +431,52 @@ class SingBoxOptionsUtilKtTest {
             )
         }
 
-        options.buildRuleSets(RuleSetSource.Local("""C:\Users\demo\.config\husi\external\geo"""))
+        options.buildRuleSets(
+            RuleSetSource.Local(
+                """C:\Users\demo\.config\husi\external\geo""",
+                """C:\Users\demo\.config\husi\external\geo-custom""",
+                emptyList(),
+            ),
+        )
 
         val ruleSet = options.requireRuleSets().requireLocal("geosite-facebook", "geosite-google")
         assertEquals(RULE_SET_FORMAT_BINARY, ruleSet.format)
         assertEquals("""C:\Users\demo\.config\husi\external\geo/{tag}.srs""", ruleSet.path)
+    }
+
+    @Test
+    fun `buildRuleSets should emit separate local rule sets for managed and custom tags`() {
+        options.withRuleSetTags("geoip-cn", "my-list", "geosite-google")
+
+        options.buildRuleSets(
+            RuleSetSource.Local(
+                geoDir = "/managed",
+                customGeoDir = "/custom",
+                assets = listOf(asset("my-list.srs", "")),
+            ),
+        )
+
+        val ruleSets = options.requireRuleSets()
+        assertEquals(2, ruleSets.size)
+        assertEquals("/managed/{tag}.srs", ruleSets.requireLocal("geoip-cn", "geosite-google").path)
+        assertEquals("/custom/{tag}.srs", ruleSets.requireLocal("my-list").path)
+    }
+
+    @Test
+    fun `buildRuleSets should emit a single local rule set when every tag is managed`() {
+        options.withRuleSetTags("geoip-cn", "geosite-google")
+
+        options.buildRuleSets(
+            RuleSetSource.Local(
+                geoDir = "/managed",
+                customGeoDir = "/custom",
+                assets = emptyList(),
+            ),
+        )
+
+        val ruleSets = options.requireRuleSets()
+        assertEquals(1, ruleSets.size)
+        assertEquals("/managed/{tag}.srs", ruleSets.requireLocal("geoip-cn", "geosite-google").path)
     }
 
     @Test

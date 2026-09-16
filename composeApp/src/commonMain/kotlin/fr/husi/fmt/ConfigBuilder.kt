@@ -5,6 +5,7 @@ import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.RuleProvider
 import fr.husi.bg.VpnConstants
+import fr.husi.bg.routeCustomGeoDir
 import fr.husi.bg.routeGeoDir
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -1724,7 +1725,9 @@ suspend fun buildConfig(
         } else {
             null
         }) ?: RuleSetSource.Local(
-            routeGeoDir(repository.externalAssetsDir).invariantPathString(),
+            geoDir = routeGeoDir(repository.externalAssetsDir).invariantPathString(),
+            customGeoDir = routeCustomGeoDir(repository.externalAssetsDir).invariantPathString(),
+            assets = SagerDatabase.assetDao.getAll().first(),
         )
         buildRuleSets(ruleSetSource)
         partitionEndpoints()

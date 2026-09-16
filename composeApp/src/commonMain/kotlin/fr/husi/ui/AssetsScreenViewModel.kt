@@ -63,7 +63,7 @@ internal sealed interface AssetsScreenUiEvent {
 @Stable
 internal class AssetsScreenViewModel(
     assetsDir: File,
-    geoDir: File,
+    customGeoDir: File,
 ) : ViewModel() {
 
     companion object {
@@ -77,7 +77,7 @@ internal class AssetsScreenViewModel(
         field = MutableSharedFlow<AssetsScreenUiEvent>()
 
     private lateinit var assetsDir: File
-    private lateinit var geoDir: File
+    private lateinit var customGeoDir: File
 
     private val firstDownloadStarted = mutableSetOf<String>()
     private var initializedFor: Pair<String, String>? = null
@@ -88,23 +88,23 @@ internal class AssetsScreenViewModel(
     private val hiddenAssets = mutableSetOf<String>()
 
     init {
-        initialize(assetsDir, geoDir)
+        initialize(assetsDir, customGeoDir)
     }
 
-    fun initialize(assetsDir: File, geoDir: File) {
-        val args = assetsDir.absolutePath to geoDir.absolutePath
+    fun initialize(assetsDir: File, customGeoDir: File) {
+        val args = assetsDir.absolutePath to customGeoDir.absolutePath
         if (initializedFor == args && assetsObserveJob?.isActive == true) return
         initializedFor = args
         assetsObserveJob?.cancel()
         firstDownloadStarted.clear()
         this.assetsDir = assetsDir
-        this.geoDir = geoDir
+        this.customGeoDir = customGeoDir
 
         assetsObserveJob = viewModelScope.launch {
             SagerDatabase.assetDao.getAll().collectLatest { assets ->
                 for (asset in assets) {
                     if (needsFirstDownload(asset) && firstDownloadStarted.add(asset.name)) {
-                        updateSingleAsset(geoDir.resolve(asset.name))
+                        updateSingleAsset(customGeoDir.resolve(asset.name))
                     }
                 }
                 refreshAssets0(assets)
@@ -113,7 +113,7 @@ internal class AssetsScreenViewModel(
     }
 
     private fun needsFirstDownload(asset: AssetEntity): Boolean {
-        return asset.lastUpdated == 0L && !geoDir.resolve(asset.name).isFile
+        return asset.lastUpdated == 0L && !customGeoDir.resolve(asset.name).isFile
     }
 
     fun refreshAssets() = viewModelScope.launch {
@@ -126,7 +126,7 @@ internal class AssetsScreenViewModel(
         val files = buildList {
             add(assetsDir.resolve("geoip.version.txt"))
             add(assetsDir.resolve("geosite.version.txt"))
-            dbAssets.forEach { add(geoDir.resolve(it.name)) }
+            dbAssets.forEach { add(customGeoDir.resolve(it.name)) }
         }
 
         hiddenAssetsAccess.withLock {
@@ -311,7 +311,7 @@ internal class AssetsScreenViewModel(
                 val file = if (fileName.endsWith(".version.txt")) {
                     assetsDir.resolve(fileName)
                 } else {
-                    geoDir.resolve(fileName)
+                    customGeoDir.resolve(fileName)
                 }
                 file.delete()
                 if (!fileName.endsWith(".version.txt")) {

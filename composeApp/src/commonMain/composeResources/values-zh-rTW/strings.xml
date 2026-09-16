@@ -666,7 +666,6 @@
     <string name="import_url">匯入 URL</string>
     <string name="duplicate_name">重複名稱</string>
     <string name="expect_srs">檔名預期以「.srs」為副檔名</string>
-    <string name="warn_starte_with_geo">檔名以「geosite-」或「geoip-」開頭的檔案可能會被清除。</string>
     <string name="permission_denied">權限被拒</string>
     <string name="access_local_network_denied">我們需要存取區域網路的權限，以連線至區域網路內的代理和裝置。</string>
     <string name="save_to_system">儲存至系統</string>

@@ -33,15 +33,53 @@ private val assetVersionFormat = LocalDateTime.Format {
     secondFraction(fixedLength = 3)
 }
 
-/** Where every downloaded or user supplied rule set lives. May not exist yet. */
+const val ROUTE_GEO_DIR_NAME = "geo"
+
+/** Where the bundled/managed rule-set pack lives. May not exist yet. */
 internal fun routeGeoDir(externalAssetsDir: File): File {
-    return externalAssetsDir.resolve("geo")
+    return externalAssetsDir.resolve(ROUTE_GEO_DIR_NAME)
 }
 
 /** [routeGeoDir], created on the way out, for callers that are about to write into it. */
 internal fun createRouteGeoDir(externalAssetsDir: File): File {
     return routeGeoDir(externalAssetsDir).apply {
         mkdirs()
+    }
+}
+
+const val ROUTE_CUSTOM_GEO_DIR_NAME = "geo-custom"
+
+/** Where user-supplied rule sets (rows in the assets table) live. May not exist yet. */
+internal fun routeCustomGeoDir(externalAssetsDir: File): File {
+    return externalAssetsDir.resolve(ROUTE_CUSTOM_GEO_DIR_NAME)
+}
+
+/** [routeCustomGeoDir], created on the way out, for callers that are about to write into it. */
+internal fun createRouteCustomGeoDir(externalAssetsDir: File): File {
+    return routeCustomGeoDir(externalAssetsDir).apply {
+        mkdirs()
+    }
+}
+
+internal fun migrateCustomRouteAssets(externalAssetsDir: File, assetNames: List<String>) {
+    val geoDir = routeGeoDir(externalAssetsDir)
+    val customGeoDir = routeCustomGeoDir(externalAssetsDir)
+    var customDirCreated = false
+    for (name in assetNames) {
+        runCatching {
+            val source = geoDir.resolve(name)
+            if (!source.isFile) return@runCatching
+            val destination = customGeoDir.resolve(name)
+            if (destination.exists()) return@runCatching
+            if (!customDirCreated) {
+                customGeoDir.mkdirs()
+                customDirCreated = true
+            }
+            if (source.renameTo(destination)) return@runCatching
+            if (destination.exists()) return@runCatching
+            source.copyTo(destination)
+            source.delete()
+        }
     }
 }
 
@@ -117,7 +155,7 @@ internal suspend fun updateSingleRouteAsset(
     externalAssetsDir: File,
     updateProgress: UpdateProgress = {},
 ): String {
-    val targetFile = createRouteGeoDir(externalAssetsDir).resolve(asset.name)
+    val targetFile = createRouteCustomGeoDir(externalAssetsDir).resolve(asset.name)
 
     resolveHttpClientFactory().newHttpClient().apply {
         keepAlive()

@@ -340,4 +340,49 @@ class RouteAssetUpdatesTest {
     }
 
     // endregion
+
+    // region migrateCustomRouteAssets
+
+    @Test
+    fun `migrateCustomRouteAssets moves known files out of geo and leaves unknown files`() {
+        val dir = createTempDir()
+        val geoDir = routeGeoDir(dir).also { it.mkdirs() }
+        geoDir.resolve("custom.srs").writeText("mine")
+        geoDir.resolve("geosite-cn.srs").writeText("managed")
+
+        migrateCustomRouteAssets(dir, listOf("custom.srs"))
+
+        val customDir = routeCustomGeoDir(dir)
+        assertFalse(geoDir.resolve("custom.srs").exists())
+        assertTrue(customDir.resolve("custom.srs").isFile)
+        assertEquals("mine", customDir.resolve("custom.srs").readText())
+        assertTrue(geoDir.resolve("geosite-cn.srs").isFile)
+        assertEquals("managed", geoDir.resolve("geosite-cn.srs").readText())
+    }
+
+    @Test
+    fun `migrateCustomRouteAssets is a no-op when destination already exists`() {
+        val dir = createTempDir()
+        val geoDir = routeGeoDir(dir).also { it.mkdirs() }
+        val customDir = routeCustomGeoDir(dir).also { it.mkdirs() }
+        geoDir.resolve("custom.srs").writeText("old")
+        customDir.resolve("custom.srs").writeText("already")
+
+        migrateCustomRouteAssets(dir, listOf("custom.srs"))
+
+        assertTrue(geoDir.resolve("custom.srs").isFile)
+        assertEquals("old", geoDir.resolve("custom.srs").readText())
+        assertEquals("already", customDir.resolve("custom.srs").readText())
+    }
+
+    @Test
+    fun `migrateCustomRouteAssets does not throw when geo is missing`() {
+        val dir = createTempDir()
+
+        migrateCustomRouteAssets(dir, listOf("custom.srs"))
+
+        assertFalse(routeCustomGeoDir(dir).exists())
+    }
+
+    // endregion
 }
