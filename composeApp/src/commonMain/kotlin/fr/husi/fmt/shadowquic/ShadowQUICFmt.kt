@@ -9,6 +9,13 @@ import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import java.io.File
 
 private const val BITS_PER_MEGABIT = 1_000_000L
@@ -150,45 +157,59 @@ fun ShadowQUICBean.buildShadowQUICConfig(
     } else {
         null
     }
-    val config = buildMap<String, Any?> {
-        put(
-            "inbound",
-            buildMap<String, Any?> {
-                put("type", "socks")
-                put("bind-addr", "$LOCALHOST4:$port")
-            },
-        )
-        put(
-            "outbound",
-            buildMap {
-                put(
-                    "type",
-                    if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) "shadowquic" else "sunnyquic",
-                )
-                put("addr", displayAddress())
-                put("username", username)
-                put("password", password)
-                put("server-name", sni.blankAsNull())
-                put("alpn", alpn.blankAsNull()?.listByLineOrComma())
-                put("initial-mtu", initialMTU.takeIf { it > 0 })
-                put("min-mtu", minimumMTU.takeIf { it > 0 })
-                put("congestion-control", buildCongestionControl())
-                put("keep-alive-interval", keepAliveInterval.takeIf { it > 0 })
-                put("extra-paths", paths)
-                put("max-path-num", paths?.let { maxPaths.coerceIn(0, it.size).takeIf { it > 0 } })
-                put("cert-path", certPath)
-                put("zero-rtt", zeroRTT.takeIf { it })
-                put("over-stream", udpOverStream.takeIf { it })
-                if (mtuDiscovery) {
-                    put("mtu-discovery", true)
-                    if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
-                        put("blackhole-detection", blackholeDetection.takeIf { it })
-                    }
+    return buildJsonObject {
+        putJsonObject("inbound") {
+            put("type", "socks")
+            put("bind-addr", "$LOCALHOST4:$port")
+        }
+        putJsonObject("outbound") {
+            put(
+                "type",
+                if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
+                    "shadowquic"
+                } else {
+                    "sunnyquic"
+                },
+            )
+            put("addr", displayAddress())
+            put("username", username)
+            put("password", password)
+            sni.blankAsNull()?.let { put("server-name", it) }
+            alpn.blankAsNull()?.listByLineOrComma()?.let { alpns ->
+                putJsonArray("alpn") {
+                    for (item in alpns) add(item)
                 }
-                put("gso", gso)
-                put("protect-path", if (shouldProtect) protectPath else null)
-            },
-        )
+            }
+            initialMTU.takeIf { it > 0 }?.let { put("initial-mtu", it) }
+            minimumMTU.takeIf { it > 0 }?.let { put("min-mtu", it) }
+            buildCongestionControl()?.let { put("congestion-control", it) }
+            keepAliveInterval.takeIf { it > 0 }?.let { put("keep-alive-interval", it) }
+            paths?.let { extraPaths ->
+                putJsonArray("extra-paths") {
+                    for (path in extraPaths) add(path)
+                }
+                maxPaths.coerceIn(0, extraPaths.size).takeIf { it > 0 }?.let {
+                    put("max-path-num", it)
+                }
+            }
+            certPath?.let { put("cert-path", it) }
+            if (zeroRTT) {
+                put("zero-rtt", true)
+            }
+            if (udpOverStream) {
+                put("over-stream", true)
+            }
+            if (mtuDiscovery) {
+                put("mtu-discovery", true)
+                if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC && blackholeDetection) {
+                    put("blackhole-detection", true)
+                }
+            }
+            put("gso", gso)
+            if (shouldProtect) {
+                put("protect-path", protectPath)
+            }
+        }
         put(
             "log-level",
             when (logLevel) {
@@ -196,23 +217,19 @@ fun ShadowQUICBean.buildShadowQUICConfig(
                 else -> logLevelString(logLevel)
             },
         )
-    }
-    return config.toJsonStringKxs()
+    }.toJsonStringKxs()
 }
 
-private fun ShadowQUICBean.buildCongestionControl(): Any? {
+private fun ShadowQUICBean.buildCongestionControl(): JsonElement? {
     if (congestionControl != ShadowQUICBean.CONGESTION_CONTROL_BRUTAL) {
-        return congestionControl.blankAsNull()
+        return congestionControl.blankAsNull()?.let { JsonPrimitive(it) }
     }
-    return buildMap<String, Any?> {
-        put(
-            ShadowQUICBean.CONGESTION_CONTROL_BRUTAL,
-            buildMap<String, Any?> {
-                unifyBrutalBandwidthBps(DataStore.uploadSpeed.getBlocking())?.let {
-                    put("bandwidth", it)
-                }
-            },
-        )
+    return buildJsonObject {
+        putJsonObject(ShadowQUICBean.CONGESTION_CONTROL_BRUTAL) {
+            unifyBrutalBandwidthBps(DataStore.uploadSpeed.getBlocking())?.let {
+                put("bandwidth", it)
+            }
+        }
     }
 }
 

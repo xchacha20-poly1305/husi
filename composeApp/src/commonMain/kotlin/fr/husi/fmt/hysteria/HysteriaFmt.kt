@@ -25,6 +25,9 @@ import fr.husi.ktx.sha256Hex
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.wrapIPV6Host
 import fr.husi.libcore.Libcore
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import java.io.File
 
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
@@ -220,13 +223,15 @@ fun HysteriaBean.buildHysteriaConfig(
             } catch (_: Exception) {
                 hopInterval.toInt()
             }
-            buildMap<String, Any?> {
+            buildJsonObject {
                 put("server", address)
                 when (protocol) {
                     HysteriaBean.PROTOCOL_FAKETCP -> put("protocol", "faketcp")
                     HysteriaBean.PROTOCOL_WECHAT_VIDEO -> put("protocol", "wechat-video")
                 }
-                put("socks5", buildMap { put("listen", "$LOCALHOST4:$port") })
+                putJsonObject("socks5") {
+                    put("listen", "$LOCALHOST4:$port")
+                }
                 put("retry", 5)
                 put("fast_open", true)
                 put("lazy_start", true)
@@ -278,36 +283,28 @@ fun HysteriaBean.buildHysteriaConfig(
                     keyPath = keyFile.absolutePath
                 }
             }
-            buildMap<String, Any?> {
+            buildJsonObject {
                 put("server", address)
                 put("auth", authPayload)
                 put("fastOpen", true)
                 put("lazy", true)
                 if (obfsType.isNotBlank() && obfsPassword.isNotBlank()) {
-                    put(
-                        "obfs",
-                        buildMap<String, Any?> {
-                            put("type", obfsType)
-                            put(
-                                obfsType,
-                                buildMap<String, Any?> {
-                                    put("password", obfsPassword)
-                                    if (obfsType == HysteriaBean.OBFS_TYPE_GECKO) {
-                                        if (geckoMinPacketSize > 0) put(
-                                            "minPacketSize",
-                                            geckoMinPacketSize,
-                                        )
-                                        if (geckoMaxPacketSize > 0) put(
-                                            "maxPacketSize",
-                                            geckoMaxPacketSize,
-                                        )
-                                    }
-                                },
-                            )
-                        },
-                    )
+                    putJsonObject("obfs") {
+                        put("type", obfsType)
+                        putJsonObject(obfsType) {
+                            put("password", obfsPassword)
+                            if (obfsType == HysteriaBean.OBFS_TYPE_GECKO) {
+                                if (geckoMinPacketSize > 0) {
+                                    put("minPacketSize", geckoMinPacketSize)
+                                }
+                                if (geckoMaxPacketSize > 0) {
+                                    put("maxPacketSize", geckoMaxPacketSize)
+                                }
+                            }
+                        }
+                    }
                 }
-                val quicOptions = buildMap<String, Any?> {
+                val quicOptions = buildJsonObject {
                     if (streamReceiveWindow > 0) put("initStreamReceiveWindow", streamReceiveWindow)
                     if (connectionReceiveWindow > 0) put("initConnReceiveWindow", connectionReceiveWindow)
                     idleTimeout.blankAsNull()?.let { put("maxIdleTimeout", it) }
@@ -315,84 +312,77 @@ fun HysteriaBean.buildHysteriaConfig(
                     if (disableMtuDiscovery) put("disablePathMTUDiscovery", true)
                     if (disableChromeParrot) put("disableChromeParrot", true)
                     if (shouldProtect) {
-                        put(
-                            "sockopts",
-                            buildMap { put("fdControlUnixSocket", protectPath) },
-                        )
+                        putJsonObject("sockopts") {
+                            put("fdControlUnixSocket", protectPath)
+                        }
                     }
                 }
-                if (quicOptions.isNotEmpty()) put("quic", quicOptions)
-                put("socks5", buildMap { put("listen", "$LOCALHOST4:$port") })
-                put(
-                    "tls",
-                    buildMap<String, Any?> {
-                        put("sni", sni)
-                        put("insecure", allowInsecure)
-                        if (ech) echConfig.blankAsNull()?.let {
+                if (quicOptions.isNotEmpty()) {
+                    put("quic", quicOptions)
+                }
+                putJsonObject("socks5") {
+                    put("listen", "$LOCALHOST4:$port")
+                }
+                putJsonObject("tls") {
+                    put("sni", sni)
+                    put("insecure", allowInsecure)
+                    if (ech) {
+                        echConfig.blankAsNull()?.let {
                             put("ech", it.toECHOneLine())
                         }
-                        caPath?.let { put("ca", it) }
-                        certPath?.let { put("clientCertificate", it) }
-                        keyPath?.let { put("clientKey", it) }
-                    },
-                )
-                put(
-                    "transport",
-                    buildMap<String, Any?> {
-                        put("type", "udp")
-                        put(
-                            "udp",
-                            buildMap<String, Any?> {
-                                hopInterval.blankAsNull()?.let {
-                                    when (val splitResult = SplitResult.splitDash(it)) {
-                                        is SplitResult.Single -> put(
-                                            "hopInterval",
-                                            splitResult.value,
-                                        )
-
-                                        is SplitResult.Range -> {
-                                            put("minHopInterval", splitResult.start)
-                                            put("maxHopInterval", splitResult.end)
-                                        }
-                                    }
-                                }
-                            },
-                        )
-                    },
-                )
-                if (uploadSpeed > 0 || downloadSpeed > 0) {
-                    put(
-                        "bandwidth",
-                        buildMap<String, Any?> {
-                            if (uploadSpeed > 0) put("up", "$uploadSpeed mbps")
-                            if (downloadSpeed > 0) put("down", "$downloadSpeed mbps")
-                        },
-                    )
+                    }
+                    caPath?.let { put("ca", it) }
+                    certPath?.let { put("clientCertificate", it) }
+                    keyPath?.let { put("clientKey", it) }
                 }
-                put(
-                    "congestion",
-                    buildMap<String, Any?> {
-                        put(
-                            "type",
-                            congestionControl.emptyAsNull() ?: HysteriaBean.CONGESTION_CONTROL_BBR,
-                        )
-                        when (congestionControl) {
-                            "", HysteriaBean.CONGESTION_CONTROL_BBR -> {
-                                put(
-                                    "bbrProfile",
-                                    when (bbrProfile) {
-                                        HysteriaBean.BBR_PROFILE_CONSERVATIVE -> "conservative"
-                                        HysteriaBean.BBR_PROFILE_STANDARD -> "standard"
-                                        HysteriaBean.BBR_PROFILE_AGGRESSIVE -> "aggressive"
-                                        else -> error("unreachable")
-                                    },
-                                )
-                            }
+                putJsonObject("transport") {
+                    put("type", "udp")
+                    putJsonObject("udp") {
+                        hopInterval.blankAsNull()?.let {
+                            when (val splitResult = SplitResult.splitDash(it)) {
+                                is SplitResult.Single -> {
+                                    put("hopInterval", splitResult.value)
+                                }
 
-                            else -> {}
+                                is SplitResult.Range -> {
+                                    put("minHopInterval", splitResult.start)
+                                    put("maxHopInterval", splitResult.end)
+                                }
+                            }
                         }
-                    },
-                )
+                    }
+                }
+                if (uploadSpeed > 0 || downloadSpeed > 0) {
+                    putJsonObject("bandwidth") {
+                        if (uploadSpeed > 0) {
+                            put("up", "$uploadSpeed mbps")
+                        }
+                        if (downloadSpeed > 0) {
+                            put("down", "$downloadSpeed mbps")
+                        }
+                    }
+                }
+                putJsonObject("congestion") {
+                    put(
+                        "type",
+                        congestionControl.emptyAsNull() ?: HysteriaBean.CONGESTION_CONTROL_BBR,
+                    )
+                    when (congestionControl) {
+                        "", HysteriaBean.CONGESTION_CONTROL_BBR -> {
+                            put(
+                                "bbrProfile",
+                                when (bbrProfile) {
+                                    HysteriaBean.BBR_PROFILE_CONSERVATIVE -> "conservative"
+                                    HysteriaBean.BBR_PROFILE_STANDARD -> "standard"
+                                    HysteriaBean.BBR_PROFILE_AGGRESSIVE -> "aggressive"
+                                    else -> error("unreachable")
+                                },
+                            )
+                        }
+
+                        else -> {}
+                    }
+                }
             }.toJsonStringKxs()
         }
 

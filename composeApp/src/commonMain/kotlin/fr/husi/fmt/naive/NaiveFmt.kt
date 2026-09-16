@@ -18,6 +18,8 @@ import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.unUrlSafe
 import fr.husi.ktx.wrapIPV6Host
 import fr.husi.libcore.Libcore
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 fun parseNaive(link: String): NaiveBean {
     val url = Libcore.parseURL(link)
@@ -79,17 +81,17 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
         null
     }
 
-    return mutableMapOf<String, Any?>(
-        "host-resolver-rules" to hostResolverRules,
-        "listen" to "socks://$LOCALHOST4:$port",
-        "proxy" to toUri(true).replace(",", "%2C"),
-        "extra-headers" to extraHeaders.takeIf { it.isNotBlank() }?.split("\n")?.joinToString("\r\n"),
-        "log" to if (DataStore.logLevel.getBlocking() > 0) "" else null,
-        "insecure-concurrency" to insecureConcurrency.takeIf { it > 0 },
-        "tunnel-timeout" to tunnelTimeout.takeIf { it > 0 },
-        "idle-timeout" to idleTimeout.takeIf { it > 0 },
-        "no-post-quantum" to noPostQuantum,
-    ).toJsonStringKxs()
+    return buildJsonObject {
+        hostResolverRules?.let { put("host-resolver-rules", it) }
+        put("listen", "socks://$LOCALHOST4:$port")
+        put("proxy", toUri(true).replace(",", "%2C"))
+        extraHeaders.blankAsNull()?.let { put("extra-headers", it.split("\n").joinToString("\r\n")) }
+        if (DataStore.logLevel.getBlocking() > 0) put("log", "")
+        insecureConcurrency.takeIf { it > 0 }?.let { put("insecure-concurrency", it) }
+        tunnelTimeout.takeIf { it > 0 }?.let { put("tunnel-timeout", it) }
+        idleTimeout.takeIf { it > 0 }?.let { put("idle-timeout", it) }
+        put("no-post-quantum", noPostQuantum)
+    }.toJsonStringKxs()
 }
 
 fun buildSingBoxOutboundNaiveBean(bean: NaiveBean): SingBoxOptions.Outbound_NaiveOptions {

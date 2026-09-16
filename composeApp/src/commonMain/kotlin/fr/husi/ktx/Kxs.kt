@@ -92,22 +92,7 @@ fun JSONMap.getObject(name: String): JSONMap? {
 }
 fun JSONMap.getArray(name: String): List<*>? = this[name] as? List<*>
 
-fun Map<String, Any?>.toJsonStringKxs(): String =
-    kxs.encodeToString(JsonElement.serializer(), filterNulls().toJsonElementKxs())
-
-private fun Map<String, Any?>.filterNulls(): JSONMap {
-    val result: JSONMap = mutableMapOf()
-    for ((key, value) in this) {
-        if (value == null) continue
-        @Suppress("UNCHECKED_CAST")
-        result[key] = when (value) {
-            is Map<*, *> -> (value as Map<String, Any?>).filterNulls()
-            is List<*> -> value.map { if (it is Map<*, *>) (it as Map<String, Any?>).filterNulls() else it }
-            else -> value
-        }
-    }
-    return result
-}
+fun JsonElement.toJsonStringKxs(): String = kxs.encodeToString(JsonElement.serializer(), this)
 
 private fun anyToJsonElementKxs(value: Any?): JsonElement = when (value) {
     null -> JsonNull

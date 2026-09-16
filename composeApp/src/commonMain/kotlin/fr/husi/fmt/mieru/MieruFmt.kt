@@ -21,63 +21,76 @@ package fr.husi.fmt.mieru
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.queryParameterNotBlank
-import fr.husi.ktx.toJsonMapKxs
+import fr.husi.ktx.kxs
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 
 fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
-    val profile = mutableMapOf(
-        "profileName" to "default",
-        "user" to mapOf(
-            "name" to username,
-            "password" to password.also {
-                if (it.isEmpty()) error("mieru password is empty")
-            },
-        ),
-        "servers" to listOf(
-            mutableMapOf<String, Any>(
-                "portBindings" to listOf(
-                    mapOf(
-                        "port" to finalPort,
-                        "protocol" to protocol.uppercase(),
-                    ),
-                ),
-            ).also {
+    if (password.isEmpty()) error("mieru password is empty")
+    val profile = buildJsonObject {
+        put("profileName", "default")
+        putJsonObject("user") {
+            put("name", username)
+            put("password", password)
+        }
+        putJsonArray("servers") {
+            addJsonObject {
+                putJsonArray("portBindings") {
+                    addJsonObject {
+                        put("port", finalPort)
+                        put("protocol", protocol.uppercase())
+                    }
+                }
                 // mieru refuses to parse a domain name in the ipAddress field.
                 if (finalAddress.isIpAddress()) {
-                    it["ipAddress"] = finalAddress
+                    put("ipAddress", finalAddress)
                 } else {
-                    it["domainName"] = finalAddress
+                    put("domainName", finalAddress)
                 }
-            },
-        ),
-        "mtu" to mtu,
-        "multiplexing" to mieruMuxToString(serverMuxNumber)?.let { mapOf("level" to it) },
+            }
+        }
+        put("mtu", mtu)
+        mieruMuxToString(serverMuxNumber)?.let { level ->
+            putJsonObject("multiplexing") { put("level", level) }
+        }
         // "handshakeMode" to "HANDSHAKE_NO_WAIT",
         // https://github.com/enfein/mieru/issues/254
         // Mieru TCP mux long-time mutex holding + no wait = bug.
-        "handshakeMode" to "HANDSHAKE_STANDARD",
-    )
-    trafficPattern.blankAsNull()?.let { trafficPattern ->
-        profile["trafficPattern"] = runCatching {
-            trafficPattern.toJsonMapKxs().let {
-                it["trafficPattern"] ?: it
-            }
-        }.getOrElse { _ ->
-            Libcore.decodeMieruTrafficPattern(trafficPattern).toJsonMapKxs().let {
-                it["trafficPattern"] ?: it
-            }
+        put("handshakeMode", "HANDSHAKE_STANDARD")
+        trafficPattern.blankAsNull()?.let { pattern ->
+            put(
+                "trafficPattern",
+                runCatching {
+                    pattern.parseMieruTrafficPattern()
+                }.getOrElse { _ ->
+                    Libcore.decodeMieruTrafficPattern(pattern).parseMieruTrafficPattern()
+                },
+            )
         }
     }
-    val basic = mutableMapOf(
-        "activeProfile" to "default",
-        "socks5Port" to port,
-        "loggingLevel" to logLevel.takeIf { it > 0 }?.let { logLevelString(it).uppercase() },
-        "advancedSettings" to mapOf("noCheckUpdate" to true),
-        "profiles" to listOf(profile),
-    )
-    return basic.toJsonStringKxs()
+    return buildJsonObject {
+        put("activeProfile", "default")
+        put("socks5Port", port)
+        logLevel.takeIf { it > 0 }?.let {
+            put("loggingLevel", logLevelString(it).uppercase())
+        }
+        putJsonObject("advancedSettings") { put("noCheckUpdate", true) }
+        putJsonArray("profiles") { add(profile) }
+    }.toJsonStringKxs()
+}
+
+private fun String.parseMieruTrafficPattern(): JsonElement {
+    val root = kxs.parseToJsonElement(this) as? JsonObject
+        ?: error("mieru traffic pattern is not a JSON object")
+    return root["trafficPattern"] ?: root
 }
 
 // https://github.com/enfein/mieru/blob/b1cd50fabb2f893c7878388767d97370dbb7a660/pkg/appctl/url.go#L51

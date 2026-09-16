@@ -5,9 +5,11 @@ import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.protectPath
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.parseBoolean
+import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 // https://github.com/juicity/juicity/blob/4af4f68b405a6b86560ebb16963d133a7196af5c/README.md
 fun parseJuicity(link: String): JuicityBean {
@@ -41,18 +43,31 @@ fun JuicityBean.toUri(): String {
 }
 
 fun JuicityBean.buildJuicityConfig(port: Int, shouldProtect: Boolean): String {
-    return mutableMapOf<String, Any?>(
-        "listen" to "$LOCALHOST4:$port",
-        "server" to displayAddress(),
-        "uuid" to uuid,
-        "password" to password,
-        "sni" to sni.takeIf { it.isNotBlank() },
-        "allow_insecure" to allowInsecure.takeIf { it },
-        "congestion_control" to "bbr",
-        "pinned_certchain_sha256" to pinSHA256.takeIf { it.isNotBlank() },
-        "protect_path" to if (shouldProtect) protectPath else null,
-        "log_level" to if (DataStore.logLevel.getBlocking() > 0) "debug" else "error",
-    ).toJsonStringKxs()
+    return buildJsonObject {
+        put("listen", "$LOCALHOST4:$port")
+        put("server", displayAddress())
+        put("uuid", uuid)
+        put("password", password)
+        sni.blankAsNull()?.let { put("sni", it) }
+        if (allowInsecure) {
+            put("allow_insecure", true)
+        }
+        put("congestion_control", "bbr")
+        pinSHA256.blankAsNull()?.let {
+            put("pinned_certchain_sha256", it)
+        }
+        if (shouldProtect) {
+            put("protect_path", protectPath)
+        }
+        put(
+            "log_level",
+            if (DataStore.logLevel.getBlocking() > 0) {
+                "debug"
+            } else {
+                "error"
+            },
+        )
+    }.toJsonStringKxs()
 }
 
 fun buildSingBoxOutboundJuicityBean(bean: JuicityBean): SingBoxOptions.Outbound_JuicityOptions {
