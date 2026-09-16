@@ -21,6 +21,7 @@ val kxs: Json = Json {
     prettyPrint = true
     ignoreUnknownKeys = true
     explicitNulls = false
+    coerceInputValues = true
 }
 
 fun String.toJsonMapKxs(): JSONMap {
