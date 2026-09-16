@@ -1,12 +1,9 @@
 package fr.husi
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -25,23 +22,18 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
-import dev.nucleusframework.composenativetray.menu.api.KeyShortcut
-import dev.nucleusframework.composenativetray.tray.api.Tray
 import dev.nucleusframework.core.runtime.SingleInstanceManager
-import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.DesktopNotificationCenter
 import fr.husi.bg.DesktopTaskRegistry
 import fr.husi.bg.DesktopTaskScheduler
 import fr.husi.bg.InstanceRestoreBus
 import fr.husi.bg.RouteAssetUpdater
-import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.bg.migrateCustomRouteAssets
 import fr.husi.cli.ApiCommand
 import fr.husi.cli.directory
 import fr.husi.cli.libcoreLoadFailureMessage
-import fr.husi.compose.setSystemClipboardPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
@@ -58,22 +50,11 @@ import fr.husi.repository.resolveDesktopRepository
 import fr.husi.repository.resolvePackagedAnjaNativesDir
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
-import fr.husi.resources.close
-import fr.husi.resources.content_copy
-import fr.husi.resources.copy_terminal_proxy
-import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
-import fr.husi.resources.service_mode
-import fr.husi.resources.service_mode_proxy
-import fr.husi.resources.service_mode_vpn
-import fr.husi.resources.start
-import fr.husi.resources.stop
 import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -88,7 +69,6 @@ import javax.swing.JTextArea
 import javax.swing.UIManager
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
-import dev.nucleusframework.composenativetray.menu.api.Key as TrayKey
 
 /** Well-known UDS name under the core host dir (mirrors coresvc.Socket). */
 const val CORE_SOCKET_NAME = "api.sock"
@@ -466,90 +446,6 @@ class DesktopMain(
             }
         }
     }
-}
-
-/** The tray icon and its menu, the app's only handle once the window is hidden. */
-@Composable
-private fun HusiTray(
-    repository: DesktopRepository,
-    onOpenWindow: () -> Unit,
-    onExit: () -> Unit,
-) {
-    val scope = rememberCoroutineScope()
-
-    val serviceStatus by BackendState.status.collectAsState()
-    val serviceMode by DataStore.serviceMode.flow()
-        .collectAsState(Key.MODE_VPN)
-
-    fun setServiceMode(mode: String) {
-        if (DataStore.serviceMode.getBlocking() == mode) return
-        DataStore.serviceMode.setBlocking(mode)
-        if (serviceStatus.state.canStop) {
-            repository.reloadService()
-        }
-    }
-
-    Tray(
-        icon = painterResource(Res.drawable.ic_service_active),
-        tooltip = stringResource(Res.string.app_name),
-        primaryAction = onOpenWindow,
-        menuContent = {
-            Item(
-                label = serviceStatus.profileName ?: stringResource(Res.string.app_name),
-                shortcut = KeyShortcut(TrayKey.O),
-            ) {
-                onOpenWindow()
-            }
-            Item(
-                label = stringResource(
-                    if (serviceStatus.state == ServiceState.Connected) {
-                        Res.string.stop
-                    } else {
-                        Res.string.start
-                    },
-                ),
-                shortcut = KeyShortcut(TrayKey.Return, ctrl = true),
-            ) {
-                when (serviceStatus.state) {
-                    ServiceState.Stopped -> repository.startService()
-                    ServiceState.Idle, ServiceState.Connected -> repository.stopService()
-                    else -> {}
-                }
-            }
-            SubMenu(
-                label = stringResource(Res.string.service_mode),
-            ) {
-                CheckableItem(
-                    label = stringResource(Res.string.service_mode_proxy),
-                    checked = serviceMode == Key.MODE_PROXY,
-                    onCheckedChange = { isSelected ->
-                        if (isSelected) setServiceMode(Key.MODE_PROXY)
-                    },
-                )
-                CheckableItem(
-                    label = stringResource(Res.string.service_mode_vpn),
-                    checked = serviceMode == Key.MODE_VPN,
-                    onCheckedChange = { isSelected ->
-                        if (isSelected) setServiceMode(Key.MODE_VPN)
-                    },
-                )
-            }
-            Item(
-                label = stringResource(Res.string.copy_terminal_proxy),
-                icon = painterResource(Res.drawable.content_copy),
-            ) {
-                scope.launch(Dispatchers.Default) {
-                    setSystemClipboardPlainText(currentProxyEnvCommand())
-                }
-            }
-            Item(
-                label = stringResource(Res.string.exit),
-                icon = painterResource(Res.drawable.close),
-                shortcut = KeyShortcut(TrayKey.Q),
-                onClick = onExit,
-            )
-        },
-    )
 }
 
 private fun warnCoreHostFailureAndExit(error: Exception): Nothing {
