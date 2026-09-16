@@ -80,9 +80,10 @@ func NewHost(options HostOptions) (*Host, error) {
 	}
 	logMaxLines := max(options.LogMaxLines, 50)
 	started := daemon.NewStartedService(daemon.ServiceOptions{
-		Context:     options.Context,
-		Handler:     platformHandler{},
-		LogMaxLines: logMaxLines,
+		Context:          options.Context,
+		Handler:          platformHandler{},
+		LogMaxLines:      logMaxLines,
+		OOMKillerEnabled: true,
 	})
 	h := &Host{
 		ctx:                     options.Context,

@@ -32,6 +32,7 @@ import (
 	"github.com/sagernet/sing-box/protocol/tun"
 	"github.com/sagernet/sing-box/protocol/vmess"
 	"github.com/sagernet/sing-box/protocol/wireguard"
+	"github.com/sagernet/sing-box/service/oomkiller"
 	_ "github.com/sagernet/sing-box/transport/v2rayquic"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
@@ -143,6 +144,7 @@ func ServiceRegistry() *service.Registry {
 
 	protect.RegisterService(registry)
 	registerAnchor(registry)
+	oomkiller.RegisterService(registry)
 
 	return registry
 }

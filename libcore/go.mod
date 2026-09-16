@@ -13,7 +13,7 @@ require (
 	github.com/sagernet/cors v1.2.1
 	github.com/sagernet/sing v0.9.5-0.20260914135810-80bfa92a0607
 	github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be
-	github.com/sagernet/sing-box v1.14.2-0.20260916043824-7fe5c79fb5f7
+	github.com/sagernet/sing-box v1.15.0-alpha.5
 	github.com/sagernet/sing-mux v0.3.7-0.20260905054442-91d1502591ce
 	github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e
 	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
@@ -143,7 +143,7 @@ require (
 	github.com/sagernet/sing-shadowtls v0.2.1 // indirect
 	github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
-	github.com/sagernet/wireguard-go v0.0.6 // indirect
+	github.com/sagernet/wireguard-go v0.0.7-0.20260916054909-2da8d81dcd5e // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/smallstep/pkcs7 v0.1.1 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect

@@ -8,6 +8,7 @@ import (
 
 func init() {
 	debug.SetTraceback("all")
+	debug.SetPanicOnFault(true)
 }
 
 func catchPanic(name string, handlePanic func(panicErr error)) {
