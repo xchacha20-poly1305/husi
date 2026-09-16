@@ -7,7 +7,6 @@ run:
   # left out on purpose: it needs a cronet-go checkout, which linting has no
   # business downloading.
   build-tags:
-    - "with_gvisor"
     - "with_quic"
     - "with_wireguard"
     - "with_openconnect"

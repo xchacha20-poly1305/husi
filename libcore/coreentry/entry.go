@@ -1,4 +1,4 @@
-//go:build !android
+//go:build !android && cgo
 
 // Package coreentry is the C ABI entry for the husi-core process host.
 // It is linked into the desktop anja c-shared library (not Android).

@@ -213,7 +213,7 @@ proto_install:
 	@echo "protoc: install via your package manager (e.g. pacman -S protobuf)."
 	@echo "Go plugins are built from libcore/go.mod pins automatically."
 
-lint_go: lint_go_linux lint_go_android lint_go_windows
+lint_go: lint_go_linux lint_go_android lint_go_windows lint_go_darwin
 
 lint_go_linux:
 	cd libcore/ && GOOS=linux golangci-lint run ./...
@@ -226,6 +226,9 @@ lint_go_windows:
 		CC="zig cc -target x86_64-windows-gnu" \
 		CXX="zig c++ -target x86_64-windows-gnu" \
 		golangci-lint run ./...
+
+lint_go_darwin:
+	cd libcore/ && GOOS=darwin GOARCH=arm64 golangci-lint run ./...
 
 lint_go_install:
 	go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest

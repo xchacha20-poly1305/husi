@@ -4,7 +4,6 @@ set -e
 # set -x
 
 TAGS=(
-    "with_gvisor"
     "with_quic"
     "with_wireguard"
     "with_openconnect"

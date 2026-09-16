@@ -42,7 +42,7 @@ Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.hu
 Run a single Go test: `cd libcore && go test -run TestName ./pkg/...`.
 Install Go tooling: `make lint_go_install`.
 
-`lint_go` runs one pass per shipped GOOS (`lint_go_linux`, `lint_go_android`, `lint_go_windows`); no Darwin pass because sing-tun's gvisor backend does not typecheck without a full Darwin SDK. `lint_go_windows` needs `zig` on PATH as the cgo cross compiler.
+`lint_go` runs one pass per shipped GOOS (`lint_go_linux`, `lint_go_android`, `lint_go_windows`); `lint_go_windows` needs `zig` on PATH as the cgo cross compiler.
 
 `BUILD_PLUGIN=none` (what the Makefile sets for app-only builds) excludes all plugin modules to speed up Gradle.
 
