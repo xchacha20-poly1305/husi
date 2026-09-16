@@ -73,6 +73,9 @@ fun parseShadowQUIC(link: String): ShadowQUICBean {
             "datagram" -> false
             else -> true // ?
         }
+        url.queryParameter("congestion").takeIf { it.isNotBlank() && it != "copa" }?.let {
+            congestionControl = it
+        }
         // "不填为 false（不开启），填任意内容就为 true（开启）"
         zeroRTT = url.queryParameterNotBlank("zero_rtt") != null
         val mtu = url.queryParameterNotBlank("mtu")?.toIntOrNull() ?: DEFAULT_SHARE_MTU
@@ -107,6 +110,9 @@ fun ShadowQUICBean.toUri(): String {
         )
         if (zeroRTT) {
             addQueryParameter("zero_rtt", "true")
+        }
+        congestionControl.takeIf { it.isNotEmpty() && it != "brutal" }?.let {
+            addQueryParameter("congestion", it)
         }
         if (initialMTU > 0 && initialMTU == minimumMTU) {
             addQueryParameter("mtu", initialMTU.toString())
