@@ -11,6 +11,7 @@ require (
 	github.com/klauspost/compress v1.20.0
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/cors v1.2.1
+	github.com/sagernet/quic-go v0.61.0-sing-box-mod.7
 	github.com/sagernet/sing v0.9.5-0.20260914135810-80bfa92a0607
 	github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be
 	github.com/sagernet/sing-box v1.15.0-alpha.5
@@ -135,7 +136,6 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20260727.0-sing-box-mod.1 // indirect
 	github.com/sagernet/netlink v0.0.0-20260814022025-64455d367bbf // indirect
 	github.com/sagernet/nftables v0.3.0-mod.4 // indirect
-	github.com/sagernet/quic-go v0.61.0-sing-box-mod.7 // indirect
 	github.com/sagernet/sing-openconnect v0.0.0-20260903200519-8b89c968949d // indirect
 	github.com/sagernet/sing-openvpn v0.0.0-20260903200517-e060dda5b1f1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect

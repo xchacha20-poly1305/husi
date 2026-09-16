@@ -32,8 +32,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const defaultLink = "https://www.gstatic.com/generate_204"
-
 var ErrOutboundNotFound = E.New("outbound is not found")
 
 type Flags uint8
@@ -164,25 +162,43 @@ func contextWithKeepSession(ctx context.Context) context.Context {
 	return ctx
 }
 
+const defaultLink = "https://www.gstatic.com/generate_204"
+
+const (
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
+	schemeHTTP3 = "http3"
+	schemeQUIC  = "quic"
+)
+
 func measure(ctx context.Context, link string, detour N.Dialer, flags Flags) (t uint16, err error) {
 	link = cmp.Or(link, defaultLink)
 	linkURL, err := url.Parse(link)
 	if err != nil {
 		return
 	}
+	network := N.NetworkTCP
+	isHTTP3 := linkURL.Scheme == schemeHTTP3 || linkURL.Scheme == schemeQUIC
+	if isHTTP3 {
+		if !C.WithQUIC {
+			return 0, C.ErrQUICNotIncluded
+		}
+		network = N.NetworkUDP
+		linkURL.Scheme = schemeHTTPS
+	}
 	hostname := linkURL.Hostname()
 	port := linkURL.Port()
 	if port == "" {
 		switch linkURL.Scheme {
-		case "http":
+		case schemeHTTP:
 			port = "80"
-		case "https":
+		case schemeHTTPS:
 			port = "443"
 		}
 	}
 
 	start := time.Now()
-	instance, err := detour.DialContext(ctx, N.NetworkTCP, M.ParseSocksaddrHostPortStr(hostname, port))
+	instance, err := detour.DialContext(ctx, network, M.ParseSocksaddrHostPortStr(hostname, port))
 	if err != nil {
 		return
 	}
@@ -190,20 +206,31 @@ func measure(ctx context.Context, link string, detour N.Dialer, flags Flags) (t 
 	if flags&IgnoreHandshakeTime != 0 && N.NeedHandshakeForWrite(instance) {
 		start = time.Now()
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodHead, link, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, linkURL.String(), nil)
 	if err != nil {
 		return
 	}
-	client := http.Client{
-		Transport: &http.Transport{
+	tlsConfig := &tls.Config{
+		Time:    ntp.TimeFuncFromContext(ctx),
+		RootCAs: adapter.RootPoolFromContext(ctx),
+	}
+	var transport http.RoundTripper
+	if isHTTP3 {
+		transport, err = newHTTP3Transport(instance, tlsConfig)
+		if err != nil {
+			return
+		}
+		defer common.Close(transport)
+	} else {
+		transport = &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				return instance, nil
 			},
-			TLSClientConfig: &tls.Config{
-				Time:    ntp.TimeFuncFromContext(ctx),
-				RootCAs: adapter.RootPoolFromContext(ctx),
-			},
-		},
+			TLSClientConfig: tlsConfig,
+		}
+	}
+	client := http.Client{
+		Transport: transport,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
