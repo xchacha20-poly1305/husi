@@ -64,6 +64,7 @@ object Key {
     const val BYPASS_LAN = "bypassLan"
 
     const val APPEND_HTTP_PROXY = "appendHttpProxy"
+    const val SYSTEM_PROXY = "systemProxy"
     const val HTTP_PROXY_BYPASS = "httpProxyBypass"
     const val INBOUND_USERNAME = "inboundUsername"
     const val INBOUND_PASSWORD = "inboundPassword"

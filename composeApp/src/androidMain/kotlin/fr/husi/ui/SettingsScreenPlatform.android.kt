@@ -36,6 +36,9 @@ import fr.husi.resources.Res
 import fr.husi.resources.acquire_wake_lock
 import fr.husi.resources.acquire_wake_lock_summary
 import fr.husi.resources.allow_apps_bypass_vpn
+import fr.husi.resources.app_registration
+import fr.husi.resources.append_http_proxy
+import fr.husi.resources.append_http_proxy_sum
 import fr.husi.resources.apps
 import fr.husi.resources.auto_connect
 import fr.husi.resources.auto_connect_summary
@@ -272,7 +275,26 @@ internal actual fun MeteredNetworkPreference(needReload: () -> Unit) {
 }
 
 @Composable
-internal actual fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit) {
+internal actual fun PlatformAppendHttpProxyPreferences(needReload: () -> Unit) {
+    val appendHttpProxyValue by DataStore.appendHttpProxy.collectAsStateWithLifecycle()
+    SwitchPreference(
+        value = appendHttpProxyValue,
+        onValueChange = {
+            DataStore.appendHttpProxy.setBlocking(it)
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.append_http_proxy)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.app_registration,
+                color = IconMaskColors.IconLightGreen,
+            )
+        },
+        summary = {
+            Text(stringResource(Res.string.append_http_proxy_sum))
+        },
+    )
+
     val value by DataStore.httpProxyBypass.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = value,
@@ -286,7 +308,7 @@ internal actual fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -
             MaskedIcon(Res.drawable.domain, color = IconMaskColors.IconCyan)
         },
         valueToText = { it },
-        enabled = enabled,
+        enabled = appendHttpProxyValue,
     ) { value, onValueChange, onOk ->
         HostTextField(value, onValueChange, onOk)
     }

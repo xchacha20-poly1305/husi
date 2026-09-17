@@ -22,6 +22,7 @@ enum class DashboardWidget(
     OpenVPN("openVPN", DashboardWidgetWidth.Full),
     SourceAddress("sourceAddress", DashboardWidgetWidth.Half),
     ClashMode("clashMode", DashboardWidgetWidth.Half),
+    SystemProxy("systemProxy", DashboardWidgetWidth.Half),
     NetworkInterfaces("networkInterfaces", DashboardWidgetWidth.Full),
 }
 

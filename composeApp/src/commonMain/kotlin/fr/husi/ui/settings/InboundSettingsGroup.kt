@@ -12,13 +12,9 @@ import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.contentOrUnset
-import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
 import fr.husi.resources.allow_access
 import fr.husi.resources.allow_access_sum
-import fr.husi.resources.app_registration
-import fr.husi.resources.append_http_proxy
-import fr.husi.resources.append_http_proxy_sum
 import fr.husi.resources.apps
 import fr.husi.resources.directions_boat
 import fr.husi.resources.inbound_password
@@ -28,7 +24,7 @@ import fr.husi.resources.person
 import fr.husi.resources.port_local_dns
 import fr.husi.resources.port_proxy
 import fr.husi.resources.wifi
-import fr.husi.ui.HttpProxyBypassPreference
+import fr.husi.ui.PlatformAppendHttpProxyPreferences
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -78,28 +74,7 @@ internal fun InboundSettingsGroup(
         PortTextField(value, onValueChange, onOk)
     }
 
-    val appendHttpProxyValue by DataStore.appendHttpProxy.collectAsStateWithLifecycle()
-    SwitchPreference(
-        value = appendHttpProxyValue,
-        onValueChange = {
-            DataStore.appendHttpProxy.setBlocking(it)
-            needReload()
-        },
-        title = { Text(stringResource(Res.string.append_http_proxy)) },
-        icon = {
-            MaskedIcon(
-                Res.drawable.app_registration,
-                color = IconMaskColors.IconLightGreen,
-            )
-        },
-        summary = {
-            if (PlatformInfo.isAndroid) {
-                Text(stringResource(Res.string.append_http_proxy_sum))
-            }
-        },
-    )
-
-    HttpProxyBypassPreference(appendHttpProxyValue, needReload)
+    PlatformAppendHttpProxyPreferences(needReload)
 
     val allowAccessValue by DataStore.allowAccess.collectAsStateWithLifecycle()
     SwitchPreference(

@@ -27,6 +27,7 @@ import fr.husi.resources.service_mode_proxy
 import fr.husi.resources.service_mode_vpn
 import fr.husi.resources.start
 import fr.husi.resources.stop
+import fr.husi.resources.system_proxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -87,12 +88,14 @@ private fun ComposableTrayMenuScope.TrayItem(
 private fun ComposableTrayMenuScope.TrayCheckableItem(
     label: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     CheckableItem(
         label = trayMenuText(label),
         checked = checked,
         onCheckedChange = onCheckedChange,
+        isEnabled = enabled,
     )
 }
 
@@ -116,6 +119,10 @@ internal fun HusiTray(
     val serviceStatus by BackendState.status.collectAsState()
     val serviceMode by DataStore.serviceMode.flow()
         .collectAsState(Key.MODE_VPN)
+    val systemProxyEnabled by DataStore.systemProxy.flow()
+        .collectAsState(false)
+    val hasInboundAuth by DataStore.hasInboundAuthFlow()
+        .collectAsState(false)
 
     fun setServiceMode(mode: String) {
         if (DataStore.serviceMode.getBlocking() == mode) return
@@ -167,6 +174,12 @@ internal fun HusiTray(
                     },
                 )
             }
+            TrayCheckableItem(
+                label = stringResource(Res.string.system_proxy),
+                checked = systemProxyEnabled && !hasInboundAuth,
+                enabled = !hasInboundAuth,
+                onCheckedChange = { DataStore.systemProxy.setBlocking(it) },
+            )
             TrayItem(
                 label = stringResource(Res.string.copy_terminal_proxy),
                 icon = painterResource(Res.drawable.content_copy),

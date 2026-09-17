@@ -25,6 +25,7 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
+import fr.husi.platform.PlatformInfo
 import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEventType
 import fr.husi.proto.daemon.ConnectionEvents
@@ -55,6 +56,13 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 
 @Immutable
+data class SystemProxyState(
+    val enabled: Boolean,
+    val mixedPort: Int,
+    val hasInboundAuth: Boolean,
+)
+
+@Immutable
 data class DashboardState(
     // toolbar
     val isPause: Boolean = false,
@@ -74,6 +82,7 @@ data class DashboardState(
     val ipv6: String? = null,
     val selectedClashMode: String = "",
     val clashModes: List<String> = emptyList(),
+    val systemProxy: SystemProxyState? = null,
     val networkInterfaces: List<NetworkInterfaceInfo> = emptyList(),
 
     val connections: List<ConnectionDetailState> = emptyList(),
@@ -272,6 +281,23 @@ class DashboardViewModel(
         viewModelScope.launch {
             remoteControl?.session?.collect { session ->
                 uiState.update { it.copy(isRemote = session != null) }
+            }
+        }
+        if (!PlatformInfo.isAndroid) {
+            viewModelScope.launch {
+                combine(
+                    DataStore.systemProxy.flow(),
+                    DataStore.mixedPort.flow(),
+                    DataStore.hasInboundAuthFlow(),
+                ) { enabled, mixedPort, hasInboundAuth ->
+                    SystemProxyState(
+                        enabled = enabled,
+                        mixedPort = mixedPort,
+                        hasInboundAuth = hasInboundAuth,
+                    )
+                }.collect { systemProxyState ->
+                    uiState.update { it.copy(systemProxy = systemProxyState) }
+                }
             }
         }
         viewModelScope.launch {
@@ -885,6 +911,10 @@ class DashboardViewModel(
         } catch (e: Exception) {
             Logs.w(e)
         }
+    }
+
+    fun setSystemProxyEnabled(enabled: Boolean) = runOnIoDispatcher {
+        DataStore.systemProxy.set(enabled)
     }
 }
 

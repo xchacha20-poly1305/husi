@@ -454,7 +454,7 @@ internal actual fun MeteredNetworkPreference(needReload: () -> Unit) {
 }
 
 @Composable
-internal actual fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit) {
+internal actual fun PlatformAppendHttpProxyPreferences(needReload: () -> Unit) {
 }
 
 @Composable

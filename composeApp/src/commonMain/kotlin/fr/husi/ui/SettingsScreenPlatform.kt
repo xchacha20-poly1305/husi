@@ -67,7 +67,7 @@ internal expect fun PlatformSecurityOptions()
 internal expect fun MeteredNetworkPreference(needReload: () -> Unit)
 
 @Composable
-internal expect fun HttpProxyBypassPreference(enabled: Boolean, needReload: () -> Unit)
+internal expect fun PlatformAppendHttpProxyPreferences(needReload: () -> Unit)
 
 @Composable
 internal expect fun PlatformMiscOptions(needReload: () -> Unit)

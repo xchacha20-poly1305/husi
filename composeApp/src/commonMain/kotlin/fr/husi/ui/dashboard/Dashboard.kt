@@ -510,6 +510,7 @@ fun DashboardScreen(
                         openVPNController = openVPNController,
                         bottomPadding = bottomPadding,
                         selectClashMode = { dashboardViewModel.setClashMode(it) },
+                        setSystemProxyEnabled = { dashboardViewModel.setSystemProxyEnabled(it) },
                         showError = { message ->
                             snackbar.show(StringOrRes.Direct(message))
                         },

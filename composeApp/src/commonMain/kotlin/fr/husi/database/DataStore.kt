@@ -24,6 +24,8 @@ import fr.husi.database.preference.stringSet
 import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -133,6 +135,15 @@ object DataStore {
     val inboundUsername = configurationStore.string(Key.INBOUND_USERNAME) { "" }
     val inboundPassword = configurationStore.string(Key.INBOUND_PASSWORD) { "" }
 
+    fun hasInboundAuthFlow(): Flow<Boolean> = combine(
+        inboundUsername.flow(),
+        inboundPassword.flow(),
+    ) { username, password ->
+        username.isNotBlank() || password.isNotBlank()
+    }
+
+    suspend fun hasInboundAuth(): Boolean = hasInboundAuthFlow().first()
+
     val allowAccess = configurationStore.boolean(Key.ALLOW_ACCESS)
     val speedInterval = configurationStore.int(Key.SPEED_INTERVAL) { 1000 }
     val showGroupInNotification = configurationStore.boolean(Key.SHOW_GROUP_IN_NOTIFICATION)
@@ -198,6 +209,7 @@ object DataStore {
     val persistAcrossReboot = configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
 
     val appendHttpProxy = configurationStore.boolean(Key.APPEND_HTTP_PROXY)
+    val systemProxy = configurationStore.boolean(Key.SYSTEM_PROXY)
     val httpProxyBypass = configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }
 
     val connectionTestURL = configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }

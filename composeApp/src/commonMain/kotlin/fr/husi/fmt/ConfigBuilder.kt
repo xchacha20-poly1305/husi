@@ -695,18 +695,11 @@ suspend fun buildConfig(
                     tag = TAG_MIXED
                     listen = bind
                     listen_port = mixedPort
-                    if (!PlatformInfo.isAndroid) {
-                        if (DataStore.appendHttpProxy.get()) {
-                            set_system_proxy = true
-                        }
-                    }
-                    val inboundUsername = DataStore.inboundUsername.get()
-                    val inboundPassword = DataStore.inboundPassword.get()
-                    if (inboundUsername.isNotBlank() || inboundPassword.isNotBlank()) {
+                    if (DataStore.hasInboundAuth()) {
                         users = mutableListOf(
                             User().apply {
-                                username = inboundUsername
-                                password = inboundPassword
+                                username = DataStore.inboundUsername.get()
+                                password = DataStore.inboundPassword.get()
                             },
                         )
                     }

@@ -16,6 +16,7 @@ import fr.husi.core.CoreStateReconciliation
 import fr.husi.core.reconciliationFor
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
+import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
@@ -41,6 +42,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -80,6 +82,7 @@ internal class CoreHostController(
     private val resolveCoreClient: () -> CoreClient = { GlobalContext.get().get() },
     private val resolveCoreBinary: () -> File? = ::resolveHusiCoreBinary,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val systemProxyBackend: SystemProxyBackend = LibcoreSystemProxyBackend,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val access = Mutex()
@@ -135,6 +138,11 @@ internal class CoreHostController(
                 }
             }
         }
+        scope.launch {
+            combine(DataStore.systemProxy.flow(), DataStore.hasInboundAuthFlow(), ::Pair).collect {
+                access.withLock { syncSystemProxyLocked() }
+            }
+        }
     }
 
     /**
@@ -143,6 +151,8 @@ internal class CoreHostController(
      */
     val hostState: StateFlow<CoreHostState>
         field = MutableStateFlow(CoreHostState())
+
+    private var systemProxyApplied = false
 
     /** Whether the shared client is attached to the privileged system daemon. */
     val isDaemonMode: Boolean
@@ -173,24 +183,7 @@ internal class CoreHostController(
     }
 
     fun reload() {
-        runExclusive {
-            when {
-                DataStore.selectedProxy.get() == 0L -> {
-                    stopLocked(repository.getString(Res.string.profile_empty))
-                }
-
-                DataStore.serviceState == ServiceState.Stopped || DataStore.serviceState == ServiceState.Idle -> {
-                    startLocked()
-                }
-
-                DataStore.serviceState.canStop -> {
-                    stopLocked()
-                    startLocked()
-                }
-
-                else -> Logs.w("Illegal state ${DataStore.serviceState} when invoking reload")
-            }
-        }
+        runExclusive { reloadLocked() }
     }
 
     fun stop(): Job = runExclusive {
@@ -211,6 +204,7 @@ internal class CoreHostController(
                         }
                     } finally {
                         discardingSession = false
+                        clearOsSystemProxyLocked()
                     }
                 }
                 true
@@ -371,6 +365,7 @@ internal class CoreHostController(
         runningProfileName = metadata?.profileName?.blankAsNull()
         changeState(ServiceState.Connected, runningProfileName)
         BackendState.setConnected(true)
+        syncSystemProxyLocked()
 
         // Last: this one goes to disk, and the UI should not wait for it.
         metadata?.profileId?.takeIf { it > 0L }?.let { DataStore.currentProfile.set(it) }
@@ -479,6 +474,25 @@ internal class CoreHostController(
         publishHostState()
     }
 
+    private suspend fun reloadLocked() {
+        when {
+            DataStore.selectedProxy.get() == 0L -> {
+                stopLocked(repository.getString(Res.string.profile_empty))
+            }
+
+            DataStore.serviceState == ServiceState.Stopped || DataStore.serviceState == ServiceState.Idle -> {
+                startLocked()
+            }
+
+            DataStore.serviceState.canStop -> {
+                stopLocked()
+                startLocked()
+            }
+
+            else -> Logs.w("Illegal state ${DataStore.serviceState} when invoking reload")
+        }
+    }
+
     private suspend fun startLocked() {
         val state = DataStore.serviceState
         if (state.canStop || state == ServiceState.Stopping) return
@@ -548,6 +562,7 @@ internal class CoreHostController(
             runningProfileName = profile.displayNameForService()
             changeState(ServiceState.Connected, runningProfileName)
             BackendState.setConnected(true)
+            syncSystemProxyLocked()
         } catch (e: Throwable) {
             when (e) {
                 is UnknownHostException -> stopLocked(repository.getString(Res.string.invalid_server))
@@ -570,6 +585,7 @@ internal class CoreHostController(
         changeState(ServiceState.Stopping, runningProfileName)
         BackendState.setConnected(false)
 
+        syncSystemProxyLocked()
         cleanupLocked()
         runningProfileName = null
 
@@ -800,6 +816,37 @@ internal class CoreHostController(
         process.destroyForcibly()
     }
 
+    private suspend fun syncSystemProxyLocked() {
+        val shouldApply = DataStore.systemProxy.get() &&
+            DataStore.serviceState == ServiceState.Connected &&
+            foreignOwner == null &&
+            !DataStore.hasInboundAuth()
+        if (shouldApply == systemProxyApplied) return
+        if (shouldApply) {
+            val port = DataStore.mixedPort.get()
+            try {
+                systemProxyBackend.enable(LOCALHOST4, port)
+                systemProxyApplied = true
+            } catch (e: Exception) {
+                Logs.w("failed to set system proxy", e)
+                systemProxyApplied = false
+                BackendState.emitAlert(ServiceAlert.Common(e.readableMessage))
+            }
+        } else {
+            clearOsSystemProxyLocked()
+        }
+    }
+
+    private fun clearOsSystemProxyLocked() {
+        if (!systemProxyApplied) return
+        try {
+            systemProxyBackend.disable()
+        } catch (e: Exception) {
+            Logs.w("failed to clear system proxy", e)
+        }
+        systemProxyApplied = false
+    }
+
     private fun changeState(state: ServiceState, profileName: String? = null) {
         DataStore.serviceState = state
         BackendState.updateState(state, profileName)
@@ -812,6 +859,14 @@ internal class CoreHostController(
     /** Test-only: how often a stuck daemon host had to be detached. */
     internal var daemonDetaches = 0
         private set
+
+    internal suspend fun startLockedForTest() {
+        access.withLock { startLocked() }
+    }
+
+    internal suspend fun reloadLockedForTest() {
+        access.withLock { reloadLocked() }
+    }
 
     /** Test-only: pretend the shared client is attached to a live host. */
     internal fun attachHostForTest(daemon: Boolean) {

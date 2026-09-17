@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -47,6 +48,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.setPlainText
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
+import fr.husi.fmt.LOCALHOST4
 import fr.husi.libcore.Libcore
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openvpn.OpenVPNAuthController
@@ -62,6 +64,7 @@ internal fun DashboardStatusScreen(
     bottomPadding: Dp,
     isEditing: Boolean,
     selectClashMode: (mode: String) -> Unit,
+    setSystemProxyEnabled: (Boolean) -> Unit,
     showError: (String) -> Unit,
     onCopySuccess: () -> Unit,
     onWidgetsChange: (List<DashboardWidgetEntry>) -> Unit,
@@ -81,6 +84,7 @@ internal fun DashboardStatusScreen(
             DashboardWidget.OpenConnect -> openConnectEndpoints.isNotEmpty()
             DashboardWidget.OpenVPN -> openVPNEndpoints.isNotEmpty()
             DashboardWidget.ClashMode -> uiState.clashModes.isNotEmpty()
+            DashboardWidget.SystemProxy -> uiState.systemProxy != null && !uiState.isRemote
             else -> true
         }
     }
@@ -131,6 +135,7 @@ internal fun DashboardStatusScreen(
                             networkInterfacesVisible = !networkInterfacesVisible
                         },
                         selectClashMode = selectClashMode,
+                        setSystemProxyEnabled = setSystemProxyEnabled,
                         showError = showError,
                         onCopy = { value ->
                             scope.launch { clipboard.setPlainText(value) }
@@ -186,6 +191,7 @@ private fun DashboardWidgetContent(
     networkInterfacesVisible: Boolean,
     onToggleNetworkInterfacesVisible: () -> Unit,
     selectClashMode: (mode: String) -> Unit,
+    setSystemProxyEnabled: (Boolean) -> Unit,
     showError: (String) -> Unit,
     onCopy: (String) -> Unit,
 ) {
@@ -223,6 +229,13 @@ private fun DashboardWidgetContent(
             uiState = uiState,
             selectClashMode = selectClashMode,
         )
+
+        DashboardWidget.SystemProxy -> uiState.systemProxy?.let { systemProxy ->
+            SystemProxyCard(
+                systemProxy = systemProxy,
+                setEnabled = setSystemProxyEnabled,
+            )
+        }
 
         DashboardWidget.NetworkInterfaces -> NetworkInterfacesCard(
             uiState = uiState,
@@ -283,6 +296,7 @@ private fun dashboardWidgetTitle(widget: DashboardWidget): String = stringResour
         DashboardWidget.OpenVPN -> Res.string.action_openvpn
         DashboardWidget.SourceAddress -> Res.string.source_address
         DashboardWidget.ClashMode -> Res.string.clash_mode
+        DashboardWidget.SystemProxy -> Res.string.system_proxy
         DashboardWidget.NetworkInterfaces -> Res.string.network_interfaces
     },
 )
@@ -348,6 +362,48 @@ private fun SourceAddressCard(
                 address = uiState.ipv6,
                 visible = visible,
                 onCopy = onCopy,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SystemProxyCard(
+    systemProxy: SystemProxyState,
+    setEnabled: (Boolean) -> Unit,
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.system_proxy),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = if (systemProxy.hasInboundAuth) {
+                        stringResource(Res.string.system_proxy_unavailable_inbound_auth)
+                    } else {
+                        "$LOCALHOST4:${systemProxy.mixedPort}"
+                    },
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Switch(
+                checked = systemProxy.enabled && !systemProxy.hasInboundAuth,
+                onCheckedChange = setEnabled,
+                enabled = !systemProxy.hasInboundAuth,
             )
         }
     }
