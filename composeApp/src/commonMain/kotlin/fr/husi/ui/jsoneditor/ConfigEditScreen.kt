@@ -85,10 +85,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.AutoCompleteSuggestionList
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -426,6 +427,7 @@ private fun ConfigEditScreenContent(
     val coroutineScope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
 
     val colorScheme = MaterialTheme.colorScheme
     val syntaxStyles = remember(colorScheme) { ConfigJsonSyntaxStyles(colorScheme) }
@@ -436,6 +438,7 @@ private fun ConfigEditScreenContent(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -466,6 +469,7 @@ private fun ConfigEditScreenContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .hazeSource(hazeState)
                 .onGloballyPositioned { completionHostPosition = it.positionInRoot() },
         ) {
             val density = LocalDensity.current

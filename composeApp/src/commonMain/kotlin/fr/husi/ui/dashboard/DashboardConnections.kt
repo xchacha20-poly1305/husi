@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -52,7 +51,7 @@ import org.jetbrains.compose.resources.vectorResource
 internal fun DashboardConnectionsScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
-    bottomPadding: Dp,
+    contentPadding: PaddingValues,
     resolveProcessInfo: suspend (String?, Int) -> ProcessInfo?,
     closeConnection: (uuid: String) -> Unit,
     onConnectionClick: (uuid: String) -> Unit,
@@ -70,7 +69,7 @@ internal fun DashboardConnectionsScreen(
                     .fillMaxHeight()
                     .fadingEdge(listState),
                 state = listState,
-                contentPadding = PaddingValues(bottom = bottomPadding),
+                contentPadding = contentPadding,
                 verticalArrangement = Arrangement.spacedBy(itemSpacing),
             ) {
                 items(

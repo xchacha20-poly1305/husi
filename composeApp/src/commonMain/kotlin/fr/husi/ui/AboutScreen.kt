@@ -36,6 +36,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.BuildConfig
 import fr.husi.HUSI_REPOSITORY
 import fr.husi.bg.githubLatestReleasePageUrl
@@ -118,10 +120,12 @@ fun AboutScreen(
         }
     }
 
+    val hazeState = rememberHazeState()
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             SimpleTopAppBar(
+                hazeState = hazeState,
                 title = { Text(stringResource(Res.string.menu_about)) },
                 navigationIcon = {
                     SimpleIconButton(
@@ -138,7 +142,11 @@ fun AboutScreen(
         val uriHandler = LocalUriHandler.current
         val contentPadding = innerPadding.withNavigation()
 
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier

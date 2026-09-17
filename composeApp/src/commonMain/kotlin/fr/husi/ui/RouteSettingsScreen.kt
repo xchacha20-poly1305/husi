@@ -43,12 +43,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.bg.routeCustomGeoDir
 import fr.husi.bg.routeGeoDir
 import fr.husi.compose.AutoCompleteTextField
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.DurationTextField
@@ -234,12 +235,14 @@ internal fun RouteSettingsScreen(
         viewModel.setCustomDnsConfig(result)
     }
 
+    val hazeState = rememberHazeState()
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -276,75 +279,75 @@ internal fun RouteSettingsScreen(
                         }
                     }
 
-                    Box {
-                        CapsuleActionButton {
+                    CapsuleActionButton {
+                        Box {
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.more_vert),
                                 contentDescription = stringResource(Res.string.more),
                             ) {
                                 showExpandedMenu = true
                             }
-                        }
-                        DropdownMenuPopup(
-                            expanded = showExpandedMenu,
-                            onDismissRequest = { showExpandedMenu = false },
-                        ) {
-                            DropdownMenuGroup(
-                                shapes = MenuDefaults.groupShape(0, 3),
+                            DropdownMenuPopup(
+                                expanded = showExpandedMenu,
+                                onDismissRequest = { showExpandedMenu = false },
                             ) {
-                                DropdownMenuItem(
-                                    checked = uiState.invert,
-                                    onCheckedChange = viewModel::setInvert,
-                                    text = { Text(stringResource(Res.string.route_invert)) },
-                                    shapes = MenuDefaults.itemShapes(),
-                                )
-                            }
-                            Spacer(Modifier.height(MenuDefaults.GroupSpacing))
-                            DropdownMenuGroup(
-                                shapes = MenuDefaults.groupShape(1, 3),
-                            ) {
-                                DropdownMenuSectionHeader(stringResource(Res.string.custom_config))
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.menu_route)) },
-                                    onClick = {
-                                        showExpandedMenu = false
-                                        onOpenConfigEditor(
-                                            NavRoutes.ConfigEditor(
-                                                initialText = uiState.customConfig,
-                                                resultKey = configEditResultKey,
-                                            ),
-                                        )
-                                    },
-                                    shape = MenuDefaults.itemShape(0, 2).shape,
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.cag_dns)) },
-                                    onClick = {
-                                        showExpandedMenu = false
-                                        onOpenConfigEditor(
-                                            NavRoutes.ConfigEditor(
-                                                initialText = uiState.customDnsConfig,
-                                                resultKey = dnsConfigEditResultKey,
-                                                schema = ConfigSchema.DNS_RULE,
-                                            ),
-                                        )
-                                    },
-                                    shape = MenuDefaults.itemShape(1, 2).shape,
-                                )
-                            }
-                            Spacer(Modifier.height(MenuDefaults.GroupSpacing))
-                            DropdownMenuGroup(
-                                shapes = MenuDefaults.groupShape(2, 3),
-                            ) {
-                                DropdownMenuItem(
-                                    selected = uiState.dnsOnly,
-                                    onClick = {
-                                        showExpandedMenu = false
-                                        viewModel.setDnsOnly(!uiState.dnsOnly)
-                                    },
-                                    text = { Text(stringResource(Res.string.dns_only)) },
-                                    shapes = MenuDefaults.itemShape(0, 1),
-                                )
+                                DropdownMenuGroup(
+                                    shapes = MenuDefaults.groupShape(0, 3),
+                                ) {
+                                    DropdownMenuItem(
+                                        checked = uiState.invert,
+                                        onCheckedChange = viewModel::setInvert,
+                                        text = { Text(stringResource(Res.string.route_invert)) },
+                                        shapes = MenuDefaults.itemShapes(),
+                                    )
+                                }
+                                Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+                                DropdownMenuGroup(
+                                    shapes = MenuDefaults.groupShape(1, 3),
+                                ) {
+                                    DropdownMenuSectionHeader(stringResource(Res.string.custom_config))
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.menu_route)) },
+                                        onClick = {
+                                            showExpandedMenu = false
+                                            onOpenConfigEditor(
+                                                NavRoutes.ConfigEditor(
+                                                    initialText = uiState.customConfig,
+                                                    resultKey = configEditResultKey,
+                                                ),
+                                            )
+                                        },
+                                        shape = MenuDefaults.itemShape(0, 2).shape,
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.cag_dns)) },
+                                        onClick = {
+                                            showExpandedMenu = false
+                                            onOpenConfigEditor(
+                                                NavRoutes.ConfigEditor(
+                                                    initialText = uiState.customDnsConfig,
+                                                    resultKey = dnsConfigEditResultKey,
+                                                    schema = ConfigSchema.DNS_RULE,
+                                                ),
+                                            )
+                                        },
+                                        shape = MenuDefaults.itemShape(1, 2).shape,
+                                    )
+                                }
+                                Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+                                DropdownMenuGroup(
+                                    shapes = MenuDefaults.groupShape(2, 3),
+                                ) {
+                                    DropdownMenuItem(
+                                        selected = uiState.dnsOnly,
+                                        onClick = {
+                                            showExpandedMenu = false
+                                            viewModel.setDnsOnly(!uiState.dnsOnly)
+                                        },
+                                        text = { Text(stringResource(Res.string.dns_only)) },
+                                        shapes = MenuDefaults.itemShape(0, 1),
+                                    )
+                                }
                             }
                         }
                     }
@@ -357,6 +360,7 @@ internal fun RouteSettingsScreen(
         ProvidePreferenceLocals {
             RouteSettings(
                 paddings = innerPadding,
+                modifier = Modifier.hazeSource(hazeState),
                 uiState = uiState,
                 viewModel = viewModel,
                 onSelectOutboundProfile = { selected ->

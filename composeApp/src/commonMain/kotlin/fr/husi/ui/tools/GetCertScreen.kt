@@ -50,6 +50,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropDownSelector
@@ -97,6 +99,7 @@ internal fun GetCertScreen(
     val scope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
 
     val clipboard = LocalClipboard.current
 
@@ -106,6 +109,7 @@ internal fun GetCertScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -120,6 +124,7 @@ internal fun GetCertScreen(
         },
     ) { innerPadding ->
         GetCertContent(
+            modifier = Modifier.hazeSource(hazeState),
             contentPadding = innerPadding.withNavigation(),
             viewModel = viewModel,
             copyToClipboard = {
@@ -138,6 +143,7 @@ private fun GetCertContent(
     contentPadding: PaddingValues,
     viewModel: GetCertScreenViewModel,
     copyToClipboard: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var alert by remember { mutableStateOf<String?>(null) }
@@ -147,7 +153,7 @@ private fun GetCertContent(
     }
 
     val layoutDirection = LocalLayoutDirection.current
-    Row(modifier = Modifier.fillMaxSize()) {
+    Row(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .weight(1f)

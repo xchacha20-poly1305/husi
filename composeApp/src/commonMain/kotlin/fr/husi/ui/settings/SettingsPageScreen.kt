@@ -18,6 +18,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.bg.Executable
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.ProvidePreferenceLocals
@@ -69,6 +71,7 @@ fun SettingsPageScreen(
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
     val windowInsets = WindowInsets.safeDrawing
     val snackbar = LocalSnackbarEmitter.current
     val listState = rememberLazyListState()
@@ -124,6 +127,7 @@ fun SettingsPageScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SimpleTopAppBar(
+                hazeState = hazeState,
                 title = { Text(stringResource(title)) },
                 navigationIcon = {
                     SimpleIconButton(
@@ -139,7 +143,11 @@ fun SettingsPageScreen(
     ) { innerPadding ->
         ProvidePreferenceLocals {
             val contentPadding = innerPadding.withNavigation()
-            Row(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeSource(hazeState),
+            ) {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier

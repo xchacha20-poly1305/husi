@@ -35,6 +35,16 @@ fun Modifier.paddingExceptBottom(paddingValues: PaddingValues): Modifier {
 }
 
 @Composable
+fun Modifier.paddingHorizontal(paddingValues: PaddingValues): Modifier {
+    return padding(
+        PaddingValues(
+            start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
+            end = paddingValues.calculateEndPadding(LocalLayoutDirection.current),
+        ),
+    )
+}
+
+@Composable
 fun extraBottomPadding(): PaddingValues {
     return PaddingValues(
         bottom = navigationBarsAlwaysInsets()

@@ -55,13 +55,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.RuleProvider
 import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.createRouteCustomGeoDir
 import fr.husi.bg.createRouteGeoDir
 import fr.husi.bg.currentEpochSeconds
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -260,6 +261,7 @@ internal fun AssetsScreen(
         }
     }
 
+    val hazeState = rememberHazeState()
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -267,6 +269,7 @@ internal fun AssetsScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 CapsuleTopBar(
+                    hazeState = hazeState,
                     navigationIcon = {
                         SimpleIconButton(
                             imageVector = vectorResource(Res.drawable.arrow_back),
@@ -372,7 +375,11 @@ internal fun AssetsScreen(
         ) { innerPadding ->
         val listState = rememberLazyListState()
         val contentPadding = innerPadding.withNavigation()
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier

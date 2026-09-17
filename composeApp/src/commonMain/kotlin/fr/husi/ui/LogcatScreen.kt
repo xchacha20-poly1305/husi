@@ -58,8 +58,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.SagerFabClearance
@@ -167,6 +168,7 @@ fun LogcatScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
     val windowInsets = WindowInsets.safeDrawing
     val searchBarState = rememberSearchBarState()
     val searchTextFieldState = viewModel.searchTextFieldState
@@ -203,6 +205,7 @@ fun LogcatScreen(
         topBar = {
             Column {
                 CapsuleSearchTopBar(
+                    hazeState = hazeState,
                     inputField = searchInputField,
                     navigationIcon = null,
                     actions = {
@@ -320,7 +323,9 @@ fun LogcatScreen(
             bottom = max(innerPadding.calculateBottomPadding(), SagerFabClearance),
         )
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(

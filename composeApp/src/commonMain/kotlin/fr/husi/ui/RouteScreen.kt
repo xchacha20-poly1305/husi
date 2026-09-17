@@ -53,8 +53,9 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
 import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.SimpleIconButton
@@ -162,7 +163,7 @@ fun RouteScreen(
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
-
+    val hazeState = rememberHazeState()
 
     Scaffold(
         modifier = modifier
@@ -170,6 +171,7 @@ fun RouteScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 title = null,
                 navigationIcon = null,
                 actions = {
@@ -233,7 +235,9 @@ fun RouteScreen(
             }.toImmutableList()
         }
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
         ) {
             DragDropSwipeLazyColumn(
                 modifier = Modifier

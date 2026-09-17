@@ -42,7 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -68,7 +67,7 @@ import org.jetbrains.compose.resources.vectorResource
 internal fun DashboardProxySetScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
-    bottomPadding: Dp,
+    contentPadding: PaddingValues,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestForSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
@@ -81,7 +80,7 @@ internal fun DashboardProxySetScreen(
                 .weight(1f)
                 .fillMaxHeight(),
             state = listState,
-            contentPadding = PaddingValues(bottom = bottomPadding),
+            contentPadding = contentPadding,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(
@@ -467,7 +466,7 @@ private fun PreviewProxySet() {
     }
     DashboardProxySetScreen(
         uiState = uiState,
-        bottomPadding = 64.dp,
+        contentPadding = PaddingValues(bottom = 64.dp),
         selectProxy = { _, _ -> },
         urlTestForSingle = {},
         urlTestForGroup = {},

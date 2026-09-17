@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
@@ -62,6 +64,7 @@ internal fun DebugScreen(
     val snackbar = LocalSnackbarEmitter.current
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
 
     var showResetAlert by remember { mutableStateOf(false) }
     Scaffold(
@@ -70,6 +73,7 @@ internal fun DebugScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -85,7 +89,11 @@ internal fun DebugScreen(
     ) { innerPadding ->
         val contentPadding = innerPadding.withNavigation()
         val layoutDirection = LocalLayoutDirection.current
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+        ) {
             Column(
                 modifier = Modifier
                     .weight(1f)

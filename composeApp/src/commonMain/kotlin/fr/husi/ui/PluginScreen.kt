@@ -35,6 +35,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
@@ -76,6 +78,7 @@ fun PluginScreen(
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
     val snackbar = LocalSnackbarEmitter.current
     val listState = rememberLazyListState()
     val uriHandler = LocalUriHandler.current
@@ -105,6 +108,7 @@ fun PluginScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SimpleTopAppBar(
+                hazeState = hazeState,
                 title = { Text(stringResource(Res.string.plugin)) },
                 navigationIcon = {
                     SimpleIconButton(
@@ -120,7 +124,11 @@ fun PluginScreen(
     ) { innerPadding ->
         ProvidePreferenceLocals {
             val contentPadding = innerPadding.withNavigation()
-            Row(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeSource(hazeState),
+            ) {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier

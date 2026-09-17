@@ -24,8 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BackHandler
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -111,10 +112,12 @@ fun SIP003EditorScreen(
     }
 
     val windowInsets = WindowInsets.safeDrawing
+    val hazeState = rememberHazeState()
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -137,10 +140,11 @@ fun SIP003EditorScreen(
         },
     ) { innerPadding ->
         ProvidePreferenceLocals {
+            val formModifier = Modifier.hazeSource(hazeState)
             when (pluginName) {
-                SIP003_OBFS_LOCAL -> ObfsLocalForm(uiState, viewModel, innerPadding)
-                SIP003_V2RAY_PLUGIN -> V2RayPluginForm(uiState, viewModel, innerPadding)
-                else -> EmptyForm(innerPadding)
+                SIP003_OBFS_LOCAL -> ObfsLocalForm(uiState, viewModel, innerPadding, formModifier)
+                SIP003_V2RAY_PLUGIN -> V2RayPluginForm(uiState, viewModel, innerPadding, formModifier)
+                else -> EmptyForm(innerPadding, formModifier)
             }
         }
     }
@@ -169,11 +173,11 @@ private fun ObfsLocalForm(
     uiState: SIP003EditorUiState,
     viewModel: SIP003EditorViewModel,
     contentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = contentPadding,
     ) {
         item("category", PreferenceType.CATEGORY) {
             PreferenceCategory(text = { Text(stringResource(Res.string.plugin)) })
@@ -220,11 +224,11 @@ private fun V2RayPluginForm(
     uiState: SIP003EditorUiState,
     viewModel: SIP003EditorViewModel,
     contentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = contentPadding,
     ) {
         item("category", PreferenceType.CATEGORY) {
             PreferenceCategory(text = { Text(stringResource(Res.string.plugin)) })
@@ -328,9 +332,12 @@ private fun V2RayPluginForm(
 }
 
 @Composable
-private fun EmptyForm(contentPadding: PaddingValues) {
+private fun EmptyForm(
+    contentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(contentPadding),
         contentAlignment = Alignment.Center,

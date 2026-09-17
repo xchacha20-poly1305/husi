@@ -38,7 +38,6 @@ import fr.husi.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.ListPreference
 import androidx.compose.runtime.Composable
@@ -123,6 +122,7 @@ class TaskerActivity : ComposeActivity() {
                             .nestedScroll(scrollBehavior.nestedScrollConnection),
                         topBar = {
                             CapsuleTopBar(
+                                hazeState = null,
                                 title = { Text(stringResource(Res.string.tasker_settings)) },
                                 navigationIcon = {
                                     SimpleIconButton(

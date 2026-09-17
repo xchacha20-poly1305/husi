@@ -332,7 +332,11 @@ kotlin {
     android {
         namespace = "fr.husi.lib"
         buildToolsVersion = "37.0.0"
-        compileSdk = 37
+        compileSdk {
+            version = release(37) {
+                minorApiLevel = 2
+            }
+        }
         minSdk = 24
         androidResources {
             enable = true
@@ -375,6 +379,9 @@ kotlin {
                 implementation(libs.filekit.core)
                 implementation(libs.filekit.dialogs.compose)
                 implementation(libs.aboutlibraries.compose.m3)
+                implementation(libs.haze)
+                implementation(libs.haze.blur)
+                implementation(libs.haze.blur.material3)
                 implementation(libs.zxing.core)
                 implementation(project(":proto"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))

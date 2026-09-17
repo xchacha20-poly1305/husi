@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,7 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import fr.husi.compose.CapsuleActionButton
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.KeyValueLine
 import fr.husi.compose.SimpleIconButton
@@ -64,7 +64,6 @@ import org.jetbrains.compose.resources.vectorResource
 
 private const val TYPE_ITEM_CARD = 0
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal actual fun VPNScannerScreen(
     modifier: Modifier,
@@ -78,6 +77,7 @@ internal actual fun VPNScannerScreen(
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
 
     LaunchedEffect(Unit) {
         viewModel.scanVPN(context.packageManager)
@@ -94,6 +94,7 @@ internal actual fun VPNScannerScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -117,7 +118,11 @@ internal actual fun VPNScannerScreen(
             )
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+        ) {
             uiState.progress?.let {
                 LinearWavyProgressIndicator(
                     progress = { it },

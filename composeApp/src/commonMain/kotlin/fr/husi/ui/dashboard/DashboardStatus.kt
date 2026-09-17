@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,7 +62,7 @@ internal fun DashboardStatusScreen(
     uiState: DashboardState,
     openConnectController: OpenConnectAuthController,
     openVPNController: OpenVPNAuthController,
-    bottomPadding: Dp,
+    contentPadding: PaddingValues,
     isEditing: Boolean,
     selectClashMode: (mode: String) -> Unit,
     setSystemProxyEnabled: (Boolean) -> Unit,
@@ -102,8 +103,8 @@ internal fun DashboardStatusScreen(
                 .padding(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 8.dp,
-                    bottom = bottomPadding + 8.dp,
+                    top = contentPadding.calculateTopPadding() + 8.dp,
+                    bottom = contentPadding.calculateBottomPadding() + 8.dp,
                 ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {

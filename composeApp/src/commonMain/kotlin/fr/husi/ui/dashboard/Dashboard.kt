@@ -5,11 +5,9 @@
 
 package fr.husi.ui.dashboard
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -32,7 +30,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
@@ -44,16 +41,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.TrafficSortMode
-import fr.husi.compose.CapsuleActionButton
+import fr.husi.compose.CapsuleHeader
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
 import fr.husi.compose.CapsuleTopBar
@@ -66,7 +63,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryTabRow
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
-import fr.husi.compose.paddingExceptBottom
+import fr.husi.compose.paddingHorizontal
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.resources.Res
 import fr.husi.resources.ascending
@@ -205,23 +202,17 @@ fun DashboardScreen(
         dashboardViewModel.initialize(targetConnected)
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
-    val appBarContainerColor by animateColorAsState(
-        targetValue = lerp(
-            topAppBarColors.containerColor,
-            topAppBarColors.scrolledContainerColor,
-            scrollBehavior.state.overlappedFraction.fastCoerceIn(0f, 1f),
-        ),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "appBarContainerColor",
-    )
+    val hazeState = rememberHazeState()
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Surface(color = appBarContainerColor) {
+            CapsuleHeader(
+                hazeState = hazeState,
+                scrollBehavior = scrollBehavior,
+            ) {
                 Column(
                     modifier = Modifier.windowInsetsPadding(
                         windowInsets.only(WindowInsetsSides.Top),
@@ -229,6 +220,7 @@ fun DashboardScreen(
                 ) {
                     if (isConnectionsPage) {
                         CapsuleSearchTopBar(
+                            hazeState = hazeState,
                             inputField = searchInputField,
                             navigationIcon = null,
                             actions = {
@@ -373,6 +365,7 @@ fun DashboardScreen(
                     } else {
                         val groupCount = if (isProxySetPage || isStatusPage) 2 else 1
                         CapsuleTopBar(
+                            hazeState = hazeState,
                             navigationIcon = null,
                             title = { Text(stringResource(Res.string.menu_dashboard)) },
                             actions = {
@@ -459,7 +452,7 @@ fun DashboardScreen(
 
                     PrimaryTabRow(
                         selectedTabIndex = pagerState.currentPage,
-                        containerColor = appBarContainerColor,
+                        containerColor = Color.Transparent,
                     ) {
                         Tab(
                             text = { Text(stringResource(Res.string.traffic_status)) },
@@ -493,11 +486,15 @@ fun DashboardScreen(
             }
         },
     ) { innerPadding ->
-        val bottomPadding = max(innerPadding.calculateBottomPadding(), SagerFabClearance)
+        val pageContentPadding = PaddingValues(
+            top = innerPadding.calculateTopPadding(),
+            bottom = max(innerPadding.calculateBottomPadding(), SagerFabClearance),
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .paddingExceptBottom(innerPadding),
+                .paddingHorizontal(innerPadding)
+                .hazeSource(hazeState),
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -508,7 +505,7 @@ fun DashboardScreen(
                         uiState = uiState,
                         openConnectController = openConnectController,
                         openVPNController = openVPNController,
-                        bottomPadding = bottomPadding,
+                        contentPadding = pageContentPadding,
                         selectClashMode = { dashboardViewModel.setClashMode(it) },
                         setSystemProxyEnabled = { dashboardViewModel.setSystemProxyEnabled(it) },
                         showError = { message ->
@@ -523,7 +520,7 @@ fun DashboardScreen(
 
                     PAGE_CONNECTIONS -> DashboardConnectionsScreen(
                         uiState = uiState,
-                        bottomPadding = bottomPadding,
+                        contentPadding = pageContentPadding,
                         resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
                         closeConnection = { uuid ->
                             dashboardViewModel.closeConnection(uuid)
@@ -533,7 +530,7 @@ fun DashboardScreen(
 
                     PAGE_PROXY_SET -> DashboardProxySetScreen(
                         uiState = uiState,
-                        bottomPadding = bottomPadding,
+                        contentPadding = pageContentPadding,
                         selectProxy = { group, proxy ->
                             dashboardViewModel.selectOutbound(group, proxy)
                         },
@@ -553,7 +550,7 @@ fun DashboardScreen(
     ) {
         DashboardConnectionsScreen(
             uiState = uiState,
-            bottomPadding = 0.dp,
+            contentPadding = PaddingValues(),
             resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
             closeConnection = { uuid ->
                 dashboardViewModel.closeConnection(uuid)

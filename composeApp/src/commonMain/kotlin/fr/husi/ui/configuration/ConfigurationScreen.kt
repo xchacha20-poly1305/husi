@@ -2,11 +2,9 @@
 
 package fr.husi.ui.configuration
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -32,7 +30,6 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
@@ -48,7 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
@@ -57,7 +54,6 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastCoerceIn
@@ -73,7 +69,10 @@ import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.compose.CapsuleActionButton
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import fr.husi.compose.CapsuleHeader
+import fr.husi.compose.paddingHorizontal
 import fr.husi.compose.ClipboardContent
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
@@ -90,7 +89,6 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryScrollableTabRow
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
-import fr.husi.compose.paddingExceptBottom
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
@@ -295,16 +293,7 @@ fun ConfigurationScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
-    val appBarContainerColor by animateColorAsState(
-        targetValue = lerp(
-            topAppBarColors.containerColor,
-            topAppBarColors.scrolledContainerColor,
-            scrollBehavior.state.overlappedFraction.fastCoerceIn(0f, 1f),
-        ),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "appBarContainerColor",
-    )
+    val hazeState = rememberHazeState()
 
     LaunchedEffect(Unit) {
         vm.scrollToProxy(DataStore.selectedProxy.get())
@@ -425,16 +414,19 @@ fun ConfigurationScreen(
                 }
             },
         topBar = {
-            Surface(color = appBarContainerColor) {
-                Column {
-                    CapsuleSearchTopBar(
-                        inputField = searchInputField,
-                        navigationIcon = null,
-                        onSearchPillClick = {
-                            scope.launch { searchBarState.animateToExpanded() }
-                        },
-                        onSearchPillLongPress = ::scrollToSelectedProxyAcrossGroups,
-                        actions = {
+            CapsuleHeader(
+                hazeState = hazeState,
+                scrollBehavior = scrollBehavior,
+            ) {
+                CapsuleSearchTopBar(
+                    hazeState = hazeState,
+                    inputField = searchInputField,
+                    navigationIcon = null,
+                    onSearchPillClick = {
+                        scope.launch { searchBarState.animateToExpanded() }
+                    },
+                    onSearchPillLongPress = ::scrollToSelectedProxyAcrossGroups,
+                    actions = {
                         CapsuleActionButton {
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.view_list),
@@ -625,7 +617,7 @@ fun ConfigurationScreen(
                         uiState.groups.size - 1,
                     ),
                     edgePadding = 0.dp,
-                    containerColor = appBarContainerColor,
+                    containerColor = Color.Transparent,
                 ) {
                     uiState.groups.forEachIndexed { index, group ->
                         Tab(
@@ -649,20 +641,22 @@ fun ConfigurationScreen(
                     }
                 }
             }
-            }
         },
     ) { innerPadding ->
-        val bottomPadding = innerPadding.calculateBottomPadding() + SagerFabClearance
         ConfigurationContent(
             modifier = Modifier
                 .fillMaxSize()
-                .paddingExceptBottom(innerPadding),
+                .paddingHorizontal(innerPadding)
+                .hazeSource(hazeState),
             vm = vm,
             pagerState = pagerState,
             preSelected = null,
             showActions = true,
             onProfileSelect = vm::onProfileSelect,
-            bottomPadding = bottomPadding,
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding(),
+                bottom = innerPadding.calculateBottomPadding() + SagerFabClearance,
+            ),
             canHoldFocus = searchBarState.currentValue != SearchBarValue.Expanded,
             onOpenProfileEditor = onOpenProfileEditor,
         )
@@ -686,7 +680,7 @@ fun ConfigurationScreen(
                 modifier = Modifier.fillMaxSize(),
                 viewModel = childVm,
                 showActions = true,
-                bottomPadding = 0.dp,
+                contentPadding = PaddingValues(),
                 canHoldFocus = false,
                 onProfileSelect = { id ->
                     vm.onProfileSelect(id)
@@ -741,7 +735,7 @@ fun ConfigurationContent(
     preSelected: Long?,
     showActions: Boolean,
     onProfileSelect: (Long) -> Unit,
-    bottomPadding: Dp,
+    contentPadding: PaddingValues,
     canHoldFocus: Boolean,
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
 ) {
@@ -793,7 +787,7 @@ fun ConfigurationContent(
                     GroupHolderScreen(
                         viewModel = pageViewModel,
                         showActions = showActions,
-                        bottomPadding = bottomPadding,
+                        contentPadding = contentPadding,
                         canHoldFocus = canHoldFocus && pagerState.currentPage == page,
                         onProfileSelect = onProfileSelect,
                         onOpenProfileEditor = onOpenProfileEditor,

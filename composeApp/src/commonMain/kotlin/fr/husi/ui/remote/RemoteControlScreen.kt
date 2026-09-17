@@ -36,6 +36,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
@@ -81,6 +83,7 @@ fun RemoteControlScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
     val windowInsets = WindowInsets.safeDrawing
     val scope = rememberCoroutineScope()
     var pendingDelete by remember { mutableStateOf<RemoteServer?>(null) }
@@ -91,6 +94,7 @@ fun RemoteControlScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -113,7 +117,11 @@ fun RemoteControlScreen(
         },
     ) { innerPadding ->
         val contentPadding = innerPadding.withNavigation()
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier

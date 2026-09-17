@@ -4,6 +4,7 @@ package fr.husi.ui.configuration
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -189,6 +190,7 @@ fun ProfilePickerContent(
             Column(modifier = Modifier.fillMaxSize()) {
                 Column {
                     CapsuleSearchTopBar(
+                        hazeState = null,
                         inputField = searchInputField,
                         navigationIcon = {
                             SimpleIconButton(
@@ -230,7 +232,7 @@ fun ProfilePickerContent(
                     preSelected = state.preSelected,
                     showActions = false,
                     onProfileSelect = onSelected,
-                    bottomPadding = bottomPadding,
+                    contentPadding = PaddingValues(bottom = bottomPadding),
                     canHoldFocus = searchBarState.currentValue != SearchBarValue.Expanded,
                 )
             }
@@ -249,7 +251,7 @@ fun ProfilePickerContent(
                         scope.launch { searchBarState.animateToCollapsed() }
                         onSelected(id)
                     },
-                    bottomPadding = 0.dp,
+                    contentPadding = PaddingValues(),
                     canHoldFocus = false,
                 )
             }

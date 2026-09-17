@@ -1,10 +1,9 @@
 package fr.husi.compose
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
+import dev.chrisbanes.haze.HazeState
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
@@ -85,16 +84,17 @@ fun TextButton(text: String, onClick: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimpleTopAppBar(
+    hazeState: HazeState?,
     title: @Composable () -> Unit,
     navigationIcon: (@Composable () -> Unit)?,
-    actions: @Composable RowScope.() -> Unit = {},
+    actions: @Composable CapsuleActionsScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     CapsuleTopBar(
+        hazeState = hazeState,
         title = title,
         navigationIcon = navigationIcon,
         actions = actions,
@@ -107,6 +107,7 @@ fun SimpleTopAppBar(
 @Composable
 private fun PreviewSimpleTopAppBar() {
     SimpleTopAppBar(
+        hazeState = null,
         title = {
             stringResource(Res.string.app_name)
         },

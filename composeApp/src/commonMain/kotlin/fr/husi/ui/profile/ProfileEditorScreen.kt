@@ -44,10 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.GroupType
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.CapsuleActionButton
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.ProvidePreferenceLocals
@@ -325,12 +326,14 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
         viewModel.setCustomOutbound(result)
     }
 
+    val hazeState = rememberHazeState()
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
@@ -365,83 +368,83 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                         )
                     }
 
-                    Box {
-                        CapsuleActionButton {
+                    CapsuleActionButton {
+                        Box {
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.more_vert),
                                 contentDescription = stringResource(Res.string.more),
                             ) {
                                 showExtendMenu = true
                             }
-                        }
-                        DropdownMenuPopup(
-                            expanded = showExtendMenu,
-                            onDismissRequest = { showExtendMenu = false },
-                        ) {
-                            val showCreateShortCut =
-                                platformSupportShortcut()
-                                        && !viewModel.isNew
-                                        && !viewModel.isSubscription
-                            val showMove = !viewModel.isNew && runBlocking {
-                                SagerDatabase.groupDao.allGroups().first().filter {
-                                    it.type == GroupType.BASIC
-                                }.size > 1
-                            }
-                            val hasFirstGroup = showCreateShortCut || showMove
-                            if (hasFirstGroup) {
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(0, 2),
-                                ) {
-                                    if (showCreateShortCut) {
-                                        ShortcutMenuItem(viewModel.proxyEntity) {
-                                            showExtendMenu = false
+                            DropdownMenuPopup(
+                                expanded = showExtendMenu,
+                                onDismissRequest = { showExtendMenu = false },
+                            ) {
+                                val showCreateShortCut =
+                                    platformSupportShortcut()
+                                            && !viewModel.isNew
+                                            && !viewModel.isSubscription
+                                val showMove = !viewModel.isNew && runBlocking {
+                                    SagerDatabase.groupDao.allGroups().first().filter {
+                                        it.type == GroupType.BASIC
+                                    }.size > 1
+                                }
+                                val hasFirstGroup = showCreateShortCut || showMove
+                                if (hasFirstGroup) {
+                                    DropdownMenuGroup(
+                                        shapes = MenuDefaults.groupShape(0, 2),
+                                    ) {
+                                        if (showCreateShortCut) {
+                                            ShortcutMenuItem(viewModel.proxyEntity) {
+                                                showExtendMenu = false
+                                            }
+                                        }
+                                        if (showMove) {
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(Res.string.move)) },
+                                                onClick = { showMoveDialog = true },
+                                            )
                                         }
                                     }
-                                    if (showMove) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(Res.string.move)) },
-                                            onClick = { showMoveDialog = true },
-                                        )
-                                    }
+                                    Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
                                 }
-                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
-                            }
 
-                            DropdownMenuGroup(
-                                shapes = if (hasFirstGroup) {
-                                    MenuDefaults.groupShape(1, 2)
-                                } else {
-                                    MenuDefaults.groupShapes()
-                                },
-                            ) {
-                                DropdownMenuSectionHeader(stringResource(Res.string.custom_config))
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.outbound)) },
-                                    onClick = {
-                                        showExtendMenu = false
-                                        onOpenConfigEditor(
-                                            NavRoutes.ConfigEditor(
-                                                initialText = viewModel.uiState.value.customOutbound,
-                                                resultKey = outboundConfigResultKey,
-                                                schema = ConfigSchema.OUTBOUND,
-                                            ),
-                                        )
+                                DropdownMenuGroup(
+                                    shapes = if (hasFirstGroup) {
+                                        MenuDefaults.groupShape(1, 2)
+                                    } else {
+                                        MenuDefaults.groupShapes()
                                     },
-                                    shape = MenuDefaults.itemShape(0, 2).shape,
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.full)) },
-                                    onClick = {
-                                        showExtendMenu = false
-                                        onOpenConfigEditor(
-                                            NavRoutes.ConfigEditor(
-                                                initialText = viewModel.uiState.value.customConfig,
-                                                resultKey = configResultKey,
-                                            ),
-                                        )
-                                    },
-                                    shape = MenuDefaults.itemShape(1, 2).shape,
-                                )
+                                ) {
+                                    DropdownMenuSectionHeader(stringResource(Res.string.custom_config))
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.outbound)) },
+                                        onClick = {
+                                            showExtendMenu = false
+                                            onOpenConfigEditor(
+                                                NavRoutes.ConfigEditor(
+                                                    initialText = viewModel.uiState.value.customOutbound,
+                                                    resultKey = outboundConfigResultKey,
+                                                    schema = ConfigSchema.OUTBOUND,
+                                                ),
+                                            )
+                                        },
+                                        shape = MenuDefaults.itemShape(0, 2).shape,
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.full)) },
+                                        onClick = {
+                                            showExtendMenu = false
+                                            onOpenConfigEditor(
+                                                NavRoutes.ConfigEditor(
+                                                    initialText = viewModel.uiState.value.customConfig,
+                                                    resultKey = configResultKey,
+                                                ),
+                                            )
+                                        },
+                                        shape = MenuDefaults.itemShape(1, 2).shape,
+                                    )
+                                }
                             }
                         }
                     }
@@ -452,6 +455,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
         },
     ) { innerPadding ->
         ProfileSettingsMainColumn(
+            modifier = Modifier.hazeSource(hazeState),
             contentPadding = innerPadding.withNavigation(),
             viewModel = viewModel,
             settings = settings,
@@ -523,6 +527,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
 private fun <T : AbstractBean> ProfileSettingsMainColumn(
     contentPadding: PaddingValues,
     viewModel: ProfileEditorViewModel<T>,
+    modifier: Modifier = Modifier,
     settings: (
         scope: LazyListScope,
         uiState: ProfileEditorUiState,
@@ -543,7 +548,7 @@ private fun <T : AbstractBean> ProfileSettingsMainColumn(
                 }
         }
 
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(modifier = modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)

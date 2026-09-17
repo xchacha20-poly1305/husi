@@ -26,7 +26,8 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
-import fr.husi.compose.CapsuleActionButton
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.CapsuleTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -179,6 +180,7 @@ fun GroupScreen(
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
+    val hazeState = rememberHazeState()
     val dragDropListState = rememberDragDropSwipeLazyColumnState()
 
     Scaffold(
@@ -187,6 +189,7 @@ fun GroupScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
+                hazeState = hazeState,
                 title = { Text(stringResource(Res.string.menu_group)) },
                 navigationIcon = {
                     SimpleIconButton(
@@ -220,7 +223,9 @@ fun GroupScreen(
     ) { innerPadding ->
         val contentPadding = innerPadding.withNavigation()
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
         ) {
             DragDropSwipeLazyColumn(
                 modifier = Modifier

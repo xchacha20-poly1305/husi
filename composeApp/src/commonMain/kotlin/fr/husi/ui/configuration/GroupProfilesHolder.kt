@@ -47,7 +47,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -142,7 +141,7 @@ private data class PendingProfileEdit(
 internal fun GroupHolderScreen(
     modifier: Modifier = Modifier,
     viewModel: GroupProfilesHolderViewModel,
-    bottomPadding: Dp,
+    contentPadding: PaddingValues,
     showActions: Boolean = true,
     canHoldFocus: Boolean,
     onProfileSelect: (Long) -> Unit,
@@ -338,9 +337,7 @@ internal fun GroupHolderScreen(
             items = uiState.profiles.toImmutableList(),
             key = { it.profile.id },
             contentType = { 0 },
-            contentPadding = PaddingValues(
-                bottom = bottomPadding,
-            ),
+            contentPadding = contentPadding,
             userScrollEnabled = true,
             onIndicesChangedViaDragAndDrop = { viewModel.submitReordered(it) },
         ) { index, item ->
