@@ -30,11 +30,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: plugin/shadowquic/src/main/rust/shadowquic
-      - name: Setup Android NDK
-        id: setup-ndk
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
       - name: Native build
         run: ./run plugin shadowquic
       - uses: actions/setup-java@v6
@@ -50,7 +45,6 @@ jobs:
         run: printf '%s' "$LOCAL_PROPERTIES" > local.properties
       - name: Gradle Build
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           SKIP_BUILD: on
         run: make plugin PLUGIN=shadowquic
       - uses: actions/upload-artifact@v7

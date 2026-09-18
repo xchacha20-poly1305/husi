@@ -42,11 +42,6 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
           cache-dependency-path: 'libcore/go.sum'
-      - name: Setup Android NDK
-        id: setup-ndk
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
       - name: Cache route assets
         id: cache-assets
         uses: actions/cache@v6
@@ -62,16 +57,12 @@ jobs:
           LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
         run: printf '%s' "$LOCAL_PROPERTIES" > local.properties
       - name: Build Android libcore
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: make libcore_android
       - name: Download Go modules
         run: cd libcore && go mod download
       - name: Generate about libraries metadata
         run: make aboutlibraries_go aboutlibraries_android
       - name: Build Android app
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: make apk
       - uses: actions/upload-artifact@v7
         with:
