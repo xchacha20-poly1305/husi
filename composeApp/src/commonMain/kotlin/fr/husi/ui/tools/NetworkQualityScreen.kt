@@ -20,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +48,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Card
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
@@ -141,7 +141,7 @@ internal fun NetworkQualityScreen(
                                 contentDescription = stringResource(Res.string.more),
                                 onClick = { expandMenu = true },
                             )
-                            DropdownMenuPopup(
+                            ScrollableDropdownMenuPopup(
                                 expanded = expandMenu,
                                 onDismissRequest = { expandMenu = false },
                             ) {

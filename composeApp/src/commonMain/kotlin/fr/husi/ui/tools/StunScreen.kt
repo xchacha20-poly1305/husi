@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -53,6 +52,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.ButtonDefaults
 import fr.husi.compose.material3.Card
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.core.NatBehaviour
@@ -144,7 +144,7 @@ internal fun StunScreen(
                                 contentDescription = stringResource(Res.string.more),
                                 onClick = { expandMenu = true },
                             )
-                            DropdownMenuPopup(
+                            ScrollableDropdownMenuPopup(
                                 expanded = expandMenu,
                                 onDismissRequest = { expandMenu = false },
                             ) {

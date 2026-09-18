@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +54,7 @@ import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
@@ -376,7 +376,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                             ) {
                                 showExtendMenu = true
                             }
-                            DropdownMenuPopup(
+                            ScrollableDropdownMenuPopup(
                                 expanded = showExtendMenu,
                                 onDismissRequest = { showExtendMenu = false },
                             ) {

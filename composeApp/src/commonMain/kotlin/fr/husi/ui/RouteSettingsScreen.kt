@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MenuDefaults
@@ -67,6 +66,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
@@ -287,7 +287,7 @@ internal fun RouteSettingsScreen(
                             ) {
                                 showExpandedMenu = true
                             }
-                            DropdownMenuPopup(
+                            ScrollableDropdownMenuPopup(
                                 expanded = showExpandedMenu,
                                 onDismissRequest = { showExpandedMenu = false },
                             ) {

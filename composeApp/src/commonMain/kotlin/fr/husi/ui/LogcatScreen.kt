@@ -26,7 +26,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -68,6 +67,7 @@ import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.ansiEscape
 import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.RadioButton
 import fr.husi.compose.material3.Text
@@ -249,7 +249,7 @@ fun LogcatScreen(
                                     contentDescription = stringResource(Res.string.more),
                                     onClick = { expandMenu = true },
                                 )
-                                DropdownMenuPopup(
+                                ScrollableDropdownMenuPopup(
                                     expanded = expandMenu,
                                     onDismissRequest = { expandMenu = false },
                                 ) {

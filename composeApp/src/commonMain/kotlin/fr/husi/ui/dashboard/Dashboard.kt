@@ -21,7 +21,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -59,6 +58,7 @@ import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Checkbox
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryTabRow
 import fr.husi.compose.material3.Tab
@@ -252,7 +252,7 @@ fun DashboardScreen(
                                             onClick = { isOverflowMenuExpanded = true },
                                         )
 
-                                        DropdownMenuPopup(
+                                        ScrollableDropdownMenuPopup(
                                             expanded = isOverflowMenuExpanded,
                                             onDismissRequest = { isOverflowMenuExpanded = false },
                                         ) {
@@ -376,7 +376,7 @@ fun DashboardScreen(
                                             contentDescription = stringResource(Res.string.more),
                                             onClick = { isOverflowMenuExpanded = true },
                                         )
-                                        DropdownMenuPopup(
+                                        ScrollableDropdownMenuPopup(
                                             expanded = isOverflowMenuExpanded,
                                             onDismissRequest = { isOverflowMenuExpanded = false },
                                         ) {

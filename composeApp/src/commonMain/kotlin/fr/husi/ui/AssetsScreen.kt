@@ -25,7 +25,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -69,6 +68,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Button
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
@@ -308,7 +308,7 @@ internal fun AssetsScreen(
                                     onClick = { isOverflowMenuExpanded = true },
                                 )
 
-                                DropdownMenuPopup(
+                                ScrollableDropdownMenuPopup(
                                     expanded = isOverflowMenuExpanded,
                                     onDismissRequest = { isOverflowMenuExpanded = false },
                                 ) {
