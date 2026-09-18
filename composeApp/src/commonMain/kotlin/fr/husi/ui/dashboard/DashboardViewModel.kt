@@ -16,8 +16,6 @@ import fr.husi.bg.DefaultNetworkListener
 import fr.husi.bg.SpeedStats
 import fr.husi.core.CoreClient
 import fr.husi.core.formatConnectionTime
-import fr.husi.core.isNew
-import fr.husi.core.proxyDisplayName
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.urlTestOptions
 import fr.husi.database.DataStore
@@ -25,6 +23,7 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
+import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEventType
@@ -652,7 +651,9 @@ class DashboardViewModel(
             connections.clear()
             closedConnectionOrder.clear()
             for (event in events.eventsList) {
-                if (!event.isNew()) continue
+                if (event.type != ConnectionEventType.CONNECTION_EVENT_NEW) {
+                    continue
+                }
                 val connection = event.connection ?: continue
                 putConnection(event.id, connection.toDetailState())
             }
@@ -758,7 +759,7 @@ class DashboardViewModel(
             val fresh = latestGroups.map { group ->
                 ProxySet(
                     tag = group.tag,
-                    displayType = proxyDisplayName(group.type),
+                    displayType = Libcore.proxyDisplayName(group.type),
                     selectable = group.selectable,
                     selected = group.selected,
                     items = group.itemsList.map { item ->
@@ -766,7 +767,7 @@ class DashboardViewModel(
                             tag = item.tag,
                             type = item.type,
                             urlTestDelay = item.urlTestDelay,
-                            displayType = proxyDisplayName(item.type),
+                            displayType = Libcore.proxyDisplayName(item.type),
                         )
                     }.let { items ->
                         comparator?.let { items.sortedWith(it) } ?: items
@@ -778,7 +779,7 @@ class DashboardViewModel(
                     tag = item.tag,
                     type = item.type,
                     urlTestDelay = item.urlTestDelay,
-                    displayType = proxyDisplayName(item.type),
+                    displayType = Libcore.proxyDisplayName(item.type),
                 )
             }.let { items ->
                 comparator?.let { items.sortedWith(it) } ?: items

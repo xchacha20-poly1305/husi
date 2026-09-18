@@ -1,10 +1,7 @@
 package fr.husi.core
 
 import fr.husi.ktx.emptyAsNull
-import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Connection
-import fr.husi.proto.daemon.ConnectionEvent
-import fr.husi.proto.daemon.ConnectionEventType
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
@@ -12,7 +9,7 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 
 /** "$name/$type" label composition previously done in Go generateBound. */
-fun formatBound(name: String, type: String): String {
+private fun formatBound(name: String, type: String): String {
     if (name.isEmpty()) return type
     if (type.isEmpty()) return name
     return "$name/$type"
@@ -58,17 +55,6 @@ private val CONNECTION_TIME_FORMAT = LocalDateTime.Format {
     char(':')
     second()
 }
-
-fun proxyDisplayName(type: String): String = Libcore.proxyDisplayName(type)
-
-fun ConnectionEvent.isNew(): Boolean =
-    type == ConnectionEventType.CONNECTION_EVENT_NEW
-
-fun ConnectionEvent.isUpdate(): Boolean =
-    type == ConnectionEventType.CONNECTION_EVENT_UPDATE
-
-fun ConnectionEvent.isClosed(): Boolean =
-    type == ConnectionEventType.CONNECTION_EVENT_CLOSED
 
 /** Process paths / package names used by the dashboard connection detail UI. */
 fun Connection.processNames(): List<String>? {

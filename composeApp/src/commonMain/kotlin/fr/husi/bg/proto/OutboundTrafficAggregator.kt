@@ -1,13 +1,11 @@
 package fr.husi.bg.proto
 
-import fr.husi.core.isClosed
-import fr.husi.core.isNew
-import fr.husi.core.isUpdate
 import fr.husi.core.matchedOutbound
 import fr.husi.fmt.TAG_DIRECT
 import fr.husi.fmt.TrafficNode
 import fr.husi.proto.daemon.Connection
 import fr.husi.proto.daemon.ConnectionEvent
+import fr.husi.proto.daemon.ConnectionEventType
 import fr.husi.proto.daemon.ConnectionEvents
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.atomics.AtomicLong
@@ -86,8 +84,8 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
     }
 
     fun onEvent(event: ConnectionEvent) {
-        when {
-            event.isNew() -> {
+        when (event.type) {
+            ConnectionEventType.CONNECTION_EVENT_NEW -> {
                 val connection = event.connection ?: return
                 val attribution = connection.attribution() ?: return
                 attributionById[event.id] = attribution
@@ -99,7 +97,7 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
                 credit(attribution, upload, download)
             }
 
-            event.isUpdate() -> {
+            ConnectionEventType.CONNECTION_EVENT_UPDATE -> {
                 attributionById[event.id]?.let {
                     credit(it, event.uplinkDelta, event.downlinkDelta)
                 }
@@ -109,10 +107,12 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
                 }
             }
 
-            event.isClosed() -> {
+            ConnectionEventType.CONNECTION_EVENT_CLOSED -> {
                 attributionById.remove(event.id)
                 idTotals.remove(event.id)
             }
+
+            ConnectionEventType.UNRECOGNIZED -> {}
         }
     }
 
