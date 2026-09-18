@@ -2,13 +2,13 @@ package libcore
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
-	"net"
 	"os"
 	"path/filepath"
 	_ "unsafe" // for go:linkname
@@ -163,13 +163,11 @@ const typeCert = "CERTIFICATE"
 
 func getCert(ctx context.Context, address, serverName string, mode husiv1.GetCertMode, proxy string) (string, error) {
 	target := M.ParseSocksaddr(address)
-	if target.Port == 0 {
-		target.Port = 443
-	}
+	target.Port = cmp.Or(target.Port, 443)
 	if !target.IsValid() {
 		return "", E.New("invalid server address: ", address)
 	}
-	var dialer N.Dialer = new(N.DefaultDialer)
+	var dialer N.Dialer = N.SystemDialer
 	if proxy != "" {
 		var err error
 		dialer, err = simpleproxyurl.ProxyFromURL(ctx, proxy)
@@ -178,7 +176,7 @@ func getCert(ctx context.Context, address, serverName string, mode husiv1.GetCer
 		}
 	}
 
-	options := scribe.Option{
+	options := scribe.Options{
 		Target: target,
 		SNI:    serverName,
 		Dialer: dialer,
@@ -195,18 +193,6 @@ func getCert(ctx context.Context, address, serverName string, mode husiv1.GetCer
 	case husiv1.GetCertMode_GET_CERT_MODE_HTTPS:
 		certs, err = scribe.GetCert(ctx, options)
 	case husiv1.GetCertMode_GET_CERT_MODE_QUIC:
-		if target.IsDomain() {
-			ips, err := net.LookupIP(target.Fqdn)
-			if err != nil {
-				return "", E.Cause(err, "look up ip for ", target.Fqdn)
-			}
-			if len(ips) == 0 {
-				return "", E.New("not found ip for ", target.Fqdn)
-			}
-			options.Target.Addr = M.AddrFromIP(ips[0])
-			options.SNI = target.Fqdn
-			options.Target.Fqdn = ""
-		}
 		certs, err = scribe.GetCertQuic(ctx, options)
 	default:
 		err = E.New("unknown get cert mode: ", mode.String())
