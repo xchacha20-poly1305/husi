@@ -1,3 +1,5 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.gradle.jvm.tasks.Jar
 
@@ -10,6 +12,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.aboutlibraries)
+    alias(libs.plugins.buildkonfig)
 }
 
 val packageNameProvider = requireMetadata("PACKAGE_NAME")
@@ -282,28 +285,13 @@ val generateDesktopProguardMappingConfig = tasks.register("generateDesktopProgua
     }
 }
 
-val generateBuildConfig = tasks.register("generateBuildConfig") {
-    description = "Generates the shared BuildConfig Kotlin source."
-    val outputDir = layout.buildDirectory.dir("generated/buildConfig/kotlin")
-    val versionName = versionNameProvider.get()
-    val versionCode = versionCodeProvider.get()
-    inputs.property("versionName", versionNameProvider)
-    inputs.property("versionCode", versionCodeProvider)
-    outputs.dir(outputDir)
-    doLast {
-        val dir = outputDir.get().asFile.resolve("fr/husi")
-        dir.mkdirs()
-        dir.resolve("BuildConfig.kt").writeText(
-            """
-            |package fr.husi
-            |
-            |object BuildConfig {
-            |    const val VERSION_NAME = "$versionName"
-            |    const val VERSION_CODE = $versionCode
-            |    const val FLAVOR = ""
-            |}
-            """.trimMargin(),
-        )
+buildkonfig {
+    packageName = "fr.husi"
+    exposeObjectWithName = "BuildConfig"
+
+    defaultConfigs {
+        buildConfigField(STRING, "VERSION_NAME", versionNameProvider.get(), const = true)
+        buildConfigField(INT, "VERSION_CODE", versionCodeProvider.get(), const = true)
     }
 }
 
@@ -347,7 +335,6 @@ kotlin {
 
     sourceSets {
         val commonMain = getByName("commonMain") {
-            kotlin.srcDir(generateBuildConfig)
             dependencies {
                 // Optional workaround for IDE to get libcore info
                 libcoreDesktopJarOptional?.let {

@@ -162,7 +162,8 @@
       ],
       "matchPackageNames": [
         "org.gradle.toolchains.foojay-resolver-convention",
-        "com.mikepenz{/,}**"
+        "com.mikepenz{/,}**",
+        "com.codingfeline.buildkonfig"
       ],
       "groupName": "Build Plugins & Tooling",
       "groupSlug": "build-plugins-tooling"

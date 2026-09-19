@@ -30,7 +30,7 @@ object CrashReport {
 
     fun buildEnvironmentReport(): String {
         var report = ""
-        report += "husi ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.FLAVOR.uppercase()}\n"
+        report += "husi ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n"
         report += "Date: ${DisplayTime.utcDateTime(Clock.System.now())}\n\n"
         report += buildPlatformSystemInfoReport()
         return report

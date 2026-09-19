@@ -36,6 +36,7 @@ mockk = "1.14.11"
 shizuku = "13.1.5"
 hiddenApiBypass = "6.1"
 aboutlibraries = "15.2.0"
+buildkonfig = "0.23.0"
 androidxTv = "1.1.0"
 nucleus = "2.5.16"
 composeNativeTray = "2.1.6"
@@ -123,6 +124,7 @@ haze-blur-material3 = { module = "dev.chrisbanes.haze:haze-blur-material3", vers
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
+buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
