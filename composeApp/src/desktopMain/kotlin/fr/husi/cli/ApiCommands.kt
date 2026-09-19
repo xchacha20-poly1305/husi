@@ -19,6 +19,7 @@ import fr.husi.core.CoreRpcException
 import fr.husi.core.NatBehaviour
 import fr.husi.core.NetworkQualityPhase
 import fr.husi.core.StunPhase
+import fr.husi.core.chainHops
 import fr.husi.core.failure
 import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Connection
@@ -845,7 +846,7 @@ private enum class ConnectionColumn(val flagName: String, val header: String) {
     },
     CHAIN("chain", "CHAIN") {
         override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.chainListList.asReversed().joinToString("/")
+            connection.chainHops().joinToString("/")
     },
     RULE("rule", "RULE") {
         override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =

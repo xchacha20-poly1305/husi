@@ -1,5 +1,6 @@
 package fr.husi.bg.proto
 
+import fr.husi.core.chainHops
 import fr.husi.core.matchedOutbound
 import fr.husi.fmt.TAG_DIRECT
 import fr.husi.fmt.TrafficNode
@@ -147,11 +148,12 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
 
     /** Walks from the matched outbound down to the hop that dials. */
     private fun Connection.carriers(matched: String): Set<Long> {
-        // chainList runs from the dialing hop up to the matched outbound, so reading
-        // it backwards says which member each selector on the way resolved to.
-        val resolvedByChain = HashMap<String, String>(chainListList.size)
-        for (index in 1..chainListList.lastIndex) {
-            resolvedByChain[chainListList[index]] = chainListList[index - 1]
+        // Each hop is followed by the member the selector on the way resolved to.
+        val hops = chainHops()
+        val resolvedByChain = buildMap(hops.size) {
+            for (i in 0..<hops.lastIndex) {
+                this[hops[i]] = hops[i + 1]
+            }
         }
 
         val carriers = LinkedHashSet<Long>()

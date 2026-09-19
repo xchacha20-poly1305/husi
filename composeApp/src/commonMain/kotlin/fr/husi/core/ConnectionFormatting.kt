@@ -19,16 +19,22 @@ fun Connection.inboundLabel(): String = formatBound(inbound, inboundType)
 
 fun Connection.outboundLabel(): String = formatBound(outbound, outboundType)
 
-/** Matched outbound is the last chain hop, else the direct outbound tag. */
+/**
+ * Hops in traffic order, matched outbound first, the hop that dials last.
+ * `chainList` runs from the dialing hop up to the matched outbound.
+ */
+fun Connection.chainHops(): List<String> = chainListList.asReversed()
+
+/** Matched outbound is the first chain hop, else the direct outbound tag. */
 fun Connection.matchedOutbound(): String =
-    chainListList.lastOrNull()?.takeIf { it.isNotEmpty() } ?: outbound
+    chainHops().firstOrNull()?.takeIf { it.isNotEmpty() } ?: outbound
 
 /** Rule text; unmatched falls back to "final" (D-P1.8). */
 fun Connection.matchedRuleOrFinal(): String =
     rule.ifEmpty { "final" }
 
 fun Connection.chainLabel(): String =
-    chainListList.joinToString(" => ")
+    chainHops().joinToString(" => ")
 
 /**
  * Formats a proto unix-millis timestamp as local `yyyy-MM-dd HH:mm:ss`, matching
