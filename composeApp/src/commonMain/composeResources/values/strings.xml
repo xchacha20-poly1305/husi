@@ -849,6 +849,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="search_go">Search</string>
+    <string name="clear_search">Clear search</string>
 
     <string name="remote_control">Remote control</string>
     <string name="remote_server_add">Add server</string>

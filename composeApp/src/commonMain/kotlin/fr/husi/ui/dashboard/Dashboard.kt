@@ -531,6 +531,8 @@ fun DashboardScreen(
                     PAGE_PROXY_SET -> DashboardProxySetScreen(
                         uiState = uiState,
                         contentPadding = pageContentPadding,
+                        searchTextFieldState = dashboardViewModel.proxySearchTextFieldState,
+                        setSearchMode = dashboardViewModel::setProxySearchMode,
                         selectProxy = { group, proxy ->
                             dashboardViewModel.selectOutbound(group, proxy)
                         },
