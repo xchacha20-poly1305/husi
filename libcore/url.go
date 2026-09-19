@@ -88,7 +88,8 @@ func ParseURL(rawURL string) (URL, error) {
 		if err != nil {
 			return nil, E.Cause(err, "parse rawURL with invalid port")
 		}
-		uu.Host = net.JoinHostPort(uu.Host, strings.TrimPrefix(multiplePort, ":"))
+		host, _ := splitHostPort(uu.Host)
+		uu.Host = joinHostPort(host, strings.TrimPrefix(multiplePort, ":"))
 	}
 	u.URL = *uu
 	u.Values = u.Query()
@@ -96,6 +97,31 @@ func ParseURL(rawURL string) (URL, error) {
 		u.Values = make(url.Values)
 	}
 	return u, nil
+}
+
+const (
+	ipv6BracketOpen  = "["
+	ipv6BracketClose = "]"
+)
+
+func splitHostPort(hostPort string) (host, port string) {
+	if host, port, err := net.SplitHostPort(hostPort); err == nil {
+		return host, port
+	}
+	if strings.HasPrefix(hostPort, ipv6BracketOpen) && strings.HasSuffix(hostPort, ipv6BracketClose) {
+		return hostPort[len(ipv6BracketOpen) : len(hostPort)-len(ipv6BracketClose)], ""
+	}
+	return hostPort, ""
+}
+
+func joinHostPort(host, port string) string {
+	if port != "" {
+		return net.JoinHostPort(host, port)
+	}
+	if strings.Contains(host, ":") {
+		return ipv6BracketOpen + host + ipv6BracketClose
+	}
+	return host
 }
 
 func (u *netURL) GetScheme() string {
@@ -151,19 +177,13 @@ func (u *netURL) SetPassword(password string) error {
 }
 
 func (u *netURL) GetHost() string {
-	host, _, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		return u.Host
-	}
+	host, _ := splitHostPort(u.Host)
 	return host
 }
 
 func (u *netURL) SetHost(host string) {
-	if _, port, err := net.SplitHostPort(u.Host); err == nil {
-		u.Host = net.JoinHostPort(host, port)
-	} else {
-		u.Host = host
-	}
+	_, port := splitHostPort(u.Host)
+	u.Host = joinHostPort(host, port)
 }
 
 func (u *netURL) GetFullHost() string {
@@ -175,18 +195,13 @@ func (u *netURL) SetFullHost(host string) {
 }
 
 func (u *netURL) GetPorts() string {
-	_, port, _ := net.SplitHostPort(u.Host)
+	_, port := splitHostPort(u.Host)
 	return port
 }
 
 func (u *netURL) SetPorts(port string) {
-	host, _, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		u.Host = net.JoinHostPort(u.Host, port)
-		return
-	}
-
-	u.Host = net.JoinHostPort(host, port)
+	host, _ := splitHostPort(u.Host)
+	u.Host = joinHostPort(host, port)
 }
 
 func (u *netURL) GetPath() string {

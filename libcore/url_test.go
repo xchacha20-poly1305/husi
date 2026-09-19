@@ -213,3 +213,95 @@ func Test_URL_RemoveQueryParameter(t *testing.T) {
 	assert.Contains(t, rebuilt, "foo=1")
 	assert.Contains(t, rebuilt, "bar=2")
 }
+
+func Test_URL_IPv6Host(t *testing.T) {
+	tests := []struct {
+		name     string
+		rawURL   string
+		wantHost string
+		wantPort string
+	}{
+		{
+			name:     "bracketed without port",
+			rawURL:   "http://[2001:db8::1]/path",
+			wantHost: "2001:db8::1",
+		},
+		{
+			name:     "bracketed with port",
+			rawURL:   "http://[2001:db8::1]:8080/path",
+			wantHost: "2001:db8::1",
+			wantPort: "8080",
+		},
+		{
+			name:     "loopback with credentials",
+			rawURL:   "hysteria2://gawr:gura@[::1]:443/",
+			wantHost: "::1",
+			wantPort: "443",
+		},
+		{
+			name:     "hysteria port hop",
+			rawURL:   "hysteria2://darkness@[2001:db8::1]:443,7788-8899,10010/",
+			wantHost: "2001:db8::1",
+			wantPort: "443,7788-8899,10010",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u, err := ParseURL(tt.rawURL)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantHost, u.GetHost())
+			assert.Equal(t, tt.wantPort, u.GetPorts())
+			assert.Equal(t, tt.rawURL, u.GetString())
+		})
+	}
+}
+
+func Test_URL_IPv6RoundTrip(t *testing.T) {
+	parsed, err := ParseURL("http://[2001:db8::1]/path")
+	require.NoError(t, err)
+
+	rebuilt := NewURL("http")
+	rebuilt.SetHost(parsed.GetHost())
+	rebuilt.SetPath(parsed.GetPath())
+
+	assert.Equal(t, "[2001:db8::1]", rebuilt.GetFullHost())
+	assert.Equal(t, "http://[2001:db8::1]/path", rebuilt.GetString())
+}
+
+func Test_URL_SetIPv6HostAndPorts(t *testing.T) {
+	t.Run("host then port", func(t *testing.T) {
+		u := NewURL("socks5")
+		u.SetHost("::1")
+		assert.Equal(t, "socks5://[::1]", u.GetString())
+
+		u.SetPorts("1080")
+		assert.Equal(t, "::1", u.GetHost())
+		assert.Equal(t, "1080", u.GetPorts())
+		assert.Equal(t, "socks5://[::1]:1080", u.GetString())
+	})
+
+	t.Run("port then host", func(t *testing.T) {
+		u := NewURL("socks5")
+		u.SetPorts("1080")
+		u.SetHost("::1")
+		assert.Equal(t, "::1", u.GetHost())
+		assert.Equal(t, "1080", u.GetPorts())
+		assert.Equal(t, "socks5://[::1]:1080", u.GetString())
+	})
+
+	t.Run("replace domain with ipv6", func(t *testing.T) {
+		u, err := ParseURL("https://laplus.org:8888/path")
+		require.NoError(t, err)
+
+		u.SetHost("2001:db8::1")
+		assert.Equal(t, "https://[2001:db8::1]:8888/path", u.GetString())
+	})
+
+	t.Run("replace ipv6 with domain", func(t *testing.T) {
+		u, err := ParseURL("https://[2001:db8::1]/path")
+		require.NoError(t, err)
+
+		u.SetHost("laplus.org")
+		assert.Equal(t, "https://laplus.org/path", u.GetString())
+	})
+}
