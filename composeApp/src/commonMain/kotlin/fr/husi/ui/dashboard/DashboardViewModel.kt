@@ -90,6 +90,8 @@ data class DashboardState(
 
     val proxySets: List<ProxySet> = emptyList(),
     val proxySetOrder: Int = 0,
+    val proxySearchMode: ProxySearchMode = ProxySearchMode.OUTBOUND,
+    val isSearchingOutbounds: Boolean = false,
     val isRemote: Boolean = false,
 
     val urlTestingTags: Map<String, Int> = emptyMap(),
@@ -123,6 +125,11 @@ object ProxySetOrder {
     const val BY_DELAY = 2
 
     val values get() = listOf(ORIGIN, BY_NAME, BY_DELAY)
+}
+
+enum class ProxySearchMode {
+    OUTBOUND,
+    PROXY_SET,
 }
 
 @Immutable
@@ -197,10 +204,14 @@ class DashboardViewModel(
         field = MutableStateFlow(DashboardState())
 
     val searchTextFieldState = TextFieldState()
+    val proxySearchTextFieldState = TextFieldState()
 
     private val connections = LinkedHashMap<String, ConnectionDetailState>()
     private val closedConnectionOrder = ArrayDeque<String>()
     private val connectionSnapshot = MutableStateFlow<List<ConnectionDetailState>>(emptyList())
+
+    private val proxySearchMode = MutableStateFlow(ProxySearchMode.OUTBOUND)
+    private val proxySetSnapshot = MutableStateFlow<List<ProxySet>>(emptyList())
 
     /** The connection whose detail sheet is open, if any. */
     private var selectedUuid: String? = null
@@ -249,6 +260,23 @@ class DashboardViewModel(
                         state.copy(
                             connections = visible,
                             activeConnectionCount = snapshot.count { !it.isClosed },
+                        )
+                    }
+                }
+        }
+        viewModelScope.launch(computeDispatcher) {
+            combine(
+                proxySetSnapshot,
+                snapshotFlow { proxySearchTextFieldState.text.toString() },
+                proxySearchMode,
+            ) { snapshot, keyword, mode -> Triple(snapshot, keyword.trim(), mode) }
+                .conflate()
+                .collect { (snapshot, keyword, mode) ->
+                    uiState.update { state ->
+                        state.copy(
+                            proxySets = filterProxySets(snapshot, keyword, mode),
+                            proxySearchMode = mode,
+                            isSearchingOutbounds = mode == ProxySearchMode.OUTBOUND && keyword.isNotEmpty(),
                         )
                     }
                 }
@@ -335,6 +363,7 @@ class DashboardViewModel(
         connections.clear()
         closedConnectionOrder.clear()
         connectionSnapshot.value = emptyList()
+        proxySetSnapshot.value = emptyList()
         latestGroups = emptyList()
         latestOutbounds = emptyList()
         uiState.update { state ->
@@ -461,6 +490,10 @@ class DashboardViewModel(
         searchTextFieldState.setTextAndPlaceCursorAtEnd("")
     }
 
+    fun setProxySearchMode(mode: ProxySearchMode) {
+        proxySearchMode.value = mode
+    }
+
     fun setSortDescending(descending: Boolean) = runOnIoDispatcher {
         DataStore.trafficDescending.set(descending)
     }
@@ -522,16 +555,14 @@ class DashboardViewModel(
     }
 
     private fun setUrlTestProgress(group: String, progress: GroupUrlTestProgress?) {
-        uiState.update { state ->
-            state.copy(
-                proxySets = state.proxySets.map {
-                    if (it.id == group) {
-                        it.copy(urlTestProgress = progress)
-                    } else {
-                        it
-                    }
-                },
-            )
+        proxySetSnapshot.update { sets ->
+            sets.map {
+                if (it.id == group) {
+                    it.copy(urlTestProgress = progress)
+                } else {
+                    it
+                }
+            }
         }
     }
 
@@ -753,8 +784,7 @@ class DashboardViewModel(
     }
 
     private fun publishProxySets() {
-        uiState.update { state ->
-            val olds = state.proxySets
+        proxySetSnapshot.update { olds ->
             val comparator = proxySetComparator.load()
             val fresh = latestGroups.map { group ->
                 ProxySet(
@@ -789,7 +819,7 @@ class DashboardViewModel(
             // Keep the previous instance while nothing changed, so the list does not recompose.
             val allSet = oldAll?.takeIf { it == freshAll } ?: freshAll
             if (fresh.isEmpty()) {
-                return@update state.copy(proxySets = listOf(allSet))
+                return@update listOf(allSet)
             }
             val oldsByTag = olds.filterNot { it.isAll }.associateBy { it.tag }
             val result = fresh.map { item ->
@@ -797,12 +827,10 @@ class DashboardViewModel(
                 val merged = item.copy(urlTestProgress = old.urlTestProgress)
                 if (merged == old) old else merged
             }
-            state.copy(
-                proxySets = buildList(result.size + 1) {
-                    add(allSet)
-                    addAll(result)
-                },
-            )
+            buildList(result.size + 1) {
+                add(allSet)
+                addAll(result)
+            }
         }
     }
 
@@ -852,7 +880,7 @@ class DashboardViewModel(
     }
 
     fun urlTestForGroup(id: String) = viewModelScope.launch(Dispatchers.IO) {
-        val proxySets = uiState.value.proxySets
+        val proxySets = proxySetSnapshot.value
         val proxySet = proxySets.firstOrNull { it.id == id } ?: return@launch
         if (proxySet.isTesting) return@launch
         val items = expandUrlTestTargets(
@@ -916,6 +944,43 @@ class DashboardViewModel(
 
     fun setSystemProxyEnabled(enabled: Boolean) = runOnIoDispatcher {
         DataStore.systemProxy.set(enabled)
+    }
+}
+
+internal fun filterProxyItems(items: List<ProxyItem>, query: String): List<ProxyItem> {
+    val keyword = query.trim()
+    if (keyword.isEmpty()) {
+        return items
+    }
+    return items.filter { item ->
+        item.tag.contains(keyword, ignoreCase = true) ||
+            item.displayType.contains(keyword, ignoreCase = true)
+    }
+}
+
+internal fun filterProxySets(
+    proxySets: List<ProxySet>,
+    query: String,
+    searchMode: ProxySearchMode,
+): List<ProxySet> {
+    val keyword = query.trim()
+    if (keyword.isEmpty()) {
+        return proxySets
+    }
+    return when (searchMode) {
+        ProxySearchMode.PROXY_SET -> proxySets.filter { proxySet ->
+            proxySet.tag.contains(keyword, ignoreCase = true) ||
+                proxySet.displayType.contains(keyword, ignoreCase = true)
+        }
+
+        ProxySearchMode.OUTBOUND -> proxySets.mapNotNull { proxySet ->
+            val matched = filterProxyItems(proxySet.items, keyword)
+            if (matched.isEmpty()) {
+                null
+            } else {
+                proxySet.copy(items = matched)
+            }
+        }
     }
 }
 

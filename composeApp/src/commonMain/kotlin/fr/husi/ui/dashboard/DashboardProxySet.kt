@@ -25,6 +25,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -33,6 +37,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
@@ -53,10 +62,17 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.platformCombinedClickable
 import fr.husi.resources.Res
 import fr.husi.resources.bolt
+import fr.husi.resources.clear_search
+import fr.husi.resources.close
 import fr.husi.resources.connection_test
 import fr.husi.resources.expand
 import fr.husi.resources.expand_less
 import fr.husi.resources.expand_more
+import fr.husi.resources.not_found
+import fr.husi.resources.outbound
+import fr.husi.resources.proxy_set
+import fr.husi.resources.search
+import fr.husi.resources.search_go
 import fr.husi.resources.selected
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -68,43 +84,114 @@ internal fun DashboardProxySetScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
     contentPadding: PaddingValues,
+    searchTextFieldState: TextFieldState,
+    setSearchMode: (ProxySearchMode) -> Unit,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestForSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
 ) {
     val listState = rememberLazyListState()
+    val visibleProxySets = uiState.proxySets
 
-    Row(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            state = listState,
-            contentPadding = contentPadding,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(
-                items = uiState.proxySets,
-                key = { it.id },
-                contentType = { 0 },
-            ) { proxySet ->
-                ProxySetCard(
-                    proxySet = proxySet,
-                    isRemote = uiState.isRemote,
-                    urlTestingTags = uiState.urlTestingTags,
-                    selectProxy = selectProxy,
-                    urlTestSingle = urlTestForSingle,
-                    urlTestForGroup = urlTestForGroup,
+    Column(modifier = modifier.fillMaxSize()) {
+        ProxySetSearchBar(
+            modifier = Modifier.padding(
+                top = contentPadding.calculateTopPadding(),
+                start = 8.dp,
+                end = 8.dp,
+                bottom = 8.dp,
+            ),
+            textFieldState = searchTextFieldState,
+            searchMode = uiState.proxySearchMode,
+            onSearchModeChange = setSearchMode,
+        )
+
+        if (visibleProxySets.isEmpty()) {
+            NoProxyMatch(modifier = Modifier.fillMaxSize())
+            return@Column
+        }
+
+        Row(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                state = listState,
+                contentPadding = PaddingValues(
+                    bottom = contentPadding.calculateBottomPadding(),
+                ),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(
+                    items = visibleProxySets,
+                    key = { it.id },
+                    contentType = { 0 },
+                ) { proxySet ->
+                    ProxySetCard(
+                        proxySet = proxySet,
+                        isRemote = uiState.isRemote,
+                        urlTestingTags = uiState.urlTestingTags,
+                        forceExpanded = uiState.isSearchingOutbounds,
+                        selectProxy = selectProxy,
+                        urlTestSingle = urlTestForSingle,
+                        urlTestForGroup = urlTestForGroup,
+                    )
+                }
+            }
+
+            BoxedVerticalScrollbar(
+                modifier = Modifier.fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = listState),
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 12.dp,
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProxySetSearchBar(
+    modifier: Modifier = Modifier,
+    textFieldState: TextFieldState,
+    searchMode: ProxySearchMode,
+    onSearchModeChange: (ProxySearchMode) -> Unit,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ProxySearchField(textFieldState = textFieldState)
+
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            val modes = ProxySearchMode.entries
+            for ((index, mode) in modes.withIndex()) {
+                val text = when (mode) {
+                    ProxySearchMode.PROXY_SET -> Res.string.proxy_set
+                    ProxySearchMode.OUTBOUND -> Res.string.outbound
+                }
+                SegmentedButton(
+                    selected = searchMode == mode,
+                    onClick = { onSearchModeChange(mode) },
+                    shape = SegmentedButtonDefaults.itemShape(index, modes.size),
+                    label = { Text(stringResource(text)) },
                 )
             }
         }
+    }
+}
 
-        BoxedVerticalScrollbar(
-            modifier = Modifier.fillMaxHeight(),
-            adapter = rememberScrollbarAdapter(scrollState = listState),
-            style = defaultMaterialScrollbarStyle().copy(
-                thickness = 12.dp,
-            ),
+@Composable
+private fun NoProxyMatch(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Text(
+            text = stringResource(Res.string.not_found),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
@@ -115,11 +202,14 @@ private fun ProxySetCard(
     proxySet: ProxySet,
     isRemote: Boolean,
     urlTestingTags: Map<String, Int>,
+    forceExpanded: Boolean,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
+    var expandedByUser by rememberSaveable { mutableStateOf(false) }
+    val searchTextFieldState = rememberTextFieldState()
+    val expanded = expandedByUser || forceExpanded
     var selectedProxyMenuExpanded by rememberSaveable { mutableStateOf(false) }
     val selectedProxy = proxySet.items.find { it.tag == proxySet.selected }
     val selectedDelay = selectedProxy?.urlTestDelay ?: 0
@@ -213,18 +303,43 @@ private fun ProxySetCard(
                                     },
                                 ),
                                 contentDescription = stringResource(Res.string.expand),
-                                onClick = { expanded = !expanded },
+                                onClick = {
+                                    expandedByUser = !expanded
+                                    if (!expandedByUser) {
+                                        searchTextFieldState.clearText()
+                                    }
+                                },
                             )
                         }
                     }
 
                     if (expanded) {
-                        ProxyGrid(
-                            proxySet = proxySet,
-                            urlTestingTags = urlTestingTags,
-                            selectProxy = selectProxy,
-                            urlTestSingle = urlTestSingle,
-                        )
+                        if (expandedByUser) {
+                            ProxySearchField(textFieldState = searchTextFieldState)
+                        }
+                        val searchQuery = searchTextFieldState.text.toString()
+                        val visibleItems = remember(proxySet.items, searchQuery) {
+                            filterProxyItems(proxySet.items, searchQuery)
+                        }
+                        if (visibleItems.isEmpty()) {
+                            Text(
+                                text = stringResource(Res.string.not_found),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        } else {
+                            ProxyGrid(
+                                proxySet = proxySet,
+                                items = visibleItems,
+                                urlTestingTags = urlTestingTags,
+                                selectProxy = selectProxy,
+                                urlTestSingle = urlTestSingle,
+                            )
+                        }
                     } else if (!proxySet.isAll) {
                         Box(modifier = Modifier.fillMaxWidth()) {
                             Surface(
@@ -298,9 +413,41 @@ private const val PROXY_COLUMNS = 2
 private const val PROXY_CARD_GAP = 8
 
 @Composable
+private fun ProxySearchField(
+    modifier: Modifier = Modifier,
+    textFieldState: TextFieldState,
+) {
+    OutlinedTextField(
+        state = textFieldState,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text(stringResource(Res.string.search_go)) },
+        leadingIcon = {
+            Icon(
+                imageVector = vectorResource(Res.drawable.search),
+                contentDescription = stringResource(Res.string.search_go),
+            )
+        },
+        trailingIcon = if (textFieldState.text.isEmpty()) {
+            null
+        } else {
+            {
+                SimpleIconButton(
+                    imageVector = vectorResource(Res.drawable.close),
+                    contentDescription = stringResource(Res.string.clear_search),
+                    onClick = { textFieldState.clearText() },
+                )
+            }
+        },
+        lineLimits = TextFieldLineLimits.SingleLine,
+        shape = RoundedCornerShape(12.dp),
+    )
+}
+
+@Composable
 private fun ProxyGrid(
     modifier: Modifier = Modifier,
     proxySet: ProxySet,
+    items: List<ProxyItem>,
     urlTestingTags: Map<String, Int>,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestSingle: (tag: String) -> Unit,
@@ -320,7 +467,7 @@ private fun ProxyGrid(
         },
         modifier = modifier.fillMaxWidth(),
     ) {
-        proxySet.items.forEach { proxy ->
+        items.forEach { proxy ->
             ProxyCard(
                 proxy = proxy,
                 selected = proxySet.selected == proxy.tag,
@@ -467,6 +614,8 @@ private fun PreviewProxySet() {
     DashboardProxySetScreen(
         uiState = uiState,
         contentPadding = PaddingValues(bottom = 64.dp),
+        searchTextFieldState = rememberTextFieldState(),
+        setSearchMode = {},
         selectProxy = { _, _ -> },
         urlTestForSingle = {},
         urlTestForGroup = {},
