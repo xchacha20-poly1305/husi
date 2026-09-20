@@ -14,7 +14,23 @@
 -keep public class org.ini4j.spi.** { <init>(); }
 
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
--keepclasseswithmembers class androidx.sqlite.driver.bundled.** { native <methods>; }
+
+# A class declaring a native method is a JNI boundary, and the native side
+# resolves that class's other members by name. Those members have no caller
+# on the Java side, so the shrinker deletes them and the native side's lookup
+# fails. Nucleus's Linux theme observer thread calls this method by name out
+# of libnucleus_linux_theme.so:
+#   dev.nucleusframework.darkmodedetector.linux.NativeLinuxBridge
+#   .onThemeChanged(Z)V
+# A packaged build that drops it never learns that the desktop switched to
+# dark mode. This rule replaces the earlier, narrower one that only kept
+# androidx.sqlite.driver.bundled.** { native <methods>; }.
+-if class * {
+    native <methods>;
+}
+-keep class <1> {
+    *;
+}
 
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
