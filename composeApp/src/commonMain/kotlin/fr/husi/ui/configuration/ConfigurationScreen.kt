@@ -76,7 +76,8 @@ import fr.husi.compose.paddingHorizontal
 import fr.husi.compose.ClipboardContent
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
-import fr.husi.compose.ExpandableDropdownMenuItem
+import fr.husi.compose.DropdownMenuAction
+import fr.husi.compose.DropdownMenuActions
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.ScrollableDialog
@@ -447,27 +448,31 @@ fun ConfigurationScreen(
                                     containerColor = MenuDefaults.groupStandardContainerColor,
                                     shape = MenuDefaults.standaloneGroupShape,
                                 ) {
-                                    ScannerDropdownMenuItem()
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.action_import)) },
-                                        onClick = {
-                                            showAddMenu = false
-                                            importFromClipboard()
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.action_import_file)) },
-                                        onClick = {
-                                            showAddMenu = false
-                                            importFile.launch()
-                                        },
-                                    )
-                                    ExpandableDropdownMenuItem(
-                                        text = stringResource(Res.string.add_profile_methods_manual_settings),
-                                        onClick = {
-                                            showAddMenu = false
-                                            showAddManualMenu = true
-                                        },
+                                    DropdownMenuActions(
+                                        listOfNotNull(
+                                            scannerMenuAction(
+                                                onDismissMenu = { showAddMenu = false },
+                                            ),
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.action_import),
+                                            ) {
+                                                showAddMenu = false
+                                                importFromClipboard()
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.action_import_file),
+                                            ) {
+                                                showAddMenu = false
+                                                importFile.launch()
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.add_profile_methods_manual_settings),
+                                                opensSubmenu = true,
+                                            ) {
+                                                showAddMenu = false
+                                                showAddManualMenu = true
+                                            },
+                                        ),
                                     )
                                 }
                                 DropdownMenu(
@@ -476,14 +481,13 @@ fun ConfigurationScreen(
                                     containerColor = MenuDefaults.groupStandardContainerColor,
                                     shape = MenuDefaults.standaloneGroupShape,
                                 ) {
-                                    manualProfileEntries.forEach { (title, type) ->
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(title)) },
-                                            onClick = {
+                                    DropdownMenuActions(
+                                        manualProfileEntries.map { (title, type) ->
+                                            DropdownMenuAction(text = stringResource(title)) {
                                                 openProfileEditor(type)
-                                            },
-                                        )
-                                    }
+                                            }
+                                        },
+                                    )
                                 }
                             }
                         }
@@ -501,28 +505,36 @@ fun ConfigurationScreen(
                                     containerColor = MenuDefaults.groupStandardContainerColor,
                                     shape = MenuDefaults.standaloneGroupShape,
                                 ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.clear_traffic_statistics)) },
-                                        onClick = {
-                                            showOverflowMenu = false
-                                            vm.clearTrafficStatistics(selectedGroup)
-                                        },
+                                    DropdownMenuActions(
+                                        listOf(
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.clear_traffic_statistics),
+                                            ) {
+                                                showOverflowMenu = false
+                                                vm.clearTrafficStatistics(selectedGroup)
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.remove_duplicate),
+                                            ) {
+                                                showOverflowMenu = false
+                                                vm.removeDuplicate(selectedGroup)
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.connection_test),
+                                                opensSubmenu = true,
+                                            ) {
+                                                showOverflowMenu = false
+                                                showConnectionTestMenu = true
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.sort_mode),
+                                                opensSubmenu = true,
+                                            ) {
+                                                showOverflowMenu = false
+                                                showOrderMenu = true
+                                            },
+                                        ),
                                     )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.remove_duplicate)) },
-                                        onClick = {
-                                            showOverflowMenu = false
-                                            vm.removeDuplicate(selectedGroup)
-                                        },
-                                    )
-                                    ExpandableDropdownMenuItem(stringResource(Res.string.connection_test)) {
-                                        showOverflowMenu = false
-                                        showConnectionTestMenu = true
-                                    }
-                                    ExpandableDropdownMenuItem(stringResource(Res.string.sort_mode)) {
-                                        showOverflowMenu = false
-                                        showOrderMenu = true
-                                    }
                                 }
                                 DropdownMenu(
                                     expanded = showConnectionTestMenu,
@@ -530,55 +542,54 @@ fun ConfigurationScreen(
                                     containerColor = MenuDefaults.groupStandardContainerColor,
                                     shape = MenuDefaults.standaloneGroupShape,
                                 ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.connection_test_icmp_ping)) },
-                                        onClick = {
-                                            showConnectionTestMenu = false
-                                            scope.launch {
-                                                vm.doTest(
-                                                    DataStore.currentGroupId(),
-                                                    TestType.ICMPPing,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.connection_test_tcp_ping)) },
-                                        onClick = {
-                                            showConnectionTestMenu = false
-                                            scope.launch {
-                                                vm.doTest(
-                                                    DataStore.currentGroupId(),
-                                                    TestType.TCPPing,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.connection_test_url_test)) },
-                                        onClick = {
-                                            showConnectionTestMenu = false
-                                            scope.launch {
-                                                vm.doTest(
-                                                    DataStore.currentGroupId(),
-                                                    TestType.URLTest,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.connection_test_delete_unavailable)) },
-                                        onClick = {
-                                            showConnectionTestMenu = false
-                                            vm.deleteUnavailable(selectedGroup)
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.connection_test_clear_results)) },
-                                        onClick = {
-                                            showConnectionTestMenu = false
-                                            vm.clearResults(selectedGroup)
-                                        },
+                                    DropdownMenuActions(
+                                        listOf(
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.connection_test_icmp_ping),
+                                            ) {
+                                                showConnectionTestMenu = false
+                                                scope.launch {
+                                                    vm.doTest(
+                                                        DataStore.currentGroupId(),
+                                                        TestType.ICMPPing,
+                                                    )
+                                                }
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.connection_test_tcp_ping),
+                                            ) {
+                                                showConnectionTestMenu = false
+                                                scope.launch {
+                                                    vm.doTest(
+                                                        DataStore.currentGroupId(),
+                                                        TestType.TCPPing,
+                                                    )
+                                                }
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.connection_test_url_test),
+                                            ) {
+                                                showConnectionTestMenu = false
+                                                scope.launch {
+                                                    vm.doTest(
+                                                        DataStore.currentGroupId(),
+                                                        TestType.URLTest,
+                                                    )
+                                                }
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.connection_test_delete_unavailable),
+                                            ) {
+                                                showConnectionTestMenu = false
+                                                vm.deleteUnavailable(selectedGroup)
+                                            },
+                                            DropdownMenuAction(
+                                                text = stringResource(Res.string.connection_test_clear_results),
+                                            ) {
+                                                showConnectionTestMenu = false
+                                                vm.clearResults(selectedGroup)
+                                            },
+                                        ),
                                     )
                                 }
                                 DropdownMenu(
