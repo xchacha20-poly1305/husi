@@ -787,7 +787,14 @@ suspend fun buildConfig(
             }
 
             val entriesWithContinuation = resolvedChain.links.mapTo(HashSet()) { it.from }
-            val alwaysReferenced = resolvedChain.alwaysReferencedKeys()
+            val alwaysReferenced = if (forTest) {
+                // `on_demand` == true fails fast when endpoint is not ready,
+                // while it == false waiting until endpoint is ready.
+                // So we disable it to make dialing await.
+                emptySet()
+            } else {
+                resolvedChain.alwaysReferencedKeys()
+            }
 
             // Resolve DNS for every actual dial target. A flattened iteration is ambiguous when
             // a selector contains several chains with independent exits.

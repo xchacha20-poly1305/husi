@@ -2442,6 +2442,23 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig for test lets a directly used endpoint connect on demand`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createOpenVPNProxy(
+            groupId = group.id,
+            order = 1,
+            name = "vpn",
+            host = "vpn.example.com",
+        )
+
+        val endpoints = parseEndpoints(buildConfig(proxy, forTest = true))
+
+        assertEquals(true, endpoints["vpn"]!!["on_demand"]?.jsonPrimitive?.boolean)
+    }
+
+    @Test
     fun `buildConfig should keep an endpoint exit shared by every member connected`() =
         runBlocking {
             val group = ProxyGroup(name = "group").applyDefaultValues()
