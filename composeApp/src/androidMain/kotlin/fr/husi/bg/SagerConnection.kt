@@ -55,18 +55,12 @@ class SagerConnection(
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
-        BackendState.setConnected(false)
-        cancelMirror()
-        binder = null
-        resetStatus()
+        onBackgroundProcessGone()
         tryReconnect()
     }
 
     override fun binderDied() {
-        BackendState.setConnected(false)
-        cancelMirror()
-        binder = null
-        resetStatus()
+        onBackgroundProcessGone()
         tryReconnect()
     }
 
@@ -93,7 +87,6 @@ class SagerConnection(
         cancelMirror()
         binder = null
         BackendState.setConnected(false)
-        resetStatus()
     }
 
     fun reconnect(context: Context) {
@@ -108,7 +101,10 @@ class SagerConnection(
         scope = null
     }
 
-    private fun resetStatus() {
+    private fun onBackgroundProcessGone() {
+        BackendState.setConnected(false)
+        cancelMirror()
+        binder = null
         DataStore.serviceState = ServiceState.Idle
         BackendState.reset()
     }
