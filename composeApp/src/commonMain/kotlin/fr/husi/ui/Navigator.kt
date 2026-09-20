@@ -1,6 +1,11 @@
 package fr.husi.ui
 
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation3.runtime.NavKey
+
+val LocalNavigator = staticCompositionLocalOf<Navigator> {
+    error("No Navigator provided")
+}
 
 class Navigator(
     private val backStack: MutableList<NavKey>,

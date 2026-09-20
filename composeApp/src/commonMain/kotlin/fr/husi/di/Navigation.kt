@@ -2,7 +2,6 @@
 
 package fr.husi.di
 
-import androidx.navigation3.runtime.NavKey
 import fr.husi.results.LocalResultEventBus
 import fr.husi.ui.AboutScreen
 import fr.husi.ui.AssetEditScreen
@@ -10,8 +9,8 @@ import fr.husi.ui.AssetsScreen
 import fr.husi.ui.GroupScreen
 import fr.husi.ui.GroupSettingsScreen
 import fr.husi.ui.LibrariesScreen
+import fr.husi.ui.LocalNavigator
 import fr.husi.ui.LogcatScreen
-import fr.husi.ui.Navigator
 import fr.husi.ui.MainScreenScope
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.SnackbarEmitter
@@ -46,15 +45,12 @@ import org.koin.dsl.onClose
 internal val commonNavigationModule = module {
     scope<MainScreenScope> {
         scopedOf(::MainViewModel) onClose { it?.close() }
-        scoped { (backStack: MutableList<NavKey>) ->
-            Navigator(backStack)
-        }
         scopedOf(::ProfilePickerController)
         scopedOf(::SnackbarEmitter)
 
         navigation<NavRoutes.Configuration> { _ ->
             val viewModel = get<MainViewModel>()
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             ConfigurationScreen(
                 mainViewModel = viewModel,
                 onOpenGroups = { navigator.navigateTo(NavRoutes.Groups) },
@@ -67,7 +63,7 @@ internal val commonNavigationModule = module {
 
         navigation<NavRoutes.Groups> { _ ->
             val viewModel = get<MainViewModel>()
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             GroupScreen(
                 mainViewModel = viewModel,
                 onBackPress = { navigator.popBackStack() },
@@ -78,7 +74,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Route> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             RouteScreen(
                 openRouteSettings = { routeId ->
                     navigator.navigateTo(NavRoutes.RouteSettings(routeId = routeId))
@@ -90,7 +86,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Settings> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             SettingsScreen(
                 openSettingsPage = { kind ->
                     navigator.navigateTo(NavRoutes.SettingsPage(kind))
@@ -103,7 +99,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.RemoteControl> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             RemoteControlScreen(
                 onBackPress = { navigator.popBackStack() },
                 onEditServer = { id ->
@@ -113,7 +109,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.RemoteServerEdit> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             RemoteServerEditScreen(
                 serverId = route.id,
                 onBackPress = { navigator.popBackStack() },
@@ -121,7 +117,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.SettingsPage> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             SettingsPageScreen(
                 kind = route.kind,
                 onBackPress = { navigator.popBackStack() },
@@ -130,21 +126,21 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Plugin> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             PluginScreen(
                 onBackPress = { navigator.popBackStack() },
             )
         }
 
         navigation<NavRoutes.Log> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             LogcatScreen(
                 onOpenRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
             )
         }
 
         navigation<NavRoutes.Dashboard> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             DashboardScreen(
                 openConnectController = get(),
                 openVPNController = get(),
@@ -162,7 +158,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.ProfileEditor> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             val profilePickerController = get<ProfilePickerController>()
             val resultBus = LocalResultEventBus.current
             ProfileEditorScreen(
@@ -180,7 +176,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.GroupSettings> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             GroupSettingsScreen(
                 groupId = route.groupId,
                 onBackPress = { navigator.popBackStack() },
@@ -188,7 +184,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.RouteSettings> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             val profilePickerController = get<ProfilePickerController>()
             RouteSettingsScreen(
                 routeId = route.routeId,
@@ -202,7 +198,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.ConfigEditor> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             ConfigEditScreen(
                 initialText = route.initialText,
                 resultKey = route.resultKey,
@@ -212,7 +208,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.SIP003Editor> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             SIP003EditorScreen(
                 pluginName = route.pluginName,
                 initialOpts = route.initialOpts,
@@ -222,7 +218,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Assets> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             AssetsScreen(
                 onBackPress = { navigator.popBackStack() },
                 onOpenAssetEditor = navigator::navigateTo,
@@ -230,7 +226,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.AssetEdit> { route ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             AssetEditScreen(
                 assetName = route.assetName,
                 resultKey = route.resultKey,
@@ -239,7 +235,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.ToolsPage.Network> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             NetworkScreen(
                 onBackPress = { navigator.popBackStack() },
                 onOpenTool = navigator::navigateTo,
@@ -247,21 +243,21 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.ToolsPage.Backup> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             BackupScreen(
                 onBackPress = { navigator.popBackStack() },
             )
         }
 
         navigation<NavRoutes.ToolsPage.Debug> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             DebugScreen(
                 onBackPress = { navigator.popBackStack() },
             )
         }
 
         navigation<NavRoutes.ToolsPage.Stun> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             StunScreen(
                 onBackPress = { navigator.popBackStack() },
                 onOpenRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
@@ -269,14 +265,14 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.ToolsPage.GetCert> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             GetCertScreen(
                 onBack = { navigator.popBackStack() },
             )
         }
 
         navigation<NavRoutes.ToolsPage.NetworkQuality> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             NetworkQualityScreen(
                 onBackPress = { navigator.popBackStack() },
                 onOpenRemoteControl = { navigator.navigateTo(NavRoutes.RemoteControl) },
@@ -284,14 +280,14 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.ToolsPage.RuleSetMatch> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             RuleSetMatchScreen(
                 onBackPress = { navigator.popBackStack() },
             )
         }
 
         navigation<NavRoutes.About> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             AboutScreen(
                 onBackPress = { navigator.popBackStack() },
                 onNavigateToLibraries = {
@@ -301,7 +297,7 @@ internal val commonNavigationModule = module {
         }
 
         navigation<NavRoutes.Libraries> { _ ->
-            val navigator = get<Navigator>()
+            val navigator = LocalNavigator.current
             LibrariesScreen(
                 onBackPress = { navigator.popBackStack() },
             )

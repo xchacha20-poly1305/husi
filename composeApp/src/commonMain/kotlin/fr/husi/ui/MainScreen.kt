@@ -93,7 +93,6 @@ import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.compose.scope.UnboundKoinScope
 import org.koin.core.annotation.KoinDelicateAPI
 import org.koin.core.annotation.KoinExperimentalAPI
-import org.koin.core.parameter.parametersOf
 import org.koin.core.scope.Scope
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -137,11 +136,7 @@ private fun MainScreenContent(
     val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
     val resultBus = remember { ResultEventBus() }
-    val navigator = remember(koinScope, backStack) {
-        koinScope.get<Navigator> {
-            parametersOf(backStack)
-        }
-    }
+    val navigator = remember(backStack) { Navigator(backStack) }
     val selectedTopLevelRoute = navigator.selectedTopLevelRoute
     val isAtStartDestination = navigator.isAtStartDestination
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
@@ -297,6 +292,7 @@ private fun MainScreenContent(
         },
     ) {
         CompositionLocalProvider(
+            LocalNavigator provides navigator,
             LocalResultEventBus provides resultBus,
             LocalSnackbarEmitter provides snackbarEmitter,
         ) {
