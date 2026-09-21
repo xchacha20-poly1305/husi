@@ -141,7 +141,7 @@ import fr.husi.resources.connection_test_unreachable
 import fr.husi.resources.connection_test_url_test
 import fr.husi.resources.copy_success
 import fr.husi.resources.custom_config
-import fr.husi.resources.delete_confirm_prompt
+import fr.husi.resources.delete_profiles_confirm_prompt
 import fr.husi.resources.ecg
 import fr.husi.resources.group_order_by_delay
 import fr.husi.resources.group_order_by_name
@@ -172,6 +172,7 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.reflect.KClass
@@ -887,8 +888,9 @@ private fun ConfigurationDialogs(
             onDismissRequest = { vm.dismissAlert() },
             title = {
                 Text(
-                    stringResource(
-                        Res.string.delete_confirm_prompt,
+                    pluralStringResource(
+                        Res.plurals.delete_profiles_confirm_prompt,
+                        alert.size,
                         alert.size,
                     ),
                 )

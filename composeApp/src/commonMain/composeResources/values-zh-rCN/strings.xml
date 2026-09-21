@@ -132,6 +132,9 @@
     <string name="profile_config">服务器配置</string>
     <string name="delete">删除</string>
     <string name="delete_confirm_prompt">您确定要删除这个服务器配置吗?</string>
+    <plurals name="delete_profiles_confirm_prompt">
+        <item quantity="other">您确定要删除这 %1$d 个服务器配置吗?</item>
+    </plurals>
     <string name="share_qr_nfc">二维码</string>
     <string name="add_profile_methods_scan_qr_code">扫描二维码</string>
     <string name="add_profile_methods_manual_settings">手动输入</string>
@@ -717,9 +720,6 @@
     <string name="connection_status_closed">已关闭</string>
     <string name="can_not_be_empty">不能为空</string>
     <string name="juicity_provider">Juicity 提供程序</string>
-    <plurals name="delete_confirm_detail">
-        <item quantity="other">您确定要移除以下配置吗？\n\n%1$s</item>
-    </plurals>
     <string name="action_format">格式化</string>
     <string name="action_test_config">测试配置</string>
     <string name="mutual_tls">双向 TLS</string>

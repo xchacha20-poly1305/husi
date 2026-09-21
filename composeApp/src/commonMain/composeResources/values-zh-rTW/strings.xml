@@ -126,6 +126,9 @@
     <string name="profile_config">設定檔設定</string>
     <string name="delete">刪除</string>
     <string name="delete_confirm_prompt">您確定要刪除此設定檔嗎？</string>
+    <plurals name="delete_profiles_confirm_prompt">
+        <item quantity="other">您確定要刪除這 %1$d 個設定檔嗎？</item>
+    </plurals>
     <string name="share_qr_nfc">QR 碼</string>
     <string name="add_profile_methods_scan_qr_code">掃描 QR 碼</string>
     <string name="add_profile_methods_manual_settings">手動設定</string>
@@ -679,9 +682,6 @@
     <string name="connection_status_closed">已關閉</string>
     <string name="can_not_be_empty">不可為空</string>
     <string name="juicity_provider">Juicity 提供程式</string>
-    <plurals name="delete_confirm_detail">
-        <item quantity="other">您確定要移除以下設定檔嗎？\n\n%1$s</item>
-    </plurals>
     <string name="action_format">格式化</string>
     <string name="action_test_config">測試設定</string>
     <string name="mutual_tls">雙向 TLS</string>
