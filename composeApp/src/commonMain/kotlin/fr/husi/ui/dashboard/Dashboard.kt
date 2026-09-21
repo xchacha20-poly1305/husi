@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.TrafficSortMode
+import fr.husi.compose.CapsuleActionsScope
 import fr.husi.compose.CapsuleHeader
 import fr.husi.compose.CapsuleSearchInputField
 import fr.husi.compose.CapsuleSearchTopBar
@@ -91,6 +92,7 @@ import fr.husi.resources.group_order_by_delay
 import fr.husi.resources.group_order_by_name
 import fr.husi.resources.group_order_origin
 import fr.husi.resources.have_reset_network
+import fr.husi.resources.layers
 import fr.husi.resources.menu_dashboard
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
@@ -99,9 +101,13 @@ import fr.husi.resources.ok
 import fr.husi.resources.pause
 import fr.husi.resources.play_arrow
 import fr.husi.resources.proxy_set
+import fr.husi.resources.public_icon
 import fr.husi.resources.reset_connections
 import fr.husi.resources.search
 import fr.husi.resources.search_go
+import fr.husi.resources.search_outbounds
+import fr.husi.resources.search_proxy_sets
+import fr.husi.resources.switch_search_mode
 import fr.husi.resources.sort
 import fr.husi.resources.sort_mode
 import fr.husi.resources.traffic_connections
@@ -157,10 +163,11 @@ fun DashboardScreen(
     val focusManager = LocalFocusManager.current
     val isConnectionsPage = pagerState.currentPage == PAGE_CONNECTIONS
     val isProxySetPage = pagerState.currentPage == PAGE_PROXY_SET
-    val isStatusPage = pagerState.currentPage == PAGE_STATUS
 
     val searchBarState = rememberSearchBarState()
+    val proxySetSearchBarState = rememberSearchBarState()
     val searchTextFieldState = dashboardViewModel.searchTextFieldState
+    val proxySetSearchTextFieldState = dashboardViewModel.proxySetSearchTextFieldState
     val searchInputField: @Composable () -> Unit = {
         CapsuleSearchInputField(
             textFieldState = searchTextFieldState,
@@ -186,15 +193,75 @@ fun DashboardScreen(
             },
         )
     }
+    val proxySetSearchInputField: @Composable () -> Unit = {
+        CapsuleSearchInputField(
+            textFieldState = proxySetSearchTextFieldState,
+            searchBarState = proxySetSearchBarState,
+            onSearch = { focusManager.clearFocus() },
+            placeholder = {
+                Text(
+                    stringResource(
+                        when (uiState.proxySetQuery.mode) {
+                            ProxySetSearchMode.Outbound -> Res.string.search_outbounds
+                            ProxySetSearchMode.ProxySet -> Res.string.search_proxy_sets
+                        },
+                    ),
+                )
+            },
+            leadingIcon = {
+                SimpleIconButton(
+                    imageVector = vectorResource(
+                        when (uiState.proxySetQuery.mode) {
+                            ProxySetSearchMode.Outbound -> Res.drawable.public_icon
+                            ProxySetSearchMode.ProxySet -> Res.drawable.layers
+                        },
+                    ),
+                    contentDescription = stringResource(Res.string.switch_search_mode),
+                    onClick = dashboardViewModel::toggleProxySetSearchMode,
+                )
+            },
+            trailingIcon = if (proxySetSearchBarState.currentValue == SearchBarValue.Expanded) {
+                {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.close),
+                        contentDescription = stringResource(Res.string.cancel),
+                        onClick = {
+                            dashboardViewModel.clearProxySetSearch()
+                            scope.launch { proxySetSearchBarState.animateToCollapsed() }
+                        },
+                    )
+                }
+            } else {
+                null
+            },
+        )
+    }
     val windowInsets = WindowInsets.safeDrawing
 
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage != PAGE_STATUS) isEditingDashboard = false
+        if (pagerState.currentPage != PAGE_PROXY_SET) {
+            dashboardViewModel.clearProxySetSearch()
+            proxySetSearchBarState.animateToCollapsed()
+        }
     }
 
     LaunchedEffect(searchBarState.currentValue) {
         if (searchBarState.currentValue == SearchBarValue.Collapsed) {
             dashboardViewModel.clearSearchQuery()
+        }
+    }
+
+    LaunchedEffect(proxySetSearchBarState.currentValue) {
+        when (proxySetSearchBarState.currentValue) {
+            SearchBarValue.Expanded -> dashboardViewModel.closeProxyGroupSearch()
+            SearchBarValue.Collapsed -> dashboardViewModel.clearProxySetGlobalQuery()
+        }
+    }
+
+    LaunchedEffect(uiState.proxySetQuery.searchingProxyGroup) {
+        if (uiState.proxySetQuery.searchingProxyGroup != null) {
+            proxySetSearchBarState.animateToCollapsed()
         }
     }
 
@@ -362,83 +429,47 @@ fun DashboardScreen(
                             windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,
                         )
+                    } else if (isProxySetPage) {
+                        CapsuleSearchTopBar(
+                            hazeState = hazeState,
+                            inputField = proxySetSearchInputField,
+                            navigationIcon = null,
+                            actions = {
+                                DashboardPageOverflowMenu(
+                                    expanded = isOverflowMenuExpanded,
+                                    onExpandedChange = { isOverflowMenuExpanded = it },
+                                    onOpenRemoteControl = onOpenRemoteControl,
+                                ) { dismiss ->
+                                    ProxySetOrderMenuItems(
+                                        proxySetOrder = uiState.proxySetOrder,
+                                        onSelect = { order ->
+                                            dismiss()
+                                            dashboardViewModel.setProxySetOrder(order)
+                                        },
+                                    )
+                                }
+                            },
+                            windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
+                            scrollBehavior = scrollBehavior,
+                        )
                     } else {
-                        val groupCount = if (isProxySetPage || isStatusPage) 2 else 1
                         CapsuleTopBar(
                             hazeState = hazeState,
                             navigationIcon = null,
                             title = { Text(stringResource(Res.string.menu_dashboard)) },
                             actions = {
-                                CapsuleActionButton {
-                                    Box {
-                                        SimpleIconButton(
-                                            imageVector = vectorResource(Res.drawable.more_vert),
-                                            contentDescription = stringResource(Res.string.more),
-                                            onClick = { isOverflowMenuExpanded = true },
-                                        )
-                                        ScrollableDropdownMenuPopup(
-                                            expanded = isOverflowMenuExpanded,
-                                            onDismissRequest = { isOverflowMenuExpanded = false },
-                                        ) {
-                                            RemoteTargetMenuSection(
-                                                groupIndex = 0,
-                                                groupCount = groupCount,
-                                                onManage = onOpenRemoteControl,
-                                                onDismiss = { isOverflowMenuExpanded = false },
-                                            )
-                                            if (isStatusPage) {
-                                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
-                                                DropdownMenuGroup(
-                                                    shapes = MenuDefaults.groupShape(1, groupCount),
-                                                ) {
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                stringResource(
-                                                                    if (isEditingDashboard) {
-                                                                        Res.string.dashboard_done_editing
-                                                                    } else {
-                                                                        Res.string.dashboard_edit_widgets
-                                                                    },
-                                                                ),
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            isOverflowMenuExpanded = false
-                                                            isEditingDashboard = !isEditingDashboard
-                                                        },
-                                                        shape = MenuDefaults.itemShape(0, 1).shape,
-                                                    )
-                                                }
-                                            }
-                                            if (isProxySetPage) {
-                                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
-                                                DropdownMenuGroup(
-                                                    shapes = MenuDefaults.groupShape(1, groupCount),
-                                                ) {
-                                                    DropdownMenuSectionHeader(stringResource(Res.string.sort_mode))
-                                                    val orders = ProxySetOrder.values
-                                                    for ((i, order) in orders.withIndex()) {
-                                                        val text = when (order) {
-                                                            ProxySetOrder.ORIGIN -> Res.string.group_order_origin
-                                                            ProxySetOrder.BY_NAME -> Res.string.group_order_by_name
-                                                            ProxySetOrder.BY_DELAY -> Res.string.group_order_by_delay
-                                                            else -> continue
-                                                        }
-                                                        DropdownMenuItem(
-                                                            selected = uiState.proxySetOrder == order,
-                                                            onClick = {
-                                                                isOverflowMenuExpanded = false
-                                                                dashboardViewModel.setProxySetOrder(order)
-                                                            },
-                                                            text = { Text(stringResource(text)) },
-                                                            shapes = MenuDefaults.itemShape(i, orders.size),
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                DashboardPageOverflowMenu(
+                                    expanded = isOverflowMenuExpanded,
+                                    onExpandedChange = { isOverflowMenuExpanded = it },
+                                    onOpenRemoteControl = onOpenRemoteControl,
+                                ) { dismiss ->
+                                    EditWidgetsMenuItem(
+                                        isEditingDashboard = isEditingDashboard,
+                                        onClick = {
+                                            dismiss()
+                                            isEditingDashboard = !isEditingDashboard
+                                        },
+                                    )
                                 }
                             },
                             windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
@@ -536,6 +567,9 @@ fun DashboardScreen(
                         },
                         urlTestForSingle = dashboardViewModel::urlTestForSingle,
                         urlTestForGroup = dashboardViewModel::urlTestForGroup,
+                        groupSearchTextFieldState = dashboardViewModel.proxyGroupSearchTextFieldState,
+                        openGroupSearch = dashboardViewModel::openProxyGroupSearch,
+                        closeGroupSearch = dashboardViewModel::closeProxyGroupSearch,
                     )
 
                     else -> error("impossible")
@@ -601,4 +635,85 @@ fun DashboardScreen(
         text = { Text(stringResource(Res.string.ensure_close_all, uiState.activeConnectionCount)) },
     )
 
+}
+
+@Composable
+private fun CapsuleActionsScope.DashboardPageOverflowMenu(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onOpenRemoteControl: () -> Unit,
+    pageMenuGroup: @Composable (dismiss: () -> Unit) -> Unit,
+) {
+    val dismiss = { onExpandedChange(false) }
+    CapsuleActionButton {
+        Box {
+            SimpleIconButton(
+                imageVector = vectorResource(Res.drawable.more_vert),
+                contentDescription = stringResource(Res.string.more),
+                onClick = { onExpandedChange(true) },
+            )
+            ScrollableDropdownMenuPopup(
+                expanded = expanded,
+                onDismissRequest = dismiss,
+            ) {
+                RemoteTargetMenuSection(
+                    groupIndex = 0,
+                    groupCount = 2,
+                    onManage = onOpenRemoteControl,
+                    onDismiss = dismiss,
+                )
+                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
+                DropdownMenuGroup(
+                    shapes = MenuDefaults.groupShape(1, 2),
+                ) {
+                    pageMenuGroup(dismiss)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditWidgetsMenuItem(
+    isEditingDashboard: Boolean,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = {
+            Text(
+                stringResource(
+                    if (isEditingDashboard) {
+                        Res.string.dashboard_done_editing
+                    } else {
+                        Res.string.dashboard_edit_widgets
+                    },
+                ),
+            )
+        },
+        onClick = onClick,
+        shape = MenuDefaults.itemShape(0, 1).shape,
+    )
+}
+
+@Composable
+private fun ProxySetOrderMenuItems(
+    proxySetOrder: Int,
+    onSelect: (Int) -> Unit,
+) {
+    DropdownMenuSectionHeader(stringResource(Res.string.sort_mode))
+    val orders = ProxySetOrder.values
+    for ((i, order) in orders.withIndex()) {
+        val text = when (order) {
+            ProxySetOrder.ORIGIN -> Res.string.group_order_origin
+            ProxySetOrder.BY_NAME -> Res.string.group_order_by_name
+            ProxySetOrder.BY_DELAY -> Res.string.group_order_by_delay
+            else -> continue
+        }
+        DropdownMenuItem(
+            selected = proxySetOrder == order,
+            onClick = { onSelect(order) },
+            text = { Text(stringResource(text)) },
+            shapes = MenuDefaults.itemShape(i, orders.size),
+        )
+    }
 }

@@ -849,6 +849,10 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="search_go">Search</string>
+    <string name="search_outbounds">Search outbounds</string>
+    <string name="search_proxy_sets">Search proxy sets</string>
+    <string name="switch_search_mode">Switch search mode</string>
+    <string name="no_results">No results</string>
 
     <string name="remote_control">Remote control</string>
     <string name="remote_server_add">Add server</string>

@@ -90,6 +90,7 @@ data class DashboardState(
 
     val proxySets: List<ProxySet> = emptyList(),
     val proxySetOrder: Int = 0,
+    val proxySetQuery: ProxySetQuery = ProxySetQuery(),
     val isRemote: Boolean = false,
 
     val urlTestingTags: Map<String, Int> = emptyMap(),
@@ -182,7 +183,7 @@ class DashboardViewModel(
     private val loadPlatformNetworkInfo: suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>,
     coreClient: CoreClient? = null,
     private val remoteControl: RemoteControlManager? = null,
-    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val coreClientOverride = coreClient
 
@@ -197,6 +198,8 @@ class DashboardViewModel(
         field = MutableStateFlow(DashboardState())
 
     val searchTextFieldState = TextFieldState()
+    val proxySetSearchTextFieldState = TextFieldState()
+    val proxyGroupSearchTextFieldState = TextFieldState()
 
     private val connections = LinkedHashMap<String, ConnectionDetailState>()
     private val closedConnectionOrder = ArrayDeque<String>()
@@ -207,6 +210,9 @@ class DashboardViewModel(
 
     private var latestGroups: List<Group> = emptyList()
     private var latestOutbounds: List<GroupItem> = emptyList()
+    private val latestProxySets = MutableStateFlow<List<ProxySet>>(emptyList())
+    private val proxySetSearchMode = MutableStateFlow(ProxySetSearchMode.Outbound)
+    private val searchingProxyGroup = MutableStateFlow<String?>(null)
 
     private val proxySetComparator = AtomicReference(buildProxySetComparator(ProxySetOrder.ORIGIN))
 
@@ -249,6 +255,31 @@ class DashboardViewModel(
                         state.copy(
                             connections = visible,
                             activeConnectionCount = snapshot.count { !it.isClosed },
+                        )
+                    }
+                }
+        }
+        val proxySetQuery = combine(
+            snapshotFlow { proxySetSearchTextFieldState.text.toString() },
+            snapshotFlow { proxyGroupSearchTextFieldState.text.toString() },
+            proxySetSearchMode,
+            searchingProxyGroup,
+        ) { globalSearch, groupSearch, mode, searchingProxyGroup ->
+            ProxySetQuery(
+                globalSearch = globalSearch,
+                groupSearch = groupSearch,
+                mode = mode,
+                searchingProxyGroup = searchingProxyGroup,
+            )
+        }
+        viewModelScope.launch(computeDispatcher) {
+            combine(latestProxySets, proxySetQuery, ::Pair)
+                .conflate()
+                .collect { (sets, query) ->
+                    uiState.update { state ->
+                        state.copy(
+                            proxySets = sets.filterBy(query),
+                            proxySetQuery = query,
                         )
                     }
                 }
@@ -337,6 +368,7 @@ class DashboardViewModel(
         connectionSnapshot.value = emptyList()
         latestGroups = emptyList()
         latestOutbounds = emptyList()
+        latestProxySets.value = emptyList()
         uiState.update { state ->
             state.copy(
                 connections = emptyList(),
@@ -461,6 +493,30 @@ class DashboardViewModel(
         searchTextFieldState.setTextAndPlaceCursorAtEnd("")
     }
 
+    fun toggleProxySetSearchMode() {
+        proxySetSearchMode.update { it.toggled() }
+    }
+
+    fun clearProxySetGlobalQuery() {
+        proxySetSearchTextFieldState.setTextAndPlaceCursorAtEnd("")
+    }
+
+    fun openProxyGroupSearch(id: String) {
+        clearProxySetGlobalQuery()
+        proxyGroupSearchTextFieldState.setTextAndPlaceCursorAtEnd("")
+        searchingProxyGroup.value = id
+    }
+
+    fun closeProxyGroupSearch() {
+        proxyGroupSearchTextFieldState.setTextAndPlaceCursorAtEnd("")
+        searchingProxyGroup.value = null
+    }
+
+    fun clearProxySetSearch() {
+        clearProxySetGlobalQuery()
+        closeProxyGroupSearch()
+    }
+
     fun setSortDescending(descending: Boolean) = runOnIoDispatcher {
         DataStore.trafficDescending.set(descending)
     }
@@ -522,16 +578,14 @@ class DashboardViewModel(
     }
 
     private fun setUrlTestProgress(group: String, progress: GroupUrlTestProgress?) {
-        uiState.update { state ->
-            state.copy(
-                proxySets = state.proxySets.map {
-                    if (it.id == group) {
-                        it.copy(urlTestProgress = progress)
-                    } else {
-                        it
-                    }
-                },
-            )
+        latestProxySets.update { sets ->
+            sets.map {
+                if (it.id == group) {
+                    it.copy(urlTestProgress = progress)
+                } else {
+                    it
+                }
+            }
         }
     }
 
@@ -753,8 +807,7 @@ class DashboardViewModel(
     }
 
     private fun publishProxySets() {
-        uiState.update { state ->
-            val olds = state.proxySets
+        latestProxySets.update { olds ->
             val comparator = proxySetComparator.load()
             val fresh = latestGroups.map { group ->
                 ProxySet(
@@ -789,7 +842,7 @@ class DashboardViewModel(
             // Keep the previous instance while nothing changed, so the list does not recompose.
             val allSet = oldAll?.takeIf { it == freshAll } ?: freshAll
             if (fresh.isEmpty()) {
-                return@update state.copy(proxySets = listOf(allSet))
+                return@update listOf(allSet)
             }
             val oldsByTag = olds.filterNot { it.isAll }.associateBy { it.tag }
             val result = fresh.map { item ->
@@ -797,12 +850,10 @@ class DashboardViewModel(
                 val merged = item.copy(urlTestProgress = old.urlTestProgress)
                 if (merged == old) old else merged
             }
-            state.copy(
-                proxySets = buildList(result.size + 1) {
-                    add(allSet)
-                    addAll(result)
-                },
-            )
+            buildList(result.size + 1) {
+                add(allSet)
+                addAll(result)
+            }
         }
     }
 
@@ -852,7 +903,7 @@ class DashboardViewModel(
     }
 
     fun urlTestForGroup(id: String) = viewModelScope.launch(Dispatchers.IO) {
-        val proxySets = uiState.value.proxySets
+        val proxySets = latestProxySets.value
         val proxySet = proxySets.firstOrNull { it.id == id } ?: return@launch
         if (proxySet.isTesting) return@launch
         val items = expandUrlTestTargets(
