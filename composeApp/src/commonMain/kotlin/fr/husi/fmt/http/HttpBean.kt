@@ -2,6 +2,7 @@ package fr.husi.fmt.http
 
 import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.BeanConverters
+import fr.husi.fmt.HttpVersion
 import fr.husi.fmt.ValidateResult
 import fr.husi.fmt.v2ray.StandardV2RayBean
 import fr.husi.io.BinaryInput
@@ -11,18 +12,6 @@ import fr.husi.io.BinaryOutput
 class HttpBean : StandardV2RayBean() {
 
     companion object {
-
-        const val HTTP_VERSION_1 = 1
-        const val HTTP_VERSION_2 = 2
-        const val HTTP_VERSION_3 = 3
-
-        fun isValidHttpVersion(version: Int) = version in HTTP_VERSION_1..HTTP_VERSION_3
-
-        fun supportedHttpVersions(isTLS: Boolean) = if (isTLS) {
-            listOf(HTTP_VERSION_1, HTTP_VERSION_2, HTTP_VERSION_3)
-        } else {
-            listOf(HTTP_VERSION_1, HTTP_VERSION_2)
-        }
 
         @JvmField
         val CREATOR = object : CREATOR<HttpBean>() {
@@ -38,7 +27,7 @@ class HttpBean : StandardV2RayBean() {
 
     var username: String = ""
     var password: String = ""
-    var httpVersion: Int = HTTP_VERSION_1
+    var httpVersion: Int = HttpVersion.HTTP_1
     var disableVersionFallback: Boolean = false
 
     override fun isInsecure(): ValidateResult {
@@ -50,8 +39,8 @@ class HttpBean : StandardV2RayBean() {
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
-        if (!isValidHttpVersion(httpVersion)) {
-            httpVersion = HTTP_VERSION_1
+        if (!HttpVersion.isValid(httpVersion)) {
+            httpVersion = HttpVersion.HTTP_1
         }
     }
 

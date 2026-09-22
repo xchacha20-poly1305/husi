@@ -7,6 +7,7 @@ import fr.husi.database.ProxyEntity.Companion.TYPE_DIRECT
 import fr.husi.database.ProxyEntity.Companion.TYPE_HTTP
 import fr.husi.database.ProxyEntity.Companion.TYPE_HYSTERIA
 import fr.husi.database.ProxyEntity.Companion.TYPE_JUICITY
+import fr.husi.database.ProxyEntity.Companion.TYPE_MASQUE
 import fr.husi.database.ProxyEntity.Companion.TYPE_MIERU
 import fr.husi.database.ProxyEntity.Companion.TYPE_NAIVE
 import fr.husi.database.ProxyEntity.Companion.TYPE_OPENCONNECT
@@ -43,6 +44,7 @@ fun ProxyEntity.displayType(): String = when (type) {
     TYPE_WG -> "WireGuard"
     TYPE_OPENCONNECT -> "OpenConnect"
     TYPE_OPENVPN -> "OpenVPN"
+    TYPE_MASQUE -> "MASQUE"
     TYPE_TUIC -> "TUIC"
     TYPE_JUICITY -> "Juicity"
     TYPE_SHADOWTLS -> "ShadowTLS"

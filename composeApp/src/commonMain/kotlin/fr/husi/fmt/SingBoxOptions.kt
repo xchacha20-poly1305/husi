@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +451
+    // Generate on line +452
 
     const val RULE_SET_TAG_PLACEHOLDER = "{tag}"
     const val RULE_SET_FILE_SUFFIX = ".srs"
@@ -50,6 +50,7 @@ object SingBoxOptions {
     const val TYPE_TRUST_TUNNEL = "trusttunnel"
     const val TYPE_BRIDGE = "bridge"
     const val TYPE_BALANCER = "balancer"
+    const val TYPE_MASQUE_CLIENT = "masque-client"
 
     const val TYPE_PROTECT = "protect"
     const val TYPE_ANCHOR = "anchor"
@@ -5592,6 +5593,136 @@ object SingBoxOptions {
 
         @JvmField
         var udp_timeout: Long? = null
+
+        @JvmField
+        var on_demand: Boolean? = null
+
+    }
+
+    @KxsSerializable
+    open class Endpoint_MASQUEClientOptions : Endpoint() {
+
+        // Generate note: nested type DialerOptions
+        @JvmField
+        var detour: String? = null
+
+        // Generate note: nested type AbstractDialerOptions
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var inet4_bind_address: String? = null
+
+        @JvmField
+        var inet6_bind_address: String? = null
+
+        @JvmField
+        var bind_address_no_port: Boolean? = null
+
+        @JvmField
+        var protect_path: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var connect_timeout: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var domain_resolver: DomainResolveOptions? = null
+
+        @JvmField
+        var network_strategy: String? = null
+
+        @JvmField
+        var network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_delay: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
+
+        // Generate note: nested type ServerOptions
+        @JvmField
+        var server: String? = null
+
+        @JvmField
+        var server_port: Int? = null
+
+        // Generate note: nested type MASQUEEndpointOptions
+        @JvmField
+        var system: Boolean? = null
+
+        @JvmField
+        var name: String? = null
+
+        @JvmField
+        var mtu: Int? = null
+
+        @JvmField
+        var udp_mapping: Int? = null
+
+        @JvmField
+        var udp_filtering: Int? = null
+
+        @JvmField
+        var udp_nat_max: Int? = null
+
+        @JvmField
+        var username: String? = null
+
+        @JvmField
+        var password: String? = null
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        @JvmField
+        var tls: OutboundTLSOptions? = null
+
+        @JvmField
+        var path: String? = null
+
+        @JvmField
+        var headers: MutableMap<String, MutableList<String>>? = null
+
+        @JvmField
+        var version: Int? = null
+
+        @JvmField
+        var disable_version_fallback: Boolean? = null
+
+        @JvmField
+        var advertise_routes: MutableList<String>? = null
+
+        @JvmField
+        var udp_timeout: String? = null
 
         @JvmField
         var on_demand: Boolean? = null

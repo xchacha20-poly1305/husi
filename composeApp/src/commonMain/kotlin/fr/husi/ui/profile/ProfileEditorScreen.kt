@@ -227,6 +227,13 @@ fun ProfileEditorScreen(
             onOpenConfigEditor = onOpenConfigEditor,
         )
 
+        ProxyEntity.TYPE_MASQUE -> MASQUESettingsScreen(
+            profileId = profileId,
+            isSubscription = isSubscription,
+            onResult = onResult,
+            onOpenConfigEditor = onOpenConfigEditor,
+        )
+
         ProxyEntity.TYPE_TUIC -> TuicSettingsScreen(
             profileId = profileId,
             isSubscription = isSubscription,

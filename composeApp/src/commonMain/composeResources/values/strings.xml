@@ -250,6 +250,7 @@
     <string name="action_wireguard" translatable="false">WireGuard</string>
     <string name="action_openconnect" translatable="false">OpenConnect</string>
     <string name="action_openvpn" translatable="false">OpenVPN</string>
+    <string name="action_masque" translatable="false">MASQUE</string>
     <string name="openconnect_flavor">Flavor</string>
     <string name="openconnect_auth_group">Authentication Group</string>
     <string name="openconnect_reported_os">Reported OS</string>

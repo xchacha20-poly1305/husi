@@ -10,6 +10,7 @@ import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
+import fr.husi.fmt.masque.MASQUEBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.openconnect.OpenConnectBean
@@ -165,6 +166,13 @@ class BeanConverters {
         fun openVPNDeserialize(bytes: ByteArray?): OpenVPNBean? {
             if (bytes?.isNotEmpty() != true) return null
             return deserialize(OpenVPNBean(), bytes)
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun masqueDeserialize(bytes: ByteArray?): MASQUEBean? {
+            if (bytes?.isNotEmpty() != true) return null
+            return deserialize(MASQUEBean(), bytes)
         }
 
         @TypeConverter

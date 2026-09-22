@@ -188,6 +188,7 @@ var endpointList = []any{
 	option.WireGuardEndpointOptions{},
 	option.OpenConnectEndpointOptions{},
 	option.OpenVPNClientEndpointOptions{},
+	option.MASQUEClientEndpointOptions{},
 }
 
 var serviceList = []any{

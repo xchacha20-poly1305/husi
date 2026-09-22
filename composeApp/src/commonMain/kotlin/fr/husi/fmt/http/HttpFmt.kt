@@ -1,5 +1,6 @@
 package fr.husi.fmt.http
 
+import fr.husi.fmt.HttpVersion
 import fr.husi.fmt.buildHeader
 import fr.husi.fmt.parseBoxOutbound
 import fr.husi.fmt.parseBoxTLS
@@ -48,7 +49,7 @@ fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
             "password" -> password = value.toString()
             "path" -> path = value.toString()
             "version" -> value.toString().toIntOrNull()
-                ?.takeIf(HttpBean::isValidHttpVersion)
+                ?.takeIf(HttpVersion::isValid)
                 ?.let { httpVersion = it }
 
             "disable_version_fallback" -> disableVersionFallback = value.toString().toBoolean()
@@ -102,7 +103,7 @@ class HttpRequestTarget(
 fun HttpBean.buildRequestTarget(): HttpRequestTarget {
     val requestHeaders = buildHeader(headers).toMutableMap()
     val hostHeader = requestHeaders.removeHostHeader()
-    if (httpVersion != HttpBean.HTTP_VERSION_1) {
+    if (httpVersion != HttpVersion.HTTP_1) {
         return HttpRequestTarget(path = null, headers = requestHeaders.ifEmpty { null })
     }
 

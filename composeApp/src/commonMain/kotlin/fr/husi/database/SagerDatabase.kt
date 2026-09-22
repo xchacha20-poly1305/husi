@@ -17,7 +17,7 @@ import fr.husi.fmt.BeanConverters
         PluginEntity::class,
         RemoteServerEntity::class,
     ],
-    version = 23,
+    version = 24,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3, spec = SagerDatabase_Migration_2_3::class),
@@ -40,6 +40,7 @@ import fr.husi.fmt.BeanConverters
         AutoMigration(from = 20, to = 21),
         AutoMigration(from = 21, to = 22),
         AutoMigration(from = 22, to = 23, spec = SagerDatabase_Migration_22_23::class),
+        AutoMigration(from = 23, to = 24),
     ],
 )
 @TypeConverters(value = [BeanConverters::class])

@@ -49,6 +49,8 @@ import fr.husi.fmt.internal.buildSingBoxOutboundProxySetBean
 import fr.husi.fmt.internal.resolveMembers
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.juicity.buildSingBoxOutboundJuicityBean
+import fr.husi.fmt.masque.MASQUEBean
+import fr.husi.fmt.masque.buildSingBoxEndpointMASQUEBean
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
 import fr.husi.fmt.openconnect.OpenConnectBean
@@ -852,6 +854,8 @@ suspend fun buildConfig(
                             vpnWithPushDNS[tagOut] = SingBoxOptions.DNS_TYPE_OPENVPN
                             buildSingBoxEndpointOpenVPNBean(bean).asKxsMap()
                         }
+
+                        is MASQUEBean -> buildSingBoxEndpointMASQUEBean(bean).asKxsMap()
 
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asKxsMap()
 

@@ -30,6 +30,7 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.juicity.buildJuicityConfig
 import fr.husi.fmt.juicity.toUri
+import fr.husi.fmt.masque.MASQUEBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.mieru.buildMieruConfig
 import fr.husi.fmt.mieru.toUri
@@ -92,6 +93,7 @@ data class ProxyEntity(
     var wgBean: WireGuardBean? = null,
     var openConnectBean: OpenConnectBean? = null,
     var openVPNBean: OpenVPNBean? = null,
+    var masqueBean: MASQUEBean? = null,
     var shadowTLSBean: ShadowTLSBean? = null,
     var directBean: DirectBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
@@ -128,6 +130,7 @@ data class ProxyEntity(
         const val TYPE_SNELL = 28
         const val TYPE_OPENCONNECT = 29
         const val TYPE_OPENVPN = 30
+        const val TYPE_MASQUE = 31
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -220,6 +223,7 @@ data class ProxyEntity(
             TYPE_WG -> wgBean = BeanConverters.wireguardDeserialize(byteArray)
             TYPE_OPENCONNECT -> openConnectBean = BeanConverters.openConnectDeserialize(byteArray)
             TYPE_OPENVPN -> openVPNBean = BeanConverters.openVPNDeserialize(byteArray)
+            TYPE_MASQUE -> masqueBean = BeanConverters.masqueDeserialize(byteArray)
             TYPE_TUIC -> tuicBean = BeanConverters.tuicDeserialize(byteArray)
             TYPE_JUICITY -> juicityBean = BeanConverters.juicityDeserialize(byteArray)
             TYPE_DIRECT -> directBean = BeanConverters.directDeserialize(byteArray)
@@ -261,6 +265,7 @@ data class ProxyEntity(
             TYPE_WG -> wgBean
             TYPE_OPENCONNECT -> openConnectBean
             TYPE_OPENVPN -> openVPNBean
+            TYPE_MASQUE -> masqueBean
             TYPE_TUIC -> tuicBean
             TYPE_JUICITY -> juicityBean
             TYPE_DIRECT -> directBean
@@ -292,6 +297,7 @@ data class ProxyEntity(
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
         TYPE_SNELL -> false
+        TYPE_MASQUE -> false
         TYPE_SHADOWQUIC -> shadowQUICBean!!.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
         else -> true
     }
@@ -423,6 +429,7 @@ data class ProxyEntity(
         wgBean = null
         openConnectBean = null
         openVPNBean = null
+        masqueBean = null
         tuicBean = null
         juicityBean = null
         directBean = null
@@ -504,6 +511,11 @@ data class ProxyEntity(
             is OpenVPNBean -> {
                 type = TYPE_OPENVPN
                 openVPNBean = bean
+            }
+
+            is MASQUEBean -> {
+                type = TYPE_MASQUE
+                masqueBean = bean
             }
 
             is TuicBean -> {

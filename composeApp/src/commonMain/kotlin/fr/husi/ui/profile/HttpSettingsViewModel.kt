@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.util.fastCoerceAtMost
 import fr.husi.MuxStrategy
 import fr.husi.MuxType
+import fr.husi.fmt.HttpVersion
 import fr.husi.fmt.http.HttpBean
 import fr.husi.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +59,7 @@ internal data class HttpUiState(
 
     val username: String = "",
     val password: String = "",
-    val httpVersion: Int = HttpBean.HTTP_VERSION_1,
+    val httpVersion: Int = HttpVersion.HTTP_1,
     val disableVersionFallback: Boolean = false,
 ) : StandardV2RayUiState {
 
@@ -68,7 +69,7 @@ internal data class HttpUiState(
         this
     } else {
         copy(
-            httpVersion = httpVersion.fastCoerceAtMost(HttpBean.HTTP_VERSION_2),
+            httpVersion = httpVersion.fastCoerceAtMost(HttpVersion.HTTP_2),
             disableVersionFallback = false,
         )
     }

@@ -467,6 +467,7 @@ fun isEndpoint(type: String): Boolean = when (type) {
     SingBoxOptions.TYPE_WIREGUARD -> true
     SingBoxOptions.TYPE_OPENCONNECT -> true
     SingBoxOptions.TYPE_OPENVPN_CLIENT -> true
+    SingBoxOptions.TYPE_MASQUE_CLIENT -> true
     else -> false
 }
 

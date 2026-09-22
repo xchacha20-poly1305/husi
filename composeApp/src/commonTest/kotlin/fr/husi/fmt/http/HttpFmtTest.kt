@@ -2,6 +2,7 @@ package fr.husi.fmt.http
 
 import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.FmtTestConstant
+import fr.husi.fmt.HttpVersion
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.v2ray.StandardV2RayBean
 import fr.husi.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
@@ -161,7 +162,7 @@ class HttpFmtTest {
 
         val bean = parseHttpOutbound(json)
 
-        assertEquals(HttpBean.HTTP_VERSION_3, bean.httpVersion)
+        assertEquals(HttpVersion.HTTP_3, bean.httpVersion)
         assertTrue(bean.disableVersionFallback)
     }
 
@@ -175,7 +176,7 @@ class HttpFmtTest {
 
         val bean = parseHttpOutbound(json)
 
-        assertEquals(HttpBean.HTTP_VERSION_1, bean.httpVersion)
+        assertEquals(HttpVersion.HTTP_1, bean.httpVersion)
     }
 
     @Test
@@ -198,7 +199,7 @@ class HttpFmtTest {
     @Test
     fun `buildRequestTarget should send Host header from headers for HTTP 1`() {
         val bean = HttpBean().apply {
-            httpVersion = HttpBean.HTTP_VERSION_1
+            httpVersion = HttpVersion.HTTP_1
             headers = "host: cdn.example.com\nX-Token: abc"
         }
 
@@ -217,7 +218,7 @@ class HttpFmtTest {
     @Test
     fun `buildRequestTarget should prefer host field over Host header`() {
         val bean = HttpBean().apply {
-            httpVersion = HttpBean.HTTP_VERSION_1
+            httpVersion = HttpVersion.HTTP_1
             host = "field.example.com"
             headers = "HOST: header.example.com"
         }
@@ -230,7 +231,7 @@ class HttpFmtTest {
     @Test
     fun `buildRequestTarget should drop Host when path is set`() {
         val bean = HttpBean().apply {
-            httpVersion = HttpBean.HTTP_VERSION_1
+            httpVersion = HttpVersion.HTTP_1
             host = "cdn.example.com"
             path = "/proxy"
             headers = "Host: header.example.com"
@@ -244,7 +245,7 @@ class HttpFmtTest {
 
     @Test
     fun `buildRequestTarget should drop Host and path for HTTP 2 and 3`() {
-        for (version in listOf(HttpBean.HTTP_VERSION_2, HttpBean.HTTP_VERSION_3)) {
+        for (version in listOf(HttpVersion.HTTP_2, HttpVersion.HTTP_3)) {
             val bean = HttpBean().apply {
                 httpVersion = version
                 host = "cdn.example.com"
@@ -267,7 +268,7 @@ class HttpFmtTest {
             username = "user"
             password = "pass"
             security = "tls"
-            httpVersion = HttpBean.HTTP_VERSION_2
+            httpVersion = HttpVersion.HTTP_2
             disableVersionFallback = true
             host = "cdn.example.com"
             path = "/proxy"
@@ -280,7 +281,7 @@ class HttpFmtTest {
         assertEquals(SingBoxOptions.TYPE_HTTP, outbound.type)
         assertEquals("user", outbound.username)
         assertEquals("pass", outbound.password)
-        assertEquals(HttpBean.HTTP_VERSION_2, outbound.version)
+        assertEquals(HttpVersion.HTTP_2, outbound.version)
         assertEquals(true, outbound.disable_version_fallback)
         assertNull(outbound.path)
         assertNull(outbound.headers)
@@ -289,14 +290,14 @@ class HttpFmtTest {
     @Test
     fun `HttpBean serialize round-trip should preserve http version fields`() {
         val source = HttpBean().apply {
-            httpVersion = HttpBean.HTTP_VERSION_3
+            httpVersion = HttpVersion.HTTP_3
             disableVersionFallback = true
             host = "cdn.example.com"
         }
 
         val restored = source.clone()
 
-        assertEquals(HttpBean.HTTP_VERSION_3, restored.httpVersion)
+        assertEquals(HttpVersion.HTTP_3, restored.httpVersion)
         assertTrue(restored.disableVersionFallback)
         assertEquals("cdn.example.com", restored.host)
     }
@@ -318,7 +319,7 @@ class HttpFmtTest {
         assertEquals("user", bean.username)
         assertEquals("/proxy", bean.path)
         assertEquals("legacy", bean.name)
-        assertEquals(HttpBean.HTTP_VERSION_1, bean.httpVersion)
+        assertEquals(HttpVersion.HTTP_1, bean.httpVersion)
         assertFalse(bean.disableVersionFallback)
     }
 

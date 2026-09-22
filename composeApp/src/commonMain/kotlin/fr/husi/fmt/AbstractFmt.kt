@@ -15,6 +15,7 @@ import fr.husi.fmt.SingBoxOptions.TYPE_ANYTLS
 import fr.husi.fmt.SingBoxOptions.TYPE_HTTP
 import fr.husi.fmt.SingBoxOptions.TYPE_HYSTERIA
 import fr.husi.fmt.SingBoxOptions.TYPE_HYSTERIA2
+import fr.husi.fmt.SingBoxOptions.TYPE_MASQUE_CLIENT
 import fr.husi.fmt.SingBoxOptions.TYPE_NAIVE
 import fr.husi.fmt.SingBoxOptions.TYPE_OPENCONNECT
 import fr.husi.fmt.SingBoxOptions.TYPE_OPENVPN_CLIENT
@@ -42,6 +43,9 @@ import fr.husi.fmt.hysteria.parseHysteria2Outbound
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.juicity.JuicityBean
+import fr.husi.fmt.masque.MASQUEBean
+import fr.husi.fmt.masque.buildSingBoxEndpointMASQUEBean
+import fr.husi.fmt.masque.parseMASQUEEndpoint
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
@@ -129,6 +133,7 @@ fun AbstractBean.toJsonStringKxs(): String = when (this) {
     is ProxySetBean -> kxs.encodeToString(this)
     is JuicityBean -> kxs.encodeToString(this)
     is MieruBean -> kxs.encodeToString(this)
+    is MASQUEBean -> kxs.encodeToString(this)
     is NaiveBean -> kxs.encodeToString(this)
     is OpenConnectBean -> kxs.encodeToString(this)
     is OpenVPNBean -> kxs.encodeToString(this)
@@ -173,6 +178,9 @@ suspend fun buildSingBoxOutbound(bean: AbstractBean): String = when (bean) {
 
     is OpenVPNBean ->
         kxs.encodeToString(buildSingBoxEndpointOpenVPNBean(bean).apply { tag = bean.name })
+
+    is MASQUEBean ->
+        kxs.encodeToString(buildSingBoxEndpointMASQUEBean(bean).apply { tag = bean.name })
 
     is AnyTLSBean ->
         kxs.encodeToString(buildSingBoxOutboundAnyTLSBean(bean).apply { tag = bean.name })
@@ -242,6 +250,8 @@ fun parseOutbound(json: JSONMap): AbstractBean? = when (json["type"].toString())
     TYPE_OPENCONNECT -> parseOpenConnectEndpoint(json)
 
     TYPE_OPENVPN_CLIENT -> parseOpenVPNEndpoint(json)
+
+    TYPE_MASQUE_CLIENT -> parseMASQUEEndpoint(json)
 
     TYPE_HYSTERIA -> parseHysteria1Outbound(json)
 
