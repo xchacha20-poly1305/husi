@@ -2,6 +2,7 @@ package balancer
 
 import (
 	"context"
+	"io"
 	"net"
 	"sync/atomic"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
@@ -22,22 +22,19 @@ func RegisterOutbound(registry *outbound.Registry) {
 }
 
 var (
-	_ adapter.OutboundGroup           = (*Outbound)(nil)
-	_ adapter.ConnectionHandler       = (*Outbound)(nil)
-	_ adapter.PacketConnectionHandler = (*Outbound)(nil)
-	_ adapter.Referrer                = (*Outbound)(nil)
+	_ adapter.OutboundGroup = (*Outbound)(nil)
+	_ adapter.Referrer      = (*Outbound)(nil)
 )
 
 type Outbound struct {
 	outbound.Adapter
-	ctx        context.Context
-	outbound   adapter.OutboundManager
-	connection adapter.ConnectionManager
-	tags       []string
-	index      atomic.Int64
-	outbounds  []adapter.Outbound
-	interval   time.Duration
-	cancel     context.CancelFunc
+	ctx       context.Context
+	outbound  adapter.OutboundManager
+	tags      []string
+	index     atomic.Int64
+	outbounds []adapter.Outbound
+	interval  time.Duration
+	cancel    context.CancelFunc
 }
 
 func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options pluginoption.BalancerOutboundOptions) (adapter.Outbound, error) {
@@ -50,13 +47,12 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	return &Outbound{
-		Adapter:    outbound.NewAdapter(pluginoption.TypeBalancer, tag, nil, options.Outbounds),
-		ctx:        ctx,
-		outbound:   service.FromContext[adapter.OutboundManager](ctx),
-		connection: service.FromContext[adapter.ConnectionManager](ctx),
-		tags:       options.Outbounds,
-		interval:   interval,
-		cancel:     cancel,
+		Adapter:  outbound.NewAdapter(pluginoption.TypeBalancer, tag, nil, options.Outbounds),
+		ctx:      ctx,
+		outbound: service.FromContext[adapter.OutboundManager](ctx),
+		tags:     options.Outbounds,
+		interval: interval,
+		cancel:   cancel,
 	}, nil
 }
 
@@ -117,8 +113,12 @@ func (o *Outbound) Network() []string {
 	return o.selected().Network()
 }
 
-func (o *Outbound) Now() string {
-	return o.selected().Tag()
+func (o *Outbound) Selected(network string) adapter.Outbound {
+	return o.selected()
+}
+
+func (o *Outbound) AttachConnection(closer io.Closer) func() {
+	return func() {}
 }
 
 func (o *Outbound) All() []string {
@@ -126,7 +126,7 @@ func (o *Outbound) All() []string {
 }
 
 func (o *Outbound) References() []string {
-	return []string{o.Now()}
+	return []string{o.selected().Tag()}
 }
 
 func (o *Outbound) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
@@ -135,22 +135,4 @@ func (o *Outbound) DialContext(ctx context.Context, network string, destination 
 
 func (o *Outbound) ListenPacket(ctx context.Context, destination M.Socksaddr) (net.PacketConn, error) {
 	return o.selected().ListenPacket(ctx, destination)
-}
-
-func (o *Outbound) NewConnection(ctx context.Context, conn net.Conn, metadata adapter.InboundContext, onClose N.CloseHandlerFunc) {
-	selected := o.selected()
-	if outboundHandler, isHandler := selected.(adapter.ConnectionHandler); isHandler {
-		outboundHandler.NewConnection(ctx, conn, metadata, onClose)
-	} else {
-		o.connection.NewConnection(ctx, o, conn, metadata, onClose)
-	}
-}
-
-func (o *Outbound) NewPacketConnection(ctx context.Context, conn N.PacketConn, metadata adapter.InboundContext, onClose N.CloseHandlerFunc) {
-	selected := o.selected()
-	if outboundHandler, isHandler := selected.(adapter.PacketConnectionHandler); isHandler {
-		outboundHandler.NewPacketConnection(ctx, conn, metadata, onClose)
-	} else {
-		o.connection.NewPacketConnection(ctx, o, conn, metadata, onClose)
-	}
 }
