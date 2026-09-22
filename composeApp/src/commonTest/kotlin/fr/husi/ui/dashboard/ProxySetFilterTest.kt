@@ -26,21 +26,41 @@ class ProxySetFilterTest {
     )
     private val sets = listOf(auto, fallback)
 
+    private fun List<ProxySet>.outboundTags(search: String): List<String> {
+        return filterBy(ProxySetQuery(globalSearch = search, mode = ProxySetSearchMode.Outbound))
+            .flatMap { set -> set.items.map(ProxyItem::tag) }
+    }
+
+    private fun groupOf(vararg items: ProxyItem) = ProxySet(
+        tag = "Group",
+        displayType = "Selector",
+        items = items.toList(),
+    )
+
     @Test
     fun `keyword matching is case-insensitive and requires every word`() {
-        assertTrue(matchesKeywords("Hong Kong Node", keywordsOf("hong")))
-        assertTrue(matchesKeywords("Hong Kong Node", keywordsOf("HONG kong")))
-        assertFalse(matchesKeywords("Hong Kong Node", keywordsOf("hong japan")))
-        assertTrue(matchesKeywords("Hong Kong Node", keywordsOf("")))
+        val group = listOf(groupOf(ProxyItem(tag = "Hong Kong Node")))
+
+        assertEquals(listOf("Hong Kong Node"), group.outboundTags("hong"))
+        assertEquals(listOf("Hong Kong Node"), group.outboundTags("HONG kong"))
+        assertEquals(emptyList(), group.outboundTags("hong japan"))
     }
 
     @Test
     fun `keyword matching handles emoji`() {
-        assertTrue(matchesKeywords("🇭🇰 Hong Kong 01", keywordsOf("🇭🇰")))
-        assertTrue(matchesKeywords("🇭🇰Hong Kong 01", keywordsOf("🇭🇰 hong")))
-        assertTrue(matchesKeywords("🚀 Auto", keywordsOf("🚀")))
-        assertFalse(matchesKeywords("🇭🇰 Hong Kong 01", keywordsOf("🇯🇵")))
-        assertFalse(matchesKeywords("🇭🇰 Hong Kong 01", keywordsOf("🇭🇰 japan")))
+        val group = listOf(
+            groupOf(
+                ProxyItem(tag = "🇭🇰 Hong Kong 01"),
+                ProxyItem(tag = "🇭🇰Hong Kong 02"),
+                ProxyItem(tag = "🚀 Auto"),
+            ),
+        )
+
+        assertEquals(listOf("🇭🇰 Hong Kong 01", "🇭🇰Hong Kong 02"), group.outboundTags("🇭🇰"))
+        assertEquals(listOf("🇭🇰Hong Kong 02"), group.outboundTags("🇭🇰 hong 02"))
+        assertEquals(listOf("🚀 Auto"), group.outboundTags("🚀"))
+        assertEquals(emptyList(), group.outboundTags("🇯🇵"))
+        assertEquals(emptyList(), group.outboundTags("🇭🇰 japan"))
     }
 
     @Test
@@ -79,11 +99,19 @@ class ProxySetFilterTest {
 
     @Test
     fun `keyword matching handles chinese`() {
-        assertTrue(matchesKeywords("香港 01 IPLC", keywordsOf("香港")))
-        assertTrue(matchesKeywords("香港01", keywordsOf("香港 01")))
-        assertTrue(matchesKeywords("🇭🇰 香港 IPLC", keywordsOf("香港 iplc")))
-        assertFalse(matchesKeywords("香港 01", keywordsOf("日本")))
-        assertFalse(matchesKeywords("香港 01", keywordsOf("香港 日本")))
+        val group = listOf(
+            groupOf(
+                ProxyItem(tag = "香港 01 IPLC"),
+                ProxyItem(tag = "香港02"),
+                ProxyItem(tag = "🇭🇰 香港 IPLC"),
+            ),
+        )
+
+        assertEquals(listOf("香港 01 IPLC", "香港02", "🇭🇰 香港 IPLC"), group.outboundTags("香港"))
+        assertEquals(listOf("香港02"), group.outboundTags("香港 02"))
+        assertEquals(listOf("香港 01 IPLC", "🇭🇰 香港 IPLC"), group.outboundTags("香港 iplc"))
+        assertEquals(emptyList(), group.outboundTags("日本"))
+        assertEquals(emptyList(), group.outboundTags("香港 日本"))
     }
 
     @Test
@@ -141,6 +169,72 @@ class ProxySetFilterTest {
         )
         assertEquals(listOf("Auto"), germanyOnly.map(ProxySet::tag))
         assertEquals(listOf("Germany"), germanyOnly.single().items.map(ProxyItem::tag))
+    }
+
+    private val protocols = listOf(
+        groupOf(
+            ProxyItem(tag = "HK", type = "shadowsocks", displayType = "Shadowsocks"),
+            ProxyItem(tag = "US", type = "vmess", displayType = "VMess"),
+            ProxyItem(tag = "TW", type = "vless", displayType = "VLESS"),
+            ProxyItem(tag = "JP", type = "hysteria2", displayType = "Hysteria2"),
+            ProxyItem(tag = "SG", type = "anytls", displayType = "AnyTLS"),
+            ProxyItem(tag = "KR", type = "shadowtls", displayType = "ShadowTLS"),
+            ProxyItem(tag = "Relay", type = "openvpn-client", displayType = "OpenVPN Client"),
+        ),
+    )
+
+    @Test
+    fun `outbound search matches item type`() {
+        assertEquals(listOf("US LAX"), sets.outboundTags("vless"))
+        assertEquals(listOf("Relay"), protocols.outboundTags("openvpn-client"))
+    }
+
+    @Test
+    fun `outbound search matches item display type`() {
+        assertEquals(listOf("TW"), protocols.outboundTags("VLESS"))
+        assertEquals(listOf("Relay"), protocols.outboundTags("openvpn client"))
+    }
+
+    @Test
+    fun `outbound search combines tag and type keywords`() {
+        assertEquals(listOf("Hong Kong", "Hong Kong 2"), sets.outboundTags("hong ss"))
+    }
+
+    @Test
+    fun `type keywords match substrings of display types`() {
+        assertEquals(listOf("SG", "KR"), protocols.outboundTags("tls"))
+        assertEquals(listOf("HK", "KR"), protocols.outboundTags("shadow"))
+        assertEquals(listOf("US"), protocols.outboundTags("mess"))
+    }
+
+    @Test
+    fun `proxy set search matches group display type`() {
+        val result = sets.filterBy(
+            ProxySetQuery(globalSearch = "urltest", mode = ProxySetSearchMode.ProxySet),
+        )
+
+        assertEquals(listOf("Auto"), result.map(ProxySet::tag))
+        assertEquals(auto.items.map(ProxyItem::tag), result.single().items.map(ProxyItem::tag))
+
+        val selector = sets.filterBy(
+            ProxySetQuery(globalSearch = "selector", mode = ProxySetSearchMode.ProxySet),
+        )
+        assertEquals(listOf("Fallback"), selector.map(ProxySet::tag))
+
+        val urlTest = sets.filterBy(
+            ProxySetQuery(globalSearch = "url test", mode = ProxySetSearchMode.ProxySet),
+        )
+        assertEquals(listOf("Auto"), urlTest.map(ProxySet::tag))
+    }
+
+    @Test
+    fun `in-group search matches item type`() {
+        val result = sets.filterBy(
+            ProxySetQuery(groupSearch = "hysteria", searchingProxyGroup = fallback.id),
+        )
+
+        assertEquals(auto.items.map(ProxyItem::tag), result[0].items.map(ProxyItem::tag))
+        assertEquals(listOf("Japan"), result[1].items.map(ProxyItem::tag))
     }
 
     @Test

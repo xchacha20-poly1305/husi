@@ -38,37 +38,32 @@ fun List<ProxySet>.filterBy(query: ProxySetQuery): List<ProxySet> {
             if (set.id != searchingGroup) {
                 set
             } else {
-                set.copy(
-                    items = set.items.filter {
-                        matchesKeywords(it.tag, keywords)
-                    },
-                )
+                set.copy(items = set.items.filter { it.matchesAll(keywords) })
             }
         }
     }
     val keywords = keywordsOf(query.globalSearch)
     if (keywords.isEmpty()) return this
     return when (query.mode) {
-        ProxySetSearchMode.ProxySet -> filter {
-            matchesKeywords(it.tag, keywords)
-        }
+        ProxySetSearchMode.ProxySet -> filter { it.matchesAll(keywords) }
 
         ProxySetSearchMode.Outbound -> mapNotNull { set ->
-            val matching = set.items.filter {
-                matchesKeywords(it.tag, keywords)
-            }
+            val matching = set.items.filter { it.matchesAll(keywords) }
             set.copy(items = matching).takeIf { matching.isNotEmpty() }
         }
     }
 }
 
-fun matchesKeywords(text: String, keywords: List<String>): Boolean {
-    if (keywords.isEmpty()) return true
-    val haystack = text.lowercase()
-    return keywords.all { haystack.contains(it) }
+private fun ProxySet.matchesAll(keywords: List<String>) = matchesAll(keywords, tag, displayType)
+
+private fun ProxyItem.matchesAll(keywords: List<String>) = matchesAll(keywords, tag, type, displayType)
+
+private fun matchesAll(keywords: List<String>, vararg texts: String): Boolean {
+    val haystacks = texts.map { it.lowercase() }
+    return keywords.all { keyword -> haystacks.any { it.contains(keyword) } }
 }
 
-fun keywordsOf(query: String): List<String> {
+private fun keywordsOf(query: String): List<String> {
     if (query.isBlank()) return emptyList()
     return query.trim().split(WHITESPACE).map { it.lowercase() }
 }
