@@ -332,6 +332,15 @@ private fun MainScreenContent(
                 )
             }
 
+            val appUpdate by viewModel.appUpdate.collectAsStateWithLifecycle()
+            appUpdate?.let { info ->
+                AppUpdateDialog(
+                    info = info,
+                    onDismissRequest = viewModel::dismissAppUpdate,
+                    onSkipVersion = { viewModel.skipAppUpdate() },
+                )
+            }
+
             val openVPNController = koinInject<OpenVPNAuthController>()
             val pendingOpenVPNAuth by openVPNController.pendingDialogAuth
                 .collectAsStateWithLifecycle()
@@ -458,15 +467,6 @@ private fun MainScreenContent(
 
     mainDialog?.let { dialog ->
         MainViewModelAlertDialog(dialog) { mainDialog = null }
-    }
-
-    val appUpdate by viewModel.appUpdate.collectAsStateWithLifecycle()
-    appUpdate?.let { info ->
-        AppUpdateDialog(
-            info = info,
-            onDismissRequest = viewModel::dismissAppUpdate,
-            onSkipVersion = { viewModel.skipAppUpdate() },
-        )
     }
 }
 

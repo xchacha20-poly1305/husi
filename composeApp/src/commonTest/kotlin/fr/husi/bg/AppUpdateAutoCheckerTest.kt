@@ -26,6 +26,7 @@ class AppUpdateAutoCheckerTest : HusiKoinMainDispatcherTest() {
         fetcher = fetcher,
         isSupported = isSupported,
         today = { TODAY },
+        ioDispatcher = dispatcher,
     )
 
     private suspend fun enableAutoCheck(onlyWhenConnected: Boolean) {

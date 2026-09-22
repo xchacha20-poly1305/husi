@@ -11,6 +11,9 @@ import fr.husi.libcore.HttpClientFactory
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.resolveHttpClientFactory
 import fr.husi.platform.PlatformAbis
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
@@ -52,6 +55,7 @@ class AppUpdateAutoChecker(
     private val fetcher: AppUpdateFetcher = AppUpdateFetcher { AppUpdateChecker().check() },
     private val isSupported: Boolean = AppUpdateInstaller.isSupported,
     private val today: () -> Long = ::todayEpochDay,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     suspend fun checkIfDue(connected: Boolean): AppUpdateInfo? {
@@ -68,7 +72,7 @@ class AppUpdateAutoChecker(
         if (!due) return null
 
         val found = try {
-            fetcher.check()
+            withContext(ioDispatcher) { fetcher.check() }
         } catch (e: Exception) {
             Logs.e("check app update", e)
             return null
