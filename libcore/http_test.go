@@ -10,15 +10,18 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/hex"
+	"io"
 	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	C "github.com/sagernet/sing-box/constant"
 	F "github.com/sagernet/sing/common/format"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
@@ -183,4 +186,109 @@ func startPinnedTestServer(t *testing.T, keyPair tls.Certificate) M.Socksaddr {
 	server.StartTLS()
 	t.Cleanup(server.Close)
 	return M.SocksaddrFromNet(server.Listener.Addr())
+}
+
+func TestHTTPClientSetupTimeoutsWithoutOverallDeadline(t *testing.T) {
+	t.Parallel()
+
+	client := NewHttpClient().(*httpClient)
+	require.Equal(t, C.TCPTimeout, client.client.Timeout)
+
+	client.setTimeout(0)
+	assert.Zero(t, client.client.Timeout)
+	assert.Equal(t, C.TCPTimeout, client.transport.TLSHandshakeTimeout)
+	assert.Equal(t, C.TCPTimeout, client.transport.ResponseHeaderTimeout)
+}
+
+func TestHTTPRequestSlowBody(t *testing.T) {
+	t.Parallel()
+
+	const (
+		chunkCount = 6
+		chunkDelay = 100 * time.Millisecond
+		bodyChunk  = "husi"
+	)
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		flusher := writer.(http.Flusher)
+		for range chunkCount {
+			_, _ = writer.Write([]byte(bodyChunk))
+			flusher.Flush()
+			time.Sleep(chunkDelay)
+		}
+	}))
+	defer server.Close()
+
+	newRequest := func(timeoutMs int32) HTTPRequest {
+		request := NewHttpClient().NewRequest()
+		require.NoError(t, request.SetURL(server.URL))
+		request.SetTimeout(timeoutMs)
+		return request
+	}
+
+	t.Run("an overall deadline cuts a slow body", func(t *testing.T) {
+		response, err := newRequest(int32(chunkDelay.Milliseconds())).Execute()
+		require.NoError(t, err)
+		_, err = response.GetContentString()
+		assert.Error(t, err)
+	})
+
+	t.Run("no overall deadline lets a slow body finish", func(t *testing.T) {
+		response, err := newRequest(0).Execute()
+		require.NoError(t, err)
+		content, err := response.GetContentString()
+		require.NoError(t, err)
+		assert.Equal(t, strings.Repeat(bodyChunk, chunkCount), content)
+	})
+}
+
+func TestStallReader(t *testing.T) {
+	t.Parallel()
+
+	const stallTimeout = 100 * time.Millisecond
+
+	t.Run("a stalled transfer fails", func(t *testing.T) {
+		t.Parallel()
+
+		blocked := make(chan struct{})
+		reader := newStallReader(newBlockingReader(blocked), stallTimeout)
+		_, err := reader.Read(make([]byte, 1))
+		close(blocked)
+		assert.ErrorContains(t, err, "stalled")
+	})
+
+	t.Run("progress keeps the transfer alive", func(t *testing.T) {
+		t.Parallel()
+
+		const payload = "husi"
+		reader := newStallReader(io.NopCloser(strings.NewReader(payload)), stallTimeout)
+		content, err := io.ReadAll(reader)
+		require.NoError(t, err)
+		assert.Equal(t, payload, string(content))
+		require.NoError(t, reader.Close())
+	})
+}
+
+type blockingReader struct {
+	released chan struct{}
+	closed   chan struct{}
+	once     sync.Once
+}
+
+func newBlockingReader(released chan struct{}) *blockingReader {
+	return &blockingReader{released: released, closed: make(chan struct{})}
+}
+
+func (b *blockingReader) Read([]byte) (int, error) {
+	select {
+	case <-b.closed:
+	case <-b.released:
+	}
+	return 0, io.EOF
+}
+
+func (b *blockingReader) Close() error {
+	b.once.Do(func() {
+		close(b.closed)
+	})
+	return nil
 }

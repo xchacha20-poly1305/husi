@@ -49,6 +49,15 @@ class AppUpdateDownloadTest : HusiHttpKoinTest() {
     }
 
     @Test
+    fun `download asks for no overall timeout`() = runTest {
+        fakeHttp.nextDownloadBytes = ASSET_SIZE
+
+        downloadAppUpdate(info(), cacheDir, fakeHttp)
+
+        assertEquals(0, fakeHttp.lastClient?.lastRequest?.timeout)
+    }
+
+    @Test
     fun `download rejects and deletes a truncated package`() = runTest {
         fakeHttp.nextDownloadBytes = ASSET_SIZE
         fakeHttp.nextWrittenBytes = ASSET_SIZE / 2

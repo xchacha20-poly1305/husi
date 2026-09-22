@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -191,6 +193,42 @@ const DevNull = os.DevNull
 type CopyCallback interface {
 	SetLength(length int64)
 	Update(n int64)
+}
+
+// stallReader wraps an io.ReadCloser and closes it, reporting an error, if no
+// bytes are read within timeout. Each successful read resets the countdown.
+type stallReader struct {
+	reader  io.ReadCloser
+	timeout time.Duration
+	timer   *time.Timer
+	stalled atomic.Bool
+}
+
+// newStallReader creates a stallReader that closes reader once timeout passes
+// without any progress.
+func newStallReader(reader io.ReadCloser, timeout time.Duration) *stallReader {
+	guard := &stallReader{reader: reader, timeout: timeout}
+	guard.timer = time.AfterFunc(timeout, func() {
+		guard.stalled.Store(true)
+		_ = reader.Close()
+	})
+	return guard
+}
+
+func (s *stallReader) Read(p []byte) (int, error) {
+	n, err := s.reader.Read(p)
+	if n > 0 {
+		s.timer.Reset(s.timeout)
+	}
+	if err != nil && s.stalled.Load() {
+		return n, E.New("transfer stalled for ", s.timeout)
+	}
+	return n, err
+}
+
+func (s *stallReader) Close() error {
+	s.timer.Stop()
+	return s.reader.Close()
 }
 
 // callbackReader use callback when reading.

@@ -31,6 +31,10 @@ import (
 	"filippo.io/age/armor"
 )
 
+// downloadStallTimeout is how long a response body may go without any progress
+// before a transfer with no overall deadline is treated as dead.
+const downloadStallTimeout = 30 * time.Second
+
 // HTTPClient is an adapt client of http.
 type HTTPClient interface {
 	// RestrictedTLS forces to use TLS 1.3.
@@ -78,7 +82,9 @@ type HTTPRequest interface {
 	// SetUserAgent sets HTTP user agent.
 	SetUserAgent(userAgent string)
 
-	// SetTimeout sets timeout millisecond.
+	// SetTimeout sets the timeout in milliseconds. A value of zero or less leaves
+	// the exchange without an overall deadline, which large downloads on slow
+	// links need; connection setup still times out, and a stalled transfer still fails.
 	SetTimeout(timeout int32)
 
 	// Execute do HTTP query.
@@ -115,9 +121,23 @@ type httpClient struct {
 	ageIdentities []age.Identity
 }
 
+// setTimeout applies timeout as the overall deadline for the exchange. A value
+// of zero or less removes that deadline instead, keeping only the connection
+// setup timeouts.
 func (c *httpClient) setTimeout(timeout time.Duration) {
+	if timeout <= 0 {
+		c.client.Timeout = 0
+		c.setSetupTimeout(C.TCPTimeout)
+		return
+	}
 	c.client.Timeout = timeout
+	c.setSetupTimeout(timeout)
+}
+
+// setSetupTimeout sets the TLS handshake and response header deadlines.
+func (c *httpClient) setSetupTimeout(timeout time.Duration) {
 	c.transport.TLSHandshakeTimeout = timeout
+	c.transport.ResponseHeaderTimeout = timeout
 }
 
 // NewHttpClient returns the basic HTTPClient.
@@ -280,6 +300,9 @@ func (r *httpRequest) Execute() (HTTPResponse, error) {
 	response, err := r.client.Do(&r.request)
 	if err != nil {
 		return nil, err
+	}
+	if r.client.Timeout == 0 {
+		response.Body = newStallReader(response.Body, downloadStallTimeout)
 	}
 	httpResp := &httpResponse{Response: response, ageIdentities: r.ageIdentities}
 	if response.StatusCode != http.StatusOK {

@@ -12,6 +12,8 @@ import java.io.File
 
 private const val UPDATE_CACHE_DIR_NAME = "update"
 
+private const val NO_OVERALL_TIMEOUT_MS = 0
+
 internal fun appUpdateCacheDir(cacheDir: File): File = cacheDir.resolve(UPDATE_CACHE_DIR_NAME)
 
 class AppUpdateSizeMismatch(expected: Long, actual: Long) :
@@ -45,6 +47,7 @@ suspend fun downloadAppUpdate(
     }.newRequest().apply {
         setURL(downloadUrl)
         setUserAgent(USER_AGENT)
+        setTimeout(NO_OVERALL_TIMEOUT_MS)
     }.execute().writeTo(
         targetFile.absolutePath,
         object : CopyCallback {
