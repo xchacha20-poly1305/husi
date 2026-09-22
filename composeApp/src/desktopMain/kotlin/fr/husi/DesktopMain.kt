@@ -5,12 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
-import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.v2.Window
+import androidx.compose.ui.window.v2.rememberWindowStateWithBounds
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.obj
@@ -204,6 +205,7 @@ class DesktopMain(
         launchGui(emptyList())
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     fun launchGui(deepLinks: List<String>) {
         taskId?.let {
             exitProcess(runTaskMode(it))
@@ -233,14 +235,16 @@ class DesktopMain(
                 mutableStateOf(!startInBackground)
             }
 
-            val windowState = rememberWindowState(size = DpSize(1200.dp, 800.dp))
+            val windowState = rememberWindowStateWithBounds(
+                initialSize = DpSize(1200.dp, 800.dp),
+            )
 
             // The tray library keys its native rebuild on this reference, so a fresh lambda
             // every recomposition would re-render the icon and rebuild the menu each time.
             val openWindow: () -> Unit = remember(windowState) {
                 {
                     windowVisible = true
-                    windowState.isMinimized = false
+                    windowState.requestMinimized(false)
                 }
             }
 
