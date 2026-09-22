@@ -32,6 +32,7 @@ class TrustTunnelBean : AbstractBean() {
     var serverName: String = ""
     var alpn: String = ""
     var certificates: String = ""
+    var certificateSha256: String = ""
     var certPublicKeySha256: String = ""
     var utlsFingerprint: String = ""
     var allowInsecure: Boolean = false
@@ -47,7 +48,7 @@ class TrustTunnelBean : AbstractBean() {
     var tlsSpoofMethod: String = ""
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(1)
+        output.writeInt(2)
         super.serialize(output)
         output.writeString(username)
         output.writeString(password)
@@ -72,6 +73,9 @@ class TrustTunnelBean : AbstractBean() {
         // version 1
         output.writeString(tlsSpoof)
         output.writeString(tlsSpoofMethod)
+
+        // version 2
+        output.writeString(certificateSha256)
     }
 
     override fun deserialize(input: BinaryInput) {
@@ -100,6 +104,10 @@ class TrustTunnelBean : AbstractBean() {
         if (version >= 1) {
             tlsSpoof = input.readString()
             tlsSpoofMethod = input.readString()
+        }
+
+        if (version >= 2) {
+            certificateSha256 = input.readString()
         }
     }
 

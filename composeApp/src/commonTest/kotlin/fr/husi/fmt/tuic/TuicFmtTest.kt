@@ -77,6 +77,7 @@ class TuicFmtTest {
             allowInsecure = true
             alpn = "h3"
             certificates = "cert-1\ncert-2"
+            certificateSha256 = "pin-1\npin-2"
             certPublicKeySha256 = "sha-1\nsha-2"
             clientCert = "client-cert"
             clientKey = "client-key"
@@ -102,6 +103,7 @@ class TuicFmtTest {
         assertEquals(true, tls.insecure)
         assertEquals(listOf("h3"), tls.alpn?.toList())
         assertEquals(listOf("cert-1", "cert-2"), tls.certificate?.toList())
+        assertEquals(listOf("pin-1", "pin-2"), tls.certificate_sha256?.toList())
         assertEquals(listOf("sha-1", "sha-2"), tls.certificate_public_key_sha256?.toList())
         assertEquals(listOf("client-cert"), tls.client_certificate?.toList())
         assertEquals(listOf("client-key"), tls.client_key?.toList())
@@ -128,6 +130,7 @@ class TuicFmtTest {
                 "insecure" to true,
                 "alpn" to listOf("h3"),
                 "certificate" to listOf("cert-1", "cert-2"),
+                "certificate_sha256" to listOf("pin-1", "pin-2"),
                 "certificate_public_key_sha256" to "sha-1",
                 "client_certificate" to "client-cert",
                 "client_key" to listOf("ck-1", "ck-2"),
@@ -153,6 +156,7 @@ class TuicFmtTest {
         assertTrue(bean.allowInsecure)
         assertEquals("h3", bean.alpn)
         assertEquals("cert-1\ncert-2", bean.certificates)
+        assertEquals("pin-1\npin-2", bean.certificateSha256)
         assertEquals("sha-1", bean.certPublicKeySha256)
         assertEquals("client-cert", bean.clientCert)
         assertEquals("ck-1\nck-2", bean.clientKey)
@@ -218,6 +222,7 @@ class TuicFmtTest {
             maxConcurrentStreams = 128
             initialPacketSize = 1200
             disablePathMtuDiscovery = true
+            certificateSha256 = "pin-1\npin-2"
         }
 
         val restored = source.clone()
@@ -229,5 +234,6 @@ class TuicFmtTest {
         assertEquals(128, restored.maxConcurrentStreams)
         assertEquals(1200, restored.initialPacketSize)
         assertTrue(restored.disablePathMtuDiscovery)
+        assertEquals("pin-1\npin-2", restored.certificateSha256)
     }
 }

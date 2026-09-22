@@ -25,6 +25,7 @@ class TrustTunnelFmtTest {
             allowInsecure = true
             alpn = "h2,http/1.1"
             certificates = "cert-a\ncert-b"
+            certificateSha256 = "pin-a\npin-b"
             certPublicKeySha256 = "sha-a\nsha-b"
             clientCert = "client-cert"
             clientKey = "client-key"
@@ -53,7 +54,9 @@ class TrustTunnelFmtTest {
         assertEquals(true, tls.insecure)
         assertEquals(listOf("h2", "http/1.1"), tls.alpn?.toList())
         assertEquals(listOf("cert-a", "cert-b"), tls.certificate?.toList())
+        assertEquals(listOf("pin-a", "pin-b"), tls.certificate_sha256?.toList())
         assertEquals(listOf("sha-a", "sha-b"), tls.certificate_public_key_sha256?.toList())
+        assertEquals("pin-a\npin-b", bean.clone().certificateSha256)
         assertEquals(listOf("client-cert"), tls.client_certificate?.toList())
         assertEquals(listOf("client-key"), tls.client_key?.toList())
 
@@ -82,6 +85,7 @@ class TrustTunnelFmtTest {
         assertNull(tls.server_name)
         assertNull(tls.alpn)
         assertNull(tls.certificate)
+        assertNull(tls.certificate_sha256)
         assertNull(tls.certificate_public_key_sha256)
         assertNull(tls.utls)
         assertNull(tls.ech)

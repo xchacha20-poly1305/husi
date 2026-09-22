@@ -60,6 +60,7 @@ class AnyTLSFmtTest {
             certificates = "cert-a\ncert-b"
             clientCert = "client-cert"
             clientKey = "client-key-a\nclient-key-b"
+            certificateSha256 = "pin-a\npin-b"
             certPublicKeySha256 = "sha-a\nsha-b"
             utlsFingerprint = SingBoxOptions.FINGERPRINT_CHROME
             tlsFragment = true
@@ -91,7 +92,9 @@ class AnyTLSFmtTest {
         assertEquals(listOf("cert-a", "cert-b"), tls.certificate?.toList())
         assertEquals(listOf("client-cert"), tls.client_certificate?.toList())
         assertEquals(listOf("client-key-a", "client-key-b"), tls.client_key?.toList())
+        assertEquals(listOf("pin-a", "pin-b"), tls.certificate_sha256?.toList())
         assertEquals(listOf("sha-a", "sha-b"), tls.certificate_public_key_sha256?.toList())
+        assertEquals(bean.certificateSha256, bean.clone().certificateSha256)
 
         val utls = assertNotNull(tls.utls)
         assertEquals(true, utls.enabled)
@@ -123,6 +126,7 @@ class AnyTLSFmtTest {
             certificates = ""
             clientCert = ""
             clientKey = ""
+            certificateSha256 = ""
             certPublicKeySha256 = ""
             utlsFingerprint = ""
             tlsFragment = false
@@ -150,6 +154,7 @@ class AnyTLSFmtTest {
         assertNull(tls.certificate)
         assertNull(tls.client_certificate)
         assertNull(tls.client_key)
+        assertNull(tls.certificate_sha256)
         assertNull(tls.certificate_public_key_sha256)
         assertNull(tls.utls)
         assertNotEquals(tls.fragment, true)
@@ -178,6 +183,7 @@ class AnyTLSFmtTest {
                 "certificate" to listOf("ca-1", "ca-2"),
                 "client_certificate" to "cc-1",
                 "client_key" to listOf("ck-1", "ck-2"),
+                "certificate_sha256" to listOf("pin-1", "pin-2"),
                 "certificate_public_key_sha256" to "sha-1",
                 "utls" to mutableMapOf(
                     "enabled" to true,
@@ -211,6 +217,7 @@ class AnyTLSFmtTest {
         assertEquals("ca-1\nca-2", bean.certificates)
         assertEquals("cc-1", bean.clientCert)
         assertEquals("ck-1\nck-2", bean.clientKey)
+        assertEquals("pin-1\npin-2", bean.certificateSha256)
         assertEquals("sha-1", bean.certPublicKeySha256)
         assertEquals(SingBoxOptions.FINGERPRINT_FIREFOX, bean.utlsFingerprint)
         assertTrue(bean.tlsFragment)

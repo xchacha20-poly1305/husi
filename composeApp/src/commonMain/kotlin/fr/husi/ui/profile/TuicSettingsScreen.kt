@@ -23,6 +23,7 @@ import fr.husi.resources.allow_insecure
 import fr.husi.resources.alpn
 import fr.husi.resources.block
 import fr.husi.resources.cert_public_key_sha256
+import fr.husi.resources.certificate_sha256
 import fr.husi.resources.certificates
 import fr.husi.resources.client_certificate
 import fr.husi.resources.client_key
@@ -34,6 +35,7 @@ import fr.husi.resources.ech_config
 import fr.husi.resources.ech_query_server_name
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.enable
+import fr.husi.resources.encrypted
 import fr.husi.resources.flight_takeoff
 import fr.husi.resources.lock
 import fr.husi.resources.lock_open
@@ -193,6 +195,24 @@ private fun LazyListScope.tuicSettings(
                 )
             },
             summary = { Text(contentOrUnset(uiState.certificates)) },
+            valueToText = { it },
+            textField = { value, onValueChange, onOk ->
+                MultilineTextField(value, onValueChange, onOk)
+            },
+        )
+        TextFieldPreference(
+            value = uiState.certificateSha256,
+            onValueChange = { viewModel.setCertificateSha256(it) },
+            title = { Text(stringResource(Res.string.certificate_sha256)) },
+            textToValue = { it },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.encrypted,
+                    color = IconMaskColors.IconLightGreen,
+                    shape = IconMaskShapes.credential(),
+                )
+            },
+            summary = { Text(contentOrUnset(uiState.certificateSha256)) },
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
                 MultilineTextField(value, onValueChange, onOk)

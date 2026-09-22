@@ -34,6 +34,7 @@ class AnyTLSBean : AbstractBean() {
     var serverName: String = ""
     var alpn: String = ""
     var certificates: String = ""
+    var certificateSha256: String = ""
     var certPublicKeySha256: String = ""
     var utlsFingerprint: String = ""
     var allowInsecure: Boolean = false
@@ -65,7 +66,7 @@ class AnyTLSBean : AbstractBean() {
     }
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(9)
+        output.writeInt(10)
 
         // version 0
         super.serialize(output)
@@ -110,6 +111,9 @@ class AnyTLSBean : AbstractBean() {
         // version 9
         output.writeBoolean(disableReuse)
         output.writeString(clientMetadata)
+
+        // version 10
+        output.writeString(certificateSha256)
     }
 
     override fun deserialize(input: BinaryInput) {
@@ -164,6 +168,10 @@ class AnyTLSBean : AbstractBean() {
         if (version >= 9) {
             disableReuse = input.readBoolean()
             clientMetadata = input.readString()
+        }
+
+        if (version >= 10) {
+            certificateSha256 = input.readString()
         }
     }
 

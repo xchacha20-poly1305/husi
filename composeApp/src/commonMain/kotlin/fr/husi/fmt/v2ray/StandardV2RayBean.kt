@@ -38,6 +38,7 @@ abstract class StandardV2RayBean : AbstractBean() {
     var tlsSpoof: String = ""
     var tlsSpoofMethod: String = ""
     var certificates: String = ""
+    var certificateSha256: String = ""
     var certPublicKeySha256: String = ""
     var clientCert: String = ""
     var clientKey: String = ""
@@ -61,7 +62,7 @@ abstract class StandardV2RayBean : AbstractBean() {
     }
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(12)
+        output.writeInt(13)
         super.serialize(output)
 
         output.writeString(uuid)
@@ -125,6 +126,7 @@ abstract class StandardV2RayBean : AbstractBean() {
             output.writeString(echQueryServerName)
             output.writeString(tlsSpoof)
             output.writeString(tlsSpoofMethod)
+            output.writeString(certificateSha256)
         }
 
         output.writeInt(packetEncoding)
@@ -222,6 +224,10 @@ abstract class StandardV2RayBean : AbstractBean() {
             if (version >= 12) {
                 tlsSpoof = input.readString()
                 tlsSpoofMethod = input.readString()
+            }
+
+            if (version >= 13) {
+                certificateSha256 = input.readString()
             }
         }
 

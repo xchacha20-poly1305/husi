@@ -12,13 +12,13 @@ require (
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/cors v1.2.1
 	github.com/sagernet/quic-go v0.61.0-sing-box-mod.7
-	github.com/sagernet/sing v0.9.5-0.20260917164122-8fc5da509c10
+	github.com/sagernet/sing v0.9.6-0.20260922013359-4ca3bebe0b8e
 	github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be
-	github.com/sagernet/sing-box v1.15.0-alpha.6
-	github.com/sagernet/sing-mux v0.3.7-0.20260905054442-91d1502591ce
+	github.com/sagernet/sing-box v1.15.0-alpha.7
+	github.com/sagernet/sing-mux v0.3.9-0.20260919141002-baf887b90a62
 	github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e
 	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
-	github.com/sagernet/sing-tun v0.9.4-0.20260917142847-fbc0c3dff312
+	github.com/sagernet/sing-tun v0.9.6-0.20260922105247-aff4131a9e9e
 	github.com/sagernet/sing-vmess v0.2.8
 	github.com/stretchr/testify v1.12.1
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55

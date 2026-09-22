@@ -38,6 +38,7 @@ class ShadowTLSFmtTest {
             sni = "sni.example.com"
             allowInsecure = true
             utlsFingerprint = SingBoxOptions.FINGERPRINT_CHROME
+            certificateSha256 = "pin-a\npin-b"
         }
 
         val outbound = buildSingBoxOutboundShadowTLSBean(bean)
@@ -46,6 +47,8 @@ class ShadowTLSFmtTest {
         assertEquals(true, tls.enabled)
         assertEquals("sni.example.com", tls.server_name)
         assertEquals(true, tls.insecure)
+        assertEquals(listOf("pin-a", "pin-b"), tls.certificate_sha256?.toList())
+        assertEquals("pin-a\npin-b", bean.clone().certificateSha256)
         val utls = assertNotNull(tls.utls)
         assertEquals(SingBoxOptions.FINGERPRINT_CHROME, utls.fingerprint)
     }

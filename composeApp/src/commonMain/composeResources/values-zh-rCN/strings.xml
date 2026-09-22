@@ -725,6 +725,7 @@
     <string name="mutual_tls">双向 TLS</string>
     <string name="menu">菜单</string>
     <string name="cert_public_key_sha256">证书公钥 sha256</string>
+    <string name="certificate_sha256">证书 sha256</string>
     <string name="format">格式</string>
     <string name="not_found">未找到</string>
     <string name="full">完整</string>

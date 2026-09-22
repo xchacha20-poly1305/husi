@@ -62,6 +62,8 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
             certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()
             client_certificate = bean.clientCert.blankAsNull()?.lines()?.toMutableList()
             client_key = bean.clientKey.blankAsNull()?.lines()?.toMutableList()
+            certificate_sha256 =
+                bean.certificateSha256.blankAsNull()?.lines()?.toMutableList()
             certificate_public_key_sha256 =
                 bean.certPublicKeySha256.blankAsNull()?.lines()?.toMutableList()
             bean.utlsFingerprint.blankAsNull()?.let {
@@ -114,6 +116,7 @@ fun parseAnyTLSOutbound(json: JSONMap): AnyTLSBean = AnyTLSBean().apply {
                 certificates = tls.certificate?.joinToString("\n").orEmpty()
                 clientCert = tls.client_certificate?.joinToString("\n").orEmpty()
                 clientKey = tls.client_key?.joinToString("\n").orEmpty()
+                certificateSha256 = tls.certificate_sha256?.joinToString("\n").orEmpty()
                 certPublicKeySha256 =
                     tls.certificate_public_key_sha256?.joinToString("\n").orEmpty()
                 utlsFingerprint = tls.utls?.fingerprint.orEmpty()

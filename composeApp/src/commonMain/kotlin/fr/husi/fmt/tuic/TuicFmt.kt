@@ -87,6 +87,10 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             }
             alpn = bean.alpn.blankAsNull()?.listByLineOrComma()?.toMutableList()
             certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()
+            certificate_sha256 = bean.certificateSha256
+                .blankAsNull()
+                ?.lines()
+                ?.toMutableList()
             certificate_public_key_sha256 = bean.certPublicKeySha256
                 .blankAsNull()
                 ?.lines()
@@ -129,6 +133,7 @@ fun parseTuicOutbound(json: JSONMap): TuicBean = TuicBean().apply {
                 allowInsecure = tls.insecure == true
                 disableSNI = tls.disable_sni == true
                 certificates = tls.certificate?.joinToString("\n").orEmpty()
+                certificateSha256 = tls.certificate_sha256?.joinToString("\n").orEmpty()
                 certPublicKeySha256 =
                     tls.certificate_public_key_sha256?.joinToString("\n").orEmpty()
                 clientCert = tls.client_certificate?.joinToString("\n").orEmpty()

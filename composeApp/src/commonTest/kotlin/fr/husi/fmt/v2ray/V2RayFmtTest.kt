@@ -200,6 +200,7 @@ class V2RayFmtTest {
             sni = "sni.example.com"
             tlsSpoof = "spoof.example.com"
             tlsSpoofMethod = "wrong-checksum"
+            certificateSha256 = "pin-a\npin-b"
         }
 
         val outbound = buildSingBoxOutboundStandardV2RayBean(bean)
@@ -208,6 +209,8 @@ class V2RayFmtTest {
         val tls = assertNotNull(vmess.tls)
         assertEquals("spoof.example.com", tls.spoof)
         assertEquals("wrong-checksum", tls.spoof_method)
+        assertEquals(listOf("pin-a", "pin-b"), tls.certificate_sha256?.toList())
+        assertEquals("pin-a\npin-b", bean.clone().certificateSha256)
     }
 
     @Test
@@ -227,6 +230,7 @@ class V2RayFmtTest {
         val tls = assertNotNull(vmess.tls)
         assertNull(tls.spoof)
         assertNull(tls.spoof_method)
+        assertNull(tls.certificate_sha256)
     }
 
     @Test
@@ -379,6 +383,7 @@ class V2RayFmtTest {
                 "enabled" to true,
                 "server_name" to "sni.example.com",
                 "insecure" to true,
+                "certificate_sha256" to listOf("pin-1", "pin-2"),
             ),
         )
 
@@ -392,6 +397,7 @@ class V2RayFmtTest {
         assertTrue(bean.isTLS)
         assertEquals("sni.example.com", bean.sni)
         assertTrue(bean.allowInsecure)
+        assertEquals("pin-1\npin-2", bean.certificateSha256)
     }
 
     @Test

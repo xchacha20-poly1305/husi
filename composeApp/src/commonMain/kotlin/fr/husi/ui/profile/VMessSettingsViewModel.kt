@@ -27,6 +27,7 @@ internal data class VMessUiState(
     override val sni: String = "",
     override val alpn: String = "",
     override val certificate: String = "",
+    override val certificateSha256: String = "",
     override val certPublicKeySha256: String = "",
     override val allowInsecure: Boolean = false,
     override val disableSNI: Boolean = false,
@@ -87,6 +88,7 @@ internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean
                 sni = sni,
                 alpn = alpn,
                 certificate = certificates,
+                certificateSha256 = certificateSha256,
                 certPublicKeySha256 = certPublicKeySha256,
                 allowInsecure = allowInsecure,
                 disableSNI = disableSNI,
@@ -141,6 +143,7 @@ internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean
         sni = state.sni
         alpn = state.alpn
         certificates = state.certificate
+        certificateSha256 = state.certificateSha256
         certPublicKeySha256 = state.certPublicKeySha256
         allowInsecure = state.allowInsecure
         disableSNI = state.disableSNI
@@ -233,6 +236,10 @@ internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean
 
     override fun setCertificate(certificate: String) {
         uiState.update { it.copy(certificate = certificate) }
+    }
+
+    override fun setCertificateSha256(sha256: String) {
+        uiState.update { it.copy(certificateSha256 = sha256) }
     }
 
     override fun setCertPublicKeySha256(sha256: String) {

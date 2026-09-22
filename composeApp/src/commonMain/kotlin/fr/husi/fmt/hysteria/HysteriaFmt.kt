@@ -437,6 +437,10 @@ suspend fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions
                 }
                 alpn = bean.alpn.blankAsNull()?.listByLineOrComma()?.toMutableList()
                 certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()
+                certificate_sha256 = bean.certificateSha256
+                    .blankAsNull()
+                    ?.lines()
+                    ?.toMutableList()
                 certificate_public_key_sha256 = bean.certPublicKeySha256
                     .blankAsNull()
                     ?.lines()
@@ -510,6 +514,10 @@ suspend fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions
                 }
                 alpn = mutableListOf("h3")
                 certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()
+                certificate_sha256 = bean.certificateSha256
+                    .blankAsNull()
+                    ?.lines()
+                    ?.toMutableList()
                 certificate_public_key_sha256 = bean.certPublicKeySha256
                     .blankAsNull()
                     ?.lines()
@@ -671,6 +679,7 @@ private fun HysteriaBean.loadTLS(tls: SingBoxOptions.OutboundTLSOptions) {
     sni = tls.server_name.orEmpty()
     allowInsecure = tls.insecure == true
     certificates = tls.certificate?.joinToString("\n").orEmpty()
+    certificateSha256 = tls.certificate_sha256?.joinToString("\n").orEmpty()
     certPublicKeySha256 = tls.certificate_public_key_sha256?.joinToString("\n").orEmpty()
     alpn = tls.alpn?.joinToString("\n").orEmpty()
     tls.ech?.let {

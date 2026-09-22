@@ -816,6 +816,7 @@
     <string name="mutual_tls">Mutual TLS</string>
     <string name="menu">Menu</string>
     <string name="cert_public_key_sha256">Certificate Public Key Sha256</string>
+    <string name="certificate_sha256">Certificate Sha256</string>
     <string name="format">Format</string>
     <string name="not_found">Not found</string>
     <string name="full">Full</string>

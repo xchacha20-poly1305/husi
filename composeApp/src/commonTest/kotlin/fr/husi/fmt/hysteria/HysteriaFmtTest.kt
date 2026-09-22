@@ -169,6 +169,7 @@ class HysteriaFmtTest : HusiKoinTest() {
                 "insecure" to true,
                 "alpn" to listOf("hysteria"),
                 "certificate" to listOf("cert-1", "cert-2"),
+                "certificate_sha256" to listOf("pin-1", "pin-2"),
                 "certificate_public_key_sha256" to "sha-1",
             ),
         )
@@ -184,6 +185,7 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertTrue(bean.allowInsecure)
         assertEquals("hysteria", bean.alpn)
         assertEquals("cert-1\ncert-2", bean.certificates)
+        assertEquals("pin-1\npin-2", bean.certificateSha256)
         assertEquals("sha-1", bean.certPublicKeySha256)
     }
 
@@ -228,6 +230,7 @@ class HysteriaFmtTest : HusiKoinTest() {
             keepAlivePeriod = "15s"
             maxConcurrentStreams = 128
             initialPacketSize = 1200
+            certificateSha256 = "pin-1\npin-2"
         }
 
         val outbound = assertIs<SingBoxOptions.Outbound_HysteriaOptions>(
@@ -245,6 +248,7 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertNull(outbound.recv_window_conn)
         assertNull(outbound.recv_window)
         assertNull(outbound.disable_mtu_discovery)
+        assertEquals(listOf("pin-1", "pin-2"), assertNotNull(outbound.tls).certificate_sha256?.toList())
     }
 
     @Test
@@ -266,6 +270,7 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertNull(outbound.keep_alive_period)
         assertNull(outbound.max_concurrent_streams)
         assertNull(outbound.initial_packet_size)
+        assertNull(assertNotNull(outbound.tls).certificate_sha256)
     }
 
     @Test
@@ -282,6 +287,7 @@ class HysteriaFmtTest : HusiKoinTest() {
             keepAlivePeriod = "15s"
             maxConcurrentStreams = 128
             initialPacketSize = 1200
+            certificateSha256 = "pin-1\npin-2"
         }
 
         val outbound = assertIs<SingBoxOptions.Outbound_Hysteria2Options>(
@@ -295,6 +301,7 @@ class HysteriaFmtTest : HusiKoinTest() {
         assertEquals("15s", outbound.keep_alive_period)
         assertEquals(128, outbound.max_concurrent_streams)
         assertEquals(1200, outbound.initial_packet_size)
+        assertEquals(listOf("pin-1", "pin-2"), assertNotNull(outbound.tls).certificate_sha256?.toList())
     }
 
     @Test
@@ -307,11 +314,13 @@ class HysteriaFmtTest : HusiKoinTest() {
             keepAlivePeriod = "15s"
             maxConcurrentStreams = 128
             initialPacketSize = 1200
+            certificateSha256 = "pin-1\npin-2"
         }
 
         val restored = source.clone()
 
         assertEquals("30s", restored.idleTimeout)
+        assertEquals("pin-1\npin-2", restored.certificateSha256)
         assertEquals("15s", restored.keepAlivePeriod)
         assertEquals(128, restored.maxConcurrentStreams)
         assertEquals(1200, restored.initialPacketSize)

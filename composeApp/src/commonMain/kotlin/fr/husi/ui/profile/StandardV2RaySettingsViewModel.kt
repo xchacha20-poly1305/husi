@@ -21,6 +21,7 @@ internal sealed interface StandardV2RayUiState : ProfileEditorUiState {
     val sni: String
     val alpn: String
     val certificate: String
+    val certificateSha256: String
     val certPublicKeySha256: String
     val allowInsecure: Boolean
     val disableSNI: Boolean
@@ -63,6 +64,7 @@ internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
     abstract fun setSni(sni: String)
     abstract fun setAlpn(alpn: String)
     abstract fun setCertificate(certificate: String)
+    abstract fun setCertificateSha256(sha256: String)
     abstract fun setCertPublicKeySha256(sha256: String)
     abstract fun setAllowInsecure(allow: Boolean)
     abstract fun setDisableSNI(disable: Boolean)

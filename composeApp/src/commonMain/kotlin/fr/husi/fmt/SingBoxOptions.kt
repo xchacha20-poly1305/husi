@@ -1123,6 +1123,9 @@ object SingBoxOptions {
         var certificate_path: String? = null
 
         @JvmField
+        var certificate_sha256: MutableList<String>? = null
+
+        @JvmField
         var certificate_public_key_sha256: MutableList<String>? = null
 
         @JvmField
@@ -1261,6 +1264,9 @@ object SingBoxOptions {
 
         @JvmField
         var client_certificate_path: MutableList<String>? = null
+
+        @JvmField
+        var client_certificate_sha256: MutableList<String>? = null
 
         @JvmField
         var client_certificate_public_key_sha256: MutableList<String>? = null
@@ -2974,9 +2980,6 @@ object SingBoxOptions {
         var udp_nat_max: Int? = null
 
         @JvmField
-        var stack: String? = null
-
-        @JvmField
         var multi_queue: Boolean? = null
 
         @JvmField
@@ -2997,6 +3000,9 @@ object SingBoxOptions {
 
         @JvmField
         var udp_disable_domain_unmapping: Boolean? = null
+
+        @JvmField
+        var stack: String? = null
 
         @JvmField
         var gso: Boolean? = null
@@ -3632,6 +3638,12 @@ object SingBoxOptions {
 
         @JvmField
         var headers: MutableMap<String, MutableList<String>>? = null
+
+        @JvmField
+        var version: Int? = null
+
+        @JvmField
+        var disable_version_fallback: Boolean? = null
 
         @JvmField
         var udp_over_tcp: UDPOverTCPOptions? = null

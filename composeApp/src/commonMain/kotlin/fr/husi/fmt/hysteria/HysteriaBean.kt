@@ -58,6 +58,7 @@ class HysteriaBean : AbstractBean() {
     var authPayload: String = ""
     var sni: String = ""
     var certificates: String = ""
+    var certificateSha256: String = ""
     var certPublicKeySha256: String = ""
     var disableSNI: Boolean = false
 
@@ -114,7 +115,7 @@ class HysteriaBean : AbstractBean() {
     }
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(9)
+        output.writeInt(10)
         super.serialize(output)
 
         output.writeInt(protocolVersion)
@@ -167,6 +168,9 @@ class HysteriaBean : AbstractBean() {
 
         // version 9
         output.writeBoolean(disableChromeParrot)
+
+        // version 10
+        output.writeString(certificateSha256)
     }
 
     override fun deserialize(input: BinaryInput) {
@@ -236,6 +240,10 @@ class HysteriaBean : AbstractBean() {
 
         if (version >= 9) {
             disableChromeParrot = input.readBoolean()
+        }
+
+        if (version >= 10) {
+            certificateSha256 = input.readString()
         }
     }
 

@@ -55,6 +55,10 @@ fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.O
             if (bean.allowInsecure) insecure = true
             alpn = bean.alpn.blankAsNull()?.listByLineOrComma()?.toMutableList()
             certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()
+            certificate_sha256 = bean.certificateSha256
+                .blankAsNull()
+                ?.lines()
+                ?.toMutableList()
             certificate_public_key_sha256 = bean.certPublicKeySha256
                 .blankAsNull()
                 ?.lines()

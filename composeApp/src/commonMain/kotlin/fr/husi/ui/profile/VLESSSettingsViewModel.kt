@@ -27,6 +27,7 @@ internal data class VLESSUiState(
     override val sni: String = "",
     override val alpn: String = "",
     override val certificate: String = "",
+    override val certificateSha256: String = "",
     override val certPublicKeySha256: String = "",
     override val allowInsecure: Boolean = false,
     override val disableSNI: Boolean = false,
@@ -86,6 +87,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
                 sni = sni,
                 alpn = alpn,
                 certificate = certificates,
+                certificateSha256 = certificateSha256,
                 certPublicKeySha256 = certPublicKeySha256,
                 allowInsecure = allowInsecure,
                 disableSNI = disableSNI,
@@ -139,6 +141,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
         sni = state.sni
         alpn = state.alpn
         certificates = state.certificate
+        certificateSha256 = state.certificateSha256
         certPublicKeySha256 = state.certPublicKeySha256
         allowInsecure = state.allowInsecure
         disableSNI = state.disableSNI
@@ -230,6 +233,10 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
 
     override fun setCertificate(certificate: String) {
         uiState.update { it.copy(certificate = certificate) }
+    }
+
+    override fun setCertificateSha256(sha256: String) {
+        uiState.update { it.copy(certificateSha256 = sha256) }
     }
 
     override fun setCertPublicKeySha256(sha256: String) {

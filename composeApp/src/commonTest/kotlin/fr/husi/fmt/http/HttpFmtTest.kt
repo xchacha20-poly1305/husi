@@ -94,6 +94,7 @@ class HttpFmtTest {
                 "insecure" to true,
                 "alpn" to listOf("h2", "http/1.1"),
                 "certificate" to listOf("cert-1"),
+                "certificate_sha256" to listOf("pin-1", "pin-2"),
                 "certificate_public_key_sha256" to "sha-1",
                 "client_certificate" to listOf("client-cert"),
                 "client_key" to listOf("client-key"),
@@ -115,6 +116,7 @@ class HttpFmtTest {
         assertTrue(bean.allowInsecure)
         assertEquals("h2,http/1.1", bean.alpn)
         assertEquals("cert-1", bean.certificates)
+        assertEquals("pin-1\npin-2", bean.certificateSha256)
         assertEquals("sha-1", bean.certPublicKeySha256)
         assertEquals("client-cert", bean.clientCert)
         assertEquals("client-key", bean.clientKey)

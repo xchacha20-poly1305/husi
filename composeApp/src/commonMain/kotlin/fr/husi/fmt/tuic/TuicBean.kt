@@ -29,6 +29,7 @@ class TuicBean : AbstractBean() {
 
     var token: String = ""
     var certificates: String = ""
+    var certificateSha256: String = ""
     var certPublicKeySha256: String = ""
     var udpRelayMode: String = "native"
     var congestionController: String = "cubic"
@@ -76,7 +77,7 @@ class TuicBean : AbstractBean() {
     }
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(4)
+        output.writeInt(5)
 
         // version 0
         super.serialize(output)
@@ -113,6 +114,9 @@ class TuicBean : AbstractBean() {
         output.writeInt(maxConcurrentStreams)
         output.writeInt(initialPacketSize)
         output.writeBoolean(disablePathMtuDiscovery)
+
+        // version 5
+        output.writeString(certificateSha256)
     }
 
     override fun deserialize(input: BinaryInput) {
@@ -155,6 +159,10 @@ class TuicBean : AbstractBean() {
             maxConcurrentStreams = input.readInt()
             initialPacketSize = input.readInt()
             disablePathMtuDiscovery = input.readBoolean()
+        }
+
+        if (version >= 5) {
+            certificateSha256 = input.readString()
         }
     }
 

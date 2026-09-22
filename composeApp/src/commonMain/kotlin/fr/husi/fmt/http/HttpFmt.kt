@@ -66,6 +66,7 @@ fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
                 allowInsecure = tls.insecure == true
                 disableSNI = tls.disable_sni == true
                 certificates = tls.certificate?.joinToString("\n").orEmpty()
+                certificateSha256 = tls.certificate_sha256?.joinToString("\n").orEmpty()
                 certPublicKeySha256 =
                     tls.certificate_public_key_sha256?.joinToString("\n").orEmpty()
                 clientCert = tls.client_certificate?.joinToString("\n").orEmpty()
