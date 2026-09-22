@@ -10,6 +10,7 @@ import fr.husi.libcore.CopyCallback
 import fr.husi.libcore.HTTPClient
 import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.Libcore
+import fr.husi.libcore.NO_OVERALL_TIMEOUT_MS
 import fr.husi.libcore.resolveHttpClientFactory
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -169,6 +170,7 @@ internal suspend fun updateSingleRouteAsset(
     }.newRequest().apply {
         setURL(asset.url)
         setUserAgent(USER_AGENT)
+        setTimeout(NO_OVERALL_TIMEOUT_MS)
     }.execute().writeTo(
         targetFile.absolutePath,
         object : CopyCallback {
@@ -308,6 +310,14 @@ internal abstract class AssetsUpdater(
         setUserAgent(USER_AGENT)
     }
 
+    /**
+     * [newRequest] for a rule set archive download, which must not be cut off by an
+     * overall deadline; the small version and API requests keep the default one.
+     */
+    fun newDownloadRequest(url: String): HTTPRequest = newRequest(url).apply {
+        setTimeout(NO_OVERALL_TIMEOUT_MS)
+    }
+
     protected val remoteSource: RemoteSource = remoteSource ?: object : RemoteSource {
         override fun fetchString(url: String): String = newRequest(url).execute().contentString
     }
@@ -347,7 +357,7 @@ internal class CustomAssetUpdater(
             updateProgress(35f)
             for ((index, update) in updates.withIndex()) {
                 update as UpdateInfo.Custom
-                val response = newRequest(update.link).execute()
+                val response = newDownloadRequest(update.link).execute()
 
                 val cacheFile = cacheDir.resolve("custom_asset_$index.tmp")
                 cacheFile.parentFile?.mkdirs()
@@ -415,7 +425,7 @@ internal class GithubAssetUpdater(
                 val source = update.source
                 val branchName = source.repository.resolveBranch(useUnstableBranch)
                 val url = githubCodloadTarGzUrl(source.repository.fullName, branchName)
-                val response = newRequest(url).execute()
+                val response = newDownloadRequest(url).execute()
 
                 val cacheFile = cacheDir.resolve(
                     "${source.repository.fullName.replace('/', '_')}-${update.newVersion}.tmp",
@@ -486,7 +496,7 @@ internal class GithubReleaseZipUpdater(
         cacheFile.deleteOnExit()
         try {
             updateProgress(10f)
-            newRequest(url).execute().writeTo(cacheFile.absolutePath, null)
+            newDownloadRequest(url).execute().writeTo(cacheFile.absolutePath, null)
             updateProgress(60f)
             Libcore.tryUnpack(cacheFile.absolutePath, destinationDir.absolutePath)
             updateProgress(25f)
