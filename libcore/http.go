@@ -32,7 +32,7 @@ import (
 )
 
 // downloadStallTimeout is how long a response body may go without any progress
-// before a transfer with no overall deadline is treated as dead.
+// before a transfer with no overall deadline is treated as stalled.
 const downloadStallTimeout = 30 * time.Second
 
 // HTTPClient is an adapt client of http.
@@ -297,12 +297,23 @@ func (r *httpRequest) Execute() (HTTPResponse, error) {
 	if r.pinnedSHA256 != "" {
 		r.tls.ServerName = r.request.URL.Hostname()
 	}
+	var (
+		stallContext context.Context
+		stallCancel  context.CancelCauseFunc
+	)
+	if r.client.Timeout == 0 {
+		stallContext, stallCancel = context.WithCancelCause(r.request.Context())
+		r.request = *r.request.WithContext(stallContext)
+	}
 	response, err := r.client.Do(&r.request)
 	if err != nil {
+		if stallCancel != nil {
+			stallCancel(err)
+		}
 		return nil, err
 	}
-	if r.client.Timeout == 0 {
-		response.Body = newStallReader(response.Body, downloadStallTimeout)
+	if stallCancel != nil {
+		response.Body = newStallReader(stallContext, stallCancel, response.Body, downloadStallTimeout)
 	}
 	httpResp := &httpResponse{Response: response, ageIdentities: r.ageIdentities}
 	if response.StatusCode != http.StatusOK {

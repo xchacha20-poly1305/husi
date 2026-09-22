@@ -16,8 +16,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -249,18 +249,19 @@ func TestStallReader(t *testing.T) {
 	t.Run("a stalled transfer fails", func(t *testing.T) {
 		t.Parallel()
 
-		blocked := make(chan struct{})
-		reader := newStallReader(newBlockingReader(blocked), stallTimeout)
+		ctx, cancel := context.WithCancelCause(t.Context())
+		reader := newStallReader(ctx, cancel, contextReader{ctx}, stallTimeout)
 		_, err := reader.Read(make([]byte, 1))
-		close(blocked)
 		assert.ErrorContains(t, err, "stalled")
+		assert.ErrorIs(t, err, os.ErrDeadlineExceeded)
 	})
 
 	t.Run("progress keeps the transfer alive", func(t *testing.T) {
 		t.Parallel()
 
 		const payload = "husi"
-		reader := newStallReader(io.NopCloser(strings.NewReader(payload)), stallTimeout)
+		ctx, cancel := context.WithCancelCause(t.Context())
+		reader := newStallReader(ctx, cancel, io.NopCloser(strings.NewReader(payload)), stallTimeout)
 		content, err := io.ReadAll(reader)
 		require.NoError(t, err)
 		assert.Equal(t, payload, string(content))
@@ -268,27 +269,17 @@ func TestStallReader(t *testing.T) {
 	})
 }
 
-type blockingReader struct {
-	released chan struct{}
-	closed   chan struct{}
-	once     sync.Once
+// contextReader blocks like an HTTP response body does: it gives up only once
+// the request context is done.
+type contextReader struct {
+	ctx context.Context
 }
 
-func newBlockingReader(released chan struct{}) *blockingReader {
-	return &blockingReader{released: released, closed: make(chan struct{})}
+func (c contextReader) Read([]byte) (int, error) {
+	<-c.ctx.Done()
+	return 0, c.ctx.Err()
 }
 
-func (b *blockingReader) Read([]byte) (int, error) {
-	select {
-	case <-b.closed:
-	case <-b.released:
-	}
-	return 0, io.EOF
-}
-
-func (b *blockingReader) Close() error {
-	b.once.Do(func() {
-		close(b.closed)
-	})
+func (c contextReader) Close() error {
 	return nil
 }

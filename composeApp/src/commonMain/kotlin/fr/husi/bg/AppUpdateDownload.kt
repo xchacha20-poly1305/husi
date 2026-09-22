@@ -5,14 +5,13 @@ import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.sha256Hex
 import fr.husi.libcore.CopyCallback
 import fr.husi.libcore.HttpClientFactory
+import fr.husi.libcore.NO_OVERALL_TIMEOUT_MS
 import fr.husi.libcore.resolveHttpClientFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
 private const val UPDATE_CACHE_DIR_NAME = "update"
-
-private const val NO_OVERALL_TIMEOUT_MS = 0
 
 internal fun appUpdateCacheDir(cacheDir: File): File = cacheDir.resolve(UPDATE_CACHE_DIR_NAME)
 

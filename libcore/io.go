@@ -2,15 +2,17 @@ package libcore
 
 import (
 	"archive/tar"
+	"context"
+	"errors"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/sagernet/sing/common"
+	"github.com/sagernet/sing/common/canceler"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/klauspost/compress/gzip"
@@ -195,39 +197,43 @@ type CopyCallback interface {
 	Update(n int64)
 }
 
-// stallReader wraps an io.ReadCloser and closes it, reporting an error, if no
-// bytes are read within timeout. Each successful read resets the countdown.
+// stallReader wraps an HTTP response body so a transfer that stops delivering
+// bytes does not hang forever. It is only meant for requests that have no
+// overall deadline of their own.
 type stallReader struct {
-	reader  io.ReadCloser
-	timeout time.Duration
-	timer   *time.Timer
-	stalled atomic.Bool
+	reader   io.ReadCloser
+	ctx      context.Context
+	canceler *canceler.Instance
 }
 
-// newStallReader creates a stallReader that closes reader once timeout passes
-// without any progress.
-func newStallReader(reader io.ReadCloser, timeout time.Duration) *stallReader {
-	guard := &stallReader{reader: reader, timeout: timeout}
-	guard.timer = time.AfterFunc(timeout, func() {
-		guard.stalled.Store(true)
-		_ = reader.Close()
-	})
-	return guard
+// newStallReader starts a timer that cancels ctx through cancel once timeout
+// passes without a read; each read that returns data pushes the deadline back.
+func newStallReader(
+	ctx context.Context,
+	cancel context.CancelCauseFunc,
+	reader io.ReadCloser,
+	timeout time.Duration,
+) *stallReader {
+	return &stallReader{
+		reader:   reader,
+		ctx:      ctx,
+		canceler: canceler.New(ctx, cancel, timeout),
+	}
 }
 
 func (s *stallReader) Read(p []byte) (int, error) {
 	n, err := s.reader.Read(p)
 	if n > 0 {
-		s.timer.Reset(s.timeout)
+		s.canceler.Update()
 	}
-	if err != nil && s.stalled.Load() {
-		return n, E.New("transfer stalled for ", s.timeout)
+	if err != nil && errors.Is(context.Cause(s.ctx), os.ErrDeadlineExceeded) {
+		return n, E.Cause(os.ErrDeadlineExceeded, "transfer stalled")
 	}
 	return n, err
 }
 
 func (s *stallReader) Close() error {
-	s.timer.Stop()
+	s.canceler.Close()
 	return s.reader.Close()
 }
 
