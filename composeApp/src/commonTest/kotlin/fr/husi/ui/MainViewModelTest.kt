@@ -69,6 +69,7 @@ class MainViewModelTest : HusiKoinMainDispatcherTest() {
                 fetcher = fetcher,
                 isSupported = true,
                 today = { 100L },
+                ioDispatcher = dispatcher,
             ),
         )
 

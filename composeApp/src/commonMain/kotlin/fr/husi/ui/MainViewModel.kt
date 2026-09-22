@@ -122,10 +122,7 @@ class MainViewModel(
                 .distinctUntilChanged()
                 .collect { connected ->
                     if (appUpdate.value != null) return@collect
-                    val found = withContext(Dispatchers.IO) {
-                        appUpdateChecker.checkIfDue(connected)
-                    }
-                    if (found != null) appUpdate.value = found
+                    appUpdateChecker.checkIfDue(connected)?.let { appUpdate.value = it }
                 }
         }
     }
