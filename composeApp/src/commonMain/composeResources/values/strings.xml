@@ -592,6 +592,7 @@
     <string name="xtls_flow">Flow</string>
     <string name="need_restart">Restart APP to apply changes</string>
     <string name="protocol_version">Protocol Version</string>
+    <string name="disable_version_fallback">Disable Version Fallback</string>
     <string name="snell_user_key">User Key</string>
     <string name="snell_reuse">Reuse connection</string>
     <string name="snell_mode">Mode</string>

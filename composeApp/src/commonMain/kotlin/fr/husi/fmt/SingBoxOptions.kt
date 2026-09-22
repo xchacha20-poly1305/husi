@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +446
+    // Generate on line +451
 
     const val RULE_SET_TAG_PLACEHOLDER = "{tag}"
     const val RULE_SET_FILE_SUFFIX = ".srs"
@@ -3547,7 +3547,6 @@ object SingBoxOptions {
     @KxsSerializable
     open class Outbound_HTTPOptions : Outbound() {
 
-        // Generate note: nested type HTTPOutboundOptions
         // Generate note: nested type DialerOptions
         @JvmField
         var detour: String? = null
@@ -3644,9 +3643,6 @@ object SingBoxOptions {
 
         @JvmField
         var disable_version_fallback: Boolean? = null
-
-        @JvmField
-        var udp_over_tcp: UDPOverTCPOptions? = null
 
     }
 

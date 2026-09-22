@@ -463,6 +463,7 @@
     <string name="log_level">日誌等級</string>
     <string name="xtls_flow">Flow</string>
     <string name="protocol_version">協議版本</string>
+    <string name="disable_version_fallback">停用版本回退</string>
     <string name="share_subscription">分享訂閱</string>
     <string name="reset_connections">重置連接</string>
     <string name="remove_duplicate">刪除重複的伺服器</string>

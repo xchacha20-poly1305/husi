@@ -1,10 +1,19 @@
 package fr.husi.fmt.http
 
+import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.FmtTestConstant
+import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.v2ray.StandardV2RayBean
+import fr.husi.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
+import fr.husi.io.BinaryOutput
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class HttpFmtTest {
 
@@ -139,5 +148,196 @@ class HttpFmtTest {
         val bean = parseHttpOutbound(json)
 
         assertTrue(!bean.isTLS)
+    }
+
+    @Test
+    fun `parseHttpOutbound should map http version and fallback`() {
+        val json: JSONMap = mutableMapOf(
+            "server" to "example.com",
+            "server_port" to 443L,
+            "version" to 3L,
+            "disable_version_fallback" to true,
+        )
+
+        val bean = parseHttpOutbound(json)
+
+        assertEquals(HttpBean.HTTP_VERSION_3, bean.httpVersion)
+        assertTrue(bean.disableVersionFallback)
+    }
+
+    @Test
+    fun `parseHttpOutbound should keep default version for unsupported value`() {
+        val json: JSONMap = mutableMapOf(
+            "server" to "example.com",
+            "server_port" to 443L,
+            "version" to 0L,
+        )
+
+        val bean = parseHttpOutbound(json)
+
+        assertEquals(HttpBean.HTTP_VERSION_1, bean.httpVersion)
+    }
+
+    @Test
+    fun `parseHttpOutbound should move Host header into host field`() {
+        val json: JSONMap = mutableMapOf(
+            "server" to "example.com",
+            "server_port" to 80L,
+            "headers" to mutableMapOf<String, Any?>(
+                "Host" to "cdn.example.com",
+                "X-Token" to "abc",
+            ),
+        )
+
+        val bean = parseHttpOutbound(json)
+
+        assertEquals("cdn.example.com", bean.host)
+        assertEquals("x-token:abc", bean.headers)
+    }
+
+    @Test
+    fun `buildRequestTarget should send Host header from headers for HTTP 1`() {
+        val bean = HttpBean().apply {
+            httpVersion = HttpBean.HTTP_VERSION_1
+            headers = "host: cdn.example.com\nX-Token: abc"
+        }
+
+        val target = bean.buildRequestTarget()
+
+        assertNull(target.path)
+        assertEquals<Map<String, List<String>>?>(
+            mapOf(
+                "X-Token" to listOf("abc"),
+                "Host" to listOf("cdn.example.com"),
+            ),
+            target.headers,
+        )
+    }
+
+    @Test
+    fun `buildRequestTarget should prefer host field over Host header`() {
+        val bean = HttpBean().apply {
+            httpVersion = HttpBean.HTTP_VERSION_1
+            host = "field.example.com"
+            headers = "HOST: header.example.com"
+        }
+
+        val target = bean.buildRequestTarget()
+
+        assertEquals<Map<String, List<String>>?>(mapOf("Host" to listOf("field.example.com")), target.headers)
+    }
+
+    @Test
+    fun `buildRequestTarget should drop Host when path is set`() {
+        val bean = HttpBean().apply {
+            httpVersion = HttpBean.HTTP_VERSION_1
+            host = "cdn.example.com"
+            path = "/proxy"
+            headers = "Host: header.example.com"
+        }
+
+        val target = bean.buildRequestTarget()
+
+        assertEquals("/proxy", target.path)
+        assertNull(target.headers)
+    }
+
+    @Test
+    fun `buildRequestTarget should drop Host and path for HTTP 2 and 3`() {
+        for (version in listOf(HttpBean.HTTP_VERSION_2, HttpBean.HTTP_VERSION_3)) {
+            val bean = HttpBean().apply {
+                httpVersion = version
+                host = "cdn.example.com"
+                path = "/proxy"
+                headers = "Host: header.example.com\nX-Token: abc"
+            }
+
+            val target = bean.buildRequestTarget()
+
+            assertNull(target.path)
+            assertEquals<Map<String, List<String>>?>(mapOf("X-Token" to listOf("abc")), target.headers)
+        }
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should map http version fields`() = runTest {
+        val bean = HttpBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            username = "user"
+            password = "pass"
+            security = "tls"
+            httpVersion = HttpBean.HTTP_VERSION_2
+            disableVersionFallback = true
+            host = "cdn.example.com"
+            path = "/proxy"
+        }
+
+        val outbound = assertIs<SingBoxOptions.Outbound_HTTPOptions>(
+            buildSingBoxOutboundStandardV2RayBean(bean),
+        )
+
+        assertEquals(SingBoxOptions.TYPE_HTTP, outbound.type)
+        assertEquals("user", outbound.username)
+        assertEquals("pass", outbound.password)
+        assertEquals(HttpBean.HTTP_VERSION_2, outbound.version)
+        assertEquals(true, outbound.disable_version_fallback)
+        assertNull(outbound.path)
+        assertNull(outbound.headers)
+    }
+
+    @Test
+    fun `HttpBean serialize round-trip should preserve http version fields`() {
+        val source = HttpBean().apply {
+            httpVersion = HttpBean.HTTP_VERSION_3
+            disableVersionFallback = true
+            host = "cdn.example.com"
+        }
+
+        val restored = source.clone()
+
+        assertEquals(HttpBean.HTTP_VERSION_3, restored.httpVersion)
+        assertTrue(restored.disableVersionFallback)
+        assertEquals("cdn.example.com", restored.host)
+    }
+
+    @Test
+    fun `deserialize should skip removed udpOverTcp of version 2`() {
+        val legacy = LegacyHttpBeanV2().apply {
+            serverAddress = "example.com"
+            serverPort = 8080
+            name = "legacy"
+            username = "user"
+            path = "/proxy"
+        }
+
+        val bean = BeanConverters.httpDeserialize(BeanConverters.serialize(legacy))!!
+
+        assertEquals("example.com", bean.serverAddress)
+        assertEquals(8080, bean.serverPort)
+        assertEquals("user", bean.username)
+        assertEquals("/proxy", bean.path)
+        assertEquals("legacy", bean.name)
+        assertEquals(HttpBean.HTTP_VERSION_1, bean.httpVersion)
+        assertFalse(bean.disableVersionFallback)
+    }
+
+    /** Writes what [HttpBean.serialize] emitted before the HTTP version fields replaced udpOverTcp. */
+    private class LegacyHttpBeanV2 : StandardV2RayBean() {
+        var username = ""
+        var password = ""
+
+        override fun serialize(output: BinaryOutput) {
+            output.writeInt(2)
+            super.serialize(output)
+            output.writeString(username)
+            output.writeString(password)
+            output.writeString(host)
+            output.writeString(path)
+            output.writeString(headers)
+            output.writeBoolean(true)
+        }
+
+        override fun clone() = error("unused")
     }
 }

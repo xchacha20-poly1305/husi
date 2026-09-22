@@ -1,5 +1,6 @@
 package fr.husi.fmt.http
 
+import fr.husi.fmt.buildHeader
 import fr.husi.fmt.parseBoxOutbound
 import fr.husi.fmt.parseBoxTLS
 import fr.husi.fmt.parseHeader
@@ -46,8 +47,15 @@ fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
             "username" -> username = value.toString()
             "password" -> password = value.toString()
             "path" -> path = value.toString()
+            "version" -> value.toString().toIntOrNull()
+                ?.takeIf(HttpBean::isValidHttpVersion)
+                ?.let { httpVersion = it }
+
+            "disable_version_fallback" -> disableVersionFallback = value.toString().toBoolean()
             "headers" -> (value as? Map<*, *>)?.let {
-                headers = parseHeader(it).map { entry ->
+                val parsedHeaders = parseHeader(it).toMutableMap()
+                parsedHeaders.removeHostHeader()?.let { hostHeader -> host = hostHeader }
+                headers = parsedHeaders.map { entry ->
                     entry.key + ":" + entry.value.joinToString(",")
                 }.joinToString("\n")
             }
@@ -82,4 +90,35 @@ fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
             }
         }
     }
+}
+
+private const val HOST_HEADER = "Host"
+
+class HttpRequestTarget(
+    val path: String?,
+    val headers: MutableMap<String, MutableList<String>>?,
+)
+
+fun HttpBean.buildRequestTarget(): HttpRequestTarget {
+    val requestHeaders = buildHeader(headers).toMutableMap()
+    val hostHeader = requestHeaders.removeHostHeader()
+    if (httpVersion != HttpBean.HTTP_VERSION_1) {
+        return HttpRequestTarget(path = null, headers = requestHeaders.ifEmpty { null })
+    }
+
+    val requestPath = path.blankAsNull()
+    val requestHost = host.blankAsNull() ?: hostHeader
+    if (requestPath == null && requestHost != null) {
+        requestHeaders[HOST_HEADER] = mutableListOf(requestHost)
+    }
+    return HttpRequestTarget(path = requestPath, headers = requestHeaders.ifEmpty { null })
+}
+
+private fun MutableMap<String, MutableList<String>>.removeHostHeader(): String? {
+    val hostKeys = keys.filter { it.equals(HOST_HEADER, ignoreCase = true) }
+    val hostValue = hostKeys.firstNotNullOfOrNull { key ->
+        getValue(key).firstNotNullOfOrNull { it.blankAsNull() }
+    }
+    hostKeys.forEach(::remove)
+    return hostValue
 }

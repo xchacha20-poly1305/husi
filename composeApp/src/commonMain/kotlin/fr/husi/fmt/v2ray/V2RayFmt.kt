@@ -26,6 +26,7 @@ import fr.husi.fmt.SingBoxOptions.V2RayTransportOptions_V2RayWebsocketOptions
 import fr.husi.fmt.buildHeader
 import fr.husi.fmt.buildSingBoxMux
 import fr.husi.fmt.http.HttpBean
+import fr.husi.fmt.http.buildRequestTarget
 import fr.husi.fmt.listable
 import fr.husi.fmt.parseBoxOutbound
 import fr.husi.fmt.parseBoxTLS
@@ -551,10 +552,13 @@ suspend fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outb
         server_port = bean.serverPort
         username = bean.username
         password = bean.password
-        path = bean.path
+        version = bean.httpVersion
+        disable_version_fallback = bean.disableVersionFallback
         tls = buildSingBoxOutboundTLS(bean)
 
-        headers = bean.headers.blankAsNull()?.let(::buildHeader)?.toMutableMap()
+        val requestTarget = bean.buildRequestTarget()
+        path = requestTarget.path
+        headers = requestTarget.headers
     }
 
     is VMessBean -> Outbound_VMessOptions().apply {

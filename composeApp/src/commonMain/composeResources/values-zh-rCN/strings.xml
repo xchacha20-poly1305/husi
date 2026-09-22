@@ -514,6 +514,7 @@
     <string name="log_level">日志级别</string>
     <string name="need_restart">重新启动应用程序以应用更改</string>
     <string name="protocol_version">协议版本</string>
+    <string name="disable_version_fallback">禁用版本回退</string>
     <string name="snell_user_key">用户密钥</string>
     <string name="snell_reuse">复用连接</string>
     <string name="snell_mode">模式</string>

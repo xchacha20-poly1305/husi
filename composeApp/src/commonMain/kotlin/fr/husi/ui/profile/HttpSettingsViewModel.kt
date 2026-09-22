@@ -2,6 +2,7 @@ package fr.husi.ui.profile
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.util.fastCoerceAtMost
 import fr.husi.MuxStrategy
 import fr.husi.MuxType
 import fr.husi.fmt.http.HttpBean
@@ -57,8 +58,21 @@ internal data class HttpUiState(
 
     val username: String = "",
     val password: String = "",
-    val udpOverTcp: Boolean = false,
-) : StandardV2RayUiState
+    val httpVersion: Int = HttpBean.HTTP_VERSION_1,
+    val disableVersionFallback: Boolean = false,
+) : StandardV2RayUiState {
+
+    val isTLS get() = security == "tls"
+
+    fun withTLSConstraints(): HttpUiState = if (isTLS) {
+        this
+    } else {
+        copy(
+            httpVersion = httpVersion.fastCoerceAtMost(HttpBean.HTTP_VERSION_2),
+            disableVersionFallback = false,
+        )
+    }
+}
 
 @Stable
 internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>() {
@@ -115,8 +129,9 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
 
                 username = username,
                 password = password,
-                udpOverTcp = udpOverTcp,
-            )
+                httpVersion = httpVersion,
+                disableVersionFallback = disableVersionFallback,
+            ).withTLSConstraints()
         }
     }
 
@@ -168,7 +183,8 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
 
         username = state.username
         password = state.password
-        udpOverTcp = state.udpOverTcp
+        httpVersion = state.httpVersion
+        disableVersionFallback = state.disableVersionFallback
     }
 
     override fun setCustomConfig(config: String) {
@@ -216,7 +232,7 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
     }
 
     override fun setSecurity(security: String) {
-        uiState.update { it.copy(security = security) }
+        uiState.update { it.copy(security = security).withTLSConstraints() }
     }
 
     override fun setSni(sni: String) {
@@ -331,7 +347,11 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
         uiState.update { it.copy(password = password) }
     }
 
-    fun setUdpOverTcp(enabled: Boolean) {
-        uiState.update { it.copy(udpOverTcp = enabled) }
+    fun setHttpVersion(version: Int) {
+        uiState.update { it.copy(httpVersion = version).withTLSConstraints() }
+    }
+
+    fun setDisableVersionFallback(disable: Boolean) {
+        uiState.update { it.copy(disableVersionFallback = disable).withTLSConstraints() }
     }
 }
