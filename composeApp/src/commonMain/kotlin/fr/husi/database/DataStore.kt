@@ -208,6 +208,11 @@ object DataStore {
 
     val persistAcrossReboot = configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
 
+    // Desktop window size in dp; 0 means nothing has been recorded yet.
+    val rememberWindowSize = configurationStore.boolean(Key.REMEMBER_WINDOW_SIZE) { false }
+    val windowWidth = configurationStore.int(Key.WINDOW_WIDTH)
+    val windowHeight = configurationStore.int(Key.WINDOW_HEIGHT)
+
     val appendHttpProxy = configurationStore.boolean(Key.APPEND_HTTP_PROXY)
     val systemProxy = configurationStore.boolean(Key.SYSTEM_PROXY)
     val httpProxyBypass = configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }

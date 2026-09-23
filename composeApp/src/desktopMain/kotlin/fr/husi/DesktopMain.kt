@@ -6,8 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.v2.Window
@@ -236,8 +234,9 @@ class DesktopMain(
             }
 
             val windowState = rememberWindowStateWithBounds(
-                initialSize = DpSize(1200.dp, 800.dp),
+                initialSize = remember { initialWindowSize() },
             )
+            RecordWindowSizeEffect(windowState)
 
             // The tray library keys its native rebuild on this reference, so a fresh lambda
             // every recomposition would re-render the icon and rebuild the menu each time.

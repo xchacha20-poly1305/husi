@@ -24,6 +24,10 @@ object Key {
 
     const val PERSIST_ACROSS_REBOOT = "isAutoConnect"
 
+    const val REMEMBER_WINDOW_SIZE = "rememberWindowSize"
+    const val WINDOW_WIDTH = "windowWidth"
+    const val WINDOW_HEIGHT = "windowHeight"
+
     const val APP_EXPERT = "isExpert"
     const val APP_THEME = "appTheme"
     const val NIGHT_THEME = "nightTheme"

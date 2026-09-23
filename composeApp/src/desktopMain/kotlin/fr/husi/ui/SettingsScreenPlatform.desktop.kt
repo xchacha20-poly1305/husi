@@ -36,6 +36,7 @@ import fr.husi.repository.installDaemon
 import fr.husi.repository.resolveDesktopRepository
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_and_edge
+import fr.husi.resources.aspect_ratio
 import fr.husi.resources.auto_connect_blocked_desktop
 import fr.husi.resources.auto_connect_desktop
 import fr.husi.resources.auto_connect_failed_desktop
@@ -59,6 +60,8 @@ import fr.husi.resources.install_daemon
 import fr.husi.resources.install_daemon_summary
 import fr.husi.resources.manage_search
 import fr.husi.resources.phonelink_ring
+import fr.husi.resources.remember_window_size
+import fr.husi.resources.remember_window_size_summary
 import fr.husi.resources.security
 import fr.husi.resources.start_at_boot_daemon
 import fr.husi.resources.start_at_boot_daemon_summary
@@ -352,6 +355,19 @@ internal actual fun rememberApplyNightMode(): (Int) -> Unit = {}
 
 @Composable
 internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
+    val rememberWindowSizeValue by DataStore.rememberWindowSize.collectAsStateWithLifecycle()
+    SwitchPreference(
+        value = rememberWindowSizeValue,
+        onValueChange = { DataStore.rememberWindowSize.setBlocking(it) },
+        title = { Text(stringResource(Res.string.remember_window_size)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.aspect_ratio,
+                color = IconMaskColors.IconLightBlue,
+            )
+        },
+        summary = { Text(stringResource(Res.string.remember_window_size_summary)) },
+    )
 }
 
 @Composable
