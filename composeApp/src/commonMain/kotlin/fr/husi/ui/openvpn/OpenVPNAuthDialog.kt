@@ -1,5 +1,6 @@
 package fr.husi.ui.openvpn
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,18 +18,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.QRCodeDialog
-import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.TextButton
+import fr.husi.compose.VerticalScrollColumn
+import fr.husi.compose.WindowedDialog
 import fr.husi.compose.material3.Text
 import fr.husi.ktx.readableMessage
 import fr.husi.resources.Res
 import fr.husi.resources.auth_later
 import fr.husi.resources.auth_open_url
-import fr.husi.resources.share_qr_nfc
 import fr.husi.resources.auth_submit
 import fr.husi.resources.auth_verifying
 import fr.husi.resources.openvpn_authentication
+import fr.husi.resources.share_qr_nfc
+import fr.husi.ui.AuthDialogWindowSize
 import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.SnackbarEmitter
 import fr.husi.ui.StringOrRes
 import fr.husi.vpn.OPENVPN_CHALLENGE_CREDENTIALS
 import fr.husi.vpn.OPENVPN_CHALLENGE_OPEN_URL
@@ -49,12 +53,9 @@ import androidx.compose.material3.TextButton as Material3TextButton
 fun OpenVPNAuthDialog(
     pending: PendingOpenVPNAuth,
     controller: OpenVPNAuthController,
-    showError: (String) -> Unit,
     onDismissed: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
-    val snackbar = LocalSnackbarEmitter.current
     val challenge = pending.challenge
     var username by remember(pending.endpointTag, challenge.id) {
         mutableStateOf(challenge.username)
@@ -82,7 +83,7 @@ fun OpenVPNAuthDialog(
         onDismissed()
     }
 
-    fun submit() {
+    fun submit(snackbar: SnackbarEmitter) {
         scope.launch {
             submitting = true
             val error = controller.submitAuthChallenge(
@@ -94,75 +95,77 @@ fun OpenVPNAuthDialog(
             )
             submitting = false
             if (error != null) {
-                showError(error)
+                snackbar.show(StringOrRes.Direct(error))
             } else {
                 submitted = true
             }
         }
     }
 
-    ScrollableDialog(
+    WindowedDialog(
         onDismissRequest = ::dismiss,
-        confirmButton = {
+        title = stringResource(Res.string.openvpn_authentication),
+        windowSize = AuthDialogWindowSize,
+        buttons = {
+            val snackbar = LocalSnackbarEmitter.current
+            val uriHandler = LocalUriHandler.current
+            TextButton(stringResource(Res.string.auth_later), onClick = ::dismiss)
             if (!submitted) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (challenge.kind == OPENVPN_CHALLENGE_OPEN_URL && challenge.url.isNotEmpty()) {
-                        TextButton(stringResource(Res.string.auth_open_url)) {
-                            runCatching { uriHandler.openUri(challenge.url) }
-                                .onFailure { showError(it.readableMessage) }
-                        }
-                        TextButton(stringResource(Res.string.share_qr_nfc)) {
-                            showQr = true
-                        }
+                if (challenge.kind == OPENVPN_CHALLENGE_OPEN_URL && challenge.url.isNotEmpty()) {
+                    TextButton(stringResource(Res.string.auth_open_url)) {
+                        runCatching { uriHandler.openUri(challenge.url) }
+                            .onFailure { snackbar.show(StringOrRes.Direct(it.readableMessage)) }
                     }
-                    if (challenge.answerable) {
-                        Material3TextButton(
-                            enabled = editable,
-                            onClick = ::submit,
-                        ) {
-                            Text(stringResource(Res.string.auth_submit))
-                        }
+                    TextButton(stringResource(Res.string.share_qr_nfc)) {
+                        showQr = true
+                    }
+                }
+                if (challenge.answerable) {
+                    Material3TextButton(
+                        enabled = editable,
+                        onClick = { submit(snackbar) },
+                    ) {
+                        Text(stringResource(Res.string.auth_submit))
                     }
                 }
             }
         },
-        dismissButton = {
-            TextButton(stringResource(Res.string.auth_later), onClick = ::dismiss)
-        },
-        title = { Text(stringResource(Res.string.openvpn_authentication)) },
-        text = {
-            if (submitted) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
-                    Text(
-                        stringResource(Res.string.auth_verifying),
-                        modifier = Modifier.padding(start = 12.dp),
+        content = {
+            val snackbar = LocalSnackbarEmitter.current
+            VerticalScrollColumn(contentPadding = PaddingValues(horizontal = 24.dp)) {
+                if (submitted) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Text(
+                            stringResource(Res.string.auth_verifying),
+                            modifier = Modifier.padding(start = 12.dp),
+                        )
+                    }
+                } else {
+                    OpenVPNAuthChallengeContent(
+                        challenge = challenge,
+                        username = username,
+                        onUsernameChange = { username = it },
+                        password = password,
+                        onPasswordChange = { password = it },
+                        secret = secret,
+                        onSecretChange = { secret = it },
+                        nowEpochSeconds = nowEpochSeconds,
+                        enabled = editable,
                     )
                 }
-            } else {
-                OpenVPNAuthChallengeContent(
-                    challenge = challenge,
-                    username = username,
-                    onUsernameChange = { username = it },
-                    password = password,
-                    onPasswordChange = { password = it },
-                    secret = secret,
-                    onSecretChange = { secret = it },
-                    nowEpochSeconds = nowEpochSeconds,
-                    enabled = editable,
+            }
+            if (showQr && challenge.url.isNotEmpty()) {
+                QRCodeDialog(
+                    url = challenge.url,
+                    name = pending.endpointTag,
+                    onDismiss = { showQr = false },
+                    showSnackbar = { snackbar.show(StringOrRes.Direct(it)) },
                 )
             }
         },
     )
-    if (showQr && challenge.url.isNotEmpty()) {
-        QRCodeDialog(
-            url = challenge.url,
-            name = pending.endpointTag,
-            onDismiss = { showQr = false },
-            showSnackbar = { snackbar.show(StringOrRes.Direct(it)) },
-        )
-    }
 }

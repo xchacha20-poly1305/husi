@@ -1,5 +1,6 @@
 package fr.husi.ui.openconnect
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,8 +16,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.TextButton
+import fr.husi.compose.VerticalScrollColumn
+import fr.husi.compose.WindowedDialog
 import fr.husi.compose.material3.Text
 import fr.husi.resources.Res
 import fr.husi.resources.auth_later
@@ -24,7 +26,12 @@ import fr.husi.resources.auth_open_url
 import fr.husi.resources.auth_submit
 import fr.husi.resources.auth_verifying
 import fr.husi.resources.openconnect_authentication
+import fr.husi.ui.AuthDialogWindowSize
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.SnackbarEmitter
+import fr.husi.ui.StringOrRes
 import fr.husi.vpn.OpenConnectAuthChallengeState
+import fr.husi.vpn.OpenConnectBrowserResultState
 import fr.husi.vpn.buildResult
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -41,7 +48,6 @@ import androidx.compose.material3.TextButton as Material3TextButton
 fun OpenConnectAuthDialog(
     pending: PendingOpenConnectAuth,
     controller: OpenConnectAuthController,
-    showError: (String) -> Unit,
     onDismissed: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
@@ -77,100 +83,96 @@ fun OpenConnectAuthDialog(
         onDismissed()
     }
 
-    ScrollableDialog(
+    fun submit(
+        snackbar: SnackbarEmitter,
+        browserResult: OpenConnectBrowserResultState? = browser?.buildResult(
+            finalUrl,
+            cookies.toMap(),
+            headers.toMap(),
+        ),
+    ) {
+        scope.launch {
+            submitting = true
+            val error = controller.submitAuthChallenge(
+                endpointTag = pending.endpointTag,
+                challenge = challenge,
+                formValues = form?.let { values.toMap() },
+                browserResult = browserResult,
+            )
+            submitting = false
+            if (error != null) {
+                snackbar.show(StringOrRes.Direct(error))
+            } else {
+                submitted = true
+            }
+        }
+    }
+
+    WindowedDialog(
         onDismissRequest = ::dismiss,
-        confirmButton = {
+        title = stringResource(Res.string.openconnect_authentication),
+        windowSize = AuthDialogWindowSize,
+        buttons = {
+            val snackbar = LocalSnackbarEmitter.current
+            TextButton(stringResource(Res.string.auth_later), onClick = ::dismiss)
             if (!submitted) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (browser != null) {
-                        TextButton(stringResource(Res.string.auth_open_url)) {
-                            showBrowser = true
-                        }
+                if (browser != null) {
+                    TextButton(stringResource(Res.string.auth_open_url)) {
+                        showBrowser = true
                     }
-                    Material3TextButton(
-                        enabled = !submitting,
-                        onClick = {
-                            scope.launch {
-                                submitting = true
-                                val error = controller.submitAuthChallenge(
-                                    endpointTag = pending.endpointTag,
-                                    challenge = challenge,
-                                    formValues = form?.let { values.toMap() },
-                                    browserResult = browser?.buildResult(
-                                        finalUrl,
-                                        cookies.toMap(),
-                                        headers.toMap(),
-                                    ),
-                                )
-                                submitting = false
-                                if (error != null) {
-                                    showError(error)
-                                } else {
-                                    submitted = true
-                                }
-                            }
-                        },
-                    ) {
-                        Text(stringResource(Res.string.auth_submit))
-                    }
+                }
+                Material3TextButton(
+                    enabled = !submitting,
+                    onClick = { submit(snackbar) },
+                ) {
+                    Text(stringResource(Res.string.auth_submit))
                 }
             }
         },
-        dismissButton = {
-            TextButton(stringResource(Res.string.auth_later), onClick = ::dismiss)
-        },
-        title = { Text(stringResource(Res.string.openconnect_authentication)) },
-        text = {
-            if (submitted) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
-                    Text(
-                        stringResource(Res.string.auth_verifying),
-                        modifier = Modifier.padding(start = 12.dp),
+        content = {
+            val snackbar = LocalSnackbarEmitter.current
+            VerticalScrollColumn(contentPadding = PaddingValues(horizontal = 24.dp)) {
+                if (submitted) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Text(
+                            stringResource(Res.string.auth_verifying),
+                            modifier = Modifier.padding(start = 12.dp),
+                        )
+                    }
+                } else {
+                    OpenConnectAuthChallengeContent(
+                        challenge = challenge,
+                        values = values,
+                        browserFinalUrl = finalUrl,
+                        onBrowserFinalUrlChange = { finalUrl = it },
+                        cookies = cookies,
+                        headers = headers,
+                        enabled = !submitting,
                     )
                 }
-            } else {
-                OpenConnectAuthChallengeContent(
-                    challenge = challenge,
-                    values = values,
-                    browserFinalUrl = finalUrl,
-                    onBrowserFinalUrlChange = { finalUrl = it },
-                    cookies = cookies,
-                    headers = headers,
-                    enabled = !submitting,
+            }
+            browser?.let { request ->
+                PlatformOpenConnectBrowserDialog(
+                    challengeId = challenge.id,
+                    request = request,
+                    visible = showBrowser,
+                    onDismiss = { showBrowser = false },
+                    onResult = { result ->
+                        showBrowser = false
+                        submit(snackbar, browserResult = result)
+                    },
+                    onError = { error ->
+                        showBrowser = false
+                        snackbar.show(StringOrRes.Direct(error))
+                    },
                 )
             }
         },
     )
-    browser?.let { request ->
-        PlatformOpenConnectBrowserDialog(
-            challengeId = challenge.id,
-            request = request,
-            visible = showBrowser,
-            onDismiss = { showBrowser = false },
-            onResult = { result ->
-                showBrowser = false
-                scope.launch {
-                    submitting = true
-                    val error = controller.submitAuthChallenge(
-                        endpointTag = pending.endpointTag,
-                        challenge = challenge,
-                        formValues = form?.let { values.toMap() },
-                        browserResult = result,
-                    )
-                    submitting = false
-                    if (error != null) showError(error) else submitted = true
-                }
-            },
-            onError = { error ->
-                showBrowser = false
-                showError(error)
-            },
-        )
-    }
 }
 
 @Composable

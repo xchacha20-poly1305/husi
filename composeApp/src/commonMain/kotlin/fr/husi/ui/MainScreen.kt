@@ -75,10 +75,6 @@ import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
-import fr.husi.ui.openconnect.OpenConnectAuthController
-import fr.husi.ui.openconnect.OpenConnectAuthDialog
-import fr.husi.ui.openvpn.OpenVPNAuthController
-import fr.husi.ui.openvpn.OpenVPNAuthDialog
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
@@ -87,7 +83,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.getKoin
-import org.koin.compose.koinInject
 import org.koin.compose.navigation3.EntryProvider
 import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.compose.scope.UnboundKoinScope
@@ -314,23 +309,11 @@ private fun MainScreenContent(
                 )
             }
 
-            val openConnectController = koinInject<OpenConnectAuthController>()
-            val pendingOpenConnectAuth by openConnectController.pendingDialogAuth
-                .collectAsStateWithLifecycle()
-            pendingOpenConnectAuth?.let { pending ->
-                OpenConnectAuthDialog(
-                    pending = pending,
-                    controller = openConnectController,
-                    showError = { message ->
-                        snackbarEmitter.show(StringOrRes.Direct(message))
-                    },
-                    onDismissed = {
-                        snackbarEmitter.show(
-                            StringOrRes.Res(Res.string.auth_later_hint),
-                        )
-                    },
-                )
-            }
+            MainScreenAuthChallengeDialogs(
+                onDismissed = {
+                    snackbarEmitter.show(StringOrRes.Res(Res.string.auth_later_hint))
+                },
+            )
 
             val appUpdate by viewModel.appUpdate.collectAsStateWithLifecycle()
             appUpdate?.let { info ->
@@ -338,24 +321,6 @@ private fun MainScreenContent(
                     info = info,
                     onDismissRequest = viewModel::dismissAppUpdate,
                     onSkipVersion = { viewModel.skipAppUpdate() },
-                )
-            }
-
-            val openVPNController = koinInject<OpenVPNAuthController>()
-            val pendingOpenVPNAuth by openVPNController.pendingDialogAuth
-                .collectAsStateWithLifecycle()
-            pendingOpenVPNAuth?.let { pending ->
-                OpenVPNAuthDialog(
-                    pending = pending,
-                    controller = openVPNController,
-                    showError = { message ->
-                        snackbarEmitter.show(StringOrRes.Direct(message))
-                    },
-                    onDismissed = {
-                        snackbarEmitter.show(
-                            StringOrRes.Res(Res.string.auth_later_hint),
-                        )
-                    },
                 )
             }
         }

@@ -92,7 +92,6 @@ import fr.husi.resources.clash_mode
 import fr.husi.resources.close
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.computer_cancel
-import fr.husi.resources.copy_success
 import fr.husi.resources.custom_config
 import fr.husi.resources.delete
 import fr.husi.resources.delete_confirm_prompt
@@ -204,7 +203,6 @@ internal fun RouteSettingsScreen(
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val snackbar = LocalSnackbarEmitter.current
 
     var showExpandedMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -380,9 +378,6 @@ internal fun RouteSettingsScreen(
                         viewModel.setPackages(packages)
                     }
                 },
-                onRuleSetCopy = {
-                    snackbar.show(StringOrRes.Res(Res.string.copy_success))
-                },
             )
         }
     }
@@ -457,7 +452,6 @@ private fun RouteSettings(
     viewModel: RouteSettingsViewModel,
     onSelectOutboundProfile: (Long) -> Unit,
     onSelectApps: (Set<String>) -> Unit,
-    onRuleSetCopy: suspend () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val geoDirs = remember(resolveRepository().externalAssetsDir) {
@@ -596,7 +590,6 @@ private fun RouteSettings(
                             onValueChange = onValueChange,
                             onOk = onOk,
                             geoDirs = geoDirs,
-                            onCopy = onRuleSetCopy,
                         )
                     },
                 )
@@ -619,7 +612,6 @@ private fun RouteSettings(
                             onValueChange = onValueChange,
                             onOk = onOk,
                             geoDirs = geoDirs,
-                            onCopy = onRuleSetCopy,
                         )
                     },
                 )
@@ -1241,7 +1233,6 @@ private fun RuleSetAutoCompleteTextField(
     onValueChange: (TextFieldValue) -> Unit,
     onOk: () -> Unit,
     geoDirs: List<File>,
-    onCopy: suspend () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var ruleSets by remember { mutableStateOf(emptyList<String>()) }
@@ -1296,7 +1287,6 @@ private fun RuleSetAutoCompleteTextField(
     if (showRuleSetMatchDialog) {
         RuleSetMatchDialog(
             onDismissRequest = { showRuleSetMatchDialog = false },
-            onCopy = onCopy,
         )
     }
 }

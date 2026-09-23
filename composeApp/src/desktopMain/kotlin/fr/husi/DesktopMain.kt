@@ -50,6 +50,7 @@ import fr.husi.repository.resolvePackagedAnjaNativesDir
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
 import fr.husi.resources.ic_service_active
+import fr.husi.ui.AuthChallengeDialogs
 import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
@@ -290,6 +291,8 @@ class DesktopMain(
                         onExit = ::exitGracefully,
                     )
                 }
+
+                AuthChallengeDialogs(onDismissed = {})
 
                 Window(
                     onCloseRequest = leaveWindow,
