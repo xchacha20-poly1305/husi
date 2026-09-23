@@ -838,4 +838,16 @@
     <string name="by_download_speed">По скорости получения</string>
     <string name="upload_speed">Скорость отправки</string>
     <string name="download_speed">Скорость получения</string>
+    <string name="outbound_dns">Исходящий DNS</string>
+    <string name="outbound_dns_sum">Определяет IP-адреса серверов исходящих подключений. Если не задано, используется прямой DNS</string>
+    <plurals name="delete_profiles_confirm_prompt">
+        <item quantity="one">Вы уверены, что хотите удалить %1$d профиль?</item>
+        <item quantity="few">Вы уверены, что хотите удалить %1$d профиля?</item>
+        <item quantity="many">Вы уверены, что хотите удалить %1$d профилей?</item>
+        <item quantity="other">Вы уверены, что хотите удалить %1$d профилей?</item>
+    </plurals>
+    <string name="system_proxy">Системный прокси</string>
+    <string name="disable_version_fallback">Отключить резервную версию</string>
+    <string name="enable_tasker">Включить плагин Tasker</string>
+    <string name="enable_tasker_summary">Разрешить приложениям автоматизации запускать и останавливать службу. Приложения с разрешением Tasker смогут включать и отключать туннель.</string>
 </resources>
