@@ -444,4 +444,47 @@ class V2RayFmtTest {
         assertEquals("test-uuid", bean.uuid)
         assertEquals("xtls-rprx-vision", bean.flow)
     }
+
+    @Test
+    fun `parseV2Ray should roundtrip vless with cipher_suites and finalmask`() {
+        val bean = VLESSBean().apply {
+            uuid = "test-uuid"
+            serverAddress = "example.com"
+            serverPort = 443
+            v2rayTransport = "tcp"
+            security = "tls"
+            sni = "sni.example.com"
+            cipherSuites = "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384"
+            finalMask = """{"tcp":[{"type":"fragment","settings":{"packets":"tlshello","lengths":["0","104","1"]}}]}"""
+        }
+
+        val uri = bean.toUriVMessVLESSTrojan()
+        val parsed = parseV2Ray(uri)
+        assertIs<VLESSBean>(parsed)
+        assertEquals(bean.uuid, parsed.uuid)
+        assertEquals(bean.serverAddress, parsed.serverAddress)
+        assertEquals(bean.serverPort, parsed.serverPort)
+        assertEquals(bean.cipherSuites, parsed.cipherSuites)
+        assertEquals(bean.finalMask, parsed.finalMask)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should populate cipher_suites and finalmask`() = runTest {
+        val finalmaskJson = """{"tcp":[{"type":"fragment","settings":{"packets":"tlshello","lengths":["0","104","1"]}}]}"""
+        val bean = VLESSBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            uuid = "test-uuid"
+            security = "tls"
+            sni = "sni.example.com"
+            cipherSuites = "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384"
+            finalMask = finalmaskJson
+        }
+
+        val outbound = buildSingBoxOutboundStandardV2RayBean(bean)
+        assertIs<SingBoxOptions.Outbound_VLESSOptions>(outbound)
+        assertNotNull(outbound.tls)
+        assertEquals(listOf("TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384"), outbound.tls!!.cipher_suites?.toList())
+        assertNotNull(outbound.finalmask)
+    }
 }

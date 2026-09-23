@@ -379,6 +379,7 @@ fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply
             "disable_sni" -> disable_sni = value.toString().toBoolean()
 
             "alpn" -> alpn = listable<String>(value)
+            "cipher_suites" -> cipher_suites = listable<String>(value)
 
             "certificate" -> certificate = listable<String>(value)
             "certificate_sha256" -> certificate_sha256 = listable<String>(value)

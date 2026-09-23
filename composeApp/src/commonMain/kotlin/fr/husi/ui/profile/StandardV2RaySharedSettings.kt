@@ -32,6 +32,7 @@ import fr.husi.resources.cert_public_key_sha256
 import fr.husi.resources.certificate_sha256
 import fr.husi.resources.certificates
 import fr.husi.resources.client_certificate
+import fr.husi.resources.cipher_suites
 import fr.husi.resources.client_key
 import fr.husi.resources.code
 import fr.husi.resources.compare_arrows
@@ -339,6 +340,23 @@ internal fun LazyListScope.tlsSettings(
                         Res.drawable.wb_sunny,
                         color = IconMaskColors.IconLavender,
                     )
+                },
+            )
+            TextFieldPreference(
+                value = state.cipherSuites,
+                onValueChange = { viewModel.setCipherSuites(it) },
+                title = { Text(stringResource(Res.string.cipher_suites)) },
+                textToValue = { it },
+                icon = {
+                    MaskedIcon(
+                        Res.drawable.encrypted,
+                        color = IconMaskColors.IconLightGreen,
+                    )
+                },
+                summary = { Text(contentOrUnset(state.cipherSuites)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
                 },
             )
         }

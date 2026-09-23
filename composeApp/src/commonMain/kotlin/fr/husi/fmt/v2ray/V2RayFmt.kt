@@ -43,6 +43,7 @@ import fr.husi.ktx.kxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.readableMessage
+import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
@@ -114,6 +115,8 @@ private fun StandardV2RayBean.parseDuckSoftTlsQueries(url: URL) {
     certificates = url.queryParameter("cert")
     realityPublicKey = url.queryParameter("pbk")
     realityShortID = url.queryParameter("sid")
+    url.queryParameterNotBlank("cs")?.let { cipherSuites = it }
+        ?: url.queryParameterNotBlank("ciphersuites")?.let { cipherSuites = it }
 
     url.queryParameterNotBlank("ech")?.let {
         ech = true
@@ -202,6 +205,11 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     }
 
     utlsFingerprint = url.queryParameter("fp")
+    url.queryParameterNotBlank("fm")?.let { fm ->
+        finalMask = if (fm.trim().startsWith("{")) fm else runCatching { fm.b64DecodeToString().takeIf { it.trim().startsWith("{") } }.getOrNull() ?: fm
+    } ?: url.queryParameterNotBlank("finalmask")?.let { fm ->
+        finalMask = if (fm.trim().startsWith("{")) fm else runCatching { fm.b64DecodeToString().takeIf { it.trim().startsWith("{") } }.getOrNull() ?: fm
+    }
 }
 
 // SagerNet's
@@ -380,6 +388,9 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
                 if (alpn.isNotBlank()) {
                     builder.addQueryParameter("alpn", alpn.replace("\n", ","))
                 }
+                if (cipherSuites.isNotBlank()) {
+                    builder.addQueryParameter("cs", cipherSuites.replace("\n", ","))
+                }
                 if (certificates.isNotBlank()) {
                     builder.addQueryParameter("cert", certificates)
                 }
@@ -401,6 +412,10 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
                 }
             }
         }
+    }
+
+    if (finalMask.isNotBlank()) {
+        builder.addQueryParameter("fm", finalMask)
     }
 
     if (name.isNotBlank()) {
@@ -500,6 +515,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         if (bean.disableSNI) disable_sni = true
         if (bean.sni.isNotBlank()) server_name = bean.sni
         alpn = bean.alpn.blankAsNull()?.listByLineOrComma()?.toMutableList()
+        cipher_suites = bean.cipherSuites.blankAsNull()?.listByLineOrComma()?.toMutableList()
         certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()
         certificate_sha256 = bean.certificateSha256
             .blankAsNull()
@@ -521,6 +537,9 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
             spoof_method = bean.tlsSpoofMethod.blankAsNull()
         }
         var fingerprint = bean.utlsFingerprint
+        if (fingerprint.equals("unsafe", ignoreCase = true) || fingerprint.equals("none", ignoreCase = true)) {
+            fingerprint = ""
+        }
         if (bean.realityPublicKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {
                 enabled = true
@@ -596,6 +615,13 @@ suspend fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outb
         tls = buildSingBoxOutboundTLS(bean)
         transport = buildSingBoxOutboundStreamSettings(bean)?.toJsonObjectKxs()
         if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
+        if (bean.finalMask.isNotBlank()) {
+            try {
+                finalmask = kxs.parseToJsonElement(bean.finalMask)
+            } catch (e: Exception) {
+                Logs.w(e)
+            }
+        }
     }
 
     is TrojanBean -> Outbound_TrojanOptions().apply {
@@ -649,6 +675,9 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 "packetaddr" -> StandardV2RayBean.PACKET_ENCODING_PACKETADDR
                 "xudp" -> StandardV2RayBean.PACKET_ENCODING_XUDP
                 else -> StandardV2RayBean.PACKET_ENCODING_NONE
+            }
+            "finalmask" -> {
+                vless?.finalMask = (value as? JSONMap)?.toJsonElementKxs()?.toString() ?: value.toString()
             }
 
             "transport" -> {
@@ -706,6 +735,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 bean.allowInsecure = tls.insecure == true
                 bean.disableSNI = tls.disable_sni == true
                 bean.alpn = tls.alpn?.joinToString(",").orEmpty()
+                bean.cipherSuites = tls.cipher_suites?.joinToString(",").orEmpty()
                 bean.certificates = tls.certificate?.joinToString("\n").orEmpty()
                 bean.certificateSha256 = tls.certificate_sha256?.joinToString("\n").orEmpty()
                 bean.certPublicKeySha256 =

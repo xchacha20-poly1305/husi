@@ -26,6 +26,8 @@ internal data class VLESSUiState(
     override val security: String = "",
     override val sni: String = "",
     override val alpn: String = "",
+    override val cipherSuites: String = "",
+    override val finalMask: String = "",
     override val certificate: String = "",
     override val certificateSha256: String = "",
     override val certPublicKeySha256: String = "",
@@ -86,6 +88,8 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
                 security = security,
                 sni = sni,
                 alpn = alpn,
+                cipherSuites = cipherSuites,
+                finalMask = finalMask,
                 certificate = certificates,
                 certificateSha256 = certificateSha256,
                 certPublicKeySha256 = certPublicKeySha256,
@@ -140,6 +144,8 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
         security = state.security
         sni = state.sni
         alpn = state.alpn
+        cipherSuites = state.cipherSuites
+        finalMask = state.finalMask
         certificates = state.certificate
         certificateSha256 = state.certificateSha256
         certPublicKeySha256 = state.certPublicKeySha256
@@ -229,6 +235,14 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
 
     override fun setAlpn(alpn: String) {
         uiState.update { it.copy(alpn = alpn) }
+    }
+
+    override fun setCipherSuites(cipherSuites: String) {
+        uiState.update { it.copy(cipherSuites = cipherSuites) }
+    }
+
+    override fun setFinalMask(finalMask: String) {
+        uiState.update { it.copy(finalMask = finalMask) }
     }
 
     override fun setCertificate(certificate: String) {

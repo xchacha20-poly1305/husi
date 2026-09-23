@@ -29,6 +29,7 @@ abstract class StandardV2RayBean : AbstractBean() {
     var security: String = ""
     var sni: String = ""
     var alpn: String = ""
+    var cipherSuites: String = ""
     var utlsFingerprint: String = ""
     var allowInsecure: Boolean = false
     var disableSNI: Boolean = false
@@ -50,6 +51,8 @@ abstract class StandardV2RayBean : AbstractBean() {
     var wsMaxEarlyData: Int = 0
     var earlyDataHeaderName: String = ""
     var packetEncoding: Int = PACKET_ENCODING_NONE
+    var finalMask: String = ""
+
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
@@ -62,7 +65,7 @@ abstract class StandardV2RayBean : AbstractBean() {
     }
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(13)
+        output.writeInt(14)
         super.serialize(output)
 
         output.writeString(uuid)
@@ -127,9 +130,11 @@ abstract class StandardV2RayBean : AbstractBean() {
             output.writeString(tlsSpoof)
             output.writeString(tlsSpoofMethod)
             output.writeString(certificateSha256)
+            output.writeString(cipherSuites)
         }
 
         output.writeInt(packetEncoding)
+        output.writeString(finalMask)
 
         if (this is VMessBean) {
             output.writeBoolean(authenticatedLength)
@@ -229,9 +234,17 @@ abstract class StandardV2RayBean : AbstractBean() {
             if (version >= 13) {
                 certificateSha256 = input.readString()
             }
+
+            if (version >= 14) {
+                cipherSuites = input.readString()
+            }
         }
 
         packetEncoding = input.readInt()
+
+        if (version >= 14) {
+            finalMask = input.readString()
+        }
 
         if (this is VMessBean) {
             if (version >= 1) authenticatedLength = input.readBoolean()
@@ -254,7 +267,10 @@ abstract class StandardV2RayBean : AbstractBean() {
         other.fragment = fragment
         other.fragmentFallbackDelay = fragmentFallbackDelay
         other.recordFragment = recordFragment
+        other.cipherSuites = cipherSuites
+        other.finalMask = finalMask
     }
+
 
     protected fun validateTLSSettings(
         requireTLS: Boolean,

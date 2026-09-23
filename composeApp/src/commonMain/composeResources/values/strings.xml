@@ -749,6 +749,8 @@
     <string name="tls_fragment">TLS Fragment</string>
     <string name="tls_fragment_fallback_delay">TLS Fragment Fallback Delay</string>
     <string name="tls_record_fragment">TLS Record Fragment</string>
+    <string name="cipher_suites">Cipher Suites</string>
+    <string name="finalmask">Finalmask</string>
     <string name="tls_spoof">TLS Spoof SNI</string>
     <string name="tls_spoof_sum">Inject a fake ClientHello with this SNI before the real handshake. Desktop only.</string>
     <string name="tls_spoof_method">Spoof Method</string>

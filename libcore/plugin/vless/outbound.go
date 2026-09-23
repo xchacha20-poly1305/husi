@@ -21,6 +21,7 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/finalmask"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 )
 
@@ -52,6 +53,15 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 	outboundDialer, err := dialer.New(ctx, options.DialerOptions, options.ServerIsDomain())
 	if err != nil {
 		return nil, err
+	}
+	if len(options.Finalmask) > 0 {
+		fmConfig, err := finalmask.ParseFinalmaskJSON([]byte(options.Finalmask))
+		if err != nil {
+			return nil, E.Cause(err, "parse finalmask config")
+		}
+		if fmConfig != nil && len(fmConfig.TCP) > 0 {
+			outboundDialer = wrapDialerWithFinalmask(outboundDialer, fmConfig)
+		}
 	}
 	outbound := &Outbound{
 		Adapter:    outbound.NewAdapterWithDialerOptions(C.TypeVLESS, tag, options.Network.Build(), options.DialerOptions),
@@ -246,4 +256,35 @@ func (h *vlessDialer) ListenPacket(ctx context.Context, destination M.Socksaddr)
 	} else {
 		return h.client.DialEarlyPacketConn(conn, destination)
 	}
+}
+
+type finalmaskDialer struct {
+	dialer N.Dialer
+	cfg    *finalmask.FinalmaskConfig
+}
+
+func (d *finalmaskDialer) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
+	conn, err := d.dialer.DialContext(ctx, network, destination)
+	if err != nil {
+		return nil, err
+	}
+	if N.NetworkName(network) == N.NetworkTCP {
+		return finalmask.WrapTCPConn(conn, d.cfg)
+	}
+	return conn, nil
+}
+
+func (d *finalmaskDialer) ListenPacket(ctx context.Context, destination M.Socksaddr) (net.PacketConn, error) {
+	return d.dialer.ListenPacket(ctx, destination)
+}
+
+func (d *finalmaskDialer) Upstream() any {
+	return d.dialer
+}
+
+func wrapDialerWithFinalmask(d N.Dialer, cfg *finalmask.FinalmaskConfig) N.Dialer {
+	if cfg == nil || len(cfg.TCP) == 0 {
+		return d
+	}
+	return &finalmaskDialer{dialer: d, cfg: cfg}
 }

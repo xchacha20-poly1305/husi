@@ -20,6 +20,8 @@ internal sealed interface StandardV2RayUiState : ProfileEditorUiState {
     val security: String
     val sni: String
     val alpn: String
+    val cipherSuites: String get() = ""
+    val finalMask: String get() = ""
     val certificate: String
     val certificateSha256: String
     val certPublicKeySha256: String
@@ -63,6 +65,8 @@ internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
     abstract fun setSecurity(security: String)
     abstract fun setSni(sni: String)
     abstract fun setAlpn(alpn: String)
+    open fun setCipherSuites(cipherSuites: String) {}
+    open fun setFinalMask(finalMask: String) {}
     abstract fun setCertificate(certificate: String)
     abstract fun setCertificateSha256(sha256: String)
     abstract fun setCertPublicKeySha256(sha256: String)

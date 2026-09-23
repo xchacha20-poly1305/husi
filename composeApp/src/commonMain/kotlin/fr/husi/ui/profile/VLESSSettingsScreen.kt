@@ -12,9 +12,12 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
+import fr.husi.compose.PreferenceCategory
 import fr.husi.resources.Res
+import fr.husi.resources.domino_mask
 import fr.husi.resources.encrypted
 import fr.husi.resources.encryption
+import fr.husi.resources.finalmask
 import fr.husi.resources.not_set
 import fr.husi.resources.outbox
 import fr.husi.resources.packet_encoding
@@ -128,5 +131,27 @@ private fun LazyListScope.vlessSettings(
 
     transportSettings(uiState, viewModel)
     muxSettings(uiState, viewModel)
+    item("category_finalmask") {
+        PreferenceCategory(text = { Text(stringResource(Res.string.finalmask)) })
+    }
+    preferenceGroup {
+        TextFieldPreference(
+            value = uiState.finalMask,
+            onValueChange = { viewModel.setFinalMask(it) },
+            title = { Text(stringResource(Res.string.finalmask)) },
+            textToValue = { it },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.domino_mask,
+                    color = IconMaskColors.IconCyan,
+                )
+            },
+            summary = { Text(contentOrUnset(uiState.finalMask)) },
+            valueToText = { it },
+            textField = { value, onValueChange, onOk ->
+                MultilineTextField(value, onValueChange, onOk)
+            },
+        )
+    }
     tlsSettings(uiState, viewModel, scrollTo)
 }

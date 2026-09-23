@@ -4380,6 +4380,9 @@ object SingBoxOptions {
         @JvmField
         var encryption: String? = null
 
+        @JvmField
+        var finalmask: JsonElement? = null
+
     }
 
     @KxsSerializable

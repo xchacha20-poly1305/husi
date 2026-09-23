@@ -28,6 +28,7 @@ internal data class HttpUiState(
     override val security: String = "",
     override val sni: String = "",
     override val alpn: String = "",
+    override val cipherSuites: String = "",
     override val certificate: String = "",
     override val certificateSha256: String = "",
     override val certPublicKeySha256: String = "",
@@ -99,6 +100,7 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
                 security = security,
                 sni = sni,
                 alpn = alpn,
+                cipherSuites = cipherSuites,
                 certificate = certificates,
                 certificateSha256 = certificateSha256,
                 certPublicKeySha256 = certPublicKeySha256,
@@ -153,6 +155,7 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
         security = state.security
         sni = state.sni
         alpn = state.alpn
+        cipherSuites = state.cipherSuites
         certificates = state.certificate
         certificateSha256 = state.certificateSha256
         certPublicKeySha256 = state.certPublicKeySha256
@@ -242,6 +245,10 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
 
     override fun setAlpn(alpn: String) {
         uiState.update { it.copy(alpn = alpn) }
+    }
+
+    override fun setCipherSuites(cipherSuites: String) {
+        uiState.update { it.copy(cipherSuites = cipherSuites) }
     }
 
     override fun setCertificate(certificate: String) {
