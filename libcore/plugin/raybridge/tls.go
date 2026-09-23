@@ -28,8 +28,13 @@ func CalculatePEMCertHash(certContents []byte) []byte {
 
 func CertChainHash(rawCerts [][]byte) (hash []byte) {
 	for _, cert := range rawCerts {
-		sum := sha256.Sum256(cert)
-		hash = append(hash, sum[:]...)
+		certHash := sha256.Sum256(cert)
+		if hash == nil {
+			hash = certHash[:]
+			continue
+		}
+		chainedHash := sha256.Sum256(append(hash, certHash[:]...))
+		hash = chainedHash[:]
 	}
 	return
 }
