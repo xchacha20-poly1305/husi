@@ -2521,6 +2521,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             TAG_DNS_DIRECT,
             serverDomainRule(result, "server.example.com")["server"]?.jsonPrimitive?.content,
         )
+        assertEquals(TAG_DNS_DIRECT, domainResolverServerOf(result, "main"))
     }
 
     @Test
@@ -2551,7 +2552,29 @@ class ConfigBuilderTest : HusiKoinTest() {
             TAG_DNS_OUTBOUND,
             serverDomainRule(result, "server.example.com")["server"]?.jsonPrimitive?.content,
         )
+        assertEquals(TAG_DNS_OUTBOUND, domainResolverServerOf(result, "main"))
     }
+
+    @Test
+    fun `buildConfig keeps group outbound DNS server referenced by an IP server outbound`() =
+        runBlocking {
+            disableFakeDns()
+
+            val group = ProxyGroup(name = "group", outboundDns = "tcp://1.1.1.1").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = createSocksProxy(
+                groupId = group.id,
+                order = 1,
+                name = "main",
+                host = "192.0.2.1",
+                port = 1080,
+            )
+
+            val result = buildConfig(proxy)
+
+            assertNotNull(parseDnsServers(result)[TAG_DNS_OUTBOUND])
+            assertEquals(TAG_DNS_OUTBOUND, domainResolverServerOf(result, "main"))
+        }
 
     @Test
     fun `buildConfig gives each group its own outbound DNS server`() = runBlocking {
@@ -2596,6 +2619,10 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals("1.1.1.1", serverAddressOf("exit.example.com"))
         assertEquals("8.8.8.8", serverAddressOf("front.example.com"))
     }
+
+    private fun domainResolverServerOf(result: ConfigBuildResult, outboundTag: String) =
+        assertNotNull(parseOutbounds(result)[outboundTag])["domain_resolver"]
+            ?.jsonObject?.get("server")?.jsonPrimitive?.content
 
     private fun serverDomainRule(result: ConfigBuildResult, domain: String) =
         parseDnsRules(result).first { rule ->

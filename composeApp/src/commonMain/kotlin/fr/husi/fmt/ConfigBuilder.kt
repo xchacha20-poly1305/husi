@@ -174,9 +174,10 @@ private class PreResolveDomains(
 ) {
     private val groupsByLink = LinkedHashMap<String, DNSServerGroup>()
     private val domainsByGroup = LinkedHashMap<DNSServerGroup, MutableSet<String>>()
+    private val resolverGroups = mutableSetOf<DNSServerGroup>()
 
     val dedicatedServers: Map<String, DNSServerGroup>
-        get() = groupsByLink.filterValues { domainsByGroup.containsKey(it) }
+        get() = groupsByLink.filterValues { domainsByGroup.containsKey(it) || it in resolverGroups }
 
     private fun register(link: String): DNSServerGroup = groupsByLink.getOrPut(link) {
         val tag = if (groupsByLink.isEmpty()) {
@@ -190,6 +191,12 @@ private class PreResolveDomains(
     fun groupOf(link: String?): DNSServerGroup {
         return link?.blankAsNull()?.let(::register) ?: defaultGroup
     }
+
+    /**
+     * The group an outbound's `domain_resolver` should point to. A resolver with an explicit server
+     * skips DNS rules, so matching server domains by rule alone never reaches the group's DNS.
+     */
+    fun resolverOf(link: String?): DNSServerGroup = groupOf(link).also { resolverGroups.add(it) }
 
     fun add(domain: String, group: DNSServerGroup = defaultGroup) {
         domainsByGroup.getOrPut(group) { mutableSetOf() }.add(domain)
@@ -915,7 +922,9 @@ suspend fun buildConfig(
                             server = if (forTest) {
                                 TAG_DNS_LOCAL
                             } else {
-                                TAG_DNS_DIRECT
+                                preResolveDomains
+                                    .resolverOf(outboundDnsByGroup[proxyEntity.groupId])
+                                    .primaryTag
                             }
                             strategy = serverDomainStrategy
                         }.asKxsMap()
