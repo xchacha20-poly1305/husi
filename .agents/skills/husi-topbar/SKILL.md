@@ -1,6 +1,6 @@
 ---
 name: husi-topbar
-description: Husi project's topbar design system. Use whenever adding a new screen in composeApp/, editing a Scaffold, building Compose UI with a topBar / tabs / search bar, wiring scroll-driven color changes (scrollBehavior / pinnedScrollBehavior), or touching Haze blur (HazeState, hazeSource, hazeBlur, CapsuleHeader). If a topbar is involved at all, consult this skill — do not reach for Material 3's TopAppBar or AppBarWithSearch directly.
+description: Husi project's topbar design system. Use whenever adding a new screen in composeApp/, editing a Scaffold, building Compose UI with a topBar / tabs / search bar, wiring scroll-driven color changes (scrollBehavior / pinnedScrollBehavior), placing a BoxedVerticalScrollbar beside content that scrolls under the bar, or touching Haze blur (HazeState, hazeSource, hazeBlur, CapsuleHeader). If a topbar is involved at all, consult this skill — do not reach for Material 3's TopAppBar or AppBarWithSearch directly.
 ---
 
 # Husi Topbar Design
@@ -159,6 +159,8 @@ Key points:
 - Content must reach the top of the screen and be offset with `contentPadding`
   (`innerPadding.withNavigation()`). If you pad with a Modifier instead, nothing ever passes under
   the bar; pass `hazeState = null` in that case.
+- A `BoxedVerticalScrollbar` beside the list gets the same `contentPadding` as a Modifier, or its
+  top end hides under the bar.
 - Pass `scrollBehavior` to `CapsuleTopBar` even if you aren't reading `overlappedFraction` here. The
   component sets `state.heightOffsetLimit` via `SideEffect`; without it `CapsuleHeader` can't read a
   meaningful `overlappedFraction` if the screen later moves to Pattern B.
@@ -381,6 +383,12 @@ What does your topBar look like?
   `modifier`. Move it into a `Column` inside the header.
 - **First list item hidden under the header in Pattern B.** The page ignores the top value of
   `contentPadding`. Pages must forward the whole `PaddingValues` to their `LazyColumn`.
+- **Scrollbar hidden under the topbar and not draggable.** The list takes `contentPadding` so it
+  can scroll under the bar, but `BoxedVerticalScrollbar` next to it only has `fillMaxHeight()`, so
+  its top end sits behind the capsules. Give the scrollbar the same padding as the list:
+  `Modifier.padding(contentPadding).fillMaxHeight()` (see `GroupScreen`). A `verticalScroll`
+  column that offsets its content with a top `Spacer` pads the scrollbar with that top value.
+  Screens with `hazeState = null` do not need it.
 - **SearchBar lost its border / the pill is invisible.** Don't override `SearchBar`'s
   `colors.containerColor`. Its outline is the color contrast with the surrounding area.
 - **`CapsuleActionButton` is unresolved inside `Box { }`.** `@LayoutScopeMarker` hides the outer

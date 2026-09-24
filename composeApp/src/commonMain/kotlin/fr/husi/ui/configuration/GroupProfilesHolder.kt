@@ -380,7 +380,9 @@ internal fun GroupHolderScreen(
         }
 
         BoxedVerticalScrollbar(
-            modifier = Modifier.fillMaxHeight(),
+            modifier = Modifier
+                .padding(contentPadding)
+                .fillMaxHeight(),
             adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
             style = defaultMaterialScrollbarStyle().copy(
                 thickness = 12.dp,

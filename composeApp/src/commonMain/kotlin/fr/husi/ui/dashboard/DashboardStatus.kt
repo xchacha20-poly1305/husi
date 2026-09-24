@@ -172,7 +172,9 @@ internal fun DashboardStatusScreen(
         }
 
         BoxedVerticalScrollbar(
-            modifier = Modifier.fillMaxHeight(),
+            modifier = Modifier
+                .padding(contentPadding)
+                .fillMaxHeight(),
             adapter = rememberScrollbarAdapter(scrollState = scrollState),
             style = defaultMaterialScrollbarStyle().copy(
                 thickness = 12.dp,

@@ -309,7 +309,9 @@ fun RouteScreen(
             }
 
             BoxedVerticalScrollbar(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier
+                    .padding(listContentPadding)
+                    .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
                 style = defaultMaterialScrollbarStyle().copy(
                     thickness = 12.dp,

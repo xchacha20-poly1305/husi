@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -587,7 +588,9 @@ private fun ConfigEditScreenContent(
                 }
 
                 BoxedVerticalScrollbar(
-                    modifier = Modifier.fillMaxHeight(),
+                    modifier = Modifier
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .fillMaxHeight(),
                     adapter = rememberScrollbarAdapter(scrollState = verticalScrollState),
                     style = defaultMaterialScrollbarStyle().copy(
                         thickness = 12.dp,

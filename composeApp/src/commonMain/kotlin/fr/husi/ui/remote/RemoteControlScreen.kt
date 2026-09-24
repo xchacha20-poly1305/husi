@@ -169,7 +169,9 @@ fun RemoteControlScreen(
                 item { Spacer(Modifier.height(72.dp)) }
             }
             BoxedVerticalScrollbar(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = listState),
                 style = defaultMaterialScrollbarStyle().copy(thickness = 12.dp),
             )
