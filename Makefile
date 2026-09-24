@@ -244,7 +244,7 @@ test_gradle:
 	./gradlew :composeApp:allTests
 
 test_go:
-	cd libcore/ && go test -v -count=1 -tags with_quic ./...
+	cd libcore/ && go test -v -count=1 -tags with_quic,badlinkname -ldflags=-checklinkname=0 ./...
 
 # Guard: desktop core is the Zig shim + anja sidecar; no second Go link of cmd/husi-core.
 test_no_go_core_binary:

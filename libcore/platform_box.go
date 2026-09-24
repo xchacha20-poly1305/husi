@@ -133,10 +133,11 @@ func (w *boxPlatformInterfaceWrapper) NetworkInterfaces() ([]adapter.NetworkInte
 				Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
 				Flags:     linkFlags(uint32(netInterface.Flags)),
 			},
-			Type:        C.InterfaceType(netInterface.Type),
-			DNSServers:  iteratorToArray[string](netInterface.DNSServer),
-			Expensive:   netInterface.Metered, /*|| isDefault && w.isExpensive*/
-			Constrained: false,                // Not for Android
+			Type:             C.InterfaceType(netInterface.Type),
+			DNSServers:       iteratorToArray[string](netInterface.DNSServer),
+			DNSSearchDomains: iteratorToArray[string](netInterface.DNSSearchDomain),
+			Expensive:        netInterface.Metered, /*|| isDefault && w.isExpensive*/
+			Constrained:      false,                // Not for Android
 		})
 	}
 	interfaces = common.UniqBy(interfaces, func(it adapter.NetworkInterface) string {

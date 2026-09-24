@@ -2,20 +2,24 @@ package main
 
 import (
 	"net"
+	"net/netip"
 	"strings"
+
+	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/oschwald/geoip2-golang"
 	"github.com/oschwald/maxminddb-golang"
+	"go4.org/netipx"
 )
 
-func parseGeoip(binary []byte) (countryMap sortedStringMap[[]*net.IPNet], err error) {
+func parseGeoip(binary []byte) (countryMap sortedStringMap[[]netip.Prefix], err error) {
 	database, err := maxminddb.FromBytes(binary)
 	if err != nil {
 		return
 	}
 	defer database.Close()
 	networks := database.Networks(maxminddb.SkipAliasedNetworks)
-	countryMap = make(sortedStringMap[[]*net.IPNet])
+	countryMap = make(sortedStringMap[[]netip.Prefix])
 	var country geoip2.Enterprise
 	var ipNet *net.IPNet
 	for networks.Next() {
@@ -23,9 +27,14 @@ func parseGeoip(binary []byte) (countryMap sortedStringMap[[]*net.IPNet], err er
 		if err != nil {
 			return
 		}
+		prefix, loaded := netipx.FromStdIPNet(ipNet)
+		if !loaded {
+			err = E.New("invalid network: ", ipNet)
+			return
+		}
 		code := strings.ToLower(country.RegisteredCountry.IsoCode)
 		old := countryMap.Get(code)
-		countryMap.Put(code, append(old, ipNet))
+		countryMap.Put(code, append(old, prefix))
 	}
 	err = networks.Err()
 	return

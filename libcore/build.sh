@@ -10,6 +10,8 @@ TAGS=(
     "with_openvpn"
     "with_utls"
     "with_naive_outbound"
+    "badlinkname"
+    "tfogo_checklinkname0"
 )
 
 IFS="," BUILD_TAGS="${TAGS[*]}"
@@ -353,7 +355,9 @@ export CGO_ENABLED=1
 export GO386=softfloat
 
 # Stamp sing-box version + husi Version (used by coreentry / HusiCoreMain).
-anja_ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -X libcore.Version=${husi_version} -s -w -buildid="
+# `badlinkname` and `tfogo_checklinkname0` pull unexported symbols, which the linker rejects
+# without -checklinkname=0: https://github.com/golang/go/issues/70508
+anja_ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -X libcore.Version=${husi_version} -s -w -buildid= -checklinkname=0"
 
 ANJA_COMMON_ARGS=(
     -v
@@ -368,7 +372,7 @@ ANJA_ANDROID_ARGS=(
     -androidapi
     23
     "${ANJA_COMMON_ARGS[@]}"
-    -ldflags="$anja_ldflags -checklinkname=0" # https://github.com/golang/go/issues/70508
+    -ldflags="$anja_ldflags"
     -tags="$BUILD_TAGS"
 )
 

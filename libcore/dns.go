@@ -18,6 +18,7 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
+	"github.com/sagernet/sing/service"
 
 	mDNS "github.com/miekg/dns"
 )
@@ -31,12 +32,15 @@ type LocalDNSTransport interface {
 var (
 	_ adapter.DNSTransport                    = (*platformTransport)(nil)
 	_ adapter.DNSTransportWithPreferredDomain = (*platformTransport)(nil)
+	_ adapter.DNSTransportWithConfiguration   = (*platformTransport)(nil)
+	_ adapter.DNSTransportWithEnvironment     = (*platformTransport)(nil)
 )
 
 type platformTransport struct {
 	dns.TransportAdapter
 	iif               LocalDNSTransport
 	preferredResolver *local.PreferredDomainResolver
+	networkManager    adapter.NetworkManager
 }
 
 func (p *platformTransport) Start(stage adapter.StartStage) error {
@@ -57,6 +61,7 @@ func newPlatformTransport(ctx context.Context, logger log.ContextLogger, iif Loc
 		TransportAdapter:  dns.NewTransportAdapterWithLocalOptions(C.DNSTypeLocal, tag, options),
 		iif:               iif,
 		preferredResolver: preferredResolver,
+		networkManager:    service.FromContext[adapter.NetworkManager](ctx),
 	}
 	return transport, nil
 }
@@ -82,6 +87,44 @@ func (p *platformTransport) PreferredDomain(domain string) bool {
 		return false
 	}
 	return p.preferredResolver.PreferredDomain(domain)
+}
+
+func (p *platformTransport) ServerAddresses() []netip.Addr {
+	defaultInterface := p.defaultNetworkInterface()
+	if defaultInterface == nil {
+		return nil
+	}
+	var serverAddresses []netip.Addr
+	for _, server := range defaultInterface.DNSServers {
+		serverAddress, err := netip.ParseAddr(server)
+		if err == nil {
+			serverAddresses = append(serverAddresses, serverAddress)
+		}
+	}
+	return serverAddresses
+}
+
+func (p *platformTransport) SearchDomains() []string {
+	defaultInterface := p.defaultNetworkInterface()
+	if defaultInterface == nil {
+		return nil
+	}
+	return defaultInterface.DNSSearchDomains
+}
+
+func (p *platformTransport) Environment() []string {
+	defaultInterface := p.defaultNetworkInterface()
+	if defaultInterface == nil {
+		return nil
+	}
+	return defaultInterface.DNSServers
+}
+
+func (p *platformTransport) defaultNetworkInterface() *adapter.NetworkInterface {
+	if p.networkManager == nil {
+		return nil
+	}
+	return p.networkManager.DefaultNetworkInterface()
 }
 
 func (p *platformTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, error) {

@@ -34,9 +34,10 @@ type NetworkInterface struct {
 	Addresses StringIterator
 	Flags     int32
 
-	Type      int32
-	DNSServer StringIterator
-	Metered   bool
+	Type            int32
+	DNSServer       StringIterator
+	DNSSearchDomain StringIterator
+	Metered         bool
 }
 
 type NetworkInterfaceIterator interface {

@@ -96,6 +96,11 @@ class AndroidPlatformInterface : PlatformInterface {
             boxInterface.dnsServer = linkProperties.dnsServers.mapNotNull { it.hostAddress }.let {
                 it.toStringIterator(it.size)
             }
+            // LinkProperties joins the search domains with spaces.
+            boxInterface.dnsSearchDomain = linkProperties.domains.orEmpty()
+                .split(' ')
+                .filter { it.isNotEmpty() }
+                .let { it.toStringIterator(it.size) }
             boxInterface.type = when {
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Libcore.InterfaceTypeWIFI
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Libcore.InterfaceTypeCellular

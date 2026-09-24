@@ -12,6 +12,8 @@ run:
     - "with_openconnect"
     - "with_openvpn"
     - "with_utls"
+    - "badlinkname"
+    - "tfogo_checklinkname0"
 
 linters:
   default: none

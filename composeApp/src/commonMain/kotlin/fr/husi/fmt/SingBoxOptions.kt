@@ -2080,6 +2080,12 @@ object SingBoxOptions {
         var preferred_by: MutableList<String>? = null
 
         @JvmField
+        var dns_server_address: MutableMap<String, MutableList<String>>? = null
+
+        @JvmField
+        var dns_search_domain: MutableMap<String, MutableList<String>>? = null
+
+        @JvmField
         var rule_set: MutableList<String>? = null
 
         @JvmField
@@ -2488,6 +2494,12 @@ object SingBoxOptions {
 
         @JvmField
         var preferred_by: MutableList<String>? = null
+
+        @JvmField
+        var dns_server_address: MutableMap<String, MutableList<String>>? = null
+
+        @JvmField
+        var dns_search_domain: MutableMap<String, MutableList<String>>? = null
 
         @JvmField
         var rule_set: MutableList<String>? = null

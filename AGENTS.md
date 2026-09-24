@@ -33,13 +33,13 @@ Common targets:
 | `make proto` | Re-vendor sing-box schema and regenerate Go gRPC stubs |
 | `make test` | `test_gradle` + `test_go` + `test_no_go_core_binary` + `test_zig` |
 | `make test_gradle` | `./gradlew :composeApp:allTests` (JUnit5) |
-| `make test_go` | `cd libcore && go test -v -count=1 -tags with_quic ./...` |
+| `make test_go` | `cd libcore && go test -v -count=1 -tags with_quic,badlinkname -ldflags=-checklinkname=0 ./...` |
 | `make test_zig` | zig build test in both `launcher/` and `libcore/shim/` |
 | `make lint_go` | golangci-lint for linux + android + windows |
 | `make fmt_go` | golangci-lint fmt |
 
 Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`.
-Run a single Go test: `cd libcore && go test -tags with_quic -run TestName ./pkg/...`.
+Run a single Go test: `cd libcore && go test -tags with_quic,badlinkname -ldflags=-checklinkname=0 -run TestName ./pkg/...`.
 Install Go tooling: `make lint_go_install`.
 
 `lint_go` runs one pass per shipped GOOS (`lint_go_linux`, `lint_go_android`, `lint_go_windows`); `lint_go_windows` needs `zig` on PATH as the cgo cross compiler.

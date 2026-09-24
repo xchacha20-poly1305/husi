@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"strings"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/json/badoption"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
@@ -186,8 +188,8 @@ func generateGeoipArchive(ctx context.Context, httpClient *http.Client, buf *byt
 	}
 	for _, ip := range ips.Entries() {
 		var headlessRule option.DefaultHeadlessRule
-		headlessRule.IPCIDR = common.Map(ip.Value, func(it *net.IPNet) string {
-			return it.String()
+		headlessRule.IPCIDR = common.Map(ip.Value, func(it netip.Prefix) *badoption.Prefixable {
+			return new(badoption.Prefixable(it))
 		})
 		var plainRuleSet option.PlainRuleSet
 		plainRuleSet.Rules = []option.HeadlessRule{

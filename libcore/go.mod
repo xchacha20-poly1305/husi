@@ -1,6 +1,6 @@
 module github.com/xchacha20-poly1305/husi/libcore/v2
 
-go 1.26.0
+go 1.27
 
 require (
 	filippo.io/age v1.3.2
@@ -13,12 +13,12 @@ require (
 	github.com/sagernet/cors v1.2.1
 	github.com/sagernet/quic-go v0.61.0-sing-box-mod.7
 	github.com/sagernet/sing v0.9.6-0.20260922013359-4ca3bebe0b8e
-	github.com/sagernet/sing-anytls v0.0.0-20260904135308-cec2d74334be
-	github.com/sagernet/sing-box v1.15.0-alpha.7
+	github.com/sagernet/sing-anytls v0.0.0-20260924021732-7ca72921ac6a
+	github.com/sagernet/sing-box v1.15.0-alpha.8
 	github.com/sagernet/sing-mux v0.3.9-0.20260919141002-baf887b90a62
-	github.com/sagernet/sing-quic v0.7.1-0.20260904135313-497364e8ee3e
+	github.com/sagernet/sing-quic v0.7.1-0.20260924092235-4f371c86a365
 	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
-	github.com/sagernet/sing-tun v0.9.6-0.20260922105247-aff4131a9e9e
+	github.com/sagernet/sing-tun v0.9.6-0.20260924073434-3077c705bbdb
 	github.com/sagernet/sing-vmess v0.2.8
 	github.com/stretchr/testify v1.12.1
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
