@@ -283,8 +283,8 @@ github.com/xchacha20-poly1305/anja v0.22.16 h1:l9qmqtDHCCQE8l/TngSw5wY0E26MWB/Ml
 github.com/xchacha20-poly1305/anja v0.22.16/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.5 h1:YswEIbhL0EmIFR9FetRBjHDK62nNr5puuTdLzsZ0KvI=
 github.com/xchacha20-poly1305/libping v0.10.5/go.mod h1:SXTHinnDLUAnAaMSy3sg5Ts07EUil3XQNt40+uOzgu8=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260906073641-f530c1610baa h1:/1VvMgFwQII72mI5p9aKcBOrMMTjOmyOpH1BTnkxRRg=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260906073641-f530c1610baa/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260921143651-7d7bb4e10cda h1:RuPbAS2CVFtPh9ZrxSSolaDW/ozwBogMCxi5SGF/Nt4=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260921143651-7d7bb4e10cda/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a h1:vEjuTXDMeO78XINy1UHJE58Un7mMwUBZYdJapnbYso4=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
