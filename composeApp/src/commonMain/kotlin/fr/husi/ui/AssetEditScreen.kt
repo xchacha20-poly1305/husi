@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BackHandler
@@ -70,7 +71,6 @@ import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.url
 import fr.husi.resources.warning
 import fr.husi.resources.warning_amber
-import fr.husi.results.LocalResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch

@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
@@ -74,8 +75,6 @@ import fr.husi.resources.remote_disconnected_from
 import fr.husi.resources.settings
 import fr.husi.resources.transform
 import fr.husi.resources.warning_amber
-import fr.husi.results.LocalResultEventBus
-import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
 import fr.husi.ui.dashboard.DashboardNoticeTracker
 import fr.husi.ui.remote.serverDisplayName
@@ -132,7 +131,6 @@ private fun MainScreenContent(
 
     val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
-    val resultBus = remember { ResultEventBus() }
     val navigator = remember(backStack) { Navigator(backStack) }
     LaunchedEffect(navigator) {
         PendingNavigation.routes.collect { route ->
@@ -316,7 +314,6 @@ private fun MainScreenContent(
     ) {
         CompositionLocalProvider(
             LocalNavigator provides navigator,
-            LocalResultEventBus provides resultBus,
             LocalSnackbarEmitter provides snackbarEmitter,
         ) {
             NavDisplay(
@@ -325,6 +322,7 @@ private fun MainScreenContent(
                 entryDecorators = listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
                     rememberViewModelStoreNavEntryDecorator(),
+                    rememberResultEventBusNavEntryDecorator(),
                 ),
                 entryProvider = entryProvider,
             )

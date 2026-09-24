@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BackHandler
@@ -70,7 +71,6 @@ import fr.husi.resources.tls
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.v2ray_transport
 import fr.husi.resources.vpn_key
-import fr.husi.results.LocalResultEventBus
 import me.zhanghai.compose.preference.ListPreferenceType
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource

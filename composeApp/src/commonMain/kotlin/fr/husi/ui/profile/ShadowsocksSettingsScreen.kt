@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.result.ResultEffect
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.ListPreference
@@ -60,7 +61,6 @@ import fr.husi.resources.settings
 import fr.husi.resources.type_specimen
 import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.view_in_ar
-import fr.husi.results.ResultEffect
 import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.ListPreferenceType
 import org.jetbrains.compose.resources.stringResource
