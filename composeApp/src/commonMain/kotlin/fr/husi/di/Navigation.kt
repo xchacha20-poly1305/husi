@@ -22,6 +22,7 @@ import fr.husi.ui.RouteSettingsScreen
 import fr.husi.ui.configuration.ConfigurationScreen
 import fr.husi.ui.dashboard.DashboardScreen
 import fr.husi.ui.jsoneditor.ConfigEditScreen
+import fr.husi.ui.profile.ProfileEditorResult
 import fr.husi.ui.profile.ProfileEditorScreen
 import fr.husi.ui.profile.SIP003EditorScreen
 import fr.husi.ui.remote.RemoteControlScreen
@@ -169,7 +170,7 @@ internal val commonNavigationModule = module {
                 onOpenConfigEditor = navigator::navigateTo,
                 onOpenSIP003Editor = navigator::navigateTo,
                 onResult = { updated ->
-                    resultBus.sendResult(route.resultKey, updated)
+                    resultBus.sendResult(result = ProfileEditorResult(profileId = route.id, updated = updated))
                     navigator.popBackStack()
                 },
             )

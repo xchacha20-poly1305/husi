@@ -94,6 +94,11 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.random.Random
 
+data class ProfileEditorResult(
+    val profileId: Long,
+    val updated: Boolean,
+)
+
 @Composable
 fun ProfileEditorScreen(
     type: Int,

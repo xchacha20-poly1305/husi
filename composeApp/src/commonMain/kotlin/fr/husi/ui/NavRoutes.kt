@@ -125,7 +125,6 @@ sealed class NavRoutes : NavKey {
         val type: Int,
         val id: Long = -1L,
         val subscription: Boolean = false,
-        val resultKey: String = "${type}-${id}-${subscription}",
     ) : NavRoutes()
 
     @Serializable

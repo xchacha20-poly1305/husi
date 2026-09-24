@@ -165,10 +165,12 @@ import fr.husi.resources.search_go
 import fr.husi.resources.sort_mode
 import fr.husi.resources.undo
 import fr.husi.resources.view_list
+import fr.husi.results.ResultEffect
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
+import fr.husi.ui.profile.ProfileEditorResult
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -192,6 +194,20 @@ fun ConfigurationScreen(
     val clipboard = LocalClipboard.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val focusManager = LocalFocusManager.current
+
+    ResultEffect<ProfileEditorResult> { result ->
+        if (!result.updated) return@ResultEffect
+        if (result.profileId != DataStore.selectedProxy.get()) return@ResultEffect
+        if (!DataStore.serviceState.started) return@ResultEffect
+        snackbar.show(
+            StringOrRes.Res(Res.string.need_reload),
+            StringOrRes.Res(Res.string.apply),
+        ) { action ->
+            if (action == SnackbarResult.ActionPerformed) {
+                resolveRepository().reloadService()
+            }
+        }
+    }
 
     val importFile = rememberFilePickerLauncher { file ->
         if (file != null) {
@@ -706,17 +722,6 @@ fun ConfigurationScreen(
                         callback(route)
                     }
                 },
-                needReload = {
-                    if (!DataStore.serviceState.started) return@GroupHolderScreen
-                    snackbar.show(
-                        StringOrRes.Res(Res.string.need_reload),
-                        StringOrRes.Res(Res.string.apply),
-                    ) { result ->
-                        if (result == SnackbarResult.ActionPerformed) {
-                            resolveRepository().reloadService()
-                        }
-                    }
-                },
                 showQR = { name, url ->
                     expandedScope.launch { searchBarState.animateToCollapsed() }
                     // QR dialog will be shown in the parent composition
@@ -805,17 +810,6 @@ fun ConfigurationContent(
                         canHoldFocus = canHoldFocus && pagerState.currentPage == page,
                         onProfileSelect = onProfileSelect,
                         onOpenProfileEditor = onOpenProfileEditor,
-                        needReload = {
-                            if (!DataStore.serviceState.started) return@GroupHolderScreen
-                            snackbar.show(
-                                StringOrRes.Res(Res.string.need_reload),
-                                StringOrRes.Res(Res.string.apply),
-                            ) { result ->
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    resolveRepository().reloadService()
-                                }
-                            }
-                        },
                         showQR = { name, url ->
                             qrCodeInfo = name to url
                         },

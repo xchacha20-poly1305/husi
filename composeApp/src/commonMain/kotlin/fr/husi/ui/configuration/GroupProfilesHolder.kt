@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -70,7 +69,6 @@ import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberFocusRestoreState
 import fr.husi.compose.setPlainText
-import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.fmt.ValidateResult
@@ -115,8 +113,6 @@ import fr.husi.resources.standard
 import fr.husi.resources.traffic
 import fr.husi.resources.unavailable
 import fr.husi.resources.warning
-import fr.husi.results.LocalResultEventBus
-import fr.husi.results.ResultEffect
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -132,11 +128,6 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
-private data class PendingProfileEdit(
-    val resultKey: String,
-    val profileId: Long,
-)
-
 @Composable
 internal fun GroupHolderScreen(
     modifier: Modifier = Modifier,
@@ -146,7 +137,6 @@ internal fun GroupHolderScreen(
     canHoldFocus: Boolean,
     onProfileSelect: (Long) -> Unit,
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
-    needReload: () -> Unit,
     showQR: (name: String, url: String) -> Unit,
     onCopySuccess: () -> Unit,
     showSnackbar: (message: StringOrRes) -> Unit,
@@ -155,8 +145,6 @@ internal fun GroupHolderScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val resultBus = onOpenProfileEditor?.let { LocalResultEventBus.current }
-    val pendingProfileEdits = remember { mutableStateListOf<PendingProfileEdit>() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -194,33 +182,12 @@ internal fun GroupHolderScreen(
         }
     }
 
-    resultBus?.let { bus ->
-        for (pending in pendingProfileEdits.toList()) {
-            ResultEffect<Boolean>(
-                resultEventBus = bus,
-                resultKey = pending.resultKey,
-            ) { updated ->
-                if (updated && pending.profileId == DataStore.selectedProxy.get()) {
-                    needReload()
-                }
-                pendingProfileEdits.remove(pending)
-            }
-        }
-    }
-
     fun openProfileEditor(profile: ProxyEntity) {
-        val resultKey = "profile-editor-${profile.id}"
-        pendingProfileEdits.removeAll { it.resultKey == resultKey }
-        pendingProfileEdits += PendingProfileEdit(
-            resultKey = resultKey,
-            profileId = profile.id,
-        )
         onOpenProfileEditor?.invoke(
             NavRoutes.ProfileEditor(
                 type = profile.type,
                 id = profile.id,
                 subscription = viewModel.group.type == GroupType.SUBSCRIPTION,
-                resultKey = resultKey,
             ),
         )
     }
