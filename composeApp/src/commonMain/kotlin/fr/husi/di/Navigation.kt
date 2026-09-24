@@ -2,7 +2,7 @@
 
 package fr.husi.di
 
-import fr.husi.results.LocalResultEventBus
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import fr.husi.ui.AboutScreen
 import fr.husi.ui.AssetEditScreen
 import fr.husi.ui.AssetsScreen

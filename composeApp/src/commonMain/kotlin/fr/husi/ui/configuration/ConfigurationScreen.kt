@@ -69,6 +69,7 @@ import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.ResultEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.CapsuleHeader
@@ -165,7 +166,6 @@ import fr.husi.resources.search_go
 import fr.husi.resources.sort_mode
 import fr.husi.resources.undo
 import fr.husi.resources.view_list
-import fr.husi.results.ResultEffect
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.NavRoutes

@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.ResultEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.bg.routeCustomGeoDir
@@ -161,7 +162,6 @@ import fr.husi.resources.warning
 import fr.husi.resources.warning_amber
 import fr.husi.resources.wifi
 import fr.husi.resources.wifi_find
-import fr.husi.results.ResultEffect
 import fr.husi.ui.jsoneditor.ConfigSchema
 import fr.husi.ui.profile.tlsSpoofMethod
 import fr.husi.ui.tools.RuleSetMatchDialog

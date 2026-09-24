@@ -86,6 +86,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.LocalResultEventBus
+import androidx.navigation3.runtime.result.rememberResultEventBus
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.AutoCompleteSuggestionList
@@ -121,10 +123,8 @@ import fr.husi.resources.redo
 import fr.husi.resources.undo
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
-import fr.husi.results.LocalResultEventBus
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
-import fr.husi.results.ResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.CoroutineScope
@@ -646,7 +646,7 @@ private fun ConfigEditScreenContent(
 @Composable
 private fun PreviewConfigEditScreen() {
     CompositionLocalProvider(
-        LocalResultEventBus provides remember { ResultEventBus() },
+        LocalResultEventBus provides rememberResultEventBus(),
     ) {
         ConfigEditScreen(
             initialText = "{}",

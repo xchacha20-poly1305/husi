@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.result.ResultEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.GroupType
@@ -80,7 +81,6 @@ import fr.husi.resources.outbound
 import fr.husi.resources.question_mark
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
-import fr.husi.results.ResultEffect
 import fr.husi.ui.jsoneditor.ConfigSchema
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.OpenProfilePicker

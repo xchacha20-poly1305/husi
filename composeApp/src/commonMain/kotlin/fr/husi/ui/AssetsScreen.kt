@@ -54,6 +54,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.ResultEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.RuleProvider
@@ -103,7 +104,6 @@ import fr.husi.resources.route_global_asset_auto_update_delay
 import fr.husi.resources.timer
 import fr.husi.resources.undo
 import fr.husi.resources.update
-import fr.husi.results.ResultEffect
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher

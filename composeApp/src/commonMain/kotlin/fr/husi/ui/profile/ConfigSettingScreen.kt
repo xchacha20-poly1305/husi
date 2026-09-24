@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.result.ResultEffect
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleTopBar
@@ -61,7 +62,6 @@ import fr.husi.resources.profile_name
 import fr.husi.resources.question_mark
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
-import fr.husi.results.ResultEffect
 import fr.husi.ui.jsoneditor.ConfigSchema
 import fr.husi.ui.NavRoutes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle

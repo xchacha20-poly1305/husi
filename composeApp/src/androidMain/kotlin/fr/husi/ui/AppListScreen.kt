@@ -2,6 +2,7 @@ package fr.husi.ui
 
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +19,6 @@ import fr.husi.resources.clear_selections
 import fr.husi.resources.fiber_smart_record
 import fr.husi.resources.invert_selections
 import fr.husi.resources.select_apps
-import fr.husi.results.LocalResultEventBus
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.random.Random

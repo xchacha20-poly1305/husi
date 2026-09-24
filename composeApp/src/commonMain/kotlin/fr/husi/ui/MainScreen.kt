@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
@@ -72,8 +73,6 @@ import fr.husi.resources.question_mark
 import fr.husi.resources.settings
 import fr.husi.resources.transform
 import fr.husi.resources.warning_amber
-import fr.husi.results.LocalResultEventBus
-import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -130,7 +129,6 @@ private fun MainScreenContent(
 
     val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
-    val resultBus = remember { ResultEventBus() }
     val navigator = remember(backStack) { Navigator(backStack) }
     val selectedTopLevelRoute = navigator.selectedTopLevelRoute
     val isAtStartDestination = navigator.isAtStartDestination
@@ -288,7 +286,6 @@ private fun MainScreenContent(
     ) {
         CompositionLocalProvider(
             LocalNavigator provides navigator,
-            LocalResultEventBus provides resultBus,
             LocalSnackbarEmitter provides snackbarEmitter,
         ) {
             NavDisplay(
@@ -297,6 +294,7 @@ private fun MainScreenContent(
                 entryDecorators = listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
                     rememberViewModelStoreNavEntryDecorator(),
+                    rememberResultEventBusNavEntryDecorator(),
                 ),
                 entryProvider = entryProvider,
             )
