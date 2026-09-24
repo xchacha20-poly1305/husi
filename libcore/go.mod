@@ -2,14 +2,31 @@ module github.com/xchacha20-poly1305/husi/libcore/v2
 
 go 1.27
 
+tool (
+	github.com/xchacha20-poly1305/anja/cmd/anja
+	github.com/xchacha20-poly1305/anja/cmd/anjb
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	google.golang.org/protobuf/cmd/protoc-gen-go
+)
+
+replace (
+	github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a
+
+// github.com/sagernet/sing-box => ../../sing-box
+)
+
+// cmd
 require (
 	filippo.io/age v1.3.2
 	github.com/coder/websocket v1.8.15
 	github.com/exclavenetwork/sing-juicity v0.3.1-0.20260904153201-e6f55d83049c
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/gofrs/uuid/v5 v5.5.1
+	github.com/google/licensecheck v0.3.1
 	github.com/klauspost/compress v1.20.0
 	github.com/miekg/dns v1.1.72
+	github.com/oschwald/geoip2-golang v1.13.0
+	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/sagernet/cors v1.2.1
 	github.com/sagernet/quic-go v0.61.0-sing-box-mod.7
 	github.com/sagernet/sing v0.9.6-0.20260922013359-4ca3bebe0b8e
@@ -26,33 +43,13 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.5
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260906073641-f530c1610baa
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260921143651-7d7bb4e10cda
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
+	golang.org/x/mod v0.41.0
 	golang.org/x/net v0.59.0
 	golang.org/x/sys v0.48.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
-)
-
-tool (
-	github.com/xchacha20-poly1305/anja/cmd/anja
-	github.com/xchacha20-poly1305/anja/cmd/anjb
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc
-	google.golang.org/protobuf/cmd/protoc-gen-go
-)
-
-replace (
-	github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20260730020509-f81302d3921a
-
-// github.com/sagernet/sing-box => ../../sing-box
-)
-
-// cmd
-require (
-	github.com/google/licensecheck v0.3.1
-	github.com/oschwald/geoip2-golang v1.13.0
-	github.com/oschwald/maxminddb-golang v1.13.1
-	golang.org/x/mod v0.41.0
 )
 
 require (
