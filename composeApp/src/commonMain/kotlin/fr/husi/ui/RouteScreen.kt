@@ -43,6 +43,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -65,6 +66,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.IconButton
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
+import fr.husi.compose.theme.LocalAppDarkMode
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -465,13 +467,8 @@ private fun DraggableSwipeableItemScope<RouteListItem>.RuleCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = when (rule.action) {
-                            "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound()
-                            else -> "action: ${rule.action}"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    RuleBehaviorLabel(
+                        rule = rule,
                         modifier = Modifier.weight(1f),
                     )
 
@@ -484,6 +481,69 @@ private fun DraggableSwipeableItemScope<RouteListItem>.RuleCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RuleBehaviorLabel(
+    rule: RuleEntity,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = when (rule.action) {
+            "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound()
+            else -> "action: ${rule.action}"
+        },
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Bold,
+        color = rule.behaviorColor(LocalAppDarkMode.current),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+/** Vivid text colors that tell what a rule does; rules with the same effect share one. */
+private object RuleBehaviorColors {
+    val ProxyLight = Color(0xFF1E88E5)
+    val ProxyDark = Color(0xFF64B5F6)
+    val DirectLight = Color(0xFF43A047)
+    val DirectDark = Color(0xFF81C784)
+    val BlockLight = Color(0xFFE53935)
+    val BlockDark = Color(0xFFEF5350)
+    val BridgeLight = Color(0xFF8E24AA)
+    val BridgeDark = Color(0xFFBA68C8)
+    val ProfileLight = Color(0xFF00897B)
+    val ProfileDark = Color(0xFF4DB6AC)
+    val HijackDnsLight = Color(0xFFF4511E)
+    val HijackDnsDark = Color(0xFFFF8A65)
+    val SniffLight = Color(0xFFF9A825)
+    val SniffDark = Color(0xFFFFD54F)
+    val ResolveLight = Color(0xFFD81B60)
+    val ResolveDark = Color(0xFFF06292)
+    val OtherLight = Color(0xFF757575)
+    val OtherDark = Color(0xFFBDBDBD)
+}
+
+internal fun RuleEntity.behaviorColor(darkMode: Boolean): Color {
+    fun pick(light: Color, dark: Color) = if (darkMode) dark else light
+    return with(RuleBehaviorColors) {
+        when (action) {
+            "", SingBoxOptions.ACTION_ROUTE -> when (outbound) {
+                OUTBOUND_PROXY -> pick(ProxyLight, ProxyDark)
+                OUTBOUND_DIRECT -> pick(DirectLight, DirectDark)
+                OUTBOUND_BLOCK -> pick(BlockLight, BlockDark)
+                OUTBOUND_BRIDGE -> pick(BridgeLight, BridgeDark)
+                else -> pick(ProfileLight, ProfileDark)
+            }
+
+            SingBoxOptions.ACTION_BYPASS -> pick(DirectLight, DirectDark)
+            SingBoxOptions.ACTION_REJECT -> pick(BlockLight, BlockDark)
+            SingBoxOptions.ACTION_HIJACK_DNS -> pick(HijackDnsLight, HijackDnsDark)
+            SingBoxOptions.ACTION_SNIFF -> pick(SniffLight, SniffDark)
+            SingBoxOptions.ACTION_RESOLVE -> pick(ResolveLight, ResolveDark)
+            else -> pick(OtherLight, OtherDark)
         }
     }
 }
