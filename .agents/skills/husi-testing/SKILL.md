@@ -24,7 +24,7 @@ The answers determine the base class and the boilerplate. Don't roll your own.
 | Item               | Value                                                             |
 |--------------------|-------------------------------------------------------------------|
 | Test source set    | `composeApp/src/commonTest/kotlin/` (runs as `desktopTest`)       |
-| Desktop-only tests | `composeApp/src/desktopTest/kotlin/` (rare; one file at present)  |
+| Desktop-only tests | `composeApp/src/desktopTest/kotlin/` (JVM/desktop-specific code)   |
 | Test framework     | `kotlin.test` (`@Test`, `assertEquals`, `assertIs`, …) on JUnit 5 |
 | Coroutines         | `kotlinx-coroutines-test` (`runTest`, `StandardTestDispatcher`)   |
 | Mocking            | `mockk` exists but is **avoided** — prefer fakes (see below)      |
@@ -42,7 +42,7 @@ Function names use backticked sentences describing the behaviour, e.g.
 
 ## Base class cheat sheet
 
-All three live in `composeApp/src/commonTest/kotlin/fr/husi/test/`.
+All base classes live in `composeApp/src/commonTest/kotlin/fr/husi/test/`.
 
 | Base class                   | Sets up                                                                                                | Use when…                                                                          |
 |------------------------------|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
@@ -147,8 +147,8 @@ Key points:
   test dispatcher and `viewModelScope` end up driven by different clocks and `advanceUntilIdle`
   becomes a no-op.
 - Collect `SharedFlow` events with `backgroundScope.async { flow.first() }` *before* triggering the
-  emit. `_uiEvent` defaults to `replay = 0`; if you start collecting after the emit, you'll
-  deadlock.
+  emit. A `MutableSharedFlow()` defaults to `replay = 0`; if you start collecting after the emit,
+  you'll deadlock.
 - For `StateFlow` you can read `.value` directly after `advanceUntilIdle()` — no collector needed.
 - Reset any global object state your test mutates (e.g. `DataStore.serviceState`) in `@AfterTest`.
   `HusiHttpKoinTest` resets `configurationStore`; it does not reset `serviceState` because that's a
@@ -255,9 +255,9 @@ restore them yourself in `@AfterTest`.
   `dispatcher.scheduler`. Use `runTest(dispatcher.scheduler) { ... }`.
 - **`advanceUntilIdle()` returns while the work is still running.** It only drains the test
   scheduler; work that resumes on a *real* dispatcher is invisible to it, so assertions run
-  mid-flight. `DataStore` used to do exactly this — `Repository.preferenceStoreDispatcher` now
-  keeps the preference store on the caller's thread under `FakeRepository` (see below). For any
-  other hop onto a real dispatcher, either inject the dispatcher (see "Refactoring for
+  mid-flight. `DataStore` avoids this because `FakeRepository.preferenceStoreDispatcher` keeps the
+  preference store on the caller's thread (see "DataStore in tests"). For any other hop onto a real
+  dispatcher, either inject the dispatcher (see "Refactoring for
   testability") or have the function return its `Job` and `join()` it.
 - **`uiEvent.first()` returns immediately with the wrong event** (or never returns). You started
   collecting *after* the producer emitted, into a 0-replay `SharedFlow`. Wrap the collection in
@@ -294,13 +294,13 @@ restore them yourself in `@AfterTest`.
 ## Reference implementations
 
 - ViewModel + flows + Koin: `commonTest/kotlin/fr/husi/ui/MainViewModelTest.kt`
-- ViewModel without Koin (pure state): `commonTest/kotlin/fr/husi/ui/AssetsScreenViewModelTest.kt`
+- ViewModel without Koin (pure state): `commonTest/kotlin/fr/husi/ui/profile/HttpSettingsViewModelTest.kt`
 - StateFlow `isDirty` collector pattern:
   `commonTest/kotlin/fr/husi/ui/profile/ProfileEditorViewModelTest.kt`
-- Pure logic, no base class: `commonTest/kotlin/fr/husi/fmt/V2RayFmtTest.kt`,
+- Pure logic, no base class: `commonTest/kotlin/fr/husi/fmt/v2ray/V2RayFmtTest.kt`,
   `commonTest/kotlin/fr/husi/ktx/MapsKtTest.kt`
 - HTTP-touching code with fakes:
-  `commonTest/kotlin/fr/husi/ui/tools/SpeedTestScreenViewModelTest.kt`
+  `commonTest/kotlin/fr/husi/bg/AppUpdateDownloadTest.kt`
 - Background scheduling: `commonTest/kotlin/fr/husi/bg/SubscriptionAutoUpdateTest.kt`,
   `RouteAssetAutoUpdateTest.kt`
 

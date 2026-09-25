@@ -68,8 +68,7 @@ Inside a group:
 ## Segmented rows
 
 A group looks like a native Android preference group: every row is its own rounded surface, and the
-group only supplies the large outer radius. There are no divider lines, and there is no
-`PreferenceDivider` — it was removed.
+group only supplies the large outer radius. There are no divider lines between rows.
 
 `preferenceGroup` is a transparent `Column` clipped to `PreferenceGroupDefaults.groupShape`, laid
 out with `PreferenceGroupDefaults.itemArrangement` (a 2dp gap). Each row draws
@@ -174,28 +173,28 @@ internal expect fun PlatformGeneralOptions(needReload: () -> Unit)
 
 with matching `actual` functions in Android and desktop source sets.
 
-When replacing old lazy-list platform hooks:
-
-- Delete unused declarations from `SettingsScreenPlatform.kt`.
-- Delete matching unused actuals from Android and desktop files.
-- Remove imports that existed only for deleted lazy-list APIs, such as `LazyListScope` and
-  `PreferenceType`.
-
 ## Search Checks
+
+Before editing, list the row wrappers that already exist and the semantic mask shapes, so a new
+row reuses them instead of importing upstream or defining a local shape:
+
+```bash
+rg -n "^fun " composeApp/src/commonMain/kotlin/fr/husi/compose/PreferenceItems.kt
+rg -n "fun \\w+\\(\\): Shape" composeApp/src/commonMain/kotlin/fr/husi/compose/Preference.kt
+```
 
 Before finishing, run targeted searches:
 
 ```bash
-rg -n "PreferenceDivider|HorizontalDivider" composeApp/src/commonMain/kotlin/fr/husi/ui/settings composeApp/src/commonMain/kotlin/fr/husi/ui/profile
+rg -n "HorizontalDivider" composeApp/src/commonMain/kotlin/fr/husi/ui/settings composeApp/src/commonMain/kotlin/fr/husi/ui/profile
 rg -n "^import me\\.zhanghai\\.compose\\.preference\\.(Preference|SwitchPreference|TwoTargetSwitchPreference|ListPreference|MultiSelectListPreference|TextFieldPreference|SliderPreference|ProvidePreferenceLocals)$" composeApp/src
-rg -n "LazyListScope\\.(autoConnect|platformGeneralOptions|platformSecurityOptions|meteredNetworkSetting|platformRouteOptions|platformMiscOptions|disableProcessText|httpProxyBypass)" composeApp/src
 rg -n "icon = \\{\\s*Icon\\(" composeApp/src/commonMain/kotlin/fr/husi/ui/settings/ composeApp/src/androidMain/kotlin/fr/husi/ui/SettingsScreenPlatform.android.kt composeApp/src/desktopMain/kotlin/fr/husi/ui/SettingsScreenPlatform.desktop.kt
 rg -n "IconMaskShapes\\.(risk|credential|route)\\(\\)" composeApp/src/commonMain/kotlin/fr/husi/ui composeApp/src/commonMain/kotlin/fr/husi/compose/Preference.kt
 ```
 
-The first three searches must return nothing: a divider line inside a group, an upstream row import,
-and an obsolete lazy-list platform hook are all mistakes. The fourth should only return intentional
-exceptions. The last should show only semantically matched usages.
+The first two searches must return nothing: a divider line inside a group and an upstream row import
+are both mistakes. The third should only return intentional exceptions. The last should show only
+semantically matched usages.
 
 Also check that any nested `Column` you added inside a group carries
 `verticalArrangement = PreferenceGroupDefaults.itemArrangement`.

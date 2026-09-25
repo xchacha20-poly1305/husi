@@ -97,8 +97,6 @@ It applies the current house style:
 - `MaterialTheme.colorScheme.onSurfaceVariant`
 - `HorizontalDivider` with `MenuDefaults.HorizontalDividerPadding`
 
-If the helper is missing in an older branch, add it instead of duplicating the style in each screen.
-
 ## Item shapes after headers
 
 Headers do not count as menu items for item shape indexing. Count only the actionable rows in that
@@ -205,14 +203,14 @@ After editing:
 
 ```bash
 rg -n "MenuDefaults\\.Label" composeApp/src/commonMain/kotlin/fr/husi -g '*.kt'
-./gradlew :composeApp:compileKotlinDesktop
+make test_gradle
 git diff --check -- composeApp/src/commonMain/kotlin/fr/husi
 ```
 
 If the change touches Android-only UI or resources, also run:
 
 ```bash
-./gradlew :composeApp:compileAndroidMain
+make apk_debug
 ```
 
 Known reference implementations:

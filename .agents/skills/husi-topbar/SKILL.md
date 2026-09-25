@@ -31,7 +31,7 @@ choice determines which pattern to use.
 - The fill depends on the `hazeState` passed to the bar:
   - **Non-null**: the capsule is clipped to its shape and blurs the content behind it
     (`hazeBlur(HazeInput.Backdrop(hazeState), CapsuleDefaults.blurStyle())`). The tint is
-    `surfaceContainer` at 0.5 alpha (`CapsuleBlurTintAlpha`); the header passes its scroll-animated
+    `surfaceContainer` at 0.5 alpha (applied inside `CapsuleDefaults.blurStyle`); the header passes its scroll-animated
     color as `tintColor` instead. The blur tint alpha is separate from the plain fill below, because
     the blur already keeps text readable.
   - **`null`**: the capsule draws a plain `CapsuleDefaults.containerColor` fill (`surfaceContainer`
@@ -61,9 +61,8 @@ Three pieces, always together:
 `hazeState` is a required parameter with no default, so every call site states whether it blurs.
 Pass `null` only when nothing can scroll under the bar: the content is placed with
 `Modifier.paddingExceptBottom(innerPadding)` / `Modifier.padding(innerPadding)`, or the bar sits in
-a plain `Column` above the content (`ProfilePickerContent`). Current `null` screens: `StunScreen`,
-`NetworkQualityScreen`, `RuleSetMatchScreen`, `ConfigSettingScreen`, `TaskerActivity`,
-`ProfilePickerContent`.
+a plain `Column` above the content (`ProfilePickerContent`). Find the current `null` call sites with
+`rg -n "hazeState = null" composeApp/src`.
 
 ## Long titles
 
