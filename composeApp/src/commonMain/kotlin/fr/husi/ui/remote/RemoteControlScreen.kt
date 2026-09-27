@@ -62,7 +62,6 @@ import fr.husi.resources.phonelink_ring
 import fr.husi.resources.remote_control
 import fr.husi.resources.remote_delete_confirm
 import fr.husi.resources.remote_empty
-import fr.husi.resources.remote_reconnecting
 import fr.husi.resources.remote_server_add
 import fr.husi.resources.remote_target_local
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -285,7 +284,6 @@ private fun RemoteServerCard(
 internal fun remoteSessionStatusText(state: RemoteSessionState): String {
     return when (state) {
         RemoteSessionState.CONNECTING -> stringResource(Res.string.connecting)
-        RemoteSessionState.RECONNECTING -> stringResource(Res.string.remote_reconnecting)
         RemoteSessionState.CONNECTED -> stringResource(Res.string.connected)
     }
 }

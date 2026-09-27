@@ -800,7 +800,8 @@
     <string name="remote_target_local">Локальное устройство</string>
     <string name="remote_target_manage">Управление серверами…</string>
     <string name="remote_empty">Удаленных серверов пока нет</string>
-    <string name="remote_reconnecting">Переподключение…</string>
+    <string name="remote_connect_failed">Не удалось подключиться к %1$s</string>
+    <string name="remote_disconnected_from">Отключено от %1$s</string>
     <string name="remote_disconnect">Отключиться</string>
     <string name="remote_test_success">Подключено к %1$s</string>
     <string name="remote_uptime">Аптайм %1$s</string>

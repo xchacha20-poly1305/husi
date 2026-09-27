@@ -844,7 +844,8 @@
     <string name="remote_target_local">本机</string>
     <string name="remote_target_manage">管理服务器…</string>
     <string name="remote_empty">还没有远程服务器</string>
-    <string name="remote_reconnecting">正在重连…</string>
+    <string name="remote_connect_failed">无法连接到 %1$s</string>
+    <string name="remote_disconnected_from">已与 %1$s 断开连接</string>
     <string name="remote_disconnect">断开</string>
     <string name="remote_test_success">已连接到 %1$s</string>
     <string name="remote_uptime">已运行 %1$s</string>

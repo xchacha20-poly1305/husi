@@ -867,7 +867,8 @@
     <string name="remote_target_local">Local device</string>
     <string name="remote_target_manage">Manage servers…</string>
     <string name="remote_empty">No remote servers yet</string>
-    <string name="remote_reconnecting">Reconnecting…</string>
+    <string name="remote_connect_failed">Failed to connect to %1$s</string>
+    <string name="remote_disconnected_from">Disconnected from %1$s</string>
     <string name="remote_disconnect">Disconnect</string>
     <string name="remote_test_success">Connected to %1$s</string>
     <string name="remote_uptime">Uptime %1$s</string>

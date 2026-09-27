@@ -38,6 +38,7 @@ import fr.husi.compose.material3.NavigationSuite
 import fr.husi.compose.material3.NavigationSuiteItem
 import fr.husi.compose.material3.Text
 import fr.husi.compose.navigationBarsAlwaysInsets
+import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.restartApplication
@@ -69,12 +70,15 @@ import fr.husi.resources.permission_denied
 import fr.husi.resources.plugin_unknown
 import fr.husi.resources.query_package_denied
 import fr.husi.resources.question_mark
+import fr.husi.resources.remote_connect_failed
+import fr.husi.resources.remote_disconnected_from
 import fr.husi.resources.settings
 import fr.husi.resources.transform
 import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
+import fr.husi.ui.remote.serverDisplayName
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
@@ -83,6 +87,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.getKoin
+import org.koin.compose.koinInject
 import org.koin.compose.navigation3.EntryProvider
 import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.compose.scope.UnboundKoinScope
@@ -231,6 +236,26 @@ private fun MainScreenContent(
                     showServiceAlert = alert
                 }
             }
+        }
+    }
+
+    val remoteControl = koinInject<RemoteControlManager>()
+    LaunchedEffect(remoteControl) {
+        remoteControl.failures.collect { failure ->
+            val description = if (failure.wasConnected) {
+                Res.string.remote_disconnected_from
+            } else {
+                Res.string.remote_connect_failed
+            }
+            snackbarEmitter.show(
+                StringOrRes.Compound(
+                    parts = listOf(
+                        StringOrRes.ResWithParams(description, serverDisplayName(failure.server)),
+                        StringOrRes.Direct(failure.message),
+                    ),
+                    separator = "\n",
+                ),
+            )
         }
     }
 

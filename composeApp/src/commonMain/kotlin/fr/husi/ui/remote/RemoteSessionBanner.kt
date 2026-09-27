@@ -36,7 +36,6 @@ import fr.husi.compose.material3.Text
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.remote.RemoteSession
 import fr.husi.core.remote.RemoteSessionState
-import fr.husi.ktx.blankAsNull
 import fr.husi.resources.Res
 import fr.husi.resources.cast_connected
 import fr.husi.resources.computer_cancel
@@ -153,7 +152,6 @@ private fun SessionStateIndicator(state: RemoteSessionState, color: Color) {
 private fun sessionAccentColor(state: RemoteSessionState): Color = when (state) {
     RemoteSessionState.CONNECTED -> MaterialTheme.colorScheme.primary
     RemoteSessionState.CONNECTING -> MaterialTheme.colorScheme.tertiary
-    RemoteSessionState.RECONNECTING -> MaterialTheme.colorScheme.error
 }
 
 @Composable
@@ -163,7 +161,7 @@ private fun bannerStatusText(session: RemoteSession, now: Long): String {
     if (session.state == RemoteSessionState.CONNECTED && startedAt != null && startedAt > 0L) {
         return "$status · ${stringResource(Res.string.remote_uptime, formatUptime(startedAt, now))}"
     }
-    return session.lastError.blankAsNull()?.let { "$status · $it" } ?: status
+    return status
 }
 
 internal fun formatUptime(startedAtMillis: Long, nowMillis: Long): String {

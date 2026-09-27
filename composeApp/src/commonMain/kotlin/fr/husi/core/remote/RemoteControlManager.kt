@@ -13,9 +13,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -29,7 +32,6 @@ import kotlin.time.Duration.Companion.seconds
 enum class RemoteSessionState {
     CONNECTING,
     CONNECTED,
-    RECONNECTING,
 }
 
 data class RemoteSession(
@@ -37,7 +39,12 @@ data class RemoteSession(
     val client: CoreClient,
     val state: RemoteSessionState,
     val startedAt: Long? = null,
-    val lastError: String? = null,
+)
+
+data class RemoteSessionFailure(
+    val server: RemoteServer,
+    val wasConnected: Boolean,
+    val message: String,
 )
 
 fun interface RemoteClientFactory {
@@ -49,7 +56,6 @@ class RemoteControlManager(
     private val dao: RemoteServerEntity.Dao,
     private val remoteClientFactory: RemoteClientFactory,
     private val probeInterval: Duration = DEFAULT_PROBE_INTERVAL,
-    private val reconnectAfterFailures: Int = DEFAULT_RECONNECT_AFTER_FAILURES,
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
@@ -68,6 +74,12 @@ class RemoteControlManager(
 
     val targetConnected: StateFlow<Boolean>
         field = MutableStateFlow(false)
+
+    val failures: SharedFlow<RemoteSessionFailure>
+        field = MutableSharedFlow(
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     val isRemote: Boolean
         get() = session.value != null
@@ -163,44 +175,53 @@ class RemoteControlManager(
         }
     }
 
+    /**
+     * Probes [client] until the session ends. The first failed probe ends the
+     * session and falls back to the local device: staying in remote mode would
+     * only make every command fail at the point of use.
+     */
     private fun startMonitorLocked(client: CoreClient, serverId: Long) {
         monitorJob = scope.launch {
-            var failures = 0
             while (isActive) {
                 try {
                     client.probe()
-                    failures = 0
-                    val current = session.value
-                    if (current == null || current.server.id != serverId) return@launch
-                    val startedAt = current.startedAt
-                        ?: runCatching { client.getStartedAt() }.getOrNull()?.takeIf { it > 0L }
-                    if (current.state != RemoteSessionState.CONNECTED || current.startedAt != startedAt) {
-                        session.value = current.copy(
-                            state = RemoteSessionState.CONNECTED,
-                            startedAt = startedAt,
-                            lastError = null,
-                        )
-                    }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    failures += 1
                     Logs.w("remote probe failed", e)
-                    val current = session.value
-                    if (current == null || current.server.id != serverId) return@launch
-                    val nextState = if (failures >= reconnectAfterFailures) {
-                        RemoteSessionState.RECONNECTING
-                    } else {
-                        current.state
-                    }
+                    failSession(serverId, e)
+                    return@launch
+                }
+                val current = session.value
+                if (current == null || current.server.id != serverId) return@launch
+                val startedAt = current.startedAt
+                    ?: runCatching { client.getStartedAt() }.getOrNull()?.takeIf { it > 0L }
+                if (current.state != RemoteSessionState.CONNECTED || current.startedAt != startedAt) {
                     session.value = current.copy(
-                        state = nextState,
-                        lastError = e.message,
+                        state = RemoteSessionState.CONNECTED,
+                        startedAt = startedAt,
                     )
                 }
                 delay(probeInterval)
             }
         }
+    }
+
+    private suspend fun failSession(serverId: Long, error: Exception) {
+        val failure = access.withLock {
+            val current = session.value
+            if (current == null || current.server.id != serverId) return
+            // The caller is the monitor itself; it ends by returning,
+            // so it must not be canceled halfway through closing the session.
+            monitorJob = null
+            closeSessionLocked(keepActiveId = false)
+            RemoteSessionFailure(
+                server = current.server,
+                wasConnected = current.state == RemoteSessionState.CONNECTED,
+                message = error.message ?: error.toString(),
+            )
+        }
+        failures.emit(failure)
     }
 
     private suspend fun closeSessionLocked(keepActiveId: Boolean) {
@@ -220,6 +241,5 @@ class RemoteControlManager(
     companion object {
         const val LOCAL_TARGET_ID = 0L
         val DEFAULT_PROBE_INTERVAL = 2.seconds
-        const val DEFAULT_RECONNECT_AFTER_FAILURES = 3
     }
 }

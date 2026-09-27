@@ -8,6 +8,7 @@ import fr.husi.proto.daemon.Version
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -22,6 +23,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
@@ -36,14 +38,12 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
     private fun newManager(
         factory: RemoteClientFactory,
         probeInterval: Duration = 100.milliseconds,
-        reconnectAfterFailures: Int = 3,
     ): RemoteControlManager {
         return RemoteControlManager(
             localClient = localClient,
             dao = dao,
             remoteClientFactory = factory,
             probeInterval = probeInterval,
-            reconnectAfterFailures = reconnectAfterFailures,
             dispatcher = dispatcher,
         )
     }
@@ -85,31 +85,53 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
     }
 
     @Test
-    fun `consecutive probe failures enter reconnecting then recover`() = runTest(dispatcher.scheduler) {
+    fun `failed first probe falls back to local and reports connect failure`() = runTest(dispatcher.scheduler) {
         val remote = FakeCoreClient()
         remote.probeThrowable = CoreRpcException("Unavailable", "down")
-        val manager = newManager(
-            factory = { _, _ -> remote },
-            reconnectAfterFailures = 3,
-        )
+        val manager = newManager({ _, _ -> remote })
+        try {
+            runCurrent()
+            val failure = backgroundScope.async { manager.failures.first() }
+            manager.enterRemote(server())
+            runCurrent()
+
+            assertEquals(
+                RemoteSessionFailure(server(), wasConnected = false, message = "down"),
+                failure.await(),
+            )
+            assertNull(manager.session.value)
+            assertEquals(localClient, manager.activeClient.value)
+            assertTrue(remote.closed)
+            assertEquals(1, remote.probeCalls)
+            assertEquals(0L, DataStore.activeRemoteServerId.get())
+        } finally {
+            manager.close()
+        }
+    }
+
+    @Test
+    fun `dropped connection falls back to local without retrying`() = runTest(dispatcher.scheduler) {
+        val remote = FakeCoreClient()
+        val manager = newManager({ _, _ -> remote })
         try {
             runCurrent()
             manager.enterRemote(server())
             runCurrent()
-            assertEquals(RemoteSessionState.CONNECTING, manager.session.value?.state)
-            assertFalse(manager.targetConnected.value)
-
-            advanceTimeBy(100.milliseconds)
-            runCurrent()
-            advanceTimeBy(100.milliseconds)
-            runCurrent()
-            assertEquals(RemoteSessionState.RECONNECTING, manager.session.value?.state)
-
-            remote.probeThrowable = null
-            advanceTimeBy(100.milliseconds)
-            runCurrent()
             assertEquals(RemoteSessionState.CONNECTED, manager.session.value?.state)
-            assertTrue(manager.targetConnected.value)
+
+            val failure = backgroundScope.async { manager.failures.first() }
+            remote.probeThrowable = CoreRpcException("Unavailable", "down")
+            advanceTimeBy(100.milliseconds)
+            runCurrent()
+            val probeCallsAtFailure = remote.probeCalls
+            advanceTimeBy(1.seconds)
+            runCurrent()
+
+            assertTrue(failure.await().wasConnected)
+            assertEquals(probeCallsAtFailure, remote.probeCalls)
+            assertNull(manager.session.value)
+            assertEquals(localClient, manager.activeClient.value)
+            assertFalse(manager.targetConnected.value)
         } finally {
             manager.close()
         }
