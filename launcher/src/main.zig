@@ -429,10 +429,38 @@ fn selectJavaCommand(io: Io, allocator: mem.Allocator, env_map: *process.Environ
     return allocator.dupe(u8, "java");
 }
 
-pub fn main(init: std.process.Init) !u8 {
-    const io = init.io;
-    const arena = init.arena;
+// `std.process.Init` would cost ~400 kB RSS for the whole lifetime: a 256 kB
+// alternate signal stack plus SmpAllocator slabs holding the environment map.
+// Take `Init.Minimal` instead and build a single-threaded runtime.
+// The signal stack only serves the segfault handler, which exists only with
+// runtime safety, so release builds drop it.
+pub const std_options: std.Options = .{
+    .signal_stack_size = if (std.debug.runtime_safety) (std.Options{}).signal_stack_size else null,
+};
+
+pub fn main(init: process.Init.Minimal) !u8 {
+    // Only the one-time setup below allocates from the arena; it never grows
+    // afterwards, however many times the app restarts.
+    var arena: std.heap.ArenaAllocator = .init(std.heap.page_allocator);
+    defer arena.deinit();
     const allocator = arena.allocator();
+
+    // `Threaded` allocates scratch memory on every spawn, so it must not share
+    // the arena: restarts would accumulate that scratch memory forever.
+    // `page_allocator` hands every freed block back to the OS.
+    var threaded: Io.Threaded = .init(std.heap.page_allocator, .{
+        .async_limit = .nothing,
+        .concurrent_limit = .nothing,
+        .argv0 = .init(init.args),
+        .environ = init.environ,
+    });
+    defer threaded.deinit();
+    const io = threaded.io();
+
+    var environ_map = init.environ.createMap(allocator) catch |err| {
+        std.debug.print("parse environment failed: {}\n", .{err});
+        return 1;
+    };
 
     const runtime = resolveRuntimePaths(io, allocator) catch |err| {
         std.debug.print("resolve_runtime_paths failed: {}\n", .{err});
@@ -442,7 +470,7 @@ pub fn main(init: std.process.Init) !u8 {
     const java_opts_template = try std.fmt.allocPrint(allocator, "{s}/desktop-java-opts.conf.template", .{runtime.launcher_dir});
     const app_args_template = try std.fmt.allocPrint(allocator, "{s}/desktop-app-args.conf.template", .{runtime.launcher_dir});
 
-    const user_config = resolveUserConfigPaths(allocator, init.environ_map) catch |err| {
+    const user_config = resolveUserConfigPaths(allocator, &environ_map) catch |err| {
         std.debug.print("resolve_user_config_paths failed: {}\n", .{err});
         return 1;
     };
@@ -463,12 +491,12 @@ pub fn main(init: std.process.Init) !u8 {
         };
     }
 
-    const java_command = selectJavaCommand(io, allocator, init.environ_map, runtime) catch |err| {
+    const java_command = selectJavaCommand(io, allocator, &environ_map, runtime) catch |err| {
         std.debug.print("select_java_command failed: {}\n", .{err});
         return 1;
     };
 
-    appendAotCacheOptions(io, allocator, init.environ_map, java_command, runtime.jar_path, user_config.config_dir, &java_opts) catch |err| {
+    appendAotCacheOptions(io, allocator, &environ_map, java_command, runtime.jar_path, user_config.config_dir, &java_opts) catch |err| {
         std.debug.print("WARN: append_aot_cache_options failed: {}\n", .{err});
     };
 
@@ -489,7 +517,7 @@ pub fn main(init: std.process.Init) !u8 {
     try child_argv.append(allocator, runtime.jar_path);
     for (app_args.items) |arg| try child_argv.append(allocator, arg);
 
-    var args_iterator = try process.Args.iterateAllocator(init.minimal.args, allocator);
+    var args_iterator = try process.Args.iterateAllocator(init.args, allocator);
     defer args_iterator.deinit();
     _ = args_iterator.skip();
     while (args_iterator.next()) |arg| {
