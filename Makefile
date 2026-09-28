@@ -27,11 +27,13 @@ LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TA
 # never gets to split it — commas have to become spaces here instead.
 COMMA = ,
 
-# ABI floors for the husi-core shim, pinned to match the libhusicore.* sidecar it
-# loads: the Go library imports nothing newer than glibc 2.17, and libcore/build.sh
-# targets macOS 12.0. Left unpinned, zig picks up statx/copy_file_range/getrandom
-# and would make the shim refuse to start on systems the core itself supports.
-CORE_SHIM_GLIBC_VERSION = 2.17
+# glibc floor shared by the husi-core shim and the libhusicore.so sidecar it loads;
+# exported so libcore/build.sh targets the same version. Prebuilt Cronet needs
+# nothing newer than 2.17. A newer target lets zig's libc++ pull in
+# statx/copy_file_range/getrandom and binds pow to its 2.29 symbol version,
+# raising the floor with no functional gain.
+export LINUX_GLIBC_VERSION = 2.17
+# macOS floor for the shim, matching the 12.0 deployment target in libcore/build.sh.
 CORE_SHIM_MACOS_VERSION = 12.0
 
 .PHONY: libcore libcore_android libcore_desktop_common libcore_desktop core_desktop aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets icon desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_jbr desktop_package_windows_all desktop_uberjar launcher lint_go proto proto_install test_go test_no_go_core_binary test_zig plugin generate_option lint_go_linux lint_go_android lint_go_windows lint_go_install fmt_go fmt_go_install
@@ -70,8 +72,8 @@ core_desktop:
 		platform="$${target%%/*}"; \
 		arch="$${target#*/}"; \
 		case "$$platform/$$arch" in \
-			linux/amd64) zig_target=x86_64-linux-gnu.$(CORE_SHIM_GLIBC_VERSION); zig_os=linux; zig_arch=x86_64; bin_name=husi-core; lib_name=libhusicore.so ;; \
-			linux/arm64) zig_target=aarch64-linux-gnu.$(CORE_SHIM_GLIBC_VERSION); zig_os=linux; zig_arch=aarch64; bin_name=husi-core; lib_name=libhusicore.so ;; \
+			linux/amd64) zig_target=x86_64-linux-gnu.$(LINUX_GLIBC_VERSION); zig_os=linux; zig_arch=x86_64; bin_name=husi-core; lib_name=libhusicore.so ;; \
+			linux/arm64) zig_target=aarch64-linux-gnu.$(LINUX_GLIBC_VERSION); zig_os=linux; zig_arch=aarch64; bin_name=husi-core; lib_name=libhusicore.so ;; \
 			darwin/arm64) zig_target=aarch64-macos.$(CORE_SHIM_MACOS_VERSION); zig_os=macos; zig_arch=aarch64; bin_name=husi-core; lib_name=libhusicore.dylib ;; \
 			darwin/amd64) echo "darwin/amd64 is dropped: androidx sqlite-bundled has no osx_x64 binary, see $(DARWIN_AMD64_SQLITE_ISSUE)"; exit 1 ;; \
 			windows/amd64) zig_target=x86_64-windows; zig_os=windows; zig_arch=x86_64; bin_name=husi-core.exe; lib_name=husicore.dll ;; \

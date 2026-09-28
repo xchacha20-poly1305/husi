@@ -96,7 +96,7 @@ sqlite-bundled has no binary for them, so the app cannot open its database there
 [issuetracker 495864182](https://issuetracker.google.com/issues/495864182) for `osx_x64` and
 [issuetracker 426464784](https://issuetracker.google.com/issues/426464784) for `windows_arm64`.
 
-Linux desktop targets use `zig cc` / `zig c++` with a glibc 2.31 target for the `with_naive_outbound` build; the
+Linux desktop targets use `zig cc` / `zig c++` with a glibc 2.17 target (`LINUX_GLIBC_VERSION` in the Makefile) for the `with_naive_outbound` build; the
 required prebuilt Cronet library is downloaded through Go modules, so no `cronet-go` checkout is needed. Darwin
 targets use Xcode on macOS, or Zig plus an explicit macOS SDK path via `DARWIN_SDK` or `--darwinsdk` on other hosts.
 

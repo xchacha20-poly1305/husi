@@ -28,6 +28,8 @@ JNI_INCLUDE=""
 EXTERNAL_DARWIN_SDKROOT="${DARWIN_SDKROOT:-${SDKROOT:-}}"
 EXTERNAL_MACOSX_DEPLOYMENT_TARGET="${DARWIN_MACOSX_DEPLOYMENT_TARGET:-${MACOSX_DEPLOYMENT_TARGET:-}}"
 DARWIN_SDKROOT="$EXTERNAL_DARWIN_SDKROOT"
+# The Makefile exports the value it also pins the husi-core shim to.
+LINUX_GLIBC_VERSION="${LINUX_GLIBC_VERSION:-2.17}"
 
 resolve_host_desktop_target() {
     local host_os
@@ -246,10 +248,10 @@ apply_naive_toolchain_env() {
     fi
     case "$desktop_target" in
     linux/amd64)
-        zig_target="x86_64-linux-gnu.2.31"
+        zig_target="x86_64-linux-gnu.$LINUX_GLIBC_VERSION"
         ;;
     linux/arm64)
-        zig_target="aarch64-linux-gnu.2.31"
+        zig_target="aarch64-linux-gnu.$LINUX_GLIBC_VERSION"
         ;;
     *)
         echo "Unsupported naive desktop target without cronet-go toolchain: $desktop_target"
