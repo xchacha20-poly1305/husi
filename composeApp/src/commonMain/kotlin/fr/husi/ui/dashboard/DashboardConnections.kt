@@ -37,6 +37,11 @@ import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.theme.LogColors
 import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
+import fr.husi.resources.connection_empty_active
+import fr.husi.resources.connection_empty_all
+import fr.husi.resources.connection_empty_closed
+import fr.husi.resources.connection_empty_no_status
+import fr.husi.resources.connection_empty_search
 import fr.husi.resources.connection_speed
 import fr.husi.resources.connection_status_active
 import fr.husi.resources.connection_status_closed
@@ -44,6 +49,7 @@ import fr.husi.resources.delete_forever
 import fr.husi.resources.traffic
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -56,6 +62,21 @@ internal fun DashboardConnectionsScreen(
     closeConnection: (uuid: String) -> Unit,
     onConnectionClick: (uuid: String) -> Unit,
 ) {
+    if (uiState.connections.isEmpty()) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(contentPadding),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(uiState.emptyConnectionsReason.message),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        return
+    }
+
     val itemSpacing = 12.dp
     val listState = rememberLazyListState()
 
@@ -123,6 +144,15 @@ internal fun DashboardConnectionsScreen(
         }
     }
 }
+
+private val EmptyConnectionsReason.message: StringResource
+    get() = when (this) {
+        EmptyConnectionsReason.NO_CONNECTIONS -> Res.string.connection_empty_all
+        EmptyConnectionsReason.NO_ACTIVE -> Res.string.connection_empty_active
+        EmptyConnectionsReason.NO_CLOSED -> Res.string.connection_empty_closed
+        EmptyConnectionsReason.NO_MATCH -> Res.string.connection_empty_search
+        EmptyConnectionsReason.NO_STATUS_SELECTED -> Res.string.connection_empty_no_status
+    }
 
 @Composable
 private fun ConnectionCard(

@@ -604,6 +604,11 @@
     <string name="connection_status">Статус соединения</string>
     <string name="connection_status_active">Активно</string>
     <string name="connection_status_closed">Закрыто</string>
+    <string name="connection_empty_all">Нет соединений</string>
+    <string name="connection_empty_active">Нет активных соединений</string>
+    <string name="connection_empty_closed">Нет закрытых соединений</string>
+    <string name="connection_empty_search">Совпадающих соединений нет</string>
+    <string name="connection_empty_no_status">Статус соединения не выбран</string>
     <string name="can_not_be_empty">Не может быть пустым</string>
     <string name="action_test_config">Тест конфигурации</string>
     <string name="action_format">Формат</string>

@@ -68,6 +68,7 @@ data class DashboardState(
     val sortMode: Int = TrafficSortMode.START,
     val isDescending: Boolean = false,
     val queryOptions: Byte = SHOW_TRACKER_ACTIVELY,
+    val isSearchingConnections: Boolean = false,
 
     val memory: Long = 0,
     val goroutines: Int = 0,
@@ -104,6 +105,24 @@ data class DashboardState(
 
     val showActivate = queryOptions.showsActiveConnections()
     val showClosed = queryOptions.showsClosedConnections()
+
+    /** Why [connections] would be empty under the current filter and search. */
+    val emptyConnectionsReason: EmptyConnectionsReason
+        get() = when {
+            !showActivate && !showClosed -> EmptyConnectionsReason.NO_STATUS_SELECTED
+            isSearchingConnections -> EmptyConnectionsReason.NO_MATCH
+            showActivate && showClosed -> EmptyConnectionsReason.NO_CONNECTIONS
+            showActivate -> EmptyConnectionsReason.NO_ACTIVE
+            else -> EmptyConnectionsReason.NO_CLOSED
+        }
+}
+
+enum class EmptyConnectionsReason {
+    NO_CONNECTIONS,
+    NO_ACTIVE,
+    NO_CLOSED,
+    NO_MATCH,
+    NO_STATUS_SELECTED,
 }
 
 private fun Byte.showsActiveConnections(): Boolean =
@@ -168,6 +187,7 @@ private data class ConnectionQuery(
 ) {
     val showActive = queryOptions.showsActiveConnections()
     val showClosed = queryOptions.showsClosedConnections()
+    val isSearching = search.isNotEmpty()
 }
 
 @Immutable
@@ -243,6 +263,7 @@ class DashboardViewModel(
                     sortMode = query.sortMode,
                     isDescending = query.isDescending,
                     queryOptions = query.queryOptions,
+                    isSearchingConnections = query.isSearching,
                 )
             }
         }
@@ -663,7 +684,7 @@ class DashboardViewModel(
         return snapshot
             .filter { connection ->
                 val show = if (connection.isClosed) query.showClosed else query.showActive
-                show && (search.isEmpty() || connection.match(search))
+                show && (!query.isSearching || connection.match(search))
             }
             .sortedWith(buildComparator(query.sortMode, query.isDescending))
     }

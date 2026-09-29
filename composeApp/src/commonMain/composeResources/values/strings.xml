@@ -811,6 +811,11 @@
     <string name="connection_status">Connection Status</string>
     <string name="connection_status_active">Active</string>
     <string name="connection_status_closed">Closed</string>
+    <string name="connection_empty_all">No connections</string>
+    <string name="connection_empty_active">No active connections</string>
+    <string name="connection_empty_closed">No closed connections</string>
+    <string name="connection_empty_search">No matching connections</string>
+    <string name="connection_empty_no_status">No connection status selected</string>
     <string name="can_not_be_empty">Cann\'t be empty</string>
     <string name="juicity_provider">Juicity Provider</string>
     <string name="action_format">Format</string>

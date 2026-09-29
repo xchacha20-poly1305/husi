@@ -681,6 +681,11 @@
     <string name="connection_status">連線狀態</string>
     <string name="connection_status_active">活躍中</string>
     <string name="connection_status_closed">已關閉</string>
+    <string name="connection_empty_all">暫無連線</string>
+    <string name="connection_empty_active">暫無活動連線</string>
+    <string name="connection_empty_closed">暫無已關閉連線</string>
+    <string name="connection_empty_search">沒有匹配的連線</string>
+    <string name="connection_empty_no_status">未選擇連線狀態</string>
     <string name="can_not_be_empty">不可為空</string>
     <string name="juicity_provider">Juicity 提供程式</string>
     <string name="action_format">格式化</string>
