@@ -42,7 +42,7 @@ nucleus = "2.5.18"
 composeNativeTray = "2.1.6"
 agp = "9.4.1"
 kotlinGradlePlugin = "2.4.20"
-haze = "2.0.0"
+haze = "2.0.1"
 
 [libraries]
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
