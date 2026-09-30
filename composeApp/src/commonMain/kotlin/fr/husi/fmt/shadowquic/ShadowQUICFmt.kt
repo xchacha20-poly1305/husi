@@ -157,6 +157,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(
     } else {
         null
     }
+    // v0.4.0 added tag, which not adapt with old versions. Keep no tag until breaking change.
     return buildJsonObject {
         putJsonObject("inbound") {
             put("type", "socks")
