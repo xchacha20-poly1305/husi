@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.fmt.LOCALHOST4
+import fr.husi.fmt.RuleApps
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.ktx.Logs
@@ -26,6 +27,7 @@ import fr.husi.resources.reboot_required
 import fr.husi.ui.VpnRequestActivity
 import fr.husi.utils.Subnet
 import kotlinx.coroutines.runBlocking
+import java.util.regex.PatternSyntaxException
 import android.net.VpnService as BaseVpnService
 
 @SuppressLint("VpnServicePolicy")
@@ -204,13 +206,12 @@ class VpnService : BaseVpnService(),
         // app route
         val packageName = packageName
         val proxyApps = DataStore.proxyApps.getBlocking()
-        var bypass = DataStore.bypassMode.getBlocking()
-        val needBypassRootUid = data.proxy!!.metadata.trafficProfiles.any {
+        val metadata = data.proxy!!.metadata
+        val needBypassRootUid = metadata.trafficProfiles.any {
             it.hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
         }
 
         if (proxyApps || needBypassRootUid) {
-            val individual = mutableSetOf<String>()
             val allApps by lazy {
                 packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS).filter {
                     when (it.packageName) {
@@ -220,24 +221,28 @@ class VpnService : BaseVpnService(),
                     }
                 }.map { it.packageName }
             }
-            if (proxyApps) {
-                individual.addAll(DataStore.packages.getBlocking().filter { it.isNotBlank() })
-                if (bypass && needBypassRootUid) {
-                    val individualNew = allApps.toMutableList()
-                    individualNew.removeAll(individual)
-                    individual.clear()
-                    individual.addAll(individualNew)
-                    bypass = false
-                }
+            val selectedApps = DataStore.packages.getBlocking().filterTo(HashSet()) { it.isNotBlank() }
+            val bypassMode = DataStore.bypassMode.getBlocking()
+            // Excluding the root uid is only possible through an allow list.
+            val bypass = proxyApps && bypassMode && !needBypassRootUid
+            val individual = when {
+                !proxyApps -> allApps
+                bypassMode && needBypassRootUid -> allApps - selectedApps
+                else -> selectedApps
+            }.toMutableSet()
+
+            // Rules matching an app only work if that app's traffic enters the VPN.
+            val ruleApps = resolveRuleApps(metadata.ruleApps) { allApps }
+            if (bypass) {
+                individual.removeAll(ruleApps)
             } else {
-                individual.addAll(allApps)
-                bypass = false
+                individual.addAll(ruleApps)
             }
 
             val added = mutableListOf<String>()
 
             individual.apply {
-                // Allow Matsuri itself using VPN.
+                // Allow husi itself using VPN.
                 remove(packageName)
                 if (!bypass) add(packageName)
             }.forEach {
@@ -284,6 +289,26 @@ class VpnService : BaseVpnService(),
         conn = builder.establish() ?: throw NullConnectionException()
 
         return conn!!.fd
+    }
+
+    private fun resolveRuleApps(
+        ruleApps: RuleApps,
+        installedApps: () -> List<String>,
+    ): Set<String> {
+        val regexes = ruleApps.packageNameRegexes.mapNotNull {
+            try {
+                Regex(it)
+            } catch (e: PatternSyntaxException) {
+                Logs.w("Skip invalid package name regex: $it", e)
+                null
+            }
+        }
+        if (regexes.isEmpty()) {
+            return ruleApps.packageNames
+        }
+        return ruleApps.packageNames + installedApps().filter { app ->
+            regexes.any { it.containsMatchIn(app) }
+        }
     }
 
     override fun onRevoke() = stopRunner()

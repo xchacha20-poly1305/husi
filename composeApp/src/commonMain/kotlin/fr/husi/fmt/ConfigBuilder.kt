@@ -220,8 +220,22 @@ class ConfigMetadata(
     val trafficProfiles: List<ProxyEntity>,
     val tagToID: Map<String, Long>,
     val trafficGraph: Map<String, TrafficNode> = emptyMap(),
+    val ruleApps: RuleApps = RuleApps(),
 ) {
     data class IndexEntity(val chain: LinkedHashMap<Int, ProxyEntity>)
+}
+
+data class RuleApps(
+    val packageNames: Set<String> = emptySet(),
+    val packageNameRegexes: List<String> = emptyList(),
+)
+
+private fun RuleEntity.routesDirect(): Boolean = when (action) {
+    "", SingBoxOptions.ACTION_ROUTE, SingBoxOptions.ACTION_BYPASS -> {
+        outbound == RuleEntity.OUTBOUND_DIRECT
+    }
+
+    else -> false
 }
 
 data class TrafficNode(
@@ -258,6 +272,8 @@ suspend fun buildConfig(
     val rootTagMap = HashMap<Long, String>()
     val tagToID = HashMap<String, Long>()
     val trafficGraph = HashMap<String, TrafficNode>()
+    val ruleAppPackageNames = LinkedHashSet<String>()
+    val ruleAppPackageNameRegexes = mutableListOf<String>()
     val optionsToMerge = proxy.requireBean().customConfigJson
 
     data class ChainEntryKey(val entityId: Long, val referencePath: List<Long>)
@@ -546,6 +562,7 @@ suspend fun buildConfig(
             }
         }
     }
+
     val mDNSInterfaces = DataStore.mDNS.get()
         .blankAsNull()
         ?.listByLineOrComma()
@@ -1063,6 +1080,11 @@ suspend fun buildConfig(
                 rule.packages,
                 defaultToPackage = PlatformInfo.isAndroid,
             )
+            val packageNameRegexes = rule.packageNameRegex.blankAsNull()?.split("\n").orEmpty()
+            if (!rule.invert && !rule.routesDirect()) {
+                ruleAppPackageNames.addAll(packageNames)
+                ruleAppPackageNameRegexes.addAll(packageNameRegexes)
+            }
 
             val ruleObj = Rule_Default().apply {
                 action = SingBoxOptions.ACTION_ROUTE
@@ -1072,9 +1094,8 @@ suspend fun buildConfig(
                 if (packageNames.isNotEmpty()) {
                     package_name = packageNames.toMutableList()
                 }
-                rule.packageNameRegex.blankAsNull()?.let {
-                    // Do not use listByLineOrComma for regex
-                    package_name_regex = it.split("\n").toMutableList()
+                if (packageNameRegexes.isNotEmpty()) {
+                    package_name_regex = packageNameRegexes.toMutableList()
                 }
                 if (processRules.isNotEmpty()) {
                     makeProcessRule(processRules)
@@ -1170,8 +1191,8 @@ suspend fun buildConfig(
                         invert = true
                     }
                     if (packageNames.isNotEmpty()) package_name = packageNames.toMutableList()
-                    rule.packageNameRegex.blankAsNull()?.let {
-                        package_name_regex = mutableListOf(it)
+                    if (packageNameRegexes.isNotEmpty()) {
+                        package_name_regex = packageNameRegexes.toMutableList()
                     }
                     if (processRules.isNotEmpty()) {
                         makeProcessRule(processRules)
@@ -1758,6 +1779,7 @@ suspend fun buildConfig(
                 trafficProfiles = trafficProfiles.values.toList(),
                 tagToID = tagToID,
                 trafficGraph = trafficGraph,
+                ruleApps = RuleApps(ruleAppPackageNames, ruleAppPackageNameRegexes),
             ),
         )
     }
