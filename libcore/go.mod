@@ -34,12 +34,12 @@ require (
 	github.com/sagernet/sing-mux v0.3.9-0.20260919141002-baf887b90a62
 	github.com/sagernet/sing-quic v0.7.1-0.20260924092235-4f371c86a365
 	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
-	github.com/sagernet/sing-tun v0.9.6-0.20260924073434-3077c705bbdb
+	github.com/sagernet/sing-tun v0.9.7-0.20260928201554-f9cf98a84fda
 	github.com/sagernet/sing-vmess v0.2.8
 	github.com/stretchr/testify v1.12.1
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
 	github.com/xchacha20-poly1305/TLS-scribe v0.13.0
-	github.com/xchacha20-poly1305/anchor v0.8.0
+	github.com/xchacha20-poly1305/anchor v0.9.0
 	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.5
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260921143651-7d7bb4e10cda
@@ -147,7 +147,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
+	go.uber.org/zap v1.28.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
