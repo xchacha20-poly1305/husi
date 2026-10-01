@@ -38,7 +38,7 @@ require (
 	github.com/sagernet/sing-vmess v0.2.8
 	github.com/stretchr/testify v1.12.1
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
-	github.com/xchacha20-poly1305/TLS-scribe v0.13.0
+	github.com/xchacha20-poly1305/TLS-scribe v0.13.1
 	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.5
