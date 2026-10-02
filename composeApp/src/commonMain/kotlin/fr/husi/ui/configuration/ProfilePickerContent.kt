@@ -24,9 +24,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -99,9 +97,6 @@ fun rememberProfilePickerState(
             .fastCoerceIn(0, (uiState.groups.size - 1).fastCoerceAtLeast(0)),
         pageCount = { uiState.groups.size },
     )
-    var isPageRestored by remember { mutableStateOf(false) }
-    var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
-
     LaunchedEffect(preSelected) {
         val initialProfile = preSelected ?: DataStore.selectedProxy.get()
         val initialGroup = withContext(Dispatchers.IO) {
@@ -110,30 +105,16 @@ fun rememberProfilePickerState(
         selectedGroup = initialGroup ?: DataStore.currentGroupId()
         viewModel.scrollToProxy(initialProfile)
     }
-    LaunchedEffect(selectedGroup, uiState.groups) {
-        if (uiState.groups.isEmpty()) return@LaunchedEffect
-        val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
-        if (index < 0) return@LaunchedEffect
-        if (index != pagerState.currentPage) {
-            pagerState.scrollToPage(index)
-        }
-        isPageRestored = true
-    }
-    LaunchedEffect(pagerState.currentPage, uiState.groups, isPageRestored) {
-        if (uiState.groups.isEmpty() || pagerState.currentPage >= uiState.groups.size) {
-            return@LaunchedEffect
-        }
-        val currentPage = pagerState.currentPage
-        if (lastPage != currentPage) {
+    GroupPagerSelectionSync(
+        pagerState = pagerState,
+        groups = uiState.groups,
+        selectedGroup = selectedGroup,
+        onSettledGroupChange = { selectedGroup = it },
+        onPageChange = {
             viewModel.clearSearchQuery()
             focusManager.clearFocus()
-            lastPage = currentPage
-        }
-        val groupId = uiState.groups[currentPage].id
-        if (isPageRestored) {
-            selectedGroup = groupId
-        }
-    }
+        },
+    )
 
     return ProfilePickerState(
         viewModel = viewModel,

@@ -242,32 +242,16 @@ fun ConfigurationScreen(
             .fastCoerceIn(0, (uiState.groups.size - 1).fastCoerceAtLeast(0)),
         pageCount = { uiState.groups.size },
     )
-    var isPageRestored by remember { mutableStateOf(false) }
-    var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
-    LaunchedEffect(selectedGroup, hasGroups, uiState.groups) {
-        if (!hasGroups) return@LaunchedEffect
-        val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
-        if (index < 0) return@LaunchedEffect
-        if (index != pagerState.currentPage) {
-            pagerState.scrollToPage(index)
-        }
-        isPageRestored = true
-    }
-    LaunchedEffect(pagerState.currentPage, hasGroups, isPageRestored) {
-        if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
-            return@LaunchedEffect
-        }
-        val currentPage = pagerState.currentPage
-        if (lastPage != currentPage) {
+    GroupPagerSelectionSync(
+        pagerState = pagerState,
+        groups = uiState.groups,
+        selectedGroup = selectedGroup,
+        onSettledGroupChange = { DataStore.selectedGroup.set(it) },
+        onPageChange = {
             vm.clearSearchQuery()
             focusManager.clearFocus()
-            lastPage = currentPage
-        }
-        val groupID = uiState.groups[currentPage].id
-        if (isPageRestored) {
-            DataStore.selectedGroup.set(groupID)
-        }
-    }
+        },
+    )
 
     var showAddMenu by remember { mutableStateOf(false) }
     var showAddManualMenu by remember { mutableStateOf(false) }
@@ -807,7 +791,9 @@ fun ConfigurationContent(
                         viewModel = pageViewModel,
                         showActions = showActions,
                         contentPadding = contentPadding,
-                        canHoldFocus = canHoldFocus && pagerState.currentPage == page,
+                        // Focusing a page brings it into view, so a page passed during an
+                        // animated jump must not take focus or it cancels the jump.
+                        canHoldFocus = canHoldFocus && pagerState.settledPage == page,
                         onProfileSelect = onProfileSelect,
                         onOpenProfileEditor = onOpenProfileEditor,
                         showQR = { name, url ->
