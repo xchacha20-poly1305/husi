@@ -12,13 +12,13 @@ import fr.husi.fmt.SingBoxOptions.NetworkUDP
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
-import fr.husi.resources.bypass_icmp
 import fr.husi.resources.hijack_dns
-import fr.husi.resources.route_bypass_domain
-import fr.husi.resources.route_bypass_ip
+import fr.husi.resources.route_direct_domain
+import fr.husi.resources.route_direct_icmp
+import fr.husi.resources.route_direct_ip
+import fr.husi.resources.route_direct_lan
 import fr.husi.resources.route_opt_block_ads
 import fr.husi.resources.route_opt_block_quic
-import fr.husi.resources.route_opt_bypass_lan
 import fr.husi.resources.route_play_store
 import fr.husi.resources.sniff
 import kotlinx.coroutines.flow.Flow
@@ -153,7 +153,7 @@ object ProfileManager {
                     RuleEntity(
                         enabled = true,
                         action = ACTION_ROUTE,
-                        name = repository.getString(Res.string.bypass_icmp),
+                        name = repository.getString(Res.string.route_direct_icmp),
                         network = setOf(NetworkICMP),
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ),
@@ -192,7 +192,7 @@ object ProfileManager {
                     )
                     createRule(
                         RuleEntity(
-                            name = repository.getString(Res.string.route_bypass_domain, displayCountry),
+                            name = repository.getString(Res.string.route_direct_domain, displayCountry),
                             action = ACTION_ROUTE,
                             domains = "set+dns:geosite-$country",
                             outbound = RuleEntity.OUTBOUND_DIRECT,
@@ -201,7 +201,7 @@ object ProfileManager {
                     )
                     createRule(
                         RuleEntity(
-                            name = repository.getString(Res.string.route_bypass_ip, displayCountry),
+                            name = repository.getString(Res.string.route_direct_ip, displayCountry),
                             action = ACTION_ROUTE,
                             ip = "set-dns:geoip-$country",
                             outbound = RuleEntity.OUTBOUND_DIRECT,
@@ -211,7 +211,7 @@ object ProfileManager {
                 }
                 createRule(
                     RuleEntity(
-                        name = repository.getString(Res.string.route_opt_bypass_lan),
+                        name = repository.getString(Res.string.route_direct_lan),
                         action = ACTION_ROUTE,
                         ip = RuleItem.CONTENT_PRIVATE,
                         outbound = RuleEntity.OUTBOUND_DIRECT,

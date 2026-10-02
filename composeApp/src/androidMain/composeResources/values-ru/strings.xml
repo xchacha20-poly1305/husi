@@ -7,4 +7,5 @@
     <string name="vpn_permission_required">Требуется разрешение на VPN</string>
     <string name="service_vpn_request">Запрос разрешения на использование VPN</string>
     <string name="vpn_session_name_summary">Оставьте пустым, чтобы использовать название приложения</string>
+    <string name="route_opt_bypass_lan">Обход LAN</string>
 </resources>

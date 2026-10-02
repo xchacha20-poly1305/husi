@@ -279,7 +279,7 @@
     <string name="enable_mux">Включить мультиплексор</string>
     <string name="domain_strategy">Стратегия разрешения доменов</string>
     <string name="route_opt_block_ads">Блокировать рекламу</string>
-    <string name="route_opt_bypass_lan">Обход LAN</string>
+    <string name="route_direct_lan">Напрямую LAN</string>
     <string name="route_asset_updated">Обновлено</string>
     <string name="route_asset_no_update">Обновлений нет</string>
     <string name="route_asset_status">Локальная версия: %1$s</string>
@@ -289,13 +289,13 @@
     <string name="route_manage_assets">Управление ресурсами маршрутов</string>
     <string name="route_reset">Сброс</string>
     <string name="reset_rule_set">Сбросить набор правил</string>
-    <string name="route_bypass_ip">Правило IP для %1$s</string>
-    <string name="route_bypass_domain">Правило домена для %1$s</string>
+    <string name="route_direct_ip">Правило IP для %1$s</string>
+    <string name="route_direct_domain">Правило домена для %1$s</string>
     <string name="empty_route_notice">Установите какие-либо правила перед сохранением</string>
     <string name="empty_route">Пустой маршрут</string>
     <string name="route_profile">Выбрать профиль…</string>
     <string name="route_block">Блокировать</string>
-    <string name="route_bypass">Обход</string>
+    <string name="route_direct">Напрямую</string>
     <string name="route_proxy">Прокси</string>
     <string name="route_name">Название маршрута</string>
     <string name="delete_route_prompt">Вы уверены, что хотите удалить этот маршрут?</string>
@@ -600,7 +600,7 @@
     <string name="initial_mtu">Начальный MTU</string>
     <string name="minimum_mtu">Минимальный MTU</string>
     <string name="expand">Развернуть</string>
-    <string name="bypass_icmp">Обход iCMP</string>
+    <string name="route_direct_icmp">Напрямую ICMP</string>
     <string name="connection_status">Статус соединения</string>
     <string name="connection_status_active">Активно</string>
     <string name="connection_status_closed">Закрыто</string>

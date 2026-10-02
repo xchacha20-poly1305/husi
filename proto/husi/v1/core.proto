@@ -107,7 +107,7 @@ enum ServiceRunState {
 }
 
 // Bytes per second, plus the totals of the current session. Mirrors
-// fr.husi.bg.SpeedStats; "bypass" outbound usage is not counted.
+// fr.husi.bg.SpeedStats; "direct" outbound usage is not counted.
 message SpeedUpdate {
   int64 tx_rate_proxy = 1;
   int64 rx_rate_proxy = 2;

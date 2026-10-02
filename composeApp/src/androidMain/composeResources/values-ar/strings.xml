@@ -1,4 +1,5 @@
 <resources>
     <string name="auto_connect">اتصال تلقائي</string>
     <string name="auto_connect_summary">قم بتمكين البروکسی عند تحديث بدء التشغيل/التطبيق إذا كان يعمل من قبل</string>
+    <string name="route_opt_bypass_lan">جانبا LAN</string>
 </resources>

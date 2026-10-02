@@ -678,7 +678,7 @@ func (x *ServiceStateUpdate) GetProfileName() string {
 }
 
 // Bytes per second, plus the totals of the current session. Mirrors
-// fr.husi.bg.SpeedStats; "bypass" outbound usage is not counted.
+// fr.husi.bg.SpeedStats; "direct" outbound usage is not counted.
 type SpeedUpdate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TxRateProxy   int64                  `protobuf:"varint,1,opt,name=tx_rate_proxy,json=txRateProxy,proto3" json:"tx_rate_proxy,omitempty"`

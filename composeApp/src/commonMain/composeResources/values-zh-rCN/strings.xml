@@ -171,11 +171,11 @@
     <string name="no">否</string>
     <string name="apply">应用</string>
     <string name="route_proxy">代理</string>
-    <string name="route_bypass">绕过</string>
+    <string name="route_direct">直连</string>
     <string name="route_block">屏蔽</string>
     <!-- TODO add better translation for "bridge" -->
     <string name="route_bridge">Bridge</string>
-    <string name="route_opt_bypass_lan">绕过局域网地址</string>
+    <string name="route_direct_lan">直连局域网地址</string>
     <string name="route_opt_block_ads">屏蔽广告</string>
     <string name="route_opt_block_quic">屏蔽 QUIC</string>
     <string name="domain_strategy">域名解析策略</string>
@@ -217,8 +217,8 @@
     <string name="no_changes">无更改</string>
     <string name="no_changes_notice">没有任何修改</string>
     <string name="route_warn">在添加自定义规则之前，请确保您已经阅读了文档，否则您将可能无法连接到互联网。</string>
-    <string name="route_bypass_domain">%1$s 域名规则</string>
-    <string name="route_bypass_ip">%1$s IP 规则</string>
+    <string name="route_direct_domain">%1$s 域名规则</string>
+    <string name="route_direct_ip">%1$s IP 规则</string>
     <string name="no_proxies_found_in_file">未在此文件内找到服务器配置</string>
     <string name="no_proxies_found_in_clipboard">未在剪切板内找到服务器配置</string>
     <string name="route_reset">重置</string>
@@ -715,7 +715,7 @@
     <string name="save_to_system">保存到系统</string>
     <string name="saved_to_download">文件已保存到下载文件夹。</string>
     <string name="network_interfaces">网络接口</string>
-    <string name="bypass_icmp">绕过 ICMP</string>
+    <string name="route_direct_icmp">直连 ICMP</string>
     <string name="connection_status">连接状态</string>
     <string name="connection_status_active">活跃中</string>
     <string name="connection_status_closed">已关闭</string>

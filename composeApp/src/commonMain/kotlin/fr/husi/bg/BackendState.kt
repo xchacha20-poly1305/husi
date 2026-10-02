@@ -26,7 +26,7 @@ data class SpeedStats(
     val rxRateDirect: Long = 0L,
 
     // Bytes for the current session
-    // Outbound "bypass" usage is not counted
+    // Outbound "direct" usage is not counted
     val txTotal: Long = 0L,
     val rxTotal: Long = 0L,
 )

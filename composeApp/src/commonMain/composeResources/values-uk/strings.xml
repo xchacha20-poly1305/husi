@@ -145,7 +145,7 @@
     <string name="route_assets">Ресурси</string>
     <string name="route_asset_no_update">Оновлення відсутні</string>
     <string name="route_asset_updated">Оновлено</string>
-    <string name="route_opt_bypass_lan">Обхід LAN</string>
+    <string name="route_direct_lan">Напряму LAN</string>
     <string name="route_opt_block_ads">Блокувати рекламу</string>
     <string name="scanning">Сканування…</string>
     <string name="forward_success">Проксі запустився.</string>
@@ -248,13 +248,13 @@
     </plurals>
     <string name="action_flash_on">Увімкнути спалах</string>
     <string name="connection_test_mux">Сервер не підтримує цей протокол мультиплексування</string>
-    <string name="route_bypass">Обхід</string>
+    <string name="route_direct">Напряму</string>
     <string name="route_block">Блокувати</string>
     <string name="route_profile">Обрати профіль…</string>
     <string name="empty_route_notice">Встановіть які-небудь правила перед збереженням</string>
-    <string name="route_bypass_domain">Правило домену для %1$s</string>
+    <string name="route_direct_domain">Правило домену для %1$s</string>
     <string name="route_play_store">Правило Play Store для %1$s</string>
-    <string name="route_bypass_ip">Правило IP для %1$s</string>
+    <string name="route_direct_ip">Правило IP для %1$s</string>
     <string name="route_rules_official">Офіційний</string>
     <string name="route_reset">Скидання</string>
     <string name="reset_rule_set">Скинути набір правил</string>

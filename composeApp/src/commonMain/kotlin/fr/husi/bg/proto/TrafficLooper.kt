@@ -121,8 +121,8 @@ class TrafficLooper(
         return SpeedStats(
             txRateProxy = bytesPerSecond(snapshot.proxied.upload),
             rxRateProxy = bytesPerSecond(snapshot.proxied.download),
-            txRateDirect = bytesPerSecond(snapshot.bypassed.upload),
-            rxRateDirect = bytesPerSecond(snapshot.bypassed.download),
+            txRateDirect = bytesPerSecond(snapshot.direct.upload),
+            rxRateDirect = bytesPerSecond(snapshot.direct.download),
             txTotal = sessionTx,
             rxTotal = sessionRx,
         )

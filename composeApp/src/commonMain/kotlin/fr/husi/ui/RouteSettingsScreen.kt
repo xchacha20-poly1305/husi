@@ -136,7 +136,7 @@ import fr.husi.resources.question_mark
 import fr.husi.resources.route_action
 import fr.husi.resources.route_block
 import fr.husi.resources.route_bridge
-import fr.husi.resources.route_bypass
+import fr.husi.resources.route_direct
 import fr.husi.resources.route_invert
 import fr.husi.resources.route_name
 import fr.husi.resources.route_options
@@ -842,7 +842,7 @@ private fun RouteSettings(
                             summary = {
                                 val text = when (uiState.outbound) {
                                     RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
-                                    RuleEntity.OUTBOUND_DIRECT -> stringResource(Res.string.route_bypass)
+                                    RuleEntity.OUTBOUND_DIRECT -> stringResource(Res.string.route_direct)
                                     RuleEntity.OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
                                     RuleEntity.OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
                                     else -> runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }
@@ -855,7 +855,7 @@ private fun RouteSettings(
                             valueToText = {
                                 val id = when (it) {
                                     RuleEntity.OUTBOUND_PROXY -> Res.string.route_proxy
-                                    RuleEntity.OUTBOUND_DIRECT -> Res.string.route_bypass
+                                    RuleEntity.OUTBOUND_DIRECT -> Res.string.route_direct
                                     RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
                                     RuleEntity.OUTBOUND_BRIDGE -> Res.string.route_bridge
                                     else -> Res.string.select_profile

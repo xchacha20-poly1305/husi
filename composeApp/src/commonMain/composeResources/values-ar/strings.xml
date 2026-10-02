@@ -111,13 +111,13 @@
     <string name="route_manage_assets">إدارة أصول الطريق</string>
     <string name="route_reset">إعادة تعيين</string>
     <string name="reset_rule_set">إعادة تعيين مجموعة القواعد</string>
-    <string name="route_bypass_ip">قاعدة IP ل %1$s</string>
-    <string name="route_bypass_domain">قاعدة المجال ل %1$s</string>
+    <string name="route_direct_ip">قاعدة IP ل %1$s</string>
+    <string name="route_direct_domain">قاعدة المجال ل %1$s</string>
     <string name="empty_route_notice">ضع بعض القواعد قبل الحفظ</string>
     <string name="empty_route">طريق فارغ</string>
     <string name="route_profile">حدد ملف التعريف…</string>
     <string name="route_block">منع</string>
-    <string name="route_bypass">ضع جانبا</string>
+    <string name="route_direct">مباشر</string>
     <string name="route_proxy">بروکسی</string>
     <string name="route_name">اسم الطريق</string>
     <string name="delete_route_prompt">هل أنت متأكد أنك تريد إزالة هذا المسار؟</string>
@@ -197,7 +197,7 @@
     <string name="enable_mux">تمكين المضاعف</string>
     <string name="domain_strategy">استراتيجية حل المجال</string>
     <string name="route_opt_block_ads">إعلانات كتلة</string>
-    <string name="route_opt_bypass_lan">جانبا LAN</string>
+    <string name="route_direct_lan">LAN مباشر</string>
     <string name="hysteria_download_mbps">أقصى سرعة تنزيل (بالميجابت في الثانية)</string>
     <string name="hysteria_upload_mbps">أقصى سرعة تحميل (بالميجابت في الثانية)</string>
     <string name="hysteria_auth_payload">حمولة المصادقة</string>

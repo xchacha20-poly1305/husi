@@ -167,7 +167,7 @@
     <string name="delete_route_prompt">Are you sure you want to remove this route?</string>
     <string name="route_name">Route Name</string>
     <string name="route_proxy">Proxy</string>
-    <string name="route_bypass">Bypass</string>
+    <string name="route_direct">Direct</string>
     <string name="route_block">Block</string>
     <string name="route_bridge">Bridge</string>
     <string name="route_profile">Select Profile…</string>
@@ -175,9 +175,9 @@
     <string name="empty_route_notice">Set some rules before saving</string>
     <string name="no_changes">No Changes</string>
     <string name="no_changes_notice">Nothing has been modified</string>
-    <string name="route_bypass_domain">Domain rule for %1$s</string>
+    <string name="route_direct_domain">Domain rule for %1$s</string>
     <string name="route_play_store">Play store rule for %1$s</string>
-    <string name="route_bypass_ip">IP rule for %1$s</string>
+    <string name="route_direct_ip">IP rule for %1$s</string>
     <string name="route_reset">Reset</string>
     <string name="reset_rule_set">Reset rule-set</string>
     <string name="route_manage_assets">Manage Route Assets</string>
@@ -191,7 +191,7 @@
     <string name="route_asset_auto_update_delay">Asset update interval (In minutes)</string>
     <string name="auto_update_off">Auto update disabled</string>
     <string name="auto_update_on">Auto update every %1$d min</string>
-    <string name="route_opt_bypass_lan">Bypass LAN</string>
+    <string name="route_direct_lan">Direct LAN</string>
     <string name="route_opt_block_ads">Block ADs</string>
     <string name="route_opt_block_analysis">Block analysis</string>
     <string name="route_opt_block_quic">Block QUIC</string>
@@ -807,7 +807,7 @@
     <string name="save_to_system">Save to System</string>
     <string name="saved_to_download">File has saved to Download directory.</string>
     <string name="network_interfaces">Network Interfaces</string>
-    <string name="bypass_icmp">Bypass iCMP</string>
+    <string name="route_direct_icmp">Direct ICMP</string>
     <string name="connection_status">Connection Status</string>
     <string name="connection_status_active">Active</string>
     <string name="connection_status_closed">Closed</string>

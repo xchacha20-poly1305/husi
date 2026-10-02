@@ -128,14 +128,14 @@
     <string name="delete_route_prompt">¿Realmente quieres eliminar esta ruta?</string>
     <string name="route_name">Nombre de ruta</string>
     <string name="route_proxy">Proxy</string>
-    <string name="route_bypass">Omitir</string>
+    <string name="route_direct">Directo</string>
     <string name="route_block">Bloquear</string>
     <string name="route_profile">Seleccionar perfil…</string>
     <string name="empty_route">Ruta vacía</string>
     <string name="empty_route_notice">Establezca algunas reglas antes de guardar</string>
-    <string name="route_bypass_domain">Regla de dominio para %1$s</string>
+    <string name="route_direct_domain">Regla de dominio para %1$s</string>
     <string name="route_play_store">Regla de la Play Store para %1$s</string>
-    <string name="route_bypass_ip">Regla de IP para %1$s</string>
+    <string name="route_direct_ip">Regla de IP para %1$s</string>
     <string name="route_reset">Restablecer</string>
     <string name="reset_rule_set">Restablecer conjunto de reglas</string>
     <string name="route_manage_assets">Administrar activos de ruta</string>
@@ -145,7 +145,7 @@
     <string name="route_asset_status">Versión local: %1$s</string>
     <string name="route_asset_no_update">Sin actualización</string>
     <string name="route_asset_updated">Actualizado</string>
-    <string name="route_opt_bypass_lan">Omitir LAN</string>
+    <string name="route_direct_lan">LAN directo</string>
     <string name="route_opt_block_ads">Bloquear anuncios</string>
     <string name="route_opt_block_analysis">Bloquear analítica</string>
     <string name="domain_strategy">Estrategia de resolución de dominio</string>

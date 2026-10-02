@@ -66,7 +66,7 @@
     <string name="backup">備份</string>
     <string name="delete">移除</string>
     <string name="enable">啟用</string>
-    <string name="route_bypass">繞過</string>
+    <string name="route_direct">直連</string>
     <string name="route_block">封鎖</string>
     <string name="add_profile_methods_scan_qr_code">掃描二維碼</string>
     <string name="install_from_play_store">從 Play Store 安裝</string>

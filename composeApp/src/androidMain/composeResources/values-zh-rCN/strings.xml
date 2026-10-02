@@ -6,4 +6,5 @@
     <string name="service_vpn_request">VPN 授权请求</string>
     <string name="vpn_permission_required">需要 VPN 授权</string>
     <string name="vpn_permission_required_summary">点击授予 VPN 权限并启动服务。</string>
+    <string name="route_opt_bypass_lan">绕过局域网地址</string>
 </resources>

@@ -126,14 +126,14 @@
     <string name="delete_route_prompt">آیا مطمئن هستید که می خواهید این مسیر را حذف کنید؟</string>
     <string name="route_name">نام مسیر</string>
     <string name="route_proxy">پروکسی</string>
-    <string name="route_bypass">بایپس</string>
+    <string name="route_direct">مستقیم</string>
     <string name="route_block">مسدود کردن</string>
     <string name="route_profile">انتخاب پروفایل…</string>
     <string name="empty_route">مسیر خالی</string>
     <string name="empty_route_notice">قبل از ذخیره چند قانون تنظیم کنید</string>
-    <string name="route_bypass_domain">قانون دامنه برای %1$s</string>
+    <string name="route_direct_domain">قانون دامنه برای %1$s</string>
     <string name="route_play_store">قانون فروشگاه Play برای %1$s</string>
-    <string name="route_bypass_ip">قانون IP برای %1$s</string>
+    <string name="route_direct_ip">قانون IP برای %1$s</string>
     <string name="route_reset">بازنشانی کنید</string>
     <string name="reset_rule_set">بازنشانی مجموعهٔ قوانین</string>
     <string name="route_manage_assets">مدیریت دارایی‌های مسیر</string>
@@ -143,7 +143,7 @@
     <string name="route_asset_status">نسخه محلی: %1$s</string>
     <string name="route_asset_no_update">بدون به‌روزرسانی</string>
     <string name="route_asset_updated">به‌روزرسانی شد</string>
-    <string name="route_opt_bypass_lan">دور زدن LAN</string>
+    <string name="route_direct_lan">LAN مستقیم</string>
     <string name="route_opt_block_ads">مسدود کردن تبلیغات</string>
     <string name="route_opt_block_analysis">بلاک کردن انالیز ها</string>
     <string name="route_opt_block_quic">QUIC را مسدود کنید</string>

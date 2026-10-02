@@ -1,4 +1,5 @@
 <resources>
     <string name="auto_connect">Автоматичне підключення</string>
     <string name="auto_connect_summary">Увімкнути проксі при запуску/оновленні застосунки, якщо він був запущений до цього</string>
+    <string name="route_opt_bypass_lan">Обхід LAN</string>
 </resources>

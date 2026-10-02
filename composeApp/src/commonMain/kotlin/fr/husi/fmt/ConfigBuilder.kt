@@ -516,7 +516,7 @@ suspend fun buildConfig(
             ).associateBy { it.id }
         }
     val userDNSRuleList = mutableListOf<JSONMap>()
-    val bypassDNSProfiles = mutableListOf<ProxyEntity>()
+    val serverDomainProfiles = mutableListOf<ProxyEntity>()
     val isVPN = DataStore.serviceMode.get() == Key.MODE_VPN
     val allowAccess = DataStore.allowAccess.get()
     val bind = if (!forTest && allowAccess) {
@@ -1013,9 +1013,9 @@ suspend fun buildConfig(
                 }
             }
 
-            // Keep terminal profiles available for the bypass lookup pass below.
+            // Keep terminal profiles available for the server domain pre-resolve pass below.
             for (exit in resolvedChain.exits) {
-                profileEntriesByKey[exit.key]?.entity?.let(bypassDNSProfiles::add)
+                profileEntriesByKey[exit.key]?.entity?.let(serverDomainProfiles::add)
             }
 
             for (link in resolvedChain.links) {
@@ -1479,8 +1479,8 @@ suspend fun buildConfig(
             )
         }
 
-        // Bypass lookup for the terminal profiles in each expanded graph.
-        bypassDNSProfiles.forEach(::addServerDomains)
+        // Pre-resolve server domains of the terminal profiles in each expanded graph.
+        serverDomainProfiles.forEach(::addServerDomains)
 
         remoteDns.forEach {
             var address = it

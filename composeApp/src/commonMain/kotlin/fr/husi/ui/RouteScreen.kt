@@ -102,7 +102,7 @@ import fr.husi.resources.replay
 import fr.husi.resources.route_add
 import fr.husi.resources.route_block
 import fr.husi.resources.route_bridge
-import fr.husi.resources.route_bypass
+import fr.husi.resources.route_direct
 import fr.husi.resources.route_manage_assets
 import fr.husi.resources.route_proxy
 import fr.husi.resources.route_reset
@@ -614,7 +614,7 @@ private fun RuleEntity.summary(): String {
 private fun RuleEntity.displayOutbound(): String {
     return when (outbound) {
         OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
-        OUTBOUND_DIRECT -> stringResource(Res.string.route_bypass)
+        OUTBOUND_DIRECT -> stringResource(Res.string.route_direct)
         OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
         OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
         else -> {

@@ -22,8 +22,8 @@ class TrafficSnapshot(
     val byProfile: Map<Long, TrafficDelta>,
     /** Proxied bytes, counted once per connection however long its chain is. */
     val proxied: TrafficDelta,
-    /** Bytes that bypassed the proxy. */
-    val bypassed: TrafficDelta,
+    /** Bytes routed to the direct outbound. */
+    val direct: TrafficDelta,
 )
 
 /**
@@ -54,11 +54,11 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
     }
 
     /** What one connection's bytes count towards, resolved once when it appears. */
-    private class Attribution(val profileIDs: Set<Long>, val bypassed: Boolean)
+    private class Attribution(val profileIDs: Set<Long>, val direct: Boolean)
 
     private val profileCounters = ConcurrentHashMap<Long, Counter>()
     private val proxiedCounter = Counter()
-    private val bypassedCounter = Counter()
+    private val directCounter = Counter()
     private val selectedByGroup = ConcurrentHashMap<String, String>()
     private val attributionById = ConcurrentHashMap<String, Attribution>()
 
@@ -120,12 +120,12 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
     fun drain(): TrafficSnapshot = TrafficSnapshot(
         byProfile = profileCounters.mapValues { it.value.drain() },
         proxied = proxiedCounter.drain(),
-        bypassed = bypassedCounter.drain(),
+        direct = directCounter.drain(),
     )
 
     private fun credit(attribution: Attribution, upload: Long, download: Long) {
-        if (attribution.bypassed) {
-            bypassedCounter.add(upload, download)
+        if (attribution.direct) {
+            directCounter.add(upload, download)
             return
         }
         proxiedCounter.add(upload, download)
@@ -138,12 +138,12 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
         val matched = matchedOutbound().ifEmpty { return null }
         if (matched !in graph) {
             return if (matched == TAG_DIRECT) {
-                Attribution(emptySet(), bypassed = true)
+                Attribution(emptySet(), direct = true)
             } else {
                 null // Rejected, hijacked or otherwise not a profile of ours.
             }
         }
-        return Attribution(carriers(matched), bypassed = false)
+        return Attribution(carriers(matched), direct = false)
     }
 
     /** Walks from the matched outbound down to the hop that dials. */

@@ -137,7 +137,7 @@ class OutboundTrafficAggregatorTest {
     }
 
     @Test
-    fun `bypassed traffic is counted apart from proxied traffic`() {
+    fun `direct traffic is counted apart from proxied traffic`() {
         val aggregator = OutboundTrafficAggregator(proxyGraph)
 
         aggregator.onEvents(
@@ -146,7 +146,7 @@ class OutboundTrafficAggregatorTest {
         aggregator.onEvents(newConnection(uplink = 2, downlink = 8))
 
         val snapshot = aggregator.drain()
-        assertEquals(TrafficDelta(6, 1), snapshot.bypassed)
+        assertEquals(TrafficDelta(6, 1), snapshot.direct)
         assertEquals(TrafficDelta(2, 8), snapshot.proxied)
         assertEquals(mapOf(PROXY_ID to TrafficDelta(2, 8)), snapshot.byProfile)
     }

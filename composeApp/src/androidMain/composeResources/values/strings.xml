@@ -6,4 +6,5 @@
     <string name="service_vpn_request">VPN Permission Request</string>
     <string name="vpn_permission_required">VPN permission required</string>
     <string name="vpn_permission_required_summary">Tap to grant the VPN permission and start the service.</string>
+    <string name="route_opt_bypass_lan">Bypass LAN</string>
 </resources>
