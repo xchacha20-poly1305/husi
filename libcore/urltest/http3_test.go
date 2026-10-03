@@ -24,11 +24,10 @@ type testCertificateStore struct {
 	pool *x509.CertPool
 }
 
-func (s *testCertificateStore) Name() string                   { return "test" }
-func (s *testCertificateStore) Start(adapter.StartStage) error { return nil }
-func (s *testCertificateStore) Close() error                   { return nil }
-func (s *testCertificateStore) Pool() *x509.CertPool           { return s.pool }
-func (s *testCertificateStore) ExclusiveAnchors() bool         { return true }
+func (s *testCertificateStore) Name() string                                   { return "test" }
+func (s *testCertificateStore) Start(adapter.StartStage, *adapter.Scope) error { return nil }
+func (s *testCertificateStore) Pool() *x509.CertPool                           { return s.pool }
+func (s *testCertificateStore) ExclusiveAnchors() bool                         { return true }
 
 func TestMeasureHTTP3(t *testing.T) {
 	var requests atomic.Int32

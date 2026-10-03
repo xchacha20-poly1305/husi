@@ -4,24 +4,20 @@ import (
 	"context"
 	"unsafe"
 
-	"github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/daemon"
 )
 
-type contextPartOfBox struct {
+type contextPartOfInstance struct {
 	ctx context.Context
 }
 
-func contextFromBox(instance *box.Box) context.Context {
+func contextFromDaemon(instance *daemon.Instance) context.Context {
 	if instance == nil {
 		return nil
 	}
-	return (*contextPartOfBox)(unsafe.Pointer(instance)).ctx
+	return (*contextPartOfInstance)(unsafe.Pointer(instance)).ctx
 }
 
 func (h *Host) liveInstanceContext() context.Context {
-	instance := h.started.Instance()
-	if instance == nil {
-		return nil
-	}
-	return contextFromBox(instance.Box())
+	return contextFromDaemon(h.started.Instance())
 }

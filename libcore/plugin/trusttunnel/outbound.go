@@ -14,7 +14,6 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-tun"
-	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/auth"
 	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -201,9 +200,15 @@ func (h *Outbound) CloseIdleConnections() {
 	h.client.CloseIdleConnections()
 }
 
-func (h *Outbound) Close() error {
-	return common.Close(
-		common.PtrOrNil(h.icmpPort),
-		common.PtrOrNil(h.client),
-	)
+func (h *Outbound) Start(stage adapter.StartStage, scope *adapter.Scope) error {
+	if stage != adapter.StartStateInitialize {
+		return nil
+	}
+	if h.client != nil {
+		scope.Add(h.client.Close)
+	}
+	if h.icmpPort != nil {
+		scope.Add(h.icmpPort.Close)
+	}
+	return nil
 }

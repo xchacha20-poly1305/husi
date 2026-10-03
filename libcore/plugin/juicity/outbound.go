@@ -142,8 +142,14 @@ func (o *Outbound) CloseIdleConnections() {
 	o.client.CloseIdleConnections()
 }
 
-func (o *Outbound) Close() error {
-	return o.client.CloseWithError(os.ErrClosed)
+func (o *Outbound) Start(stage adapter.StartStage, scope *adapter.Scope) error {
+	if stage != adapter.StartStateInitialize {
+		return nil
+	}
+	scope.Add(func() error {
+		return o.client.CloseWithError(os.ErrClosed)
+	})
+	return nil
 }
 
 // https://github.com/juicity/juicity/blob/412dbe43e091788c5464eb2d6e9c169bdf39f19c/cmd/client/run.go#L86-L96

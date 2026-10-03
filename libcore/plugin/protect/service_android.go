@@ -9,7 +9,6 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	boxService "github.com/sagernet/sing-box/adapter/service"
 	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
@@ -28,7 +27,6 @@ type Service struct {
 	ctx       context.Context
 	logger    log.ContextLogger
 	protector Protector
-	listener  *net.UnixListener
 	path      string
 }
 
@@ -49,7 +47,7 @@ func NewService(ctx context.Context, logger log.ContextLogger, tag string, optio
 	}, nil
 }
 
-func (s *Service) Start(stage adapter.StartStage) error {
+func (s *Service) Start(stage adapter.StartStage, scope *adapter.Scope) error {
 	if stage != adapter.StartStateStart {
 		return nil
 	}
@@ -59,20 +57,20 @@ func (s *Service) Start(stage adapter.StartStage) error {
 	if err != nil {
 		return err
 	}
+	scope.Add(listener.Close)
 	_ = os.Chmod(s.path, os.ModePerm)
-	s.listener = listener.(*net.UnixListener)
-	go s.loop()
+	go s.loop(listener.(*net.UnixListener))
 	return nil
 }
 
-func (s *Service) loop() {
+func (s *Service) loop(listener *net.UnixListener) {
 	for {
 		select {
 		case <-s.ctx.Done():
 			return
 		default:
 		}
-		conn, err := s.listener.AcceptUnix()
+		conn, err := listener.AcceptUnix()
 		if err != nil {
 			if !E.IsClosedOrCanceled(err) {
 				s.logger.ErrorContext(s.ctx, err)
@@ -139,8 +137,4 @@ func (s *Service) handle(conn *net.UnixConn) {
 		return
 	}
 	_, _ = conn.Write([]byte{protectSuccess})
-}
-
-func (s *Service) Close() error {
-	return common.Close(common.PtrOrNil(s.listener))
 }
