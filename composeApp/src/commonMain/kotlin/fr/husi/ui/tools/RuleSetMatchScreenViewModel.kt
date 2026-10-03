@@ -4,9 +4,13 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.bg.routeCustomGeoDir
+import fr.husi.bg.routeGeoDir
 import fr.husi.ktx.Logs
+import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.Dispatchers
@@ -44,19 +48,22 @@ internal class RuleSetMatchScreenViewModel : ViewModel() {
         }
     }
 
-    private val matched = mutableListOf<String>() // reuse
-
     private suspend fun scan0(keyword: String) {
-        uiState.update { it.copy(isDoing = true) }
-        matched.clear()
+        uiState.update { it.copy(matched = emptyList(), isDoing = true) }
         try {
-            Libcore.scanRuleSet(keyword) {
-                matched.add(it)
-                uiState.update { state ->
-                    state.copy(matched = matched)
+            val externalAssetsDir = resolveRepository().externalAssetsDir
+            val ruleSetDirs = listOf(
+                routeGeoDir(externalAssetsDir),
+                routeCustomGeoDir(externalAssetsDir),
+            )
+            for (dir in ruleSetDirs) {
+                Libcore.scanRuleSet(dir.invariantPathString(), keyword) { name ->
+                    uiState.update { state ->
+                        state.copy(matched = state.matched + name)
+                    }
                 }
             }
-            if (matched.isEmpty()) {
+            if (uiState.value.matched.isEmpty()) {
                 uiEvent.emit(RuleSetMatchUiEvent.Alert(StringOrRes.Res(Res.string.not_found)))
             }
         } catch (e: Exception) {

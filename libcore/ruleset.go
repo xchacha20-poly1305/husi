@@ -5,9 +5,11 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/srs"
+	"github.com/sagernet/sing-box/option"
 	R "github.com/sagernet/sing-box/route/rule"
 	M "github.com/sagernet/sing/common/metadata"
 )
@@ -16,48 +18,47 @@ type ScanRuleSetCallback interface {
 	Callback(path string)
 }
 
-// ScanRuleSet scans the rule set files for rules that match the given keyword.
-// It traverses the directory specified by the combination of `externalAssetsPath` and `ruleSetPrefix`,
-// reads each rule set file, and checks if any rule matches the provided keyword.
-func ScanRuleSet(keyword string, callback ScanRuleSetCallback) error {
-	err := filepath.WalkDir(filepath.Join(externalAssetsPath, ruleSetPrefix), func(path string, d fs.DirEntry, err error) (_ error) {
-		if err != nil {
-			return
-		}
-		file, err := os.Open(path)
-		if err != nil {
-			return
-		}
-		defer file.Close()
-		ruleSet, err := srs.Read(file, false)
-		if err != nil {
-			return
-		}
-		plainRuleSet, err := ruleSet.Upgrade()
-		if err != nil {
-			return
-		}
-		ipAddress := M.ParseAddr(keyword)
-		var metadata adapter.InboundContext
-		if ipAddress.IsValid() {
-			metadata.Destination = M.SocksaddrFrom(ipAddress, 0)
-		} else {
-			metadata.Domain = keyword
-		}
-		for _, ruleOptions := range plainRuleSet.Rules {
-			var currentRule adapter.HeadlessRule
-			currentRule, err = R.NewHeadlessRule(context.Background(), ruleOptions)
-			if err != nil {
-				continue
-			}
-			if currentRule.Match(&metadata) {
-				callback.Callback(d.Name())
-			}
-		}
-		return
-	})
-	if err != nil {
-		return err
+// ScanRuleSet walks dir and reports the name of every binary rule set file
+// that has a rule matching keyword. Unreadable files are skipped,
+// and a missing dir reports nothing.
+func ScanRuleSet(dir, keyword string, callback ScanRuleSetCallback) error {
+	var metadata adapter.InboundContext
+	if ipAddress := M.ParseAddr(keyword); ipAddress.IsValid() {
+		metadata.Destination = M.SocksaddrFrom(ipAddress, 0)
+	} else {
+		metadata.Domain = keyword
 	}
-	return nil
+	return filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return nil
+		}
+		if ruleSetFileMatches(path, &metadata) {
+			callback.Callback(entry.Name())
+		}
+		return nil
+	})
+}
+
+func ruleSetFileMatches(path string, metadata *adapter.InboundContext) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	ruleSet, err := srs.Read(file, false)
+	if err != nil {
+		return false
+	}
+	plainRuleSet, err := ruleSet.Upgrade()
+	if err != nil {
+		return false
+	}
+	return slices.ContainsFunc(plainRuleSet.Rules, func(ruleOptions option.HeadlessRule) bool {
+		rule, err := R.NewHeadlessRule(context.Background(), ruleOptions)
+		if err != nil {
+			return false
+		}
+		metadata.ResetRuleMatchCache()
+		return rule.Match(metadata)
+	})
 }
