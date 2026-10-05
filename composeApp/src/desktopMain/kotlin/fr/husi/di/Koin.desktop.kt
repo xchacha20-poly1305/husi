@@ -4,6 +4,8 @@ import fr.husi.compose.material3.DesktopPlatformMaterialApi
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.compose.theme.standardPlatformThemeApi
+import fr.husi.net.GrpcHttpFetcher
+import fr.husi.net.HttpFetcher
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.Repository
 import org.koin.core.module.Module
@@ -18,7 +20,11 @@ internal actual fun platformRepositoryModule(repository: Repository): Module = m
     single<DesktopRepository> { repository as DesktopRepository }
 }
 
-internal actual fun platformKoinModules(): List<Module> = emptyList()
+private val desktopHttpModule = module {
+    single<HttpFetcher> { GrpcHttpFetcher(coreClient = get()) }
+}
+
+internal actual fun platformKoinModules(): List<Module> = listOf(desktopHttpModule)
 
 internal actual fun coreClientBasePath(repository: Repository): String? {
     return (repository as DesktopRepository).coreSocketBasePath

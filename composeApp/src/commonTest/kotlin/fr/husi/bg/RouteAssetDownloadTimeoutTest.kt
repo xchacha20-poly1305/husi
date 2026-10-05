@@ -1,7 +1,6 @@
 package fr.husi.bg
 
 import fr.husi.database.AssetEntity
-import fr.husi.test.FakeHTTPRequest
 import fr.husi.test.HusiHttpKoinTest
 import kotlinx.coroutines.test.runTest
 import java.io.File
@@ -9,7 +8,8 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class RouteAssetDownloadTimeoutTest : HusiHttpKoinTest() {
 
@@ -21,7 +21,7 @@ class RouteAssetDownloadTimeoutTest : HusiHttpKoinTest() {
     }
 
     @Test
-    fun `a custom asset download asks for no overall timeout`() = runTest {
+    fun `a custom asset download asks for no overall deadline`() = runTest {
         val asset = AssetEntity(
             name = "geoip.db",
             url = "https://example.invalid/geoip.db",
@@ -29,11 +29,11 @@ class RouteAssetDownloadTimeoutTest : HusiHttpKoinTest() {
 
         updateSingleRouteAsset(asset, externalAssetsDir)
 
-        assertEquals(0, fakeHttp.lastClient?.lastRequest?.timeout)
+        assertEquals(true, fakeHttp.lastRequest?.noOverallDeadline)
     }
 
     @Test
-    fun `only rule set downloads drop the overall timeout`() {
+    fun `only rule set downloads drop the overall deadline`() = runTest {
         val updater = CustomAssetUpdater(
             versionFiles = routeVersionFiles(externalAssetsDir),
             updateProgress = {},
@@ -42,10 +42,10 @@ class RouteAssetDownloadTimeoutTest : HusiHttpKoinTest() {
             links = emptyList(),
         )
 
-        val versionRequest = updater.newRequest("https://example.invalid/version")
-        val downloadRequest = updater.newDownloadRequest("https://example.invalid/rules.tar.gz")
+        val versionRequest = updater.request("https://example.invalid/version")
+        val downloadRequest = updater.downloadRequest("https://example.invalid/rules.tar.gz")
 
-        assertNull((versionRequest as FakeHTTPRequest).timeout)
-        assertEquals(0, (downloadRequest as FakeHTTPRequest).timeout)
+        assertFalse(versionRequest.noOverallDeadline)
+        assertTrue(downloadRequest.noOverallDeadline)
     }
 }

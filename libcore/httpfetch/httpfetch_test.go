@@ -1,6 +1,7 @@
-package libcore
+package httpfetch
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -21,11 +22,12 @@ import (
 	"testing"
 	"time"
 
-	C "github.com/sagernet/sing-box/constant"
 	F "github.com/sagernet/sing/common/format"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
+	"filippo.io/age"
+	"filippo.io/age/armor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +41,7 @@ const (
 	pinnedTestResponse = "husi"
 )
 
-func TestHTTPClientPinnedSHA256(t *testing.T) {
+func TestClientPinnedSHA256(t *testing.T) {
 	unmatchedSum := strings.Repeat("00", sha256.Size)
 
 	tests := []struct {
@@ -105,35 +107,31 @@ func TestHTTPClientPinnedSHA256(t *testing.T) {
 				sumHex = certificateSHA256(keyPair)
 			}
 
-			client := NewHttpClient().(*httpClient)
-			t.Cleanup(client.Close)
-			client.transport.DialContext = func(ctx context.Context, network, _ string) (net.Conn, error) {
-				return N.SystemDialer.DialContext(ctx, network, address)
-			}
-			if test.trustServer {
-				roots := x509.NewCertPool()
-				roots.AddCert(keyPair.Leaf)
-				client.tls.RootCAs = roots
-			}
-			client.PinnedSHA256(sumHex)
-
-			request := client.NewRequest()
 			connectURL := &url.URL{
 				Scheme: "https",
 				Host:   net.JoinHostPort(test.requestHost, F.ToString(address.Port)),
 			}
-			require.NoError(t, request.SetURL(connectURL.String()))
+			request := Request{
+				URL:          connectURL.String(),
+				Timeout:      time.Minute,
+				PinnedSHA256: sumHex,
+			}
+			if test.trustServer {
+				request.RootCAs = x509.NewCertPool()
+				request.RootCAs.AddCert(keyPair.Leaf)
+			}
+			client := newClient(request, test.requestHost)
+			client.transport.DialContext = func(ctx context.Context, network, _ string) (net.Conn, error) {
+				return N.SystemDialer.DialContext(ctx, network, address)
+			}
 
-			response, err := request.Execute()
+			response, err := client.do(t.Context(), request, connectURL)
 			if test.wantErr {
 				assert.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
-			t.Cleanup(func() { _ = response.Close() })
-			content, err := response.GetContentString()
-			require.NoError(t, err)
-			assert.Equal(t, pinnedTestResponse, content)
+			assert.Equal(t, pinnedTestResponse, readBody(t, response))
 		})
 	}
 }
@@ -188,19 +186,15 @@ func startPinnedTestServer(t *testing.T, keyPair tls.Certificate) M.Socksaddr {
 	return M.SocksaddrFromNet(server.Listener.Addr())
 }
 
-func TestHTTPClientSetupTimeoutsWithoutOverallDeadline(t *testing.T) {
-	t.Parallel()
-
-	client := NewHttpClient().(*httpClient)
-	require.Equal(t, C.TCPTimeout, client.client.Timeout)
-
-	client.setTimeout(0)
-	assert.Zero(t, client.client.Timeout)
-	assert.Equal(t, C.TCPTimeout, client.transport.TLSHandshakeTimeout)
-	assert.Equal(t, C.TCPTimeout, client.transport.ResponseHeaderTimeout)
+func readBody(t *testing.T, response *Response) string {
+	t.Helper()
+	defer response.Body.Close()
+	content, err := io.ReadAll(response.Body)
+	require.NoError(t, err)
+	return string(content)
 }
 
-func TestHTTPRequestSlowBody(t *testing.T) {
+func TestDoSlowBody(t *testing.T) {
 	t.Parallel()
 
 	const (
@@ -218,27 +212,92 @@ func TestHTTPRequestSlowBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	newRequest := func(timeoutMs int32) HTTPRequest {
-		request := NewHttpClient().NewRequest()
-		require.NoError(t, request.SetURL(server.URL))
-		request.SetTimeout(timeoutMs)
-		return request
-	}
-
 	t.Run("an overall deadline cuts a slow body", func(t *testing.T) {
-		response, err := newRequest(int32(chunkDelay.Milliseconds())).Execute()
+		response, err := Get(t.Context(), Request{URL: server.URL, Timeout: chunkDelay})
 		require.NoError(t, err)
-		_, err = response.GetContentString()
+		defer response.Body.Close()
+		_, err = io.ReadAll(response.Body)
 		assert.Error(t, err)
 	})
 
 	t.Run("no overall deadline lets a slow body finish", func(t *testing.T) {
-		response, err := newRequest(0).Execute()
+		response, err := Get(t.Context(), Request{URL: server.URL})
 		require.NoError(t, err)
-		content, err := response.GetContentString()
-		require.NoError(t, err)
-		assert.Equal(t, strings.Repeat(bodyChunk, chunkCount), content)
+		assert.Equal(t, strings.Repeat(bodyChunk, chunkCount), readBody(t, response))
 	})
+}
+
+func TestDoRejectsNon200WithBodyPreview(t *testing.T) {
+	t.Parallel()
+
+	longBody := strings.Repeat("x", errorBodyPreviewLength*2)
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		writer.WriteHeader(http.StatusNotFound)
+		_, _ = writer.Write([]byte(longBody))
+	}))
+	defer server.Close()
+
+	_, err := Get(t.Context(), Request{URL: server.URL, Timeout: time.Minute})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "404")
+	assert.Contains(t, err.Error(), longBody[:errorBodyPreviewLength]+" ...")
+	assert.NotContains(t, err.Error(), longBody)
+}
+
+func TestDoSendsHeadersAndURLCredentials(t *testing.T) {
+	t.Parallel()
+
+	const (
+		userAgent = "husi-test"
+		username  = "user"
+		password  = "pass"
+	)
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestUsername, requestPassword, _ := request.BasicAuth()
+		_, _ = writer.Write([]byte(request.UserAgent() + " " + requestUsername + ":" + requestPassword))
+	}))
+	defer server.Close()
+
+	link, err := url.Parse(server.URL)
+	require.NoError(t, err)
+	link.User = url.UserPassword(username, password)
+	response, err := Get(t.Context(), Request{
+		URL:     link.String(),
+		Header:  http.Header{"User-Agent": {userAgent}},
+		Timeout: time.Minute,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, userAgent+" "+username+":"+password, readBody(t, response))
+}
+
+func TestDoDecryptsAgeBody(t *testing.T) {
+	t.Parallel()
+
+	const plaintext = "vless://husi"
+	identity, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+	var armored bytes.Buffer
+	armorWriter := armor.NewWriter(&armored)
+	encryptWriter, err := age.Encrypt(armorWriter, identity.Recipient())
+	require.NoError(t, err)
+	_, err = io.WriteString(encryptWriter, plaintext)
+	require.NoError(t, err)
+	require.NoError(t, encryptWriter.Close())
+	require.NoError(t, armorWriter.Close())
+
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		_, _ = writer.Write(armored.Bytes())
+	}))
+	defer server.Close()
+
+	response, err := Get(t.Context(), Request{
+		URL:           server.URL,
+		Timeout:       time.Minute,
+		AgeIdentities: []age.Identity{identity},
+	})
+	require.NoError(t, err)
+	assert.EqualValues(t, -1, response.ContentLength)
+	assert.Equal(t, plaintext, readBody(t, response))
 }
 
 func TestStallReader(t *testing.T) {

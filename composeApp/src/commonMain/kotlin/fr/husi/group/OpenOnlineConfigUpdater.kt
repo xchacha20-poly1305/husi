@@ -19,7 +19,6 @@
 
 package fr.husi.group
 
-import fr.husi.database.DataStore
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.AbstractBean
@@ -30,7 +29,9 @@ import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
-import fr.husi.libcore.resolveHttpClientFactory
+import fr.husi.net.HttpFetchRequest
+import fr.husi.net.localSocks5Proxy
+import fr.husi.net.resolveHttpFetcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.ooc_missing_protocol
@@ -84,7 +85,6 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         val token: OOCSubscriptionToken
         val baseLink: Url
         val certSha256: String?
-        val httpClientFactory = resolveHttpClientFactory()
         try {
             token = kxs.decodeFromString(subscription.token)
             val version = token.version
@@ -121,26 +121,18 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             error(repository.getString(Res.string.ooc_subscription_token_invalid))
         }
 
-        val response = httpClientFactory.newHttpClient().apply {
-            if (DataStore.serviceState.connected) {
-                useSocks5(
-                    DataStore.mixedPort.get(),
-                    DataStore.inboundUsername.get(),
-                    DataStore.inboundPassword.get(),
-                )
-            }
+        val request = HttpFetchRequest(
+            url = baseLink.toString(),
+            userAgent = generateUserAgent(subscription.customUserAgent),
             // Strict !!!
-            restrictedTLS()
-            certSha256?.let {
-                pinnedSHA256(it)
-            }
-        }.newRequest().apply {
-            setURL(baseLink.toString())
-            setUserAgent(generateUserAgent(subscription.customUserAgent))
-        }.execute()
+            restrictedTls = true,
+            pinnedSha256 = certSha256,
+            socks5 = localSocks5Proxy(),
+        )
+        val response = resolveHttpFetcher().fetchText(request)
 
         val oocResponse: OOCResponse = try {
-            kxs.decodeFromString(response.contentString)
+            kxs.decodeFromString(response.content)
         } catch (e: Exception) {
             Logs.e("OOC response parse failed", e)
             error(repository.getString(Res.string.ooc_subscription_token_invalid))

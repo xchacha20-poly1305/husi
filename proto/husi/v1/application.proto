@@ -25,6 +25,11 @@ option java_package = "fr.husi.proto.v1";
 // they share the host's protocol registry, socks path and cancellation model —
 // same placement as StandaloneURLTest (D6).
 //
+// HTTPFetch is the desktop half of the HTTP client husi uses for its own
+// downloads (subscriptions, rule sets, app updates); Android calls the same Go
+// code in-process through the libcore binding. It runs here so the desktop UI
+// needs no Go runtime of its own.
+//
 // The standalone STUN and network quality tests are the no-running-service half
 // of sing-box's pair: with a service started the UI calls
 // daemon.StartedService, which routes through a chosen outbound; with none it
@@ -38,6 +43,7 @@ service ApplicationService {
   rpc GetCert(GetCertRequest) returns (GetCertResponse);
   rpc StandaloneSTUNTest(StandaloneSTUNTestRequest) returns (stream daemon.STUNTestProgress);
   rpc StandaloneNetworkQualityTest(StandaloneNetworkQualityTestRequest) returns (stream daemon.NetworkQualityTestProgress);
+  rpc HTTPFetch(HTTPFetchRequest) returns (stream HTTPFetchResponse);
 }
 
 message CheckConfigRequest {
@@ -131,4 +137,46 @@ message StandaloneNetworkQualityTestRequest {
   bool serial = 2;
   int32 max_runtime_seconds = 3;
   bool http3 = 4;
+}
+
+// Socks inbound on the host's loopback that HTTPFetch dials through.
+message HTTPFetchSocks5 {
+  int32 port = 1;
+  string username = 2;
+  string password = 3;
+}
+
+// One GET. A status other than 200 fails the call with the start of the body
+// in the error message.
+message HTTPFetchRequest {
+  string url = 1;
+  map<string, string> headers = 2;
+  // Leaves the exchange without an overall deadline, for large downloads on
+  // slow links. Connection setup still times out, and a body that stops making
+  // progress still fails.
+  bool no_overall_deadline = 3;
+  // Forces TLS 1.3.
+  bool restricted_tls = 4;
+  // Hex SHA-256 of a leaf certificate accepted even when it does not chain to
+  // a trusted root (OOCv1).
+  string pinned_sha256 = 5;
+  // Unset dials the server directly.
+  HTTPFetchSocks5 socks5 = 6;
+  // age identities that decrypt an armored response body.
+  string age_identities = 7;
+}
+
+message HTTPFetchHead {
+  // First value of each response header, keyed by canonical header name.
+  map<string, string> headers = 1;
+  // Length of the body that follows, or -1 when unknown.
+  int64 content_length = 2;
+}
+
+// The stream carries one head, then the body in chunks.
+message HTTPFetchResponse {
+  oneof payload {
+    HTTPFetchHead head = 1;
+    bytes chunk = 2;
+  }
 }

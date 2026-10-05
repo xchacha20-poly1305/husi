@@ -1,6 +1,5 @@
 package fr.husi.group
 
-import fr.husi.database.DataStore
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.AbstractBean
@@ -16,12 +15,15 @@ import fr.husi.ktx.JSONMap
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
 import fr.husi.ktx.b64DecodeToString
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.kxs
 import fr.husi.ktx.parseProxies
 import fr.husi.ktx.toJsonMapKxs
-import fr.husi.libcore.resolveHttpClientFactory
+import fr.husi.net.HttpFetchRequest
+import fr.husi.net.localSocks5Proxy
+import fr.husi.net.resolveHttpFetcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.no_proxies_found
@@ -46,23 +48,15 @@ object RawUpdater : GroupUpdater() {
         if (subscription.link.startsWith("content://")) {
             contentText = readContentUri(subscription.link) ?: errNotFound()
         } else {
-            val response = resolveHttpClientFactory().newHttpClient().apply {
-                if (DataStore.serviceState.connected) {
-                    useSocks5(
-                        DataStore.mixedPort.get(),
-                        DataStore.inboundUsername.get(),
-                        DataStore.inboundPassword.get(),
-                    )
-                }
-                if (subscription.ageIdentity.isNotBlank()) {
-                    setAgeKey(subscription.ageIdentity)
-                }
-            }.newRequest().apply {
-                setURL(subscription.link)
-                setUserAgent(generateUserAgent(subscription.customUserAgent))
-            }.execute()
-            contentText = response.contentString
-            userInfo = response.getHeader("Subscription-Userinfo")
+            val request = HttpFetchRequest(
+                url = subscription.link,
+                userAgent = generateUserAgent(subscription.customUserAgent),
+                socks5 = localSocks5Proxy(),
+                ageIdentities = subscription.ageIdentity.blankAsNull(),
+            )
+            val response = resolveHttpFetcher().fetchText(request)
+            contentText = response.content
+            userInfo = response.header("Subscription-Userinfo").orEmpty()
         }
 
         val proxies = parseRaw(contentText) ?: errNotFound()

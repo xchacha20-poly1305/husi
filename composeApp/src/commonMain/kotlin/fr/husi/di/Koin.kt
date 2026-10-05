@@ -8,9 +8,7 @@ import fr.husi.core.CoreClient
 import fr.husi.core.remote.RemoteClientFactory
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
-import fr.husi.libcore.HttpClientFactory
 import fr.husi.libcore.Libcore
-import fr.husi.libcore.LibcoreHttpClientFactory
 import fr.husi.repository.Repository
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.openconnect.OpenConnectAuthController
@@ -24,7 +22,6 @@ import org.koin.dsl.module
 private fun commonUiModule() = module {
     single<PlatformMaterialApi> { platformMaterialApi() }
     single<PlatformThemeApi> { platformThemeApi() }
-    single<HttpClientFactory> { LibcoreHttpClientFactory }
     // Resolve the socket base path on every dial so CoreHostController can
     // switch between the session working dir and the system daemon path.
     single<CoreClient> {

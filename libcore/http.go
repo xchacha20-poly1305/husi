@@ -1,90 +1,53 @@
 package libcore
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
-	"crypto/tls"
-	"crypto/x509"
-	"encoding/hex"
 	"io"
-	"net"
 	"net/http"
-	"net/url"
 	"os"
-	"strconv"
-	"strings"
-	"sync"
 	"time"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
-	F "github.com/sagernet/sing/common/format"
-	"github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/sing/protocol/socks"
-	"github.com/sagernet/sing/protocol/socks/socks5"
 
-	"filippo.io/age"
-	"filippo.io/age/armor"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/httpfetch"
 )
 
-// downloadStallTimeout is how long a response body may go without any progress
-// before a transfer with no overall deadline is treated as stalled.
-const downloadStallTimeout = 30 * time.Second
-
-// HTTPClient is an adapt client of http.
+// HTTPClient is the Android binding of [httpfetch]. Desktop reaches the same
+// code through husi.v1.ApplicationService/HTTPFetch.
 type HTTPClient interface {
 	// RestrictedTLS forces to use TLS 1.3.
 	RestrictedTLS()
 
-	// PinnedSHA256 verifies server TLS certificate's sha256 when using self-signed certificates.
-	// This is designed for OOCv1
-	//
-	// https://github.com/Shadowsocks-NET/OpenOnlineConfig/blob/0db1f2452f8ad579967ca4c5092f5e11053c813c/docs/0001-open-online-config-v1.md?plain=1#L69
+	// PinnedSHA256 accepts the server certificate whose sha256 matches, even
+	// when it is self-signed. See [httpfetch.Request.PinnedSHA256].
 	PinnedSHA256(sumHex string)
 
 	// UseSocks5 connects to server by socks5.
 	UseSocks5(port int32, username, password string)
-
-	// KeepAlive force use HTTP/2 and enable keep alive.
-	KeepAlive()
 
 	// SetAgeKey decrypts response bodies with age identities.
 	SetAgeKey(identities string) error
 
 	// NewRequest creates a new HTTPRequest base settings.
 	NewRequest() HTTPRequest
-
-	// Close closes all connections.
-	Close()
 }
 
-// HTTPRequest is an custom HTTP request.
+// HTTPRequest is a GET request.
 type HTTPRequest interface {
 	// SetURL sets target by link.
-	SetURL(link string) error
-
-	// SetMethod sets HTTP mod.
-	SetMethod(method string)
+	SetURL(link string)
 
 	// SetHeader sets HTTP header.
 	SetHeader(key string, value string)
 
-	// SetContent sets the content you want to send to server.
-	SetContent(content []byte)
-	SetContentString(content string)
-	// SetContentZero writes zero to server.
-	SetContentZero(n int64, callback CopyCallback)
-
 	// SetUserAgent sets HTTP user agent.
 	SetUserAgent(userAgent string)
 
-	// SetTimeout sets the timeout in milliseconds. A value of zero or less leaves
-	// the exchange without an overall deadline, which large downloads on slow
-	// links need; connection setup still times out, and a stalled transfer still fails.
+	// SetTimeout sets the timeout in milliseconds. See [httpfetch.Request.Timeout]
+	// for what zero or less means.
 	SetTimeout(timeout int32)
 
 	// Execute do HTTP query.
@@ -96,10 +59,10 @@ type HTTPResponse interface {
 	// GetHeader returns the header corresponding to the key.
 	GetHeader(key string) string
 
-	// GetContentString returns server content string in response.
+	// GetContentString reads the whole body and closes it.
 	GetContentString() (string, error)
 
-	// WriteTo writes content to the file of `path`.
+	// WriteTo writes content to the file of `path` and closes the body.
 	// callback could be nil
 	WriteTo(path string, callback CopyCallback) error
 
@@ -114,151 +77,48 @@ var (
 )
 
 type httpClient struct {
-	tls           tls.Config
-	client        http.Client
-	transport     http.Transport
-	pinnedSHA256  string
-	ageIdentities []age.Identity
-}
-
-// setTimeout applies timeout as the overall deadline for the exchange. A value
-// of zero or less removes that deadline instead, keeping only the connection
-// setup timeouts.
-func (c *httpClient) setTimeout(timeout time.Duration) {
-	if timeout <= 0 {
-		c.client.Timeout = 0
-		c.setSetupTimeout(C.TCPTimeout)
-		return
-	}
-	c.client.Timeout = timeout
-	c.setSetupTimeout(timeout)
-}
-
-// setSetupTimeout sets the TLS handshake and response header deadlines.
-func (c *httpClient) setSetupTimeout(timeout time.Duration) {
-	c.transport.TLSHandshakeTimeout = timeout
-	c.transport.ResponseHeaderTimeout = timeout
+	template httpfetch.Request
 }
 
 // NewHttpClient returns the basic HTTPClient.
 func NewHttpClient() HTTPClient {
-	client := new(httpClient)
-	client.client.Transport = &client.transport
-	client.transport.TLSClientConfig = &client.tls
-	client.transport.DisableKeepAlives = true
-	client.setTimeout(C.TCPTimeout)
-	return client
+	return new(httpClient)
 }
 
 func (c *httpClient) RestrictedTLS() {
-	c.tls.MinVersion = tls.VersionTLS13
+	c.template.RestrictedTLS = true
 }
 
 func (c *httpClient) PinnedSHA256(sumHex string) {
-	c.pinnedSHA256 = strings.ToLower(strings.TrimSpace(sumHex))
-	c.tls.InsecureSkipVerify = true
-	c.tls.VerifyConnection = c.verifyConnection
-}
-
-func (c *httpClient) verifyConnection(state tls.ConnectionState) error {
-	if len(state.PeerCertificates) == 0 {
-		return E.New("missing peer certificate")
-	}
-	certificate := state.PeerCertificates[0]
-	certSum := sha256.Sum256(certificate.Raw)
-	if c.pinnedSHA256 == hex.EncodeToString(certSum[:]) {
-		return nil
-	}
-
-	options := x509.VerifyOptions{
-		DNSName:       c.tls.ServerName,
-		Roots:         c.tls.RootCAs,
-		Intermediates: x509.NewCertPool(),
-	}
-	if c.tls.Time != nil {
-		options.CurrentTime = c.tls.Time()
-	}
-	for _, intermediate := range state.PeerCertificates[1:] {
-		options.Intermediates.AddCert(intermediate)
-	}
-	if _, err := certificate.Verify(options); err != nil {
-		return E.Errors(err, E.New("cert sha256 not matched"))
-	}
-	return nil
+	c.template.PinnedSHA256 = sumHex
 }
 
 func (c *httpClient) UseSocks5(port int32, username, password string) {
-	dialer := new(net.Dialer)
-	c.transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		if port <= 0 {
-			return nil, E.New("invalid port")
-		}
-		socksConn, err := dialer.DialContext(
-			ctx,
-			N.NetworkTCP,
-			net.JoinHostPort("127.0.0.1", strconv.Itoa(int(port))),
-		)
-		if err != nil {
-			return nil, err
-		}
-		_, err = socks.ClientHandshake5(
-			socksConn,
-			socks5.CommandConnect,
-			metadata.ParseSocksaddr(addr),
-			username,
-			password,
-		)
-		if err != nil {
-			socksConn.Close()
-			return nil, err
-		}
-		return socksConn, nil
+	c.template.Socks5 = &httpfetch.Socks5{
+		Port:     uint16(port),
+		Username: username,
+		Password: password,
 	}
 }
 
-func (c *httpClient) KeepAlive() {
-	c.transport.ForceAttemptHTTP2 = true
-	c.transport.DisableKeepAlives = false
-}
-
 func (c *httpClient) SetAgeKey(identities string) (err error) {
-	c.ageIdentities, err = parseAgeIdentities(identities)
+	c.template.AgeIdentities, err = parseAgeIdentities(identities)
 	return
 }
 
 func (c *httpClient) NewRequest() HTTPRequest {
-	req := &httpRequest{httpClient: c}
-	req.request = http.Request{
-		Method: http.MethodGet,
-		Header: http.Header{},
-	}
-	return req
-}
-
-func (c *httpClient) Close() {
-	c.transport.CloseIdleConnections()
+	request := c.template
+	request.Header = http.Header{}
+	request.Timeout = C.TCPTimeout
+	return &httpRequest{request: request}
 }
 
 type httpRequest struct {
-	*httpClient
-	request http.Request
+	request httpfetch.Request
 }
 
-func (r *httpRequest) SetURL(link string) (err error) {
-	r.request.URL, err = url.Parse(link)
-	if err != nil {
-		return
-	}
-	if r.request.URL.User != nil {
-		user := r.request.URL.User.Username()
-		password, _ := r.request.URL.User.Password()
-		r.request.SetBasicAuth(user, password)
-	}
-	return
-}
-
-func (r *httpRequest) SetMethod(method string) {
-	r.request.Method = method
+func (r *httpRequest) SetURL(link string) {
+	r.request.URL = link
 }
 
 func (r *httpRequest) SetHeader(key string, value string) {
@@ -269,108 +129,29 @@ func (r *httpRequest) SetUserAgent(userAgent string) {
 	r.request.Header.Set("User-Agent", userAgent)
 }
 
-func (r *httpRequest) SetContent(content []byte) {
-	body := bytes.Clone(content)
-	r.request.Body = io.NopCloser(bytes.NewReader(body))
-	r.request.ContentLength = int64(len(body))
-}
-
-func (r *httpRequest) SetContentString(content string) {
-	r.SetContent([]byte(content))
-}
-
-func (r *httpRequest) SetContentZero(n int64, callback CopyCallback) {
-	reader := io.NopCloser(io.LimitReader(zeroReader{}, n))
-	if callback != nil {
-		callback.SetLength(n)
-		reader = callbackReader{reader, callback.Update}
-	}
-	r.request.Body = reader
-	r.request.ContentLength = n
-}
-
 func (r *httpRequest) SetTimeout(timeout int32) {
-	r.httpClient.setTimeout(time.Duration(timeout) * time.Millisecond)
+	r.request.Timeout = time.Duration(timeout) * time.Millisecond
 }
 
 func (r *httpRequest) Execute() (HTTPResponse, error) {
-	if r.pinnedSHA256 != "" {
-		r.tls.ServerName = r.request.URL.Hostname()
-	}
-	var (
-		stallContext context.Context
-		stallCancel  context.CancelCauseFunc
-	)
-	if r.client.Timeout == 0 {
-		stallContext, stallCancel = context.WithCancelCause(r.request.Context())
-		r.request = *r.request.WithContext(stallContext)
-	}
-	response, err := r.client.Do(&r.request)
+	response, err := httpfetch.Get(context.Background(), r.request)
 	if err != nil {
-		if stallCancel != nil {
-			stallCancel(err)
-		}
 		return nil, err
 	}
-	if stallCancel != nil {
-		response.Body = newStallReader(stallContext, stallCancel, response.Body, downloadStallTimeout)
-	}
-	httpResp := &httpResponse{Response: response, ageIdentities: r.ageIdentities}
-	if response.StatusCode != http.StatusOK {
-		return nil, E.New(httpResp.errorString())
-	}
-	return httpResp, nil
+	return &httpResponse{response}, nil
 }
 
 type httpResponse struct {
-	*http.Response
-	ageIdentities []age.Identity
-
-	getContentOnce sync.Once
-	content        []byte
-	contentError   error
-}
-
-func (h *httpResponse) errorString() string {
-	content, err := h.GetContentString()
-	if err != nil {
-		return F.ToString("HTTP ", h.Response.Status)
-	}
-	if len(content) > 100 {
-		content = content[:100] + " ..."
-	}
-	return F.ToString("HTTP ", h.Response.Status, ": ", content)
+	*httpfetch.Response
 }
 
 func (h *httpResponse) GetHeader(key string) string {
-	return h.Response.Header.Get(key)
-}
-
-func (h *httpResponse) getContentBytes() ([]byte, error) {
-	h.getContentOnce.Do(func() {
-		defer h.Body.Close()
-		reader, err := h.contentReader()
-		if err != nil {
-			h.contentError = err
-			return
-		}
-		h.content, h.contentError = io.ReadAll(reader)
-	})
-	if h.contentError != nil {
-		return nil, h.contentError
-	}
-	return h.content, nil
-}
-
-func (h *httpResponse) contentReader() (io.Reader, error) {
-	if len(h.ageIdentities) == 0 {
-		return h.Body, nil
-	}
-	return age.Decrypt(armor.NewReader(h.Body), h.ageIdentities...)
+	return h.Header.Get(key)
 }
 
 func (h *httpResponse) GetContentString() (string, error) {
-	content, err := h.getContentBytes()
+	defer h.Body.Close()
+	content, err := io.ReadAll(h.Body)
 	if err != nil {
 		return "", err
 	}
@@ -378,27 +159,24 @@ func (h *httpResponse) GetContentString() (string, error) {
 }
 
 func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {
-	defer h.Response.Body.Close()
-	var writer io.Writer
-	if path == DevNull {
-		// Android not support /dev/null
-		writer = io.Discard
-	} else {
-		file, err := os.Create(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		writer = file
+	defer h.Body.Close()
+	file, err := os.Create(path)
+	if err != nil {
+		return err
 	}
-	reader := h.Response.Body
+	defer file.Close()
+	var reader io.Reader = h.Body
 	if callback != nil {
-		callback.SetLength(h.Response.ContentLength)
-		reader = &callbackReader{reader, callback.Update}
+		callback.SetLength(h.ContentLength)
+		reader = callbackReader{reader, callback.Update}
 	}
-	return common.Error(bufio.Copy(writer, reader))
+	_, err = bufio.Copy(file, reader)
+	if err != nil {
+		return E.Cause(err, "download to ", path)
+	}
+	return nil
 }
 
 func (h *httpResponse) Close() error {
-	return h.Response.Body.Close()
+	return common.Close(h.Body)
 }

@@ -40,6 +40,8 @@ import fr.husi.proto.v1.GetCertResponse
 import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetVersionResponse
+import fr.husi.proto.v1.HTTPFetchRequest
+import fr.husi.proto.v1.HTTPFetchResponse
 import fr.husi.proto.v1.PluginProcessSpec
 import fr.husi.proto.v1.SchemaKind
 import fr.husi.proto.v1.StandaloneURLTestResponse
@@ -176,6 +178,9 @@ interface CoreClient {
         maxRuntimeSeconds: Int,
         http3: Boolean,
     ): Flow<NetworkQualityTestProgress>
+
+    /** One head message, then the body in chunks. */
+    fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse>
 
     suspend fun resetNetwork()
     suspend fun runTask(taskId: String)
@@ -709,6 +714,9 @@ class BridgeCoreClient private constructor(
         }
     }
 
+    override fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse> =
+        oneShotStream(Methods.HTTP_FETCH, request.toByteArray()) { HTTPFetchResponse.parseFrom(it) }
+
     /**
      * Server-streaming RPC that ends when the host closes the stream (tool
      * RPCs, not long-lived subscriptions). Does not auto-retry.
@@ -874,6 +882,7 @@ class BridgeCoreClient private constructor(
         const val STANDALONE_STUN_TEST = "/husi.v1.ApplicationService/StandaloneSTUNTest"
         const val STANDALONE_NETWORK_QUALITY_TEST =
             "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
+        const val HTTP_FETCH = "/husi.v1.ApplicationService/HTTPFetch"
 
         const val RUN_TASK = "/husi.v1.AppService/RunTask"
 

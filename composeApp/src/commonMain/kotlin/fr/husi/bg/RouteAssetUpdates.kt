@@ -6,12 +6,11 @@ import fr.husi.database.DataStore
 import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
-import fr.husi.libcore.CopyCallback
-import fr.husi.libcore.HTTPClient
-import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.Libcore
-import fr.husi.libcore.NO_OVERALL_TIMEOUT_MS
-import fr.husi.libcore.resolveHttpClientFactory
+import fr.husi.net.HttpFetchRequest
+import fr.husi.net.HttpFetcher
+import fr.husi.net.localSocks5Proxy
+import fr.husi.net.resolveHttpFetcher
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -19,10 +18,6 @@ import java.io.File
 import kotlin.time.Clock
 
 internal typealias UpdateProgress = (Float) -> Unit
-
-internal interface RemoteSource {
-    fun fetchString(url: String): String
-}
 
 private val assetVersionFormat = LocalDateTime.Format {
     year()
@@ -158,36 +153,17 @@ internal suspend fun updateSingleRouteAsset(
 ): String {
     val targetFile = createRouteCustomGeoDir(externalAssetsDir).resolve(asset.name)
 
-    resolveHttpClientFactory().newHttpClient().apply {
-        keepAlive()
-        if (DataStore.serviceState.connected) {
-            useSocks5(
-                DataStore.mixedPort.get(),
-                DataStore.inboundUsername.get(),
-                DataStore.inboundPassword.get(),
-            )
-        }
-    }.newRequest().apply {
-        setURL(asset.url)
-        setUserAgent(USER_AGENT)
-        setTimeout(NO_OVERALL_TIMEOUT_MS)
-    }.execute().writeTo(
-        targetFile.absolutePath,
-        object : CopyCallback {
-            private var saved = 0.0
-            private var length = 0.0
-
-            override fun setLength(length: Long) {
-                this.length = length.toDouble()
-            }
-
-            override fun update(n: Long) {
-                if (length <= 0) return
-                saved += n.toDouble()
-                updateProgress(((saved / length) * 100.0).toFloat())
-            }
-        },
+    val request = HttpFetchRequest(
+        url = asset.url,
+        userAgent = USER_AGENT,
+        noOverallDeadline = true,
+        socks5 = localSocks5Proxy(),
     )
+    resolveHttpFetcher().download(request, targetFile) { copiedBytes, contentLength ->
+        if (contentLength > 0) {
+            updateProgress(copiedBytes * 100f / contentLength)
+        }
+    }
 
     val version = currentAssetVersionText()
     routeAssetVersionFile(externalAssetsDir, asset.name).writeText(version)
@@ -290,36 +266,26 @@ internal abstract class AssetsUpdater(
     val updateProgress: UpdateProgress,
     val cacheDir: File,
     val destinationDir: File,
-    remoteSource: RemoteSource? = null,
+    private val httpFetcher: HttpFetcher = resolveHttpFetcher(),
 ) {
-    private val httpClient: HTTPClient? = if (remoteSource == null) {
-        resolveHttpClientFactory().newHttpClient().apply {
-            keepAlive()
-            if (DataStore.serviceState.connected) {
-                useSocks5(
-                    DataStore.mixedPort.getBlocking(),
-                    DataStore.inboundUsername.getBlocking(),
-                    DataStore.inboundPassword.getBlocking(),
-                )
-            }
-        }
-    } else null
-
-    fun newRequest(url: String): HTTPRequest = requireNotNull(httpClient).newRequest().apply {
-        setURL(url)
-        setUserAgent(USER_AGENT)
-    }
+    suspend fun request(url: String): HttpFetchRequest = HttpFetchRequest(
+        url = url,
+        userAgent = USER_AGENT,
+        socks5 = localSocks5Proxy(),
+    )
 
     /**
-     * [newRequest] for a rule set archive download, which must not be cut off by an
+     * [request] for a rule set archive download, which must not be cut off by an
      * overall deadline; the small version and API requests keep the default one.
      */
-    fun newDownloadRequest(url: String): HTTPRequest = newRequest(url).apply {
-        setTimeout(NO_OVERALL_TIMEOUT_MS)
-    }
+    suspend fun downloadRequest(url: String): HttpFetchRequest =
+        request(url).copy(noOverallDeadline = true)
 
-    protected val remoteSource: RemoteSource = remoteSource ?: object : RemoteSource {
-        override fun fetchString(url: String): String = newRequest(url).execute().contentString
+    protected suspend fun fetchString(url: String): String =
+        httpFetcher.fetchText(request(url)).content
+
+    protected suspend fun download(url: String, target: File) {
+        httpFetcher.download(downloadRequest(url), target)
     }
 
     suspend fun runUpdateIfAvailable() {
@@ -343,8 +309,8 @@ internal class CustomAssetUpdater(
     cacheDir: File,
     destinationDir: File,
     val links: List<String>,
-    remoteSource: RemoteSource? = null,
-) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
+    httpFetcher: HttpFetcher = resolveHttpFetcher(),
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, httpFetcher) {
 
     override suspend fun check(): List<UpdateInfo> = links.map { link ->
         UpdateInfo.Custom(link)
@@ -357,13 +323,11 @@ internal class CustomAssetUpdater(
             updateProgress(35f)
             for ((index, update) in updates.withIndex()) {
                 update as UpdateInfo.Custom
-                val response = newDownloadRequest(update.link).execute()
-
                 val cacheFile = cacheDir.resolve("custom_asset_$index.tmp")
                 cacheFile.parentFile?.mkdirs()
                 cacheFile.deleteOnExit()
 
-                response.writeTo(cacheFile.absolutePath, null)
+                download(update.link, cacheFile)
                 cacheFiles.add(cacheFile)
             }
 
@@ -392,8 +356,8 @@ internal class GithubAssetUpdater(
     destinationDir: File,
     val sources: List<GithubAssetSource>,
     val useUnstableBranch: Boolean,
-    remoteSource: RemoteSource? = null,
-) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
+    httpFetcher: HttpFetcher = resolveHttpFetcher(),
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, httpFetcher) {
 
     override suspend fun check(): List<UpdateInfo> {
         val updatesNeeded = mutableListOf<UpdateInfo.Github>()
@@ -425,15 +389,13 @@ internal class GithubAssetUpdater(
                 val source = update.source
                 val branchName = source.repository.resolveBranch(useUnstableBranch)
                 val url = githubCodloadTarGzUrl(source.repository.fullName, branchName)
-                val response = newDownloadRequest(url).execute()
-
                 val cacheFile = cacheDir.resolve(
                     "${source.repository.fullName.replace('/', '_')}-${update.newVersion}.tmp",
                 )
                 cacheFile.parentFile?.mkdirs()
                 cacheFile.deleteOnExit()
 
-                response.writeTo(cacheFile.absolutePath, null)
+                download(url, cacheFile)
                 cacheFiles.add(cacheFile)
 
                 updateProgress(progressPerDownload)
@@ -461,8 +423,8 @@ internal class GithubAssetUpdater(
         }
     }
 
-    private fun fetchVersion(repository: GithubRepository): String {
-        val body = remoteSource.fetchString(githubApiLatestReleaseUrl(repository.fullName))
+    private suspend fun fetchVersion(repository: GithubRepository): String {
+        val body = fetchString(githubApiLatestReleaseUrl(repository.fullName))
         return kxs.decodeFromString<GithubRelease>(body).tagName.blankAsNull().orEmpty()
     }
 }
@@ -473,11 +435,11 @@ internal class GithubReleaseZipUpdater(
     cacheDir: File,
     destinationDir: File,
     val source: GithubReleaseSource,
-    remoteSource: RemoteSource? = null,
-) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, remoteSource) {
+    httpFetcher: HttpFetcher = resolveHttpFetcher(),
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, httpFetcher) {
 
     override suspend fun check(): List<UpdateInfo> {
-        val body = remoteSource.fetchString(githubApiLatestReleaseUrl(source.repository.fullName))
+        val body = fetchString(githubApiLatestReleaseUrl(source.repository.fullName))
         val latestVersion = kxs.decodeFromString<GithubRelease>(body)
             .tagName.blankAsNull().orEmpty()
         val currentVersion = source.versionFile.takeIf(File::isFile)
@@ -496,7 +458,7 @@ internal class GithubReleaseZipUpdater(
         cacheFile.deleteOnExit()
         try {
             updateProgress(10f)
-            newDownloadRequest(url).execute().writeTo(cacheFile.absolutePath, null)
+            download(url, cacheFile)
             updateProgress(60f)
             Libcore.tryUnpack(cacheFile.absolutePath, destinationDir.absolutePath)
             updateProgress(25f)

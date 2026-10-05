@@ -754,6 +754,306 @@ func (x *StandaloneNetworkQualityTestRequest) GetHttp3() bool {
 	return false
 }
 
+// Socks inbound on the host's loopback that HTTPFetch dials through.
+type HTTPFetchSocks5 struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Port          int32                  `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HTTPFetchSocks5) Reset() {
+	*x = HTTPFetchSocks5{}
+	mi := &file_husi_v1_application_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HTTPFetchSocks5) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HTTPFetchSocks5) ProtoMessage() {}
+
+func (x *HTTPFetchSocks5) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HTTPFetchSocks5.ProtoReflect.Descriptor instead.
+func (*HTTPFetchSocks5) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *HTTPFetchSocks5) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *HTTPFetchSocks5) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *HTTPFetchSocks5) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+// One GET. A status other than 200 fails the call with the start of the body
+// in the error message.
+type HTTPFetchRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Url     string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	Headers map[string]string      `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Leaves the exchange without an overall deadline, for large downloads on
+	// slow links. Connection setup still times out, and a body that stops making
+	// progress still fails.
+	NoOverallDeadline bool `protobuf:"varint,3,opt,name=no_overall_deadline,json=noOverallDeadline,proto3" json:"no_overall_deadline,omitempty"`
+	// Forces TLS 1.3.
+	RestrictedTls bool `protobuf:"varint,4,opt,name=restricted_tls,json=restrictedTls,proto3" json:"restricted_tls,omitempty"`
+	// Hex SHA-256 of a leaf certificate accepted even when it does not chain to
+	// a trusted root (OOCv1).
+	PinnedSha256 string `protobuf:"bytes,5,opt,name=pinned_sha256,json=pinnedSha256,proto3" json:"pinned_sha256,omitempty"`
+	// Unset dials the server directly.
+	Socks5 *HTTPFetchSocks5 `protobuf:"bytes,6,opt,name=socks5,proto3" json:"socks5,omitempty"`
+	// age identities that decrypt an armored response body.
+	AgeIdentities string `protobuf:"bytes,7,opt,name=age_identities,json=ageIdentities,proto3" json:"age_identities,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HTTPFetchRequest) Reset() {
+	*x = HTTPFetchRequest{}
+	mi := &file_husi_v1_application_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HTTPFetchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HTTPFetchRequest) ProtoMessage() {}
+
+func (x *HTTPFetchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HTTPFetchRequest.ProtoReflect.Descriptor instead.
+func (*HTTPFetchRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *HTTPFetchRequest) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *HTTPFetchRequest) GetHeaders() map[string]string {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
+func (x *HTTPFetchRequest) GetNoOverallDeadline() bool {
+	if x != nil {
+		return x.NoOverallDeadline
+	}
+	return false
+}
+
+func (x *HTTPFetchRequest) GetRestrictedTls() bool {
+	if x != nil {
+		return x.RestrictedTls
+	}
+	return false
+}
+
+func (x *HTTPFetchRequest) GetPinnedSha256() string {
+	if x != nil {
+		return x.PinnedSha256
+	}
+	return ""
+}
+
+func (x *HTTPFetchRequest) GetSocks5() *HTTPFetchSocks5 {
+	if x != nil {
+		return x.Socks5
+	}
+	return nil
+}
+
+func (x *HTTPFetchRequest) GetAgeIdentities() string {
+	if x != nil {
+		return x.AgeIdentities
+	}
+	return ""
+}
+
+type HTTPFetchHead struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// First value of each response header, keyed by canonical header name.
+	Headers map[string]string `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Length of the body that follows, or -1 when unknown.
+	ContentLength int64 `protobuf:"varint,2,opt,name=content_length,json=contentLength,proto3" json:"content_length,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HTTPFetchHead) Reset() {
+	*x = HTTPFetchHead{}
+	mi := &file_husi_v1_application_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HTTPFetchHead) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HTTPFetchHead) ProtoMessage() {}
+
+func (x *HTTPFetchHead) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HTTPFetchHead.ProtoReflect.Descriptor instead.
+func (*HTTPFetchHead) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *HTTPFetchHead) GetHeaders() map[string]string {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
+func (x *HTTPFetchHead) GetContentLength() int64 {
+	if x != nil {
+		return x.ContentLength
+	}
+	return 0
+}
+
+// The stream carries one head, then the body in chunks.
+type HTTPFetchResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Payload:
+	//
+	//	*HTTPFetchResponse_Head
+	//	*HTTPFetchResponse_Chunk
+	Payload       isHTTPFetchResponse_Payload `protobuf_oneof:"payload"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HTTPFetchResponse) Reset() {
+	*x = HTTPFetchResponse{}
+	mi := &file_husi_v1_application_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HTTPFetchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HTTPFetchResponse) ProtoMessage() {}
+
+func (x *HTTPFetchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HTTPFetchResponse.ProtoReflect.Descriptor instead.
+func (*HTTPFetchResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *HTTPFetchResponse) GetPayload() isHTTPFetchResponse_Payload {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *HTTPFetchResponse) GetHead() *HTTPFetchHead {
+	if x != nil {
+		if x, ok := x.Payload.(*HTTPFetchResponse_Head); ok {
+			return x.Head
+		}
+	}
+	return nil
+}
+
+func (x *HTTPFetchResponse) GetChunk() []byte {
+	if x != nil {
+		if x, ok := x.Payload.(*HTTPFetchResponse_Chunk); ok {
+			return x.Chunk
+		}
+	}
+	return nil
+}
+
+type isHTTPFetchResponse_Payload interface {
+	isHTTPFetchResponse_Payload()
+}
+
+type HTTPFetchResponse_Head struct {
+	Head *HTTPFetchHead `protobuf:"bytes,1,opt,name=head,proto3,oneof"`
+}
+
+type HTTPFetchResponse_Chunk struct {
+	Chunk []byte `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
+}
+
+func (*HTTPFetchResponse_Head) isHTTPFetchResponse_Payload() {}
+
+func (*HTTPFetchResponse_Chunk) isHTTPFetchResponse_Payload() {}
+
 var File_husi_v1_application_proto protoreflect.FileDescriptor
 
 const file_husi_v1_application_proto_rawDesc = "" +
@@ -796,7 +1096,32 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"config_url\x18\x01 \x01(\tR\tconfigUrl\x12\x16\n" +
 	"\x06serial\x18\x02 \x01(\bR\x06serial\x12.\n" +
 	"\x13max_runtime_seconds\x18\x03 \x01(\x05R\x11maxRuntimeSeconds\x12\x14\n" +
-	"\x05http3\x18\x04 \x01(\bR\x05http3*u\n" +
+	"\x05http3\x18\x04 \x01(\bR\x05http3\"]\n" +
+	"\x0fHTTPFetchSocks5\x12\x12\n" +
+	"\x04port\x18\x01 \x01(\x05R\x04port\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\"\xf7\x02\n" +
+	"\x10HTTPFetchRequest\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x12@\n" +
+	"\aheaders\x18\x02 \x03(\v2&.husi.v1.HTTPFetchRequest.HeadersEntryR\aheaders\x12.\n" +
+	"\x13no_overall_deadline\x18\x03 \x01(\bR\x11noOverallDeadline\x12%\n" +
+	"\x0erestricted_tls\x18\x04 \x01(\bR\rrestrictedTls\x12#\n" +
+	"\rpinned_sha256\x18\x05 \x01(\tR\fpinnedSha256\x120\n" +
+	"\x06socks5\x18\x06 \x01(\v2\x18.husi.v1.HTTPFetchSocks5R\x06socks5\x12%\n" +
+	"\x0eage_identities\x18\a \x01(\tR\rageIdentities\x1a:\n" +
+	"\fHeadersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb1\x01\n" +
+	"\rHTTPFetchHead\x12=\n" +
+	"\aheaders\x18\x01 \x03(\v2#.husi.v1.HTTPFetchHead.HeadersEntryR\aheaders\x12%\n" +
+	"\x0econtent_length\x18\x02 \x01(\x03R\rcontentLength\x1a:\n" +
+	"\fHeadersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"d\n" +
+	"\x11HTTPFetchResponse\x12,\n" +
+	"\x04head\x18\x01 \x01(\v2\x16.husi.v1.HTTPFetchHeadH\x00R\x04head\x12\x16\n" +
+	"\x05chunk\x18\x02 \x01(\fH\x00R\x05chunkB\t\n" +
+	"\apayload*u\n" +
 	"\n" +
 	"SchemaKind\x12\x1b\n" +
 	"\x17SCHEMA_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
@@ -806,7 +1131,7 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\vGetCertMode\x12\x1d\n" +
 	"\x19GET_CERT_MODE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13GET_CERT_MODE_HTTPS\x10\x01\x12\x16\n" +
-	"\x12GET_CERT_MODE_QUIC\x10\x022\xe2\x04\n" +
+	"\x12GET_CERT_MODE_QUIC\x10\x022\xa8\x05\n" +
 	"\x12ApplicationService\x12H\n" +
 	"\vCheckConfig\x12\x1b.husi.v1.CheckConfigRequest\x1a\x1c.husi.v1.CheckConfigResponse\x12K\n" +
 	"\fFormatConfig\x12\x1c.husi.v1.FormatConfigRequest\x1a\x1d.husi.v1.FormatConfigResponse\x12Q\n" +
@@ -814,7 +1139,8 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\x11StandaloneURLTest\x12!.husi.v1.StandaloneURLTestRequest\x1a\".husi.v1.StandaloneURLTestResponse\x12<\n" +
 	"\aGetCert\x12\x17.husi.v1.GetCertRequest\x1a\x18.husi.v1.GetCertResponse\x12T\n" +
 	"\x12StandaloneSTUNTest\x12\".husi.v1.StandaloneSTUNTestRequest\x1a\x18.daemon.STUNTestProgress0\x01\x12r\n" +
-	"\x1cStandaloneNetworkQualityTest\x12,.husi.v1.StandaloneNetworkQualityTestRequest\x1a\".daemon.NetworkQualityTestProgress0\x01BA\n" +
+	"\x1cStandaloneNetworkQualityTest\x12,.husi.v1.StandaloneNetworkQualityTestRequest\x1a\".daemon.NetworkQualityTestProgress0\x01\x12D\n" +
+	"\tHTTPFetch\x12\x19.husi.v1.HTTPFetchRequest\x1a\x1a.husi.v1.HTTPFetchResponse0\x01BA\n" +
 	"\x10fr.husi.proto.v1B\x10ApplicationProtoP\x01Z\x19libcore/pb/husi/v1;husiv1b\x06proto3"
 
 var (
@@ -830,7 +1156,7 @@ func file_husi_v1_application_proto_rawDescGZIP() []byte {
 }
 
 var file_husi_v1_application_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_husi_v1_application_proto_goTypes = []any{
 	(SchemaKind)(0),                             // 0: husi.v1.SchemaKind
 	(GetCertMode)(0),                            // 1: husi.v1.GetCertMode
@@ -846,35 +1172,47 @@ var file_husi_v1_application_proto_goTypes = []any{
 	(*GetCertResponse)(nil),                     // 11: husi.v1.GetCertResponse
 	(*StandaloneSTUNTestRequest)(nil),           // 12: husi.v1.StandaloneSTUNTestRequest
 	(*StandaloneNetworkQualityTestRequest)(nil), // 13: husi.v1.StandaloneNetworkQualityTestRequest
-	(*URLTestOptions)(nil),                      // 14: husi.v1.URLTestOptions
-	(*PluginProcessSpec)(nil),                   // 15: husi.v1.PluginProcessSpec
-	(*daemon.STUNTestProgress)(nil),             // 16: daemon.STUNTestProgress
-	(*daemon.NetworkQualityTestProgress)(nil),   // 17: daemon.NetworkQualityTestProgress
+	(*HTTPFetchSocks5)(nil),                     // 14: husi.v1.HTTPFetchSocks5
+	(*HTTPFetchRequest)(nil),                    // 15: husi.v1.HTTPFetchRequest
+	(*HTTPFetchHead)(nil),                       // 16: husi.v1.HTTPFetchHead
+	(*HTTPFetchResponse)(nil),                   // 17: husi.v1.HTTPFetchResponse
+	nil,                                         // 18: husi.v1.HTTPFetchRequest.HeadersEntry
+	nil,                                         // 19: husi.v1.HTTPFetchHead.HeadersEntry
+	(*URLTestOptions)(nil),                      // 20: husi.v1.URLTestOptions
+	(*PluginProcessSpec)(nil),                   // 21: husi.v1.PluginProcessSpec
+	(*daemon.STUNTestProgress)(nil),             // 22: daemon.STUNTestProgress
+	(*daemon.NetworkQualityTestProgress)(nil),   // 23: daemon.NetworkQualityTestProgress
 }
 var file_husi_v1_application_proto_depIdxs = []int32{
 	0,  // 0: husi.v1.GenerateSchemaRequest.kind:type_name -> husi.v1.SchemaKind
-	14, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
-	15, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
+	20, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
+	21, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
 	1,  // 3: husi.v1.GetCertRequest.mode:type_name -> husi.v1.GetCertMode
-	2,  // 4: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
-	4,  // 5: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
-	6,  // 6: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
-	8,  // 7: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
-	10, // 8: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
-	12, // 9: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
-	13, // 10: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
-	3,  // 11: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
-	5,  // 12: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
-	7,  // 13: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
-	9,  // 14: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
-	11, // 15: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
-	16, // 16: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
-	17, // 17: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
-	11, // [11:18] is the sub-list for method output_type
-	4,  // [4:11] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	18, // 4: husi.v1.HTTPFetchRequest.headers:type_name -> husi.v1.HTTPFetchRequest.HeadersEntry
+	14, // 5: husi.v1.HTTPFetchRequest.socks5:type_name -> husi.v1.HTTPFetchSocks5
+	19, // 6: husi.v1.HTTPFetchHead.headers:type_name -> husi.v1.HTTPFetchHead.HeadersEntry
+	16, // 7: husi.v1.HTTPFetchResponse.head:type_name -> husi.v1.HTTPFetchHead
+	2,  // 8: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
+	4,  // 9: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
+	6,  // 10: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
+	8,  // 11: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
+	10, // 12: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
+	12, // 13: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
+	13, // 14: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
+	15, // 15: husi.v1.ApplicationService.HTTPFetch:input_type -> husi.v1.HTTPFetchRequest
+	3,  // 16: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
+	5,  // 17: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
+	7,  // 18: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
+	9,  // 19: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
+	11, // 20: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
+	22, // 21: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
+	23, // 22: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
+	17, // 23: husi.v1.ApplicationService.HTTPFetch:output_type -> husi.v1.HTTPFetchResponse
+	16, // [16:24] is the sub-list for method output_type
+	8,  // [8:16] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_husi_v1_application_proto_init() }
@@ -884,13 +1222,17 @@ func file_husi_v1_application_proto_init() {
 	}
 	file_husi_v1_core_proto_init()
 	file_husi_v1_daemon_proto_init()
+	file_husi_v1_application_proto_msgTypes[15].OneofWrappers = []any{
+		(*HTTPFetchResponse_Head)(nil),
+		(*HTTPFetchResponse_Chunk)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_application_proto_rawDesc), len(file_husi_v1_application_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

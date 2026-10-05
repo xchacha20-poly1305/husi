@@ -54,7 +54,7 @@ class AppUpdateDownloadTest : HusiHttpKoinTest() {
 
         downloadAppUpdate(info(), cacheDir, fakeHttp)
 
-        assertEquals(0, fakeHttp.lastClient?.lastRequest?.timeout)
+        assertEquals(true, fakeHttp.lastRequest?.noOverallDeadline)
     }
 
     @Test

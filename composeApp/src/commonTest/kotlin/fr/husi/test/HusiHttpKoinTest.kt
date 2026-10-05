@@ -1,28 +1,28 @@
 package fr.husi.test
 
 import fr.husi.database.DataStore
-import fr.husi.libcore.HttpClientFactory
+import fr.husi.net.HttpFetcher
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 
 /**
- * Base class for tests that exercise code paths touching HTTP via [HttpClientFactory].
+ * Base class for tests that exercise code paths touching HTTP via [HttpFetcher].
  *
  * Provides a shared [fakeHttp] instance, registers it as a Koin override so any
- * production code resolving [HttpClientFactory] from Koin gets the fake, and
- * resets the [DataStore] configuration backing file so each test starts clean.
+ * production code resolving [HttpFetcher] from Koin gets the fake, and resets
+ * the [DataStore] configuration backing file so each test starts clean.
  *
- * Code under test that takes [HttpClientFactory] via constructor (e.g.
- * `OpenOnlineConfigUpdater`) should be wired with [fakeHttp] explicitly.
+ * Code under test that takes [HttpFetcher] via constructor (e.g.
+ * `AppUpdateChecker`) should be wired with [fakeHttp] explicitly.
  */
 abstract class HusiHttpKoinTest : HusiKoinMainDispatcherTest() {
 
-    protected val fakeHttp = FakeHttpClientFactory()
+    protected val fakeHttp = FakeHttpFetcher()
 
     override suspend fun postStartKoin() {
         loadKoinModules(
             module {
-                single<HttpClientFactory> { fakeHttp }
+                single<HttpFetcher> { fakeHttp }
             },
         )
         DataStore.configurationStore.reset()

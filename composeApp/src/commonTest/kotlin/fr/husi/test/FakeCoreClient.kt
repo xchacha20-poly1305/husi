@@ -22,6 +22,8 @@ import fr.husi.proto.v1.GetCertMode
 import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetVersionResponse
+import fr.husi.proto.v1.HTTPFetchRequest
+import fr.husi.proto.v1.HTTPFetchResponse
 import fr.husi.proto.v1.PluginProcessSpec
 import fr.husi.proto.v1.SchemaKind
 import fr.husi.proto.v1.StartServiceRequest
@@ -227,6 +229,16 @@ open class FakeCoreClient : CoreClient {
         if (throwable != null) {
             throw throwable
         }
+    }
+
+    var lastHttpFetch: HTTPFetchRequest? = null
+        private set
+    var httpFetchResponses: List<HTTPFetchResponse> = emptyList()
+    var httpFetchThrowable: Throwable? = null
+
+    override fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse> {
+        lastHttpFetch = request
+        return replay(httpFetchResponses, httpFetchThrowable)
     }
 
     override suspend fun resetNetwork() = Unit

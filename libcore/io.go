@@ -2,17 +2,13 @@ package libcore
 
 import (
 	"archive/tar"
-	"context"
-	"errors"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/canceler"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/klauspost/compress/gzip"
@@ -189,52 +185,10 @@ func removeIfHasPrefix(dir, prefix string) error {
 	})
 }
 
-const DevNull = os.DevNull
-
 // CopyCallback callbacks when copying.
 type CopyCallback interface {
 	SetLength(length int64)
 	Update(n int64)
-}
-
-// stallReader wraps an HTTP response body so a transfer that stops delivering
-// bytes does not hang forever. It is only meant for requests that have no
-// overall deadline of their own.
-type stallReader struct {
-	reader   io.ReadCloser
-	ctx      context.Context
-	canceler *canceler.Instance
-}
-
-// newStallReader starts a timer that cancels ctx through cancel once timeout
-// passes without a read; each read that returns data pushes the deadline back.
-func newStallReader(
-	ctx context.Context,
-	cancel context.CancelCauseFunc,
-	reader io.ReadCloser,
-	timeout time.Duration,
-) *stallReader {
-	return &stallReader{
-		reader:   reader,
-		ctx:      ctx,
-		canceler: canceler.New(ctx, cancel, timeout),
-	}
-}
-
-func (s *stallReader) Read(p []byte) (int, error) {
-	n, err := s.reader.Read(p)
-	if n > 0 {
-		s.canceler.Update()
-	}
-	if err != nil && errors.Is(context.Cause(s.ctx), os.ErrDeadlineExceeded) {
-		return n, E.Cause(os.ErrDeadlineExceeded, "transfer stalled")
-	}
-	return n, err
-}
-
-func (s *stallReader) Close() error {
-	s.canceler.Close()
-	return s.reader.Close()
 }
 
 // callbackReader use callback when reading.
@@ -250,16 +204,4 @@ func (c callbackReader) Read(p []byte) (n int, err error) {
 		c.callback(int64(n))
 	}
 	return
-}
-
-func (c callbackReader) Close() error {
-	return common.Close(c.reader)
-}
-
-// zeroReader is a reader that always fill the input p with zero like /dev/zero.
-type zeroReader struct{}
-
-func (z zeroReader) Read(p []byte) (int, error) {
-	clear(p)
-	return len(p), nil
 }

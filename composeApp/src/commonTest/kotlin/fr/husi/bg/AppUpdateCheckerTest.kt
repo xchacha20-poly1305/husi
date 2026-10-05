@@ -47,7 +47,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
         currentVersion: String = "1.0.0",
         abis: List<String> = listOf("arm64-v8a", "armeabi-v7a"),
     ) = AppUpdateChecker(
-        httpClientFactory = fakeHttp,
+        httpFetcher = fakeHttp,
         currentVersion = currentVersion,
         abis = abis,
         repository = TEST_REPOSITORY,
@@ -199,7 +199,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
 
         assertEquals(
             githubApiLatestReleaseUrl(TEST_REPOSITORY),
-            fakeHttp.lastClient?.lastRequest?.url,
+            fakeHttp.lastRequest?.url,
         )
     }
 
@@ -212,7 +212,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
 
         assertEquals(
             githubApiReleasesUrl(TEST_REPOSITORY),
-            fakeHttp.lastClient?.lastRequest?.url,
+            fakeHttp.lastRequest?.url,
         )
     }
 
@@ -226,7 +226,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
 
         assertEquals(
             "Bearer secret-token",
-            fakeHttp.lastClient?.lastRequest?.headers["Authorization"],
+            fakeHttp.lastRequest?.headers["Authorization"],
         )
     }
 
@@ -237,7 +237,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
 
         checker().check()
 
-        assertNull(fakeHttp.lastClient?.lastRequest?.headers["Authorization"])
+        assertNull(fakeHttp.lastRequest?.headers["Authorization"])
     }
 
     @Test

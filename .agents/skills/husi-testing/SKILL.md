@@ -12,7 +12,7 @@ test dependency is a hand-rolled `Fake*` registered through Koin or passed via c
 
 Before writing tests, answer two questions:
 
-1. **Does the code under test touch Koin-resolved singletons (`Repository`, `HttpClientFactory`,
+1. **Does the code under test touch Koin-resolved singletons (`Repository`, `HttpFetcher`,
    `DataStore`)?** → extend one of the Koin-aware base classes below.
 2. **Does it use `viewModelScope` / `Dispatchers.IO` / `delay`?** → you need a
    `StandardTestDispatcher` and `runTest(dispatcher.scheduler) { ... advanceUntilIdle() }`.
@@ -50,7 +50,7 @@ All base classes live in `composeApp/src/commonTest/kotlin/fr/husi/test/`.
 | `MainDispatcherTest`         | `StandardTestDispatcher` swapped into `Dispatchers.Main`.                                              | `viewModelScope` is involved but no Koin singletons are touched.                   |
 | `HusiKoinTest`               | + `initHusiKoin(FakeRepository())` / `stopKoin()`.                                                     | Code resolves `Repository` (e.g. `resolveRepository()`), but no coroutine timing.  |
 | `HusiKoinMainDispatcherTest` | Both of the above.                                                                                     | Default for ViewModel tests. Resolves Koin singletons and uses `viewModelScope`.   |
-| `HusiHttpKoinTest`           | + `HttpClientFactory` overridden with `FakeHttpClientFactory`, `DataStore.configurationStore.reset()`. | The code under test calls `Libcore.newHttpClient()` (directly or via the factory). |
+| `HusiHttpKoinTest`           | + `HttpFetcher` overridden with `FakeHttpFetcher`, `DataStore.configurationStore.reset()`.             | The code under test makes HTTP requests through `HttpFetcher`.                     |
 
 The hooks `preStartKoin / postStartKoin / preStopKoin / postStopKoin` (suspend, all `open`) are the
 extension points. `HusiHttpKoinTest` exposes its own `postStartKoinWithHttp()` because it already
@@ -59,11 +59,11 @@ finalises `postStartKoin`.
 ## Why fakes, not mockk
 
 The codebase uses `Fake*` classes that implement the production interfaces (`FakeRepository`,
-`FakeHttpClientFactory`, `FakeHTTPClient`, `FakeHTTPRequest`, `FakeHTTPResponse`). They:
+`FakeHttpFetcher`, `FakeCoreClient`). They:
 
 - compile-check against the real interface so renaming/refactoring stays sound,
 - can be reused across many tests with no per-test setup boilerplate,
-- read like a recorder — you assert on `lastClient?.lastRequest?.headers["Referer"]` instead of
+- read like a recorder — you assert on `lastRequest?.headers["Referer"]` instead of
   decoding `verify { … }` blocks,
 - never require `mockkStatic` against gobind classes, which is fragile on the desktop JVM.
 
@@ -76,14 +76,15 @@ each new fake as infrastructure for *future* tests, not just the one you're writ
 When the code you want to test calls a global static (`Libcore.xxx`) or an internal Kotlin object
 (`DataStore`), introduce a DI seam instead of working around it in the test:
 
-1. **Interface in `commonMain`** (e.g. `fr.husi.libcore.HttpClientFactory`) wrapping the static.
-2. **Default object impl** (e.g. `LibcoreHttpClientFactory`) that just delegates.
+1. **Interface in `commonMain`** (e.g. `fr.husi.net.HttpFetcher`) wrapping the static.
+2. **Default impl** that just delegates (e.g. `LibcoreHttpFetcher` on Android, `GrpcHttpFetcher` on
+   desktop).
 3. **Koin binding** in `commonUiModule()` (or a new module if domain-specific).
 4. **Constructor injection on the consumer**, with the Koin singleton as the default.
 5. **Fake in `commonTest`** implementing the same interface; recording inputs, replaying canned
    outputs. Register it via `loadKoinModules(module { single<T> { fake } })` in a base class.
 
-Worked example: `HttpClientFactory.kt` + `LibcoreHttpClientFactory` + `FakeHttpClientFactory` +
+Worked example: `HttpFetcher.kt` + `LibcoreHttpFetcher` / `GrpcHttpFetcher` + `FakeHttpFetcher` +
 `HusiHttpKoinTest`. `DataStore` itself is *not* abstracted — it's a Kotlin object backed by
 DataStore-Preferences, and `DataStore.configurationStore.reset()` (in `postStartKoin`) is enough
 for tests to start clean. Don't replicate that level of plumbing unless you need to.
@@ -156,7 +157,7 @@ Key points:
 
 ## Testing HTTP / Libcore code
 
-If the code calls `Libcore.newHttpClient()` directly, **refactor it to use `HttpClientFactory`**
+If the code calls `Libcore.newHttpClient()` directly, **refactor it to use `HttpFetcher`**
 first (see "Refactoring for testability"). Then in the test:
 
 ```kotlin
@@ -167,28 +168,31 @@ class BarUpdaterTest : HusiHttpKoinTest() {
         fakeHttp.nextDownloadBytes = 8 * 1024
         // run code under test
         // …
-        val request = assertNotNull(fakeHttp.lastClient?.lastRequest)
+        val request = assertNotNull(fakeHttp.lastRequest)
         assertEquals("https://example.com/list", request.url)
-        assertEquals(fakeHttp.userAgent, request.userAgent)
+        assertEquals(USER_AGENT, request.userAgent)
     }
 
     @Test
-    fun `update surfaces error when execute throws`() = runTest(dispatcher.scheduler) {
+    fun `update surfaces error when the request fails`() = runTest(dispatcher.scheduler) {
         fakeHttp.nextThrowable = IOException("boom")
         // assert the code under test emits whatever error event it should
     }
 }
 ```
 
-`FakeHttpClientFactory` supports:
+`FakeHttpFetcher` supports:
 
-- `nextDownloadBytes` — total bytes the next response reports through `CopyCallback.setLength`.
-- `nextChunkCount` — how many `CopyCallback.update(n)` calls drive the progress callback.
-- `nextThrowable` — when set, the next `execute()` throws this instead of returning a response.
-- `lastClient.socks5` / `lastRequest.headers` / `lastRequest.contentZero` / `lastResponse.closed`
+- `nextResponseContent` / `nextResponseHeaders` — what the next `fetchText` answers with.
+- `nextDownloadBytes` — the content length the next `download` reports to its progress callback.
+- `nextWrittenBytes` — bytes the next `download` writes, to model a truncated file.
+- `nextChunkCount` — how many progress callbacks the next `download` drives.
+- `nextThrowable` — when set, the next request throws this instead of answering.
+- `requests` / `lastRequest` (an `HttpFetchRequest`: `url`, `headers`, `socks5`, `noOverallDeadline`, …)
+  / `downloadTargets`
   for assertions on what the production code configured.
 
-Source: `composeApp/src/commonTest/kotlin/fr/husi/test/FakeHttpClientFactory.kt`.
+Source: `composeApp/src/commonTest/kotlin/fr/husi/test/FakeHttpFetcher.kt`.
 
 ## DataStore in tests
 
@@ -273,7 +277,7 @@ restore them yourself in `@AfterTest`.
   `MainDispatcherTest` instead of `HusiKoinMainDispatcherTest`. `DataStore.configurationStore`'s
   factory calls `resolveRepository()` which needs Koin.
 - **A test "passes" but only because production code silently swallowed the exception.** Inspect the
-  `FakeHTTPClient` / `FakeHTTPRequest` recorders — `lastClient` being `null` is usually the
+  `FakeHttpFetcher` recorder — `lastRequest` being `null` is usually the
   smoking gun. Treat unread recorders as a smell.
 - **A test that never touched a setting starts failing after an unrelated `chore:` commit.** It was
   asserting on a `DataStore` default. Pin the setting in the test (see "Never rely on a default
@@ -283,7 +287,7 @@ restore them yourself in `@AfterTest`.
   `@AfterTest`. The Koin / configurationStore lifecycle resets between tests automatically; loose
   vars do not.
 - **Reaching for `mockkStatic(Libcore::class)`.** That's a refactor-shaped problem in disguise. Add
-  an interface seam (see the `HttpClientFactory` worked example) and put the fake in `commonTest`.
+  an interface seam (see the `HttpFetcher` worked example) and put the fake in `commonTest`.
 - **Forgetting to register a new `viewModelOf(::FooViewModel)` in `commonNavigationModule` after
   switching the Composable to `koinViewModel<...>()`.** The Compose preview will still compile
   (constructor has defaults) but production will throw `NoDefinitionFound` at runtime.
@@ -306,8 +310,8 @@ restore them yourself in `@AfterTest`.
 
 ## Source layout reminders
 
-- Production seam: `composeApp/src/commonMain/kotlin/fr/husi/libcore/HttpClientFactory.kt`
-- Fakes: `composeApp/src/commonTest/kotlin/fr/husi/test/FakeHttpClientFactory.kt`
+- Production seam: `composeApp/src/commonMain/kotlin/fr/husi/net/HttpFetcher.kt`
+- Fakes: `composeApp/src/commonTest/kotlin/fr/husi/test/FakeHttpFetcher.kt`
 - Base classes:
     - `commonTest/kotlin/fr/husi/test/MainDispatcherTest.kt`
     - `commonTest/kotlin/fr/husi/test/HusiKoinTest.kt`
