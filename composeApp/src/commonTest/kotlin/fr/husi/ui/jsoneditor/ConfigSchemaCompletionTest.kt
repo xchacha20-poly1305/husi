@@ -116,30 +116,4 @@ class ConfigSchemaCompletionTest {
 
         assertEquals(emptyList(), completer.complete(text, cursor))
     }
-
-    @Test
-    fun `libcore schema offers real root and outbound completions`() {
-        val rootCompletions = ConfigSchema.CONFIG.completer.complete("{\"", 2)
-        val outboundText = "{\"outbounds\": [{\"type\": \"d"
-        val outboundCompletions = ConfigSchema.CONFIG.completer.complete(outboundText, outboundText.length)
-
-        assertContains(rootCompletions.map { it.label }, "log")
-        assertContains(rootCompletions.map { it.label }, "outbounds")
-        assertContains(outboundCompletions.map { it.label }, "direct")
-    }
-
-    @Test
-    fun `libcore outbound schema offers outbound properties at root`() {
-        val text = "{\"type\": \"d"
-        val completions = ConfigSchema.OUTBOUND.completer.complete(text, text.length)
-
-        assertContains(completions.map { it.label }, "direct")
-    }
-
-    @Test
-    fun `libcore DNS rule schema offers DNS rule properties at root`() {
-        val completions = ConfigSchema.DNS_RULE.completer.complete("{\"", 2)
-
-        assertContains(completions.map { it.label }, "domain")
-    }
 }

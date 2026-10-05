@@ -1,8 +1,11 @@
 package fr.husi.ui.jsoneditor
 
-import fr.husi.libcore.Libcore
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -72,9 +75,7 @@ class ConfigEditPerformanceTest {
 
     @Test
     fun `schema completion in a large config stays within a frame budget`() {
-        val completer = ConfigSchemaCompleter(
-            Json.parseToJsonElement(Libcore.generateConfigSchema()).jsonObject,
-        )
+        val completer = ConfigSchemaCompleter(largeSchema(outboundTypes = 60, propertiesPerType = 30))
         val cursor = editorText.indexOf("\"method\"", startIndex = editorText.length / 2) + 3
         assertTrue(cursor > 3, "the sample must contain a deeply nested key")
 
@@ -106,5 +107,65 @@ class ConfigEditPerformanceTest {
         }
         appendLine("  ]")
         append("}")
+    }
+
+    /**
+     * Mirrors the shape of the core host's config schema: outbounds are a oneOf of
+     * per-type allOf branches sharing a base through `$ref`.
+     */
+    private fun largeSchema(outboundTypes: Int, propertiesPerType: Int): JsonObject = buildJsonObject {
+        put("\$ref", "#/\$defs/Options")
+        putJsonObject("\$defs") {
+            putJsonObject("Options") {
+                put("type", "object")
+                putJsonObject("properties") {
+                    putJsonObject("log") { put("type", "object") }
+                    putJsonObject("outbounds") {
+                        put("type", "array")
+                        putJsonObject("items") { put("\$ref", "#/\$defs/Outbound") }
+                    }
+                }
+            }
+            putJsonObject("OutboundBase") {
+                put("type", "object")
+                putJsonObject("properties") {
+                    putJsonObject("tag") { put("type", "string") }
+                    putJsonObject("multiplex") { put("\$ref", "#/\$defs/Multiplex") }
+                }
+            }
+            putJsonObject("Multiplex") {
+                put("type", "object")
+                putJsonObject("properties") {
+                    putJsonObject("enabled") { put("type", "boolean") }
+                    putJsonObject("max_streams") { put("type", "integer") }
+                }
+            }
+            putJsonObject("Outbound") {
+                putJsonArray("oneOf") {
+                    repeat(outboundTypes) { typeIndex ->
+                        add(outboundBranch(typeIndex, propertiesPerType))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun outboundBranch(typeIndex: Int, propertiesPerType: Int): JsonObject = buildJsonObject {
+        putJsonArray("allOf") {
+            add(buildJsonObject { put("\$ref", "#/\$defs/OutboundBase") })
+            add(
+                buildJsonObject {
+                    putJsonObject("properties") {
+                        putJsonObject("type") {
+                            put("const", if (typeIndex == 0) "shadowsocks" else "type-$typeIndex")
+                        }
+                        putJsonObject("method") { putJsonArray("enum") { add("aes-256-gcm") } }
+                        repeat(propertiesPerType) { propertyIndex ->
+                            putJsonObject("field_${typeIndex}_$propertyIndex") { put("type", "string") }
+                        }
+                    }
+                },
+            )
+        }
     }
 }

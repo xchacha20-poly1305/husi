@@ -32,6 +32,7 @@ option java_package = "fr.husi.proto.v1";
 // sing-box's own, so the two halves differ only in where the dialer comes from.
 service ApplicationService {
   rpc CheckConfig(CheckConfigRequest) returns (CheckConfigResponse);
+  rpc FormatConfig(FormatConfigRequest) returns (FormatConfigResponse);
   rpc GenerateSchema(GenerateSchemaRequest) returns (GenerateSchemaResponse);
   rpc StandaloneURLTest(StandaloneURLTestRequest) returns (StandaloneURLTestResponse);
   rpc GetCert(GetCertRequest) returns (GetCertResponse);
@@ -46,6 +47,17 @@ message CheckConfigRequest {
 // An unusable config is reported as an INVALID_ARGUMENT error carrying the
 // parser message, so a successful response has nothing left to say.
 message CheckConfigResponse {}
+
+message FormatConfigRequest {
+  string config = 1;
+}
+
+// Malformed JSON is reported as an INVALID_ARGUMENT error carrying the parser
+// message.
+message FormatConfigResponse {
+  // config re-indented in sing-box style, comments preserved.
+  string config = 1;
+}
 
 enum SchemaKind {
   SCHEMA_KIND_UNSPECIFIED = 0;

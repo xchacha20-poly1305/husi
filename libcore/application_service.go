@@ -67,27 +67,23 @@ func (s *applicationService) RegisterServices(server *grpc.Server, healthServer 
 }
 
 func (s *applicationService) CheckConfig(ctx context.Context, req *husiv1.CheckConfigRequest) (*husiv1.CheckConfigResponse, error) {
-	if err := CheckConfig(req.GetConfig()); err != nil {
+	err := checkConfig(req.GetConfig())
+	if err != nil {
 		return nil, rpcError(err, codes.InvalidArgument)
 	}
 	return &husiv1.CheckConfigResponse{}, nil
 }
 
-func (s *applicationService) GenerateSchema(ctx context.Context, req *husiv1.GenerateSchemaRequest) (*husiv1.GenerateSchemaResponse, error) {
-	var (
-		schema string
-		err    error
-	)
-	switch kind := req.GetKind(); kind {
-	case husiv1.SchemaKind_SCHEMA_KIND_CONFIG:
-		schema, err = GenerateConfigSchema()
-	case husiv1.SchemaKind_SCHEMA_KIND_OUTBOUND:
-		schema, err = GenerateOutboundSchema()
-	case husiv1.SchemaKind_SCHEMA_KIND_DNS_RULE:
-		schema, err = GenerateDNSRuleSchema()
-	default:
-		err = E.New("unknown schema kind: ", kind.String())
+func (s *applicationService) FormatConfig(ctx context.Context, req *husiv1.FormatConfigRequest) (*husiv1.FormatConfigResponse, error) {
+	formatted, err := formatConfig(req.GetConfig())
+	if err != nil {
+		return nil, rpcError(err, codes.InvalidArgument)
 	}
+	return &husiv1.FormatConfigResponse{Config: formatted}, nil
+}
+
+func (s *applicationService) GenerateSchema(ctx context.Context, req *husiv1.GenerateSchemaRequest) (*husiv1.GenerateSchemaResponse, error) {
+	schema, err := generateSchema(req.GetKind())
 	if err != nil {
 		return nil, rpcError(err, codes.InvalidArgument)
 	}

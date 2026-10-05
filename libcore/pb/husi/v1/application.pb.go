@@ -206,6 +206,97 @@ func (*CheckConfigResponse) Descriptor() ([]byte, []int) {
 	return file_husi_v1_application_proto_rawDescGZIP(), []int{1}
 }
 
+type FormatConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        string                 `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FormatConfigRequest) Reset() {
+	*x = FormatConfigRequest{}
+	mi := &file_husi_v1_application_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FormatConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FormatConfigRequest) ProtoMessage() {}
+
+func (x *FormatConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FormatConfigRequest.ProtoReflect.Descriptor instead.
+func (*FormatConfigRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *FormatConfigRequest) GetConfig() string {
+	if x != nil {
+		return x.Config
+	}
+	return ""
+}
+
+// Malformed JSON is reported as an INVALID_ARGUMENT error carrying the parser
+// message.
+type FormatConfigResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// config re-indented in sing-box style, comments preserved.
+	Config        string `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FormatConfigResponse) Reset() {
+	*x = FormatConfigResponse{}
+	mi := &file_husi_v1_application_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FormatConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FormatConfigResponse) ProtoMessage() {}
+
+func (x *FormatConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FormatConfigResponse.ProtoReflect.Descriptor instead.
+func (*FormatConfigResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *FormatConfigResponse) GetConfig() string {
+	if x != nil {
+		return x.Config
+	}
+	return ""
+}
+
 type GenerateSchemaRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Kind          SchemaKind             `protobuf:"varint,1,opt,name=kind,proto3,enum=husi.v1.SchemaKind" json:"kind,omitempty"`
@@ -215,7 +306,7 @@ type GenerateSchemaRequest struct {
 
 func (x *GenerateSchemaRequest) Reset() {
 	*x = GenerateSchemaRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[2]
+	mi := &file_husi_v1_application_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -227,7 +318,7 @@ func (x *GenerateSchemaRequest) String() string {
 func (*GenerateSchemaRequest) ProtoMessage() {}
 
 func (x *GenerateSchemaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[2]
+	mi := &file_husi_v1_application_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +331,7 @@ func (x *GenerateSchemaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateSchemaRequest.ProtoReflect.Descriptor instead.
 func (*GenerateSchemaRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{2}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GenerateSchemaRequest) GetKind() SchemaKind {
@@ -260,7 +351,7 @@ type GenerateSchemaResponse struct {
 
 func (x *GenerateSchemaResponse) Reset() {
 	*x = GenerateSchemaResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[3]
+	mi := &file_husi_v1_application_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -272,7 +363,7 @@ func (x *GenerateSchemaResponse) String() string {
 func (*GenerateSchemaResponse) ProtoMessage() {}
 
 func (x *GenerateSchemaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[3]
+	mi := &file_husi_v1_application_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -285,7 +376,7 @@ func (x *GenerateSchemaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateSchemaResponse.ProtoReflect.Descriptor instead.
 func (*GenerateSchemaResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{3}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GenerateSchemaResponse) GetSchema() string {
@@ -315,7 +406,7 @@ type StandaloneURLTestRequest struct {
 
 func (x *StandaloneURLTestRequest) Reset() {
 	*x = StandaloneURLTestRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[4]
+	mi := &file_husi_v1_application_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -327,7 +418,7 @@ func (x *StandaloneURLTestRequest) String() string {
 func (*StandaloneURLTestRequest) ProtoMessage() {}
 
 func (x *StandaloneURLTestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[4]
+	mi := &file_husi_v1_application_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +431,7 @@ func (x *StandaloneURLTestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StandaloneURLTestRequest.ProtoReflect.Descriptor instead.
 func (*StandaloneURLTestRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{4}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *StandaloneURLTestRequest) GetConfig() string {
@@ -394,7 +485,7 @@ type StandaloneURLTestResponse struct {
 
 func (x *StandaloneURLTestResponse) Reset() {
 	*x = StandaloneURLTestResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[5]
+	mi := &file_husi_v1_application_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +497,7 @@ func (x *StandaloneURLTestResponse) String() string {
 func (*StandaloneURLTestResponse) ProtoMessage() {}
 
 func (x *StandaloneURLTestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[5]
+	mi := &file_husi_v1_application_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +510,7 @@ func (x *StandaloneURLTestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StandaloneURLTestResponse.ProtoReflect.Descriptor instead.
 func (*StandaloneURLTestResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{5}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *StandaloneURLTestResponse) GetLatencyMs() int32 {
@@ -444,7 +535,7 @@ type GetCertRequest struct {
 
 func (x *GetCertRequest) Reset() {
 	*x = GetCertRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[6]
+	mi := &file_husi_v1_application_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -456,7 +547,7 @@ func (x *GetCertRequest) String() string {
 func (*GetCertRequest) ProtoMessage() {}
 
 func (x *GetCertRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[6]
+	mi := &file_husi_v1_application_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -469,7 +560,7 @@ func (x *GetCertRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCertRequest.ProtoReflect.Descriptor instead.
 func (*GetCertRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{6}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetCertRequest) GetServer() string {
@@ -510,7 +601,7 @@ type GetCertResponse struct {
 
 func (x *GetCertResponse) Reset() {
 	*x = GetCertResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[7]
+	mi := &file_husi_v1_application_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -522,7 +613,7 @@ func (x *GetCertResponse) String() string {
 func (*GetCertResponse) ProtoMessage() {}
 
 func (x *GetCertResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[7]
+	mi := &file_husi_v1_application_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -535,7 +626,7 @@ func (x *GetCertResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCertResponse.ProtoReflect.Descriptor instead.
 func (*GetCertResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{7}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetCertResponse) GetPem() string {
@@ -557,7 +648,7 @@ type StandaloneSTUNTestRequest struct {
 
 func (x *StandaloneSTUNTestRequest) Reset() {
 	*x = StandaloneSTUNTestRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[8]
+	mi := &file_husi_v1_application_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -569,7 +660,7 @@ func (x *StandaloneSTUNTestRequest) String() string {
 func (*StandaloneSTUNTestRequest) ProtoMessage() {}
 
 func (x *StandaloneSTUNTestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[8]
+	mi := &file_husi_v1_application_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -582,7 +673,7 @@ func (x *StandaloneSTUNTestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StandaloneSTUNTestRequest.ProtoReflect.Descriptor instead.
 func (*StandaloneSTUNTestRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{8}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StandaloneSTUNTestRequest) GetServer() string {
@@ -607,7 +698,7 @@ type StandaloneNetworkQualityTestRequest struct {
 
 func (x *StandaloneNetworkQualityTestRequest) Reset() {
 	*x = StandaloneNetworkQualityTestRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[9]
+	mi := &file_husi_v1_application_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -619,7 +710,7 @@ func (x *StandaloneNetworkQualityTestRequest) String() string {
 func (*StandaloneNetworkQualityTestRequest) ProtoMessage() {}
 
 func (x *StandaloneNetworkQualityTestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[9]
+	mi := &file_husi_v1_application_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -632,7 +723,7 @@ func (x *StandaloneNetworkQualityTestRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use StandaloneNetworkQualityTestRequest.ProtoReflect.Descriptor instead.
 func (*StandaloneNetworkQualityTestRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{9}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *StandaloneNetworkQualityTestRequest) GetConfigUrl() string {
@@ -670,7 +761,11 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\x19husi/v1/application.proto\x12\ahusi.v1\x1a\x1cdaemon/started_service.proto\x1a\x12husi/v1/core.proto\x1a\x14husi/v1/daemon.proto\",\n" +
 	"\x12CheckConfigRequest\x12\x16\n" +
 	"\x06config\x18\x01 \x01(\tR\x06config\"\x15\n" +
-	"\x13CheckConfigResponse\"@\n" +
+	"\x13CheckConfigResponse\"-\n" +
+	"\x13FormatConfigRequest\x12\x16\n" +
+	"\x06config\x18\x01 \x01(\tR\x06config\".\n" +
+	"\x14FormatConfigResponse\x12\x16\n" +
+	"\x06config\x18\x01 \x01(\tR\x06config\"@\n" +
 	"\x15GenerateSchemaRequest\x12'\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x13.husi.v1.SchemaKindR\x04kind\"0\n" +
 	"\x16GenerateSchemaResponse\x12\x16\n" +
@@ -711,9 +806,10 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\vGetCertMode\x12\x1d\n" +
 	"\x19GET_CERT_MODE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13GET_CERT_MODE_HTTPS\x10\x01\x12\x16\n" +
-	"\x12GET_CERT_MODE_QUIC\x10\x022\x95\x04\n" +
+	"\x12GET_CERT_MODE_QUIC\x10\x022\xe2\x04\n" +
 	"\x12ApplicationService\x12H\n" +
-	"\vCheckConfig\x12\x1b.husi.v1.CheckConfigRequest\x1a\x1c.husi.v1.CheckConfigResponse\x12Q\n" +
+	"\vCheckConfig\x12\x1b.husi.v1.CheckConfigRequest\x1a\x1c.husi.v1.CheckConfigResponse\x12K\n" +
+	"\fFormatConfig\x12\x1c.husi.v1.FormatConfigRequest\x1a\x1d.husi.v1.FormatConfigResponse\x12Q\n" +
 	"\x0eGenerateSchema\x12\x1e.husi.v1.GenerateSchemaRequest\x1a\x1f.husi.v1.GenerateSchemaResponse\x12Z\n" +
 	"\x11StandaloneURLTest\x12!.husi.v1.StandaloneURLTestRequest\x1a\".husi.v1.StandaloneURLTestResponse\x12<\n" +
 	"\aGetCert\x12\x17.husi.v1.GetCertRequest\x1a\x18.husi.v1.GetCertResponse\x12T\n" +
@@ -734,44 +830,48 @@ func file_husi_v1_application_proto_rawDescGZIP() []byte {
 }
 
 var file_husi_v1_application_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_husi_v1_application_proto_goTypes = []any{
 	(SchemaKind)(0),                             // 0: husi.v1.SchemaKind
 	(GetCertMode)(0),                            // 1: husi.v1.GetCertMode
 	(*CheckConfigRequest)(nil),                  // 2: husi.v1.CheckConfigRequest
 	(*CheckConfigResponse)(nil),                 // 3: husi.v1.CheckConfigResponse
-	(*GenerateSchemaRequest)(nil),               // 4: husi.v1.GenerateSchemaRequest
-	(*GenerateSchemaResponse)(nil),              // 5: husi.v1.GenerateSchemaResponse
-	(*StandaloneURLTestRequest)(nil),            // 6: husi.v1.StandaloneURLTestRequest
-	(*StandaloneURLTestResponse)(nil),           // 7: husi.v1.StandaloneURLTestResponse
-	(*GetCertRequest)(nil),                      // 8: husi.v1.GetCertRequest
-	(*GetCertResponse)(nil),                     // 9: husi.v1.GetCertResponse
-	(*StandaloneSTUNTestRequest)(nil),           // 10: husi.v1.StandaloneSTUNTestRequest
-	(*StandaloneNetworkQualityTestRequest)(nil), // 11: husi.v1.StandaloneNetworkQualityTestRequest
-	(*URLTestOptions)(nil),                      // 12: husi.v1.URLTestOptions
-	(*PluginProcessSpec)(nil),                   // 13: husi.v1.PluginProcessSpec
-	(*daemon.STUNTestProgress)(nil),             // 14: daemon.STUNTestProgress
-	(*daemon.NetworkQualityTestProgress)(nil),   // 15: daemon.NetworkQualityTestProgress
+	(*FormatConfigRequest)(nil),                 // 4: husi.v1.FormatConfigRequest
+	(*FormatConfigResponse)(nil),                // 5: husi.v1.FormatConfigResponse
+	(*GenerateSchemaRequest)(nil),               // 6: husi.v1.GenerateSchemaRequest
+	(*GenerateSchemaResponse)(nil),              // 7: husi.v1.GenerateSchemaResponse
+	(*StandaloneURLTestRequest)(nil),            // 8: husi.v1.StandaloneURLTestRequest
+	(*StandaloneURLTestResponse)(nil),           // 9: husi.v1.StandaloneURLTestResponse
+	(*GetCertRequest)(nil),                      // 10: husi.v1.GetCertRequest
+	(*GetCertResponse)(nil),                     // 11: husi.v1.GetCertResponse
+	(*StandaloneSTUNTestRequest)(nil),           // 12: husi.v1.StandaloneSTUNTestRequest
+	(*StandaloneNetworkQualityTestRequest)(nil), // 13: husi.v1.StandaloneNetworkQualityTestRequest
+	(*URLTestOptions)(nil),                      // 14: husi.v1.URLTestOptions
+	(*PluginProcessSpec)(nil),                   // 15: husi.v1.PluginProcessSpec
+	(*daemon.STUNTestProgress)(nil),             // 16: daemon.STUNTestProgress
+	(*daemon.NetworkQualityTestProgress)(nil),   // 17: daemon.NetworkQualityTestProgress
 }
 var file_husi_v1_application_proto_depIdxs = []int32{
 	0,  // 0: husi.v1.GenerateSchemaRequest.kind:type_name -> husi.v1.SchemaKind
-	12, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
-	13, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
+	14, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
+	15, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
 	1,  // 3: husi.v1.GetCertRequest.mode:type_name -> husi.v1.GetCertMode
 	2,  // 4: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
-	4,  // 5: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
-	6,  // 6: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
-	8,  // 7: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
-	10, // 8: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
-	11, // 9: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
-	3,  // 10: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
-	5,  // 11: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
-	7,  // 12: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
-	9,  // 13: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
-	14, // 14: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
-	15, // 15: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
-	10, // [10:16] is the sub-list for method output_type
-	4,  // [4:10] is the sub-list for method input_type
+	4,  // 5: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
+	6,  // 6: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
+	8,  // 7: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
+	10, // 8: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
+	12, // 9: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
+	13, // 10: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
+	3,  // 11: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
+	5,  // 12: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
+	7,  // 13: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
+	9,  // 14: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
+	11, // 15: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
+	16, // 16: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
+	17, // 17: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
+	11, // [11:18] is the sub-list for method output_type
+	4,  // [4:11] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -790,7 +890,7 @@ func file_husi_v1_application_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_application_proto_rawDesc), len(file_husi_v1_application_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

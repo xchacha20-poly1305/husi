@@ -1,70 +1,33 @@
 package fr.husi.ui.jsoneditor
 
 import fr.husi.core.CoreClient
-import fr.husi.libcore.Libcore
 import fr.husi.proto.v1.SchemaKind
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
-import org.koin.core.context.GlobalContext
-import kotlin.time.Duration.Companion.seconds
 
 @Serializable
-enum class ConfigSchema {
-    CONFIG,
-    OUTBOUND,
-    DNS_RULE;
-
-    val completer: ConfigSchemaCompleter
-        get() = when (this) {
-            CONFIG -> configSchemaCompleter
-            OUTBOUND -> outboundSchemaCompleter
-            DNS_RULE -> dnsRuleSchemaCompleter
-        }
+enum class ConfigSchema(val kind: SchemaKind) {
+    CONFIG(SchemaKind.SCHEMA_KIND_CONFIG),
+    OUTBOUND(SchemaKind.SCHEMA_KIND_OUTBOUND),
+    DNS_RULE(SchemaKind.SCHEMA_KIND_DNS_RULE),
 }
 
-private val configSchemaCompleter by lazy {
-    schemaCompleter(loadSchema(ConfigSchema.CONFIG))
-}
-
-private val outboundSchemaCompleter by lazy {
-    schemaCompleter(loadSchema(ConfigSchema.OUTBOUND))
-}
-
-private val dnsRuleSchemaCompleter by lazy {
-    schemaCompleter(loadSchema(ConfigSchema.DNS_RULE))
-}
+private val completerMutex = Mutex()
+private val completers = mutableMapOf<ConfigSchema, ConfigSchemaCompleter>()
 
 /**
- * Prefer [CoreClient.generateSchema] (ApplicationService) when a host is
- * reachable. Fall back to bound generators for unit tests without Koin/host
- * and for Android main-process offline use (no :bg). Pure JSON Schema
- * generation is safe to keep on the bound surface.
+ * Builds the completer from the schema the core host generates, since the host's
+ * protocol registry decides which options exist. Schemas do not change while the
+ * app runs, so each one is fetched once.
  */
-private fun loadSchema(schema: ConfigSchema): String {
-    val kind = when (schema) {
-        ConfigSchema.CONFIG -> SchemaKind.SCHEMA_KIND_CONFIG
-        ConfigSchema.OUTBOUND -> SchemaKind.SCHEMA_KIND_OUTBOUND
-        ConfigSchema.DNS_RULE -> SchemaKind.SCHEMA_KIND_DNS_RULE
-    }
-    val client = GlobalContext.getOrNull()?.get<CoreClient>()
-    if (client != null) {
-        try {
-            return runBlocking {
-                withTimeout(10.seconds) { client.generateSchema(kind) }
-            }
-        } catch (_: Exception) {
-            // Host down / timeout — use bound pure generators.
+suspend fun ConfigSchema.loadCompleter(coreClient: CoreClient): ConfigSchemaCompleter {
+    return completerMutex.withLock {
+        completers.getOrPut(this) {
+            val schema = coreClient.generateSchema(kind)
+            ConfigSchemaCompleter(Json.parseToJsonElement(schema).jsonObject)
         }
     }
-    return when (schema) {
-        ConfigSchema.CONFIG -> Libcore.generateConfigSchema()
-        ConfigSchema.OUTBOUND -> Libcore.generateOutboundSchema()
-        ConfigSchema.DNS_RULE -> Libcore.generateDNSRuleSchema()
-    }
 }
-
-private fun schemaCompleter(content: String) =
-    ConfigSchemaCompleter(Json.parseToJsonElement(content).jsonObject)

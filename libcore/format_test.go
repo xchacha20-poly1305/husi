@@ -5,17 +5,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 func TestGenerateSchema(t *testing.T) {
-	tests := map[string]func() (string, error){
-		"config":   GenerateConfigSchema,
-		"outbound": GenerateOutboundSchema,
-		"DNS rule": GenerateDNSRuleSchema,
+	tests := map[husiv1.SchemaKind][]string{
+		husiv1.SchemaKind_SCHEMA_KIND_CONFIG:   {`"log"`, `"outbounds"`},
+		husiv1.SchemaKind_SCHEMA_KIND_OUTBOUND: {`"direct"`},
+		husiv1.SchemaKind_SCHEMA_KIND_DNS_RULE: {`"domain"`},
 	}
-	for name, generate := range tests {
-		t.Run(name, func(t *testing.T) {
-			content, err := generate()
+	for kind, wantContents := range tests {
+		t.Run(kind.String(), func(t *testing.T) {
+			content, err := generateSchema(kind)
 			if !assert.NoError(t, err) {
 				return
 			}
@@ -24,6 +25,9 @@ func TestGenerateSchema(t *testing.T) {
 			if assert.NoError(t, json.Unmarshal([]byte(content), &generated)) {
 				assert.Contains(t, generated, "$defs")
 				assert.Contains(t, content, `"$ref"`)
+			}
+			for _, want := range wantContents {
+				assert.Contains(t, content, want)
 			}
 		})
 	}
@@ -92,7 +96,7 @@ func Test_FormatConfig(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(test.name, func(t *testing.T) {
-			formatted, err := FormatConfig(test.config)
+			formatted, err := formatConfig(test.config)
 			if test.wantErr {
 				assert.Error(t, err)
 				return
@@ -155,7 +159,7 @@ func Test_FormatConfig_KeepComments(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(test.name, func(t *testing.T) {
-			formatted, err := FormatConfig(test.config)
+			formatted, err := formatConfig(test.config)
 			if assert.NoError(t, err) {
 				assert.Contains(t, formatted, test.want)
 			}
@@ -198,7 +202,7 @@ func Test_CheckConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := CheckConfig(tt.config)
+			err := checkConfig(tt.config)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

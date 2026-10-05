@@ -129,6 +129,7 @@ open class FakeCoreClient : CoreClient {
     ): Int = 0
 
     override suspend fun checkConfig(config: String) = Unit
+    override suspend fun formatConfig(config: String): String = config
     override suspend fun generateSchema(kind: SchemaKind): String = "{}"
     override suspend fun getCert(
         server: String,

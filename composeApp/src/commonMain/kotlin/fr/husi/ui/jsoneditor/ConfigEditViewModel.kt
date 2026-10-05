@@ -14,7 +14,6 @@ import fr.husi.core.CoreRpcException
 import fr.husi.ktx.Logs
 import fr.husi.ktx.kxs
 import fr.husi.ktx.readableMessage
-import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
 import fr.husi.resources.ok
 import kotlinx.coroutines.CoroutineDispatcher
@@ -79,12 +78,17 @@ class ConfigEditViewModel(
     private val debounceDelay = 500.milliseconds
 
     private var lastText: String = ""
-    private val schemaCompleter = schema.completer
     private val editorPosition = MutableStateFlow<EditorPosition?>(null)
 
     init {
         initialize(initialText)
         viewModelScope.launch(completionDispatcher) {
+            val schemaCompleter = try {
+                schema.loadCompleter(coreClient)
+            } catch (e: Exception) {
+                Logs.w("failed to load config schema", e)
+                return@launch
+            }
             editorPosition.filterNotNull().collectLatest { position ->
                 val completions = schemaCompleter.complete(position.text, position.cursor)
                 uiState.update {
@@ -213,24 +217,26 @@ class ConfigEditViewModel(
         }
     }
 
-    fun formatCurrentText() {
-        try {
-            val formatted = formatJson(textFieldState.text)
-            textFieldState.setTextAndPlaceCursorAtEnd(formatted)
-            lastText = formatted
-            addToHistory(formatted)
+    fun formatCurrentText() = viewModelScope.launch {
+        val origin = textFieldState.text.toString()
+        val formatted = try {
+            formatJson(origin)
         } catch (e: Exception) {
-            viewModelScope.launch {
-                uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
-            }
+            uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
+            return@launch
         }
+        // Formatting is a round trip to the core host; text typed meanwhile wins.
+        if (textFieldState.text.toString() != origin) return@launch
+        textFieldState.setTextAndPlaceCursorAtEnd(formatted)
+        lastText = formatted
+        addToHistory(formatted)
     }
 
-    fun formatJson(origin: CharSequence?): String {
-        if (origin.isNullOrBlank()) {
+    private suspend fun formatJson(origin: String): String {
+        if (origin.isBlank()) {
             return ""
         }
-        return Libcore.formatConfig(origin.toString())
+        return coreClient.formatConfig(origin)
     }
 
     suspend fun checkConfig() {

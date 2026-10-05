@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ApplicationService_CheckConfig_FullMethodName                  = "/husi.v1.ApplicationService/CheckConfig"
+	ApplicationService_FormatConfig_FullMethodName                 = "/husi.v1.ApplicationService/FormatConfig"
 	ApplicationService_GenerateSchema_FullMethodName               = "/husi.v1.ApplicationService/GenerateSchema"
 	ApplicationService_StandaloneURLTest_FullMethodName            = "/husi.v1.ApplicationService/StandaloneURLTest"
 	ApplicationService_GetCert_FullMethodName                      = "/husi.v1.ApplicationService/GetCert"
@@ -53,6 +54,7 @@ const (
 // sing-box's own, so the two halves differ only in where the dialer comes from.
 type ApplicationServiceClient interface {
 	CheckConfig(ctx context.Context, in *CheckConfigRequest, opts ...grpc.CallOption) (*CheckConfigResponse, error)
+	FormatConfig(ctx context.Context, in *FormatConfigRequest, opts ...grpc.CallOption) (*FormatConfigResponse, error)
 	GenerateSchema(ctx context.Context, in *GenerateSchemaRequest, opts ...grpc.CallOption) (*GenerateSchemaResponse, error)
 	StandaloneURLTest(ctx context.Context, in *StandaloneURLTestRequest, opts ...grpc.CallOption) (*StandaloneURLTestResponse, error)
 	GetCert(ctx context.Context, in *GetCertRequest, opts ...grpc.CallOption) (*GetCertResponse, error)
@@ -72,6 +74,16 @@ func (c *applicationServiceClient) CheckConfig(ctx context.Context, in *CheckCon
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CheckConfigResponse)
 	err := c.cc.Invoke(ctx, ApplicationService_CheckConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) FormatConfig(ctx context.Context, in *FormatConfigRequest, opts ...grpc.CallOption) (*FormatConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FormatConfigResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_FormatConfig_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +183,7 @@ type ApplicationService_StandaloneNetworkQualityTestClient = grpc.ServerStreamin
 // sing-box's own, so the two halves differ only in where the dialer comes from.
 type ApplicationServiceServer interface {
 	CheckConfig(context.Context, *CheckConfigRequest) (*CheckConfigResponse, error)
+	FormatConfig(context.Context, *FormatConfigRequest) (*FormatConfigResponse, error)
 	GenerateSchema(context.Context, *GenerateSchemaRequest) (*GenerateSchemaResponse, error)
 	StandaloneURLTest(context.Context, *StandaloneURLTestRequest) (*StandaloneURLTestResponse, error)
 	GetCert(context.Context, *GetCertRequest) (*GetCertResponse, error)
@@ -188,6 +201,9 @@ type UnimplementedApplicationServiceServer struct{}
 
 func (UnimplementedApplicationServiceServer) CheckConfig(context.Context, *CheckConfigRequest) (*CheckConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckConfig not implemented")
+}
+func (UnimplementedApplicationServiceServer) FormatConfig(context.Context, *FormatConfigRequest) (*FormatConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FormatConfig not implemented")
 }
 func (UnimplementedApplicationServiceServer) GenerateSchema(context.Context, *GenerateSchemaRequest) (*GenerateSchemaResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GenerateSchema not implemented")
@@ -239,6 +255,24 @@ func _ApplicationService_CheckConfig_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationServiceServer).CheckConfig(ctx, req.(*CheckConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_FormatConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FormatConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).FormatConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_FormatConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).FormatConfig(ctx, req.(*FormatConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -329,6 +363,10 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckConfig",
 			Handler:    _ApplicationService_CheckConfig_Handler,
+		},
+		{
+			MethodName: "FormatConfig",
+			Handler:    _ApplicationService_FormatConfig_Handler,
 		},
 		{
 			MethodName: "GenerateSchema",
