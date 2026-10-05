@@ -27,7 +27,7 @@ class FormatsKtTest {
     }
 
     @Test
-    fun `b64Decode should fallback to mime decoder for wrapped content`() {
+    fun `b64Decode should skip line breaks in wrapped content`() {
         val result = "SGVs\nbG8=".b64Decode().decodeToString()
 
         assertEquals("Hello", result)

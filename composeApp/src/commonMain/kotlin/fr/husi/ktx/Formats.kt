@@ -17,44 +17,37 @@ import fr.husi.fmt.trojan.parseTrojan
 import fr.husi.fmt.trusttunnel.parseTrustTunnel
 import fr.husi.fmt.tuic.parseTuic
 import fr.husi.fmt.v2ray.parseV2Ray
+import okio.ByteString.Companion.decodeBase64
+import okio.ByteString.Companion.encodeUtf8
+import okio.ByteString.Companion.toByteString
 import java.io.ByteArrayOutputStream
 import java.util.zip.Deflater
 import java.util.zip.Inflater
-import kotlin.io.encoding.Base64
 
 fun String.b64EncodeUrlSafe(): String {
-    return toByteArray().b64EncodeUrlSafe()
+    return encodeUtf8().base64Url()
 }
 
 fun ByteArray.b64EncodeUrlSafe(): String {
-    return Base64.UrlSafe.encode(this)
+    return toByteString().base64Url()
 }
 
 // v2rayN Style
 fun ByteArray.b64EncodeOneLine(): String {
-    return Base64.encode(this)
+    return toByteString().base64()
 }
 
 fun String.b64EncodeOneLine(): String {
-    return toByteArray().b64EncodeOneLine()
+    return encodeUtf8().base64()
 }
 
-val DefaultTolerate = Base64.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
-val MimeTolerate = Base64.Mime.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
-val URLSafeTolerate = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
-
+/**
+ * Accepts both the standard and the URL-safe alphabet, optional padding,
+ * and whitespace such as MIME line breaks.
+ */
 fun String.b64Decode(): ByteArray {
-    val errors = mutableListOf<String>()
-    // If someone make url safe with mime, go away!
-    // Mime ignores invalid chars(`-`/`_`), so put it at last.
-    for (decoder in listOf(DefaultTolerate, URLSafeTolerate, MimeTolerate)) {
-        try {
-            return decoder.decode(this)
-        } catch (e: Exception) {
-            errors += e.readableMessage
-        }
-    }
-    throw IllegalStateException(errors.joinToString(separator = ", ", prefix = "decode base64: "))
+    val decoded = decodeBase64() ?: throw IllegalStateException("decode base64: invalid input")
+    return decoded.toByteArray()
 }
 
 fun String.b64DecodeToString(): String {
