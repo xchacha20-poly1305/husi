@@ -76,6 +76,7 @@ import fr.husi.resources.project
 import fr.husi.resources.shuowenxiaozhuan_husi
 import fr.husi.resources.translate_platform
 import fr.husi.resources.version_x
+import fr.husi.utils.AppVersion
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
@@ -100,7 +101,7 @@ fun AboutScreen(
         "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
     }
     val releaseLink = remember(BuildConfig.VERSION_NAME) {
-        val isPreVersion = Libcore.isPreRelease(BuildConfig.VERSION_NAME)
+        val isPreVersion = AppVersion.parse(BuildConfig.VERSION_NAME)?.isPreRelease == true
         if (isPreVersion) {
             githubReleasesPageUrl(HUSI_REPOSITORY)
         } else {

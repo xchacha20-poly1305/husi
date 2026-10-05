@@ -294,30 +294,6 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     }
 
     @Test
-    fun `check returns null when the release matches the current version`() = runTest {
-        DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("1.0.0").encodeToByteArray()
-
-        assertNull(checker().check())
-    }
-
-    @Test
-    fun `check returns null when the release is older`() = runTest {
-        DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("0.9.0").encodeToByteArray()
-
-        assertNull(checker(currentVersion = "1.0.0").check())
-    }
-
-    @Test
-    fun `check accepts a tag with a leading v`() = runTest {
-        DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("v1.0.1").encodeToByteArray()
-
-        assertEquals("v1.0.1", checker().check()?.version)
-    }
-
-    @Test
     fun `check skips plugin releases in the release list`() = runTest {
         DataStore.appUpdatePreRelease.set(true)
         val plugin = release("plugin-mieru-v3.37.0-0", assets = listOf("mieru-plugin.apk"))

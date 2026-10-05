@@ -21,9 +21,9 @@ import fr.husi.database.preference.port
 import fr.husi.database.preference.preferenceStoreScope
 import fr.husi.database.preference.string
 import fr.husi.database.preference.stringSet
-import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
+import fr.husi.utils.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -272,7 +272,7 @@ object DataStore {
 
     val appUpdateAutoCheck = configurationStore.boolean(Key.APP_UPDATE_AUTO_CHECK)
     val appUpdatePreRelease = configurationStore.boolean(Key.APP_UPDATE_PRE_RELEASE) {
-        Libcore.isPreRelease(BuildConfig.VERSION_NAME)
+        AppVersion.parse(BuildConfig.VERSION_NAME)?.isPreRelease == true
     }
     val appUpdateOnlyWhenConnected = configurationStore.boolean(Key.APP_UPDATE_ONLY_WHEN_CONNECTED)
     val appUpdateToken = configurationStore.string(Key.APP_UPDATE_TOKEN)

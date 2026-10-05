@@ -7,12 +7,12 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
-import fr.husi.libcore.Libcore
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.localSocks5Proxy
 import fr.husi.net.resolveHttpFetcher
 import fr.husi.platform.PlatformAbis
+import fr.husi.utils.AppVersion
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -121,7 +121,9 @@ class AppUpdateChecker(
     suspend fun check(): AppUpdateInfo? {
         val acceptPreRelease = DataStore.appUpdatePreRelease.get()
         val release = fetchRelease(acceptPreRelease) ?: return null
-        if (!Libcore.compareSemver(release.tagName, currentVersion)) return null
+        val latestVersion = AppVersion.parse(release.tagName) ?: return null
+        val installedVersion = AppVersion.parse(currentVersion) ?: return null
+        if (latestVersion <= installedVersion) return null
 
         val asset = selectApkAsset(release.assets, abis)
         return AppUpdateInfo(
