@@ -21,6 +21,7 @@ composePreference = "2.2.0"
 fastScroller = "0.3.2"
 androidxCamera = "1.6.2"
 zxing = "3.5.4"
+kpuri = "0.1.0"
 androidxRoom = "2.8.5"
 androidxSqlite = "2.7.1"
 smaliDexlib2 = "3.0.10"
@@ -73,6 +74,7 @@ androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", versi
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "androidxCamera" }
 androidx-camera-compose = { module = "androidx.camera:camera-compose", version.ref = "androidxCamera" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+kpuri = { module = "io.github.xchacha20-poly1305:kpuri", version.ref = "kpuri" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite" }

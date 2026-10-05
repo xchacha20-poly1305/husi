@@ -25,6 +25,8 @@ import fr.husi.ktx.kxs
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addJsonObject
@@ -95,25 +97,25 @@ private fun String.parseMieruTrafficPattern(): JsonElement {
 
 // https://github.com/enfein/mieru/blob/b1cd50fabb2f893c7878388767d97370dbb7a660/pkg/appctl/url.go#L51
 fun parseMieru(link: String): MieruBean = MieruBean().apply {
-    val url = Libcore.parseURL(link)
-    username = url.username
-    password = url.password
-    serverAddress = url.host
-    serverPort = url.ports.toIntOrNull() ?: defaultPort
+    val url = Url.parse(link)
+    username = url.username.orEmpty()
+    password = url.password.orEmpty()
+    serverAddress = url.host.orEmpty()
+    serverPort = url.port?.toIntOrNull() ?: defaultPort
 
-    name = url.queryParameter("profile")
+    name = url.queryParameter("profile").orEmpty()
     mtu = url.queryParameterNotBlank("mtu")?.toIntOrNull() ?: 0
     serverMuxNumber = url.queryParameter("multiplexing")?.let {
         parseMieruMux(it)
     } ?: 0
-    trafficPattern = url.queryParameter("traffic-pattern")
+    trafficPattern = url.queryParameter("traffic-pattern").orEmpty()
 }
 
-fun MieruBean.toUri(): String = Libcore.newURL("mierus").apply {
+fun MieruBean.toUri(): String = buildUrl("mierus") {
     username = this@toUri.username
     password = this@toUri.password
     host = serverAddress
-    ports = serverPort.toString()
+    port = serverPort.toString()
 
     name.takeIf { it.isNotBlank() }?.let {
         addQueryParameter("profile", it)
@@ -132,7 +134,7 @@ fun MieruBean.toUri(): String = Libcore.newURL("mierus").apply {
         }
         addQueryParameter("traffic-pattern", base64TrafficPattern)
     }
-}.string
+}.toString()
 
 private fun parseMieruMux(link: String): Int? = when (link) {
     "MULTIPLEXING_OFF" -> 0

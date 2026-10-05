@@ -29,6 +29,7 @@ import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
+import io.github.xchacha20_poly1305.kpuri.Url
 
 @Composable
 fun ValidatedTextField(
@@ -90,8 +91,8 @@ fun LinkOrContentTextField(
 
         val errors = linkedSetOf<String>()
         for (link in lines) try {
-            val url = Libcore.parseURL(link)
-            when (url.scheme.lowercase()) {
+            val url = Url.parse(link)
+            when (url.scheme) {
                 "content" -> continue
                 "http" -> errors.add(resolveRepository().getString(Res.string.cleartext_http_warning))
             }

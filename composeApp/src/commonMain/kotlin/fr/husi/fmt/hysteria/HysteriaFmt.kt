@@ -25,28 +25,34 @@ import fr.husi.ktx.sha256Hex
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.wrapIPV6Host
 import fr.husi.libcore.Libcore
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.UrlOptions
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import java.io.File
 
+/** Hysteria links may carry a port hopping list such as `443,5000-6000` in the port position. */
+private val hysteriaUrlOptions = UrlOptions(validatePort = false)
+
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
 fun parseHysteria1(link: String): HysteriaBean {
-    val url = Libcore.parseURL(link)
+    val url = Url.parse(link, hysteriaUrlOptions)
     return HysteriaBean().apply {
         protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
-        serverAddress = url.host
-        serverPorts = url.ports
-        name = url.fragment
+        serverAddress = url.host.orEmpty()
+        serverPorts = url.port.orEmpty()
+        name = url.fragment.orEmpty()
 
-        sni = url.queryParameter("peer")
+        sni = url.queryParameter("peer").orEmpty()
         url.queryParameterNotBlank("auth")?.let {
             authPayloadType = HysteriaBean.TYPE_STRING
             authPayload = it
         }
         allowInsecure = url.parseBoolean("insecure")
-        alpn = url.queryParameter("alpn")
-        obfsPassword = url.queryParameter("obfsParam")
+        alpn = url.queryParameter("alpn").orEmpty()
+        obfsPassword = url.queryParameter("obfsParam").orEmpty()
         protocol = when (url.queryParameterNotBlank("protocol")) {
             "faketcp" -> HysteriaBean.PROTOCOL_FAKETCP
 
@@ -62,29 +68,30 @@ fun parseHysteria1(link: String): HysteriaBean {
 
 // hysteria2://[auth@]hostname[:port]/?[key=value]&[key=value]...
 fun parseHysteria2(link: String): HysteriaBean {
-    val url = Libcore.parseURL(link)
+    val url = Url.parse(link, hysteriaUrlOptions)
     return HysteriaBean().apply {
         protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
-        serverAddress = url.host
-        serverPorts = url.ports
+        serverAddress = url.host.orEmpty()
+        serverPorts = url.port.orEmpty()
 
-        val pwd = url.password
-        authPayload = if (pwd.isNullOrBlank()) {
-            url.username
+        val userInfoName = url.username.orEmpty()
+        val userInfoPassword = url.password
+        authPayload = if (userInfoPassword.isNullOrBlank()) {
+            userInfoName
         } else {
-            url.username + ":" + url.password
+            "$userInfoName:$userInfoPassword"
         }
 
-        name = url.fragment
+        name = url.fragment.orEmpty()
 
-        sni = url.queryParameter("sni")
+        sni = url.queryParameter("sni").orEmpty()
         allowInsecure = url.parseBoolean("insecure")
         url.queryParameterNotBlank("ech")?.let {
             ech = true
             echConfig = it.toECHPem()
         }
         url.queryParameterNotBlank("obfs")?.let { obfsType = it }
-        obfsPassword = url.queryParameter("obfs-password")
+        obfsPassword = url.queryParameter("obfs-password").orEmpty()
         /*url.queryParameterNotBlank("pinSHA256").also {
             // sing-box do not support it
         }*/
@@ -96,69 +103,66 @@ fun parseHysteria2(link: String): HysteriaBean {
 }
 
 fun HysteriaBean.toUri(): String {
-    val url = Libcore.newURL(
-        when (protocolVersion) {
-            HysteriaBean.PROTOCOL_VERSION_2 -> "hysteria2"
-            else -> "hysteria"
-        },
-    ).apply {
+    val scheme = when (protocolVersion) {
+        HysteriaBean.PROTOCOL_VERSION_2 -> "hysteria2"
+        else -> "hysteria"
+    }
+    return buildUrl(scheme, hysteriaUrlOptions) {
         host = serverAddress
-        ports = when (val ports = HopPort.from(serverPorts)) {
+        port = when (val ports = HopPort.from(serverPorts)) {
             is HopPort.Single -> serverPorts
             // URL just support Hysteria style.
             is HopPort.Ports -> ports.hyStyle().joinToString(HopPort.SPLIT_FLAG)
         }
         username = authPayload
-    }
 
-    if (name.isNotBlank()) {
-        url.fragment = name
-    }
-    if (allowInsecure) {
-        url.addQueryParameter("insecure", "1")
-    }
-    if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
-        if (sni.isNotBlank()) {
-            url.addQueryParameter("peer", sni)
+        if (name.isNotBlank()) {
+            fragment = name
         }
-        if (authPayload.isNotBlank()) {
-            url.addQueryParameter("auth", authPayload)
+        if (allowInsecure) {
+            addQueryParameter("insecure", "1")
         }
-        if (alpn.isNotBlank()) {
-            url.addQueryParameter("alpn", alpn)
-        }
-        if (obfsPassword.isNotBlank()) {
-            url.addQueryParameter("obfs", "xplus")
-            url.addQueryParameter("obfsParam", obfsPassword)
-        }
-        when (protocol) {
-            HysteriaBean.PROTOCOL_FAKETCP -> {
-                url.addQueryParameter("protocol", "faketcp")
+        if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+            if (sni.isNotBlank()) {
+                addQueryParameter("peer", sni)
             }
+            if (authPayload.isNotBlank()) {
+                addQueryParameter("auth", authPayload)
+            }
+            if (alpn.isNotBlank()) {
+                addQueryParameter("alpn", alpn)
+            }
+            if (obfsPassword.isNotBlank()) {
+                addQueryParameter("obfs", "xplus")
+                addQueryParameter("obfsParam", obfsPassword)
+            }
+            when (protocol) {
+                HysteriaBean.PROTOCOL_FAKETCP -> {
+                    addQueryParameter("protocol", "faketcp")
+                }
 
-            HysteriaBean.PROTOCOL_WECHAT_VIDEO -> {
-                url.addQueryParameter("protocol", "wechat-video")
+                HysteriaBean.PROTOCOL_WECHAT_VIDEO -> {
+                    addQueryParameter("protocol", "wechat-video")
+                }
+            }
+        } else {
+            if (sni.isNotBlank()) {
+                addQueryParameter("sni", sni)
+            }
+            if (ech) {
+                echConfig.blankAsNull()?.let {
+                    addQueryParameter("ech", it.toECHOneLine())
+                }
+            }
+            obfsType.blankAsNull()?.let {
+                addQueryParameter("obfs", it)
+                addQueryParameter("obfs-password", obfsPassword)
+            }
+            if (certificates.isNotBlank()) {
+                addQueryParameter("pinSHA256", certificates.sha256Hex())
             }
         }
-    } else {
-        if (sni.isNotBlank()) {
-            url.addQueryParameter("sni", sni)
-        }
-        if (ech) {
-            echConfig.blankAsNull()?.let {
-                url.addQueryParameter("ech", it.toECHOneLine())
-            }
-        }
-        obfsType.blankAsNull()?.let {
-            url.addQueryParameter("obfs", it)
-            url.addQueryParameter("obfs-password", obfsPassword)
-        }
-        if (certificates.isNotBlank()) {
-            url.addQueryParameter("pinSHA256", certificates.sha256Hex())
-        }
-    }
-
-    return url.string
+    }.toString()
 }
 
 fun JSONMap.parseHysteria1Json(): HysteriaBean {

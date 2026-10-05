@@ -8,7 +8,8 @@ import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.LOCALHOST_NAME
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.libcore.Libcore
-import fr.husi.libcore.URL
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -16,42 +17,31 @@ import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.Socket
 
-var URL.pathSegments: List<String>
-    get() = path.split("/").filter { it.isNotBlank() }
-    set(value) {
-        path = value.joinToString("/")
-    }
-
-fun URL.addPathSegments(vararg segments: String) {
-    pathSegments = pathSegments.toMutableList().apply {
-        addAll(segments)
-    }
-}
-
-fun URL.queryParameterNotBlank(key: String): String? {
+fun Url.queryParameterNotBlank(key: String): String? {
     return queryParameter(key).blankAsNull()
 }
 
-fun URL.queryParameterUnescapeNotBlank(key: String): String? {
-    return queryParameterUnescape(key).blankAsNull()
-}
-
-fun URL.parseBoolean(key: String): Boolean = when (queryParameter(key).lowercase()) {
+fun Url.parseBoolean(key: String): Boolean = when (queryParameter(key)?.lowercase()) {
     "1", "true", "yes" -> true
     else -> false
 }
 
-suspend fun localProxyURL(scheme: String): URL = Libcore.newURL(scheme).apply {
-    host = LOCALHOST4
-    ports = DataStore.mixedPort.get().toString()
+suspend fun localProxyURL(scheme: String): Url {
+    val mixedPort = DataStore.mixedPort.get()
+    val inboundUsername = DataStore.inboundUsername.get().emptyAsNull()
+    val inboundPassword = DataStore.inboundPassword.get()
+    return buildUrl(scheme) {
+        host = LOCALHOST4
+        port = mixedPort.toString()
 
-    DataStore.inboundUsername.get().emptyAsNull()?.let { name ->
-        username = name
-        password = DataStore.inboundPassword.get()
+        inboundUsername?.let { name ->
+            username = name
+            password = inboundPassword
+        }
     }
 }
 
-suspend fun currentSocks5(): URL? = if (!DataStore.serviceState.connected) {
+suspend fun currentSocks5(): Url? = if (!DataStore.serviceState.connected) {
     null
 } else {
     localProxyURL("socks5")

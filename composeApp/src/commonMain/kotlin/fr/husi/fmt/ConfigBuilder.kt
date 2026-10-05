@@ -91,10 +91,10 @@ import fr.husi.ktx.serverAddressDomainStrategy
 import fr.husi.ktx.showToast
 import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonMapKxs
-import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
+import io.github.xchacha20_poly1305.kpuri.Url
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -1488,7 +1488,7 @@ suspend fun buildConfig(
                 address = address.substringAfter("://")
             }
             try {
-                Libcore.parseURL("https://$address").apply {
+                Url.parse("https://$address").host?.let { host ->
                     if (!host.isIpAddress()) {
                         preResolveDomains.add(host)
                     }

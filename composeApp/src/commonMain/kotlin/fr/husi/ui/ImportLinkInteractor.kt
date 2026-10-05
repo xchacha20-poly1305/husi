@@ -15,7 +15,7 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.defaultOr
 import fr.husi.ktx.parseProxies
 import fr.husi.ktx.zlibDecompress
-import fr.husi.libcore.Libcore
+import io.github.xchacha20_poly1305.kpuri.Url
 
 sealed interface ImportLinkPreview {
     object Ignore : ImportLinkPreview
@@ -47,7 +47,7 @@ class ImportLinkInteractor {
             return null
         }
 
-        val urlForQuery = Libcore.parseURL(uri)
+        val urlForQuery = Url.parse(uri)
         val group: ProxyGroup
         val url = defaultOr(
             "",

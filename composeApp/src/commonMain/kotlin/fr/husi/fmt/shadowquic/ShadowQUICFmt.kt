@@ -7,8 +7,9 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.toJsonStringKxs
-import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
@@ -64,14 +65,14 @@ is desired, be aware of these differences:
 - We: fragment -> `tag`
  */
 fun parseShadowQUIC(link: String): ShadowQUICBean {
-    val url = Libcore.parseURL(link)
+    val url = Url.parse(link)
     return ShadowQUICBean().apply {
         subProtocol = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
-        name = url.fragment ?: url.queryParameter("tag")
-        username = url.username
-        password = url.password
-        serverAddress = url.host
-        serverPort = url.ports.toIntOrNull() ?: 443
+        name = url.fragment.blankAsNull() ?: url.queryParameter("tag").orEmpty()
+        username = url.username.orEmpty()
+        password = url.password.orEmpty()
+        serverAddress = url.host.orEmpty()
+        serverPort = url.port?.toIntOrNull() ?: 443
         sni = url.queryParameterNotBlank("sni") ?: error("shadowquic sni is empty")
         val udpMode = url.queryParameterNotBlank("udp_mode")
             ?: url.queryParameterNotBlank("udp_mod")
@@ -80,7 +81,7 @@ fun parseShadowQUIC(link: String): ShadowQUICBean {
             "datagram" -> false
             else -> true // ?
         }
-        url.queryParameter("congestion").takeIf { it.isNotBlank() && it != "copa" }?.let {
+        url.queryParameterNotBlank("congestion")?.takeIf { it != "copa" }?.let {
             congestionControl = it
         }
         // "不填为 false（不开启），填任意内容就为 true（开启）"
@@ -88,7 +89,7 @@ fun parseShadowQUIC(link: String): ShadowQUICBean {
         val mtu = url.queryParameterNotBlank("mtu")?.toIntOrNull() ?: DEFAULT_SHARE_MTU
         initialMTU = mtu
         minimumMTU = mtu
-        alpn = url.queryParameter("alpn")
+        alpn = url.queryParameter("alpn").orEmpty()
 
         require(username.isNotBlank()) { "shadowquic username is empty" }
         require(password.isNotBlank()) { "shadowquic password is empty" }
@@ -101,11 +102,11 @@ fun ShadowQUICBean.toUri(): String {
         error("SunnyQUIC does not support standard share links")
     }
     // "推荐优先使用 sq"
-    return Libcore.newURL("sq").apply {
+    return buildUrl("sq") {
         username = this@toUri.username
         password = this@toUri.password
         host = serverAddress
-        ports = serverPort.toString()
+        port = serverPort.toString()
         addQueryParameter("sni", sni)
         addQueryParameter(
             "udp_mode",
@@ -128,7 +129,7 @@ fun ShadowQUICBean.toUri(): String {
             addQueryParameter("alpn", alpns.joinToString(",") { it.trim() })
         }
         fragment = name.blankAsNull()
-    }.string
+    }.toString()
 }
 
 fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logLevel: Int): String {

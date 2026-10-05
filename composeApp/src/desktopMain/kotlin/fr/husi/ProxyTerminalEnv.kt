@@ -16,8 +16,8 @@ private const val SCHEME_HTTP = "http"
 private const val SCHEME_SOCKS5_REMOTE_DNS = "socks5h"
 
 suspend fun currentProxyEnvCommand(): String = proxyTerminalEnvCommand(
-    http = localProxyURL(SCHEME_HTTP).string,
-    socks = localProxyURL(SCHEME_SOCKS5_REMOTE_DNS).string,
+    http = localProxyURL(SCHEME_HTTP).toString(),
+    socks = localProxyURL(SCHEME_SOCKS5_REMOTE_DNS).toString(),
     shell = detectProxyEnvShell(
         isWindows = PlatformInfo.isWindows,
         shell = System.getenv("SHELL"),

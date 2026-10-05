@@ -15,7 +15,7 @@ import fr.husi.fmt.SingBoxOptions.RuleSet_Local
 import fr.husi.fmt.SingBoxOptions.RuleSet_Remote
 import fr.husi.fmt.SingBoxOptions.Rule_Default
 import fr.husi.ktx.blankAsNull
-import fr.husi.libcore.Libcore
+import io.github.xchacha20_poly1305.kpuri.Url
 
 fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
     domain = mutableListOf()
@@ -486,19 +486,17 @@ fun buildDNSServer(
     }
 
     val url = if (!link.contains("://")) {
-        Libcore.newURL(SingBoxOptions.DNS_TYPE_UDP).apply {
-            fullHost = link
-        }
+        Url.parse("${SingBoxOptions.DNS_TYPE_UDP}://$link")
     } else {
-        Libcore.parseURL(link)
+        Url.parse(link)
     }
     val resolver = domainResolver.takeIf { out.isNullOrBlank() }
 
-    return when (val scheme = url.scheme) {
+    return when (val scheme = url.scheme.orEmpty()) {
         SingBoxOptions.DNS_TYPE_TLS -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
             type = scheme
-            server = url.host
-            server_port = url.ports.toIntOrNull()
+            server = url.host.orEmpty()
+            server_port = url.port?.toIntOrNull()
             domain_resolver = resolver
             tls = OutboundTLSOptions().apply {
                 enabled = true
@@ -508,8 +506,8 @@ fun buildDNSServer(
 
         SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
             type = scheme
-            server = url.host
-            server_port = url.ports.toIntOrNull()
+            server = url.host.orEmpty()
+            server_port = url.port?.toIntOrNull()
             domain_resolver = resolver
             tls = OutboundTLSOptions().apply {
                 enabled = true
@@ -523,8 +521,8 @@ fun buildDNSServer(
             } else {
                 scheme
             }
-            server = url.host
-            server_port = url.ports.toIntOrNull()
+            server = url.host.orEmpty()
+            server_port = url.port?.toIntOrNull()
             domain_resolver = resolver
             tls = OutboundTLSOptions().apply {
                 enabled = true
@@ -536,8 +534,8 @@ fun buildDNSServer(
         SingBoxOptions.DNS_TYPE_TCP -> NewDNSServerOptions_RemoteDNSServerOptions()
             .apply {
                 type = SingBoxOptions.DNS_TYPE_TCP
-                server = url.host
-                server_port = url.ports.toIntOrNull()
+                server = url.host.orEmpty()
+                server_port = url.port?.toIntOrNull()
                 domain_resolver = resolver
                 detour = out
             }
@@ -547,8 +545,8 @@ fun buildDNSServer(
             type = scheme.ifBlank {
                 SingBoxOptions.DNS_TYPE_UDP
             }
-            server = url.host
-            server_port = url.ports.toIntOrNull()
+            server = url.host.orEmpty()
+            server_port = url.port?.toIntOrNull()
             domain_resolver = resolver
             detour = out
         }

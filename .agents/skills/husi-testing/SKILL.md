@@ -59,7 +59,7 @@ finalises `postStartKoin`.
 ## Why fakes, not mockk
 
 The codebase uses `Fake*` classes that implement the production interfaces (`FakeRepository`,
-`FakeHttpClientFactory`, `FakeHTTPClient`, `FakeHTTPRequest`, `FakeHTTPResponse`, `FakeURL`). They:
+`FakeHttpClientFactory`, `FakeHTTPClient`, `FakeHTTPRequest`, `FakeHTTPResponse`). They:
 
 - compile-check against the real interface so renaming/refactoring stays sound,
 - can be reused across many tests with no per-test setup boilerplate,

@@ -6,7 +6,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.blankAsNull
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "remote_servers")
@@ -96,16 +98,17 @@ fun normalizeRemoteServerURL(raw: String): String? {
     } else {
         "http://$trimmed"
     }
-    val url = runCatching { Libcore.parseURL(absolute) }.getOrNull() ?: return null
+    val url = runCatching { Url.parse(absolute) }.getOrNull() ?: return null
 
-    val scheme = url.scheme.lowercase()
+    val scheme = url.scheme ?: return null
     if (scheme != "http" && scheme != "https") return null
-    if (url.username.isNotEmpty() || url.password.isNotEmpty()) return null
+    if (!url.username.isNullOrEmpty() || !url.password.isNullOrEmpty()) return null
     if (url.path.isNotEmpty() && url.path != "/") return null
-    if (url.fragment.isNotEmpty() || absolute.contains('?')) return null
-    if (url.host.isEmpty()) return null
+    if (!url.fragment.isNullOrEmpty() || url.encodedQuery != null) return null
+    val host = url.host.blankAsNull() ?: return null
 
-    return Libcore.newURL(scheme).also {
-        it.fullHost = url.fullHost
-    }.string
+    return buildUrl(scheme) {
+        this.host = host
+        port = url.port
+    }.toString()
 }

@@ -9,38 +9,34 @@ import fr.husi.fmt.v2ray.setTLS
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.toJSONMap
-import fr.husi.libcore.Libcore
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 
 fun parseHttp(link: String): HttpBean = HttpBean().apply {
-    val url = Libcore.parseURL(link)
+    val url = Url.parse(link)
 
-    serverAddress = url.host
-    serverPort = url.ports.toIntOrNull() ?: if (url.scheme == "https") 443 else 80
-    username = url.username
-    password = url.password
-    sni = url.queryParameter("sni")
-    name = url.fragment
+    serverAddress = url.host.orEmpty()
+    serverPort = url.port?.toIntOrNull() ?: if (url.scheme == "https") 443 else 80
+    username = url.username.orEmpty()
+    password = url.password.orEmpty()
+    sni = url.queryParameter("sni").orEmpty()
+    name = url.fragment.orEmpty()
     setTLS(url.scheme == "https")
     path = url.path
 }
 
-fun HttpBean.toUri(): String {
-    val url = Libcore.newURL(if (isTLS) "https" else "http").apply {
-        host = serverAddress
-    }
-
+fun HttpBean.toUri(): String = buildUrl(if (isTLS) "https" else "http") {
+    host = serverAddress
     if (serverPort in 1..65535) {
-        url.ports = serverPort.toString()
+        port = serverPort.toString()
     }
 
-    username.blankAsNull()?.let { url.username = it }
-    password.blankAsNull()?.let { url.password = it }
-    path.blankAsNull()?.let { url.rawPath = it }
-    sni.blankAsNull()?.let { url.addQueryParameter("sni", it) }
-    name.blankAsNull()?.let { url.fragment = it }
-
-    return url.string
-}
+    this@toUri.username.blankAsNull()?.let { username = it }
+    this@toUri.password.blankAsNull()?.let { password = it }
+    this@toUri.path.blankAsNull()?.let { encodedPath = it }
+    sni.blankAsNull()?.let { addQueryParameter("sni", it) }
+    name.blankAsNull()?.let { fragment = it }
+}.toString()
 
 fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
     parseBoxOutbound(json) { key, value ->

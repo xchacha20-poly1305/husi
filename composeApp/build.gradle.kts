@@ -370,6 +370,7 @@ kotlin {
                 implementation(libs.haze.blur)
                 implementation(libs.haze.blur.material3)
                 implementation(libs.zxing.core)
+                implementation(libs.kpuri)
                 implementation(project(":proto"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
 

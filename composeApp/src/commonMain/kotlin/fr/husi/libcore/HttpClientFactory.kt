@@ -13,13 +13,11 @@ internal const val NO_OVERALL_TIMEOUT_MS = 0
 
 interface HttpClientFactory {
     fun newHttpClient(): HTTPClient
-    fun parseURL(urlString: String): URL
     val userAgent: String
 }
 
 internal object LibcoreHttpClientFactory : HttpClientFactory {
     override fun newHttpClient(): HTTPClient = Libcore.newHttpClient()
-    override fun parseURL(urlString: String): URL = Libcore.parseURL(urlString)
     override val userAgent: String get() = USER_AGENT
 }
 

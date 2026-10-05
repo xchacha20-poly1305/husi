@@ -26,17 +26,16 @@ import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.pluginToLocal
 import fr.husi.ktx.Logs
-import fr.husi.ktx.addPathSegments
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
-import fr.husi.libcore.URL
 import fr.husi.libcore.resolveHttpClientFactory
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.ooc_missing_protocol
 import fr.husi.resources.ooc_subscription_token_invalid
+import io.github.xchacha20_poly1305.kpuri.Url
 import kotlinx.serialization.Serializable
 
 /** https://github.com/Shadowsocks-NET/OpenOnlineConfig */
@@ -83,7 +82,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
     ): GroupUpdateResult.Success {
         val repository = resolveRepository()
         val token: OOCSubscriptionToken
-        val baseLink: URL
+        val baseLink: Url
         val certSha256: String?
         val httpClientFactory = resolveHttpClientFactory()
         try {
@@ -105,16 +104,17 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
                 !baseUrl.startsWith("https://") -> {
                     error("Protocol scheme must be https")
                 }
-
-                else -> baseLink = httpClientFactory.parseURL(baseUrl)
             }
             val secret = token.secret
             if (secret.isBlank()) error("Missing field: secret")
-            baseLink.addPathSegments(secret, "ooc/v1")
 
             val userId = token.userId
             if (userId.isBlank()) error("Missing field: userId")
-            baseLink.addPathSegments(userId)
+            baseLink = Url.parse(baseUrl).newBuilder()
+                .addPathSegment(secret)
+                .addPathSegments("ooc/v1")
+                .addPathSegment(userId)
+                .build()
             certSha256 = token.certSha256?.blankAsNull()
         } catch (e: Exception) {
             Logs.e("OOC token check failed, token = ${subscription.token}", e)
@@ -135,7 +135,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
                 pinnedSHA256(it)
             }
         }.newRequest().apply {
-            setURL(baseLink.string)
+            setURL(baseLink.toString())
             setUserAgent(generateUserAgent(subscription.customUserAgent))
         }.execute()
 

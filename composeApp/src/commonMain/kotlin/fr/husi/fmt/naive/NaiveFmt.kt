@@ -17,57 +17,51 @@ import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.unUrlSafe
 import fr.husi.ktx.wrapIPV6Host
-import fr.husi.libcore.Libcore
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 fun parseNaive(link: String): NaiveBean {
-    val url = Libcore.parseURL(link)
+    val url = Url.parse(link)
     return NaiveBean().also {
-        it.proto = url.scheme.substringAfter("+").substringBefore(":")
+        it.proto = url.scheme.orEmpty().substringAfter("+").substringBefore(":")
     }.apply {
-        serverAddress = url.host
-        serverPort = url.ports.toIntOrNull() ?: 443
-        username = url.username
-        password = url.password
-        sni = url.queryParameter("sni")
+        serverAddress = url.host.orEmpty()
+        serverPort = url.port?.toIntOrNull() ?: 443
+        username = url.username.orEmpty()
+        password = url.password.orEmpty()
+        sni = url.queryParameter("sni").orEmpty()
         extraHeaders = url.queryParameterNotBlank("extra-headers")
             ?.unUrlSafe()
             ?.replace("\r\n", "\n")
             .orEmpty()
         insecureConcurrency = url.queryParameterNotBlank("insecure-concurrency")?.toIntOrNull() ?: 0
-        name = url.fragment
+        name = url.fragment.orEmpty()
         initializeDefaultValues()
     }
 }
 
-fun NaiveBean.toUri(proxyOnly: Boolean = false): String {
-    val builder = Libcore.newURL(if (proxyOnly) proto else "naive+$proto").apply {
-        host = finalAddress
-        ports = finalPort.toString()
-    }
-    if (username.isNotBlank()) {
-        builder.username = username
-    }
-    if (password.isNotBlank()) {
-        builder.password = password
-    }
+fun NaiveBean.toUri(proxyOnly: Boolean = false): String = buildUrl(if (proxyOnly) proto else "naive+$proto") {
+    host = finalAddress
+    port = finalPort.toString()
+    this@toUri.username.blankAsNull()?.let { username = it }
+    this@toUri.password.blankAsNull()?.let { password = it }
     if (!proxyOnly) {
         if (sni.isNotBlank()) {
-            builder.addQueryParameter("sni", sni)
+            addQueryParameter("sni", sni)
         }
         if (extraHeaders.isNotBlank()) {
-            builder.addQueryParameter("extra-headers", extraHeaders)
+            addQueryParameter("extra-headers", extraHeaders)
         }
         if (name.isNotBlank()) {
-            builder.fragment = name
+            fragment = name
         }
         if (insecureConcurrency > 0) {
-            builder.addQueryParameter("insecure-concurrency", "$insecureConcurrency")
+            addQueryParameter("insecure-concurrency", "$insecureConcurrency")
         }
     }
-    return builder.string
-}
+}.toString()
 
 fun NaiveBean.buildNaiveConfig(port: Int): String {
     finalAddress = finalAddress.wrapIPV6Host()

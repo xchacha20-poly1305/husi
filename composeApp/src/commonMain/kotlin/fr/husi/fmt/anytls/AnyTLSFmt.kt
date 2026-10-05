@@ -6,38 +6,35 @@ import fr.husi.fmt.parseBoxTLS
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineOrComma
-import fr.husi.libcore.Libcore
+import io.github.xchacha20_poly1305.kpuri.Url
+import io.github.xchacha20_poly1305.kpuri.buildUrl
 
 /** https://github.com/anytls/anytls-go/blob/main/docs/uri_scheme.md */
 fun parseAnyTLS(link: String): AnyTLSBean = AnyTLSBean().apply {
-    val url = Libcore.parseURL(link)
+    val url = Url.parse(link)
 
-    name = url.fragment
-    serverAddress = url.host
-    serverPort = url.ports.toIntOrNull() ?: 443
-    password = url.username
-    serverName = url.queryParameter("sni")
+    name = url.fragment.orEmpty()
+    serverAddress = url.host.orEmpty()
+    serverPort = url.port?.toIntOrNull() ?: 443
+    password = url.username.orEmpty()
+    serverName = url.queryParameter("sni").orEmpty()
     allowInsecure = url.queryParameter("insecure") == "1"
 }
 
-fun AnyTLSBean.toUri(): String {
-    val url = Libcore.newURL("anytls").apply {
-        host = serverAddress
-    }
-
+fun AnyTLSBean.toUri(): String = buildUrl("anytls") {
+    host = serverAddress
     if (serverPort in 1..65535) {
-        url.ports = serverPort.toString()
+        port = serverPort.toString()
     }
 
-    password.blankAsNull()?.let { url.username = it }
-    serverName.blankAsNull()?.let { url.addQueryParameter("sni", it) }
+    this@toUri.password.blankAsNull()?.let { username = it }
+    serverName.blankAsNull()?.let { addQueryParameter("sni", it) }
     if (allowInsecure) {
-        url.addQueryParameter("insecure", "1")
+        addQueryParameter("insecure", "1")
     }
 
-    name.blankAsNull()?.let { url.fragment = it }
-    return url.string
-}
+    name.blankAsNull()?.let { fragment = it }
+}.toString()
 
 fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_AnyTLSOptions {
     return SingBoxOptions.Outbound_AnyTLSOptions().apply {

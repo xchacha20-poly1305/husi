@@ -29,6 +29,7 @@ class JuicityFmtTest : HusiKoinTest() {
         assertEquals("uuid", bean.uuid)
         assertEquals("password", bean.password)
         assertEquals("sni.example.com", bean.sni)
+        assertEquals(true, bean.allowInsecure)
         assertEquals("sha256value", bean.pinSHA256)
     }
 
@@ -37,6 +38,7 @@ class JuicityFmtTest : HusiKoinTest() {
         val bean = parseJuicity(FmtTestConstant.JUICITY_DEFAULT_PORT_URL)
 
         assertEquals(443, bean.serverPort)
+        assertEquals(false, bean.allowInsecure)
     }
 
     @Test
@@ -58,6 +60,7 @@ class JuicityFmtTest : HusiKoinTest() {
         assertEquals(source.uuid, parsed.uuid)
         assertEquals(source.password, parsed.password)
         assertEquals(source.sni, parsed.sni)
+        assertEquals(source.allowInsecure, parsed.allowInsecure)
         assertEquals(source.pinSHA256, parsed.pinSHA256)
     }
 
