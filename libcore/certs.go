@@ -4,10 +4,7 @@ import (
 	"bytes"
 	"cmp"
 	"context"
-	"crypto/sha256"
 	"crypto/x509"
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/pem"
 	"os"
 	"path/filepath"
@@ -22,7 +19,6 @@ import (
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/raybridge"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
 )
 
@@ -209,35 +205,4 @@ func getCert(ctx context.Context, address, serverName string, mode husiv1.GetCer
 		})
 	}
 	return buffer.String(), nil
-}
-
-func ToV2RayPemHash(rawPem string) string {
-	return string(raybridge.CalculatePEMCertHash([]byte(rawPem)))
-}
-
-func ToHysteriaHexSha256(rawPem string) string {
-	block, _ := pem.Decode([]byte(rawPem))
-	if block == nil {
-		return ""
-	}
-	sum256 := sha256.Sum256(block.Bytes)
-	hashHex := hex.EncodeToString(sum256[:])
-	return hashHex
-}
-
-func ToSingPublicKeySha256(rawPem string) (string, error) {
-	block, _ := pem.Decode([]byte(rawPem))
-	if block == nil {
-		return "", E.New("failed to decode pem")
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return "", E.Cause(err, "parse certificate")
-	}
-	publicKey, err := x509.MarshalPKIXPublicKey(cert.PublicKey)
-	if err != nil {
-		return "", E.Cause(err, "marshal public key")
-	}
-	sum256 := sha256.Sum256(publicKey)
-	return base64.StdEncoding.EncodeToString(sum256[:]), nil
 }

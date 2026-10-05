@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import fr.husi.core.CoreClient
 import fr.husi.ktx.Logs
 import fr.husi.ktx.currentSocks5
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.pemToHysteriaCertSha256Hex
+import fr.husi.ktx.pemToSingPublicKeySha256
+import fr.husi.ktx.pemToV2RayCertChainHash
 import fr.husi.proto.v1.GetCertMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -125,9 +127,9 @@ internal class GetCertScreenViewModel(
         if (cert.isBlank()) return ""
         return when (format) {
             Format.Raw -> ""
-            Format.V2RayPem -> Libcore.toV2RayPemHash(cert)
-            Format.HysteriaHex -> Libcore.toHysteriaHexSha256(cert)
-            Format.SingPublicKeyBase64 -> Libcore.toSingPublicKeySha256(cert)
+            Format.V2RayPem -> pemToV2RayCertChainHash(cert)
+            Format.HysteriaHex -> pemToHysteriaCertSha256Hex(cert)
+            Format.SingPublicKeyBase64 -> pemToSingPublicKeySha256(cert)
         }
     }
 }
