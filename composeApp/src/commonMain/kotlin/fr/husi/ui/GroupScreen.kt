@@ -68,7 +68,7 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.toUniversalLink
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.DisplayTime
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.formatBytes
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
@@ -667,13 +667,13 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                     text = if (subscription.bytesRemaining > 0L) {
                                         stringResource(
                                             Res.string.subscription_traffic,
-                                            Libcore.formatBytes(subscription.bytesUsed),
-                                            Libcore.formatBytes(subscription.bytesRemaining),
+                                            subscription.bytesUsed.formatBytes(),
+                                            subscription.bytesRemaining.formatBytes(),
                                         )
                                     } else {
                                         stringResource(
                                             Res.string.subscription_used,
-                                            Libcore.formatBytes(subscription.bytesUsed),
+                                            subscription.bytesUsed.formatBytes(),
                                         )
                                     },
                                     style = MaterialTheme.typography.bodySmall,

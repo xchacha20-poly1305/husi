@@ -78,9 +78,9 @@ import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.blurAddress
+import fr.husi.ktx.formatBytes
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.readableUrlTestError
-import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
 import fr.husi.resources.action_export_clipboard
 import fr.husi.resources.action_export_file
@@ -407,8 +407,8 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     val trafficText = hasTraffic.takeIf { trafficStatistic }?.let {
         stringResource(
             Res.string.traffic,
-            Libcore.formatBytes(entity.tx),
-            Libcore.formatBytes(entity.rx),
+            entity.tx.formatBytes(),
+            entity.rx.formatBytes(),
         )
     }
 

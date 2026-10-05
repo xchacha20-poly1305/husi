@@ -25,8 +25,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import fr.husi.ktx.parseGoDuration
 import fr.husi.ktx.readableMessage
-import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import io.github.xchacha20_poly1305.kpuri.Url
@@ -125,7 +125,7 @@ fun DurationTextField(
         }
 
         return try {
-            Libcore.parseDuration(text)
+            parseGoDuration(text)
             null
         } catch (e: Exception) {
             e.readableMessage

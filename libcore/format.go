@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"context"
 	"reflect"
-	"time"
-	_ "unsafe"
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/schema"
-	"github.com/sagernet/sing/common/byteformats"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/service"
@@ -140,21 +137,4 @@ func CheckConfig(configContent string) error {
 	}
 	defer instance.Close()
 	return nil
-}
-
-// ParseDuration parses Go style duration.
-func ParseDuration(raw string) (int64, error) {
-	duration, err := parseMyDuration(raw)
-	return int64(duration), err
-}
-
-//go:linkname parseMyDuration github.com/sagernet/sing/common/json/badoption/internal/my_time.ParseDuration
-func parseMyDuration(raw string) (time.Duration, error)
-
-func FormatBytes(length int64) string {
-	return byteformats.FormatKBytes(uint64(length))
-}
-
-func FormatMemoryBytes(length int64) string {
-	return byteformats.FormatMemoryKBytes(uint64(length))
 }

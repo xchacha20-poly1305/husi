@@ -27,7 +27,7 @@ import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.fastCoerceIn
 import fr.husi.compose.material3.Text
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
 import fr.husi.resources.speed
 import fr.husi.resources.status_direct
@@ -98,7 +98,7 @@ private fun SpeedCard(
             Text(
                 text = "▲ " + stringResource(
                     Res.string.speed,
-                    Libcore.formatBytes(txRate),
+                    txRate.formatBytes(),
                 ),
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
@@ -107,7 +107,7 @@ private fun SpeedCard(
             Text(
                 text = "▼ " + stringResource(
                     Res.string.speed,
-                    Libcore.formatBytes(rxRate),
+                    rxRate.formatBytes(),
                 ),
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,

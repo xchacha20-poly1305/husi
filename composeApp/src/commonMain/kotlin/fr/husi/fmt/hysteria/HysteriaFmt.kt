@@ -20,11 +20,11 @@ import fr.husi.ktx.getStr
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.parseBoolean
+import fr.husi.ktx.parseGoDuration
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.sha256Hex
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.wrapIPV6Host
-import fr.husi.libcore.Libcore
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.UrlOptions
 import io.github.xchacha20_poly1305.kpuri.buildUrl
@@ -223,7 +223,7 @@ fun HysteriaBean.buildHysteriaConfig(
                 sni = serverAddress
             }
             val hopSeconds = try {
-                (Libcore.parseDuration(hopInterval).toDouble() / 1000000000.0).toInt()
+                parseGoDuration(hopInterval).inWholeSeconds.toInt()
             } catch (_: Exception) {
                 hopInterval.toInt()
             }

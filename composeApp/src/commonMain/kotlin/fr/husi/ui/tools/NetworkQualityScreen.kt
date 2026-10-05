@@ -54,7 +54,7 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.core.NetworkQualityPhase
 import fr.husi.core.remote.RemoteControlManager
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_back
 import fr.husi.resources.back
@@ -283,7 +283,7 @@ private fun NetworkQualityReportContent(
             label = stringResource(Res.string.download_capacity),
             value = report.downloadCapacity
                 .takeIf { downloadMeasured }
-                ?.let { stringResource(Res.string.speed, Libcore.formatBytes(it)) },
+                ?.let { stringResource(Res.string.speed, it.formatBytes()) },
         )
         HorizontalDivider(modifier = Modifier.fillMaxWidth())
         ReportLine(
@@ -297,7 +297,7 @@ private fun NetworkQualityReportContent(
             label = stringResource(Res.string.upload_capacity),
             value = report.uploadCapacity
                 .takeIf { uploadMeasured }
-                ?.let { stringResource(Res.string.speed, Libcore.formatBytes(it)) },
+                ?.let { stringResource(Res.string.speed, it.formatBytes()) },
         )
         HorizontalDivider(modifier = Modifier.fillMaxWidth())
         ReportLine(

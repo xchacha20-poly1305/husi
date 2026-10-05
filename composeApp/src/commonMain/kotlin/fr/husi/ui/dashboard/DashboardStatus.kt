@@ -50,7 +50,7 @@ import fr.husi.compose.setPlainText
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
 import fr.husi.fmt.LOCALHOST4
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.formatMemoryBytes
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openvpn.OpenVPNAuthController
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -322,7 +322,7 @@ private fun StatusCard(uiState: DashboardState) {
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(stringResource(Res.string.status_memory))
-                Text(Libcore.formatMemoryBytes(uiState.memory))
+                Text(uiState.memory.formatMemoryBytes())
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),

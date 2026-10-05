@@ -29,8 +29,8 @@ import fr.husi.compose.preferenceGroup
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
+import fr.husi.ktx.parseGoDuration
 import fr.husi.ktx.readableMessage
-import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
 import fr.husi.resources.allow_insecure
 import fr.husi.resources.allow_insecure_sum
@@ -760,7 +760,7 @@ private fun HopIntervalTextField(
                             "Duration range is incomplete"
                         } else try {
                             for (part in parts) {
-                                Libcore.parseDuration(part)
+                                parseGoDuration(part)
                             }
                             null
                         } catch (e: Exception) {

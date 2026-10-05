@@ -35,7 +35,7 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.theme.LogColors
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
 import fr.husi.resources.connection_empty_active
 import fr.husi.resources.connection_empty_all
@@ -221,8 +221,8 @@ private fun ConnectionCard(
                 Text(
                     text = stringResource(
                         Res.string.traffic,
-                        Libcore.formatBytes(connection.uploadTotal),
-                        Libcore.formatBytes(connection.downloadTotal),
+                        connection.uploadTotal.formatBytes(),
+                        connection.downloadTotal.formatBytes(),
                     ),
                     fontSize = 14.sp,
                 )
@@ -230,8 +230,8 @@ private fun ConnectionCard(
                 Text(
                     text = stringResource(
                         Res.string.connection_speed,
-                        Libcore.formatBytes(connection.uploadSpeed),
-                        Libcore.formatBytes(connection.downloadSpeed),
+                        connection.uploadSpeed.formatBytes(),
+                        connection.downloadSpeed.formatBytes(),
                     ),
                     fontSize = 14.sp,
                 )
