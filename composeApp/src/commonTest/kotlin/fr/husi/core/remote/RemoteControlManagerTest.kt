@@ -7,6 +7,7 @@ import fr.husi.database.RemoteServerEntity
 import fr.husi.proto.daemon.Version
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
+import io.github.xchacha20_poly1305.kurpc.Status
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -87,7 +88,7 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
     @Test
     fun `failed first probe falls back to local and reports connect failure`() = runTest(dispatcher.scheduler) {
         val remote = FakeCoreClient()
-        remote.probeThrowable = CoreRpcException("Unavailable", "down")
+        remote.probeThrowable = CoreRpcException(Status.Code.UNAVAILABLE, "down")
         val manager = newManager({ _, _ -> remote })
         try {
             runCurrent()
@@ -120,7 +121,7 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
             assertEquals(RemoteSessionState.CONNECTED, manager.session.value?.state)
 
             val failure = backgroundScope.async { manager.failures.first() }
-            remote.probeThrowable = CoreRpcException("Unavailable", "down")
+            remote.probeThrowable = CoreRpcException(Status.Code.UNAVAILABLE, "down")
             advanceTimeBy(100.milliseconds)
             runCurrent()
             val probeCallsAtFailure = remote.probeCalls
@@ -230,7 +231,7 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
     @Test
     fun `testConnection surfaces probe failure`() = runTest(dispatcher.scheduler) {
         val probeClient = FakeCoreClient().also {
-            it.probeThrowable = CoreRpcException("Unauthenticated", "invalid authorization")
+            it.probeThrowable = CoreRpcException(Status.Code.UNAUTHENTICATED, "invalid authorization")
         }
         val manager = newManager({ _, _ -> probeClient })
         try {

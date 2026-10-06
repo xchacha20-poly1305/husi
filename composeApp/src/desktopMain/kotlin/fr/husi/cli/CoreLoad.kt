@@ -1,14 +1,14 @@
 package fr.husi.cli
 
 import fr.husi.CORE_SOCKET_NAME
-import fr.husi.core.BridgeCoreClient
 import fr.husi.core.CoreClient
+import fr.husi.core.KurpcCoreClient
 import fr.husi.ktx.Logs
-import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.CoreHostController
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import javax.net.ssl.SSLSocketFactory
 
 fun libcoreLoadFailureMessage(error: LinkageError): String {
     return buildString {
@@ -24,7 +24,7 @@ fun libcoreLoadFailureMessage(error: LinkageError): String {
 }
 
 fun connectClient(socketBasePath: String): CoreClient? {
-    val client = BridgeCoreClient(socketBasePath)
+    val client = KurpcCoreClient.local { socketBasePath }
     runCatching {
         runBlocking { client.probe() }
     }.onFailure {
@@ -71,10 +71,11 @@ fun hostSocketPaths(sessionBasePath: String): List<String> {
 }
 
 fun connectRemoteClient(serverURL: String, secret: String): CoreClient {
-    val client = BridgeCoreClient(
-        basePath = null,
-        bridgeFactory = { Libcore.newRemoteBridgeClient(serverURL, secret) },
-    )
+    // The CLI skips the runtime bootstrap, so loadCA() never ran: the Go client this replaced
+    // trusted the system roots here, and so does the platform default.
+    val client = KurpcCoreClient.remote(serverURL, secret) {
+        SSLSocketFactory.getDefault() as SSLSocketFactory
+    }
     try {
         runBlocking { client.probe() }
     } catch (e: Exception) {

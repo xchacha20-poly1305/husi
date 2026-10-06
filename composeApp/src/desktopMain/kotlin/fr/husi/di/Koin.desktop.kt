@@ -26,6 +26,6 @@ private val desktopHttpModule = module {
 
 internal actual fun platformKoinModules(): List<Module> = listOf(desktopHttpModule)
 
-internal actual fun coreClientBasePath(repository: Repository): String? {
+internal actual fun coreClientBasePath(repository: Repository): String {
     return (repository as DesktopRepository).coreSocketBasePath
 }

@@ -6,6 +6,7 @@ composeMultiplatform = "1.12.1"
 composeMaterial3 = "1.12.0-alpha03"
 koin = "4.2.2"
 kotlinCoroutines = "1.11.0"
+kurpc = "0.1.0"
 kotlinxSerialization = "1.11.0"
 kotlinxDatetime = "0.8.0"
 kotlinxImmutable = "0.5.2"
@@ -46,6 +47,9 @@ kotlinGradlePlugin = "2.4.20"
 haze = "2.0.1"
 
 [libraries]
+kurpc = { module = "io.github.xchacha20-poly1305:kurpc", version.ref = "kurpc" }
+# One jar per desktop classifier; composeApp picks the one matching desktopTarget.
+kurpc-natives-jvm = { module = "io.github.xchacha20-poly1305:kurpc-natives-jvm", version.ref = "kurpc" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }

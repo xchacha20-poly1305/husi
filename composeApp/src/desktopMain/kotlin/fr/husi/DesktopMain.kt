@@ -70,9 +70,6 @@ import javax.swing.UIManager
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
-/** Well-known UDS name under the core host dir (mirrors coresvc.Socket). */
-const val CORE_SOCKET_NAME = "api.sock"
-
 const val APP_NAME = "fr.husi"
 
 /** anja loads the JNI library from this directory when set (no jar-embedded fallback). */

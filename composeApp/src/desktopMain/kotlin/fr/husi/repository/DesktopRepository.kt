@@ -48,7 +48,7 @@ open class DesktopRepository(
     }
 
     /**
-     * Base path [fr.husi.core.BridgeCoreClient] dials (`…/core/` → `api.sock`).
+     * Base path [fr.husi.core.KurpcCoreClient] dials (`…/core/` → `api.sock`).
      * Mutable so [CoreHostController] can point at the system daemon socket
      * parent (`/var/run/husi`) when a privileged daemon is live.
      */

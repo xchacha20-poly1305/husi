@@ -1,10 +1,13 @@
 package fr.husi.core
 
 import fr.husi.ktx.Logs
-import fr.husi.libcore.BridgeClient
-import fr.husi.libcore.Libcore
-import fr.husi.libcore.StreamCall
-import fr.husi.libcore.StreamHandler
+import io.github.xchacha20_poly1305.kurpc.CallOptions
+import io.github.xchacha20_poly1305.kurpc.Channel as RpcChannel
+import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
+import io.github.xchacha20_poly1305.kurpc.ChannelConfig
+import io.github.xchacha20_poly1305.kurpc.Status as RpcStatus
+import io.github.xchacha20_poly1305.kurpc.StatusException
+import io.github.xchacha20_poly1305.kurpc.TransportException
 import fr.husi.proto.daemon.ClashMode
 import fr.husi.proto.daemon.ClashModeStatus
 import fr.husi.proto.daemon.ConnectionEvents
@@ -70,28 +73,26 @@ import fr.husi.proto.v1.takeOverServiceRequest
 import fr.husi.proto.v1.uRLTestOptions
 import fr.husi.proto.v1.uRLTestRequest
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import javax.net.ssl.SSLSocketFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
+import kotlin.time.TimeSource
 
 /**
- * Typed suspend/Flow surface over the raw [BridgeClient] gRPC bridge.
+ * Typed suspend/Flow surface over the core's gRPC services.
  *
  * Mirrors the Phase 1 contract: daemon.StartedService for the shared plane,
  * husi.v1.CoreService / ApplicationService / AppService for husi-only RPCs.
@@ -201,237 +202,99 @@ interface CoreClient {
 }
 
 class CoreRpcException(
-    val code: String,
+    val code: RpcStatus.Code,
     override val message: String,
     cause: Throwable? = null,
 ) : Exception(message, cause)
 
+/** The calls [KurpcCoreClient] makes, so tests can inject a fake instead of a kurpc channel. */
+internal interface CoreChannel {
+    suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray
+    fun serverStreaming(method: String, request: ByteArray): Flow<ByteArray>
+    fun close()
+}
+
+private class KurpcCoreChannel(private val channel: RpcChannel) : CoreChannel {
+    override suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray =
+        channel.unary(method, request, options)
+
+    // Waits for the socket like the unary calls: a subscription opened while the host is still
+    // starting should connect, not fail and back off.
+    override fun serverStreaming(method: String, request: ByteArray): Flow<ByteArray> =
+        channel.serverStreaming(method, request, CallOptions(waitForReady = true))
+
+    override fun close() = channel.close()
+}
+
 /**
- * JNI-free surface of [BridgeClient] so tests can inject a fake without
- * constructing the generated native type.
+ * [CoreClient] over one kurpc [RpcChannel], created on first use by [openChannel].
+ *
+ * The channel reconnects by itself after the host restarts, so a failed call never replaces it.
+ * [close] does: the next call opens a new channel, which re-resolves the endpoint (desktop
+ * switches between the session working dir and the daemon this way).
  */
-internal interface CoreBridge {
-    fun callWithTimeout(method: String, request: ByteArray, timeoutMs: Int): ByteArray
-    fun stream(method: String, request: ByteArray, handler: StreamHandler): CoreStreamCall
-    fun probe()
-    fun close()
-}
-
-internal fun interface CoreStreamCall {
-    fun close()
-}
-
-private class JniCoreBridge(private val client: BridgeClient) : CoreBridge {
-    override fun callWithTimeout(method: String, request: ByteArray, timeoutMs: Int): ByteArray =
-        client.callWithTimeout(method, request, timeoutMs) ?: ByteArray(0)
-
-    override fun stream(
-        method: String,
-        request: ByteArray,
-        handler: StreamHandler,
-    ): CoreStreamCall {
-        val call = client.stream(method, request, handler)
-        return CoreStreamCall { call.close() }
-    }
-
-    override fun probe() = client.probe()
-
-    override fun close() = client.close()
-}
-
-class BridgeCoreClient private constructor(
-    private val newBridge: () -> CoreBridge,
-    private val retryDelay: Duration,
-    private val maxRetryDelay: Duration,
-    private val stableReset: Duration,
+class KurpcCoreClient internal constructor(
+    private val openChannel: () -> CoreChannel,
+    private val retryDelay: Duration = 200.milliseconds,
+    private val maxRetryDelay: Duration = 5.seconds,
+    private val stableReset: Duration = 5.seconds,
 ) : CoreClient {
-    constructor(
-        basePath: String? = null,
-        bridgeFactory: (String?) -> BridgeClient = { path ->
-            Libcore.newBridgeClient(path)
-        },
-        retryDelay: Duration = 200.milliseconds,
-        maxRetryDelay: Duration = 5.seconds,
-        stableReset: Duration = 5.seconds,
-    ) : this(
-        newBridge = { JniCoreBridge(bridgeFactory(basePath)) },
-        retryDelay = retryDelay,
-        maxRetryDelay = maxRetryDelay,
-        stableReset = stableReset,
-    )
-
-    /** Test seam: inject a fake [CoreBridge] instead of the JNI client. */
-    internal constructor(
-        createBridge: (String?) -> CoreBridge,
-        retryDelay: Duration = 200.milliseconds,
-        maxRetryDelay: Duration = 5.seconds,
-        stableReset: Duration = 5.seconds,
-    ) : this(
-        newBridge = { createBridge(null) },
-        retryDelay = retryDelay,
-        maxRetryDelay = maxRetryDelay,
-        stableReset = stableReset,
-    )
-
     private val access = Mutex()
-    private var bridge: CoreBridge? = null
+    private var channel: CoreChannel? = null
 
-    private suspend fun getOrCreateBridge(): CoreBridge {
-        access.withLock {
-            return bridge ?: newBridge().also { bridge = it }
-        }
+    private suspend fun channel(): CoreChannel = access.withLock {
+        channel ?: openChannel().also { channel = it }
     }
 
     /**
-     * Holds the mutex only while getting/creating the shared [CoreBridge].
-     * Invokes [block] outside the lock so long RPCs do not serialize peers.
-     * Resets the bridge only on connection-level failures, not per-call status
-     * errors (DeadlineExceeded, NotFound, InvalidArgument, …).
-     */
-    private suspend fun <T> withBridge(block: suspend (CoreBridge) -> T): T {
-        val client = getOrCreateBridge()
-        try {
-            return block(client)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: CoreRpcException) {
-            resetIfConnectionFailure(client, e)
-            throw e
-        } catch (e: Exception) {
-            val mapped = mapBridgeError(e)
-            resetIfConnectionFailure(client, mapped)
-            throw mapped
-        }
-    }
-
-    /** Tears down the shared bridge if [e] indicates a connection-level failure. */
-    private suspend fun resetIfConnectionFailure(client: CoreBridge, e: CoreRpcException) {
-        if (!isConnectionFailure(e.code)) return
-        access.withLock {
-            if (bridge === client) resetLocked()
-        }
-    }
-
-    private fun resetLocked() {
-        val current = bridge
-        bridge = null
-        runCatching { current?.close() }
-    }
-
-    /**
-     * Closes the shared [BridgeClient]. In-flight [stream] collectors observe
-     * onClosed, retry, and call [getOrCreateBridge], which invokes the bridge
-     * factory again (re-resolving the socket path on desktop when switching
-     * between the session working dir and the daemon).
+     * In-flight calls on the old channel fail with [ChannelClosedException]; subscriptions
+     * retry on a new one.
      */
     override suspend fun close() {
-        access.withLock { resetLocked() }
+        access.withLock {
+            channel?.close()
+            channel = null
+        }
     }
 
     private suspend fun unary(
         method: String,
         request: ByteArray = EMPTY_PROTO,
         timeout: Duration = DEFAULT_UNARY_TIMEOUT,
-    ): ByteArray {
-        return withBridge { client ->
-            runInterruptible(Dispatchers.IO) {
-                try {
-                    client.callWithTimeout(
-                        method,
-                        request,
-                        timeout.inWholeMilliseconds.toInt(),
-                    )
-                } catch (e: Exception) {
-                    throw mapBridgeError(e)
-                }
-            }
-        }
-    }
+    ): ByteArray = rpc { channel().unary(method, request, CallOptions(timeout = timeout)) }
 
     /**
-     * Long-lived server stream with retry. Multiplexes on the shared
-     * [BridgeClient] from [getOrCreateBridge]; only the [StreamCall] is
-     * closed between attempts. Connection-level failures reset that shared
-     * bridge. [close] tears it down so in-flight collectors observe onClosed,
-     * retry, and redial — the bridge factory re-resolves the socket path on
-     * each create (session dir vs daemon).
+     * Long-lived server stream. Whenever the stream ends, cleanly or not, it is opened again
+     * after a backoff that resets once a stream has stayed up for [stableReset].
      */
     private fun <T> stream(
         method: String,
         request: ByteArray = EMPTY_PROTO,
         parse: (ByteArray) -> T,
-    ): Flow<T> = callbackFlow {
+    ): Flow<T> = flow {
         var delayDuration = retryDelay
-        var activeCall: CoreStreamCall? = null
-        val job = launch {
-            while (isActive) {
-                val client = try {
-                    getOrCreateBridge()
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Logs.w("core client stream create: $method", e)
-                    delay(delayDuration)
-                    delayDuration = (delayDuration * 2).coerceAtMost(maxRetryDelay)
-                    continue
-                }
-                var call: CoreStreamCall? = null
-                val closed = CompletableDeferred<String?>()
-                val elapsed = measureTime {
-                    try {
-                        val handler = object : StreamHandler {
-                            override fun onMessage(message: ByteArray?) {
-                                // A protobuf message whose fields are all default
-                                // serializes to zero bytes, which the JNI binding
-                                // hands over as null. Dropping it would hide
-                                // "no groups" or "service idle" from the UI.
-                                val parsed = try {
-                                    parse(message ?: EMPTY_PROTO)
-                                } catch (e: Exception) {
-                                    Logs.w("core client stream parse: $method", e)
-                                    return
-                                }
-                                trySend(parsed)
-                            }
-
-                            override fun onClosed(message: String?) {
-                                closed.complete(message)
-                            }
-                        }
-                        call = client.stream(method, request, handler)
-                        activeCall = call
-                        val errMessage = closed.await()
-                        if (!errMessage.isNullOrEmpty()) {
-                            val mapped = mapBridgeError(Exception(errMessage))
-                            // Retrying in silence turns a broken stream into an
-                            // empty panel with nothing to go on.
-                            Logs.w("core client stream closed: $method", mapped)
-                            resetIfConnectionFailure(client, mapped)
-                        }
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        val mapped = mapBridgeError(e)
-                        resetIfConnectionFailure(client, mapped)
-                        Logs.w("core client stream: $method", e)
-                    } finally {
-                        activeCall = null
-                        runCatching { call?.close() }
-                    }
-                }
-                delayDuration = if (elapsed >= stableReset) {
-                    retryDelay
-                } else {
-                    (delayDuration * 2).coerceAtMost(maxRetryDelay)
-                }
-                if (isActive) {
-                    delay(delayDuration)
-                }
+        while (true) {
+            val opened = TimeSource.Monotonic.markNow()
+            try {
+                emitAll(
+                    channel().serverStreaming(method, request).parseEach(method, parse).catch { error ->
+                        // Retrying in silence turns a broken stream into an empty panel with
+                        // nothing to go on.
+                        Logs.w("core client stream: $method", error.toCoreRpcException())
+                    },
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Opening the channel failed (a malformed endpoint); `catch` above takes the rest.
+                Logs.w("core client stream open: $method", e)
             }
-        }
-        awaitClose {
-            job.cancel()
-            runCatching { activeCall?.close() }
+            delayDuration = if (opened.elapsedNow() >= stableReset) {
+                retryDelay
+            } else {
+                (delayDuration * 2).coerceAtMost(maxRetryDelay)
+            }
+            delay(delayDuration)
         }
     }.buffer(Channel.UNLIMITED)
 
@@ -725,56 +588,12 @@ class BridgeCoreClient private constructor(
         method: String,
         request: ByteArray,
         parse: (ByteArray) -> T,
-    ): Flow<T> = callbackFlow {
-        var call: CoreStreamCall? = null
-        var client: CoreBridge? = null
-        try {
-            val bridge = getOrCreateBridge()
-            client = bridge
-            val closed = CompletableDeferred<String?>()
-            val handler = object : StreamHandler {
-                override fun onMessage(message: ByteArray?) {
-                    // null is an all-default message; see [stream].
-                    val parsed = try {
-                        parse(message ?: EMPTY_PROTO)
-                    } catch (e: Exception) {
-                        Logs.w("core client one-shot parse: $method", e)
-                        return
-                    }
-                    trySend(parsed)
-                }
-
-                override fun onClosed(message: String?) {
-                    closed.complete(message)
-                }
-            }
-            call = runInterruptible(Dispatchers.IO) {
-                try {
-                    bridge.stream(method, request, handler)
-                } catch (e: Exception) {
-                    throw mapBridgeError(e)
-                }
-            }
-            val errMessage = closed.await()
-            if (!errMessage.isNullOrEmpty()) {
-                throw mapBridgeError(Exception(errMessage))
-            }
-            close()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: CoreRpcException) {
-            client?.let { resetIfConnectionFailure(it, e) }
-            close(e)
-        } catch (e: Exception) {
-            val mapped = mapBridgeError(e)
-            client?.let { resetIfConnectionFailure(it, mapped) }
-            close(mapped)
-        } finally {
-            runCatching { call?.close() }
-        }
-        awaitClose {
-            runCatching { call?.close() }
-        }
+    ): Flow<T> = flow {
+        emitAll(
+            channel().serverStreaming(method, request)
+                .parseEach(method, parse)
+                .catch { error -> throw error.toCoreRpcException() },
+        )
     }.buffer(Channel.UNLIMITED)
 
     override suspend fun resetNetwork() {
@@ -826,19 +645,20 @@ class BridgeCoreClient private constructor(
         )
     }
 
+    /** gRPC health check; any status but SERVING is a failure. */
     override suspend fun probe() {
-        withBridge { client ->
-            runInterruptible(Dispatchers.IO) {
-                try {
-                    client.probe()
-                } catch (e: Exception) {
-                    throw mapBridgeError(e)
-                }
-            }
+        val response = rpc {
+            // Not wait-for-ready: a probe answers whether a host is there now.
+            channel().unary(Methods.HEALTH_CHECK, EMPTY_PROTO, CallOptions(timeout = DEFAULT_UNARY_TIMEOUT, waitForReady = false))
+        }
+        val status = healthCheckStatus(response)
+        if (status != HEALTH_SERVING) {
+            throw CoreRpcException(RpcStatus.Code.UNAVAILABLE, "health status: $status")
         }
     }
 
     private object Methods {
+        const val HEALTH_CHECK = "/grpc.health.v1.Health/Check"
         const val GET_VERSION = "/daemon.StartedService/GetVersion"
         const val GET_STARTED_AT = "/daemon.StartedService/GetStartedAt"
         const val DAEMON_URL_TEST = "/daemon.StartedService/URLTest"
@@ -909,63 +729,55 @@ class BridgeCoreClient private constructor(
         /** google.protobuf.Empty serializes to zero bytes. */
         private val EMPTY_PROTO = ByteArray(0)
 
-        /**
-         * Codes that indicate the shared bridge is unusable and should be redialed.
-         * Per-call status errors (NotFound, DeadlineExceeded, InvalidArgument, …)
-         * intentionally do not tear down the connection.
-         */
-        private val CONNECTION_FAILURE_CODES = setOf(
-            "Unavailable",
-            "UNAVAILABLE",
-        )
+        /** `grpc.health.v1.HealthCheckResponse.ServingStatus.SERVING`. */
+        private const val HEALTH_SERVING = 1
 
-        private fun isConnectionFailure(code: String): Boolean =
-            code in CONNECTION_FAILURE_CODES
+        /** Local core at [basePath] (see [localCoreTransport]), resolved again on every [close]. */
+        fun local(basePath: () -> String): KurpcCoreClient =
+            KurpcCoreClient(openChannel = { KurpcCoreChannel(RpcChannel(ChannelConfig(localCoreTransport(basePath())))) })
 
         /**
-         * Bridge errors are formatted by [libcore.BridgeClient] as
-         * `"<Code>: <message>"` when the failure is a gRPC status (see bridge.go).
-         * Transport failures without a status keep their original message and
-         * map to code `"Unknown"`.
+         * A remote sing-box daemon, as `daemon.NewRemoteClient` dials it. [trust] gives the TLS
+         * roots on every dial; see [rootCertificatesSocketFactory].
          */
-        private fun mapBridgeError(e: Exception): CoreRpcException {
-            if (e is CoreRpcException) return e
-            val message = e.message ?: e.toString()
-            val separator = message.indexOf(": ")
-            if (separator > 0) {
-                val maybeCode = message.substring(0, separator)
-                if (maybeCode in KNOWN_GRPC_CODES) {
-                    return CoreRpcException(
-                        maybeCode,
-                        message.substring(separator + 2).ifEmpty { message },
-                        e,
-                    )
-                }
-            }
-            return CoreRpcException("Unknown", message, e)
-        }
-
-        private val KNOWN_GRPC_CODES = setOf(
-            "OK",
-            "Canceled",
-            "Unknown",
-            "InvalidArgument",
-            "DeadlineExceeded",
-            "NotFound",
-            "AlreadyExists",
-            "PermissionDenied",
-            "ResourceExhausted",
-            "FailedPrecondition",
-            "Aborted",
-            "OutOfRange",
-            "Unimplemented",
-            "Internal",
-            "Unavailable",
-            "DataLoss",
-            "Unauthenticated",
-        )
+        fun remote(serverUrl: String, secret: String, trust: () -> SSLSocketFactory): KurpcCoreClient =
+            KurpcCoreClient(
+                openChannel = {
+                    KurpcCoreChannel(RpcChannel(remoteCoreChannelConfig(serverUrl, secret, trust)))
+                },
+            )
     }
 }
+
+/** Runs one call, reporting every kurpc failure as a [CoreRpcException]. */
+private suspend fun <T> rpc(call: suspend () -> T): T = try {
+    call()
+} catch (e: CancellationException) {
+    throw e
+} catch (e: Exception) {
+    throw e.toCoreRpcException()
+}
+
+internal fun Throwable.toCoreRpcException(): CoreRpcException = when (this) {
+    is CoreRpcException -> this
+    is StatusException -> CoreRpcException(code, description, this)
+    // No status from a server: it was never reached or went away, as grpc-go reports it.
+    is TransportException, is ChannelClosedException ->
+        CoreRpcException(RpcStatus.Code.UNAVAILABLE, message ?: toString(), this)
+    else -> CoreRpcException(RpcStatus.Code.UNKNOWN, message ?: toString(), this)
+}
+
+/** Parses each message; one that does not parse is logged and skipped, not fatal. */
+private fun <T> Flow<ByteArray>.parseEach(method: String, parse: (ByteArray) -> T): Flow<T> =
+    transform { message ->
+        val parsed = try {
+            parse(message)
+        } catch (e: Exception) {
+            Logs.w("core client parse: $method", e)
+            return@transform
+        }
+        emit(parsed)
+    }
 
 /** Build URLTestOptions from DataStore-style flags. */
 fun urlTestOptions(unifiedDelay: Boolean, ignoreHandshakeTime: Boolean): URLTestOptions {

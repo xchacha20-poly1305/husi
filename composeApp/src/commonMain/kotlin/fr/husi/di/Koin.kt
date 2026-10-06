@@ -3,9 +3,10 @@ package fr.husi.di
 import fr.husi.bg.AppUpdateAutoChecker
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
-import fr.husi.core.BridgeCoreClient
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreVersionCache
+import fr.husi.core.KurpcCoreClient
+import fr.husi.core.rootCertificatesSocketFactory
 import fr.husi.core.remote.RemoteClientFactory
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
@@ -27,21 +28,17 @@ private fun commonUiModule() = module {
     // switch between the session working dir and the system daemon path.
     single<CoreClient> {
         val repository = get<Repository>()
-        BridgeCoreClient(
-            basePath = null,
-            bridgeFactory = { Libcore.newBridgeClient(coreClientBasePath(repository)) },
-        )
+        KurpcCoreClient.local { coreClientBasePath(repository) }
     }
     single { CoreVersionCache(coreClient = get()) }
     single {
+        // Every app process runs loadCA(), which writes the roots Go trusts to this file.
+        val rootCertificates = get<Repository>().externalAssetsDir.resolve(Libcore.PluginCaFile)
         RemoteControlManager(
             localClient = get(),
             dao = SagerDatabase.remoteServerDao,
             remoteClientFactory = RemoteClientFactory { url, secret ->
-                BridgeCoreClient(
-                    basePath = null,
-                    bridgeFactory = { Libcore.newRemoteBridgeClient(url, secret) },
-                )
+                KurpcCoreClient.remote(url, secret) { rootCertificatesSocketFactory(rootCertificates) }
             },
         )
     }
@@ -52,11 +49,11 @@ private fun commonUiModule() = module {
 }
 
 /**
- * Directory that holds `api.sock` for [BridgeCoreClient]. Null keeps the Go
- * default (`internalAssetsPath` / files dir). Desktop points at the session
- * host working dir under the data directory.
+ * Directory that holds `api.sock` for [KurpcCoreClient] (or, for the Windows daemon, the pipe
+ * path itself). Android: the files dir, which `initCore` makes the core's internal assets path.
+ * Desktop: the session host working dir under the data directory, or the daemon's.
  */
-internal expect fun coreClientBasePath(repository: Repository): String?
+internal expect fun coreClientBasePath(repository: Repository): String
 
 internal expect fun platformMaterialApi(): PlatformMaterialApi
 internal expect fun platformThemeApi(): PlatformThemeApi

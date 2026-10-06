@@ -1,6 +1,7 @@
 package fr.husi.cli
 
 import fr.husi.core.CoreRpcException
+import io.github.xchacha20_poly1305.kurpc.Status
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -47,15 +48,15 @@ class ApiVpnCommandsTest {
     fun `classifyVpnSubmitError maps fatal stale and rejected outcomes`() {
         assertEquals(
             VpnSubmitOutcome.FATAL,
-            classifyVpnSubmitError(CoreRpcException("Unavailable", "connection lost")),
+            classifyVpnSubmitError(CoreRpcException(Status.Code.UNAVAILABLE, "connection lost")),
         )
         assertEquals(
             VpnSubmitOutcome.STALE,
-            classifyVpnSubmitError(CoreRpcException("InvalidArgument", "no pending challenge")),
+            classifyVpnSubmitError(CoreRpcException(Status.Code.INVALID_ARGUMENT, "no pending challenge")),
         )
         assertEquals(
             VpnSubmitOutcome.REJECTED,
-            classifyVpnSubmitError(CoreRpcException("InvalidArgument", "wrong password")),
+            classifyVpnSubmitError(CoreRpcException(Status.Code.INVALID_ARGUMENT, "wrong password")),
         )
     }
 

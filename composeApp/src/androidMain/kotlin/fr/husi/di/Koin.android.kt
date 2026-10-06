@@ -56,4 +56,5 @@ private val androidHttpModule = module {
 internal actual fun platformKoinModules(): List<Module> =
     listOf(androidNavigationModule, androidHttpModule)
 
-internal actual fun coreClientBasePath(repository: Repository): String? = null
+internal actual fun coreClientBasePath(repository: Repository): String =
+    (repository as AndroidRepository).context.filesDir.path

@@ -10,7 +10,7 @@ import fr.husi.bg.ServiceState
 import fr.husi.bg.buildPluginSpecs
 import fr.husi.bg.initPlugins
 import fr.husi.bg.proto.TrafficLooper
-import fr.husi.core.BridgeCoreClient
+import fr.husi.core.KurpcCoreClient
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreStateReconciliation
 import fr.husi.core.reconciliationFor
@@ -392,7 +392,7 @@ internal class CoreHostController(
             return false
         }
 
-        val probeClient = BridgeCoreClient(daemonPath)
+        val probeClient = KurpcCoreClient.local { daemonPath }
         try {
             probeClient.probe()
             val info = probeClient.getDaemonInfo()
@@ -896,7 +896,7 @@ internal class CoreHostController(
         /**
          * Parent directory of the Unix daemon UDS
          * (`libcore/daemonhost.DefaultDaemonSocketPath` = `/var/run/husi/api.sock`).
-         * [BridgeClient] dials `basePath/api.sock`.
+         * [KurpcCoreClient] dials `basePath/api.sock`.
          */
         private const val DAEMON_SOCKET_DIR_UNIX = "/var/run/husi"
 
@@ -904,18 +904,16 @@ internal class CoreHostController(
          * Windows protected named pipe
          * (`libcore/coresvc.DaemonPipePath` /
          * `libcore/daemonhost.DefaultDaemonPipePath`).
-         * [BridgeClient] / [Libcore.newBridgeClient] pass this as `basePath`;
-         * Go `coresvc.ClientEndpoint` detects the pipe prefix and dials it
-         * as-is (no `api.sock` join).
+         * Passed to [KurpcCoreClient] as `basePath`; `localCoreTransport` detects
+         * the pipe prefix and dials it as-is (no `api.sock` join).
          */
         private const val DAEMON_PIPE_PATH_WINDOWS =
             """\\.\pipe\ProtectedPrefix\Administrators\husi"""
 
         /**
-         * Base path for [BridgeCoreClient] / [Libcore.newBridgeClient].
-         * Unix: directory containing `api.sock` (joined by
-         * `coresvc.ClientEndpoint` / `SocketPath`).
-         * Windows: full pipe path returned as-is by `coresvc.ClientEndpoint`.
+         * Base path for [KurpcCoreClient].
+         * Unix: directory containing `api.sock`.
+         * Windows: the full pipe path (see `localCoreTransport`).
          */
         internal fun daemonSocketBasePath(): String {
             return when (PlatformInfo.platform) {

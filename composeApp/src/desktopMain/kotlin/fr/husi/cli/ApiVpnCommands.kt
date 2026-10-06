@@ -7,6 +7,7 @@ import fr.husi.CLI_STREAM_TIMEOUT
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreRpcException
 import fr.husi.ktx.readableMessage
+import io.github.xchacha20_poly1305.kurpc.Status
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
@@ -409,7 +410,13 @@ internal fun requireAuthTerminal(protocolName: String) {
 internal enum class VpnSubmitOutcome { REJECTED, STALE, FATAL }
 
 private val FATAL_SUBMIT_CODES =
-    setOf("Unavailable", "Canceled", "DeadlineExceeded", "Unauthenticated", "Unimplemented")
+    setOf(
+        Status.Code.UNAVAILABLE,
+        Status.Code.CANCELLED,
+        Status.Code.DEADLINE_EXCEEDED,
+        Status.Code.UNAUTHENTICATED,
+        Status.Code.UNIMPLEMENTED,
+    )
 
 internal fun classifyVpnSubmitError(e: CoreRpcException): VpnSubmitOutcome = when {
     e.code in FATAL_SUBMIT_CODES -> VpnSubmitOutcome.FATAL

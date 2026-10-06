@@ -2,6 +2,9 @@ package fr.husi
 
 const val HUSI_REPOSITORY = "xchacha20-poly1305/husi"
 
+/** Well-known UDS name under the core host dir (mirrors coresvc.Socket). */
+const val CORE_SOCKET_NAME = "api.sock"
+
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
 const val NETWORK_QUALITY_CONFIG_URL = "https://mensura.cdn-apple.com/api/v1/gm/config"
 
