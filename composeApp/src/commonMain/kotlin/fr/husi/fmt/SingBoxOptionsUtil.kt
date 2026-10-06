@@ -471,6 +471,36 @@ fun isEndpoint(type: String): Boolean = when (type) {
     else -> false
 }
 
+fun proxyDisplayName(type: String): String = when (type) {
+    SingBoxOptions.TYPE_SELECTOR -> "Selector"
+    SingBoxOptions.TYPE_URLTEST -> "URLTest"
+    SingBoxOptions.TYPE_BALANCER -> "Balancer"
+    SingBoxOptions.TYPE_DIRECT -> "Direct"
+    SingBoxOptions.TYPE_BLOCK -> "Block"
+    SingBoxOptions.TYPE_BRIDGE -> "Bridge"
+    SingBoxOptions.TYPE_SOCKS -> "SOCKS"
+    SingBoxOptions.TYPE_HTTP -> "HTTP"
+    SingBoxOptions.TYPE_SHADOWSOCKS -> "Shadowsocks"
+    SingBoxOptions.TYPE_SNELL -> "Snell"
+    SingBoxOptions.TYPE_VMESS -> "VMess"
+    SingBoxOptions.TYPE_VLESS -> "VLESS"
+    SingBoxOptions.TYPE_TROJAN -> "Trojan"
+    SingBoxOptions.TYPE_NAIVE -> "Naive"
+    SingBoxOptions.TYPE_HYSTERIA -> "Hysteria"
+    SingBoxOptions.TYPE_HYSTERIA2 -> "Hysteria2"
+    SingBoxOptions.TYPE_TUIC -> "TUIC"
+    SingBoxOptions.TYPE_JUICITY -> "Juicity"
+    SingBoxOptions.TYPE_SSH -> "SSH"
+    SingBoxOptions.TYPE_SHADOWTLS -> "ShadowTLS"
+    SingBoxOptions.TYPE_ANYTLS -> "AnyTLS"
+    SingBoxOptions.TYPE_TRUST_TUNNEL -> "TrustTunnel"
+    SingBoxOptions.TYPE_WIREGUARD -> "WireGuard"
+    SingBoxOptions.TYPE_OPENCONNECT -> "OpenConnect"
+    SingBoxOptions.TYPE_OPENVPN_CLIENT -> "OpenVPN"
+    SingBoxOptions.TYPE_MASQUE_CLIENT -> "MASQUE"
+    else -> type
+}
+
 /**
  * Turn link to new DNS options.
  */

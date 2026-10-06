@@ -20,10 +20,10 @@ import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.urlTestOptions
 import fr.husi.database.DataStore
 import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.proxyDisplayName
 import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEventType
@@ -833,7 +833,7 @@ class DashboardViewModel(
             val fresh = latestGroups.map { group ->
                 ProxySet(
                     tag = group.tag,
-                    displayType = Libcore.proxyDisplayName(group.type),
+                    displayType = proxyDisplayName(group.type),
                     selectable = group.selectable,
                     selected = group.selected,
                     items = group.itemsList.map { item ->
@@ -841,7 +841,7 @@ class DashboardViewModel(
                             tag = item.tag,
                             type = item.type,
                             urlTestDelay = item.urlTestDelay,
-                            displayType = Libcore.proxyDisplayName(item.type),
+                            displayType = proxyDisplayName(item.type),
                         )
                     }.let { items ->
                         comparator?.let { items.sortedWith(it) } ?: items
@@ -853,7 +853,7 @@ class DashboardViewModel(
                     tag = item.tag,
                     type = item.type,
                     urlTestDelay = item.urlTestDelay,
-                    displayType = Libcore.proxyDisplayName(item.type),
+                    displayType = proxyDisplayName(item.type),
                 )
             }.let { items ->
                 comparator?.let { items.sortedWith(it) } ?: items

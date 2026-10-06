@@ -8,7 +8,6 @@ import (
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
 )
 
@@ -121,10 +120,6 @@ func (l servicePluginLauncher) RunWithPlugins(specs []*husiv1.PluginProcessSpec,
 	workingDir := l.service.pluginWorkingDir
 	l.service.access.RUnlock()
 	return pluginpool.RunWithPlugins(workingDir, specs, nil, run)
-}
-
-func ProxyDisplayName(proxyType string) string {
-	return pluginoption.ProxyDisplayName(proxyType)
 }
 
 func apiPath(basePath string) string {
