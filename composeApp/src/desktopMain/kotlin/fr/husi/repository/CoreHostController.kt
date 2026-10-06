@@ -444,10 +444,10 @@ internal class CoreHostController(
 
     private fun checkApiVersion(info: GetDaemonInfoResponse) {
         val daemonVersion = info.apiVersion
-        apiVersionMismatch = daemonVersion != Libcore.APIVersion
+        apiVersionMismatch = daemonVersion != API_VERSION
         if (apiVersionMismatch) {
             val message =
-                "Daemon API version differs (daemon: $daemonVersion, app: ${Libcore.APIVersion}). Update available."
+                "Daemon API version differs (daemon: $daemonVersion, app: ${API_VERSION}). Update available."
             Logs.w(message)
             BackendState.emitAlert(ServiceAlert.Common(message))
         }
@@ -879,6 +879,9 @@ internal class CoreHostController(
     }
 
     companion object {
+
+        const val API_VERSION = 5
+
         private val HOST_READY_TIMEOUT = 15.seconds
 
         /**
