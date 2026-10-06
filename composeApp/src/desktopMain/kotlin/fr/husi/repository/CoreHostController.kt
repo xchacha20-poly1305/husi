@@ -82,7 +82,7 @@ internal class CoreHostController(
     private val resolveCoreClient: () -> CoreClient = { GlobalContext.get().get() },
     private val resolveCoreBinary: () -> File? = ::resolveHusiCoreBinary,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val systemProxyBackend: SystemProxyBackend = LibcoreSystemProxyBackend,
+    private val systemProxyBackend: SystemProxyBackend = platformSystemProxyBackend(),
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val access = Mutex()
@@ -1051,7 +1051,7 @@ private fun hostCoreBuildDirName(): String {
     return "${os}_$arch"
 }
 
-private fun resolveOnPath(binaryName: String): File? {
+internal fun resolveOnPath(binaryName: String): File? {
     val path = System.getenv("PATH") ?: return null
     val separator = File.pathSeparatorChar
     for (entry in path.split(separator)) {
