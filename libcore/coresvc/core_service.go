@@ -25,7 +25,7 @@ func (s *coreService) GetVersion(ctx context.Context, _ *husiv1.GetVersionReques
 	return &husiv1.GetVersionResponse{
 		Version:          s.host.version,
 		SingBoxVersion:   C.Version,
-		BuildEnvironment: s.host.buildEnvironment,
+		BuildEnvironment: BuildEnvironment(),
 		ApiVersion:       daemon.APIVersion,
 	}, nil
 }

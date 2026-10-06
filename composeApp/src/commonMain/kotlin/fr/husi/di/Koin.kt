@@ -5,6 +5,7 @@ import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.core.BridgeCoreClient
 import fr.husi.core.CoreClient
+import fr.husi.core.CoreVersionCache
 import fr.husi.core.remote.RemoteClientFactory
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
@@ -31,6 +32,7 @@ private fun commonUiModule() = module {
             bridgeFactory = { Libcore.newBridgeClient(coreClientBasePath(repository)) },
         )
     }
+    single { CoreVersionCache(coreClient = get()) }
     single {
         RemoteControlManager(
             localClient = get(),

@@ -4,11 +4,11 @@ import fr.husi.BuildConfig
 import fr.husi.HUSI_REPOSITORY
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
+import fr.husi.net.buildUserAgent
 import fr.husi.net.localSocks5Proxy
 import fr.husi.net.resolveHttpFetcher
 import fr.husi.platform.PlatformAbis
@@ -157,7 +157,7 @@ class AppUpdateChecker(
         val token = DataStore.appUpdateToken.get()
         val request = HttpFetchRequest(
             url = url,
-            userAgent = USER_AGENT,
+            userAgent = buildUserAgent(),
             headers = token.blankAsNull()
                 ?.let { mapOf("Authorization" to "Bearer $it") }
                 .orEmpty(),

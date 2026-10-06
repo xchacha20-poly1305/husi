@@ -24,12 +24,14 @@ import (
 	"time"
 	"unsafe"
 
+	SC "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/daemonhost"
 )
 
@@ -96,9 +98,9 @@ func cArgs(argc C.int, argv **C.char) []string {
 
 func cmdVersion() int {
 	fmt.Fprintf(os.Stdout, "husi-core version %s\n", libcore.Version)
-	fmt.Fprintf(os.Stdout, "sing-box version %s\n", libcore.VersionBox())
+	fmt.Fprintf(os.Stdout, "sing-box version %s\n", SC.Version)
 	fmt.Fprintf(os.Stdout, "core api version %d\n", daemon.APIVersion)
-	fmt.Fprintf(os.Stdout, "%s\n", libcore.BuildEnvironment())
+	fmt.Fprintf(os.Stdout, "%s\n", coresvc.BuildEnvironment())
 	return 0
 }
 

@@ -24,6 +24,8 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -50,8 +52,9 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
 import fr.husi.compose.withNavigation
+import fr.husi.core.CoreVersionCache
 import fr.husi.database.DataStore
-import fr.husi.libcore.Libcore
+import fr.husi.proto.v1.GetVersionResponse
 import fr.husi.resources.Res
 import fr.husi.resources.android
 import fr.husi.resources.app_name
@@ -83,12 +86,14 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.koinInject
 
 @Composable
 fun AboutScreen(
     modifier: Modifier = Modifier,
     onBackPress: () -> Unit,
     onNavigateToLibraries: () -> Unit,
+    coreVersionCache: CoreVersionCache = koinInject(),
 ) {
     val clipboard = LocalClipboard.current
     val windowInsets = WindowInsets.safeDrawing
@@ -108,8 +113,11 @@ fun AboutScreen(
             githubLatestReleasePageUrl(HUSI_REPOSITORY)
         }
     }
-    val boxVersion = remember { Libcore.versionBox() }
-    val buildEnvironment = remember { Libcore.buildEnvironment() }
+    val coreVersion by produceState<GetVersionResponse?>(null, coreVersionCache) {
+        value = coreVersionCache.get()
+    }
+    val boxVersion = coreVersion?.singBoxVersion.orEmpty()
+    val buildEnvironment = coreVersion?.buildEnvironment.orEmpty()
 
     val shouldRequestBattery = rememberShouldRequestBatteryOptimizations()
     val requestIgnoreBatteryOptimizations = rememberRequestIgnoreBatteryOptimizations()

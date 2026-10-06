@@ -51,9 +51,6 @@ func startTestHost(t *testing.T, opts coresvc.HostOptions) (*coresvc.Host, strin
 	if opts.LogMaxLines == 0 {
 		opts.LogMaxLines = 100
 	}
-	if opts.BuildEnvironment == "" {
-		opts.BuildEnvironment = "test-env"
-	}
 	host, err := coresvc.NewHost(opts)
 	require.NoError(t, err)
 	socketPath := filepath.Join(t.TempDir(), coresvc.Socket)
@@ -109,7 +106,7 @@ func TestHostHealthAndGetVersion(t *testing.T) {
 	husiVersion, err := coreClient.GetVersion(ctx, &husiv1.GetVersionRequest{})
 	require.NoError(t, err)
 	assert.Equal(t, "test", husiVersion.GetVersion())
-	assert.Equal(t, "test-env", husiVersion.GetBuildEnvironment())
+	assert.Equal(t, coresvc.BuildEnvironment(), husiVersion.GetBuildEnvironment())
 	assert.Equal(t, uint32(daemon.APIVersion), husiVersion.GetApiVersion())
 }
 
@@ -386,10 +383,9 @@ func TestHostStuckAfterCloseTimeout(t *testing.T) {
 func newTestHost(t *testing.T) *coresvc.Host {
 	t.Helper()
 	host, err := coresvc.NewHost(coresvc.HostOptions{
-		Context:          testBaseContext(t),
-		Version:          "test",
-		LogMaxLines:      100,
-		BuildEnvironment: "test-env",
+		Context:     testBaseContext(t),
+		Version:     "test",
+		LogMaxLines: 100,
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = host.Close() })

@@ -99,7 +99,12 @@ open class FakeCoreClient : CoreClient {
     var submitOpenVPNThrowable: Throwable? = null
     var cancelOpenVPNThrowable: Throwable? = null
 
-    override suspend fun getVersion(): GetVersionResponse = GetVersionResponse.getDefaultInstance()
+    override suspend fun getVersion(): GetVersionResponse {
+        getVersionCalls += 1
+        getVersionThrowable?.let { throw it }
+        return nextVersion
+    }
+
     override suspend fun getDaemonVersion(): Version = nextDaemonVersion
     override suspend fun getStartedAt(): Long = nextStartedAt
     override suspend fun daemonUrlTest(outboundTag: String) {
@@ -107,6 +112,9 @@ open class FakeCoreClient : CoreClient {
         daemonUrlTestCalls += 1
     }
 
+    var nextVersion: GetVersionResponse = GetVersionResponse.getDefaultInstance()
+    var getVersionCalls: Int = 0
+    var getVersionThrowable: Throwable? = null
     var nextDaemonVersion: Version = Version.getDefaultInstance()
     var nextStartedAt: Long = 0L
     var lastDaemonUrlTestTag: String? = null

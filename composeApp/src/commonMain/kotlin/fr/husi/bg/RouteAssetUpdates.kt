@@ -3,12 +3,12 @@ package fr.husi.bg
 import fr.husi.RuleProvider
 import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
-import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
 import fr.husi.libcore.Libcore
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
+import fr.husi.net.buildUserAgent
 import fr.husi.net.localSocks5Proxy
 import fr.husi.net.resolveHttpFetcher
 import kotlinx.datetime.LocalDateTime
@@ -155,7 +155,7 @@ internal suspend fun updateSingleRouteAsset(
 
     val request = HttpFetchRequest(
         url = asset.url,
-        userAgent = USER_AGENT,
+        userAgent = buildUserAgent(),
         noOverallDeadline = true,
         socks5 = localSocks5Proxy(),
     )
@@ -270,7 +270,7 @@ internal abstract class AssetsUpdater(
 ) {
     suspend fun request(url: String): HttpFetchRequest = HttpFetchRequest(
         url = url,
-        userAgent = USER_AGENT,
+        userAgent = buildUserAgent(),
         socks5 = localSocks5Proxy(),
     )
 

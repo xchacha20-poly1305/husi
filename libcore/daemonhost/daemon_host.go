@@ -13,7 +13,6 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/externalapi"
@@ -149,11 +148,10 @@ func (h *DaemonHost) run(ctx context.Context) error {
 	serverOptions = append(serverOptions, platformCreds...)
 
 	hostOpts := coresvc.HostOptions{
-		Context:          hostCtx,
-		Version:          version,
-		BuildEnvironment: libcore.BuildEnvironment(),
-		LogMaxLines:      h.options.LogMaxLines,
-		ServerOptions:    serverOptions,
+		Context:       hostCtx,
+		Version:       version,
+		LogMaxLines:   h.options.LogMaxLines,
+		ServerOptions: serverOptions,
 		// Skip default locale chain; we already installed locale+auth above.
 		SkipDefaultInterceptors: true,
 		OnStuck:                 stuck.report,

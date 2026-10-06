@@ -36,14 +36,13 @@ func (s *Service) buildHost() (*coresvc.Host, error) {
 
 	application := NewApplicationService(s.platformInterface, servicePluginLauncher{service: s})
 	opts := coresvc.HostOptions{
-		Context:          ctx,
-		Version:          s.version,
-		BuildEnvironment: BuildEnvironment(),
-		LogMaxLines:      currentLogMaxLines(),
-		AppHandler:       s.appHandler,
-		Services:         []coresvc.ServiceRegistrar{application},
-		FileLogSink:      fileLogSink(),
-		OnStuck:          s.hostStuck,
+		Context:     ctx,
+		Version:     s.version,
+		LogMaxLines: currentLogMaxLines(),
+		AppHandler:  s.appHandler,
+		Services:    []coresvc.ServiceRegistrar{application},
+		FileLogSink: fileLogSink(),
+		OnStuck:     s.hostStuck,
 	}
 	return coresvc.NewHost(opts)
 }

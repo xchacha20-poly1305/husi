@@ -32,10 +32,9 @@ func startLibcoreHost(t *testing.T) (*coresvc.Host, string) {
 		distro.CertificateProviderRegistry(),
 	)
 	host, err := coresvc.NewHost(coresvc.HostOptions{
-		Context:          ctx,
-		Version:          "check-test",
-		BuildEnvironment: BuildEnvironment(),
-		LogMaxLines:      50,
+		Context:     ctx,
+		Version:     "check-test",
+		LogMaxLines: 50,
 		Services: []coresvc.ServiceRegistrar{
 			NewApplicationService(nil, nil),
 		},

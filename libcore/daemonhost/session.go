@@ -9,7 +9,6 @@ import (
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
@@ -84,10 +83,9 @@ func (h *SessionHost) Run(ctx context.Context) error {
 	daemonSvc.plugins = pluginpool.NewPluginPool(workingDir, daemonSvc.handlePluginFatal)
 
 	hostOpts := coresvc.HostOptions{
-		Context:          hostCtx,
-		Version:          version,
-		BuildEnvironment: libcore.BuildEnvironment(),
-		LogMaxLines:      h.options.LogMaxLines,
+		Context:     hostCtx,
+		Version:     version,
+		LogMaxLines: h.options.LogMaxLines,
 		Services: []coresvc.ServiceRegistrar{
 			newApplicationService(workingDir, nil),
 			daemonSvc,

@@ -1,9 +1,9 @@
 package fr.husi.bg
 
-import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.sha256Hex
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
+import fr.husi.net.buildUserAgent
 import fr.husi.net.localSocks5Proxy
 import fr.husi.net.resolveHttpFetcher
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ suspend fun downloadAppUpdate(
 
     val request = HttpFetchRequest(
         url = downloadUrl,
-        userAgent = USER_AGENT,
+        userAgent = buildUserAgent(),
         noOverallDeadline = true,
         socks5 = localSocks5Proxy(),
     )

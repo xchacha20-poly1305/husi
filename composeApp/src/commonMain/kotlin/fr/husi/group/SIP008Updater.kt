@@ -26,9 +26,9 @@ import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.pluginToLocal
 import fr.husi.ktx.Logs
 import fr.husi.ktx.applyDefaultValues
-import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
 import fr.husi.net.HttpFetchRequest
+import fr.husi.net.buildUserAgent
 import fr.husi.net.localSocks5Proxy
 import fr.husi.net.resolveHttpFetcher
 import fr.husi.repository.resolveRepository
@@ -95,7 +95,7 @@ object SIP008Updater : GroupUpdater() {
 
             val request = HttpFetchRequest(
                 url = subscription.link,
-                userAgent = generateUserAgent(subscription.customUserAgent),
+                userAgent = buildUserAgent(subscription.customUserAgent),
                 // Strict !!!
                 restrictedTls = true,
                 socks5 = localSocks5Proxy(),

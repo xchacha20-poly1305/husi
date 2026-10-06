@@ -1,13 +1,11 @@
 package fr.husi.ktx
 
-import fr.husi.BuildConfig
 import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.database.DataStore
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.LOCALHOST_NAME
 import fr.husi.fmt.SingBoxOptions
-import fr.husi.libcore.Libcore
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.buildUrl
 import java.net.Inet4Address
@@ -184,17 +182,6 @@ fun mkPort(): Int {
     val port = socket.localPort
     socket.close()
     return port
-}
-
-val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (sing-box ${Libcore.versionBox()})" }
-
-/**
- * Replace all version-about escapes in User-Agent
- */
-fun generateUserAgent(userAgent: String): String {
-    if (userAgent.isBlank()) return USER_AGENT
-    return userAgent.replace($$"$version", BuildConfig.VERSION_NAME)
-        .replace($$"$box_version", Libcore.versionBox())
 }
 
 fun InterfaceAddress.toPrefix(): String {

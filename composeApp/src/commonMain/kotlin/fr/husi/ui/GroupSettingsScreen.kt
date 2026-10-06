@@ -53,7 +53,6 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.compose.withNavigation
-import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
@@ -502,7 +501,8 @@ private fun LazyListScope.groupSettings(
                     )
                 },
                 summary = {
-                    val text = uiState.subscriptionUserAgent.blankAsNull() ?: USER_AGENT
+                    val defaultUserAgent by viewModel.defaultUserAgent.collectAsStateWithLifecycle()
+                    val text = uiState.subscriptionUserAgent.blankAsNull() ?: defaultUserAgent
                     Text(text)
                 },
                 valueToText = { it },

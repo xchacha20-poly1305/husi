@@ -25,10 +25,9 @@ func newRunningDaemonService(t *testing.T) *daemonDaemonService {
 
 	hostCtx := sessionBaseContext(t.Context())
 	host, err := coresvc.NewHost(coresvc.HostOptions{
-		Context:          hostCtx,
-		Version:          "test",
-		LogMaxLines:      100,
-		BuildEnvironment: "test-env",
+		Context:     hostCtx,
+		Version:     "test",
+		LogMaxLines: 100,
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = host.Close() })

@@ -33,10 +33,9 @@ func startHost(t *testing.T) (socketPath string, cleanup func()) {
 		distro.CertificateProviderRegistry(),
 	)
 	host, err := coresvc.NewHost(coresvc.HostOptions{
-		Context:          ctx,
-		Version:          "bridge-test",
-		BuildEnvironment: "test",
-		LogMaxLines:      50,
+		Context:     ctx,
+		Version:     "bridge-test",
+		LogMaxLines: 50,
 	})
 	require.NoError(t, err)
 	socketPath = filepath.Join(t.TempDir(), coresvc.Socket)
