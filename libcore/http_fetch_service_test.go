@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing/common/buf"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,7 @@ func (s *recordingHTTPFetchStream) Send(response *husiv1.HTTPFetchResponse) erro
 
 func TestHTTPFetchStreamsHeadThenBody(t *testing.T) {
 	const userInfoHeader = "Subscription-Userinfo"
-	body := bytes.Repeat([]byte("husi"), httpFetchChunkSize) // several chunks
+	body := bytes.Repeat([]byte("husi"), buf.BufferSize) // several chunks
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set(userInfoHeader, request.UserAgent())
 		writer.Header().Set("Content-Length", strconv.Itoa(len(body)))

@@ -5,15 +5,13 @@ import (
 	"net/http"
 
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing/common/buf"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/httpfetch"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
-
-// httpFetchChunkSize keeps each body message far below gRPC's 4 MiB limit.
-const httpFetchChunkSize = 32 * 1024
 
 func (s *applicationService) HTTPFetch(
 	req *husiv1.HTTPFetchRequest,
@@ -39,13 +37,16 @@ func (s *applicationService) HTTPFetch(
 		return streamError(stream.Context(), err)
 	}
 
-	chunk := make([]byte, httpFetchChunkSize)
+	// buf.BufferSize keeps each body message far below gRPC's 4 MiB limit.
+	chunk := buf.New()
+	defer chunk.Release()
 	for {
-		n, readErr := response.Body.Read(chunk)
-		if n > 0 {
+		chunk.Reset()
+		_, readErr := chunk.ReadOnceFrom(response.Body)
+		if !chunk.IsEmpty() {
 			// Send marshals before returning, so the chunk can be reused.
 			err = stream.Send(&husiv1.HTTPFetchResponse{
-				Payload: &husiv1.HTTPFetchResponse_Chunk{Chunk: chunk[:n]},
+				Payload: &husiv1.HTTPFetchResponse_Chunk{Chunk: chunk.Bytes()},
 			})
 			if err != nil {
 				return streamError(stream.Context(), err)
