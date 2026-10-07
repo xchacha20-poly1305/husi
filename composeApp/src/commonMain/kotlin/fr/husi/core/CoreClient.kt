@@ -1,6 +1,7 @@
 package fr.husi.core
 
 import fr.husi.ktx.Logs
+import fr.husi.ktx.invariantPathString
 import io.github.xchacha20_poly1305.kurpc.CallOptions
 import io.github.xchacha20_poly1305.kurpc.Channel as RpcChannel
 import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
@@ -40,6 +41,13 @@ import fr.husi.proto.v1.FormatConfigResponse
 import fr.husi.proto.v1.GenerateSchemaResponse
 import fr.husi.proto.v1.GetCertMode
 import fr.husi.proto.v1.GetCertResponse
+import fr.husi.proto.v1.GetRootCertificatesResponse
+import fr.husi.proto.v1.AndroidVPNType
+import fr.husi.proto.v1.ReadAndroidVPNTypeResponse
+import fr.husi.proto.v1.MatchRuleSetsResponse
+import fr.husi.proto.v1.PingProtocol
+import fr.husi.proto.v1.PingResponse
+import fr.husi.proto.v1.RootCertificateStore
 import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetVersionResponse
@@ -58,6 +66,10 @@ import fr.husi.proto.v1.claimServiceRequest
 import fr.husi.proto.v1.formatConfigRequest
 import fr.husi.proto.v1.generateSchemaRequest
 import fr.husi.proto.v1.getCertRequest
+import fr.husi.proto.v1.getRootCertificatesRequest
+import fr.husi.proto.v1.readAndroidVPNTypeRequest
+import fr.husi.proto.v1.matchRuleSetsRequest
+import fr.husi.proto.v1.pingRequest
 import fr.husi.proto.v1.getClientMetadataRequest
 import fr.husi.proto.v1.getDaemonInfoRequest
 import fr.husi.proto.v1.getVersionRequest
@@ -85,6 +97,7 @@ import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.net.ssl.SSLSocketFactory
+import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -182,6 +195,18 @@ interface CoreClient {
 
     /** One head message, then the body in chunks. */
     fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse>
+
+    /** Latency in milliseconds. [port] is ignored by ICMP. */
+    suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int
+
+    /** File names of the rule sets under [dir] that have a rule matching [keyword], a domain name or IP address. */
+    suspend fun matchRuleSets(dir: File, keyword: String): List<String>
+
+    /** PEM of the roots in [store]. */
+    suspend fun getRootCertificates(store: RootCertificateStore): String
+
+    /** The Go core of the VPN app in [apkPaths], or null when none is revealed. Android only. */
+    suspend fun readAndroidVPNType(apkPaths: List<String>): AndroidVPNType?
 
     suspend fun resetNetwork()
     suspend fun runTask(taskId: String)
@@ -524,6 +549,49 @@ class KurpcCoreClient internal constructor(
         return GetCertResponse.parseFrom(bytes).pem
     }
 
+    override suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int {
+        val bytes = unary(
+            Methods.PING,
+            pingRequest {
+                this.protocol = protocol
+                this.address = address
+                this.port = port
+                this.timeoutMs = timeoutMs
+            }.toByteArray(),
+            timeoutMs.milliseconds + DEFAULT_UNARY_TIMEOUT,
+        )
+        return PingResponse.parseFrom(bytes).latencyMs
+    }
+
+    override suspend fun matchRuleSets(dir: File, keyword: String): List<String> {
+        val bytes = unary(
+            Methods.MATCH_RULE_SETS,
+            matchRuleSetsRequest {
+                directory = dir.invariantPathString()
+                this.keyword = keyword
+            }.toByteArray(),
+            30.seconds,
+        )
+        return MatchRuleSetsResponse.parseFrom(bytes).namesList
+    }
+
+    override suspend fun getRootCertificates(store: RootCertificateStore): String {
+        val bytes = unary(
+            Methods.GET_ROOT_CERTIFICATES,
+            getRootCertificatesRequest { this.store = store }.toByteArray(),
+        )
+        return GetRootCertificatesResponse.parseFrom(bytes).pem
+    }
+
+    override suspend fun readAndroidVPNType(apkPaths: List<String>): AndroidVPNType? {
+        val bytes = unary(
+            Methods.READ_ANDROID_VPN_TYPE,
+            readAndroidVPNTypeRequest { this.apkPaths.addAll(apkPaths) }.toByteArray(),
+        )
+        val response = ReadAndroidVPNTypeResponse.parseFrom(bytes)
+        return if (response.hasType()) response.type else null
+    }
+
     override fun stunTest(server: String, outboundTag: String): Flow<STUNTestProgress> {
         val request = sTUNTestRequest {
             this.server = server
@@ -703,6 +771,10 @@ class KurpcCoreClient internal constructor(
         const val STANDALONE_NETWORK_QUALITY_TEST =
             "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
         const val HTTP_FETCH = "/husi.v1.ApplicationService/HTTPFetch"
+        const val PING = "/husi.v1.ApplicationService/Ping"
+        const val MATCH_RULE_SETS = "/husi.v1.ApplicationService/MatchRuleSets"
+        const val GET_ROOT_CERTIFICATES = "/husi.v1.ApplicationService/GetRootCertificates"
+        const val READ_ANDROID_VPN_TYPE = "/husi.v1.ApplicationService/ReadAndroidVPNType"
 
         const val RUN_TASK = "/husi.v1.AppService/RunTask"
 

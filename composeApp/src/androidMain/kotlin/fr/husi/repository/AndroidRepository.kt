@@ -7,6 +7,7 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.os.UserManager
+import fr.husi.libcore.Service
 import java.io.File
 import org.koin.core.context.GlobalContext
 
@@ -20,6 +21,9 @@ interface AndroidRepository : Repository {
     val packageManager: PackageManager
 
     val noBackupFilesDir: File
+
+    /** The in-process core; only the `:bg` process has one. */
+    val boxService: Service?
 
     suspend fun updateNotificationChannels()
 }

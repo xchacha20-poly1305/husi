@@ -3,8 +3,8 @@ module github.com/xchacha20-poly1305/husi/libcore/v2
 go 1.27
 
 tool (
-	github.com/xchacha20-poly1305/anja/cmd/anja
-	github.com/xchacha20-poly1305/anja/cmd/anjb
+	github.com/sagernet/gomobile/cmd/gobind
+	github.com/sagernet/gomobile/cmd/gomobile
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc
 	google.golang.org/protobuf/cmd/protoc-gen-go
 )
@@ -22,11 +22,11 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/google/licensecheck v0.3.1
-	github.com/klauspost/compress v1.20.0
 	github.com/miekg/dns v1.1.72
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/sagernet/cors v1.2.1
+	github.com/sagernet/gomobile v0.1.13
 	github.com/sagernet/quic-go v0.61.0-sing-box-mod.9
 	github.com/sagernet/sing v0.9.7-0.20260929150544-6f21f2425a95
 	github.com/sagernet/sing-anytls v0.0.0-20260928104022-580984e4d8cb
@@ -36,11 +36,11 @@ require (
 	github.com/sagernet/sing-snell v0.0.0-20260904135315-bc5a12ac736f
 	github.com/sagernet/sing-tun v0.9.7-0.20261002083955-3f8acd9da65b
 	github.com/sagernet/sing-vmess v0.2.9-0.20260929152519-9b95ab8c9478
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
 	github.com/xchacha20-poly1305/TLS-scribe v0.13.1
 	github.com/xchacha20-poly1305/anchor v0.9.0
-	github.com/xchacha20-poly1305/anja v0.22.16
 	github.com/xchacha20-poly1305/libping v0.10.5
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260928134000-daacc8079caf
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
@@ -76,8 +76,10 @@ require (
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jsimonetti/rtnetlink v1.4.1 // indirect
+	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/koron/go-ssdp v0.0.4 // indirect
 	github.com/libdns/acmedns v0.5.0 // indirect
@@ -142,6 +144,7 @@ require (
 	github.com/sagernet/wireguard-go v0.0.8-0.20260929150556-ca3bc60c4ce7 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/smallstep/pkcs7 v0.1.1 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect

@@ -12,6 +12,7 @@ import (
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/rootcerts"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -60,6 +61,7 @@ func (s *sessionDaemonService) StartService(ctx context.Context, req *husiv1.Sta
 	if err := s.stopLocked(); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	applyRootCertificates(req.GetOptions())
 
 	if err := s.plugins.StartAll(req.GetPlugins()); err != nil {
 		return nil, status.Error(codes.Internal, E.Cause(err, "start plugins").Error())
@@ -132,6 +134,16 @@ func (s *sessionDaemonService) handlePluginFatal(err error) {
 	if stopErr := s.stopLocked(); stopErr != nil {
 		log.Warn("stop after plugin fatal: ", stopErr)
 	}
+}
+
+// applyRootCertificates installs the roots options selects for this process.
+// UNSPECIFIED, as sent by a client that predates the option, keeps the current ones.
+func applyRootCertificates(options *husiv1.ServiceOptions) {
+	store, loaded := rootcerts.StoreFromProto(options.GetRootCertificates())
+	if !loaded {
+		return
+	}
+	rootcerts.Install(rootcerts.Load(store))
 }
 
 func cloneClientMetadata(src *husiv1.ClientMetadata) *husiv1.ClientMetadata {

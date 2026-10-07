@@ -14,13 +14,10 @@ import fr.husi.io.BinaryFormat.UTF8_THREE_BYTE_PREFIX
 import fr.husi.io.BinaryFormat.UTF8_TWO_BYTE_MAX
 import fr.husi.io.BinaryFormat.UTF8_TWO_BYTE_PAYLOAD_MASK
 import fr.husi.io.BinaryFormat.UTF8_TWO_BYTE_PREFIX
-import fr.husi.io.BinaryFormat.VAR_INT_CONTINUATION_BIT
 import fr.husi.io.BinaryFormat.VAR_INT_FLAG_BIT
 import fr.husi.io.BinaryFormat.VAR_INT_FLAG_CONTINUATION_BIT
 import fr.husi.io.BinaryFormat.VAR_INT_FLAG_FIRST_SHIFT
 import fr.husi.io.BinaryFormat.VAR_INT_FLAG_PAYLOAD_MASK
-import fr.husi.io.BinaryFormat.VAR_INT_PAYLOAD_BITS
-import fr.husi.io.BinaryFormat.VAR_INT_PAYLOAD_MASK
 import okio.Buffer
 
 class BinaryOutput {
@@ -69,12 +66,7 @@ class BinaryOutput {
     }
 
     private fun writeVarIntBytes(value: Int) {
-        var remaining = value
-        while (remaining ushr VAR_INT_PAYLOAD_BITS != 0) {
-            writeByte((remaining and VAR_INT_PAYLOAD_MASK) or VAR_INT_CONTINUATION_BIT)
-            remaining = remaining ushr VAR_INT_PAYLOAD_BITS
-        }
-        writeByte(remaining)
+        buffer.writeLeb128(value.toUInt().toLong())
     }
 
     fun writeString(value: String?) {

@@ -17,8 +17,6 @@ interface Repository {
     val isBgProcess: Boolean
     val isTv: Boolean
 
-    val boxService: fr.husi.libcore.Service?
-
     val preferenceStoreDispatcher: CoroutineDispatcher get() = Dispatchers.IO
 
     fun createConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences> =

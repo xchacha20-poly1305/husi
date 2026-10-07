@@ -40,12 +40,9 @@ func ServiceInstall(workingDir string) error {
 	if err != nil {
 		return E.Cause(err, "get executable path")
 	}
-	srcShim, srcLib, err := resolvePairSources(executablePath)
+	sourceBin, err := resolveExecutablePath(executablePath)
 	if err != nil {
 		return err
-	}
-	if err := VerifyCorePairSignature(srcShim); err != nil {
-		return E.Cause(err, "verify core pair to install")
 	}
 	installDir := filepath.Join(os.Getenv("ProgramFiles"), "husi")
 	if installDir == `\husi` || filepath.Base(installDir) != "husi" {
@@ -80,7 +77,7 @@ func ServiceInstall(workingDir string) error {
 			return E.Cause(err, "open service")
 		}
 	} else {
-		// stop → replace pair → start (idempotent upgrade / torn-pair repair).
+		// stop → replace binary → start (idempotent upgrade).
 		if err := stopServiceAndWait(service); err != nil {
 			service.Close()
 			return E.Cause(err, "stop service")
@@ -91,19 +88,11 @@ func ServiceInstall(workingDir string) error {
 		}
 	}
 
-	if err := installPair(srcShim, srcLib, installBin, nil); err != nil {
+	if err := installBinary(sourceBin, installBin, nil); err != nil {
 		if service != nil {
 			service.Close()
 		}
 		return err
-	}
-	// Re-check what actually landed on disk: the copy above is not atomic across
-	// both files, so this closes the window between copying and starting.
-	if err := VerifyCorePairSignature(installBin); err != nil {
-		if service != nil {
-			service.Close()
-		}
-		return E.Cause(err, "verify installed core pair")
 	}
 
 	if service == nil {
@@ -195,7 +184,7 @@ func ServiceUninstall(workingDir string, purge bool) error {
 	}
 
 	installBin := filepath.Join(os.Getenv("ProgramFiles"), "husi", "husi-core.exe")
-	_ = removePair(installBin)
+	_ = removeBinary(installBin)
 	_ = os.Remove(filepath.Dir(installBin))
 
 	if purge {

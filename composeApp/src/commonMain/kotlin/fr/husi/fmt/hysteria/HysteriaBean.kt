@@ -5,7 +5,7 @@ import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
-import fr.husi.ktx.wrapIPV6Host
+import fr.husi.ktx.joinAddress
 import fr.husi.resources.Res
 import fr.husi.resources.warn_hysteria_legacy
 import fr.husi.resources.warn_insecure
@@ -275,7 +275,7 @@ class HysteriaBean : AbstractBean() {
         }
 
     override fun displayAddress(): String {
-        return "${serverAddress.wrapIPV6Host()}:$serverPorts"
+        return joinAddress(serverAddress, serverPorts)
     }
 
     override fun clone(): HysteriaBean {

@@ -14,29 +14,27 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 )
 
-type ScanRuleSetCallback interface {
-	Callback(path string)
-}
-
-// ScanRuleSet walks dir and reports the name of every binary rule set file
+// matchRuleSets walks dir and returns the name of every binary rule set file
 // that has a rule matching keyword. Unreadable files are skipped,
 // and a missing dir reports nothing.
-func ScanRuleSet(dir, keyword string, callback ScanRuleSetCallback) error {
+func matchRuleSets(dir, keyword string) []string {
 	var metadata adapter.InboundContext
 	if ipAddress := M.ParseAddr(keyword); ipAddress.IsValid() {
 		metadata.Destination = M.SocksaddrFrom(ipAddress, 0)
 	} else {
 		metadata.Domain = keyword
 	}
-	return filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
+	var names []string
+	_ = filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil || entry.IsDir() {
 			return nil
 		}
 		if ruleSetFileMatches(path, &metadata) {
-			callback.Callback(entry.Name())
+			names = append(names, entry.Name())
 		}
 		return nil
 	})
+	return names
 }
 
 func ruleSetFileMatches(path string, metadata *adapter.InboundContext) bool {

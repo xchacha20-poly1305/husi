@@ -11,7 +11,6 @@ import fr.husi.ktx.Logs
 import fr.husi.proto.v1.clientMetadata
 import fr.husi.proto.v1.startServiceRequest
 import fr.husi.repository.resolveAndroidRepository
-import fr.husi.repository.resolveRepository
 import java.io.File
 
 abstract class BoxInstance(
@@ -71,7 +70,7 @@ abstract class BoxInstance(
         // Match the Kotlin pool's working dir: keep plugin files out of backup.
         val pluginDir = resolveAndroidRepository().noBackupFilesDir.resolve("plugin")
         pluginDir.mkdirs()
-        resolveRepository().boxService!!.startService(
+        resolveAndroidRepository().boxService!!.startService(
             request.toByteArray(),
             pluginDir.absolutePath,
         )
@@ -91,7 +90,7 @@ abstract class BoxInstance(
         // A core that cannot close ends this process itself, so there is nothing
         // to recover from here.
         runCatching {
-            resolveRepository().boxService?.stopService()
+            resolveAndroidRepository().boxService?.stopService()
         }.onFailure {
             Logs.w(it)
         }

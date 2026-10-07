@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
 import fr.husi.ktx.isIpAddress
+import fr.husi.ktx.joinAddress
 import fr.husi.ktx.unwrapIPV6Host
-import fr.husi.ktx.wrapIPV6Host
 
 @KxsSerializable
 abstract class AbstractBean : Serializable() {
@@ -33,7 +33,7 @@ abstract class AbstractBean : Serializable() {
     }
 
     open fun displayAddress(): String {
-        return "${serverAddress.wrapIPV6Host()}:$serverPort"
+        return joinAddress(serverAddress, serverPort)
     }
 
     open fun network(): String {

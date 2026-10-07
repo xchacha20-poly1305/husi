@@ -17,6 +17,7 @@ import fr.husi.compose.clearClipboardImageCache
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.di.initHusiKoin
+import fr.husi.ktx.Logs
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
@@ -26,7 +27,7 @@ import fr.husi.repository.AndroidRepository
 import fr.husi.repository.SagerRepository
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.PackageCache
-import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
+import fr.husi.utils.installBundledRuleSets
 import go.Seq
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
@@ -75,36 +76,25 @@ class Application : Application(),
             }
         }
 
-        Seq.setContext(this)
         runOnDefaultDispatcher {
             repository.updateNotificationChannels()
         }
 
-        // init core
         externalAssets.mkdirs()
-        val rulesProvider = DataStore.rulesProvider.getBlocking()
         val isExpert = DataStore.isExpert.getBlocking()
+        if (!isExpert) {
+            Logs.openFile(externalAssets.resolve(LOG_FILE_NAME), DataStore.logLevel.getBlocking())
+        }
         runBlocking {
-            if (isBgProcess && rulesProvider == RuleProvider.OFFICIAL) {
-                copyBundledRuleSetAssetsIfNeeded()
+            if (isBgProcess && DataStore.rulesProvider.get() == RuleProvider.OFFICIAL) {
+                installBundledRuleSets()
             }
             migrateCustomRouteAssets(
                 externalAssets,
                 SagerDatabase.assetDao.getAll().first().map { it.name },
             )
         }
-        Libcore.initCore(
-            isBgProcess,
-            !isBgProcess,
-            cacheDir.invariantDirectoryPathString(),
-            filesDir.invariantDirectoryPathString(),
-            externalAssets.invariantDirectoryPathString(),
-            DataStore.logMaxLine.getBlocking(),
-            DataStore.logLevel.getBlocking(),
-            rulesProvider == 0,
-            isExpert,
-        )
-        loadCA(DataStore.certProvider.getBlocking())
+        if (isBgProcess) initCore(isExpert)
 
         if (isMainProcess) runOnDefaultDispatcher {
             runCatching {
@@ -135,6 +125,20 @@ class Application : Application(),
                 .penaltyLog()
                 .build(),
         )
+    }
+
+    private fun initCore(isExpert: Boolean) {
+        Seq.setContext(this)
+        Libcore.initCore(
+            cacheDir.invariantDirectoryPathString(),
+            filesDir.invariantDirectoryPathString(),
+            externalAssets.invariantDirectoryPathString(),
+            DataStore.logMaxLine.getBlocking(),
+            DataStore.logLevel.getBlocking(),
+            isExpert,
+        )
+        Logs.attachCore()
+        loadCA(DataStore.certProvider.getBlocking())
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

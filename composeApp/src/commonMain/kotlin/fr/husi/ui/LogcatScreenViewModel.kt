@@ -11,7 +11,6 @@ import fr.husi.core.CoreClient
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.LogLevel
 import fr.husi.repository.resolveRepository
@@ -255,7 +254,7 @@ class LogcatScreenViewModel(
         try {
             coreClient.clearLogs()
             if (!isRemote) {
-                Libcore.logClear()
+                Logs.clearFile()
             }
         } catch (e: Exception) {
             Logs.w("clear log", e)

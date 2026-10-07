@@ -24,6 +24,7 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnMainDispatcher
 import fr.husi.ktx.showToast
 import fr.husi.plugin.PluginNotFoundException
+import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.CancellationException
@@ -64,7 +65,7 @@ class BaseService {
             val proxy = proxy ?: return
             // Plugin processes are supervised by the Go pool; reverse-bind the
             // fatal callback so a crashing plugin still stops the runner.
-            resolveRepository().boxService?.setPluginFatalHandler { message ->
+            resolveAndroidRepository().boxService?.setPluginFatalHandler { message ->
                 Logs.w(message)
                 runOnDefaultDispatcher {
                     onFatal(Exception(message))
@@ -81,10 +82,10 @@ class BaseService {
         override fun resetNetwork() {
             val proxy = proxy
             if (proxy != null && proxy.isInitialized() &&
-                resolveRepository().boxService?.hasInstance() == true
+                resolveAndroidRepository().boxService?.hasInstance() == true
             ) {
                 runCatching {
-                    resolveRepository().boxService?.resetNetwork()
+                    resolveAndroidRepository().boxService?.resetNetwork()
                 }
             }
         }
@@ -108,12 +109,12 @@ class BaseService {
                     val powerManager = (service as Context).getSystemService<PowerManager>()!!
                     val proxy = proxy
                     if (proxy != null && proxy.isInitialized() &&
-                        resolveRepository().boxService?.hasInstance() == true
+                        resolveAndroidRepository().boxService?.hasInstance() == true
                     ) {
                         if (powerManager.isDeviceIdleMode) {
-                            resolveRepository().boxService?.pause()
+                            resolveAndroidRepository().boxService?.pause()
                         } else {
-                            resolveRepository().boxService?.wake()
+                            resolveAndroidRepository().boxService?.wake()
                         }
                     }
                 }
@@ -206,7 +207,7 @@ class BaseService {
             data.backend.start { throwable ->
                 stopRunner(false, throwable.readableMessage)
             }
-            if (resolveRepository().boxService?.needWIFIState() == true) {
+            if (resolveAndroidRepository().boxService?.needWIFIState() == true) {
                 val wifiPermission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                     Manifest.permission.ACCESS_FINE_LOCATION
                 } else {

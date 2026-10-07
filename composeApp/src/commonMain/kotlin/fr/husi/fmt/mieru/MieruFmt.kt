@@ -23,7 +23,6 @@ import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.kxs
 import fr.husi.ktx.toJsonStringKxs
-import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.buildUrl
@@ -73,7 +72,7 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
                 runCatching {
                     pattern.parseMieruTrafficPattern()
                 }.getOrElse { _ ->
-                    Libcore.decodeMieruTrafficPattern(pattern).parseMieruTrafficPattern()
+                    decodeMieruTrafficPattern(pattern)
                 },
             )
         }
@@ -128,7 +127,7 @@ fun MieruBean.toUri(): String = buildUrl("mierus") {
     }
     trafficPattern.blankAsNull()?.let { trafficPattern ->
         val base64TrafficPattern = runCatching {
-            Libcore.encodeMieruTrafficPattern(trafficPattern)
+            encodeMieruTrafficPattern(trafficPattern)
         }.getOrElse {
             trafficPattern
         }

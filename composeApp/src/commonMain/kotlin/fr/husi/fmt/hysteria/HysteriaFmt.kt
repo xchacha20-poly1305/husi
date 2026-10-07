@@ -18,13 +18,14 @@ import fr.husi.ktx.getBool
 import fr.husi.ktx.getIntOrNull
 import fr.husi.ktx.getStr
 import fr.husi.ktx.isIpAddress
+import fr.husi.ktx.joinAddress
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.parseBoolean
 import fr.husi.ktx.parseGoDuration
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.sha256Hex
+import fr.husi.ktx.splitAddress
 import fr.husi.ktx.toJsonStringKxs
-import fr.husi.ktx.wrapIPV6Host
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.UrlOptions
 import io.github.xchacha20_poly1305.kpuri.buildUrl
@@ -169,12 +170,11 @@ fun JSONMap.parseHysteria1Json(): HysteriaBean {
     // TODO parse HY2 JSON
     return HysteriaBean().apply {
         protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
-        serverAddress = (this@parseHysteria1Json["server"] as? String)
-            .orEmpty()
-            .substringBeforeLast(":")
-        serverPorts = (this@parseHysteria1Json["server"] as? String)
-            .orEmpty()
-            .substringAfterLast(":")
+        val server = (this@parseHysteria1Json["server"] as? String).orEmpty()
+        splitAddress(server)?.let { (host, ports) ->
+            serverAddress = host
+            serverPorts = ports
+        }
         getStr("hop_interval")?.also {
             hopInterval = it + "s"
         }
@@ -214,8 +214,8 @@ fun HysteriaBean.buildHysteriaConfig(
     cacheFile: ((type: String) -> File)?,
 ): String {
     val address = when (val hopPort = HopPort.from(serverPorts)) {
-        is HopPort.Single -> serverAddress.wrapIPV6Host() + ":" + hopPort.port
-        is HopPort.Ports -> serverAddress.wrapIPV6Host() + ":" + hopPort.hyStyle().joinToString(",")
+        is HopPort.Single -> joinAddress(serverAddress, hopPort.port)
+        is HopPort.Ports -> joinAddress(serverAddress, hopPort.hyStyle().joinToString(","))
     }
     return when (protocolVersion) {
         HysteriaBean.PROTOCOL_VERSION_1 -> {

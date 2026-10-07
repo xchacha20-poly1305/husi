@@ -37,21 +37,20 @@ func ServiceInstall(workingDir string) error {
 	if err != nil {
 		return E.Cause(err, "get executable path")
 	}
-	srcShim, srcLib, err := resolvePairSources(executablePath)
+	sourceBin, err := resolveExecutablePath(executablePath)
 	if err != nil {
 		return err
 	}
-	if err := installPair(srcShim, srcLib, darwinInstallBin, nil); err != nil {
+	err = installBinary(sourceBin, darwinInstallBin, nil)
+	if err != nil {
 		return err
 	}
-	// Root ownership + strip quarantine on both pair members so launchd can
-	// exec a freshly copied shim and the dylib it dlopens.
-	for _, path := range []string{darwinInstallBin, SiblingCoreLibrary(darwinInstallBin)} {
-		if err := os.Chown(path, 0, 0); err != nil {
-			return E.Cause(err, "chown ", path)
-		}
-		_ = exec.Command("xattr", "-d", "com.apple.quarantine", path).Run()
+	// Root ownership and no quarantine flag, so launchd can exec the fresh copy.
+	err = os.Chown(darwinInstallBin, 0, 0)
+	if err != nil {
+		return E.Cause(err, "chown ", darwinInstallBin)
 	}
+	_ = exec.Command("xattr", "-d", "com.apple.quarantine", darwinInstallBin).Run()
 
 	socketPath := DefaultSocketPath()
 	plist := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
@@ -105,7 +104,7 @@ func ServiceUninstall(workingDir string, purge bool) error {
 	}
 	_ = exec.Command("launchctl", "bootout", "system/"+darwinServiceLabel).Run()
 	_ = os.Remove(darwinPlistPath)
-	if err := removePair(darwinInstallBin); err != nil {
+	if err := removeBinary(darwinInstallBin); err != nil {
 		return err
 	}
 	_ = os.Remove(filepath.Dir(darwinInstallBin))

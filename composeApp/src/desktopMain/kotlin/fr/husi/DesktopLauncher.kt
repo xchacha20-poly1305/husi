@@ -58,8 +58,8 @@ private fun resolvePackagedDesktopLauncher(): File? {
         ?: return null
     val appRoot = appDir.parentFile ?: return null
     // Linux and macOS packaging name the launcher after the jar it starts, and put the
-    // core host pair (husi-core plus its anja library) in the very same directory, so
-    // "the only executable here" identifies nothing.
+    // husi-core binary in the very same directory, so "the only executable here"
+    // identifies nothing.
     val launcherName = runtimePath.nameWithoutExtension
     return when (PlatformInfo.platform) {
         Platform.Android -> null

@@ -213,6 +213,7 @@ func (s *daemonDaemonService) StartService(ctx context.Context, req *husiv1.Star
 	if err := SetWasRunning(s.workingDir, true); err != nil {
 		return nil, status.Error(codes.Internal, E.Cause(err, "set was_running").Error())
 	}
+	applyRootCertificates(req.GetOptions())
 
 	if err := s.plugins.StartAll(req.GetPlugins()); err != nil {
 		_ = SetWasRunning(s.workingDir, false)
@@ -270,6 +271,7 @@ func (s *daemonDaemonService) restore(ctx context.Context, snapshot *Snapshot) e
 		return err
 	}
 	s.refreshPluginCredentialLocked()
+	applyRootCertificates(snapshot.Options)
 
 	if err := s.plugins.StartAll(snapshot.Plugins); err != nil {
 		return E.Cause(err, "restore plugins")

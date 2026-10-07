@@ -1,7 +1,6 @@
 package fr.husi.repository
 
 import fr.husi.ktx.invariantDirectoryPathString
-import fr.husi.libcore.Service
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
@@ -21,12 +20,6 @@ open class DesktopRepository(
     override val isMainProcess: Boolean = true
     override val isBgProcess: Boolean = true
     override val isTv = false
-
-    /**
-     * Desktop no longer hosts the core in-process. Kept nullable for the
-     * shared [Repository] contract; always null on desktop after the session split.
-     */
-    override val boxService: Service? = null
 
     /**
      * Root of everything the out-of-process core host owns, and the working

@@ -148,6 +148,22 @@ message PluginFile {
 
 message ServiceOptions {
   daemon.LogLevel log_level = 1;
+  // Roots the host trusts while the service runs. Saved with the snapshot, so
+  // a service the daemon restores on boot trusts the same roots.
+  RootCertificateStore root_certificates = 2;
+}
+
+// Where a host takes the TLS roots it trusts from.
+enum RootCertificateStore {
+  // Leaves the host's current roots in place.
+  ROOT_CERTIFICATE_STORE_UNSPECIFIED = 0;
+  ROOT_CERTIFICATE_STORE_SYSTEM = 1;
+  // The system store plus the roots the user added to it.
+  ROOT_CERTIFICATE_STORE_SYSTEM_AND_USER = 2;
+  // Mozilla's bundle, embedded in the core.
+  ROOT_CERTIFICATE_STORE_MOZILLA = 3;
+  // Chrome's bundle, embedded in the core.
+  ROOT_CERTIFICATE_STORE_CHROME = 4;
 }
 
 // Which profile the running service came from. The daemon only stores it and

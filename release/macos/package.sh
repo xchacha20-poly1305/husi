@@ -35,7 +35,7 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>]
+  $(basename "$0") [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>]
   $(basename "$0") --check-tools [--target <platform/arch>]
 
 Description:
@@ -46,7 +46,6 @@ Defaults:
   --input-jar    newest matching jar under $JAR_DIR_DEFAULT
   --launcher-bin $ROOT_DIR/launcher/zig-out/bin/launcher-macos-aarch64
   --core-bin     $ROOT_DIR/libcore/build/darwin_arm64/husi-core
-  --core-lib     $ROOT_DIR/libcore/build/darwin_arm64/libhusicore.dylib
   --output-dir   $OUTPUT_DIR_DEFAULT
   icon asset     $PREBUILT_ICON_DEFAULT
 
@@ -399,28 +398,6 @@ resolve_core_bin() {
     exit 1
 }
 
-resolve_core_lib() {
-    local requested="$1"
-    local default_path="$ROOT_DIR/libcore/build/${TARGET_PLATFORM}_${TARGET_ARCH}/libhusicore.dylib"
-
-    if [[ -n "$requested" ]]; then
-        if [[ ! -f "$requested" ]]; then
-            error "Core native library not found: $requested"
-            exit 1
-        fi
-        INPUT_CORE_LIB="$requested"
-        return
-    fi
-
-    if [[ -f "$default_path" ]]; then
-        INPUT_CORE_LIB="$default_path"
-        return
-    fi
-
-    error "Core native library not found: $default_path"
-    error "Build one first: make libcore_desktop DESKTOP_TARGETS=${TARGET_PLATFORM}/${TARGET_ARCH}"
-    exit 1
-}
 
 normalize_macos_bundle_version() {
     local version="$1"
@@ -472,9 +449,6 @@ prepare_app_bundle() {
     chmod 755 "$macos_dir/$executable_name"
     cp "$INPUT_CORE_BIN" "$macos_dir/husi-core"
     chmod 755 "$macos_dir/husi-core"
-    # Sidecar anja library next to husi-core (N7); UI sets anja.natives.dir to this dir.
-    cp "$INPUT_CORE_LIB" "$macos_dir/libhusicore.dylib"
-    chmod 755 "$macos_dir/libhusicore.dylib"
     cp "$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf" "$macos_dir/desktop-java-opts.conf.template"
     cp "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" "$macos_dir/desktop-app-args.conf.template"
     cp "$ICON_ICNS" "$resources_dir/$icon_name"
@@ -565,7 +539,6 @@ TARGET_ARCH=""
 INPUT_JAR=""
 INPUT_LAUNCHER_BIN=""
 INPUT_CORE_BIN=""
-INPUT_CORE_LIB=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 CHECK_TOOLS=0
 HOST_OS=""
@@ -593,11 +566,6 @@ while [[ $# -gt 0 ]]; do
         --core-bin)
             require_arg "$1" "${2:-}"
             INPUT_CORE_BIN="$2"
-            shift 2
-            ;;
-        --core-lib)
-            require_arg "$1" "${2:-}"
-            INPUT_CORE_LIB="$2"
             shift 2
             ;;
         -o|--output-dir)
@@ -638,7 +606,6 @@ fi
 resolve_input_jar "$INPUT_JAR"
 resolve_launcher_bin "$INPUT_LAUNCHER_BIN"
 resolve_core_bin "$INPUT_CORE_BIN"
-resolve_core_lib "$INPUT_CORE_LIB"
 mkdir -p "$OUTPUT_DIR"
 
 work_dir="$(mktemp -d)"

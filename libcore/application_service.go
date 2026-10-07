@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"context"
+	"math"
 	"time"
 
 	"github.com/sagernet/sing-box/common/networkquality"
@@ -12,6 +13,7 @@ import (
 	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pluginpool"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/rootcerts"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/urltest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -166,6 +168,53 @@ func (s *applicationService) StandaloneNetworkQualityTest(
 		}))
 	}
 	return streamError(stream.Context(), stream.Send(daemon.NewNetworkQualityTestResult(result)))
+}
+
+func (s *applicationService) Ping(ctx context.Context, req *husiv1.PingRequest) (*husiv1.PingResponse, error) {
+	var (
+		latency int32
+		err     error
+	)
+	switch req.GetProtocol() {
+	case husiv1.PingProtocol_PING_PROTOCOL_ICMP:
+		latency, err = icmpPing(ctx, req.GetAddress(), req.GetTimeoutMs())
+	case husiv1.PingProtocol_PING_PROTOCOL_TCP:
+		port := req.GetPort()
+		if port == 0 || port > math.MaxUint16 {
+			return nil, status.Error(codes.InvalidArgument, "invalid port")
+		}
+		latency, err = tcpPing(ctx, req.GetAddress(), uint16(port), req.GetTimeoutMs())
+	default:
+		return nil, status.Error(codes.InvalidArgument, "unknown ping protocol")
+	}
+	if err != nil {
+		return nil, rpcError(err, codes.Unavailable)
+	}
+	return &husiv1.PingResponse{LatencyMs: latency}, nil
+}
+
+func (s *applicationService) MatchRuleSets(ctx context.Context, req *husiv1.MatchRuleSetsRequest) (*husiv1.MatchRuleSetsResponse, error) {
+	return &husiv1.MatchRuleSetsResponse{
+		Names: matchRuleSets(req.GetDirectory(), req.GetKeyword()),
+	}, nil
+}
+
+func (s *applicationService) GetRootCertificates(ctx context.Context, req *husiv1.GetRootCertificatesRequest) (*husiv1.GetRootCertificatesResponse, error) {
+	store, loaded := rootcerts.StoreFromProto(req.GetStore())
+	if !loaded {
+		return nil, status.Error(codes.InvalidArgument, "missing root certificate store")
+	}
+	return &husiv1.GetRootCertificatesResponse{
+		Pem: string(rootcerts.Load(store).PEM()),
+	}, nil
+}
+
+func (s *applicationService) ReadAndroidVPNType(ctx context.Context, req *husiv1.ReadAndroidVPNTypeRequest) (*husiv1.ReadAndroidVPNTypeResponse, error) {
+	vpnType, err := readAndroidVPNTypes(req.GetApkPaths())
+	if err != nil {
+		return nil, rpcError(err, codes.Internal)
+	}
+	return &husiv1.ReadAndroidVPNTypeResponse{Type: vpnType}, nil
 }
 
 // rpcError keeps a status an implementation already chose, and labels a plain

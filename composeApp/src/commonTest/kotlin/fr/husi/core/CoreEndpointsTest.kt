@@ -75,4 +75,12 @@ class CoreEndpointsTest {
         // An unknown length-delimited field before the status is skipped.
         assertEquals(2, healthCheckStatus(byteArrayOf(0x12, 0x02, 0x61, 0x62, 0x08, 0x02)))
     }
+
+    @Test
+    fun `health status rejects a truncated response`() {
+        for (response in listOf(byteArrayOf(0x08), byteArrayOf(0x12, 0x05, 0x61), byteArrayOf(0x0B))) {
+            val error = assertFailsWith<CoreRpcException> { healthCheckStatus(response) }
+            assertEquals(Status.Code.INTERNAL, error.code)
+        }
+    }
 }

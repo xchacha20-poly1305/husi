@@ -38,7 +38,7 @@ func ServiceInstall(workingDir string) error {
 	if err != nil {
 		return E.Cause(err, "get executable path")
 	}
-	srcShim, srcLib, err := resolvePairSources(executablePath)
+	sourceBin, err := resolveExecutablePath(executablePath)
 	if err != nil {
 		return err
 	}
@@ -49,16 +49,13 @@ func ServiceInstall(workingDir string) error {
 	if err := prepareInstallDirectory(installBin); err != nil {
 		return err
 	}
-	if useInPlace {
-		// Package-managed layout: both files already live in a protected dir.
-		if err := ensurePairPresent(installBin); err != nil {
-			return err
-		}
-	} else {
-		// stop → replace pair (library first) → start (restart below).
-		if err := installPair(srcShim, srcLib, installBin, func() error {
+	// A package-managed binary already lives in a protected directory and is
+	// used in place; anything else is copied there. Stop → replace → restart below.
+	if !useInPlace {
+		err = installBinary(sourceBin, installBin, func() error {
 			return runSystemctl("stop", serviceUnitName)
-		}); err != nil {
+		})
+		if err != nil {
 			return err
 		}
 	}
@@ -97,7 +94,7 @@ func ServiceInstall(workingDir string) error {
 	if err != nil {
 		return err
 	}
-	// Idempotent upgrade path: restart picks up the new pair.
+	// Idempotent upgrade path: restart picks up the new binary.
 	err = runSystemctl("restart", serviceUnitName)
 	if err != nil {
 		return err
@@ -170,10 +167,10 @@ func ServiceUninstall(workingDir string, purge bool) error {
 	_ = os.Remove(serviceUnitPath)
 	_ = runSystemctl("daemon-reload")
 
-	// Only the portable copy is ours to delete. Package-managed pairs
+	// Only the portable copy is ours to delete. A package-managed binary
 	// (deb/rpm/pacman) stay in place for the package manager, and so does the
 	// polkit action they ship alongside it.
-	if err := removePair(defaultInstallBin); err != nil {
+	if err := removeBinary(defaultInstallBin); err != nil {
 		return err
 	}
 	if packageManaged, err := runsFromPackageDirectory(); err != nil {
@@ -282,7 +279,7 @@ func runSystemctl(arguments ...string) error {
 // If the running executable already lives in a package-managed protected
 // directory (root-owned, non-world-writable), it is used in place. That
 // covers deb/rpm/pacman layouts such as /usr/lib/fr.husi/bin/husi-core.
-// Otherwise the caller copies the pair to defaultInstallBin.
+// Otherwise the caller copies the binary to defaultInstallBin.
 func resolveInstallBinary(executablePath string) (installBin string, useInPlace bool, err error) {
 	resolvedPath, err := resolveExecutablePath(executablePath)
 	if err != nil {

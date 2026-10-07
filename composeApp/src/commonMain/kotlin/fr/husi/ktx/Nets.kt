@@ -114,29 +114,31 @@ fun String.wrapIPV6Host(): String {
     }
 }
 
+fun joinAddress(host: String, port: Int): String = joinAddress(host, port.toString())
+
+fun joinAddress(host: String, port: String): String = "${host.wrapIPV6Host()}:$port"
+
+fun splitAddress(address: String): Pair<String, String>? {
+    val separator = address.lastIndexOf(':')
+    if (separator <= 0 || separator == address.lastIndex) return null
+    val host = address.substring(0, separator)
+    val bracketed = host.startsWith("[") && host.endsWith("]")
+    if (!bracketed && ':' in host) return null
+    return host.unwrapIPV6Host() to address.substring(separator + 1)
+}
+
+private val VALID_PORTS = 1..65535
+
+fun String.toPortOrNull(): Int? = toIntOrNull()?.takeIf { it in VALID_PORTS }
+
 private const val ADDRESS_MASK = "***"
 private const val MASKED_IPV4_TAIL = ".*.*.*"
 
 fun String.blurAddress(): String {
-    val (host, port) = splitHostAndPort()
+    val (host, port) = splitAddress(this) ?: return blurHost()
     val blurredHost = host.blurHost()
-    val blurredPort = port?.blurLabel()
-    return if (blurredPort == null) blurredHost else "$blurredHost:$blurredPort"
-}
-
-private fun String.splitHostAndPort(): Pair<String, String?> {
-    if (startsWith("[")) {
-        val closingBracket = indexOf(']')
-        if (closingBracket < 0) return this to null
-        val host = substring(0, closingBracket + 1)
-        val port = substring(closingBracket + 1).removePrefix(":").blankAsNull()
-        return host to port
-    }
-
-    val separator = indexOf(':')
-    val isBareIPv6 = separator >= 0 && indexOf(':', separator + 1) >= 0
-    if (separator < 0 || isBareIPv6) return this to null
-    return substring(0, separator) to substring(separator + 1).blankAsNull()
+    val displayHost = if (host.isIPv6()) "[$blurredHost]" else blurredHost
+    return "$displayHost:${port.blurLabel()}"
 }
 
 private fun String.blurHost(): String = when {
@@ -172,7 +174,7 @@ fun String.isLoopbackHost(): Boolean {
 }
 
 fun AbstractBean.wrapUri(): String {
-    return "${finalAddress.wrapIPV6Host()}:$finalPort"
+    return joinAddress(finalAddress, finalPort)
 }
 
 fun mkPort(): Int {

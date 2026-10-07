@@ -1,5 +1,6 @@
 package fr.husi.utils
 
+import fr.husi.LOG_FILE_NAME
 import fr.husi.ktx.Logs
 import fr.husi.ktx.fileNameTimestamp
 import java.io.File
@@ -26,7 +27,6 @@ object SendLog {
     private const val UNNAMED_TARGET_NAME = "remote"
     private const val FILE_NAME_PREFIX = "husi"
     private const val FILE_NAME_EXTENSION = ".log"
-    private const val CORE_LOG_FILE_NAME = "stderr.log"
     private const val REMOTE_BUFFER_NOTICE =
         "The lines below are what this client received after subscribing: they do not start at " +
                 "the target's startup, and the target only streams what its own log level allows."
@@ -78,7 +78,7 @@ object SendLog {
 
     private fun getCoreLog(externalAssetsDir: File): String {
         return try {
-            val logFile = externalAssetsDir.resolve(CORE_LOG_FILE_NAME)
+            val logFile = externalAssetsDir.resolve(LOG_FILE_NAME)
             val stream = FileInputStream(logFile)
             stream.use { it.readBytes() }.toString(Charsets.UTF_8)
         } catch (e: Exception) {

@@ -1,6 +1,8 @@
 package fr.husi.repository
 
 import fr.husi.CORE_SOCKET_NAME
+import fr.husi.CertProvider
+import fr.husi.PLUGIN_CA_FILE
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.OpenConnectAuthWatcher
@@ -21,14 +23,15 @@ import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.readableMessage
-import fr.husi.libcore.Libcore
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginNotFoundException
 import fr.husi.proto.daemon.ServiceStatus as DaemonServiceStatus
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.Hosting
+import fr.husi.proto.v1.RootCertificateStore
 import fr.husi.proto.v1.clientMetadata
+import fr.husi.proto.v1.serviceOptions
 import fr.husi.proto.v1.startServiceRequest
 import fr.husi.resources.Res
 import fr.husi.resources.invalid_server
@@ -174,7 +177,10 @@ internal class CoreHostController(
      */
     fun ensureHost() {
         runBlocking {
-            access.withLock { ensureHostLocked() }
+            access.withLock {
+                ensureHostLocked()
+                writeRootCertificatesLocked()
+            }
         }
     }
 
@@ -245,6 +251,7 @@ internal class CoreHostController(
             foreignOwner = null
             publishHostState()
             ensureHostLocked()
+            writeRootCertificatesLocked()
         }
     }
 
@@ -305,6 +312,20 @@ internal class CoreHostController(
         }
         waitForHostReady()
         markHostReady()
+    }
+
+    /**
+     * Writes the roots of the user's certificate provider to [PLUGIN_CA_FILE], for plugins and
+     * the remote control client. The core host reads the store, so Mozilla's and Chrome's
+     * bundles come from the same sing-box build that runs the service.
+     */
+    private suspend fun writeRootCertificatesLocked() {
+        try {
+            val pem = coreClient.getRootCertificates(rootCertificateStore(DataStore.certProvider.get()))
+            repository.externalAssetsDir.resolve(PLUGIN_CA_FILE).writeText(pem)
+        } catch (e: Exception) {
+            Logs.w("write root certificates", e)
+        }
     }
 
     private fun markHostReady() {
@@ -542,6 +563,9 @@ internal class CoreHostController(
             val request = startServiceRequest {
                 this.config = config.configJson
                 plugins.addAll(pluginSpecs)
+                options = serviceOptions {
+                    rootCertificates = rootCertificateStore(DataStore.certProvider.get())
+                }
                 clientMetadata = clientMetadata {
                     profileId = profile.id
                     profileName = profile.displayNameForService()
@@ -933,6 +957,13 @@ internal class CoreHostController(
     }
 }
 
+internal fun rootCertificateStore(certProvider: Int): RootCertificateStore = when (certProvider) {
+    CertProvider.MOZILLA -> RootCertificateStore.ROOT_CERTIFICATE_STORE_MOZILLA
+    CertProvider.SYSTEM_AND_USER -> RootCertificateStore.ROOT_CERTIFICATE_STORE_SYSTEM_AND_USER
+    CertProvider.CHROME -> RootCertificateStore.ROOT_CERTIFICATE_STORE_CHROME
+    else -> RootCertificateStore.ROOT_CERTIFICATE_STORE_SYSTEM
+}
+
 /**
  * Locates the `husi-core` binary for the current host:
  * 1. Next to the packaged launcher / application
@@ -957,8 +988,8 @@ internal fun husiCoreBinaryName(): String {
 
 private fun devHusiCoreCandidates(binaryName: String): List<File> {
     val relativePath = "libcore/build/${hostCoreBuildDirName()}/$binaryName"
-    // Libcore.initCore chdirs the whole process to the data dir, so these
-    // probes must anchor on the JVM launch directory, never the OS cwd.
+    // Anchored on the JVM launch directory, so a `gradlew run` from the repository finds
+    // the binary `make core_desktop` built.
     val launchDir = File(System.getProperty("user.dir").orEmpty()).absoluteFile
     return listOfNotNull(
         launchDir.resolve(relativePath),
@@ -978,21 +1009,6 @@ internal fun describeHusiCoreSearchLocations(): String {
         add("PATH")
     }
     return locations.joinToString(", ")
-}
-
-/**
- * Directory containing the packaged anja sidecar library (`libhusicore.so` /
- * `libhusicore.dylib` / `husicore.dll`), or null when running from a fat
- * classpath jar (dev). Same sibling layout as [resolveHusiCoreBinary].
- */
-internal fun resolvePackagedAnjaNativesDir(): File? {
-    val libraryName = when (PlatformInfo.platform) {
-        Platform.Windows -> "husicore.dll"
-        Platform.MacOs -> "libhusicore.dylib"
-        Platform.Linux -> "libhusicore.so"
-        Platform.Android -> return null
-    }
-    return resolvePackagedCoreSibling(libraryName)?.parentFile?.absoluteFile
 }
 
 /**

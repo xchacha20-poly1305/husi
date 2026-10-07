@@ -30,6 +30,12 @@ option java_package = "fr.husi.proto.v1";
 // code in-process through the libcore binding. It runs here so the desktop UI
 // needs no Go runtime of its own.
 //
+// Ping, MatchRuleSets and GetRootCertificates answer for the UI what it cannot
+// compute without Go: an ICMP socket (and on Android, a socket protected from
+// the VPN), sing-box's rule-set matcher, and the root bundles embedded in
+// sing-box. Rule sets are named by directory: the core already reads the same
+// directories for the rule sets of a running service.
+//
 // The standalone STUN and network quality tests are the no-running-service half
 // of sing-box's pair: with a service started the UI calls
 // daemon.StartedService, which routes through a chosen outbound; with none it
@@ -44,6 +50,11 @@ service ApplicationService {
   rpc StandaloneSTUNTest(StandaloneSTUNTestRequest) returns (stream daemon.STUNTestProgress);
   rpc StandaloneNetworkQualityTest(StandaloneNetworkQualityTestRequest) returns (stream daemon.NetworkQualityTestProgress);
   rpc HTTPFetch(HTTPFetchRequest) returns (stream HTTPFetchResponse);
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc MatchRuleSets(MatchRuleSetsRequest) returns (MatchRuleSetsResponse);
+  rpc GetRootCertificates(GetRootCertificatesRequest) returns (GetRootCertificatesResponse);
+  // Android only; other platforms answer UNIMPLEMENTED.
+  rpc ReadAndroidVPNType(ReadAndroidVPNTypeRequest) returns (ReadAndroidVPNTypeResponse);
 }
 
 message CheckConfigRequest {
@@ -179,4 +190,64 @@ message HTTPFetchResponse {
     HTTPFetchHead head = 1;
     bytes chunk = 2;
   }
+}
+
+enum PingProtocol {
+  PING_PROTOCOL_UNSPECIFIED = 0;
+  PING_PROTOCOL_ICMP = 1;
+  PING_PROTOCOL_TCP = 2;
+}
+
+message PingRequest {
+  PingProtocol protocol = 1;
+  // IP address or domain name.
+  string address = 2;
+  // Ignored by ICMP.
+  uint32 port = 3;
+  int32 timeout_ms = 4;
+}
+
+message PingResponse {
+  int32 latency_ms = 1;
+}
+
+message MatchRuleSetsRequest {
+  // Domain name or IP address to match.
+  string keyword = 1;
+  // Directory searched recursively for binary (.srs) rule sets.
+  string directory = 2;
+}
+
+message MatchRuleSetsResponse {
+  // File names of the rule sets that have a rule matching the keyword.
+  // Unreadable files are skipped, and a missing directory reports nothing.
+  repeated string names = 1;
+}
+
+message GetRootCertificatesRequest {
+  RootCertificateStore store = 1;
+}
+
+message GetRootCertificatesResponse {
+  // The roots of the store as PEM, falling back to Mozilla's bundle when the
+  // store cannot be read.
+  string pem = 1;
+}
+
+message ReadAndroidVPNTypeRequest {
+  // The base and split APKs of one package, tried in order.
+  repeated string apk_paths = 1;
+}
+
+// The Go core another VPN app embeds, read from the Go build info of its
+// native libraries.
+message AndroidVPNType {
+  string core_type = 1;
+  string core_path = 2;
+  string go_version = 3;
+}
+
+message ReadAndroidVPNTypeResponse {
+  // Unset when no APK has a native library that reveals its core.
+  AndroidVPNType type = 1;
 }

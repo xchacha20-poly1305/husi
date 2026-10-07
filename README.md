@@ -59,30 +59,25 @@ make libcore_android
 
 This will generate `composeApp/libs/libcore.aar`.
 
-For desktop, build libcore for your host platform:
+For desktop, build the `husi-core` binary for your host platform:
 
 ```shell
-make libcore
+make core_desktop
 ```
 
-This will generate `composeApp/libs/libcore-desktop-<host-platform>-<host-arch>.jar`.
+This will generate `libcore/build/<host-platform>_<host-arch>/husi-core`. The desktop app runs the core
+as this separate process; the JVM side loads no Go code.
 
 Or for specific targets:
 
 ```shell
-make libcore_desktop DESKTOP_TARGETS=linux/amd64,darwin/arm64
-```
-
-If desktop build needs an explicit JNI headers directory, pass `JNI_INCLUDE`:
-
-```shell
-make libcore_desktop DESKTOP_TARGETS=linux/amd64 JNI_INCLUDE=/path/to/jni
+make core_desktop DESKTOP_TARGETS=linux/amd64,darwin/arm64
 ```
 
 For Darwin targets on non-Darwin hosts, also pass the macOS SDK explicitly:
 
 ```shell
-make libcore_desktop DESKTOP_TARGETS=darwin/arm64 JNI_INCLUDE=/path/to/jni DARWIN_SDK=/path/to/MacOSX.sdk
+make core_desktop DESKTOP_TARGETS=darwin/arm64 DARWIN_SDK=/path/to/MacOSX.sdk
 ```
 
 Common desktop targets:
@@ -100,27 +95,23 @@ Linux desktop targets use `zig cc` / `zig c++` with a glibc 2.17 target (`LINUX_
 required prebuilt Cronet library is downloaded through Go modules, so no `cronet-go` checkout is needed. Darwin
 targets use Xcode on macOS, or Zig plus an explicit macOS SDK path via `DARWIN_SDK` or `--darwinsdk` on other hosts.
 
-Desktop Gradle builds select `composeApp/libs/libcore-desktop-<platform>-<arch>.jar` automatically from the current
-`os.name` and `os.arch`.
-
-You can override it explicitly:
+Desktop Gradle builds pick the target from the current `os.name` and `os.arch`. You can override it explicitly:
 
 ```shell
 ./gradlew -p composeApp run -PdesktopTarget=linux/amd64
 ```
 
-If the selected jar is missing, the build fails immediately.
+`gradlew run` finds `husi-core` under `libcore/build/<os>_<arch>/`, next to a packaged launcher, or on `PATH`.
 
 If you run `libcore/build.sh` directly:
 
 * `--android`: build Android only
-* `--desktop`: build desktop only (default target: `host`)
+* `--desktop`: build the desktop `husi-core` binary only (default target: `host`)
 * `--android --desktop`: build both
-* `--jniinclude <path>`: pass JNI headers include path to desktop `anja bind -target=jvm`
 * `--darwinsdk <path>`: pass a macOS SDK path for Darwin desktop targets on non-Darwin hosts
 * no platform args: defaults to Android only
 
-If anja is not in GOPATH, it will be automatically downloaded and compiled.
+The Android build installs the `gomobile` and `gobind` versions pinned in `libcore/go.mod`.
 
 #### 🎀 Rename package name (optional)
 
@@ -263,7 +254,7 @@ work laptop, a school computer:
 
 `tarball` is the relocatable app subtree as a `.tar.zst`. It needs `tar` and
 `zstd` to build, and unpacks to a directory holding the jar, the launcher,
-`husi-core`, `libhusicore.so` and its own installer:
+`husi-core` and its own installer:
 
 ```shell
 ./install.sh                     # installs under ~/.local, no root anywhere
@@ -327,9 +318,7 @@ daemon (`husi-core service install`; systemd / launchd / Windows SCM service
 `husi-daemon`). Without a daemon the UI falls back to an unprivileged session
 host; TUN requires the daemon.
 
-`husi-core` is a second, independent Zig project under `libcore/shim/`, built by
-`make core_desktop` and packaged alongside `libhusicore.*`. It links libc
-dynamically, unlike the static launcher, so the two are deliberately kept apart.
+`husi-core` is a Go binary built from `libcore/cmd/husi-core` by `make core_desktop`.
 
 You can preflight required tooling without producing packages:
 
@@ -409,17 +398,16 @@ shortcut, and registers the configured URL schemes for the current user. The Win
 Privileges live in the `husi-core` daemon installed as a Windows service (`husi-core service install`); TUN requires the
 daemon. Without it the UI falls back to an unprivileged session host.
 
-The UI and the daemon therefore install to **two different places**, and both hold a copy of `husi-core.exe` +
-`husicore.dll`:
+The UI and the daemon therefore install to **two different places**, and both hold a copy of `husi-core.exe`:
 
 | What                                           | Where                          | Installed by                               |
 |------------------------------------------------|--------------------------------|--------------------------------------------|
-| UI (launcher, jar, and the core pair it ships) | `%LOCALAPPDATA%\Programs\Husi` | the NSIS installer, per user, no elevation |
-| Daemon (the core pair the service runs)        | `%ProgramFiles%\husi`          | `husi-core service install`, elevated      |
+| UI (launcher, jar, and the core it ships)      | `%LOCALAPPDATA%\Programs\Husi` | the NSIS installer, per user, no elevation |
+| Daemon (the core the service runs)             | `%ProgramFiles%\husi`          | `husi-core service install`, elevated      |
 | Daemon state (snapshots, ownership)            | `%ProgramData%\husi`           | the daemon itself                          |
 
 The installer runs `husi-core.exe service install` from its own directory at the end, so the per-user copy is what seeds
-the Program Files copy — that is why the same two files exist twice. The uninstaller reverses both, calling
+the Program Files copy — that is why the same file exists twice. The uninstaller reverses both, calling
 `husi-core.exe service uninstall` before removing its own directory. It does not pass `--purge`, so `%ProgramData%\husi`
 survives an uninstall; remove it by hand, or run `husi-core service uninstall --purge` yourself beforehand.
 
@@ -458,16 +446,12 @@ The bundled runtime is signed by JetBrains, not by this project; the code signin
 
 ##### 🔏 Windows code signing
 
-Windows releases are Authenticode signed: the launcher, `husi-core.exe`,
-`husicore.dll` and the installer all carry the **same self-signed certificate**, published as [
-`release/windows/husi-signing-cert.pem`](release/windows/husi-signing-cert.pem). Its fingerprints and how to check a
-download against it are in
-[`release/windows/README.md`](release/windows/README.md).
+Windows releases are Authenticode signed: the launcher, `husi-core.exe` and the installer all carry the **same
+self-signed certificate**, published as [`release/windows/husi-signing-cert.pem`](release/windows/husi-signing-cert.pem).
+Its fingerprints and how to check a download against it are in [`release/windows/README.md`](release/windows/README.md).
 
 Being self-signed, it earns no SmartScreen reputation — Windows still calls the publisher unknown, and that is expected.
-The signature is there so the privileged daemon can tell that `husi-core.exe` and the `husicore.dll` it loads are the
-pair that shipped together: the shim loads that DLL by absolute path and runs it as SYSTEM, so a swapped DLL would be a
-swapped SYSTEM process. The check lives in `daemonhost.VerifyCorePairSignature` and follows sing-box's `boxdd`.
+Nothing in husi checks the signature at runtime.
 
 **If you build Windows packages yourself, read this:**
 
@@ -478,9 +462,6 @@ swapped SYSTEM process. The check lives in `daemonhost.VerifyCorePairSignature` 
   make desktop_package_windows DESKTOP_TARGET=windows/amd64 WINDOWS_NO_SIGN=1
   ```
 
-  Unsigned builds install and run fine: the daemon logs a warning and skips the pair check, because there is nothing to
-  compare.
-
 * To sign with a certificate of your own, mint a self-signed code signing certificate (see the Windows signing entry
   in [AGENTS.md](AGENTS.md)) and point the packaging at it:
 
@@ -490,17 +471,8 @@ swapped SYSTEM process. The check lives in `daemonhost.VerifyCorePairSignature` 
   make desktop_package_windows DESKTOP_TARGET=windows/amd64
   ```
 
-  Your own certificate works fine. The daemon requires the shim and the library to share a signer, not to match any
-  particular certificate.
-
-* **Do not mix payloads from different builds.** Taking `husi-core.exe` from an official release and pairing it with a
-  `husicore.dll` you signed yourself (or the reverse) makes the daemon refuse to start. Ship whole packages.
-
-* Give your certificate a long life. The validity window is checked against the current time rather than against the
-  signature timestamp, so an expired certificate starts failing already-installed daemons.
-
 * If you redistribute your build, say so. The published fingerprint above is how users tell an official release from a
-  rebuild, and nothing in the daemon makes that distinction for them.
+  rebuild, and nothing in husi makes that distinction for them.
 
 #### 🌈 Plugins
 

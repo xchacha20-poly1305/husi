@@ -13,7 +13,7 @@ caller_pwd="$PWD"
 args=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-  --jniinclude | --darwinsdk)
+  --darwinsdk)
     value="${2:-}"
     if [ -n "$value" ] && [[ "$value" != /* ]]; then
       value="$(realpath -m "$caller_pwd/$value")"
@@ -21,7 +21,7 @@ while [ "$#" -gt 0 ]; do
     args+=("$1" "$value")
     shift 2
     ;;
-  --jniinclude=* | --darwinsdk=*)
+  --darwinsdk=*)
     value="${1#*=}"
     if [[ "$value" != /* ]]; then
       value="$(realpath -m "$caller_pwd/$value")"

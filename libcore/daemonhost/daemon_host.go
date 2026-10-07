@@ -123,11 +123,6 @@ func (h *DaemonHost) run(ctx context.Context) error {
 	listenTCP := h.options.ListenAddr != ""
 	allowAll := listenTCP
 
-	err = verifyOwnCorePairSignature()
-	if err != nil {
-		return err
-	}
-
 	platformCreds, err := PlatformServerCredentials(registry, listenTCP)
 	if err != nil {
 		return E.Cause(err, "platform server credentials")
@@ -253,21 +248,6 @@ func closeExternalAPI(server *externalapi.Server, grpcServer *grpc.Server) {
 		grpcServer.Stop()
 		<-stopped
 	}
-}
-
-func verifyOwnCorePairSignature() error {
-	executablePath, err := os.Executable()
-	if err != nil {
-		return E.Cause(err, "get executable path")
-	}
-	shimPath, err := resolveExecutablePath(executablePath)
-	if err != nil {
-		return err
-	}
-	if err := VerifyCorePairSignature(shimPath); err != nil {
-		return E.Cause(err, "verify core pair")
-	}
-	return nil
 }
 
 func (h *DaemonHost) listen() (net.Listener, error) {

@@ -108,16 +108,12 @@ jobs:
       - uses: ./.github/actions/setup-zig
         with:
           cache-name: test
-          cache-hash: ${{ hashFiles('launcher/**', 'libcore/shim/**') }}
+          cache-hash: ${{ hashFiles('launcher/**') }}
       - name: Test libcore
         working-directory: libcore
         run: go test -v -count=1 ./...
-      # Desktop core host is the Zig shim + anja sidecar — forbid a second Go link.
-      - name: Guard no go-built husi-core binary
-        run: make test_no_go_core_binary
-      - name: Build libcore bindings
-        run: |
-          make libcore
+      - name: Build husi-core
+        run: make core_desktop
       - name: Test Zig projects
         run: make test_zig
       - name: Test Kotlin

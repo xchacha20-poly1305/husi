@@ -32,8 +32,8 @@ import fr.husi.ktx.selectByNetworkStrategy
 import fr.husi.ktx.serverAddressDomainStrategy
 import fr.husi.core.CoreClient
 import fr.husi.core.urlTestOptions
-import fr.husi.libcore.Libcore
 import fr.husi.plugin.PluginNotFoundException
+import fr.husi.proto.v1.PingProtocol
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
 import org.koin.core.context.GlobalContext
@@ -120,6 +120,9 @@ sealed interface FailureReason {
     data class Generic(val message: String?) : FailureReason
     data class PluginNotFound(val plugin: String) : FailureReason
 }
+
+private const val ICMP_PING_TIMEOUT_MS = 5000
+private const val TCP_PING_TIMEOUT_MS = 3000
 
 @Stable
 enum class TestType {
@@ -402,7 +405,7 @@ class ConfigurationScreenViewModel(
             ?: return TestResult.Failure(FailureReason.DomainNotFound)
 
         return try {
-            val result = Libcore.icmpPing(address, 5000)
+            val result = coreClient.ping(PingProtocol.PING_PROTOCOL_ICMP, address, 0, ICMP_PING_TIMEOUT_MS)
             TestResult.Success(result)
         } catch (e: Exception) {
             Logs.e(e)
@@ -418,7 +421,7 @@ class ConfigurationScreenViewModel(
             ?: return TestResult.Failure(FailureReason.DomainNotFound)
 
         return try {
-            val result = Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
+            val result = coreClient.ping(PingProtocol.PING_PROTOCOL_TCP, address, bean.serverPort, TCP_PING_TIMEOUT_MS)
             TestResult.Success(result)
         } catch (e: Exception) {
             Logs.e(e)

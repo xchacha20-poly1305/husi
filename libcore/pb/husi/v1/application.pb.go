@@ -124,6 +124,55 @@ func (GetCertMode) EnumDescriptor() ([]byte, []int) {
 	return file_husi_v1_application_proto_rawDescGZIP(), []int{1}
 }
 
+type PingProtocol int32
+
+const (
+	PingProtocol_PING_PROTOCOL_UNSPECIFIED PingProtocol = 0
+	PingProtocol_PING_PROTOCOL_ICMP        PingProtocol = 1
+	PingProtocol_PING_PROTOCOL_TCP         PingProtocol = 2
+)
+
+// Enum value maps for PingProtocol.
+var (
+	PingProtocol_name = map[int32]string{
+		0: "PING_PROTOCOL_UNSPECIFIED",
+		1: "PING_PROTOCOL_ICMP",
+		2: "PING_PROTOCOL_TCP",
+	}
+	PingProtocol_value = map[string]int32{
+		"PING_PROTOCOL_UNSPECIFIED": 0,
+		"PING_PROTOCOL_ICMP":        1,
+		"PING_PROTOCOL_TCP":         2,
+	}
+)
+
+func (x PingProtocol) Enum() *PingProtocol {
+	p := new(PingProtocol)
+	*p = x
+	return p
+}
+
+func (x PingProtocol) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PingProtocol) Descriptor() protoreflect.EnumDescriptor {
+	return file_husi_v1_application_proto_enumTypes[2].Descriptor()
+}
+
+func (PingProtocol) Type() protoreflect.EnumType {
+	return &file_husi_v1_application_proto_enumTypes[2]
+}
+
+func (x PingProtocol) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PingProtocol.Descriptor instead.
+func (PingProtocol) EnumDescriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{2}
+}
+
 type CheckConfigRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Config        string                 `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
@@ -1054,6 +1103,462 @@ func (*HTTPFetchResponse_Head) isHTTPFetchResponse_Payload() {}
 
 func (*HTTPFetchResponse_Chunk) isHTTPFetchResponse_Payload() {}
 
+type PingRequest struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Protocol PingProtocol           `protobuf:"varint,1,opt,name=protocol,proto3,enum=husi.v1.PingProtocol" json:"protocol,omitempty"`
+	// IP address or domain name.
+	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	// Ignored by ICMP.
+	Port          uint32 `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	TimeoutMs     int32  `protobuf:"varint,4,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PingRequest) Reset() {
+	*x = PingRequest{}
+	mi := &file_husi_v1_application_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PingRequest) ProtoMessage() {}
+
+func (x *PingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
+func (*PingRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *PingRequest) GetProtocol() PingProtocol {
+	if x != nil {
+		return x.Protocol
+	}
+	return PingProtocol_PING_PROTOCOL_UNSPECIFIED
+}
+
+func (x *PingRequest) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *PingRequest) GetPort() uint32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *PingRequest) GetTimeoutMs() int32 {
+	if x != nil {
+		return x.TimeoutMs
+	}
+	return 0
+}
+
+type PingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LatencyMs     int32                  `protobuf:"varint,1,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PingResponse) Reset() {
+	*x = PingResponse{}
+	mi := &file_husi_v1_application_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PingResponse) ProtoMessage() {}
+
+func (x *PingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
+func (*PingResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *PingResponse) GetLatencyMs() int32 {
+	if x != nil {
+		return x.LatencyMs
+	}
+	return 0
+}
+
+type MatchRuleSetsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Domain name or IP address to match.
+	Keyword string `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	// Directory searched recursively for binary (.srs) rule sets.
+	Directory     string `protobuf:"bytes,2,opt,name=directory,proto3" json:"directory,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MatchRuleSetsRequest) Reset() {
+	*x = MatchRuleSetsRequest{}
+	mi := &file_husi_v1_application_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MatchRuleSetsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MatchRuleSetsRequest) ProtoMessage() {}
+
+func (x *MatchRuleSetsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MatchRuleSetsRequest.ProtoReflect.Descriptor instead.
+func (*MatchRuleSetsRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *MatchRuleSetsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *MatchRuleSetsRequest) GetDirectory() string {
+	if x != nil {
+		return x.Directory
+	}
+	return ""
+}
+
+type MatchRuleSetsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// File names of the rule sets that have a rule matching the keyword.
+	// Unreadable files are skipped, and a missing directory reports nothing.
+	Names         []string `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MatchRuleSetsResponse) Reset() {
+	*x = MatchRuleSetsResponse{}
+	mi := &file_husi_v1_application_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MatchRuleSetsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MatchRuleSetsResponse) ProtoMessage() {}
+
+func (x *MatchRuleSetsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MatchRuleSetsResponse.ProtoReflect.Descriptor instead.
+func (*MatchRuleSetsResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *MatchRuleSetsResponse) GetNames() []string {
+	if x != nil {
+		return x.Names
+	}
+	return nil
+}
+
+type GetRootCertificatesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Store         RootCertificateStore   `protobuf:"varint,1,opt,name=store,proto3,enum=husi.v1.RootCertificateStore" json:"store,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRootCertificatesRequest) Reset() {
+	*x = GetRootCertificatesRequest{}
+	mi := &file_husi_v1_application_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRootCertificatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRootCertificatesRequest) ProtoMessage() {}
+
+func (x *GetRootCertificatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRootCertificatesRequest.ProtoReflect.Descriptor instead.
+func (*GetRootCertificatesRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetRootCertificatesRequest) GetStore() RootCertificateStore {
+	if x != nil {
+		return x.Store
+	}
+	return RootCertificateStore_ROOT_CERTIFICATE_STORE_UNSPECIFIED
+}
+
+type GetRootCertificatesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The roots of the store as PEM, falling back to Mozilla's bundle when the
+	// store cannot be read.
+	Pem           string `protobuf:"bytes,1,opt,name=pem,proto3" json:"pem,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRootCertificatesResponse) Reset() {
+	*x = GetRootCertificatesResponse{}
+	mi := &file_husi_v1_application_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRootCertificatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRootCertificatesResponse) ProtoMessage() {}
+
+func (x *GetRootCertificatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRootCertificatesResponse.ProtoReflect.Descriptor instead.
+func (*GetRootCertificatesResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetRootCertificatesResponse) GetPem() string {
+	if x != nil {
+		return x.Pem
+	}
+	return ""
+}
+
+type ReadAndroidVPNTypeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The base and split APKs of one package, tried in order.
+	ApkPaths      []string `protobuf:"bytes,1,rep,name=apk_paths,json=apkPaths,proto3" json:"apk_paths,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadAndroidVPNTypeRequest) Reset() {
+	*x = ReadAndroidVPNTypeRequest{}
+	mi := &file_husi_v1_application_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadAndroidVPNTypeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadAndroidVPNTypeRequest) ProtoMessage() {}
+
+func (x *ReadAndroidVPNTypeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadAndroidVPNTypeRequest.ProtoReflect.Descriptor instead.
+func (*ReadAndroidVPNTypeRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ReadAndroidVPNTypeRequest) GetApkPaths() []string {
+	if x != nil {
+		return x.ApkPaths
+	}
+	return nil
+}
+
+// The Go core another VPN app embeds, read from the Go build info of its
+// native libraries.
+type AndroidVPNType struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CoreType      string                 `protobuf:"bytes,1,opt,name=core_type,json=coreType,proto3" json:"core_type,omitempty"`
+	CorePath      string                 `protobuf:"bytes,2,opt,name=core_path,json=corePath,proto3" json:"core_path,omitempty"`
+	GoVersion     string                 `protobuf:"bytes,3,opt,name=go_version,json=goVersion,proto3" json:"go_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AndroidVPNType) Reset() {
+	*x = AndroidVPNType{}
+	mi := &file_husi_v1_application_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AndroidVPNType) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AndroidVPNType) ProtoMessage() {}
+
+func (x *AndroidVPNType) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AndroidVPNType.ProtoReflect.Descriptor instead.
+func (*AndroidVPNType) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *AndroidVPNType) GetCoreType() string {
+	if x != nil {
+		return x.CoreType
+	}
+	return ""
+}
+
+func (x *AndroidVPNType) GetCorePath() string {
+	if x != nil {
+		return x.CorePath
+	}
+	return ""
+}
+
+func (x *AndroidVPNType) GetGoVersion() string {
+	if x != nil {
+		return x.GoVersion
+	}
+	return ""
+}
+
+type ReadAndroidVPNTypeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Unset when no APK has a native library that reveals its core.
+	Type          *AndroidVPNType `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadAndroidVPNTypeResponse) Reset() {
+	*x = ReadAndroidVPNTypeResponse{}
+	mi := &file_husi_v1_application_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadAndroidVPNTypeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadAndroidVPNTypeResponse) ProtoMessage() {}
+
+func (x *ReadAndroidVPNTypeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadAndroidVPNTypeResponse.ProtoReflect.Descriptor instead.
+func (*ReadAndroidVPNTypeResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ReadAndroidVPNTypeResponse) GetType() *AndroidVPNType {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
 var File_husi_v1_application_proto protoreflect.FileDescriptor
 
 const file_husi_v1_application_proto_rawDesc = "" +
@@ -1121,7 +1626,34 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\x11HTTPFetchResponse\x12,\n" +
 	"\x04head\x18\x01 \x01(\v2\x16.husi.v1.HTTPFetchHeadH\x00R\x04head\x12\x16\n" +
 	"\x05chunk\x18\x02 \x01(\fH\x00R\x05chunkB\t\n" +
-	"\apayload*u\n" +
+	"\apayload\"\x8d\x01\n" +
+	"\vPingRequest\x121\n" +
+	"\bprotocol\x18\x01 \x01(\x0e2\x15.husi.v1.PingProtocolR\bprotocol\x12\x18\n" +
+	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x12\n" +
+	"\x04port\x18\x03 \x01(\rR\x04port\x12\x1d\n" +
+	"\n" +
+	"timeout_ms\x18\x04 \x01(\x05R\ttimeoutMs\"-\n" +
+	"\fPingResponse\x12\x1d\n" +
+	"\n" +
+	"latency_ms\x18\x01 \x01(\x05R\tlatencyMs\"N\n" +
+	"\x14MatchRuleSetsRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x1c\n" +
+	"\tdirectory\x18\x02 \x01(\tR\tdirectory\"-\n" +
+	"\x15MatchRuleSetsResponse\x12\x14\n" +
+	"\x05names\x18\x01 \x03(\tR\x05names\"Q\n" +
+	"\x1aGetRootCertificatesRequest\x123\n" +
+	"\x05store\x18\x01 \x01(\x0e2\x1d.husi.v1.RootCertificateStoreR\x05store\"/\n" +
+	"\x1bGetRootCertificatesResponse\x12\x10\n" +
+	"\x03pem\x18\x01 \x01(\tR\x03pem\"8\n" +
+	"\x19ReadAndroidVPNTypeRequest\x12\x1b\n" +
+	"\tapk_paths\x18\x01 \x03(\tR\bapkPaths\"i\n" +
+	"\x0eAndroidVPNType\x12\x1b\n" +
+	"\tcore_type\x18\x01 \x01(\tR\bcoreType\x12\x1b\n" +
+	"\tcore_path\x18\x02 \x01(\tR\bcorePath\x12\x1d\n" +
+	"\n" +
+	"go_version\x18\x03 \x01(\tR\tgoVersion\"I\n" +
+	"\x1aReadAndroidVPNTypeResponse\x12+\n" +
+	"\x04type\x18\x01 \x01(\v2\x17.husi.v1.AndroidVPNTypeR\x04type*u\n" +
 	"\n" +
 	"SchemaKind\x12\x1b\n" +
 	"\x17SCHEMA_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
@@ -1131,7 +1663,11 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\vGetCertMode\x12\x1d\n" +
 	"\x19GET_CERT_MODE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13GET_CERT_MODE_HTTPS\x10\x01\x12\x16\n" +
-	"\x12GET_CERT_MODE_QUIC\x10\x022\xa8\x05\n" +
+	"\x12GET_CERT_MODE_QUIC\x10\x02*\\\n" +
+	"\fPingProtocol\x12\x1d\n" +
+	"\x19PING_PROTOCOL_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12PING_PROTOCOL_ICMP\x10\x01\x12\x15\n" +
+	"\x11PING_PROTOCOL_TCP\x10\x022\xee\a\n" +
 	"\x12ApplicationService\x12H\n" +
 	"\vCheckConfig\x12\x1b.husi.v1.CheckConfigRequest\x1a\x1c.husi.v1.CheckConfigResponse\x12K\n" +
 	"\fFormatConfig\x12\x1c.husi.v1.FormatConfigRequest\x1a\x1d.husi.v1.FormatConfigResponse\x12Q\n" +
@@ -1140,7 +1676,11 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\aGetCert\x12\x17.husi.v1.GetCertRequest\x1a\x18.husi.v1.GetCertResponse\x12T\n" +
 	"\x12StandaloneSTUNTest\x12\".husi.v1.StandaloneSTUNTestRequest\x1a\x18.daemon.STUNTestProgress0\x01\x12r\n" +
 	"\x1cStandaloneNetworkQualityTest\x12,.husi.v1.StandaloneNetworkQualityTestRequest\x1a\".daemon.NetworkQualityTestProgress0\x01\x12D\n" +
-	"\tHTTPFetch\x12\x19.husi.v1.HTTPFetchRequest\x1a\x1a.husi.v1.HTTPFetchResponse0\x01BA\n" +
+	"\tHTTPFetch\x12\x19.husi.v1.HTTPFetchRequest\x1a\x1a.husi.v1.HTTPFetchResponse0\x01\x123\n" +
+	"\x04Ping\x12\x14.husi.v1.PingRequest\x1a\x15.husi.v1.PingResponse\x12N\n" +
+	"\rMatchRuleSets\x12\x1d.husi.v1.MatchRuleSetsRequest\x1a\x1e.husi.v1.MatchRuleSetsResponse\x12`\n" +
+	"\x13GetRootCertificates\x12#.husi.v1.GetRootCertificatesRequest\x1a$.husi.v1.GetRootCertificatesResponse\x12]\n" +
+	"\x12ReadAndroidVPNType\x12\".husi.v1.ReadAndroidVPNTypeRequest\x1a#.husi.v1.ReadAndroidVPNTypeResponseBA\n" +
 	"\x10fr.husi.proto.v1B\x10ApplicationProtoP\x01Z\x19libcore/pb/husi/v1;husiv1b\x06proto3"
 
 var (
@@ -1155,64 +1695,86 @@ func file_husi_v1_application_proto_rawDescGZIP() []byte {
 	return file_husi_v1_application_proto_rawDescData
 }
 
-var file_husi_v1_application_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_husi_v1_application_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_husi_v1_application_proto_goTypes = []any{
 	(SchemaKind)(0),                             // 0: husi.v1.SchemaKind
 	(GetCertMode)(0),                            // 1: husi.v1.GetCertMode
-	(*CheckConfigRequest)(nil),                  // 2: husi.v1.CheckConfigRequest
-	(*CheckConfigResponse)(nil),                 // 3: husi.v1.CheckConfigResponse
-	(*FormatConfigRequest)(nil),                 // 4: husi.v1.FormatConfigRequest
-	(*FormatConfigResponse)(nil),                // 5: husi.v1.FormatConfigResponse
-	(*GenerateSchemaRequest)(nil),               // 6: husi.v1.GenerateSchemaRequest
-	(*GenerateSchemaResponse)(nil),              // 7: husi.v1.GenerateSchemaResponse
-	(*StandaloneURLTestRequest)(nil),            // 8: husi.v1.StandaloneURLTestRequest
-	(*StandaloneURLTestResponse)(nil),           // 9: husi.v1.StandaloneURLTestResponse
-	(*GetCertRequest)(nil),                      // 10: husi.v1.GetCertRequest
-	(*GetCertResponse)(nil),                     // 11: husi.v1.GetCertResponse
-	(*StandaloneSTUNTestRequest)(nil),           // 12: husi.v1.StandaloneSTUNTestRequest
-	(*StandaloneNetworkQualityTestRequest)(nil), // 13: husi.v1.StandaloneNetworkQualityTestRequest
-	(*HTTPFetchSocks5)(nil),                     // 14: husi.v1.HTTPFetchSocks5
-	(*HTTPFetchRequest)(nil),                    // 15: husi.v1.HTTPFetchRequest
-	(*HTTPFetchHead)(nil),                       // 16: husi.v1.HTTPFetchHead
-	(*HTTPFetchResponse)(nil),                   // 17: husi.v1.HTTPFetchResponse
-	nil,                                         // 18: husi.v1.HTTPFetchRequest.HeadersEntry
-	nil,                                         // 19: husi.v1.HTTPFetchHead.HeadersEntry
-	(*URLTestOptions)(nil),                      // 20: husi.v1.URLTestOptions
-	(*PluginProcessSpec)(nil),                   // 21: husi.v1.PluginProcessSpec
-	(*daemon.STUNTestProgress)(nil),             // 22: daemon.STUNTestProgress
-	(*daemon.NetworkQualityTestProgress)(nil),   // 23: daemon.NetworkQualityTestProgress
+	(PingProtocol)(0),                           // 2: husi.v1.PingProtocol
+	(*CheckConfigRequest)(nil),                  // 3: husi.v1.CheckConfigRequest
+	(*CheckConfigResponse)(nil),                 // 4: husi.v1.CheckConfigResponse
+	(*FormatConfigRequest)(nil),                 // 5: husi.v1.FormatConfigRequest
+	(*FormatConfigResponse)(nil),                // 6: husi.v1.FormatConfigResponse
+	(*GenerateSchemaRequest)(nil),               // 7: husi.v1.GenerateSchemaRequest
+	(*GenerateSchemaResponse)(nil),              // 8: husi.v1.GenerateSchemaResponse
+	(*StandaloneURLTestRequest)(nil),            // 9: husi.v1.StandaloneURLTestRequest
+	(*StandaloneURLTestResponse)(nil),           // 10: husi.v1.StandaloneURLTestResponse
+	(*GetCertRequest)(nil),                      // 11: husi.v1.GetCertRequest
+	(*GetCertResponse)(nil),                     // 12: husi.v1.GetCertResponse
+	(*StandaloneSTUNTestRequest)(nil),           // 13: husi.v1.StandaloneSTUNTestRequest
+	(*StandaloneNetworkQualityTestRequest)(nil), // 14: husi.v1.StandaloneNetworkQualityTestRequest
+	(*HTTPFetchSocks5)(nil),                     // 15: husi.v1.HTTPFetchSocks5
+	(*HTTPFetchRequest)(nil),                    // 16: husi.v1.HTTPFetchRequest
+	(*HTTPFetchHead)(nil),                       // 17: husi.v1.HTTPFetchHead
+	(*HTTPFetchResponse)(nil),                   // 18: husi.v1.HTTPFetchResponse
+	(*PingRequest)(nil),                         // 19: husi.v1.PingRequest
+	(*PingResponse)(nil),                        // 20: husi.v1.PingResponse
+	(*MatchRuleSetsRequest)(nil),                // 21: husi.v1.MatchRuleSetsRequest
+	(*MatchRuleSetsResponse)(nil),               // 22: husi.v1.MatchRuleSetsResponse
+	(*GetRootCertificatesRequest)(nil),          // 23: husi.v1.GetRootCertificatesRequest
+	(*GetRootCertificatesResponse)(nil),         // 24: husi.v1.GetRootCertificatesResponse
+	(*ReadAndroidVPNTypeRequest)(nil),           // 25: husi.v1.ReadAndroidVPNTypeRequest
+	(*AndroidVPNType)(nil),                      // 26: husi.v1.AndroidVPNType
+	(*ReadAndroidVPNTypeResponse)(nil),          // 27: husi.v1.ReadAndroidVPNTypeResponse
+	nil,                                         // 28: husi.v1.HTTPFetchRequest.HeadersEntry
+	nil,                                         // 29: husi.v1.HTTPFetchHead.HeadersEntry
+	(*URLTestOptions)(nil),                      // 30: husi.v1.URLTestOptions
+	(*PluginProcessSpec)(nil),                   // 31: husi.v1.PluginProcessSpec
+	(RootCertificateStore)(0),                   // 32: husi.v1.RootCertificateStore
+	(*daemon.STUNTestProgress)(nil),             // 33: daemon.STUNTestProgress
+	(*daemon.NetworkQualityTestProgress)(nil),   // 34: daemon.NetworkQualityTestProgress
 }
 var file_husi_v1_application_proto_depIdxs = []int32{
 	0,  // 0: husi.v1.GenerateSchemaRequest.kind:type_name -> husi.v1.SchemaKind
-	20, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
-	21, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
+	30, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
+	31, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
 	1,  // 3: husi.v1.GetCertRequest.mode:type_name -> husi.v1.GetCertMode
-	18, // 4: husi.v1.HTTPFetchRequest.headers:type_name -> husi.v1.HTTPFetchRequest.HeadersEntry
-	14, // 5: husi.v1.HTTPFetchRequest.socks5:type_name -> husi.v1.HTTPFetchSocks5
-	19, // 6: husi.v1.HTTPFetchHead.headers:type_name -> husi.v1.HTTPFetchHead.HeadersEntry
-	16, // 7: husi.v1.HTTPFetchResponse.head:type_name -> husi.v1.HTTPFetchHead
-	2,  // 8: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
-	4,  // 9: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
-	6,  // 10: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
-	8,  // 11: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
-	10, // 12: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
-	12, // 13: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
-	13, // 14: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
-	15, // 15: husi.v1.ApplicationService.HTTPFetch:input_type -> husi.v1.HTTPFetchRequest
-	3,  // 16: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
-	5,  // 17: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
-	7,  // 18: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
-	9,  // 19: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
-	11, // 20: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
-	22, // 21: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
-	23, // 22: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
-	17, // 23: husi.v1.ApplicationService.HTTPFetch:output_type -> husi.v1.HTTPFetchResponse
-	16, // [16:24] is the sub-list for method output_type
-	8,  // [8:16] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	28, // 4: husi.v1.HTTPFetchRequest.headers:type_name -> husi.v1.HTTPFetchRequest.HeadersEntry
+	15, // 5: husi.v1.HTTPFetchRequest.socks5:type_name -> husi.v1.HTTPFetchSocks5
+	29, // 6: husi.v1.HTTPFetchHead.headers:type_name -> husi.v1.HTTPFetchHead.HeadersEntry
+	17, // 7: husi.v1.HTTPFetchResponse.head:type_name -> husi.v1.HTTPFetchHead
+	2,  // 8: husi.v1.PingRequest.protocol:type_name -> husi.v1.PingProtocol
+	32, // 9: husi.v1.GetRootCertificatesRequest.store:type_name -> husi.v1.RootCertificateStore
+	26, // 10: husi.v1.ReadAndroidVPNTypeResponse.type:type_name -> husi.v1.AndroidVPNType
+	3,  // 11: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
+	5,  // 12: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
+	7,  // 13: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
+	9,  // 14: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
+	11, // 15: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
+	13, // 16: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
+	14, // 17: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
+	16, // 18: husi.v1.ApplicationService.HTTPFetch:input_type -> husi.v1.HTTPFetchRequest
+	19, // 19: husi.v1.ApplicationService.Ping:input_type -> husi.v1.PingRequest
+	21, // 20: husi.v1.ApplicationService.MatchRuleSets:input_type -> husi.v1.MatchRuleSetsRequest
+	23, // 21: husi.v1.ApplicationService.GetRootCertificates:input_type -> husi.v1.GetRootCertificatesRequest
+	25, // 22: husi.v1.ApplicationService.ReadAndroidVPNType:input_type -> husi.v1.ReadAndroidVPNTypeRequest
+	4,  // 23: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
+	6,  // 24: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
+	8,  // 25: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
+	10, // 26: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
+	12, // 27: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
+	33, // 28: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
+	34, // 29: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
+	18, // 30: husi.v1.ApplicationService.HTTPFetch:output_type -> husi.v1.HTTPFetchResponse
+	20, // 31: husi.v1.ApplicationService.Ping:output_type -> husi.v1.PingResponse
+	22, // 32: husi.v1.ApplicationService.MatchRuleSets:output_type -> husi.v1.MatchRuleSetsResponse
+	24, // 33: husi.v1.ApplicationService.GetRootCertificates:output_type -> husi.v1.GetRootCertificatesResponse
+	27, // 34: husi.v1.ApplicationService.ReadAndroidVPNType:output_type -> husi.v1.ReadAndroidVPNTypeResponse
+	23, // [23:35] is the sub-list for method output_type
+	11, // [11:23] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_husi_v1_application_proto_init() }
@@ -1231,8 +1793,8 @@ func file_husi_v1_application_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_application_proto_rawDesc), len(file_husi_v1_application_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   18,
+			NumEnums:      3,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

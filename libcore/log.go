@@ -33,25 +33,6 @@ func LogError(l string) {
 	log.Error(l)
 }
 
-func LogClear() {
-	if platformLogWrapper == nil {
-		return
-	}
-	platformLogWrapper.Clear()
-}
-
-func SetLogLevel(level string) {
-	if logFactory == nil {
-		return
-	}
-	logLevel, err := log.ParseLevel(level)
-	if err != nil {
-		log.Error(E.Cause(err, "parse log level"))
-		return
-	}
-	logFactory.SetLevel(logLevel)
-}
-
 var (
 	platformLogWrapper *logWriter
 	logFactory         log.ObservableFactory
@@ -75,7 +56,7 @@ func fileLogSink() log.PlatformWriter {
 	return platformLogWrapper
 }
 
-func setupLog(maxLogLine int, path string, level log.Level, truncate bool) (err error) {
+func setupLog(maxLogLine int, path string, level log.Level) (err error) {
 	if platformLogWrapper != nil {
 		return
 	}
@@ -85,13 +66,7 @@ func setupLog(maxLogLine int, path string, level log.Level, truncate bool) (err 
 	logMaxLines = maxLogLine
 
 	var file *os.File
-	flags := os.O_CREATE | os.O_WRONLY
-	if truncate {
-		flags |= os.O_TRUNC
-	} else {
-		flags |= os.O_APPEND
-	}
-	file, err = os.OpenFile(path, flags, 0o644)
+	file, err = os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		_, _ = os.Stderr.WriteString(E.Cause(err, "open log").Error())
 		return
@@ -193,20 +168,6 @@ func (w *logWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func (w *logWriter) truncate() {
-	w.access.Lock()
-	defer w.access.Unlock()
-	for _, writer := range w.writers {
-		file, isFile := writer.(*os.File)
-		if !isFile {
-			continue
-		}
-		withFileLock(file, func() {
-			_ = file.Truncate(0)
-		})
-	}
-}
-
 func withFileLock(writer io.Writer, action func()) {
 	file, isFile := writer.(*os.File)
 	if !isFile {
@@ -231,8 +192,4 @@ func (w *logWriter) Close() error {
 		}
 	}
 	return E.Errors(errs...)
-}
-
-func (w *logWriter) Clear() {
-	w.truncate()
 }

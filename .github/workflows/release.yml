@@ -48,7 +48,7 @@ jobs:
         with:
           path: composeApp/src/commonMain/composeResources/files/sing-box
           key: >-
-            assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/ruleset_generate/**', 'libcore/cmd/internal/shared/**', 'libcore/go.mod', 'libcore/go.sum') }}
+            assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/internal/ruleset_generate/**', 'libcore/go.mod', 'libcore/go.sum') }}
       - name: Prepare assets
         if: steps.cache-assets.outputs.cache-hit != 'true'
         run: make assets
@@ -98,6 +98,9 @@ jobs:
             formats: "deb,rpm,pacman,tarball,appimage"
             appimage_runtime: aarch64
             apt_packages: zstd binutils-aarch64-linux-gnu
+          # windows/arm64 is temporarily out: androidx sqlite-bundled ships no windows_arm64
+          # libsqliteJni, so the app cannot open its database there.
+          # See https://issuetracker.google.com/issues/426464784
           - id: windows-amd64
             target: windows/amd64
             package: windows
@@ -129,14 +132,7 @@ jobs:
       - uses: ./.github/actions/setup-zig
         with:
           cache-name: desktop-${{ matrix.id }}
-          cache-hash: ${{ hashFiles('launcher/**', 'libcore/shim/**') }}
-      - name: Checkout JNI headers
-        uses: actions/checkout@v7
-        with:
-          repository: Casterlabs/jni-headers
-          ref: ${{ env.JNI_HEADERS_COMMIT }}
-          path: jni-headers
-          sparse-checkout: versions/${{ env.JNI_HEADERS_VERSION }}
+          cache-hash: ${{ hashFiles('launcher/**') }}
       - name: Checkout macOS SDK
         if: ${{ matrix.package == 'macos' }}
         uses: actions/checkout@v7
@@ -222,20 +218,10 @@ jobs:
         with:
           path: composeApp/src/commonMain/composeResources/files/sing-box
           key: >-
-            assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/ruleset_generate/**', 'libcore/cmd/internal/shared/**', 'libcore/go.mod', 'libcore/go.sum') }}
+            assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/internal/ruleset_generate/**', 'libcore/go.mod', 'libcore/go.sum') }}
       - name: Prepare assets
         if: steps.cache-assets.outputs.cache-hit != 'true'
         run: make assets
-      - name: Build desktop libcore
-        # windows/arm64 is temporarily out: androidx sqlite-bundled ships no windows_arm64
-        # libsqliteJni, so the app cannot open its database there.
-        # See https://issuetracker.google.com/issues/426464784
-        run: |
-          if [ "${{ matrix.package }}" = "macos" ]; then
-            make libcore_desktop DESKTOP_TARGETS="${{ matrix.target }}" JNI_INCLUDE="$JNI_INCLUDE" DARWIN_SDK="$MACOS_SDK_PATH"
-          else
-            make libcore_desktop DESKTOP_TARGETS="${{ matrix.target }}" JNI_INCLUDE="$JNI_INCLUDE"
-          fi
       - name: Download Go modules
         run: cd libcore && go mod download
       - name: Generate about libraries metadata
@@ -270,7 +256,7 @@ jobs:
               make desktop_package_windows_jbr DESKTOP_TARGET="${{ matrix.target }}" WINDOWS_NO_SIGN="$WINDOWS_NO_SIGN"
               ;;
             macos)
-              make desktop_package_macos DESKTOP_TARGET="${{ matrix.target }}"
+              make desktop_package_macos DESKTOP_TARGET="${{ matrix.target }}" DARWIN_SDK="$MACOS_SDK_PATH"
               ;;
             *)
               echo "Unknown matrix.package '${{ matrix.package }}'" >&2

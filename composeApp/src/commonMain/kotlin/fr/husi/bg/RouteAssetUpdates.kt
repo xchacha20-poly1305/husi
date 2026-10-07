@@ -5,7 +5,7 @@ import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.unpackArchive
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.buildUserAgent
@@ -333,7 +333,7 @@ internal class CustomAssetUpdater(
 
             updateProgress(25f)
             for (file in cacheFiles) {
-                Libcore.tryUnpack(file.absolutePath, destinationDir.absolutePath)
+                unpackArchive(file, destinationDir)
             }
 
             updateProgress(25f)
@@ -403,7 +403,7 @@ internal class GithubAssetUpdater(
 
             val progressPerUnpack = progressTotalUnpack / cacheFiles.size
             for (file in cacheFiles) {
-                Libcore.untargzWithoutDir(file.absolutePath, destinationDir.absolutePath)
+                unpackArchive(file, destinationDir)
                 updateProgress(progressPerUnpack)
             }
 
@@ -460,7 +460,7 @@ internal class GithubReleaseZipUpdater(
             updateProgress(10f)
             download(url, cacheFile)
             updateProgress(60f)
-            Libcore.tryUnpack(cacheFile.absolutePath, destinationDir.absolutePath)
+            unpackArchive(cacheFile, destinationDir)
             updateProgress(25f)
             versionFiles.forEach { it.writeText(tag) }
             updateProgress(5f)

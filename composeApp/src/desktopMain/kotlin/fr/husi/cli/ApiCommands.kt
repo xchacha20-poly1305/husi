@@ -23,6 +23,8 @@ import fr.husi.core.chainHops
 import fr.husi.core.failure
 import fr.husi.ktx.formatBytes
 import fr.husi.ktx.formatMemoryBytes
+import fr.husi.ktx.joinAddress
+import fr.husi.ktx.splitAddress
 import fr.husi.proto.daemon.Connection
 import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.Log
@@ -83,9 +85,6 @@ internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
                     throw ProgramResult(1)
                 }
             }
-        } catch (e: LinkageError) {
-            echo(libcoreLoadFailureMessage(e), err = true)
-            throw ProgramResult(1)
         } catch (e: ProgramResult) {
             throw e
         } catch (_: Exception) {
@@ -994,9 +993,8 @@ private fun connectionDestination(connection: Connection): String {
     val destination = connection.destination
     val domain = connection.domain
     if (domain.isEmpty()) return destination
-    val portIndex = destination.lastIndexOf(':')
-    if (portIndex == -1) return domain
-    return domain + destination.substring(portIndex)
+    val (_, port) = splitAddress(destination) ?: return domain
+    return joinAddress(domain, port)
 }
 
 private fun formatProcessInfo(connection: Connection): String {

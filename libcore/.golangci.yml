@@ -60,7 +60,7 @@ linters:
       # Generated protobuf stubs, `make proto` owns them.
       - pb/
       # Developer-only codegen and inspection tools, never shipped to a user.
-      - cmd/
+      - cmd/internal/
     rules:
       # Closing is best-effort all over this code base: the interesting error
       # already came from the read or the write before it.

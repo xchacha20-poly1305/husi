@@ -1,6 +1,7 @@
 package fr.husi.bg
 
 import com.google.protobuf.ByteString
+import fr.husi.PLUGIN_CA_FILE
 import fr.husi.database.DataStore
 import fr.husi.fmt.ConfigMetadata
 import fr.husi.fmt.hysteria.HysteriaBean
@@ -14,7 +15,6 @@ import fr.husi.fmt.naive.buildNaiveConfig
 import fr.husi.fmt.protectPath
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
-import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
 import fr.husi.proto.v1.PluginProcessSpec
@@ -91,7 +91,7 @@ fun buildPluginSpecs(
     val specs = ArrayList<PluginProcessSpec>()
 
     val sharedEnv = linkedMapOf<String, String>()
-    repository.externalAssetsDir.resolve(Libcore.PluginCaFile)
+    repository.externalAssetsDir.resolve(PLUGIN_CA_FILE)
         .takeIf { it.isFile }
         ?.absolutePath
         ?.let { sharedEnv["SSL_CERT_FILE"] = it }

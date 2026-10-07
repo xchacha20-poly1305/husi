@@ -66,4 +66,42 @@ class NetsKtTest {
         assertFalse("8.8.8.8".isLoopbackHost())
         assertFalse("face.fee".isLoopbackHost())
     }
+
+    @Test
+    fun `splitAddress unwraps a bracketed IPv6 host`() {
+        assertEquals("2001:db8::1" to "443", splitAddress("[2001:db8::1]:443"))
+        assertEquals("example.com" to "443", splitAddress("example.com:443"))
+        assertEquals("example.com" to "443,1000-2000", splitAddress("example.com:443,1000-2000"))
+    }
+
+    @Test
+    fun `splitAddress rejects addresses without a port`() {
+        assertNull(splitAddress("example.com"))
+        assertNull(splitAddress("example.com:"))
+        assertNull(splitAddress(":443"))
+        assertNull(splitAddress("[2001:db8::1]"))
+        assertNull(splitAddress("2001:db8::1"))
+    }
+
+    @Test
+    fun `joinAddress brackets an IPv6 host`() {
+        assertEquals("[2001:db8::1]:443", joinAddress("2001:db8::1", 443))
+        assertEquals("[2001:db8::1]:443", joinAddress("[2001:db8::1]", 443))
+        assertEquals("example.com:443,1000-2000", joinAddress("example.com", "443,1000-2000"))
+    }
+
+    @Test
+    fun `toPortOrNull accepts only 1 to 65535`() {
+        assertEquals(443, "443".toPortOrNull())
+        assertNull("0".toPortOrNull())
+        assertNull("65536".toPortOrNull())
+        assertNull("http".toPortOrNull())
+    }
+
+    @Test
+    fun `blurAddress keeps brackets around a blurred IPv6 host`() {
+        assertEquals("[2001:***]:4***", "[2001:db8::1]:443".blurAddress())
+        assertEquals("1.*.*.*:4***", "1.2.3.4:443".blurAddress())
+        assertEquals("e***.com", "example.com".blurAddress())
+    }
 }

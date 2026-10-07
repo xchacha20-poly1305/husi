@@ -3,10 +3,8 @@
 # Authenticode signing for the Windows packages, sourced by package.sh.
 #
 # husi releases are signed with a self-signed code signing certificate. That
-# buys nothing from SmartScreen, but it is what lets the privileged daemon bind
-# husi-core.exe to the husicore.dll sitting next to it: the Go side verifies
-# that both carry the same signer certificate, the way sing-box's boxdd does.
-# Every PE in one build therefore has to be signed with the same certificate.
+# buys nothing from SmartScreen; it lets a user check that the binaries come
+# from the same publisher as the certificate husi publishes.
 #
 # Signing is on by default. Building without a certificate is allowed, but it
 # has to be asked for with --no-sign, so an unsigned release is never an
@@ -100,7 +98,7 @@ sign_pe() {
     log "Signed: $(basename "$path")"
 }
 
-# sign_payloads stages the launcher, shim and core library into work_dir, signs
+# sign_payloads stages the launcher and husi-core into work_dir, signs
 # the copies and repoints the INPUT_* variables at them. Both the zip rootfs and
 # the NSIS template read those variables, so signing them once covers both
 # formats. The originals under libcore/build and launcher/zig-out are left
@@ -115,7 +113,7 @@ sign_payloads() {
     fi
 
     mkdir -p "$staging"
-    for variable in INPUT_LAUNCHER_BIN INPUT_CORE_BIN INPUT_CORE_LIB; do
+    for variable in INPUT_LAUNCHER_BIN INPUT_CORE_BIN; do
         path="$staging/$(basename "${!variable}")"
         cp "${!variable}" "$path"
         sign_pe "$path"

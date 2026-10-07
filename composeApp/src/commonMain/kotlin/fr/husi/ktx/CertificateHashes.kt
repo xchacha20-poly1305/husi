@@ -2,32 +2,9 @@ package fr.husi.ktx
 
 import okio.Buffer
 import okio.ByteString
-import okio.ByteString.Companion.decodeBase64
 import okio.ByteString.Companion.toByteString
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
-
-private const val PEM_BEGIN_PREFIX = "-----BEGIN "
-private const val PEM_END_PREFIX = "-----END "
-
-/** Decodes the DER bodies of every PEM block in [pem], in order. Blocks with invalid Base64 are skipped. */
-private fun decodePemBlocks(pem: String): List<ByteString> {
-    val blocks = mutableListOf<ByteString>()
-    var body: StringBuilder? = null
-    for (line in pem.lineSequence().map(String::trim)) {
-        when {
-            line.startsWith(PEM_BEGIN_PREFIX) -> body = StringBuilder()
-
-            line.startsWith(PEM_END_PREFIX) -> {
-                body?.toString()?.decodeBase64()?.let { blocks += it }
-                body = null
-            }
-
-            else -> body?.append(line)
-        }
-    }
-    return blocks
-}
 
 /**
  * V2Ray `pinnedPeerCertificateChainSha256`: certificate hashes chained as

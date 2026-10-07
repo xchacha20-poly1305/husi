@@ -32,7 +32,6 @@ import fr.husi.bg.SubscriptionUpdater
 import fr.husi.bg.migrateCustomRouteAssets
 import fr.husi.cli.ApiCommand
 import fr.husi.cli.directory
-import fr.husi.cli.libcoreLoadFailureMessage
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
@@ -41,19 +40,16 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.exitApplication
 import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.sha256Hex
-import fr.husi.libcore.Libcore
-import fr.husi.libcore.loadCA
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.resolveDesktopRepository
-import fr.husi.repository.resolvePackagedAnjaNativesDir
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
 import fr.husi.resources.ic_service_active
 import fr.husi.ui.AuthChallengeDialogs
 import fr.husi.ui.MainScreen
 import fr.husi.utils.CrashHandler
-import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
+import fr.husi.utils.installBundledRuleSets
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
@@ -72,16 +68,10 @@ import kotlin.time.Duration.Companion.seconds
 
 const val APP_NAME = "fr.husi"
 
-/** anja loads the JNI library from this directory when set (no jar-embedded fallback). */
-private const val ANJA_NATIVES_DIR_PROPERTY = "anja.natives.dir"
-
 fun main(args: Array<String>) {
     configureNucleusAppIdentity()
-    // Before any Libcore class load: packaged installs point at the sidecar library.
-    configureAnjaNativesDir()
     DesktopMain(args).main(args)
-    // Go threads that delivered a callback stay attached to the JVM as non-daemon
-    // threads, so a command that consumed a stream would otherwise never return.
+    // Library threads that are not daemons would otherwise keep a finished command alive.
     exitProcess(0)
 }
 
@@ -95,19 +85,6 @@ fun main(args: Array<String>) {
 private fun configureNucleusAppIdentity() {
     System.setProperty("nucleus.app.id", APP_NAME)
     System.setProperty("nucleus.app.name", "Husi")
-}
-
-/**
- * N4: if unset, probe the packaged layout for the anja library next to the launcher /
- * husi-core and set `anja.natives.dir`. Found nothing → leave unset so the fat jar's
- * embedded copy is used (dev / `gradlew run`).
- */
-private fun configureAnjaNativesDir() {
-    if (!System.getProperty(ANJA_NATIVES_DIR_PROPERTY).isNullOrEmpty()) {
-        return
-    }
-    val nativesDir = resolvePackagedAnjaNativesDir() ?: return
-    System.setProperty(ANJA_NATIVES_DIR_PROPERTY, nativesDir.absolutePath)
 }
 
 class DesktopMain(
@@ -407,38 +384,20 @@ class DesktopMain(
         initHusiKoin(repository)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
-        val cacheDir = repository.cacheDir.invariantDirectoryPathString()
-        val filesDir = repository.filesDir.invariantDirectoryPathString()
-        val externalAssetsDir = repository.externalAssetsDir.invariantDirectoryPathString()
+        Logs.openFile(
+            repository.externalAssetsDir.resolve(LOG_FILE_NAME),
+            logLevel ?: DataStore.logLevel.getBlocking(),
+        )
 
         val rulesProvider = DataStore.rulesProvider.getBlocking()
-        val isOfficialProvider = rulesProvider == RuleProvider.OFFICIAL
         runBlocking {
-            if (isOfficialProvider) {
-                copyBundledRuleSetAssetsIfNeeded()
+            if (rulesProvider == RuleProvider.OFFICIAL) {
+                installBundledRuleSets()
             }
             migrateCustomRouteAssets(
                 repository.externalAssetsDir,
                 SagerDatabase.assetDao.getAll().first().map { it.name },
             )
-        }
-        try {
-            // First touch of the Libcore class in this process: loads the JNI library.
-            // Desktop still needs libcore for link parsing, formats, and the gRPC bridge client.
-            Libcore.initCore(
-                true,
-                true,
-                cacheDir,
-                filesDir,
-                externalAssetsDir,
-                DataStore.logMaxLine.getBlocking(),
-                logLevel ?: DataStore.logLevel.getBlocking(),
-                isOfficialProvider,
-                DataStore.isExpert.getBlocking(),
-            )
-            loadCA(DataStore.certProvider.getBlocking())
-        } catch (e: LinkageError) {
-            warnLibcoreLoadFailureAndExit(e)
         }
         if (startCoreHost) {
             try {
@@ -456,7 +415,7 @@ private fun warnCoreHostFailureAndExit(error: Exception): Nothing {
     val message = buildString {
         appendLine("Husi could not start the out-of-process core host (husi-core).")
         appendLine()
-        appendLine("Build it with: make core_desktop DESKTOP_TARGETS=host")
+        appendLine("Build it with: make core_desktop")
         appendLine("or install a package that bundles husi-core next to the launcher.")
         appendLine()
         appendLine("Error: ${error.message ?: error::class.simpleName}")
@@ -592,19 +551,6 @@ private fun handleRestoreRequest(path: Path) {
     if (lines.firstOrNull() != RESTORE_PAYLOAD_SILENT) {
         InstanceRestoreBus.fire()
     }
-}
-
-private fun warnLibcoreLoadFailureAndExit(error: LinkageError): Nothing {
-    val title = "Failed to load libcore"
-    val message = libcoreLoadFailureMessage(error)
-    System.err.println("$title: $message")
-    System.err.println(error.stackTraceToString())
-    try {
-        showSelectableMessageDialog(message, title, JOptionPane.ERROR_MESSAGE)
-    } catch (dialogError: Exception) {
-        System.err.println(dialogError.message)
-    }
-    exitProcess(1)
 }
 
 private fun registerMacOSOpenUriHandler() {

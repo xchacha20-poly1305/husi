@@ -14,12 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type collectRuleSetNames []string
-
-func (c *collectRuleSetNames) Callback(path string) {
-	*c = append(*c, path)
-}
-
 func writeDomainSuffixRuleSet(t *testing.T, path string, suffixGroups ...[]string) {
 	t.Helper()
 	ruleSet := option.PlainRuleSet{
@@ -38,20 +32,20 @@ func writeDomainSuffixRuleSet(t *testing.T, path string, suffixGroups ...[]strin
 	require.NoError(t, srs.Write(file, ruleSet, C.RuleSetVersionCurrent))
 }
 
-func TestScanRuleSet(t *testing.T) {
+func TestMatchRuleSets(t *testing.T) {
 	dir := t.TempDir()
+	nestedDir := filepath.Join(dir, "nested")
+	require.NoError(t, os.Mkdir(nestedDir, 0o755))
+
 	// Two matching rules in one file must still report the file once.
 	writeDomainSuffixRuleSet(t, filepath.Join(dir, "geosite-google.srs"), []string{"google.com"}, []string{"com"})
 	writeDomainSuffixRuleSet(t, filepath.Join(dir, "geosite-cn.srs"), []string{"cn"})
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "not-a-rule-set.txt"), []byte("google.com"), 0o600))
+	writeDomainSuffixRuleSet(t, filepath.Join(nestedDir, "custom-google.srs"), []string{"google.com"})
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "not-a-rule-set.txt"), []byte("google.com"), 0o644))
 
-	var names collectRuleSetNames
-	require.NoError(t, ScanRuleSet(dir, "www.google.com", &names))
-	assert.Equal(t, collectRuleSetNames{"geosite-google.srs"}, names)
+	assert.ElementsMatch(t, []string{"geosite-google.srs", "custom-google.srs"}, matchRuleSets(dir, "www.google.com"))
 }
 
-func TestScanRuleSetMissingDir(t *testing.T) {
-	var names collectRuleSetNames
-	assert.NoError(t, ScanRuleSet(filepath.Join(t.TempDir(), "missing"), "google.com", &names))
-	assert.Empty(t, names)
+func TestMatchRuleSetsMissingDirectory(t *testing.T) {
+	assert.Empty(t, matchRuleSets(filepath.Join(t.TempDir(), "missing"), "google.com"))
 }

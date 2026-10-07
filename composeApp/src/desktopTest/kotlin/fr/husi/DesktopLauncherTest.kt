@@ -16,11 +16,10 @@ class DesktopLauncherTest {
         binDir.deleteRecursively()
     }
 
-    /** The packaged bin directory also holds the core host pair. */
+    /** The packaged bin directory also holds the core host. */
     private fun writeInstalledBinDir(launcherName: String): File {
         val launcher = createExecutable(launcherName)
         createExecutable("husi-core")
-        createExecutable("libhusicore.so")
         binDir.resolve("desktop-java-opts.conf.template").writeText("")
         return launcher
     }

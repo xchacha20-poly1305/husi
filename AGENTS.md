@@ -4,12 +4,12 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) before writing code.
 
 ## Tools & commands
 
-First-time setup — run once after a fresh clone or when submodules/assets are missing; skip if `composeApp/libs/` already contains the host desktop `libcore-desktop-*.jar`:
+First-time setup — run once after a fresh clone or when submodules/assets are missing:
 
 ```
 ./run lib source     # git submodule update --init --recursive
 make assets          # geoip/geosite into composeApp resources
-make libcore         # host desktop libcore jar — Gradle sync fails without it
+make core_desktop    # host husi-core binary — the desktop app runs it as its core process
 ```
 
 Common targets:
@@ -18,11 +18,10 @@ Common targets:
 |---|---|
 | `make assets` | Download geoip/geosite (once before first build) |
 | `make libcore_android` | Go core into `composeApp/libs/libcore.aar` (required for Android) |
-| `make libcore` / `make libcore_desktop DESKTOP_TARGETS=...` | Desktop `libcore-desktop-<os>-<arch>.jar` + sidecar `libhusicore.*` |
-| `make core_desktop DESKTOP_TARGETS=...` | Zig `husi-core` shim into `libcore/build/<os>_<arch>/` |
+| `make core_desktop [DESKTOP_TARGETS=...]` | Go `husi-core` binary into `libcore/build/<os>_<arch>/` (default: host) |
 | `make apk` / `make apk_debug` | Android APK (foss release/debug) |
 | `make desktop` / `make desktop_release` | Run Compose desktop app |
-| `make desktop_uberjar` | Thin release jar (needs `husi-core` + `libhusicore.*` beside it) |
+| `make desktop_uberjar` | Release jar (needs `husi-core` beside it or on `PATH`) |
 | `make desktop_package[_linux/_macos/_windows]` | Native packages |
 | `make desktop_package_windows_jbr DESKTOP_TARGET=...` | Windows zip/NSIS plus a -jbr pair with jlink JetBrains Runtime |
 | `make launcher` | Zig native UI launcher from `launcher/` |
@@ -31,10 +30,10 @@ Common targets:
 | `make aboutlibraries` | Regenerate OSS license JSON |
 | `make generate_option` | Regenerate sing-box option mappings; output piped through `$CLIP` |
 | `make proto` | Re-vendor sing-box schema and regenerate Go gRPC stubs |
-| `make test` | `test_gradle` + `test_go` + `test_no_go_core_binary` + `test_zig` |
+| `make test` | `test_gradle` + `test_go` + `test_zig` |
 | `make test_gradle` | `./gradlew :composeApp:allTests` (JUnit5) |
 | `make test_go` | `cd libcore && go test -v -count=1 -tags with_quic,badlinkname -ldflags=-checklinkname=0 ./...` |
-| `make test_zig` | zig build test in both `launcher/` and `libcore/shim/` |
+| `make test_zig` | zig build test in `launcher/` |
 | `make lint_go` | golangci-lint for linux + android + windows |
 | `make fmt_go` | golangci-lint fmt |
 
@@ -73,23 +72,23 @@ Do not run `exportLibraryDefinitions` and `exportLibraryDefinitionsDesktop` in o
 - `buildScript/icon.py` rejects anything but `<path>` elements in the SVG.
 - Never hand-edit generated icon files (Android `<vector>` XML included) — edit the SVG and re-run `make icon`.
 
-### Zig projects
+### Desktop has no Go in the JVM
 
-`launcher/` and `libcore/shim/` are separate Zig projects on purpose: the launcher links musl statically; the shim links libc dynamically (it needs `dlopen` and loads a glibc cgo artifact). Do not merge them.
+The desktop UI loads no Go code: there is no libcore jar. Anything that needs Go — sing-box internals, ICMP sockets, the embedded root bundles — is an `ApplicationService` RPC served by the `husi-core` process; plain logic lives in Kotlin `commonMain`, shared with Android. `commonMain` must not reference `fr.husi.libcore`, which only the Android aar provides.
 
 ### Windows signing
 
-`daemonhost.VerifyCorePairSignature` binds `husi-core.exe` to the `husicore.dll` it loads. The certificate's validity window matters at runtime — `validateUntrustedSelfSignedCertificate` compares `time.Now()` against the certificate, not the countersignature. An expired cert starts failing installed daemons. Building without a certificate requires explicit `WINDOWS_NO_SIGN=1`.
+Windows payloads (launcher, `husi-core.exe`, installer) are Authenticode signed with the self-signed certificate in `release/windows/`. Nothing checks it at runtime. Building without a certificate requires explicit `WINDOWS_NO_SIGN=1`.
 
 ## Project-specific context
 
-### Desktop Gradle requires the host libcore jar
+### Desktop core binary
 
-Desktop Gradle picks the libcore jar from `os.name`/`os.arch`. A missing jar fails Gradle sync immediately — even Android-only IDE work needs the host desktop jar built first (`make libcore`).
+`gradlew run` looks for `husi-core` under `libcore/build/<os>_<arch>/` (relative to the launch directory), then next to a packaged launcher, then on `PATH`. Build it with `make core_desktop`.
 
 ### Android two-process model
 
-The app runs in two processes: UI and `:bg`. Only `:bg` calls `Libcore.initCore(shouldOperateFiles=true, ...)` and `boxService.start()`. The binder (`SagerConnection`) is lifecycle-only — `BIND_AUTO_CREATE` starts/keeps `:bg` alive; the data plane is gRPC over `<filesDir>/api.sock`.
+The app runs in two processes: UI and `:bg`. Only `:bg` loads libcore (`Seq.setContext`, `Libcore.initCore`, `boxService.start()`); the UI process must not touch any `fr.husi.libcore` class, and reaches Go the way the desktop does, through `CoreClient`. The binder (`SagerConnection`) is lifecycle-only — `BIND_AUTO_CREATE` starts/keeps `:bg` alive; the data plane is gRPC over `<filesDir>/api.sock`. Main-process work that no activity covers (WorkManager updates) wraps its core calls in `withBackgroundProcess`, as `BackgroundProcessHttpFetcher` does.
 
 ### Desktop core host
 
@@ -101,7 +100,7 @@ Each UI instance needs its own host directory. The single-instance lock holder u
 
 A `FossRelease` build with no keystore calls `exitProcess(0)` in `setupAppCommon` — that is intentional, not a bug.
 
-### Cross-compiling desktop libcore
+### Cross-compiling husi-core
 
-Pass `JNI_INCLUDE=/path/to/jni` when JNI headers aren't auto-detected; for Darwin targets on non-Darwin hosts also pass `DARWIN_SDK=/path/to/MacOSX.sdk`.
+For Darwin targets on non-Darwin hosts pass `DARWIN_SDK=/path/to/MacOSX.sdk`.
 

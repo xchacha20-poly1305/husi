@@ -1,6 +1,7 @@
 package fr.husi.core
 
 import fr.husi.CORE_SOCKET_NAME
+import fr.husi.io.readLeb128
 import fr.husi.ktx.blankAsNull
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.UrlSyntaxException
@@ -12,6 +13,7 @@ import io.github.xchacha20_poly1305.kurpc.Transport
 import io.github.xchacha20_poly1305.kurpc.tls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okio.Buffer
 import java.io.File
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -113,11 +115,10 @@ private fun tlsTransport(address: RemoteCoreAddress, trust: () -> SSLSocketFacto
 }
 
 /**
- * Trusts exactly the roots in [pemFile]. `Libcore.setupRootCA` writes the root set it gives Go
- * (the user's `certProvider` choice, plus `ca.pem` on Android) to `externalAssets/plugin-ca.pem`;
- * reading it keeps the remote client on the same roots the Go client used. A missing or empty
- * file fails the dial rather than falling back to the platform store, which would silently
- * widen or narrow what is trusted.
+ * Trusts exactly the roots in [pemFile]: `externalAssets/plugin-ca.pem`, the root set of the
+ * user's `certProvider` choice (plus `ca.pem` on Android), the same roots the core trusts. A
+ * missing or empty file fails the dial rather than falling back to the platform store, which
+ * would silently widen or narrow what is trusted.
  */
 internal fun rootCertificatesSocketFactory(pemFile: File): SSLSocketFactory {
     val certificates = try {
@@ -148,35 +149,22 @@ private fun invalidUrl(message: String, cause: Throwable? = null) =
  * absent. Read by hand so husi needs no health proto for one field.
  */
 internal fun healthCheckStatus(response: ByteArray): Int {
-    var index = 0
-    fun varint(): Long {
-        var value = 0L
-        var shift = 0
-        while (true) {
-            if (index >= response.size || shift > 63) {
-                throw CoreRpcException(Status.Code.INTERNAL, "malformed health check response")
-            }
-            val byte = response[index++].toInt()
-            value = value or ((byte and 0x7f).toLong() shl shift)
-            if (byte and 0x80 == 0) return value
-            shift += 7
-        }
-    }
+    val message = Buffer().write(response)
     var status = 0
-    while (index < response.size) {
-        val key = varint()
-        val field = (key ushr 3).toInt()
-        when ((key and 7).toInt()) {
-            0 -> varint().let { if (field == 1) status = it.toInt() }
-            1 -> index += 8
-            2 -> {
-                // Not `index += varint()`: that reads `index` before varint() advances it.
-                val length = varint().toInt()
-                index += length
+    try {
+        while (!message.exhausted()) {
+            val key = message.readLeb128()
+            val field = (key ushr 3).toInt()
+            when ((key and 7).toInt()) {
+                0 -> message.readLeb128().let { if (field == 1) status = it.toInt() }
+                1 -> message.skip(8)
+                2 -> message.skip(message.readLeb128())
+                5 -> message.skip(4)
+                else -> throw IOException("unknown wire type in key $key")
             }
-            5 -> index += 4
-            else -> throw CoreRpcException(Status.Code.INTERNAL, "malformed health check response")
         }
+    } catch (e: IOException) {
+        throw CoreRpcException(Status.Code.INTERNAL, "malformed health check response", e)
     }
     return status
 }

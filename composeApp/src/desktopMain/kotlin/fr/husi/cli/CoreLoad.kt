@@ -10,19 +10,6 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import javax.net.ssl.SSLSocketFactory
 
-fun libcoreLoadFailureMessage(error: LinkageError): String {
-    return buildString {
-        appendLine("Husi could not load the libcore JNI library.")
-        appendLine()
-        appendLine("This usually means the desktop libcore package does not match this system,")
-        appendLine("or developer made mistakes.")
-        appendLine()
-        appendLine("System: ${System.getProperty("os.name")} ${System.getProperty("os.arch")}")
-        appendLine("Java: ${System.getProperty("java.version")}")
-        appendLine("Error: ${error.message ?: error::class.simpleName}")
-    }.trimEnd()
-}
-
 fun connectClient(socketBasePath: String): CoreClient? {
     val client = KurpcCoreClient.local { socketBasePath }
     runCatching {
@@ -71,8 +58,8 @@ fun hostSocketPaths(sessionBasePath: String): List<String> {
 }
 
 fun connectRemoteClient(serverURL: String, secret: String): CoreClient {
-    // The CLI skips the runtime bootstrap, so loadCA() never ran: the Go client this replaced
-    // trusted the system roots here, and so does the platform default.
+    // The CLI skips the runtime bootstrap, which writes the roots of the user's certificate
+    // provider, so it trusts the platform default.
     val client = KurpcCoreClient.remote(serverURL, secret) {
         SSLSocketFactory.getDefault() as SSLSocketFactory
     }

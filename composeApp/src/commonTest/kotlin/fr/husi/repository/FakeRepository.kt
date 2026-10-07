@@ -1,6 +1,5 @@
 package fr.husi.repository
 
-import fr.husi.libcore.Service
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
@@ -16,8 +15,6 @@ class FakeRepository : Repository {
     override val isMainProcess = true
     override val isBgProcess = false
     override val isTv = false
-
-    override val boxService: Service? = null
 
     override val preferenceStoreDispatcher = Dispatchers.Unconfined
 

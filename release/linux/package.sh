@@ -40,7 +40,7 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--core-lib <file>] [--output-dir <dir>] [--pkgrel <n>] [--jdk-jmods <dir>] [--appimage-runtime <file>] [--appimage-update-info <string>] [--strip-objcopy <file>]
+  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>] [--pkgrel <n>] [--jdk-jmods <dir>] [--appimage-runtime <file>] [--appimage-update-info <string>] [--strip-objcopy <file>]
   $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball,appimage]
 
 Description:
@@ -53,7 +53,6 @@ Defaults:
   --input-jar  newest matching jar under $JAR_DIR_DEFAULT
   --launcher-bin  $ROOT_DIR/launcher/zig-out/bin/launcher-linux-<x86_64|aarch64>
   --core-bin   $ROOT_DIR/libcore/build/linux_<amd64|arm64>/husi-core
-  --core-lib   $ROOT_DIR/libcore/build/linux_<amd64|arm64>/libhusicore.so
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
   --jdk-jmods  \$JAVA_HOME/jmods, or the jmods beside jlink (env: JLINK_JMODS).
@@ -415,28 +414,6 @@ resolve_core_bin() {
     exit 1
 }
 
-resolve_core_lib() {
-    local requested="$1"
-    local default_path="$ROOT_DIR/libcore/build/${TARGET_PLATFORM}_${TARGET_ARCH}/libhusicore.so"
-
-    if [[ -n "$requested" ]]; then
-        if [[ ! -f "$requested" ]]; then
-            error "Core native library not found: $requested"
-            exit 1
-        fi
-        INPUT_CORE_LIB="$requested"
-        return
-    fi
-
-    if [[ -f "$default_path" ]]; then
-        INPUT_CORE_LIB="$default_path"
-        return
-    fi
-
-    error "Core native library not found: $default_path"
-    error "Build one first: make libcore_desktop DESKTOP_TARGETS=${TARGET_PLATFORM}/${TARGET_ARCH}"
-    exit 1
-}
 
 prepare_rootfs() {
     local rootfs="$1"
@@ -470,9 +447,6 @@ prepare_rootfs() {
     chmod 755 "$main_launcher"
     cp "$INPUT_CORE_BIN" "$bin_dir/husi-core"
     chmod 755 "$bin_dir/husi-core"
-    # Sidecar anja library next to husi-core (N7); UI sets anja.natives.dir to this dir.
-    cp "$INPUT_CORE_LIB" "$bin_dir/libhusicore.so"
-    chmod 755 "$bin_dir/libhusicore.so"
 
     cp "$java_opts_template" "$bin_dir/desktop-java-opts.conf.template"
     cp "$app_args_template" "$bin_dir/desktop-app-args.conf.template"
@@ -1072,7 +1046,6 @@ TARGET_ARCH=""
 INPUT_JAR=""
 INPUT_LAUNCHER_BIN=""
 INPUT_CORE_BIN=""
-INPUT_CORE_LIB=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 PKGREL="1"
 CHECK_TOOLS=0
@@ -1109,11 +1082,6 @@ while [[ $# -gt 0 ]]; do
         --core-bin)
             require_arg "$1" "${2:-}"
             INPUT_CORE_BIN="$2"
-            shift 2
-            ;;
-        --core-lib)
-            require_arg "$1" "${2:-}"
-            INPUT_CORE_LIB="$2"
             shift 2
             ;;
         -o|--output-dir)
@@ -1178,7 +1146,6 @@ fi
 resolve_input_jar "$INPUT_JAR"
 resolve_launcher_bin "$INPUT_LAUNCHER_BIN"
 resolve_core_bin "$INPUT_CORE_BIN"
-resolve_core_lib "$INPUT_CORE_LIB"
 mkdir -p "$OUTPUT_DIR"
 
 work_dir="$(mktemp -d)"

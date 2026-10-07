@@ -5,6 +5,15 @@ const val HUSI_REPOSITORY = "xchacha20-poly1305/husi"
 /** Well-known UDS name under the core host dir (mirrors coresvc.Socket). */
 const val CORE_SOCKET_NAME = "api.sock"
 
+/**
+ * PEM of the roots the user's certificate provider selects, under the external assets dir
+ * (mirrors libcore.PluginCaFile). Plugins get it as `SSL_CERT_FILE`, and the remote control
+ * client trusts exactly these roots.
+ */
+const val PLUGIN_CA_FILE = "plugin-ca.pem"
+
+const val LOG_FILE_NAME = "stderr.log"
+
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
 const val NETWORK_QUALITY_CONFIG_URL = "https://mensura.cdn-apple.com/api/v1/gm/config"
 

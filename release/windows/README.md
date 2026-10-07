@@ -4,10 +4,7 @@
 here so anyone can check that a downloaded build really came from this project.
 
 It is a **self-signed** certificate, not one issued by a commercial CA. Windows will still warn
-about an unknown publisher, and that is expected — SmartScreen was never the point. The signature
-exists so the privileged daemon can tell that `husi-core.exe` and the `husicore.dll` it loads are
-the same pair that shipped together (`daemonhost.VerifyCorePairSignature`, modelled on sing-box's
-`boxdd`).
+about an unknown publisher, and that is expected — SmartScreen was never the point.
 
 ## Fingerprints
 
@@ -35,18 +32,16 @@ Linux or macOS, with `osslsigncode`:
 osslsigncode verify -CAfile release/windows/husi-signing-cert.pem husi-core.exe
 ```
 
-Every signed payload in a release — the launcher, `husi-core.exe`, `husicore.dll` and the installer
-— carries this same certificate.
+Every signed payload in a release — the launcher, `husi-core.exe` and the installer — carries this
+same certificate.
 
 ## What this does and does not prove
 
 A matching fingerprint means the file was signed with the private key behind this certificate. A
 mismatch means it was not, and the build should not be trusted.
 
-The daemon itself does **not** pin this certificate. At runtime it only requires that the shim and
-the core library share one signer, so a build signed with someone else's certificate — a fork, or a
-tampered pair re-signed together — satisfies that check on its own terms. Comparing against the
-fingerprints above is what ties a build to this project, and that comparison is yours to make.
+Nothing in husi checks this certificate at runtime. Comparing against the fingerprints above is
+what ties a build to this project, and that comparison is yours to make.
 
 ## Signing a build
 

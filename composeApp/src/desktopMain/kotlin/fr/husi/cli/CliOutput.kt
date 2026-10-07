@@ -1,18 +1,10 @@
 package fr.husi.cli
 
-import fr.husi.libcore.Libcore
+val stdoutIsTerminal: Boolean by lazy { isTerminal(StandardStream.Output) }
 
-// [java.io.Console.isTerminal] only on Java 22+ and can't separate for stdin, stdour and stderr.
+val stderrIsTerminal: Boolean by lazy { isTerminal(StandardStream.Error) }
 
-private const val STDIN = 0
-private const val STDOUT = 1
-private const val STDERR = 2
-
-val stdoutIsTerminal: Boolean by lazy { Libcore.isTerminal(STDOUT) }
-
-val stderrIsTerminal: Boolean by lazy { Libcore.isTerminal(STDERR) }
-
-val authInputIsTerminal: Boolean by lazy { Libcore.isTerminal(STDIN) && stderrIsTerminal }
+val authInputIsTerminal: Boolean by lazy { isTerminal(StandardStream.Input) && stderrIsTerminal }
 
 fun writeStderrLine(message: String) {
     if (!stderrIsTerminal) return

@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import fr.husi.Action
 import fr.husi.bg.SagerConnection
+import fr.husi.libcore.Service
 import fr.husi.libcore.createBoxService
 import fr.husi.resources.Res
 import fr.husi.resources.openconnect_authentication
@@ -42,7 +43,7 @@ open class SagerRepository(
         setResourceReaderAndroidContext(context)
     }
 
-    override val boxService: fr.husi.libcore.Service? by lazy {
+    override val boxService: Service? by lazy {
         createBoxService(isBgProcess)
     }
 

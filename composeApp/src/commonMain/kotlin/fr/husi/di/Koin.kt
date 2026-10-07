@@ -1,5 +1,6 @@
 package fr.husi.di
 
+import fr.husi.PLUGIN_CA_FILE
 import fr.husi.bg.AppUpdateAutoChecker
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
@@ -10,7 +11,6 @@ import fr.husi.core.rootCertificatesSocketFactory
 import fr.husi.core.remote.RemoteClientFactory
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
-import fr.husi.libcore.Libcore
 import fr.husi.repository.Repository
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.openconnect.OpenConnectAuthController
@@ -32,8 +32,9 @@ private fun commonUiModule() = module {
     }
     single { CoreVersionCache(coreClient = get()) }
     single {
-        // Every app process runs loadCA(), which writes the roots Go trusts to this file.
-        val rootCertificates = get<Repository>().externalAssetsDir.resolve(Libcore.PluginCaFile)
+        // Written at startup from the user's certificate provider: by loadCA() on Android, by
+        // the core host controller on desktop.
+        val rootCertificates = get<Repository>().externalAssetsDir.resolve(PLUGIN_CA_FILE)
         RemoteControlManager(
             localClient = get(),
             dao = SagerDatabase.remoteServerDao,

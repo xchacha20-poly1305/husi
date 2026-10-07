@@ -74,6 +74,66 @@ func (Hosting) EnumDescriptor() ([]byte, []int) {
 	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{0}
 }
 
+// Where a host takes the TLS roots it trusts from.
+type RootCertificateStore int32
+
+const (
+	// Leaves the host's current roots in place.
+	RootCertificateStore_ROOT_CERTIFICATE_STORE_UNSPECIFIED RootCertificateStore = 0
+	RootCertificateStore_ROOT_CERTIFICATE_STORE_SYSTEM      RootCertificateStore = 1
+	// The system store plus the roots the user added to it.
+	RootCertificateStore_ROOT_CERTIFICATE_STORE_SYSTEM_AND_USER RootCertificateStore = 2
+	// Mozilla's bundle, embedded in the core.
+	RootCertificateStore_ROOT_CERTIFICATE_STORE_MOZILLA RootCertificateStore = 3
+	// Chrome's bundle, embedded in the core.
+	RootCertificateStore_ROOT_CERTIFICATE_STORE_CHROME RootCertificateStore = 4
+)
+
+// Enum value maps for RootCertificateStore.
+var (
+	RootCertificateStore_name = map[int32]string{
+		0: "ROOT_CERTIFICATE_STORE_UNSPECIFIED",
+		1: "ROOT_CERTIFICATE_STORE_SYSTEM",
+		2: "ROOT_CERTIFICATE_STORE_SYSTEM_AND_USER",
+		3: "ROOT_CERTIFICATE_STORE_MOZILLA",
+		4: "ROOT_CERTIFICATE_STORE_CHROME",
+	}
+	RootCertificateStore_value = map[string]int32{
+		"ROOT_CERTIFICATE_STORE_UNSPECIFIED":     0,
+		"ROOT_CERTIFICATE_STORE_SYSTEM":          1,
+		"ROOT_CERTIFICATE_STORE_SYSTEM_AND_USER": 2,
+		"ROOT_CERTIFICATE_STORE_MOZILLA":         3,
+		"ROOT_CERTIFICATE_STORE_CHROME":          4,
+	}
+)
+
+func (x RootCertificateStore) Enum() *RootCertificateStore {
+	p := new(RootCertificateStore)
+	*p = x
+	return p
+}
+
+func (x RootCertificateStore) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RootCertificateStore) Descriptor() protoreflect.EnumDescriptor {
+	return file_husi_v1_daemon_proto_enumTypes[1].Descriptor()
+}
+
+func (RootCertificateStore) Type() protoreflect.EnumType {
+	return &file_husi_v1_daemon_proto_enumTypes[1]
+}
+
+func (x RootCertificateStore) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RootCertificateStore.Descriptor instead.
+func (RootCertificateStore) EnumDescriptor() ([]byte, []int) {
+	return file_husi_v1_daemon_proto_rawDescGZIP(), []int{1}
+}
+
 type GetDaemonInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -765,10 +825,13 @@ func (x *PluginFile) GetContent() []byte {
 }
 
 type ServiceOptions struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LogLevel      daemon.LogLevel        `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3,enum=daemon.LogLevel" json:"log_level,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	LogLevel daemon.LogLevel        `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3,enum=daemon.LogLevel" json:"log_level,omitempty"`
+	// Roots the host trusts while the service runs. Saved with the snapshot, so
+	// a service the daemon restores on boot trusts the same roots.
+	RootCertificates RootCertificateStore `protobuf:"varint,2,opt,name=root_certificates,json=rootCertificates,proto3,enum=husi.v1.RootCertificateStore" json:"root_certificates,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ServiceOptions) Reset() {
@@ -806,6 +869,13 @@ func (x *ServiceOptions) GetLogLevel() daemon.LogLevel {
 		return x.LogLevel
 	}
 	return daemon.LogLevel(0)
+}
+
+func (x *ServiceOptions) GetRootCertificates() RootCertificateStore {
+	if x != nil {
+		return x.RootCertificates
+	}
+	return RootCertificateStore_ROOT_CERTIFICATE_STORE_UNSPECIFIED
 }
 
 // Which profile the running service came from. The daemon only stores it and
@@ -1181,9 +1251,10 @@ const file_husi_v1_daemon_proto_rawDesc = "" +
 	"\n" +
 	"PluginFile\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\fR\acontent\"?\n" +
+	"\acontent\x18\x02 \x01(\fR\acontent\"\x8b\x01\n" +
 	"\x0eServiceOptions\x12-\n" +
-	"\tlog_level\x18\x01 \x01(\x0e2\x10.daemon.LogLevelR\blogLevel\"R\n" +
+	"\tlog_level\x18\x01 \x01(\x0e2\x10.daemon.LogLevelR\blogLevel\x12J\n" +
+	"\x11root_certificates\x18\x02 \x01(\x0e2\x1d.husi.v1.RootCertificateStoreR\x10rootCertificates\"R\n" +
 	"\x0eClientMetadata\x12\x1d\n" +
 	"\n" +
 	"profile_id\x18\x01 \x01(\x03R\tprofileId\x12!\n" +
@@ -1200,7 +1271,13 @@ const file_husi_v1_daemon_proto_rawDesc = "" +
 	"\aHosting\x12\x17\n" +
 	"\x13HOSTING_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eHOSTING_DAEMON\x10\x01\x12\x13\n" +
-	"\x0fHOSTING_SESSION\x10\x022\x97\x05\n" +
+	"\x0fHOSTING_SESSION\x10\x02*\xd4\x01\n" +
+	"\x14RootCertificateStore\x12&\n" +
+	"\"ROOT_CERTIFICATE_STORE_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dROOT_CERTIFICATE_STORE_SYSTEM\x10\x01\x12*\n" +
+	"&ROOT_CERTIFICATE_STORE_SYSTEM_AND_USER\x10\x02\x12\"\n" +
+	"\x1eROOT_CERTIFICATE_STORE_MOZILLA\x10\x03\x12!\n" +
+	"\x1dROOT_CERTIFICATE_STORE_CHROME\x10\x042\x97\x05\n" +
 	"\rDaemonService\x12N\n" +
 	"\rGetDaemonInfo\x12\x1d.husi.v1.GetDaemonInfoRequest\x1a\x1e.husi.v1.GetDaemonInfoResponse\x12K\n" +
 	"\fClaimService\x12\x1c.husi.v1.ClaimServiceRequest\x1a\x1d.husi.v1.ClaimServiceResponse\x12T\n" +
@@ -1224,67 +1301,69 @@ func file_husi_v1_daemon_proto_rawDescGZIP() []byte {
 	return file_husi_v1_daemon_proto_rawDescData
 }
 
-var file_husi_v1_daemon_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_husi_v1_daemon_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_husi_v1_daemon_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_husi_v1_daemon_proto_goTypes = []any{
 	(Hosting)(0),                      // 0: husi.v1.Hosting
-	(*GetDaemonInfoRequest)(nil),      // 1: husi.v1.GetDaemonInfoRequest
-	(*GetDaemonInfoResponse)(nil),     // 2: husi.v1.GetDaemonInfoResponse
-	(*Ownership)(nil),                 // 3: husi.v1.Ownership
-	(*Capabilities)(nil),              // 4: husi.v1.Capabilities
-	(*ClaimServiceRequest)(nil),       // 5: husi.v1.ClaimServiceRequest
-	(*ClaimServiceResponse)(nil),      // 6: husi.v1.ClaimServiceResponse
-	(*TakeOverServiceRequest)(nil),    // 7: husi.v1.TakeOverServiceRequest
-	(*TakeOverServiceResponse)(nil),   // 8: husi.v1.TakeOverServiceResponse
-	(*AttachClientRequest)(nil),       // 9: husi.v1.AttachClientRequest
-	(*AttachClientResponse)(nil),      // 10: husi.v1.AttachClientResponse
-	(*StartServiceRequest)(nil),       // 11: husi.v1.StartServiceRequest
-	(*PluginProcessSpec)(nil),         // 12: husi.v1.PluginProcessSpec
-	(*PluginFile)(nil),                // 13: husi.v1.PluginFile
-	(*ServiceOptions)(nil),            // 14: husi.v1.ServiceOptions
-	(*ClientMetadata)(nil),            // 15: husi.v1.ClientMetadata
-	(*StartServiceResponse)(nil),      // 16: husi.v1.StartServiceResponse
-	(*StopServiceRequest)(nil),        // 17: husi.v1.StopServiceRequest
-	(*StopServiceResponse)(nil),       // 18: husi.v1.StopServiceResponse
-	(*GetClientMetadataRequest)(nil),  // 19: husi.v1.GetClientMetadataRequest
-	(*GetClientMetadataResponse)(nil), // 20: husi.v1.GetClientMetadataResponse
-	(*SetStartAtBootRequest)(nil),     // 21: husi.v1.SetStartAtBootRequest
-	(*SetStartAtBootResponse)(nil),    // 22: husi.v1.SetStartAtBootResponse
-	nil,                               // 23: husi.v1.PluginProcessSpec.EnvironmentEntry
-	(daemon.LogLevel)(0),              // 24: daemon.LogLevel
+	(RootCertificateStore)(0),         // 1: husi.v1.RootCertificateStore
+	(*GetDaemonInfoRequest)(nil),      // 2: husi.v1.GetDaemonInfoRequest
+	(*GetDaemonInfoResponse)(nil),     // 3: husi.v1.GetDaemonInfoResponse
+	(*Ownership)(nil),                 // 4: husi.v1.Ownership
+	(*Capabilities)(nil),              // 5: husi.v1.Capabilities
+	(*ClaimServiceRequest)(nil),       // 6: husi.v1.ClaimServiceRequest
+	(*ClaimServiceResponse)(nil),      // 7: husi.v1.ClaimServiceResponse
+	(*TakeOverServiceRequest)(nil),    // 8: husi.v1.TakeOverServiceRequest
+	(*TakeOverServiceResponse)(nil),   // 9: husi.v1.TakeOverServiceResponse
+	(*AttachClientRequest)(nil),       // 10: husi.v1.AttachClientRequest
+	(*AttachClientResponse)(nil),      // 11: husi.v1.AttachClientResponse
+	(*StartServiceRequest)(nil),       // 12: husi.v1.StartServiceRequest
+	(*PluginProcessSpec)(nil),         // 13: husi.v1.PluginProcessSpec
+	(*PluginFile)(nil),                // 14: husi.v1.PluginFile
+	(*ServiceOptions)(nil),            // 15: husi.v1.ServiceOptions
+	(*ClientMetadata)(nil),            // 16: husi.v1.ClientMetadata
+	(*StartServiceResponse)(nil),      // 17: husi.v1.StartServiceResponse
+	(*StopServiceRequest)(nil),        // 18: husi.v1.StopServiceRequest
+	(*StopServiceResponse)(nil),       // 19: husi.v1.StopServiceResponse
+	(*GetClientMetadataRequest)(nil),  // 20: husi.v1.GetClientMetadataRequest
+	(*GetClientMetadataResponse)(nil), // 21: husi.v1.GetClientMetadataResponse
+	(*SetStartAtBootRequest)(nil),     // 22: husi.v1.SetStartAtBootRequest
+	(*SetStartAtBootResponse)(nil),    // 23: husi.v1.SetStartAtBootResponse
+	nil,                               // 24: husi.v1.PluginProcessSpec.EnvironmentEntry
+	(daemon.LogLevel)(0),              // 25: daemon.LogLevel
 }
 var file_husi_v1_daemon_proto_depIdxs = []int32{
 	0,  // 0: husi.v1.GetDaemonInfoResponse.hosting:type_name -> husi.v1.Hosting
-	3,  // 1: husi.v1.GetDaemonInfoResponse.ownership:type_name -> husi.v1.Ownership
-	4,  // 2: husi.v1.GetDaemonInfoResponse.capabilities:type_name -> husi.v1.Capabilities
-	12, // 3: husi.v1.StartServiceRequest.plugins:type_name -> husi.v1.PluginProcessSpec
-	14, // 4: husi.v1.StartServiceRequest.options:type_name -> husi.v1.ServiceOptions
-	15, // 5: husi.v1.StartServiceRequest.client_metadata:type_name -> husi.v1.ClientMetadata
-	23, // 6: husi.v1.PluginProcessSpec.environment:type_name -> husi.v1.PluginProcessSpec.EnvironmentEntry
-	13, // 7: husi.v1.PluginProcessSpec.files:type_name -> husi.v1.PluginFile
-	24, // 8: husi.v1.ServiceOptions.log_level:type_name -> daemon.LogLevel
-	15, // 9: husi.v1.GetClientMetadataResponse.client_metadata:type_name -> husi.v1.ClientMetadata
-	1,  // 10: husi.v1.DaemonService.GetDaemonInfo:input_type -> husi.v1.GetDaemonInfoRequest
-	5,  // 11: husi.v1.DaemonService.ClaimService:input_type -> husi.v1.ClaimServiceRequest
-	7,  // 12: husi.v1.DaemonService.TakeOverService:input_type -> husi.v1.TakeOverServiceRequest
-	9,  // 13: husi.v1.DaemonService.AttachClient:input_type -> husi.v1.AttachClientRequest
-	11, // 14: husi.v1.DaemonService.StartService:input_type -> husi.v1.StartServiceRequest
-	17, // 15: husi.v1.DaemonService.StopService:input_type -> husi.v1.StopServiceRequest
-	19, // 16: husi.v1.DaemonService.GetClientMetadata:input_type -> husi.v1.GetClientMetadataRequest
-	21, // 17: husi.v1.DaemonService.SetStartAtBoot:input_type -> husi.v1.SetStartAtBootRequest
-	2,  // 18: husi.v1.DaemonService.GetDaemonInfo:output_type -> husi.v1.GetDaemonInfoResponse
-	6,  // 19: husi.v1.DaemonService.ClaimService:output_type -> husi.v1.ClaimServiceResponse
-	8,  // 20: husi.v1.DaemonService.TakeOverService:output_type -> husi.v1.TakeOverServiceResponse
-	10, // 21: husi.v1.DaemonService.AttachClient:output_type -> husi.v1.AttachClientResponse
-	16, // 22: husi.v1.DaemonService.StartService:output_type -> husi.v1.StartServiceResponse
-	18, // 23: husi.v1.DaemonService.StopService:output_type -> husi.v1.StopServiceResponse
-	20, // 24: husi.v1.DaemonService.GetClientMetadata:output_type -> husi.v1.GetClientMetadataResponse
-	22, // 25: husi.v1.DaemonService.SetStartAtBoot:output_type -> husi.v1.SetStartAtBootResponse
-	18, // [18:26] is the sub-list for method output_type
-	10, // [10:18] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	4,  // 1: husi.v1.GetDaemonInfoResponse.ownership:type_name -> husi.v1.Ownership
+	5,  // 2: husi.v1.GetDaemonInfoResponse.capabilities:type_name -> husi.v1.Capabilities
+	13, // 3: husi.v1.StartServiceRequest.plugins:type_name -> husi.v1.PluginProcessSpec
+	15, // 4: husi.v1.StartServiceRequest.options:type_name -> husi.v1.ServiceOptions
+	16, // 5: husi.v1.StartServiceRequest.client_metadata:type_name -> husi.v1.ClientMetadata
+	24, // 6: husi.v1.PluginProcessSpec.environment:type_name -> husi.v1.PluginProcessSpec.EnvironmentEntry
+	14, // 7: husi.v1.PluginProcessSpec.files:type_name -> husi.v1.PluginFile
+	25, // 8: husi.v1.ServiceOptions.log_level:type_name -> daemon.LogLevel
+	1,  // 9: husi.v1.ServiceOptions.root_certificates:type_name -> husi.v1.RootCertificateStore
+	16, // 10: husi.v1.GetClientMetadataResponse.client_metadata:type_name -> husi.v1.ClientMetadata
+	2,  // 11: husi.v1.DaemonService.GetDaemonInfo:input_type -> husi.v1.GetDaemonInfoRequest
+	6,  // 12: husi.v1.DaemonService.ClaimService:input_type -> husi.v1.ClaimServiceRequest
+	8,  // 13: husi.v1.DaemonService.TakeOverService:input_type -> husi.v1.TakeOverServiceRequest
+	10, // 14: husi.v1.DaemonService.AttachClient:input_type -> husi.v1.AttachClientRequest
+	12, // 15: husi.v1.DaemonService.StartService:input_type -> husi.v1.StartServiceRequest
+	18, // 16: husi.v1.DaemonService.StopService:input_type -> husi.v1.StopServiceRequest
+	20, // 17: husi.v1.DaemonService.GetClientMetadata:input_type -> husi.v1.GetClientMetadataRequest
+	22, // 18: husi.v1.DaemonService.SetStartAtBoot:input_type -> husi.v1.SetStartAtBootRequest
+	3,  // 19: husi.v1.DaemonService.GetDaemonInfo:output_type -> husi.v1.GetDaemonInfoResponse
+	7,  // 20: husi.v1.DaemonService.ClaimService:output_type -> husi.v1.ClaimServiceResponse
+	9,  // 21: husi.v1.DaemonService.TakeOverService:output_type -> husi.v1.TakeOverServiceResponse
+	11, // 22: husi.v1.DaemonService.AttachClient:output_type -> husi.v1.AttachClientResponse
+	17, // 23: husi.v1.DaemonService.StartService:output_type -> husi.v1.StartServiceResponse
+	19, // 24: husi.v1.DaemonService.StopService:output_type -> husi.v1.StopServiceResponse
+	21, // 25: husi.v1.DaemonService.GetClientMetadata:output_type -> husi.v1.GetClientMetadataResponse
+	23, // 26: husi.v1.DaemonService.SetStartAtBoot:output_type -> husi.v1.SetStartAtBootResponse
+	19, // [19:27] is the sub-list for method output_type
+	11, // [11:19] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_husi_v1_daemon_proto_init() }
@@ -1297,7 +1376,7 @@ func file_husi_v1_daemon_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_daemon_proto_rawDesc), len(file_husi_v1_daemon_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,

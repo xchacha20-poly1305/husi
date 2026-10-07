@@ -49,7 +49,7 @@ KEEP_STARTED_SERVICE_RPCS=(
 )
 
 # Husi speaks sing-box's own contract on the wire, so the core-scoped schema is
-# copied from the pinned sing-box rather than rewritten. libcore/cmd/prototrim
+# copied from the pinned sing-box rather than rewritten. libcore/cmd/internal/prototrim
 # keeps only the rpcs above and the types they reach, because the whole tree is
 # compiled into JVM classes shipped in the app. Only Java options are added:
 # they name those classes and never reach the wire, which is what keeps the copy
@@ -67,7 +67,7 @@ vendor_sing_box_proto() {
     echo "// Do not edit: husi is wire compatible with sing-box here, so every"
     echo "// package, message name, field number and type must stay identical."
     echo
-    (cd libcore && go run ./cmd/prototrim "$SING_BOX_DIR/$relative_path" "$outer_classname" "$@")
+    (cd libcore && go run ./cmd/internal/prototrim "$SING_BOX_DIR/$relative_path" "$outer_classname" "$@")
   } >"$destination"
 }
 

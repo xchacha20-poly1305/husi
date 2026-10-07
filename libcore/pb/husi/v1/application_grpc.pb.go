@@ -28,6 +28,10 @@ const (
 	ApplicationService_StandaloneSTUNTest_FullMethodName           = "/husi.v1.ApplicationService/StandaloneSTUNTest"
 	ApplicationService_StandaloneNetworkQualityTest_FullMethodName = "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
 	ApplicationService_HTTPFetch_FullMethodName                    = "/husi.v1.ApplicationService/HTTPFetch"
+	ApplicationService_Ping_FullMethodName                         = "/husi.v1.ApplicationService/Ping"
+	ApplicationService_MatchRuleSets_FullMethodName                = "/husi.v1.ApplicationService/MatchRuleSets"
+	ApplicationService_GetRootCertificates_FullMethodName          = "/husi.v1.ApplicationService/GetRootCertificates"
+	ApplicationService_ReadAndroidVPNType_FullMethodName           = "/husi.v1.ApplicationService/ReadAndroidVPNType"
 )
 
 // ApplicationServiceClient is the client API for ApplicationService service.
@@ -53,6 +57,12 @@ const (
 // code in-process through the libcore binding. It runs here so the desktop UI
 // needs no Go runtime of its own.
 //
+// Ping, MatchRuleSets and GetRootCertificates answer for the UI what it cannot
+// compute without Go: an ICMP socket (and on Android, a socket protected from
+// the VPN), sing-box's rule-set matcher, and the root bundles embedded in
+// sing-box. Rule sets are named by directory: the core already reads the same
+// directories for the rule sets of a running service.
+//
 // The standalone STUN and network quality tests are the no-running-service half
 // of sing-box's pair: with a service started the UI calls
 // daemon.StartedService, which routes through a chosen outbound; with none it
@@ -67,6 +77,11 @@ type ApplicationServiceClient interface {
 	StandaloneSTUNTest(ctx context.Context, in *StandaloneSTUNTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.STUNTestProgress], error)
 	StandaloneNetworkQualityTest(ctx context.Context, in *StandaloneNetworkQualityTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.NetworkQualityTestProgress], error)
 	HTTPFetch(ctx context.Context, in *HTTPFetchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HTTPFetchResponse], error)
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	MatchRuleSets(ctx context.Context, in *MatchRuleSetsRequest, opts ...grpc.CallOption) (*MatchRuleSetsResponse, error)
+	GetRootCertificates(ctx context.Context, in *GetRootCertificatesRequest, opts ...grpc.CallOption) (*GetRootCertificatesResponse, error)
+	// Android only; other platforms answer UNIMPLEMENTED.
+	ReadAndroidVPNType(ctx context.Context, in *ReadAndroidVPNTypeRequest, opts ...grpc.CallOption) (*ReadAndroidVPNTypeResponse, error)
 }
 
 type applicationServiceClient struct {
@@ -184,6 +199,46 @@ func (c *applicationServiceClient) HTTPFetch(ctx context.Context, in *HTTPFetchR
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ApplicationService_HTTPFetchClient = grpc.ServerStreamingClient[HTTPFetchResponse]
 
+func (c *applicationServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PingResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_Ping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) MatchRuleSets(ctx context.Context, in *MatchRuleSetsRequest, opts ...grpc.CallOption) (*MatchRuleSetsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MatchRuleSetsResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_MatchRuleSets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) GetRootCertificates(ctx context.Context, in *GetRootCertificatesRequest, opts ...grpc.CallOption) (*GetRootCertificatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRootCertificatesResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_GetRootCertificates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) ReadAndroidVPNType(ctx context.Context, in *ReadAndroidVPNTypeRequest, opts ...grpc.CallOption) (*ReadAndroidVPNTypeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReadAndroidVPNTypeResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_ReadAndroidVPNType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationServiceServer is the server API for ApplicationService service.
 // All implementations must embed UnimplementedApplicationServiceServer
 // for forward compatibility.
@@ -207,6 +262,12 @@ type ApplicationService_HTTPFetchClient = grpc.ServerStreamingClient[HTTPFetchRe
 // code in-process through the libcore binding. It runs here so the desktop UI
 // needs no Go runtime of its own.
 //
+// Ping, MatchRuleSets and GetRootCertificates answer for the UI what it cannot
+// compute without Go: an ICMP socket (and on Android, a socket protected from
+// the VPN), sing-box's rule-set matcher, and the root bundles embedded in
+// sing-box. Rule sets are named by directory: the core already reads the same
+// directories for the rule sets of a running service.
+//
 // The standalone STUN and network quality tests are the no-running-service half
 // of sing-box's pair: with a service started the UI calls
 // daemon.StartedService, which routes through a chosen outbound; with none it
@@ -221,6 +282,11 @@ type ApplicationServiceServer interface {
 	StandaloneSTUNTest(*StandaloneSTUNTestRequest, grpc.ServerStreamingServer[daemon.STUNTestProgress]) error
 	StandaloneNetworkQualityTest(*StandaloneNetworkQualityTestRequest, grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]) error
 	HTTPFetch(*HTTPFetchRequest, grpc.ServerStreamingServer[HTTPFetchResponse]) error
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	MatchRuleSets(context.Context, *MatchRuleSetsRequest) (*MatchRuleSetsResponse, error)
+	GetRootCertificates(context.Context, *GetRootCertificatesRequest) (*GetRootCertificatesResponse, error)
+	// Android only; other platforms answer UNIMPLEMENTED.
+	ReadAndroidVPNType(context.Context, *ReadAndroidVPNTypeRequest) (*ReadAndroidVPNTypeResponse, error)
 	mustEmbedUnimplementedApplicationServiceServer()
 }
 
@@ -254,6 +320,18 @@ func (UnimplementedApplicationServiceServer) StandaloneNetworkQualityTest(*Stand
 }
 func (UnimplementedApplicationServiceServer) HTTPFetch(*HTTPFetchRequest, grpc.ServerStreamingServer[HTTPFetchResponse]) error {
 	return status.Error(codes.Unimplemented, "method HTTPFetch not implemented")
+}
+func (UnimplementedApplicationServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedApplicationServiceServer) MatchRuleSets(context.Context, *MatchRuleSetsRequest) (*MatchRuleSetsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MatchRuleSets not implemented")
+}
+func (UnimplementedApplicationServiceServer) GetRootCertificates(context.Context, *GetRootCertificatesRequest) (*GetRootCertificatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRootCertificates not implemented")
+}
+func (UnimplementedApplicationServiceServer) ReadAndroidVPNType(context.Context, *ReadAndroidVPNTypeRequest) (*ReadAndroidVPNTypeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReadAndroidVPNType not implemented")
 }
 func (UnimplementedApplicationServiceServer) mustEmbedUnimplementedApplicationServiceServer() {}
 func (UnimplementedApplicationServiceServer) testEmbeddedByValue()                            {}
@@ -399,6 +477,78 @@ func _ApplicationService_HTTPFetch_Handler(srv interface{}, stream grpc.ServerSt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ApplicationService_HTTPFetchServer = grpc.ServerStreamingServer[HTTPFetchResponse]
 
+func _ApplicationService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_MatchRuleSets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MatchRuleSetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).MatchRuleSets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_MatchRuleSets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).MatchRuleSets(ctx, req.(*MatchRuleSetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_GetRootCertificates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRootCertificatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).GetRootCertificates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_GetRootCertificates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).GetRootCertificates(ctx, req.(*GetRootCertificatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_ReadAndroidVPNType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadAndroidVPNTypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).ReadAndroidVPNType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_ReadAndroidVPNType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).ReadAndroidVPNType(ctx, req.(*ReadAndroidVPNTypeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ApplicationService_ServiceDesc is the grpc.ServiceDesc for ApplicationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -425,6 +575,22 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCert",
 			Handler:    _ApplicationService_GetCert_Handler,
+		},
+		{
+			MethodName: "Ping",
+			Handler:    _ApplicationService_Ping_Handler,
+		},
+		{
+			MethodName: "MatchRuleSets",
+			Handler:    _ApplicationService_MatchRuleSets_Handler,
+		},
+		{
+			MethodName: "GetRootCertificates",
+			Handler:    _ApplicationService_GetRootCertificates_Handler,
+		},
+		{
+			MethodName: "ReadAndroidVPNType",
+			Handler:    _ApplicationService_ReadAndroidVPNType_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

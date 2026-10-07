@@ -75,7 +75,7 @@ import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.unpackArchive
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_import_file
@@ -196,7 +196,7 @@ internal fun AssetsScreen(
                 return@launch
             }
             try {
-                Libcore.tryUnpack(tempImportFile.absolutePath, geoDir.absolutePath)
+                unpackArchive(tempImportFile, geoDir)
             } catch (e: Exception) {
                 Logs.e(e)
                 return@launch
