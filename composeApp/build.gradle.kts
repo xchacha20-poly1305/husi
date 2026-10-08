@@ -281,6 +281,13 @@ val generateDesktopProguardMappingConfig = tasks.register("generateDesktopProgua
     }
 }
 
+val collectDesktopLibraryProguardRules =
+    tasks.register<CollectLibraryProguardRulesTask>("collectDesktopLibraryProguardRules") {
+        description = "Merges the ProGuard rules that desktop dependencies ship in their jars."
+        runtimeClasspath.from(configurations.named("desktopRuntimeClasspath"))
+        outputFile.set(layout.buildDirectory.file("compose/proguard/library-rules.pro"))
+    }
+
 buildkonfig {
     packageName = "fr.husi"
     exposeObjectWithName = "BuildConfig"
@@ -476,7 +483,11 @@ compose.desktop {
         buildTypes.release.proguard {
             // Not real obfuscate, just for output mapping.
             obfuscate.set(true)
-            configurationFiles.from(project.file("r8-desktop.pro"), generateDesktopProguardMappingConfig)
+            configurationFiles.from(
+                project.file("r8-desktop.pro"),
+                collectDesktopLibraryProguardRules,
+                generateDesktopProguardMappingConfig,
+            )
         }
     }
 }
