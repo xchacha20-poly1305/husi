@@ -10,22 +10,29 @@ for argument in "$@"; do
 done
 
 caller_pwd="$PWD"
+
+# Plain prefixing instead of `realpath -m`: the BSD realpath on macOS has no -m.
+absolute_path() {
+  if [[ "$1" == /* ]]; then
+    echo "$1"
+  else
+    echo "$caller_pwd/$1"
+  fi
+}
+
 args=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
   --darwinsdk)
     value="${2:-}"
-    if [ -n "$value" ] && [[ "$value" != /* ]]; then
-      value="$(realpath -m "$caller_pwd/$value")"
+    if [ -n "$value" ]; then
+      value="$(absolute_path "$value")"
     fi
     args+=("$1" "$value")
     shift 2
     ;;
   --darwinsdk=*)
-    value="${1#*=}"
-    if [[ "$value" != /* ]]; then
-      value="$(realpath -m "$caller_pwd/$value")"
-    fi
+    value="$(absolute_path "${1#*=}")"
     args+=("${1%%=*}=$value")
     shift
     ;;
@@ -37,4 +44,5 @@ while [ "$#" -gt 0 ]; do
 done
 
 cd libcore
-./build.sh "${args[@]}"
+# The `+` guard keeps bash 3.2 (macOS) from rejecting an empty array under `set -u`.
+./build.sh ${args[@]+"${args[@]}"}

@@ -4,14 +4,15 @@ set -euo pipefail
 
 EXEC=""
 TARGET="buildScript"
-PARAMS=()
+consumed_count=0
+script_argument_index=0
 
 for e in "$@"; do
   TARGET="$TARGET/$e"
-  PARAMS+=("$e")
+  consumed_count=$((consumed_count + 1))
   if [ -x "${TARGET}.sh" ]; then
     EXEC="${TARGET}.sh"
-    PARAMS=()
+    script_argument_index=$consumed_count
   fi
 done
 
@@ -21,4 +22,7 @@ if [ -z "$EXEC" ]; then
 fi
 
 echo ">> $EXEC"
-exec "$EXEC" "${PARAMS[@]}"
+# Forward the positional parameters instead of copying them into an array:
+# macOS ships bash 3.2, where an empty "${array[@]}" fails under `set -u`.
+shift "$script_argument_index"
+exec "$EXEC" "$@"
