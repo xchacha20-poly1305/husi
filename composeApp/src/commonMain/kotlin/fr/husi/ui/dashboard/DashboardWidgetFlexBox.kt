@@ -31,9 +31,16 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.IntrinsicMeasurable
+import androidx.compose.ui.layout.IntrinsicMeasureScope
+import androidx.compose.ui.layout.LayoutModifier
 import androidx.compose.ui.layout.LookaheadScope
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.lookaheadScopeCoordinates
 import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
@@ -153,6 +160,7 @@ internal fun DashboardWidgetFlexBox(
                             grow(1f)
                             shrink(1f)
                         }
+                        .then(ShrinkBelowContentWidth)
                         .onPlaced { coordinates ->
                             with(lookaheadScope) {
                                 val root = lookaheadScopeCoordinates(coordinates)
@@ -173,6 +181,28 @@ internal fun DashboardWidgetFlexBox(
             }
         }
     }
+}
+
+/**
+ * FlexBox never shrinks an item below its min intrinsic width, so an unbreakable word such as an
+ * IPv6 address would push the widget past the screen edge. Reporting zero lets the widget take
+ * the width the row offers and wrap its content inside it.
+ */
+private object ShrinkBelowContentWidth : LayoutModifier {
+    override fun MeasureScope.measure(
+        measurable: Measurable,
+        constraints: Constraints,
+    ): MeasureResult {
+        val placeable = measurable.measure(constraints)
+        return layout(placeable.width, placeable.height) {
+            placeable.place(0, 0)
+        }
+    }
+
+    override fun IntrinsicMeasureScope.minIntrinsicWidth(
+        measurable: IntrinsicMeasurable,
+        height: Int,
+    ): Int = 0
 }
 
 private fun List<DashboardWidget>.movedTowards(

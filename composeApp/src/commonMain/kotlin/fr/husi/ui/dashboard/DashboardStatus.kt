@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -522,10 +523,11 @@ private fun SourceAddressRow(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = label,
+            softWrap = false,
             style = MaterialTheme.typography.bodySmall,
         )
         val text = when {
@@ -533,11 +535,15 @@ private fun SourceAddressRow(
             visible -> address
             else -> maskNetworkAddress(address)
         }
+        // Takes the remaining width so a long IPv6 address wraps instead of squeezing the label.
         Text(
             text = text,
-            modifier = Modifier.clickable(enabled = address != null) {
-                onCopy(address ?: return@clickable)
-            },
+            modifier = Modifier
+                .weight(1f)
+                .clickable(enabled = address != null) {
+                    onCopy(address ?: return@clickable)
+                },
+            textAlign = TextAlign.End,
             fontFamily = FontFamily.Monospace,
             style = MaterialTheme.typography.bodySmallEmphasized,
         )
