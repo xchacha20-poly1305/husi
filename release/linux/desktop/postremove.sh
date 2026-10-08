@@ -25,3 +25,6 @@ rm -f /etc/systemd/system/husi-daemon.service.d/10-root-fallback.conf
 rmdir /etc/systemd/system/husi-daemon.service.d 2>/dev/null || true
 systemctl daemon-reload 2>/dev/null || true
 rm -f /run/husi/api.sock
+if command -v semodule >/dev/null 2>&1; then
+    semodule -X 200 -r husi >/dev/null 2>&1 || true
+fi
