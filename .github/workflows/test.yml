@@ -47,7 +47,7 @@ concurrency:
 
 jobs:
   shellcheck:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7
@@ -59,7 +59,7 @@ jobs:
           find buildScript release -name '*.sh' -exec shellcheck -x {} +
 
   lint-go:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7
@@ -69,17 +69,13 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
           cache-dependency-path: 'libcore/go.sum'
-      # The Windows pass needs a cgo cross compiler to typecheck the Win32 files.
-      - uses: ./.github/actions/setup-zig
-        with:
-          cache-name: lint-go
       - name: Install golangci-lint
         run: make lint_go_install
       - name: Lint libcore
         run: make lint_go
 
   test:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7

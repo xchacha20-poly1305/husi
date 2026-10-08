@@ -52,7 +52,7 @@ func ServiceInstall(workingDir string) error {
 	// A package-managed binary already lives in a protected directory and is
 	// used in place; anything else is copied there. Stop → replace → restart below.
 	if !useInPlace {
-		err = installBinary(sourceBin, installBin, func() error {
+		err = installCore(sourceBin, installBin, func() error {
 			return runSystemctl("stop", serviceUnitName)
 		})
 		if err != nil {
@@ -170,7 +170,7 @@ func ServiceUninstall(workingDir string, purge bool) error {
 	// Only the portable copy is ours to delete. A package-managed binary
 	// (deb/rpm/pacman) stay in place for the package manager, and so does the
 	// polkit action they ship alongside it.
-	if err := removeBinary(defaultInstallBin); err != nil {
+	if err := removeCore(defaultInstallBin); err != nil {
 		return err
 	}
 	if packageManaged, err := runsFromPackageDirectory(); err != nil {

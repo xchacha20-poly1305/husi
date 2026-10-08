@@ -20,14 +20,24 @@ func resolveExecutablePath(executablePath string) (string, error) {
 	return absolutePath, nil
 }
 
-// installBinary copies the running husi-core to destination, calling stop first
-// so the old binary is not in use while it is replaced.
-func installBinary(source, destination string, stop func() error) error {
+// installCore copies the running husi-core to destination, with the shared
+// libraries it loads from its own directory beside it. stop is called first so
+// the old copy is not in use while it is replaced. The libraries land before the
+// binary, so the binary never sits there without them.
+func installCore(source, destination string, stop func() error) error {
 	if source == "" || destination == "" {
 		return E.New("install core binary: missing source or destination")
 	}
 	if stop != nil {
 		_ = stop()
+	}
+	sourceDir := filepath.Dir(source)
+	destinationDir := filepath.Dir(destination)
+	for _, library := range coreLibraries {
+		err := copyFileAtomic(filepath.Join(sourceDir, library), filepath.Join(destinationDir, library), 0o644)
+		if err != nil {
+			return E.Cause(err, "install ", library)
+		}
 	}
 	err := copyFileAtomic(source, destination, 0o755)
 	if err != nil {
@@ -36,10 +46,25 @@ func installBinary(source, destination string, stop func() error) error {
 	return nil
 }
 
-func removeBinary(path string) error {
+func removeCore(path string) error {
+	err := removeFile(path)
+	if err != nil {
+		return E.Cause(err, "remove core binary")
+	}
+	directory := filepath.Dir(path)
+	for _, library := range coreLibraries {
+		err = removeFile(filepath.Join(directory, library))
+		if err != nil {
+			return E.Cause(err, "remove ", library)
+		}
+	}
+	return nil
+}
+
+func removeFile(path string) error {
 	err := os.Remove(path)
 	if err != nil && !os.IsNotExist(err) {
-		return E.Cause(err, "remove core binary")
+		return err
 	}
 	return nil
 }

@@ -101,6 +101,7 @@ Section "$(InstallSectionName)"
     SetOutPath "$INSTDIR"
     File "/oname=${APP_NAME}.exe" "__HUSI_LAUNCHER_FILE__"
     File "/oname=husi-core.exe" "__HUSI_CORE_FILE__"
+    File "/oname=__HUSI_CORE_LIBRARY_NAME__" "__HUSI_CORE_LIBRARY_FILE__"
     ; Releases before husi-core became a single binary shipped its Go core as this DLL.
     Delete "$INSTDIR\husicore.dll"
     File "/oname=LICENSE" "__HUSI_LICENSE_FILE__"
@@ -246,6 +247,7 @@ Section "un.$(UninstallSectionName)"
     ; Remove files
     Delete "$INSTDIR\${APP_NAME}.exe"
     Delete "$INSTDIR\husi-core.exe"
+    Delete "$INSTDIR\__HUSI_CORE_LIBRARY_NAME__"
     Delete "$INSTDIR\husicore.dll" ; left by releases before husi-core became a single binary
     Delete "$INSTDIR\LICENSE"
     Delete "$INSTDIR\desktop-java-opts.conf.template"

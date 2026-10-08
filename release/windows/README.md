@@ -32,8 +32,9 @@ Linux or macOS, with `osslsigncode`:
 osslsigncode verify -CAfile release/windows/husi-signing-cert.pem husi-core.exe
 ```
 
-Every signed payload in a release — the launcher, `husi-core.exe` and the installer — carries this
-same certificate.
+Every signed payload in a release — the launcher, `husi-core.exe`, the `libcronet.dll` beside it and
+the installer — carries this same certificate. `libcronet.dll` is the prebuilt Cronet that SagerNet's cronet-go
+publishes unsigned; the signature only says this project shipped it.
 
 ## What this does and does not prove
 

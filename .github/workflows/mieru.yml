@@ -15,13 +15,14 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: ./.github/actions/load-build-versions
+      - uses: ./.github/actions/setup-ndk
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -53,7 +54,7 @@ jobs:
   publish:
     needs: build
     if: startsWith(github.ref, 'refs/tags/plugin-mieru-')
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
         with:

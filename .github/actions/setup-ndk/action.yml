@@ -1,0 +1,20 @@
+name: Setup Android NDK
+description: >
+  Install the NDK pinned by ANDROID_NDK_VERSION into $ANDROID_HOME/ndk/, the
+  first place buildScript/init/env_ndk.sh looks. The runner image ships older
+  NDKs only, and its ANDROID_NDK_HOME points at one of them, which env_ndk.sh
+  would otherwise fall back to. Run load-build-versions first.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        ndk_dir="$ANDROID_HOME/ndk/$ANDROID_NDK_VERSION"
+        if [ -f "$ndk_dir/source.properties" ]; then
+          echo "NDK $ANDROID_NDK_VERSION is already installed."
+          exit 0
+        fi
+        sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+        yes | "$sdkmanager" --licenses >/dev/null || true
+        "$sdkmanager" --install "ndk;$ANDROID_NDK_VERSION" >/dev/null
+        test -f "$ndk_dir/source.properties"

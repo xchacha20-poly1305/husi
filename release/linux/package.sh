@@ -27,6 +27,8 @@ URL_SCHEME_MIME_TYPES_PLACEHOLDER="__HUSI_URL_SCHEME_MIME_TYPES__"
 RELEASE_DATE_PLACEHOLDER="__HUSI_RELEASE_DATE__"
 CORE_PATH_PLACEHOLDER="__HUSI_CORE_PATH__"
 CORE_PATH_REGEX_PLACEHOLDER="__HUSI_CORE_PATH_REGEX__"
+# husi-core loads Cronet from its own directory, so the library travels with it.
+CORE_LIBRARY_NAME="libcronet.so"
 TAG_NAME=""
 TAG_EPOCH=""
 
@@ -54,6 +56,7 @@ Defaults:
   --input-jar  newest matching jar under $JAR_DIR_DEFAULT
   --launcher-bin  $ROOT_DIR/launcher/zig-out/bin/launcher-linux-<x86_64|aarch64>
   --core-bin   $ROOT_DIR/libcore/build/linux_<amd64|arm64>/husi-core
+               ($CORE_LIBRARY_NAME is taken from the same directory)
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
   --jdk-jmods  \$JAVA_HOME/jmods, or the jmods beside jlink (env: JLINK_JMODS).
@@ -417,6 +420,15 @@ resolve_core_bin() {
     exit 1
 }
 
+resolve_core_library() {
+    INPUT_CORE_LIBRARY="$(dirname "$INPUT_CORE_BIN")/$CORE_LIBRARY_NAME"
+    if [[ ! -f "$INPUT_CORE_LIBRARY" ]]; then
+        error "$CORE_LIBRARY_NAME not found beside the core host binary: $INPUT_CORE_LIBRARY"
+        error "make core_desktop puts it there."
+        exit 1
+    fi
+}
+
 
 prepare_rootfs() {
     local rootfs="$1"
@@ -452,6 +464,8 @@ prepare_rootfs() {
     chmod 755 "$main_launcher"
     cp "$INPUT_CORE_BIN" "$bin_dir/husi-core"
     chmod 755 "$bin_dir/husi-core"
+    cp "$INPUT_CORE_LIBRARY" "$bin_dir/$CORE_LIBRARY_NAME"
+    chmod 644 "$bin_dir/$CORE_LIBRARY_NAME"
 
     cp "$java_opts_template" "$bin_dir/desktop-java-opts.conf.template"
     cp "$app_args_template" "$bin_dir/desktop-app-args.conf.template"
@@ -1063,6 +1077,7 @@ TARGET_ARCH=""
 INPUT_JAR=""
 INPUT_LAUNCHER_BIN=""
 INPUT_CORE_BIN=""
+INPUT_CORE_LIBRARY=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 PKGREL="1"
 CHECK_TOOLS=0
@@ -1163,6 +1178,7 @@ fi
 resolve_input_jar "$INPUT_JAR"
 resolve_launcher_bin "$INPUT_LAUNCHER_BIN"
 resolve_core_bin "$INPUT_CORE_BIN"
+resolve_core_library
 mkdir -p "$OUTPUT_DIR"
 
 work_dir="$(mktemp -d)"

@@ -26,12 +26,6 @@ LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TA
 # never gets to split it — commas have to become spaces here instead.
 COMMA = ,
 
-# glibc floor of the husi-core binary, exported to libcore/build.sh. Prebuilt
-# Cronet needs nothing newer than 2.17. A newer target lets zig's libc++ pull in
-# statx/copy_file_range/getrandom and binds pow to its 2.29 symbol version,
-# raising the floor with no functional gain.
-export LINUX_GLIBC_VERSION = 2.17
-
 .PHONY: libcore_android core_desktop core_desktop_common aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets icon desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_jbr desktop_package_windows_all desktop_uberjar launcher lint_go proto proto_install test_go test_zig plugin generate_option lint_go_linux lint_go_android lint_go_windows lint_go_install fmt_go fmt_go_install
 
 build: libcore_android assets apk
@@ -160,17 +154,15 @@ proto_install:
 
 lint_go: lint_go_linux lint_go_android lint_go_windows lint_go_darwin
 
+# husi-core ships without cgo on Linux and Windows, so lint that configuration.
 lint_go_linux:
-	cd libcore/ && GOOS=linux golangci-lint run ./...
+	cd libcore/ && GOOS=linux CGO_ENABLED=0 golangci-lint run ./...
 
 lint_go_android:
 	cd libcore/ && GOOS=android GOARCH=arm64 golangci-lint run ./...
 
 lint_go_windows:
-	cd libcore/ && GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
-		CC="zig cc -target x86_64-windows-gnu" \
-		CXX="zig c++ -target x86_64-windows-gnu" \
-		golangci-lint run ./...
+	cd libcore/ && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 golangci-lint run ./...
 
 lint_go_darwin:
 	cd libcore/ && GOOS=darwin GOARCH=arm64 golangci-lint run ./...

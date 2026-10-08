@@ -88,7 +88,7 @@ func ServiceInstall(workingDir string) error {
 		}
 	}
 
-	if err := installBinary(sourceBin, installBin, nil); err != nil {
+	if err := installCore(sourceBin, installBin, nil); err != nil {
 		if service != nil {
 			service.Close()
 		}
@@ -184,7 +184,7 @@ func ServiceUninstall(workingDir string, purge bool) error {
 	}
 
 	installBin := filepath.Join(os.Getenv("ProgramFiles"), "husi", "husi-core.exe")
-	_ = removeBinary(installBin)
+	_ = removeCore(installBin)
 	_ = os.Remove(filepath.Dir(installBin))
 
 	if purge {

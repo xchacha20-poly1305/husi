@@ -98,10 +98,10 @@ sign_pe() {
     log "Signed: $(basename "$path")"
 }
 
-# sign_payloads stages the launcher and husi-core into work_dir, signs
-# the copies and repoints the INPUT_* variables at them. Both the zip rootfs and
-# the NSIS template read those variables, so signing them once covers both
-# formats. The originals under libcore/build and launcher/zig-out are left
+# sign_payloads stages the launcher, husi-core and its Cronet library into
+# work_dir, signs the copies and repoints the INPUT_* variables at them. Both the
+# zip rootfs and the NSIS template read those variables, so signing them once
+# covers both formats. The originals under libcore/build and launcher/zig-out are left
 # alone: signing build outputs in place would re-sign them on the next run.
 sign_payloads() {
     local work_dir="$1"
@@ -113,7 +113,7 @@ sign_payloads() {
     fi
 
     mkdir -p "$staging"
-    for variable in INPUT_LAUNCHER_BIN INPUT_CORE_BIN; do
+    for variable in INPUT_LAUNCHER_BIN INPUT_CORE_BIN INPUT_CORE_LIBRARY; do
         path="$staging/$(basename "${!variable}")"
         cp "${!variable}" "$path"
         sign_pe "$path"

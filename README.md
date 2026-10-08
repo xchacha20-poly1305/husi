@@ -65,8 +65,9 @@ For desktop, build the `husi-core` binary for your host platform:
 make core_desktop
 ```
 
-This will generate `libcore/build/<host-platform>_<host-arch>/husi-core`. The desktop app runs the core
-as this separate process; the JVM side loads no Go code.
+This will generate `libcore/build/<host-platform>_<host-arch>/husi-core`, plus `libcronet.so` or
+`libcronet.dll` beside it on Linux and Windows. The desktop app runs the core as this separate process;
+the JVM side loads no Go code.
 
 Or for specific targets:
 
@@ -91,9 +92,11 @@ sqlite-bundled has no binary for them, so the app cannot open its database there
 [issuetracker 495864182](https://issuetracker.google.com/issues/495864182) for `osx_x64` and
 [issuetracker 426464784](https://issuetracker.google.com/issues/426464784) for `windows_arm64`.
 
-Linux desktop targets use `zig cc` / `zig c++` with a glibc 2.17 target (`LINUX_GLIBC_VERSION` in the Makefile) for the `with_naive_outbound` build; the
-required prebuilt Cronet library is downloaded through Go modules, so no `cronet-go` checkout is needed. Darwin
-targets use Xcode on macOS, or Zig plus an explicit macOS SDK path via `DARWIN_SDK` or `--darwinsdk` on other hosts.
+Linux and Windows targets build without cgo, so they need no C toolchain: `husi-core` loads the
+prebuilt Cronet shared library (glibc 2.17 or newer on Linux) from its own directory at runtime, and
+`make core_desktop` copies it there from the Go module cache. Keep the two files together. Darwin
+targets link Cronet through cgo: they use Xcode on macOS, or Zig plus an explicit macOS SDK path via
+`DARWIN_SDK` or `--darwinsdk` on other hosts.
 
 Desktop Gradle builds pick the target from the current `os.name` and `os.arch`. You can override it explicitly:
 

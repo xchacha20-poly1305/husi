@@ -41,7 +41,7 @@ func ServiceInstall(workingDir string) error {
 	if err != nil {
 		return err
 	}
-	err = installBinary(sourceBin, darwinInstallBin, nil)
+	err = installCore(sourceBin, darwinInstallBin, nil)
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func ServiceUninstall(workingDir string, purge bool) error {
 	}
 	_ = exec.Command("launchctl", "bootout", "system/"+darwinServiceLabel).Run()
 	_ = os.Remove(darwinPlistPath)
-	if err := removeBinary(darwinInstallBin); err != nil {
+	if err := removeCore(darwinInstallBin); err != nil {
 		return err
 	}
 	_ = os.Remove(filepath.Dir(darwinInstallBin))

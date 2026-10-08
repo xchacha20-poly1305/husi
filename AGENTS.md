@@ -34,14 +34,14 @@ Common targets:
 | `make test_gradle` | `./gradlew :composeApp:allTests` (JUnit5) |
 | `make test_go` | `cd libcore && go test -v -count=1 -tags with_quic,badlinkname -ldflags=-checklinkname=0 ./...` |
 | `make test_zig` | zig build test in `launcher/` |
-| `make lint_go` | golangci-lint for linux + android + windows |
+| `make lint_go` | golangci-lint for linux + android + windows + darwin |
 | `make fmt_go` | golangci-lint fmt |
 
 Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`.
 Run a single Go test: `cd libcore && go test -tags with_quic,badlinkname -ldflags=-checklinkname=0 -run TestName ./pkg/...`.
 Install Go tooling: `make lint_go_install`.
 
-`lint_go` runs one pass per shipped GOOS (`lint_go_linux`, `lint_go_android`, `lint_go_windows`); `lint_go_windows` needs `zig` on PATH as the cgo cross compiler.
+`lint_go` runs one pass per shipped GOOS (`lint_go_linux`, `lint_go_android`, `lint_go_windows`, `lint_go_darwin`); the Linux and Windows passes run with `CGO_ENABLED=0`, as those builds ship.
 
 `BUILD_PLUGIN=none` (what the Makefile sets for app-only builds) excludes all plugin modules to speed up Gradle.
 
@@ -102,5 +102,7 @@ A `FossRelease` build with no keystore calls `exitProcess(0)` in `setupAppCommon
 
 ### Cross-compiling husi-core
 
-For Darwin targets on non-Darwin hosts pass `DARWIN_SDK=/path/to/MacOSX.sdk`.
+Linux and Windows `husi-core` builds use no cgo: Cronet is loaded through purego from `libcronet.so` / `libcronet.dll`, which `build.sh` copies next to the binary. Anything that moves `husi-core` — packaging, `daemonhost`'s `service install` copy — must move that library with it (`coreLibraries` in `daemonhost`).
+
+Darwin keeps cgo (Cronet has no purego build there, and sing-box reads the system certificate store and DNS configuration through cgo). It builds natively on macOS with Xcode; on non-Darwin hosts it needs `zig` and `DARWIN_SDK=/path/to/MacOSX.sdk`.
 

@@ -83,4 +83,6 @@ install_selinux_module() {
 
 install_selinux_module
 
-systemctl daemon-reload && systemctl enable "$UNIT" && systemctl restart "$UNIT" || true
+if systemctl daemon-reload && systemctl enable "$UNIT"; then
+    systemctl restart "$UNIT" || true
+fi
