@@ -904,7 +904,7 @@ internal class CoreHostController(
 
     companion object {
 
-        const val API_VERSION = 5
+        const val API_VERSION = 4
 
         private val HOST_READY_TIMEOUT = 15.seconds
 
