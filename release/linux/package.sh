@@ -26,6 +26,7 @@ MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
 URL_SCHEME_MIME_TYPES_PLACEHOLDER="__HUSI_URL_SCHEME_MIME_TYPES__"
 RELEASE_DATE_PLACEHOLDER="__HUSI_RELEASE_DATE__"
 CORE_PATH_PLACEHOLDER="__HUSI_CORE_PATH__"
+CORE_PATH_REGEX_PLACEHOLDER="__HUSI_CORE_PATH_REGEX__"
 TAG_NAME=""
 TAG_EPOCH=""
 
@@ -193,6 +194,8 @@ load_metadata() {
     METAINFO_RELATIVE_PATH="usr/share/metainfo/$PACKAGE_NAME.metainfo.xml"
     POLKIT_ACTION_RELATIVE_PATH="usr/share/polkit-1/actions/$PACKAGE_NAME.policy"
     DAEMON_POLKIT_ACTION_RELATIVE_PATH="usr/share/polkit-1/actions/husi-daemon.policy"
+    SELINUX_MODULE_RELATIVE_PATH="usr/share/selinux/packages/husi.cil"
+    CORE_INSTALL_PATH="/usr/lib/$PACKAGE_NAME/bin/husi-core"
 }
 
 resolve_tag_epoch() {
@@ -428,20 +431,22 @@ prepare_rootfs() {
     local polkit_action_template="$ROOT_DIR/release/linux/desktop/husi.policy"
     local daemon_polkit_action_source="$ROOT_DIR/libcore/daemonhost/husi-daemon.policy"
     local main_launcher="$bin_dir/$PACKAGE_NAME"
-    local core_path="/usr/lib/$PACKAGE_NAME/bin/husi-core"
+    local selinux_module_template="$ROOT_DIR/release/linux/desktop/husi.cil"
+    local core_path="$CORE_INSTALL_PATH"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
     local metainfo_path="$rootfs/$METAINFO_RELATIVE_PATH"
     local daemon_unit_path="$rootfs/etc/systemd/system/husi-daemon.service"
     local polkit_action_path="$rootfs/$POLKIT_ACTION_RELATIVE_PATH"
     local daemon_polkit_action_path="$rootfs/$DAEMON_POLKIT_ACTION_RELATIVE_PATH"
+    local selinux_module_path="$rootfs/$SELINUX_MODULE_RELATIVE_PATH"
     local startup_wm_class="${PACKAGE_NAME//./-}-DesktopMainKt"
 
-    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$metainfo_template" || ! -f "$daemon_unit_template" || ! -f "$polkit_action_template" || ! -f "$daemon_polkit_action_source" ]]; then
+    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" || ! -f "$metainfo_template" || ! -f "$daemon_unit_template" || ! -f "$polkit_action_template" || ! -f "$daemon_polkit_action_source" || ! -f "$selinux_module_template" ]]; then
         error "Missing launcher templates under release/linux/desktop"
         exit 1
     fi
 
-    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/metainfo" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system" "$rootfs/usr/lib/sysusers.d" "$(dirname "$polkit_action_path")"
+    mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/share/applications" "$rootfs/usr/share/metainfo" "$rootfs/usr/share/pixmaps" "$rootfs/etc/systemd/system" "$rootfs/usr/lib/sysusers.d" "$(dirname "$polkit_action_path")" "$(dirname "$selinux_module_path")"
     cp "$INPUT_JAR" "$app_dir/$PACKAGE_NAME.jar"
     cp "$INPUT_LAUNCHER_BIN" "$main_launcher"
     chmod 755 "$main_launcher"
@@ -519,6 +524,13 @@ prepare_rootfs() {
     # distributions whose package manager does not pick sysusers.d up itself.
     cp "$ROOT_DIR/release/linux/desktop/husi-sysusers.conf" "$rootfs/usr/lib/sysusers.d/husi.conf"
 
+    # Packages only, like the unit: postinstall.sh loads it on SELinux systems.
+    # filecon takes a regular expression, so the dots in the path are escaped.
+    render_template \
+        "$selinux_module_template" \
+        "$selinux_module_path" \
+        "$CORE_PATH_REGEX_PLACEHOLDER" "${core_path//./\\.}"
+
     local icon_source="$ROOT_DIR/release/linux/desktop/icon.png"
     if [[ -f "$icon_source" ]]; then
         cp "$icon_source" "$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
@@ -528,10 +540,14 @@ prepare_rootfs() {
 prepare_script_templates() {
     local work_dir="$1"
 
-    # Scripts manage the fixed unit name husi-daemon.service — no placeholders.
+    # Scripts manage the fixed unit name husi-daemon.service. postinstall.sh
+    # only needs the core path, to relabel it for the SELinux module.
     # One postinstall.sh for every install and upgrade hook, one postremove.sh
     # for deb/rpm/pacman; argument handling is packager-aware.
-    cp "$ROOT_DIR/release/linux/desktop/postinstall.sh" "$work_dir/postinstall.sh"
+    render_template \
+        "$ROOT_DIR/release/linux/desktop/postinstall.sh" \
+        "$work_dir/postinstall.sh" \
+        "$CORE_PATH_PLACEHOLDER" "$CORE_INSTALL_PATH"
     cp "$ROOT_DIR/release/linux/desktop/postremove.sh" "$work_dir/postremove.sh"
 
     # The tarball carries its own user-level installer: no package manager and
@@ -603,6 +619,7 @@ EOF
     write_content_entry "$config_file" "$rootfs/usr/lib/sysusers.d/husi.conf" "/usr/lib/sysusers.d/husi.conf" ""
     write_content_entry "$config_file" "$rootfs/$POLKIT_ACTION_RELATIVE_PATH" "/$POLKIT_ACTION_RELATIVE_PATH" ""
     write_content_entry "$config_file" "$rootfs/$DAEMON_POLKIT_ACTION_RELATIVE_PATH" "/$DAEMON_POLKIT_ACTION_RELATIVE_PATH" ""
+    write_content_entry "$config_file" "$rootfs/$SELINUX_MODULE_RELATIVE_PATH" "/$SELINUX_MODULE_RELATIVE_PATH" ""
 
     local icon_path="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     if [[ -f "$icon_path" ]]; then

@@ -1,0 +1,5 @@
+; Labels the packaged husi-core bin_t. systemd starting a bin_t executable
+; moves the daemon into unconfined_service_t; a lib_t one leaves it in
+; init_t, which may not open /dev/net/tun. CIL needs no compiler, so
+; semodule installs this file as is.
+(filecon "__HUSI_CORE_PATH_REGEX__" file (system_u object_r bin_t ((s0) (s0))))
