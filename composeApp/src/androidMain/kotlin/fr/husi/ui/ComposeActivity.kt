@@ -3,6 +3,7 @@ package fr.husi.ui
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
@@ -31,6 +32,25 @@ open class ComposeActivity : PrivacyModeActivity() {
             // https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1576
             insetController.isAppearanceLightNavigationBars = !usingNightMode
             insetController.isAppearanceLightStatusBars = !usingNightMode
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            keepTouchModeFocusOutOfCompose()
+        }
+    }
+
+    /**
+     * Before Android P, the window hands focus to its first focusable view even in touch mode: on
+     * the first layout, and again whenever a view clears its focus. Compose forwards that focus to
+     * its first focusable node, such as a search field, which then opens the keyboard or expands
+     * the search bar on its own. Letting the content frame hold that focus keeps Compose out of it.
+     *
+     * https://issuetracker.google.com/issues/318968220
+     * https://issuetracker.google.com/issues/433382598
+     */
+    private fun keepTouchModeFocusOutOfCompose() {
+        findViewById<ViewGroup>(android.R.id.content).also {
+            it.descendantFocusability = ViewGroup.FOCUS_BEFORE_DESCENDANTS
+            it.isFocusableInTouchMode = true
         }
     }
 }
