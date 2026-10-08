@@ -43,6 +43,7 @@ androidxTv = "1.1.0"
 nucleus = "2.5.18"
 composeNativeTray = "2.1.7"
 agp = "9.4.1"
+desugarJdkLibs = "2.1.5"
 kotlinGradlePlugin = "2.4.20"
 haze = "2.0.1"
 
@@ -100,6 +101,7 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
 agp-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+android-desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
 jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
