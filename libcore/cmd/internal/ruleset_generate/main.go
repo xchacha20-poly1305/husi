@@ -31,8 +31,8 @@ var (
 	geositeDate = flag.String("geosite", "", "domain-list-community ref")
 	geoipDate   = flag.String("geoip", "", "geoip date")
 
-	geositeOutput = flag.String("so", "geosite.tar.gz", "geosite tar.gz output")
-	geoipOutput   = flag.String("io", "geoip.tar.gz", "geoip tar.gz output")
+	geositeOutput = flag.String("so", "geosite.tgz", "geosite tar.gz output")
+	geoipOutput   = flag.String("io", "geoip.tgz", "geoip tar.gz output")
 )
 
 const (

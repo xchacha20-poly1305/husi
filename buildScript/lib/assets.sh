@@ -12,12 +12,12 @@ mkdir -p "$DIR"
 echo "GEOIP: $GEOIP_VERSION"
 echo "GEOSITE: $GEOSITE_VERSION"
 pushd "$GENERATER"
-go run . -geoip="$GEOIP_VERSION" -geosite="$GEOSITE_VERSION" -so="geosite.tar.gz" -io="geoip.tar.gz"
+go run . -geoip="$GEOIP_VERSION" -geosite="$GEOSITE_VERSION" -so="geosite.tgz" -io="geoip.tgz"
 popd
 
-cp "$GENERATER/geoip.tar.gz" "$DIR"
-cp "$GENERATER/geosite.tar.gz" "$DIR"
-sha256sum "$DIR"/*.tar.gz
+cp "$GENERATER/geoip.tgz" "$DIR"
+cp "$GENERATER/geosite.tgz" "$DIR"
+sha256sum "$DIR"/*.tgz
 
 cd "$DIR"
 echo -n "$GEOIP_VERSION" >geoip.version.txt

@@ -11,6 +11,12 @@ private const val BUNDLED_RULE_SET_BASE = "composeResources/fr.husi.resources/fi
 private val RULE_SET_NAMES = listOf("geoip", "geosite")
 private const val VERSION_SUFFIX = ".version.txt"
 
+/**
+ * Not ".tar.gz": AGP gunzips "*.gz" assets and strips the suffix when packaging the APK,
+ * so a ".tar.gz" name would not exist on Android.
+ */
+private const val ARCHIVE_SUFFIX = ".tgz"
+
 /** Where older versions staged the bundled archives before Go unpacked them. */
 private const val LEGACY_STAGING_DIR_NAME = "sing-box"
 
@@ -44,7 +50,11 @@ private fun installBundledRuleSet(name: String, externalAssetsDir: File, geoDir:
     val installedVersion = versionFile.takeIf { it.isFile }?.readBytes()
     if (installedVersion != null && compareUnsigned(bundledVersion, installedVersion) <= 0) return
 
-    val archive = openBundledResource("$BUNDLED_RULE_SET_BASE/$name.tar.gz") ?: return
+    val archivePath = "$BUNDLED_RULE_SET_BASE/$name$ARCHIVE_SUFFIX"
+    val archive = openBundledResource(archivePath) ?: run {
+        Logs.w("bundled rule set $name has a version but no archive at $archivePath")
+        return
+    }
     geoDir.listFiles { file -> file.name.startsWith("$name-") }?.forEach { it.delete() }
     archive.use { unpackArchive(it, geoDir) }
     versionFile.writeBytes(bundledVersion)

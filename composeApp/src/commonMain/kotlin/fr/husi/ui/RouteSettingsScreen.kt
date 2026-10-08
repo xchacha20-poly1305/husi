@@ -459,7 +459,7 @@ private fun RouteSettings(
         listOf(
             routeGeoDir(externalAssetsDir),
             routeCustomGeoDir(externalAssetsDir),
-        ).filter { it.isDirectory }
+        )
     }
 
     val listState = rememberLazyListState()

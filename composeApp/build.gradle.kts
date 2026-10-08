@@ -232,7 +232,7 @@ val checkLibcoreAar = tasks.register("checkLibcoreAar") {
 }
 
 
-val bundledAssetFiles = listOf("geoip.tar.gz", "geosite.tar.gz")
+val bundledAssetFiles = listOf("geoip.tgz", "geosite.tgz")
 val bundledAssetsDir = layout.projectDirectory.dir("src/commonMain/composeResources/files/sing-box").asFile
 val warnMissingAssets = tasks.register("warnMissingBundledAssets") {
     description = "Warns when the geoip/geosite assets have not been downloaded yet."
