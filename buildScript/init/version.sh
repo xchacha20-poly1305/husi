@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-GO_VERSION="1.27.1"
+GO_VERSION="1.27.2"
 RUST_VERSION="1.99.0"
 JAVA_VERSION="21"
 # https://github.com/JetBrains/JetBrainsRuntime

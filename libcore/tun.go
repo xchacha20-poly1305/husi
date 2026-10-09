@@ -3,8 +3,14 @@
 package libcore
 
 import (
+	"net/netip"
+	"slices"
+
+	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-tun"
+	"github.com/sagernet/sing-tun/dnsinfo"
+	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
@@ -53,6 +59,9 @@ type interfaceMonitor struct {
 	logger                      logger.Logger
 	myInterfaces                []string
 	defaultInterfaceInitialized bool
+	defaultDNSServers           []string
+	dnsWatcher                  *dnsinfo.Watcher
+	// lastNetworkPath             string
 }
 
 func (m *interfaceMonitor) RegisterMyInterface(interfaceName string) {
@@ -72,14 +81,32 @@ func (m *interfaceMonitor) Start() error {
 		// Just make dialer has available interface.
 		return m.networkManager.UpdateInterfaces()
 	}
-	return m.iif.StartDefaultInterfaceMonitor(m)
+	if C.IsDarwin {
+		dnsWatcher, err := dnsinfo.NewWatcher(m.updateDNSServers, m.logger)
+		if err != nil {
+			return E.Cause(err, "watch DNS configuration")
+		}
+		m.dnsWatcher = dnsWatcher
+	}
+	err := m.iif.StartDefaultInterfaceMonitor(m)
+	if err != nil {
+		if C.IsDarwin {
+			_ = m.dnsWatcher.Close()
+		}
+		return err
+	}
+	return nil
 }
 
 func (m *interfaceMonitor) Close() error {
 	if m.forTest {
 		return nil
 	}
-	return m.iif.CloseDefaultInterfaceMonitor(m)
+	err := m.iif.CloseDefaultInterfaceMonitor(m)
+	if C.IsDarwin {
+		err = E.Errors(err, m.dnsWatcher.Close())
+	}
+	return err
 }
 
 func (m *interfaceMonitor) DefaultInterface() *control.Interface {
@@ -118,6 +145,7 @@ func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfac
 	m.defaultInterfaceAccess.Lock()
 	if interfaceIndex32 == -1 {
 		m.defaultInterface = nil
+		m.defaultDNSServers = nil
 		m.defaultInterfaceInitialized = true
 		callbacks := m.callbacks.Array()
 		m.defaultInterfaceAccess.Unlock()
@@ -133,8 +161,10 @@ func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfac
 		m.logger.Error(E.Cause(err, "find updated interface: ", interfaceName))
 		return
 	}
+	oldDNSServers := m.defaultDNSServers
 	m.defaultInterface = newInterface
-	if m.defaultInterfaceInitialized && oldInterface != nil && oldInterface.Name == m.defaultInterface.Name && oldInterface.Index == m.defaultInterface.Index {
+	m.defaultDNSServers = m.readDNSServers(newInterface.Index)
+	if m.defaultInterfaceInitialized && oldInterface != nil && oldInterface.Name == m.defaultInterface.Name && oldInterface.Index == m.defaultInterface.Index && slices.Equal(oldDNSServers, m.defaultDNSServers) {
 		m.defaultInterfaceAccess.Unlock()
 		return
 	}
@@ -144,4 +174,39 @@ func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfac
 	for _, callback := range callbacks {
 		callback(newInterface, 0)
 	}
+}
+
+func (m *interfaceMonitor) updateDNSServers() {
+	m.defaultInterfaceAccess.Lock()
+	defaultInterface := m.defaultInterface
+	if defaultInterface == nil {
+		m.defaultInterfaceAccess.Unlock()
+		return
+	}
+	dnsServers := m.readDNSServers(defaultInterface.Index)
+	if slices.Equal(m.defaultDNSServers, dnsServers) {
+		m.defaultInterfaceAccess.Unlock()
+		return
+	}
+	m.defaultDNSServers = dnsServers
+	callbacks := m.callbacks.Array()
+	m.defaultInterfaceAccess.Unlock()
+	for _, callback := range callbacks {
+		callback(defaultInterface, 0)
+	}
+}
+
+func (m *interfaceMonitor) readDNSServers(interfaceIndex int) []string {
+	if C.IsDarwin {
+		dnsConfiguration := dnsinfo.Copy()
+		if dnsConfiguration == nil {
+			return nil
+		}
+		return common.Map(dnsConfiguration.Select(interfaceIndex).Servers, func(it netip.AddrPort) string {
+			return it.Addr().String()
+		})
+	}
+	return common.Find(m.networkManager.NetworkInterfaces(), func(it adapter.NetworkInterface) bool {
+		return it.Index == interfaceIndex
+	}).DNSServers
 }
