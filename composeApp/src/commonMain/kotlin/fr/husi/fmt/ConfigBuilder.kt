@@ -1197,6 +1197,9 @@ suspend fun buildConfig(
                     if (processRules.isNotEmpty()) {
                         makeProcessRule(processRules)
                     }
+                    if (rule.clashMode.isNotBlank()) {
+                        clash_mode = rule.clashMode
+                    }
                     if (requestDNSRules.isNotEmpty()) {
                         makeCommonRule(requestDNSRules)
                     }
@@ -1557,29 +1560,6 @@ suspend fun buildConfig(
             )
             dns!!.rules = mutableListOf()
         } else {
-            // clash mode
-            route!!.rules!!.add(
-                0,
-                Rule_Default().apply {
-                    clash_mode = RuleEntity.MODE_GLOBAL
-                    outbound = mainTag
-                }.asKxsMap(),
-            )
-            route!!.rules!!.add(
-                0,
-                Rule_Default().apply {
-                    clash_mode = RuleEntity.MODE_DIRECT
-                    outbound = TAG_DIRECT
-                }.asKxsMap(),
-            )
-            route!!.rules!!.add(
-                0,
-                Rule_Default().apply {
-                    clash_mode = RuleEntity.MODE_BLOCK
-                    action = SingBoxOptions.ACTION_REJECT
-                }.asKxsMap(),
-            )
-
             // built-in DNS rules
             // TUN hijack mode handles port 53 automatically;
             // only the local DNS inbound needs an explicit hijack rule.
@@ -1700,27 +1680,6 @@ suspend fun buildConfig(
                 )
                 addPreferredDNSRule(TAG_DNS_HOSTS)
             }
-
-            // clash mode
-            dns!!.rules!!.addAll(
-                0,
-                remoteDNSGroup.routeRules {
-                    clash_mode = RuleEntity.MODE_GLOBAL
-                },
-            )
-            dns!!.rules!!.addAll(
-                0,
-                directDNSGroup.routeRules {
-                    clash_mode = RuleEntity.MODE_DIRECT
-                },
-            )
-            dns!!.rules!!.add(
-                0,
-                DNSRule_Default().apply {
-                    clash_mode = RuleEntity.MODE_BLOCK
-                    action = SingBoxOptions.ACTION_REJECT
-                }.asKxsMap(),
-            )
 
             dns!!.rules!!.addAll(0, preResolveDomains.rules())
 

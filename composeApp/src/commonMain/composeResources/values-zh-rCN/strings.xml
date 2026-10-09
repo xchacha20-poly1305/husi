@@ -623,6 +623,7 @@
     <string name="override_port">覆写端口</string>
     <string name="allow_apps_bypass_vpn">允许应用绕过 VPN</string>
     <string name="clash_mode">Clash 模式</string>
+    <string name="clash_mode_lowercase_hint">为了兼容性考虑，建议使用小写</string>
     <string name="sniff_timeout">嗅探超时</string>
     <string name="network_type">网络类型</string>
     <string name="network_cellular">移动数据</string>
@@ -716,6 +717,7 @@
     <string name="saved_to_download">文件已保存到下载文件夹。</string>
     <string name="network_interfaces">网络接口</string>
     <string name="route_direct_icmp">直连 ICMP</string>
+    <string name="route_clash_mode">Clash 模式：%1$s</string>
     <string name="connection_status">连接状态</string>
     <string name="connection_status_active">活跃中</string>
     <string name="connection_status_closed">已关闭</string>

@@ -705,6 +705,7 @@
     <string name="override_port">Override Port</string>
     <string name="allow_apps_bypass_vpn">Allow Apps to bypass VPN</string>
     <string name="clash_mode">Clash Mode</string>
+    <string name="clash_mode_lowercase_hint">For compatibility, lowercase is recommended.</string>
     <string name="sniff_timeout">Sniff timeout</string>
     <string name="network_type">Network Type</string>
     <string name="network_wifi" translatable="false">Wi-Fi</string>
@@ -808,6 +809,7 @@
     <string name="saved_to_download">File has saved to Download directory.</string>
     <string name="network_interfaces">Network Interfaces</string>
     <string name="route_direct_icmp">Direct ICMP</string>
+    <string name="route_clash_mode">Clash mode: %1$s</string>
     <string name="connection_status">Connection Status</string>
     <string name="connection_status_active">Active</string>
     <string name="connection_status_closed">Closed</string>

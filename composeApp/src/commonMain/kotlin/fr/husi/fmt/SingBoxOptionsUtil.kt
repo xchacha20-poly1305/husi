@@ -115,6 +115,7 @@ fun DNSRule_Default.checkEmpty(): Boolean {
     if (user_id?.isNotEmpty() == true) return false
     if (wifi_ssid?.isNotEmpty() == true) return false
     if (wifi_bssid?.isNotEmpty() == true) return false
+    if (clash_mode?.isNotEmpty() == true) return false
     return true
 }
 

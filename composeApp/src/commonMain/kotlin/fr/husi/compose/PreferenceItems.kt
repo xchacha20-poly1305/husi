@@ -1,8 +1,5 @@
 package fr.husi.compose
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
@@ -25,13 +22,7 @@ object PreferenceTextFieldDefaults {
         onValueChange: (TextFieldValue) -> Unit,
         onOk: () -> Unit,
     ) -> Unit = { value, onValueChange, onOk ->
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            keyboardActions = KeyboardActions { onOk() },
-            singleLine = true,
-        )
+        SingleLineTextField(value, onValueChange, onOk)
     }
 }
 

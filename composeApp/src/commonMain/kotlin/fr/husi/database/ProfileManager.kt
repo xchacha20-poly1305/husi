@@ -13,6 +13,7 @@ import fr.husi.ktx.applyDefaultValues
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.hijack_dns
+import fr.husi.resources.route_clash_mode
 import fr.husi.resources.route_direct_domain
 import fr.husi.resources.route_direct_icmp
 import fr.husi.resources.route_direct_ip
@@ -147,6 +148,22 @@ object ProfileManager {
                         name = repository.getString(Res.string.hijack_dns),
                         protocol = setOf("dns"),
                         action = ACTION_HIJACK_DNS,
+                    ),
+                )
+                createRule(
+                    RuleEntity(
+                        name = repository.getString(Res.string.route_clash_mode, RuleEntity.MODE_GLOBAL),
+                        clashMode = RuleEntity.MODE_GLOBAL,
+                        action = ACTION_ROUTE,
+                        outbound = RuleEntity.OUTBOUND_PROXY,
+                    ),
+                )
+                createRule(
+                    RuleEntity(
+                        name = repository.getString(Res.string.route_clash_mode, RuleEntity.MODE_DIRECT),
+                        clashMode = RuleEntity.MODE_DIRECT,
+                        action = ACTION_ROUTE,
+                        outbound = RuleEntity.OUTBOUND_DIRECT,
                     ),
                 )
                 createRule(

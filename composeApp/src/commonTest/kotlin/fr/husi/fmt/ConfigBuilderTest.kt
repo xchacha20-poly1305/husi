@@ -2013,6 +2013,9 @@ class ConfigBuilderTest : HusiKoinTest() {
             port = 1080,
         )
 
+        createClashModeRule(RuleEntity.MODE_GLOBAL, RuleEntity.OUTBOUND_PROXY)
+        createClashModeRule(RuleEntity.MODE_DIRECT, RuleEntity.OUTBOUND_DIRECT)
+
         val result = buildConfig(proxy)
         val dnsServers = parseDnsServers(result)
         val dnsRules = parseDnsRules(result)
@@ -2030,12 +2033,12 @@ class ConfigBuilderTest : HusiKoinTest() {
             it["clash_mode"]?.jsonPrimitive?.content == RuleEntity.MODE_GLOBAL
         }
         assertEquals(TAG_DNS_REMOTE, globalRule["server"]?.jsonPrimitive?.content)
-        assertEquals(null, globalRule["action"])
+        assertEquals(SingBoxOptions.ACTION_ROUTE, globalRule["action"]?.jsonPrimitive?.content)
         val directRule = dnsRules.first {
             it["clash_mode"]?.jsonPrimitive?.content == RuleEntity.MODE_DIRECT
         }
         assertEquals(TAG_DNS_DIRECT, directRule["server"]?.jsonPrimitive?.content)
-        assertEquals(null, directRule["action"])
+        assertEquals(SingBoxOptions.ACTION_ROUTE, directRule["action"]?.jsonPrimitive?.content)
     }
 
     @Test
@@ -2053,6 +2056,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             host = "1.1.1.1",
             port = 1080,
         )
+        createClashModeRule(RuleEntity.MODE_GLOBAL, RuleEntity.OUTBOUND_PROXY)
 
         val result = buildConfig(proxy)
         val dnsServers = parseDnsServers(result)
@@ -2103,6 +2107,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             host = "proxy.example.com",
             port = 1080,
         )
+        createClashModeRule(RuleEntity.MODE_DIRECT, RuleEntity.OUTBOUND_DIRECT)
 
         val result = buildConfig(proxy)
         val dnsServers = parseDnsServers(result)
@@ -2655,6 +2660,17 @@ class ConfigBuilderTest : HusiKoinTest() {
     private fun parseDnsFinal(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.configJson).jsonObject["dns"]!!
             .jsonObject["final"]!!.jsonPrimitive.content
+
+    private suspend fun createClashModeRule(mode: String, outbound: Long) {
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "clash-mode-$mode",
+                clashMode = mode,
+                outbound = outbound,
+            ),
+        )
+    }
 
     private fun assertRaceBlock(rules: List<JsonObject>, tags: List<String>) {
         assertEquals(tags.size * 2, rules.size)

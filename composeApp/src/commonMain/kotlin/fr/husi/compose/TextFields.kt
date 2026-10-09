@@ -307,6 +307,24 @@ fun ValidatedIntegerTextField(
 }
 
 @Composable
+fun SingleLineTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onOk: () -> Unit,
+    modifier: Modifier = Modifier,
+    supportingText: @Composable (() -> Unit)? = null,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        keyboardActions = KeyboardActions { onOk() },
+        singleLine = true,
+        supportingText = supportingText,
+    )
+}
+
+@Composable
 fun MultilineTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,

@@ -79,10 +79,8 @@ data class RuleEntity(
 
         // Clash Modes
         // Use lower case to adapt with clash dashboard
-        const val MODE_RULE = "rule"
         const val MODE_DIRECT = "direct"
         const val MODE_GLOBAL = "global"
-        const val MODE_BLOCK = "block"
     }
 
     fun displayName(): String {

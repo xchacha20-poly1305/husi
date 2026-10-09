@@ -61,6 +61,7 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SingleLineTextField
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
 import fr.husi.compose.TextFieldPreference
@@ -89,6 +90,7 @@ import fr.husi.resources.cag_dns
 import fr.husi.resources.cancel
 import fr.husi.resources.category
 import fr.husi.resources.clash_mode
+import fr.husi.resources.clash_mode_lowercase_hint
 import fr.husi.resources.close
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.computer_cancel
@@ -780,7 +782,14 @@ private fun RouteSettings(
                     summary = { Text(contentOrUnset(uiState.clashMode)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                        SingleLineTextField(
+                            value = value,
+                            onValueChange = onValueChange,
+                            onOk = onOk,
+                            supportingText = {
+                                Text(stringResource(Res.string.clash_mode_lowercase_hint))
+                            },
+                        )
                     },
                 )
                 SwitchPreference(
