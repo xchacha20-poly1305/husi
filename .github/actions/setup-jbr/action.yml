@@ -1,0 +1,35 @@
+name: Setup JetBrains Runtime
+description: >
+  Install the JetBrains Runtime SDK pinned by JBR_RELEASE as the build JDK, so
+  CI builds with the same runtime the desktop packages bundle. actions/setup-java
+  cannot pin it: its jetbrains distribution skips the four-part versions
+  (25.0.4.1) that current JBR releases carry. Needs load-build-versions first.
+runs:
+  using: composite
+  steps:
+    - id: host
+      shell: bash
+      run: |
+        case "$RUNNER_OS" in
+          Linux) platform=linux ;;
+          macOS) platform=darwin ;;
+          Windows) platform=windows ;;
+          *) echo "Unsupported runner OS '$RUNNER_OS'" >&2; exit 1 ;;
+        esac
+        case "$RUNNER_ARCH" in
+          X64) arch=amd64 ;;
+          ARM64) arch=arm64 ;;
+          *) echo "Unsupported runner arch '$RUNNER_ARCH'" >&2; exit 1 ;;
+        esac
+        echo "target=$platform/$arch" >> "$GITHUB_OUTPUT"
+        echo "dir=${platform}_${arch}" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@v6
+      with:
+        path: build/jbr/${{ env.JBR_RELEASE }}/sdk/${{ steps.host.outputs.dir }}
+        key: jbr-sdk-${{ steps.host.outputs.dir }}-${{ env.JBR_RELEASE }}
+    - shell: bash
+      run: |
+        java_home="$(./run lib jbr ${{ steps.host.outputs.target }} --sdk | tail -n 1)"
+        echo "JAVA_HOME=$java_home" >> "$GITHUB_ENV"
+        echo "$java_home/bin" >> "$GITHUB_PATH"
+        "$java_home/bin/java" -version

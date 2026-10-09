@@ -43,7 +43,7 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>] [--pkgrel <n>] [--jdk-jmods <dir>] [--appimage-runtime <file>] [--appimage-update-info <string>] [--strip-objcopy <file>]
+  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>] [--pkgrel <n>] [--jbr-jmods <dir>] [--appimage-runtime <file>] [--appimage-update-info <string>] [--strip-objcopy <file>]
   $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball,appimage]
 
 Description:
@@ -59,10 +59,9 @@ Defaults:
                ($CORE_LIBRARY_NAME is taken from the same directory)
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
-  --jdk-jmods  \$JAVA_HOME/jmods, or the jmods beside jlink (env: JLINK_JMODS).
-               Only needed for the AppImage, and required when the target
-               architecture differs from the host: jlink then needs that
-               architecture's JDK modules.
+  --jbr-jmods  JetBrains Runtime modules for the target architecture
+               (env: JBR_JMODS). Only read for the AppImage; left out, they
+               are fetched with ./run lib jbr linux/<arch>.
   --appimage-runtime
                AppImage runtime binary for the target architecture
                (env: APPIMAGE_RUNTIME). Left out, appimagetool picks its own.
@@ -849,27 +848,22 @@ build_tarball() {
     log "Built tarball: $output_path"
 }
 
-# jlink needs the JDK modules of the *target* architecture, not the host's.
-resolve_jdk_jmods() {
+# jlink needs the JetBrains Runtime modules of the *target* architecture, not
+# the host's, and they come from the same pinned release whatever the host JDK.
+resolve_jbr_jmods() {
     local requested="$1"
-    local host_arch
 
     if [[ -n "$requested" ]]; then
-        JDK_JMODS="$requested"
-    elif [[ -n "${JLINK_JMODS:-}" ]]; then
-        JDK_JMODS="${JLINK_JMODS}"
+        JBR_JMODS_DIR="$requested"
+    elif [[ -n "${JBR_JMODS:-}" ]]; then
+        JBR_JMODS_DIR="${JBR_JMODS}"
     else
-        host_arch="$(normalize_arch "$(uname -m)")"
-        if [[ "$host_arch" != "$TARGET_ARCH" ]]; then
-            error "Building a $TARGET_ARCH AppImage on $host_arch needs that architecture's JDK modules."
-            error "Fetch a JDK for linux/$TARGET_ARCH and pass --jdk-jmods <jdk>/jmods (or set JLINK_JMODS)."
-            exit 1
-        fi
-        JDK_JMODS="$(default_host_jmods)"
+        JBR_JMODS_DIR="$("$ROOT_DIR/buildScript/lib/jbr.sh" "linux/$TARGET_ARCH")"
     fi
 
-    if [[ ! -d "$JDK_JMODS" ]]; then
-        error "JDK modules directory not found: $JDK_JMODS"
+    if [[ ! -d "$JBR_JMODS_DIR" ]]; then
+        error "JetBrains Runtime modules directory not found: $JBR_JMODS_DIR"
+        error "Fetch them first: ./run lib jbr linux/$TARGET_ARCH"
         exit 1
     fi
 }
@@ -905,20 +899,6 @@ resolve_strip_objcopy() {
     fi
 }
 
-default_host_jmods() {
-    local jlink_path
-    local jdk_home
-
-    if [[ -n "${JAVA_HOME:-}" && -d "$JAVA_HOME/jmods" ]]; then
-        echo "$JAVA_HOME/jmods"
-        return
-    fi
-
-    jlink_path="$(command -v jlink)"
-    jdk_home="$(dirname "$(dirname "$(readlink -f "$jlink_path")")")"
-    echo "$jdk_home/jmods"
-}
-
 build_jre() {
     local jvm_dir="$1"
 
@@ -928,7 +908,7 @@ build_jre() {
     # host objcopy can read the target's ELF. Native symbols are not optional
     # to strip: libjvm.so alone carries ~650 MB of them.
     jlink \
-        --module-path "$JDK_JMODS" \
+        --module-path "$JBR_JMODS_DIR" \
         --add-modules "$DESKTOP_JRE_MODULES_COMMON" \
         --strip-java-debug-attributes \
         --strip-native-debug-symbols "objcopy=$STRIP_OBJCOPY" \
@@ -1028,7 +1008,7 @@ build_appimage() {
     local -a appimagetool_args=()
     output_name="$(output_filename "appimage" "$VERSION_NAME")"
 
-    resolve_jdk_jmods "$JDK_JMODS_ARG"
+    resolve_jbr_jmods "$JBR_JMODS_ARG"
     resolve_strip_objcopy "$STRIP_OBJCOPY_ARG"
     resolve_appimage_update_info
     prepare_appdir "$rootfs" "$appdir"
@@ -1081,8 +1061,8 @@ INPUT_CORE_LIBRARY=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 PKGREL="1"
 CHECK_TOOLS=0
-JDK_JMODS_ARG=""
-JDK_JMODS=""
+JBR_JMODS_ARG=""
+JBR_JMODS_DIR=""
 APPIMAGE_RUNTIME_ARG="${APPIMAGE_RUNTIME:-}"
 APPIMAGE_UPDATE_INFO_ARG="${APPIMAGE_UPDATE_INFO:-}"
 APPIMAGE_UPDATE_INFO=""
@@ -1126,9 +1106,9 @@ while [[ $# -gt 0 ]]; do
             PKGREL="$2"
             shift 2
             ;;
-        --jdk-jmods)
+        --jbr-jmods)
             require_arg "$1" "${2:-}"
-            JDK_JMODS_ARG="$2"
+            JBR_JMODS_ARG="$2"
             shift 2
             ;;
         --appimage-runtime)

@@ -30,10 +30,7 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/load-build-versions
       - uses: ./.github/actions/setup-ndk
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+      - uses: ./.github/actions/setup-jbr
       - uses: ./.github/actions/gradle-cache
         with:
           read-only: 'true'
@@ -121,10 +118,7 @@ jobs:
           fetch-depth: 0
           submodules: recursive
       - uses: ./.github/actions/load-build-versions
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+      - uses: ./.github/actions/setup-jbr
       - uses: ./.github/actions/gradle-cache
         with:
           read-only: 'true'
@@ -165,48 +159,16 @@ jobs:
             "https://github.com/AppImage/type2-runtime/releases/download/${APPIMAGE_RUNTIME_VERSION}/runtime-${{ matrix.appimage_runtime }}"
           echo "$tools" >> "$GITHUB_PATH"
           echo "APPIMAGE_TOOLS_DIR=$tools" >> "$GITHUB_ENV"
-      - name: Resolve aarch64 JDK release
-        # Resolved before the cache so the key names an exact build: a new
-        # Temurin patch release busts it instead of being masked by a stale hit.
-        if: ${{ matrix.target == 'linux/arm64' }}
-        run: |
-          asset="$(curl -sSfL "https://api.adoptium.net/v3/assets/latest/${JAVA_VERSION}/hotspot?architecture=aarch64&image_type=jdk&os=linux&vendor=eclipse")"
-          release_name="$(echo "$asset" | jq -r '.[0].release_name')"
-          download_url="$(echo "$asset" | jq -r '.[0].binary.package.link')"
-          if [ -z "$release_name" ] || [ "$release_name" = "null" ]; then
-            echo "Could not resolve an aarch64 Temurin ${JAVA_VERSION} release." >&2
-            exit 1
-          fi
-          echo "AARCH64_JDK_RELEASE=$release_name" >> "$GITHUB_ENV"
-          echo "AARCH64_JDK_URL=$download_url" >> "$GITHUB_ENV"
-          echo "AARCH64_JDK_DIR=$RUNNER_TEMP/jdk-aarch64" >> "$GITHUB_ENV"
-          echo "JLINK_JMODS_AARCH64=$RUNNER_TEMP/jdk-aarch64/jmods" >> "$GITHUB_ENV"
-      - name: Cache aarch64 JDK modules
-        if: ${{ matrix.target == 'linux/arm64' }}
-        id: cache-jdk-aarch64
-        uses: actions/cache@v6
-        with:
-          path: ${{ runner.temp }}/jdk-aarch64
-          key: jdk-aarch64-${{ env.AARCH64_JDK_RELEASE }}
-      - name: Fetch aarch64 JDK modules
-        # jlink links a runtime for the *target* architecture, so the arm64
-        # AppImage needs that architecture's jmods; the host JDK only covers amd64.
-        # Only jmods is unpacked — it is all jlink reads, and the rest of the JDK
-        # would quadruple what the cache carries.
-        if: ${{ matrix.target == 'linux/arm64' && steps.cache-jdk-aarch64.outputs.cache-hit != 'true' }}
-        run: |
-          mkdir -p "$AARCH64_JDK_DIR"
-          curl -sSfL "$AARCH64_JDK_URL" \
-            | tar -C "$AARCH64_JDK_DIR" --strip-components=1 --wildcards -xzf - '*/jmods/*'
       - name: Cache JetBrains Runtime modules
-        if: ${{ matrix.package == 'windows' }}
-        id: cache-jbr
+        # jlink links a runtime for the target architecture, so each target
+        # needs its own modules, even linux/amd64 whose host SDK would fit.
+        if: ${{ matrix.package != 'macos' }}
         uses: actions/cache@v6
         with:
-          path: build/jbr
-          key: jbr-${{ env.JBR_VERSION }}-b${{ env.JBR_BUILD }}
+          path: build/jbr/${{ env.JBR_RELEASE }}/jmods
+          key: jbr-jmods-${{ matrix.id }}-${{ env.JBR_RELEASE }}
       - name: Fetch JetBrains Runtime modules
-        if: ${{ matrix.package == 'windows' }}
+        if: ${{ matrix.package != 'macos' }}
         run: |
           jmods="$(./run lib jbr ${{ matrix.target }} | tail -n 1)"
           echo "JBR_JMODS=$jmods" >> "$GITHUB_ENV"
@@ -242,11 +204,6 @@ jobs:
         run: |
           case "${{ matrix.package }}" in
             linux)
-              if [ "${{ matrix.target }}" = "linux/arm64" ]; then
-                export JLINK_JMODS="$JLINK_JMODS_AARCH64"
-              else
-                export JLINK_JMODS="$JAVA_HOME/jmods"
-              fi
               export APPIMAGE_RUNTIME="$APPIMAGE_TOOLS_DIR/runtime-${{ matrix.appimage_runtime }}"
               make desktop_package_linux DESKTOP_TARGET="${{ matrix.target }}" LINUX_PACKAGE_FORMATS="${{ matrix.formats }}"
               ;;

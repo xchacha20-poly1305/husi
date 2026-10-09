@@ -32,10 +32,7 @@ jobs:
             plugin/hysteria2/src/main/go/hysteria2/**/go.sum
       - name: Native build
         run: ./run plugin hysteria2
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+      - uses: ./.github/actions/setup-jbr
       - uses: ./.github/actions/gradle-cache
         with:
           build-cache-name: plugin-hysteria2

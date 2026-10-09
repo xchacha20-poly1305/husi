@@ -33,10 +33,7 @@ jobs:
           workspaces: plugin/shadowquic/src/main/rust/shadowquic
       - name: Native build
         run: ./run plugin shadowquic
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+      - uses: ./.github/actions/setup-jbr
       - uses: ./.github/actions/gradle-cache
         with:
           build-cache-name: plugin-shadowquic

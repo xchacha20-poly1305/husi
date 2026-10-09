@@ -277,15 +277,16 @@ bundles its own Java runtime — linked with `jlink` from the JDK modules the ap
 actually uses (the module list is shared with the Windows JBR packages, in
 [`release/desktop/jre-modules.sh`](release/desktop/jre-modules.sh)) — so it does not require a system Java 21 at all. Its glibc floor
 comes from that bundled runtime rather than from the launcher, which is static
-musl. Building one additionally needs `jlink`, `appimagetool` and an `objcopy`
-for the target architecture; cross-building also needs that architecture's JDK
-modules, since `jlink` links a runtime for the target, not for the host:
+musl. Like the Windows packages it links the [JetBrains Runtime](#-packages-with-a-bundled-runtime)
+modules pinned by `JBR_RELEASE`, fetched into `build/jbr/` for the target architecture on demand, since `jlink` links a
+runtime for the target, not for the host. Building one additionally needs `jlink`, `appimagetool` and an `objcopy`
+for the target architecture:
 
 ```shell
 make desktop_package_linux DESKTOP_TARGET=linux/arm64 \
     LINUX_PACKAGE_FORMATS=appimage \
-    JLINK_JMODS=/path/to/aarch64-jdk/jmods \
     APPIMAGE_RUNTIME=/path/to/runtime-aarch64
+# or with modules you already have: JBR_JMODS=/path/to/jbrsdk/jmods
 ```
 
 Neither format is built by default, but releases ship both.
@@ -441,7 +442,8 @@ make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64 JBR_JMODS=/path/to
 ```
 
 Building these additionally needs `jlink` on `PATH`. Its feature version has to be at least the JetBrains Runtime's —
-`jlink` cannot read modules newer than itself — which is why `JAVA_VERSION` is derived from `JBR_RELEASE`. Nothing else about the
+`jlink` cannot read modules newer than itself — which is why `JAVA_VERSION` is derived from `JBR_RELEASE`, and why CI
+builds with that same JetBrains Runtime (`./run lib jbr <host> --sdk` prints a ready `JAVA_HOME`). Nothing else about the
 host matters: `jlink` links an image for the platform its modules belong to, so the Windows runtime is linked on the
 Linux release runner like everything else.
 
