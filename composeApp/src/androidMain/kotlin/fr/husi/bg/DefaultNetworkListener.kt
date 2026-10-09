@@ -1,6 +1,7 @@
 package fr.husi.bg
 
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
@@ -122,6 +123,10 @@ internal object AndroidDefaultNetworkListener {
             runBlocking { networkActor.send(NetworkMessage.Update(network)) }
         }
 
+        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+            runBlocking { networkActor.send(NetworkMessage.Update(network)) }
+        }
+
         override fun onLost(network: Network) = runBlocking {
             networkActor.send(
                 NetworkMessage.Lost(network),
@@ -133,10 +138,6 @@ internal object AndroidDefaultNetworkListener {
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
-        if (Build.VERSION.SDK_INT == 23) {  // workarounds for OEM bugs
-            removeCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            removeCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)
-        }
     }.build()
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -168,7 +169,7 @@ internal object AndroidDefaultNetworkListener {
                 resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
             }
 
-            in 24 until 26 -> @RequiresApi(24) {
+            in 24 until 26 ->  {
                 resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(Callback)
             }
 
