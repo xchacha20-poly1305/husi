@@ -2,13 +2,13 @@
 
 GO_VERSION="1.27.2"
 RUST_VERSION="1.99.0"
-JAVA_VERSION="21"
+JAVA_VERSION="25"
 # https://github.com/JetBrains/JetBrainsRuntime
-# Bundled into the Windows JBR packages. The feature version has to stay
+# Bundled into the Windows JBR packages and Linux AppImage. The feature version has to stay
 # equal to JAVA_VERSION: the host jlink links these jmods, and jlink cannot
 # read jmods newer than itself.
-JBR_VERSION="21.0.11"
-JBR_BUILD="1163.116"
+JBR_VERSION="25.0.4.1"
+JBR_BUILD="635.70"
 # NDK version as named by sdkmanager under $ANDROID_HOME/ndk/
 ANDROID_NDK_VERSION="30.0.16248370"
 ZIG_VERSION="0.16.0"
