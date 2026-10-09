@@ -74,6 +74,30 @@ jobs:
       - name: Lint libcore
         run: make lint_go
 
+  lint-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: ./.github/actions/load-build-versions
+      - uses: ./.github/actions/setup-ndk
+      - uses: ./.github/actions/setup-jbr
+      - uses: ./.github/actions/gradle-cache
+        with:
+          read-only: 'true'
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+      - uses: ./.github/actions/go-android-cache
+      # androidMain compiles against the aar, so lint cannot run without it.
+      - name: Build Android libcore
+        run: make libcore_android
+      - name: Lint Android API levels
+        run: make lint_android
+
   test:
     runs-on: ubuntu-latest
     steps:

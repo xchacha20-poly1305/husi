@@ -20,7 +20,7 @@ class GrpcHttpFetcher(private val coreClient: CoreClient) : HttpFetcher {
         val headers = TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER).apply {
             putAll(head.headersMap)
         }
-        return HttpTextResponse(body.toString(Charsets.UTF_8)) { name -> headers[name] }
+        return HttpTextResponse(body.toByteArray().decodeToString()) { name -> headers[name] }
     }
 
     override suspend fun download(

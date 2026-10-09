@@ -38,8 +38,10 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
-          cache-dependency-path: 'libcore/go.sum'
+          cache: false
+      - uses: ./.github/actions/go-android-cache
+        with:
+          read-only: 'true'
       - name: Cache route assets
         id: cache-assets
         uses: actions/cache@v6

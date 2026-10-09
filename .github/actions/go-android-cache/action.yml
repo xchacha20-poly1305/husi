@@ -1,0 +1,44 @@
+name: Go Android build cache
+description: >
+  GOMODCACHE and GOCACHE for `make libcore_android`. setup-go's own cache keys
+  on go.sum alone, so whichever Linux-only job saves first owns it and it holds
+  no android objects; run setup-go with `cache: false` and this action instead.
+  Only `dev` writes: a tag run can restore the default branch's caches, but no
+  other ref can restore a tag's, so release only reads. Run setup-go and
+  load-build-versions first.
+inputs:
+  read-only:
+    description: Override. Empty means write only from refs/heads/dev.
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - id: go-env
+      shell: bash
+      run: |
+        echo "gomodcache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+        echo "gocache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+        read_only='${{ inputs.read-only }}'
+        if [ -z "$read_only" ]; then
+          read_only=$([ '${{ github.ref }}' == 'refs/heads/dev' ] && echo false || echo true)
+        fi
+        echo "read-only=$read_only" >> "$GITHUB_OUTPUT"
+    - if: ${{ steps.go-env.outputs.read-only == 'true' }}
+      uses: actions/cache/restore@v6
+      with:
+        path: |
+          ${{ steps.go-env.outputs.gomodcache }}
+          ${{ steps.go-env.outputs.gocache }}
+        key: go-android-${{ runner.os }}-${{ env.GO_VERSION }}-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('libcore/go.sum') }}
+        restore-keys: |
+          go-android-${{ runner.os }}-${{ env.GO_VERSION }}-${{ env.ANDROID_NDK_VERSION }}-
+    - if: ${{ steps.go-env.outputs.read-only != 'true' }}
+      uses: actions/cache@v6
+      with:
+        path: |
+          ${{ steps.go-env.outputs.gomodcache }}
+          ${{ steps.go-env.outputs.gocache }}
+        key: go-android-${{ runner.os }}-${{ env.GO_VERSION }}-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('libcore/go.sum') }}
+        restore-keys: |
+          go-android-${{ runner.os }}-${{ env.GO_VERSION }}-${{ env.ANDROID_NDK_VERSION }}-

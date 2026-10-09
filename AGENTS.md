@@ -36,6 +36,7 @@ Common targets:
 | `make test_zig` | zig build test in `launcher/` |
 | `make lint_go` | golangci-lint for linux + android + windows + darwin |
 | `make fmt_go` | golangci-lint fmt |
+| `make lint_android` | Android lint (NewApi only) over composeApp's `commonMain` + `androidMain` |
 
 Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`.
 Run a single Go test: `cd libcore && go test -tags with_quic,badlinkname -ldflags=-checklinkname=0 -run TestName ./pkg/...`.

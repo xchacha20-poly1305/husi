@@ -21,6 +21,7 @@ wrong.
 | `cd libcore && go test ./...`                  | `make test_go`          |
 | `golangci-lint run` (per GOOS)                 | `make lint_go`          |
 | `golangci-lint fmt`                            | `make fmt_go`           |
+| `:composeApp:lintAndroidMain` (NewApi check)   | `make lint_android`     |
 | everything at once                             | `make test`             |
 
 The target list is the root `Makefile` and the table in AGENTS.md — check there **first**.

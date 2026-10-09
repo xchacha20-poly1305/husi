@@ -25,7 +25,7 @@ fun unpackArchive(archive: File, destination: File) {
 fun unpackArchive(input: InputStream, destination: File) {
     val buffered = BufferedInputStream(input)
     buffered.mark(GZIP_MAGIC.size)
-    val magic = buffered.readNBytes(GZIP_MAGIC.size)
+    val magic = ByteArray(GZIP_MAGIC.size).let { it.copyOf(buffered.readUpTo(it)) }
     buffered.reset()
     destination.mkdirs()
     when {
@@ -58,6 +58,20 @@ private fun untarFlattened(input: InputStream, destination: File) {
 private fun flattenedName(path: String): String? {
     val name = path.trimEnd('/').substringAfterLast('/')
     return name.takeUnless { it.isEmpty() || it == "." || it == ".." }
+}
+
+/**
+ * Reads until [buffer] is full or the stream ends, returning the number of bytes read.
+ * Stands in for `InputStream.readNBytes`, which Android only has from API 33.
+ */
+private fun InputStream.readUpTo(buffer: ByteArray): Int {
+    var total = 0
+    while (total < buffer.size) {
+        val read = read(buffer, total, buffer.size - total)
+        if (read < 0) break
+        total += read
+    }
+    return total
 }
 
 private class TarEntry(val name: String, val isRegularFile: Boolean)
@@ -113,8 +127,8 @@ private class TarReader(private val input: InputStream) {
 
     private fun readEntry(): ByteArray {
         if (remaining > MAX_METADATA_SIZE) throw IOException("tar metadata record too large")
-        val content = input.readNBytes(remaining.toInt())
-        if (content.size.toLong() != remaining) throw EOFException("truncated tar entry")
+        val content = ByteArray(remaining.toInt())
+        if (input.readUpTo(content) != content.size) throw EOFException("truncated tar entry")
         remaining = 0
         skipFully(padding)
         padding = 0
@@ -123,7 +137,7 @@ private class TarReader(private val input: InputStream) {
 
     /** False at the end-of-archive marker or the end of the stream. */
     private fun readHeader(): Boolean {
-        val read = input.readNBytes(header, 0, BLOCK_SIZE)
+        val read = input.readUpTo(header)
         if (read == 0) return false
         if (read < BLOCK_SIZE) throw EOFException("truncated tar header")
         return header.any { it != 0.toByte() }

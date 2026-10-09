@@ -6,6 +6,7 @@ import org.gradle.jvm.tasks.Jar
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
+    id("com.android.lint")
     id("kotlin-parcelize")
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.compose)
@@ -331,6 +332,12 @@ kotlin {
         minSdk = 24
         androidResources {
             enable = true
+        }
+        // commonMain compiles against the desktop JDK, so only lint notices a JDK API that
+        // Android lacks below minSdk.
+        lint {
+            checkOnly += "NewApi"
+            abortOnError = true
         }
     }
 
