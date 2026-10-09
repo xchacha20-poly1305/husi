@@ -29,6 +29,18 @@
       "/.github/workflows/.*.yml$/"
     ]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Toolchain and asset versions annotated with `# renovate:` comments",
+      "managerFilePatterns": [
+        "/^buildScript/init/version\\.sh$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n[A-Z_]+=\"(?<currentValue>[^\"]+)\""
+      ]
+    }
+  ],
   "packageRules": [
     {
       "matchManagers": [
@@ -212,12 +224,46 @@
     },
     {
       "matchManagers": [
-        "gradle"
+        "custom.regex"
       ],
-      "groupName": "Protobuf",
-      "groupSlug": "protobuf",
-      "matchPackageNames": [
-        "com.google.protobuf{/,}**"
+      "semanticCommitType": "build",
+      "addLabels": [
+        "toolchain"
+      ]
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDepNames": [
+        "goreleaser/nfpm"
+      ],
+      "extractVersion": "^v(?<version>.+)$"
+    },
+    {
+      "description": "Tags look like jbr-release-25.0.4.1b635.70; JAVA_VERSION follows the feature version",
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDepNames": [
+        "JetBrains/JetBrainsRuntime"
+      ],
+      "extractVersion": "^jbr-release-(?<version>.+)$",
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?b(?<revision>\\d+)\\.\\d+$"
+    },
+    {
+      "description": "Date-tagged rule sets; geosite tags several times a day",
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDepNames": [
+        "Dreamacro/maxmind-geoip",
+        "v2fly/domain-list-community"
+      ],
+      "groupName": "Geo Assets",
+      "groupSlug": "geo-assets",
+      "schedule": [
+        "* 0-5 * * 1"
       ]
     },
     {

@@ -17,6 +17,7 @@ android {
                 "x86",
             )
         }
+        // Keep equal to ANDROID_NDK_VERSION in buildScript/init/version.sh.
         ndkVersion = "30.0.16248370"
     }
     dependenciesInfo {

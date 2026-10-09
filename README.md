@@ -432,7 +432,7 @@ These carry a `runtime\` directory next to the launcher, linked with `jlink` fro
 rendering work is exactly what Compose Desktop wants. The launcher prefers that runtime over anything installed on the
 machine; only the `JAVA` environment variable overrides it.
 
-The modules are fetched into `build/jbr/` on demand, pinned by `JBR_VERSION` / `JBR_BUILD` in
+The modules are fetched into `build/jbr/` on demand, pinned by `JBR_RELEASE` in
 `buildScript/init/version.sh`. Fetch them yourself, or point the packaging at a copy you already have:
 
 ```shell
@@ -441,7 +441,7 @@ make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64 JBR_JMODS=/path/to
 ```
 
 Building these additionally needs `jlink` on `PATH`. Its feature version has to be at least the JetBrains Runtime's —
-`jlink` cannot read modules newer than itself — which is why `JBR_VERSION` tracks `JAVA_VERSION`. Nothing else about the
+`jlink` cannot read modules newer than itself — which is why `JAVA_VERSION` is derived from `JBR_RELEASE`. Nothing else about the
 host matters: `jlink` links an image for the platform its modules belong to, so the Windows runtime is linked on the
 Linux release runner like everything else.
 
