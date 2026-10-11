@@ -68,5 +68,5 @@ jobs:
             gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           else
             UPSTREAM_VERSION=$(echo "${{ github.ref_name }}" | sed -E 's/plugin-mieru-(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-            gh release create "$RELEASE_TAG" "${files[@]}" --prerelease --notes $'# :memo: Release Notes\n\nUpstream: <https://github.com/enfein/mieru/releases/tag/'"$UPSTREAM_VERSION"'>'
+            gh release create "$RELEASE_TAG" "${files[@]}" --title "$RELEASE_TAG" --prerelease --notes $'# :memo: Release Notes\n\nUpstream: <https://github.com/enfein/mieru/releases/tag/'"$UPSTREAM_VERSION"'>'
           fi
