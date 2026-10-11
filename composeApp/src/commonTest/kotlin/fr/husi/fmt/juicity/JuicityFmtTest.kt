@@ -4,6 +4,7 @@ import fr.husi.database.DataStore
 import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
+import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
@@ -76,7 +77,7 @@ class JuicityFmtTest : HusiKoinTest() {
             sni = "sni.example.com"
             allowInsecure = true
             pinSHA256 = "sha256hash"
-        }
+        }.applyDefaultValues()
 
         val config = bean.buildJuicityConfig(port = 2080, shouldProtect = false).toJsonMapKxs()
 
@@ -103,11 +104,12 @@ class JuicityFmtTest : HusiKoinTest() {
             sni = ""
             allowInsecure = false
             pinSHA256 = ""
-        }
+        }.applyDefaultValues()
 
         val config = bean.buildJuicityConfig(port = 2080, shouldProtect = false).toJsonMapKxs()
 
-        assertFalse("sni" in config)
+        // Juicity may dial a loopback mapping inbound, so a blank SNI names the server.
+        assertEquals("example.com", config["sni"])
         assertFalse("allow_insecure" in config)
         assertFalse("pinned_certchain_sha256" in config)
         assertFalse("protect_path" in config)
@@ -145,7 +147,7 @@ class JuicityFmtTest : HusiKoinTest() {
             serverPort = 8443
             uuid = "uuid"
             password = "pass"
-        }
+        }.applyDefaultValues()
 
         val config = bean.buildJuicityConfig(port = 2080, shouldProtect = false).toJsonMapKxs()
 

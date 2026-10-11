@@ -173,10 +173,10 @@ fun ShadowQUICBean.buildShadowQUICConfig(
                     "sunnyquic"
                 },
             )
-            put("addr", displayAddress())
+            put("addr", pluginDialAddress())
             put("username", username)
             put("password", password)
-            sni.blankAsNull()?.let { put("server-name", it) }
+            put("server-name", pluginServerName(sni))
             alpn.blankAsNull()?.listByLineOrComma()?.let { alpns ->
                 putJsonArray("alpn") {
                     for (item in alpns) add(item)

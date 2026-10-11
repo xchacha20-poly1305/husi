@@ -44,10 +44,10 @@ fun JuicityBean.toUri(): String = buildUrl("juicity") {
 fun JuicityBean.buildJuicityConfig(port: Int, shouldProtect: Boolean): String {
     return buildJsonObject {
         put("listen", "$LOCALHOST4:$port")
-        put("server", displayAddress())
+        put("server", pluginDialAddress())
         put("uuid", uuid)
         put("password", password)
-        sni.blankAsNull()?.let { put("sni", it) }
+        put("sni", pluginServerName(sni))
         if (allowInsecure) {
             put("allow_insecure", true)
         }

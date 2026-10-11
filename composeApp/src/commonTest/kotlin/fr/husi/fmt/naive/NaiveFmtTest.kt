@@ -2,8 +2,10 @@ package fr.husi.fmt.naive
 
 import fr.husi.database.DataStore
 import fr.husi.fmt.FmtTestConstant
+import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
@@ -98,6 +100,52 @@ class NaiveFmtTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildNaiveConfig should resolve the server domain to its mapping inbound`() {
+        val bean = mappedNaiveBean(serverAddress = "example.com", sni = "")
+
+        val config = bean.buildNaiveConfig(1080).toJsonMapKxs()
+
+        assertEquals("MAP example.com $LOCALHOST4", config["host-resolver-rules"])
+        assertEquals("https://user:pass@example.com:$MAPPING_PORT", config["proxy"])
+    }
+
+    @Test
+    fun `buildNaiveConfig should prefer sni as the proxy host`() {
+        val bean = mappedNaiveBean(serverAddress = "2001:db8::1", sni = "sni.example.com")
+
+        val config = bean.buildNaiveConfig(1080).toJsonMapKxs()
+
+        assertEquals("MAP sni.example.com $LOCALHOST4", config["host-resolver-rules"])
+        assertEquals("https://user:pass@sni.example.com:$MAPPING_PORT", config["proxy"])
+    }
+
+    @Test
+    fun `buildNaiveConfig should leave the bean unchanged`() {
+        val bean = mappedNaiveBean(serverAddress = "2001:db8::1", sni = "sni.example.com")
+
+        bean.buildNaiveConfig(1080)
+        bean.buildNaiveConfig(1080)
+
+        assertEquals("2001:db8::1", bean.serverAddress)
+        assertEquals(LOCALHOST4, bean.finalAddress)
+        assertEquals(MAPPING_PORT, bean.finalPort)
+        assertEquals("naive+https://user:pass@[2001:db8::1]:443?sni=sni.example.com", bean.toUri())
+    }
+
+    /** A bean as ConfigBuilder leaves it after pointing the plugin at a mapping inbound. */
+    private fun mappedNaiveBean(serverAddress: String, sni: String) = NaiveBean().apply {
+        proto = "https"
+        this.serverAddress = serverAddress
+        serverPort = 443
+        username = "user"
+        password = "pass"
+        this.sni = sni
+    }.applyDefaultValues().apply {
+        finalAddress = LOCALHOST4
+        finalPort = MAPPING_PORT
+    }
+
+    @Test
     fun `buildNaiveConfig should include timeout options`() {
         val bean = NaiveBean().apply {
             serverAddress = "example.com"
@@ -163,3 +211,5 @@ class NaiveFmtTest : HusiKoinTest() {
         assertEquals("bbr", bean.quicCongestionControl)
     }
 }
+
+private const val MAPPING_PORT = 24226

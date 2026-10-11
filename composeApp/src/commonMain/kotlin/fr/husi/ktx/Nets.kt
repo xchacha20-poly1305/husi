@@ -2,7 +2,6 @@ package fr.husi.ktx
 
 import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.database.DataStore
-import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.LOCALHOST_NAME
 import fr.husi.fmt.SingBoxOptions
@@ -171,10 +170,6 @@ fun String.isLoopbackHost(): Boolean {
     val literal = unwrapIPV6Host()
     if (!literal.isIpAddress()) return false
     return runCatching { InetAddress.getByName(literal).isLoopbackAddress }.getOrDefault(false)
-}
-
-fun AbstractBean.wrapUri(): String {
-    return joinAddress(finalAddress, finalPort)
 }
 
 fun mkPort(): Int {

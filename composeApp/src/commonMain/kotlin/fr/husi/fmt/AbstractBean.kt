@@ -36,6 +36,14 @@ abstract class AbstractBean : Serializable() {
         return joinAddress(serverAddress, serverPort)
     }
 
+    fun pluginDialAddress(): String {
+        return joinAddress(finalAddress, finalPort)
+    }
+
+    fun pluginServerName(sni: String): String {
+        return sni.ifBlank { serverAddress }
+    }
+
     open fun network(): String {
         return "tcp,udp"
     }

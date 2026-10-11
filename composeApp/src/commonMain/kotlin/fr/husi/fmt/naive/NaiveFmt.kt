@@ -42,43 +42,42 @@ fun parseNaive(link: String): NaiveBean {
     }
 }
 
-fun NaiveBean.toUri(proxyOnly: Boolean = false): String = buildUrl(if (proxyOnly) proto else "naive+$proto") {
-    host = finalAddress
-    port = finalPort.toString()
+fun NaiveBean.toUri(): String = buildUrl("naive+$proto") {
+    host = serverAddress
+    port = serverPort.toString()
     this@toUri.username.blankAsNull()?.let { username = it }
     this@toUri.password.blankAsNull()?.let { password = it }
-    if (!proxyOnly) {
-        if (sni.isNotBlank()) {
-            addQueryParameter("sni", sni)
-        }
-        if (extraHeaders.isNotBlank()) {
-            addQueryParameter("extra-headers", extraHeaders)
-        }
-        if (name.isNotBlank()) {
-            fragment = name
-        }
-        if (insecureConcurrency > 0) {
-            addQueryParameter("insecure-concurrency", "$insecureConcurrency")
-        }
+    if (sni.isNotBlank()) {
+        addQueryParameter("sni", sni)
+    }
+    if (extraHeaders.isNotBlank()) {
+        addQueryParameter("extra-headers", extraHeaders)
+    }
+    if (name.isNotBlank()) {
+        fragment = name
+    }
+    if (insecureConcurrency > 0) {
+        addQueryParameter("insecure-concurrency", "$insecureConcurrency")
     }
 }.toString()
 
-fun NaiveBean.buildNaiveConfig(port: Int): String {
-    finalAddress = finalAddress.wrapIPV6Host()
-    serverAddress = serverAddress.wrapIPV6Host()
+private fun NaiveBean.proxyUri(proxyHost: String): String = buildUrl(proto) {
+    host = proxyHost
+    port = finalPort.toString()
+    this@proxyUri.username.blankAsNull()?.let { username = it }
+    this@proxyUri.password.blankAsNull()?.let { password = it }
+}.toString()
 
-    val hostResolverRules = if (sni.isNotBlank()) {
-        "MAP $sni $finalAddress".also { finalAddress = sni }
-    } else if (!serverAddress.isIpAddress()) {
-        "MAP $serverAddress $finalAddress".also { finalAddress = serverAddress }
-    } else {
-        null
-    }
+fun NaiveBean.buildNaiveConfig(port: Int): String {
+    // Chromium verifies TLS against the proxy host, so keep the server name there
+    // and resolve it to the address ConfigBuilder assigned, usually a mapping inbound.
+    val serverName = sni.blankAsNull() ?: serverAddress.takeUnless { it.isIpAddress() }
+    val hostResolverRules = serverName?.let { "MAP $it ${finalAddress.wrapIPV6Host()}" }
 
     return buildJsonObject {
         hostResolverRules?.let { put("host-resolver-rules", it) }
         put("listen", "socks://$LOCALHOST4:$port")
-        put("proxy", toUri(true).replace(",", "%2C"))
+        put("proxy", proxyUri(serverName ?: finalAddress).replace(",", "%2C"))
         extraHeaders.blankAsNull()?.let { put("extra-headers", it.split("\n").joinToString("\r\n")) }
         if (DataStore.logLevel.getBlocking() > 0) put("log", "")
         insecureConcurrency.takeIf { it > 0 }?.let { put("insecure-concurrency", it) }

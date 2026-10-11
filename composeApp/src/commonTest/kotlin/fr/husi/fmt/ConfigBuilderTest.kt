@@ -14,6 +14,8 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openvpn.OpenVPNBean
+import fr.husi.fmt.shadowquic.ShadowQUICBean
+import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
@@ -22,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -2634,6 +2637,48 @@ class ConfigBuilderTest : HusiKoinTest() {
             rule["domain"]?.jsonArray?.any { it.jsonPrimitive.content == domain } == true
         }
 
+    @Test
+    fun `buildConfig should point a mapped shadowquic plugin at its mapping inbound`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+            ShadowQUICBean().apply {
+                name = "shadowquic"
+                serverAddress = "server.example.com"
+                serverPort = 8443
+            }.applyDefaultValues(),
+        )
+        proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+        // The URL test instance always routes plugins through a mapping inbound.
+        val result = buildConfig(proxy, forTest = true)
+        val mapping = parseInbounds(result).single {
+            it["tag"]?.jsonPrimitive?.content == "c-0-mapping-${proxy.id}"
+        }
+        val mappingPort = mapping["listen_port"]!!.jsonPrimitive.int
+        val bean = result.metadata.externalIndex
+            .flatMap { it.chain.values }
+            .single { it.id == proxy.id }
+            .requireBean() as ShadowQUICBean
+        val outbound = Json.parseToJsonElement(bean.buildShadowQUICConfig(PLUGIN_PORT, false, 0))
+            .jsonObject["outbound"]!!.jsonObject
+
+        assertEquals("$LOCALHOST4:$mappingPort", outbound["addr"]?.jsonPrimitive?.content)
+        assertEquals("server.example.com", outbound["server-name"]?.jsonPrimitive?.content)
+        val override = parseRouteRules(result).single {
+            it["inbound"]?.jsonArray?.singleOrNull()?.jsonPrimitive?.content == mapping["tag"]!!.jsonPrimitive.content &&
+                it["override_address"] != null
+        }
+        assertEquals("server.example.com", override["override_address"]?.jsonPrimitive?.content)
+        assertEquals(8443, override["override_port"]?.jsonPrimitive?.int)
+    }
+
+    private fun parseInbounds(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.configJson).jsonObject["inbounds"]!!
+            .jsonArray
+            .map { it.jsonObject }
+
     private fun parseOutbounds(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.configJson).jsonObject["outbounds"]!!
             .jsonArray
@@ -2882,3 +2927,6 @@ class ConfigBuilderTest : HusiKoinTest() {
         return proxy
     }
 }
+
+// Local SOCKS port the plugin listens on; irrelevant to where it dials.
+private const val PLUGIN_PORT = 1080
