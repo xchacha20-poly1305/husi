@@ -7,6 +7,7 @@ import fr.husi.ktx.toPortOrNull
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeBase64
+import okio.ByteString.Companion.decodeHex
 import java.io.EOFException
 
 /**
@@ -67,8 +68,10 @@ internal data class TrustTunnelLink(
         private const val TAG_SKIP_VERIFICATION = 0x07L
         private const val TAG_CERTIFICATE = 0x08L
         private const val TAG_UPSTREAM_PROTOCOL = 0x09L
+        private const val TAG_CLIENT_RANDOM_PREFIX = 0x0BL
         private const val TAG_NAME = 0x0CL
         private const val TAG_SUBSCRIPTION_URL = 0x0EL
+        private const val TAG_CLIENT_RANDOM_AUTH_KEY = 0x0FL
 
         /**
          * Version 2 only adds the subscription URL, which these links never carry. Writing 1 keeps
@@ -76,11 +79,13 @@ internal data class TrustTunnelLink(
          */
         private const val VERSION_WRITTEN = 1L
         private const val VERSION_MAX_SUPPORTED = 2L
-        private const val SUBSCRIPTION_URL_PREFIX = "https://"
+
         private const val BOOL_FALSE: Byte = 0
         private const val BOOL_TRUE: Byte = 1
         private const val UPSTREAM_HTTP2: Byte = 1
         private const val UPSTREAM_HTTP3: Byte = 2
+
+        private const val MAX_RANDOM_LENGTH = 32 // TLS client random length
 
         fun parse(link: String): TrustTunnelLink {
             require(link.startsWith(SCHEME_PREFIX)) { "schema is not tt" }
@@ -135,20 +140,32 @@ internal data class TrustTunnelLink(
                         TAG_NAME -> name = value.strictUtf8(tag)
                         TAG_SUBSCRIPTION_URL -> {
                             val url = value.strictUtf8(tag)
-                            require(url.startsWith(SUBSCRIPTION_URL_PREFIX)) { "subscription URL is not https: $url" }
+                            require(url.startsWith("https://")) { "subscription URL is not https: $url" }
                             subscriptionUrl = url
                         }
 
-                        // Anti-DPI, IPv6 availability, client random prefix and DNS upstreams have
-                        // no counterpart in a sing-box outbound.
+                        // Useless, but validate them
+
+                        TAG_CLIENT_RANDOM_PREFIX -> {
+                            val parts = value.strictUtf8(tag).split("/")
+                            require(parts.size <= 2) { "invalid random prefix format" }
+                            parts.forEach {
+                                val value = it.decodeHex()
+                                require(value.size <= MAX_RANDOM_LENGTH) { "invalid random length: $value" }
+                            }
+                        }
+
+                        TAG_CLIENT_RANDOM_AUTH_KEY -> {
+                            value.strictUtf8(tag).decodeHex()
+                        }
+
                         else -> Unit
                     }
                 }
             } catch (_: EOFException) {
                 throw IllegalArgumentException("truncated record")
             }
-            // A subscription URL makes the other fields optional; without them there is no
-            // server to connect to.
+            // Reject subscription only link
             val hasServer = hostname.isNotEmpty() && addresses.isNotEmpty() &&
                 username.isNotEmpty() && password.isNotEmpty()
             require(hasServer || subscriptionUrl == null) { "subscription-only links are not supported" }

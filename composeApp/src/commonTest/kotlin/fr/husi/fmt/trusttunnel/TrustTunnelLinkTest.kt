@@ -246,7 +246,8 @@ class TrustTunnelLinkTest {
 
     @Test
     fun `parse ignores an unknown tag`() {
-        val unknown = 0x0FL to bytes(0x01, 0x02, 0x03)
+        // 0x0F is the client random auth key. 0xFF is still unassigned.
+        val unknown = 0xFFL to bytes(0x01, 0x02, 0x03)
 
         assertEquals(minimalServer, TrustTunnelLink.parse(link(*minimalServerRecords, unknown)))
     }
@@ -306,6 +307,63 @@ class TrustTunnelLinkTest {
 
         assertFailsWith<IllegalArgumentException> {
             TrustTunnelLink.parse(link(versionRecord(2), *minimalServerRecords, subscription))
+        }
+    }
+
+    @Test
+    fun `parse accepts a client random prefix with a mask`() {
+        // decode.rs test_decode_client_random_with_mask. The prefix is checked, then dropped.
+        val prefix = TAG_CLIENT_RANDOM_PREFIX to "5841/7a43".encodeUtf8()
+
+        assertEquals(minimalServer, TrustTunnelLink.parse(link(*minimalServerRecords, prefix)))
+    }
+
+    @Test
+    fun `parse rejects a client random prefix that is not hex`() {
+        // roundtrip.rs test_invalid_hex_client_random_prefix. zzzz is even-length, so the digits fail.
+        // aabb/zzzz is the mask half that decode.rs checks on its own.
+        for (prefix in listOf("notvalidhex", "zzzz", "aabb/zzzz")) {
+            assertFailsWith<IllegalArgumentException> {
+                TrustTunnelLink.parse(link(*minimalServerRecords, TAG_CLIENT_RANDOM_PREFIX to prefix.encodeUtf8()))
+            }
+        }
+    }
+
+    @Test
+    fun `parse rejects a client random prefix with more than one slash`() {
+        // split_once leaves the second slash in the mask, which is not hex either.
+        val prefix = TAG_CLIENT_RANDOM_PREFIX to "aa/bb/cc".encodeUtf8()
+
+        assertFailsWith<IllegalArgumentException> {
+            TrustTunnelLink.parse(link(*minimalServerRecords, prefix))
+        }
+    }
+
+    @Test
+    fun `parse accepts a client random auth key`() {
+        // decode.rs test_auth_key_roundtrip. The key is checked, then dropped.
+        val key = TAG_CLIENT_RANDOM_AUTH_KEY to "aabbccdd".encodeUtf8()
+
+        assertEquals(minimalServer, TrustTunnelLink.parse(link(*minimalServerRecords, key)))
+    }
+
+    @Test
+    fun `parse accepts an empty client random prefix and auth key`() {
+        // hex::decode("") succeeds, and the builder allows an empty auth key.
+        val prefix = TAG_CLIENT_RANDOM_PREFIX to ByteString.EMPTY
+        val key = TAG_CLIENT_RANDOM_AUTH_KEY to ByteString.EMPTY
+
+        assertEquals(minimalServer, TrustTunnelLink.parse(link(*minimalServerRecords, prefix, key)))
+    }
+
+    @Test
+    fun `parse rejects a client random auth key that is not hex`() {
+        // decode.rs test_auth_key_invalid_hex_decode ("nothexx") and
+        // types.rs test_builder_rejects_invalid_auth_key_hex ("not-hex").
+        for (key in listOf("nothexx", "not-hex")) {
+            assertFailsWith<IllegalArgumentException> {
+                TrustTunnelLink.parse(link(*minimalServerRecords, TAG_CLIENT_RANDOM_AUTH_KEY to key.encodeUtf8()))
+            }
         }
     }
 
@@ -389,6 +447,8 @@ class TrustTunnelLinkTest {
         const val TAG_PASSWORD = 0x06L
         const val TAG_SKIP_VERIFICATION = 0x07L
         const val TAG_UPSTREAM_PROTOCOL = 0x09L
+        const val TAG_CLIENT_RANDOM_PREFIX = 0x0BL
         const val TAG_SUBSCRIPTION_URL = 0x0EL
+        const val TAG_CLIENT_RANDOM_AUTH_KEY = 0x0FL
     }
 }
