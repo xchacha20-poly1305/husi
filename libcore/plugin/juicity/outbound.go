@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"net"
 	"os"
+	"uuid"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"
@@ -22,7 +23,6 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/exclavenetwork/sing-juicity"
-	"github.com/gofrs/uuid/v5"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/pluginoption"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/raybridge"
 )
@@ -77,7 +77,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		}
 		stdTLSConfig.InsecureSkipVerify = true
 	}
-	uuidInstance, err := uuid.FromString(options.UUID)
+	UUID, err := uuid.Parse(options.UUID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		Dialer:        outboundDialer,
 		ServerAddress: options.Build(),
 		TLSConfig:     tlsConfig,
-		UUID:          [uuid.Size]byte(uuidInstance.Bytes()),
+		UUID:          UUID,
 		Password:      options.Password,
 	})
 	if err != nil {

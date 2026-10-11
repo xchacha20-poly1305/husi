@@ -20,7 +20,6 @@ require (
 	github.com/coder/websocket v1.8.15
 	github.com/exclavenetwork/sing-juicity v0.3.1
 	github.com/godbus/dbus/v5 v5.2.2
-	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/google/licensecheck v0.3.1
 	github.com/miekg/dns v1.1.72
 	github.com/oschwald/geoip2-golang v1.13.0
@@ -70,6 +69,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gofrs/uuid/v5 v5.5.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/certificate-transparency-go v1.3.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
