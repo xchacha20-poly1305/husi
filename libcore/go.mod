@@ -42,7 +42,7 @@ require (
 	github.com/xchacha20-poly1305/TLS-scribe v0.13.1
 	github.com/xchacha20-poly1305/anchor v0.9.0
 	github.com/xchacha20-poly1305/libping v0.10.5
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20260928134000-daacc8079caf
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.3.3-0.20261011051730-c075c523b47d
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/mod v0.41.0
 	golang.org/x/net v0.59.0
