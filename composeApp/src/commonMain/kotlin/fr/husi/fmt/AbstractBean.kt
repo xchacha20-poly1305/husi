@@ -53,6 +53,7 @@ abstract class AbstractBean : Serializable() {
     open val needUDPOverTCP get() = false
     open val canMapping get() = true
 
+    /** Whether the plugin built for this platform can hand its sockets to the protect service. */
     open val canSelfProtect get() = false
 
     open fun isInsecure(): ValidateResult {

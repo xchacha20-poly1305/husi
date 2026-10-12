@@ -57,7 +57,7 @@ class BaseService {
 
         override suspend fun init(profile: ProxyEntity) {
             proxy = ProxyInstance(profile, service).also {
-                it.init(service is VpnService)
+                it.init()
             }
         }
 

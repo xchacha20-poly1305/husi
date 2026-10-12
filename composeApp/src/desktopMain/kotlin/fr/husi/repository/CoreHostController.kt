@@ -551,13 +551,11 @@ internal class CoreHostController(
             cacheFiles.clear()
             val pluginConfigs = initPlugins(
                 metadata = config.metadata,
-                isVPN = isVPN,
                 cacheFiles = cacheFiles,
             )
             val pluginSpecs = buildPluginSpecs(
                 metadata = config.metadata,
                 pluginConfigs = pluginConfigs,
-                isVPN = isVPN,
             )
 
             val request = startServiceRequest {

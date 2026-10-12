@@ -9,7 +9,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
+	"github.com/xchacha20-poly1305/protect-go"
 )
 
 func registerPlatformInterface(ctx context.Context, platformInterface PlatformInterface, forTest bool) {

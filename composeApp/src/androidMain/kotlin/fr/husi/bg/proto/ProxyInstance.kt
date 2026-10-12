@@ -32,8 +32,8 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         }
     }
 
-    override suspend fun init(isVPN: Boolean) {
-        super.init(isVPN)
+    override suspend fun init() {
+        super.init()
         pluginConfigs.forEach { (_, plugin) ->
             val (_, content) = plugin
             Logs.d(content)

@@ -27,6 +27,7 @@ type daemonDaemonService struct {
 
 	host       *coresvc.Host
 	workingDir string
+	pluginDir  string
 	version    string
 	owner      *OwnerStore
 
@@ -43,16 +44,22 @@ type daemonDaemonService struct {
 	clientGrace   time.Duration
 }
 
-func newDaemonDaemonService(workingDir, version string, owner *OwnerStore) *daemonDaemonService {
+func newDaemonDaemonService(workingDir, pluginDir, version string, owner *OwnerStore) *daemonDaemonService {
 	s := &daemonDaemonService{
 		workingDir:  workingDir,
+		pluginDir:   pluginDir,
 		version:     version,
 		owner:       owner,
 		clientGrace: lastClientGrace,
 	}
-	s.plugins = pluginpool.NewPluginPool(workingDir, s.handlePluginFatal)
-	s.plugins.SetProcessCredential(s.pluginCredentials)
+	s.plugins = s.newPluginPool()
 	return s
+}
+
+func (s *daemonDaemonService) newPluginPool() *pluginpool.PluginPool {
+	plugins := pluginpool.NewPluginPool(s.pluginDir, s.handlePluginFatal)
+	plugins.SetProcessCredential(s.pluginCredentials)
+	return plugins
 }
 
 func (s *daemonDaemonService) pluginCredentials() (*syscall.SysProcAttr, error) {
@@ -222,8 +229,7 @@ func (s *daemonDaemonService) StartService(ctx context.Context, req *husiv1.Star
 
 	if err := s.host.StartOrReload(ctx, config); err != nil {
 		_ = s.plugins.Close()
-		s.plugins = pluginpool.NewPluginPool(s.workingDir, s.handlePluginFatal)
-		s.plugins.SetProcessCredential(s.pluginCredentials)
+		s.plugins = s.newPluginPool()
 		_ = SetWasRunning(s.workingDir, false)
 		return nil, status.Error(codes.Internal, E.Cause(err, "start service").Error())
 	}
@@ -278,8 +284,7 @@ func (s *daemonDaemonService) restore(ctx context.Context, snapshot *Snapshot) e
 	}
 	if err := s.host.StartOrReload(ctx, snapshot.Config); err != nil {
 		_ = s.plugins.Close()
-		s.plugins = pluginpool.NewPluginPool(s.workingDir, s.handlePluginFatal)
-		s.plugins.SetProcessCredential(s.pluginCredentials)
+		s.plugins = s.newPluginPool()
 		return E.Cause(err, "restore service")
 	}
 	s.metadata = cloneClientMetadata(snapshot.ClientMetadata)
@@ -298,8 +303,7 @@ func (s *daemonDaemonService) stopLocked(clearPersistence bool) error {
 	closeProcessCredential(s.lastCredentialAttr)
 	s.lastCredentialAttr = nil
 
-	s.plugins = pluginpool.NewPluginPool(s.workingDir, s.handlePluginFatal)
-	s.plugins.SetProcessCredential(s.pluginCredentials)
+	s.plugins = s.newPluginPool()
 
 	if s.host != nil {
 		if err := s.host.CloseService(C.FatalStopTimeout); err != nil {

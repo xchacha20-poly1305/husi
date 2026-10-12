@@ -24,7 +24,6 @@ abstract class BoxInstance(
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     private val externalInstances = hashMapOf<Int, AbstractInstance>()
     private var cacheFiles = ArrayList<File>()
-    private var isVPN: Boolean = false
 
     /**
      * Config has been built. The box instance itself is only created at
@@ -39,13 +38,12 @@ abstract class BoxInstance(
         return buildConfig(profile)
     }
 
-    open suspend fun init(isVPN: Boolean) {
-        this.isVPN = isVPN
+    open suspend fun init() {
         val result = buildConfig()
         metadata = result.metadata
         pendingConfigJson = result.configJson
         // Fail fast on missing plugins before the foreground service escalates.
-        pluginConfigs.putAll(initPlugins(metadata, isVPN, cacheFiles))
+        pluginConfigs.putAll(initPlugins(metadata, cacheFiles))
     }
 
     override fun launch() {
@@ -56,7 +54,7 @@ abstract class BoxInstance(
                 }
             }
         }
-        val specs = buildPluginSpecs(metadata, pluginConfigs, isVPN)
+        val specs = buildPluginSpecs(metadata, pluginConfigs)
         val configJson = checkNotNull(pendingConfigJson) { "instance already launched" }
         pendingConfigJson = null
         val request = startServiceRequest {

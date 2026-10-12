@@ -25,15 +25,14 @@ import java.io.File
 
 fun initPlugins(
     metadata: ConfigMetadata,
-    isVPN: Boolean,
     cacheFiles: MutableList<File>,
 ): Map<Int, Pair<Int, String>> {
     val repository = resolveRepository()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     val logLevel = DataStore.logLevel.getBlocking()
-    val shouldProtect = isVPN && PlatformInfo.isAndroid
     for ((chain) in metadata.externalIndex) {
         chain.entries.forEach { (port, profile) ->
+            val shouldProtect = port in metadata.protectedPluginPorts
             when (val bean = profile.requireBean()) {
                 is MieruBean -> {
                     PluginManager.init("mieru-plugin")
@@ -83,10 +82,8 @@ fun initPlugins(
 fun buildPluginSpecs(
     metadata: ConfigMetadata,
     pluginConfigs: Map<Int, Pair<Int, String>>,
-    isVPN: Boolean,
 ): List<PluginProcessSpec> {
     val repository = resolveRepository()
-    val shouldProtect = isVPN && PlatformInfo.isAndroid
     val logLevel = DataStore.logLevel.getBlocking()
     val specs = ArrayList<PluginProcessSpec>()
 
@@ -105,7 +102,7 @@ fun buildPluginSpecs(
             val spec = when (bean) {
                 is MieruBean -> {
                     val configName = "mieru_$port.json"
-                    if (shouldProtect) {
+                    if (port in metadata.protectedPluginPorts) {
                         env["MIERU_PROTECT_PATH"] = protectPath
                     }
                     env["MIERU_CONFIG_JSON_FILE"] = pluginFileToken(configName)

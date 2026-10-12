@@ -5,6 +5,7 @@ import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.BeanConverters
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
+import fr.husi.platform.PlatformInfo
 
 @KxsSerializable
 class MieruBean : AbstractBean() {
@@ -31,7 +32,7 @@ class MieruBean : AbstractBean() {
     var mtu: Int = 1400
     var trafficPattern: String = ""
 
-    override val canSelfProtect get() = true
+    override val canSelfProtect get() = PlatformInfo.isAndroid
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()

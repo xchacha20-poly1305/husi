@@ -6,6 +6,7 @@ import fr.husi.fmt.BeanConverters
 import fr.husi.fmt.ValidateResult
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
+import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
 import fr.husi.resources.warn_quic_0_rtt
 
@@ -50,7 +51,7 @@ class ShadowQUICBean : AbstractBean() {
     var maxPaths: Int = 0
     var certificates: String = ""
 
-    override val canSelfProtect get() = true
+    override val canSelfProtect get() = PlatformInfo.isAndroid
 
     override fun isInsecure(): ValidateResult {
         val result = super.isInsecure()

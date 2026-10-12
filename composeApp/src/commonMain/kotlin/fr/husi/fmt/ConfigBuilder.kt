@@ -217,6 +217,7 @@ class ConfigBuildResult(
 class ConfigMetadata(
     val mainTag: String,
     val externalIndex: List<IndexEntity>,
+    val protectedPluginPorts: Set<Int> = emptySet(),
     val trafficProfiles: List<ProxyEntity>,
     val tagToID: Map<String, Long>,
     val trafficGraph: Map<String, TrafficNode> = emptyMap(),
@@ -582,6 +583,7 @@ suspend fun buildConfig(
         .toMap()
         .takeIf { it.isNotEmpty() }
     val externalIndexMap = ArrayList<IndexEntity>()
+    val protectedPluginPorts = HashSet<Int>()
     val networkStrategy = DataStore.networkStrategy.get()
     val networkInterfaceStrategy = DataStore.networkInterfaceType.get()
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.get().toList()
@@ -649,20 +651,21 @@ suspend fun buildConfig(
 
         inbounds = mutableListOf()
 
-        if (!forTest && PlatformInfo.isAndroid && !forExport) {
+        if (!forTest && !forExport) {
             val platformServices = mutableListOf<SingBoxOptions.Service>()
 
-            if (isVPN) {
+            if (isVPN && protectServiceAvailable) {
                 platformServices.add(
                     SingBoxOptions.Service_ProtectOptions().apply {
                         type = SingBoxOptions.TYPE_PROTECT
                         tag = TAG_SERVICE_PROTECT
                         path = protectPath
+                        verify_peer = !DataStore.allowAppsBypassVpn.get()
                     },
                 )
             }
 
-            if (allowAccess) {
+            if (PlatformInfo.isAndroid && allowAccess) {
                 DataStore.anchorSSID.get().blankAsNull()?.let { allowedSSIDs ->
                     platformServices.add(
                         SingBoxOptions.Service_AnchorOptions().apply {
@@ -839,13 +842,17 @@ suspend fun buildConfig(
 
                 val tagOut = reserveTag(entry)
 
-                if (proxyEntity.needExternal()) { // external outbound
-                    val localPort = mkPort()
-                    externalChainMap[localPort] = proxyEntity
+                val pluginPort = if (proxyEntity.needExternal()) {
+                    mkPort()
+                } else {
+                    null
+                }
+                if (pluginPort != null) { // external outbound
+                    externalChainMap[pluginPort] = proxyEntity
                     currentOutbound = Outbound_SOCKSOptions().apply {
                         type = SingBoxOptions.TYPE_SOCKS
                         server = LOCALHOST4
-                        server_port = localPort
+                        server_port = pluginPort
                     }.asKxsMap()
                 } else { // internal outbound
                     currentOutbound = when (bean) {
@@ -967,12 +974,14 @@ suspend fun buildConfig(
                 bean.finalAddress = bean.serverAddress
                 bean.finalPort = bean.serverPort
                 var currentInboundTag: String? = null
-                if (bean.canMapping && proxyEntity.needExternal()) {
+                if (pluginPort != null) {
                     val needDirectRoute = entry.key !in entriesWithContinuation
-                    val canDialDirect = bean.canSelfProtect // Plugin support protect.
-                        && needDirectRoute // on direct out
-                        && !forTest // When testing, there may no protect service.
-                        && (PlatformInfo.isAndroid || !isVPN) // Only Android support protect path, only VPN need protect.
+                    // The test instance has no protect service and relies on the mapping for isolation.
+                    val canProtect = !forTest && protectServiceAvailable && bean.canSelfProtect
+                    val canDialDirect = !bean.canMapping || (canProtect && needDirectRoute)
+                    if (canDialDirect && canProtect && isVPN) { // Only VPN needs protect.
+                        protectedPluginPorts.add(pluginPort)
+                    }
                     if (!canDialDirect) {
                         val mappingPort = mkPort()
                         bean.finalAddress = LOCALHOST4
@@ -1735,6 +1744,7 @@ suspend fun buildConfig(
             ConfigMetadata(
                 mainTag = mainTag,
                 externalIndex = externalIndexMap,
+                protectedPluginPorts = protectedPluginPorts,
                 trafficProfiles = trafficProfiles.values.toList(),
                 tagToID = tagToID,
                 trafficGraph = trafficGraph,

@@ -6,6 +6,7 @@ import fr.husi.fmt.ValidateResult
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
 import fr.husi.ktx.joinAddress
+import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
 import fr.husi.resources.warn_hysteria_legacy
 import fr.husi.resources.warn_insecure
@@ -95,7 +96,7 @@ class HysteriaBean : AbstractBean() {
     var initialPacketSize: Int = 0
 
     override val canMapping get() = protocol != PROTOCOL_FAKETCP
-    override val canSelfProtect get() = true
+    override val canSelfProtect get() = PlatformInfo.isAndroid || PlatformInfo.isLinux
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()

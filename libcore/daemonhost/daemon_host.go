@@ -119,7 +119,7 @@ func (h *DaemonHost) run(ctx context.Context) error {
 		owner.SetOwner(*saved)
 	}
 
-	daemonSvc := newDaemonDaemonService(absDir, version, owner)
+	daemonSvc := newDaemonDaemonService(absDir, coreDir, version, owner)
 	listenTCP := h.options.ListenAddr != ""
 	allowAll := listenTCP
 

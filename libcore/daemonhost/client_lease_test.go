@@ -20,7 +20,7 @@ func newRunningDaemonService(t *testing.T) *daemonDaemonService {
 	// The instance may write cache.db into the process working directory.
 	t.Chdir(t.TempDir())
 
-	svc := newDaemonDaemonService(t.TempDir(), "test", NewOwnerStore(NewPeerRegistry()))
+	svc := newDaemonDaemonService(t.TempDir(), t.TempDir(), "test", NewOwnerStore(NewPeerRegistry()))
 	svc.clientGrace = 50 * time.Millisecond
 
 	hostCtx := sessionBaseContext(t.Context())

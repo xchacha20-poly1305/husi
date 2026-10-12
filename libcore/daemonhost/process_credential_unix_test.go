@@ -14,7 +14,7 @@ func TestPluginCredentialsSkippedWhenUnprivileged(t *testing.T) {
 	if os.Geteuid() == 0 {
 		t.Skip("a root daemon still has to drop plugins to the owner")
 	}
-	service := newDaemonDaemonService(t.TempDir(), "test", NewOwnerStore(nil))
+	service := newDaemonDaemonService(t.TempDir(), t.TempDir(), "test", NewOwnerStore(nil))
 	t.Cleanup(func() { _ = service.plugins.Close() })
 
 	// No owner is claimed: an unprivileged daemon must not even ask for one.

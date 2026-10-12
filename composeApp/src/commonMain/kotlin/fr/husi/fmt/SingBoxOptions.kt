@@ -5747,6 +5747,9 @@ object SingBoxOptions {
         @JvmField
         var path: String? = null
 
+        @JvmField
+        var verify_peer: Boolean? = null
+
     }
 
     @KxsSerializable

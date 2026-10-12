@@ -15,7 +15,7 @@ import (
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
+	"github.com/xchacha20-poly1305/protect-go"
 )
 
 func baseContext(platformInterface PlatformInterface) context.Context {

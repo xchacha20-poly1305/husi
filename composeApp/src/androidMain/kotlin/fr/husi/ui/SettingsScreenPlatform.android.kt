@@ -35,7 +35,6 @@ import fr.husi.ktx.getColour
 import fr.husi.resources.Res
 import fr.husi.resources.acquire_wake_lock
 import fr.husi.resources.acquire_wake_lock_summary
-import fr.husi.resources.allow_apps_bypass_vpn
 import fr.husi.resources.app_registration
 import fr.husi.resources.append_http_proxy
 import fr.husi.resources.append_http_proxy_sum
@@ -69,7 +68,6 @@ import fr.husi.resources.proxied_apps
 import fr.husi.resources.proxied_apps_summary
 import fr.husi.resources.route_opt_bypass_lan
 import fr.husi.resources.show_group_in_notification
-import fr.husi.resources.transform
 import fr.husi.resources.update_proxy_apps_when_install
 import fr.husi.resources.visibility_off
 import fr.husi.resources.vpn_session_name
@@ -156,19 +154,6 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
             },
         )
     }
-
-    val bypassValue by DataStore.allowAppsBypassVpn.collectAsStateWithLifecycle()
-    SwitchPreference(
-        value = bypassValue,
-        onValueChange = {
-            DataStore.allowAppsBypassVpn.setBlocking(it)
-            needReload()
-        },
-        title = { Text(stringResource(Res.string.allow_apps_bypass_vpn)) },
-        icon = {
-            MaskedIcon(Res.drawable.transform, color = IconMaskColors.IconCyan)
-        },
-    )
 
     val showGroupValue by DataStore.showGroupInNotification.collectAsStateWithLifecycle()
     SwitchPreference(

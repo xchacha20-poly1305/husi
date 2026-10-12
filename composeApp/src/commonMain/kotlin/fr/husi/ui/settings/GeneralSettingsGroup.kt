@@ -50,12 +50,14 @@ import fr.husi.compose.theme.themeString
 import fr.husi.compose.theme.themes
 import fr.husi.database.DataStore
 import fr.husi.database.preference.PreferenceProxy
+import fr.husi.fmt.protectServiceAvailable
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
+import fr.husi.resources.allow_apps_bypass_vpn
 import fr.husi.resources.always_show_address
 import fr.husi.resources.always_show_address_sum
 import fr.husi.resources.auto
@@ -93,6 +95,7 @@ import fr.husi.resources.speed
 import fr.husi.resources.speed_interval
 import fr.husi.resources.theme
 import fr.husi.resources.traffic
+import fr.husi.resources.transform
 import fr.husi.resources.transgender
 import fr.husi.resources.translate
 import fr.husi.resources.wb_sunny
@@ -340,6 +343,20 @@ internal fun GeneralSettingsGroup(
         summary = { Text(mtuValue.toString()) },
         valueToText = { it.toString() },
     )
+    if (protectServiceAvailable) {
+        val bypassValue by DataStore.allowAppsBypassVpn.collectAsStateWithLifecycle()
+        SwitchPreference(
+            value = bypassValue,
+            onValueChange = {
+                DataStore.allowAppsBypassVpn.setBlocking(it)
+                needReload()
+            },
+            title = { Text(stringResource(Res.string.allow_apps_bypass_vpn)) },
+            icon = {
+                MaskedIcon(Res.drawable.transform, color = IconMaskColors.IconCyan)
+            },
+        )
+    }
     PlatformGeneralOptions(needReload)
 
     fun speedIntervalText(ms: Int): StringOrRes = when (ms) {

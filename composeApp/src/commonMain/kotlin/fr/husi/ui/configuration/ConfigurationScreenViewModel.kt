@@ -468,12 +468,12 @@ class ConfigurationScreenViewModel(
 
         return try {
             val config = buildConfig(profile, forTest = true)
-            // isVPN=false: standalone URL test has no protect env, matching the
-            // previous in-process path. Cert material still lands in cacheDir via
-            // hysteria/shadowquic builders and is cleaned up below.
+            // A test build protects no plugin: the URL test has no protect service.
+            // Cert material still lands in cacheDir via hysteria/shadowquic
+            // builders and is cleaned up below.
             val plugins = if (config.metadata.externalIndex.any { it.chain.isNotEmpty() }) {
-                val pluginConfigs = initPlugins(config.metadata, false, cacheFiles)
-                buildPluginSpecs(config.metadata, pluginConfigs, false)
+                val pluginConfigs = initPlugins(config.metadata, cacheFiles)
+                buildPluginSpecs(config.metadata, pluginConfigs)
             } else {
                 emptyList()
             }

@@ -12,18 +12,17 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 
-	"github.com/xchacha20-poly1305/husi/libcore/v2/plugin/protect"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/urltest"
 	"github.com/xchacha20-poly1305/libping"
+	"github.com/xchacha20-poly1305/protect-go"
 )
 
 func ignoreProtectError() control.Func {
+	protectControl := protect.Control(protectSocketPath)
 	return func(network, address string, conn syscall.RawConn) error {
-		_ = control.Raw(conn, func(fd uintptr) error {
-			// Pings must bypass the VPN this process may be running.
-			_ = protect.Protect(protectSocketPath, int(fd))
-			return nil
-		})
+		// Pings must bypass the VPN this process may be running,
+		// but must not fail when no protect service answers.
+		_ = protectControl(network, address, conn)
 		return nil
 	}
 }
