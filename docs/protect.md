@@ -2,7 +2,7 @@
 
 ## Abstract
 
-A tunnel that captures a host's IP traffic also captures sockets of other
+A tunnel that captures a host's traffic also captures sockets of other
 local processes. A process that must reach a host outside that tunnel has to
 hand each such socket to the program that owns the tunnel, and that program
 exempts the socket before any packet is sent. This document specifies that
@@ -78,7 +78,8 @@ expect. A server that does not inspect the peer conforms to this document.
 
 The protocol requires a system that can pass descriptors with `SCM_RIGHTS`.
 Systems without it, such as Windows, whose `AF_UNIX` sockets carry no
-descriptors, are out of scope.
+descriptors, are out of scope. A separate draft, `protect_windows.md`,
+specifies a Windows variant.
 
 ## 6. Exchange
 
@@ -121,8 +122,11 @@ system did not report the ancillary data as truncated (`MSG_CTRUNC`). The
 server MUST NOT exempt any descriptor from a request that is not valid, and
 MUST close every descriptor such a request delivered.
 
-The server MUST reject a descriptor that does not name an `AF_INET` or
-`AF_INET6` socket of type `SOCK_STREAM` or `SOCK_DGRAM`.
+The server MUST reject a descriptor that does not name a socket, which it can
+detect because `getsockopt` with `SO_TYPE` fails on it. This document places
+no requirement on the family, type, or protocol of the socket: a TCP, UDP,
+ICMP, raw, or packet socket can be submitted alike. Whether the server can
+exempt it is up to the exemption (Section 8).
 
 ### 6.3. Reply
 
@@ -180,7 +184,10 @@ How a server exempts a descriptor is outside this protocol. A reply of
 `0x00` means that the server has finished every operation its configuration
 calls for, and that the client may use the socket. When the configuration
 calls for none, for example because it provides neither an interface nor a
-routing mark, the server leaves the socket unchanged and replies `0x00`.
+routing mark, the server leaves the socket unchanged and replies `0x00`. When
+an operation that the configuration calls for cannot be applied to the
+submitted socket, for example because it is defined only for some address
+families, the exemption fails.
 
 Current practice is:
 
@@ -198,13 +205,16 @@ reason for its operator.
 
 ## 9. Compatibility
 
-Deployed implementations differ from this document in two ways:
+Deployed implementations differ from this document in three ways:
 
 - Husi servers before this document replied `0x01` for success and `0x00`
   for failure. shadowsocks-android before [SS-ANDROID-IPC] replied `0x00`
   for success and wrote nothing on failure.
 - The client in sing (`control.ProtectPath`) and the client in
   [MATSURI-HYSTERIA] treat any reply octet as success.
+- Servers that follow an earlier revision of this document reject every
+  socket that is not an `AF_INET` or `AF_INET6` socket of type `SOCK_STREAM`
+  or `SOCK_DGRAM`, and reply `0x01` for it.
 
 Clients of the second kind interoperate with every server above, but cannot
 detect a failure. They behave as a client that ignores failures
@@ -219,6 +229,10 @@ socket the user holds.
 A deployment can restrict the socket mode, place the socket in a directory
 that other users cannot traverse, or use the peer check in Section 5. The
 server MAY reject a peer whose user is not expected to run clients.
+
+Accepting a socket of any family, type, or protocol (Section 6.2) gives a
+client nothing beyond exemption itself, because the client can submit only a
+socket it already holds.
 
 The payload octet is not a credential and not a version. This document
 defines no authentication and no version negotiation. Peers recognize the
@@ -375,18 +389,12 @@ static int receive_request(int connection)
     return received_fd;
 }
 
-static int is_inet_socket(int fd)
+static int is_socket(int fd)
 {
-    struct sockaddr_storage address;
-    socklen_t address_length = sizeof(address);
     int type;
     socklen_t type_length = sizeof(type);
 
-    if (getsockname(fd, (struct sockaddr *)&address, &address_length) < 0
-        || getsockopt(fd, SOL_SOCKET, SO_TYPE, &type, &type_length) < 0)
-        return 0;
-    return (address.ss_family == AF_INET || address.ss_family == AF_INET6)
-        && (type == SOCK_STREAM || type == SOCK_DGRAM);
+    return getsockopt(fd, SOL_SOCKET, SO_TYPE, &type, &type_length) == 0;
 }
 
 /* Server: handle one accepted connection. exempt returns 0 on success. */
@@ -398,7 +406,7 @@ void protect_serve(int connection, int (*exempt)(int fd))
     if (set_timeout(connection) == 0) {
         fd = receive_request(connection);
         if (fd >= 0) {
-            if (is_inet_socket(fd) && exempt(fd) == 0)
+            if (is_socket(fd) && exempt(fd) == 0)
                 reply = PROTECT_SUCCESS;
             close(fd);
         }

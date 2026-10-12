@@ -50,7 +50,6 @@ import fr.husi.compose.theme.themeString
 import fr.husi.compose.theme.themes
 import fr.husi.database.DataStore
 import fr.husi.database.preference.PreferenceProxy
-import fr.husi.fmt.protectServiceAvailable
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.logLevelString
@@ -343,20 +342,18 @@ internal fun GeneralSettingsGroup(
         summary = { Text(mtuValue.toString()) },
         valueToText = { it.toString() },
     )
-    if (protectServiceAvailable) {
-        val bypassValue by DataStore.allowAppsBypassVpn.collectAsStateWithLifecycle()
-        SwitchPreference(
-            value = bypassValue,
-            onValueChange = {
-                DataStore.allowAppsBypassVpn.setBlocking(it)
-                needReload()
-            },
-            title = { Text(stringResource(Res.string.allow_apps_bypass_vpn)) },
-            icon = {
-                MaskedIcon(Res.drawable.transform, color = IconMaskColors.IconCyan)
-            },
-        )
-    }
+    val bypassValue by DataStore.allowAppsBypassVpn.collectAsStateWithLifecycle()
+    SwitchPreference(
+        value = bypassValue,
+        onValueChange = {
+            DataStore.allowAppsBypassVpn.setBlocking(it)
+            needReload()
+        },
+        title = { Text(stringResource(Res.string.allow_apps_bypass_vpn)) },
+        icon = {
+            MaskedIcon(Res.drawable.transform, color = IconMaskColors.IconCyan)
+        },
+    )
     PlatformGeneralOptions(needReload)
 
     fun speedIntervalText(ms: Int): StringOrRes = when (ms) {

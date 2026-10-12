@@ -2698,7 +2698,7 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildConfig should run the protect service under VPN where the core provides one`() = runBlocking {
+    fun `buildConfig should run the protect service under VPN`() = runBlocking {
         DataStore.serviceMode.set(Key.MODE_VPN)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
@@ -2715,17 +2715,11 @@ class ConfigBuilderTest : HusiKoinTest() {
             it["type"]?.jsonPrimitive?.content == SingBoxOptions.TYPE_PROTECT
         }
 
-        // macOS runs the service although no plugin implements protect there yet.
-        if (PlatformInfo.isAndroid || PlatformInfo.isLinux || PlatformInfo.isMacOs) {
-            assertEquals(protectPath, protectServices.single()["path"]?.jsonPrimitive?.content)
-        } else {
-            assertTrue(protectServices.isEmpty())
-        }
+        assertEquals(protectPath, protectServices.single()["path"]?.jsonPrimitive?.content)
     }
 
     @Test
     fun `buildConfig should verify protect peers unless apps may bypass the VPN`() = runBlocking {
-        if (!protectServiceAvailable) return@runBlocking
         DataStore.serviceMode.set(Key.MODE_VPN)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()

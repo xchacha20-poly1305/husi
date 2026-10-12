@@ -654,7 +654,7 @@ suspend fun buildConfig(
         if (!forTest && !forExport) {
             val platformServices = mutableListOf<SingBoxOptions.Service>()
 
-            if (isVPN && protectServiceAvailable) {
+            if (isVPN) {
                 platformServices.add(
                     SingBoxOptions.Service_ProtectOptions().apply {
                         type = SingBoxOptions.TYPE_PROTECT
@@ -977,7 +977,7 @@ suspend fun buildConfig(
                 if (pluginPort != null) {
                     val needDirectRoute = entry.key !in entriesWithContinuation
                     // The test instance has no protect service and relies on the mapping for isolation.
-                    val canProtect = !forTest && protectServiceAvailable && bean.canSelfProtect
+                    val canProtect = !forTest && bean.canSelfProtect
                     val canDialDirect = !bean.canMapping || (canProtect && needDirectRoute)
                     if (canDialDirect && canProtect && isVPN) { // Only VPN needs protect.
                         protectedPluginPorts.add(pluginPort)
