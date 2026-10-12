@@ -52,6 +52,16 @@
       ]
     },
     {
+      "description": "setup-go reads go-version from env.GO_VERSION, which buildScript/init/version.sh owns and the custom manager tracks",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchPackageNames": [
+        "actions/go-versions"
+      ],
+      "enabled": false
+    },
+    {
       "matchManagers": [
         "gomod"
       ],
@@ -262,7 +272,7 @@
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?b(?<revision>\\d+)\\.\\d+$"
     },
     {
-      "description": "Date-tagged rule sets; geosite tags several times a day",
+      "description": "Date-tagged rule sets (YYYYMMDD, geosite appends HHMMSS as it tags several times a day). Split the date into fields so Renovate does not read the whole tag as one semver major and skip it for exceeding maxMajorIncrement",
       "matchManagers": [
         "custom.regex"
       ],
@@ -270,6 +280,7 @@
         "Dreamacro/maxmind-geoip",
         "v2fly/domain-list-community"
       ],
+      "versioning": "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})(?<build>\\d{6})?$",
       "groupName": "Geo Assets",
       "groupSlug": "geo-assets",
       "schedule": [
