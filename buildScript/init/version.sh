@@ -29,7 +29,7 @@ APPIMAGE_RUNTIME_VERSION="20251108"
 PROTOC_VERSION="36.1"
 
 # renovate: datasource=github-releases depName=Dreamacro/maxmind-geoip
-GEOIP_VERSION="20260912"
+GEOIP_VERSION="20261012"
 
 # renovate: datasource=github-releases depName=v2fly/domain-list-community
-GEOSITE_VERSION="20261008093058"
+GEOSITE_VERSION="20261009101206"
