@@ -33,6 +33,11 @@ class CoreLogLineTest {
     }
 
     @Test
+    fun `ignores dash line that is not a timestamp`() {
+        assertNull(coreLogLineLevel("--- a b TRACE message"))
+    }
+
+    @Test
     fun `ignores level word later in message`() {
         assertNull(coreLogLineLevel("the TRACE level is noisy"))
     }
