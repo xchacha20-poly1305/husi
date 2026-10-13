@@ -14,6 +14,7 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/coresvc"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/oscall"
 )
 
@@ -91,7 +92,7 @@ func setupLog(maxLogLine int, path string, level log.Level) (err error) {
 		},
 		io.Discard,
 		"",
-		platformLogWrapper,
+		coresvc.FilterPlatformWriter(platformLogWrapper, level),
 		true,
 	)
 	logFactory.SetLevel(level)

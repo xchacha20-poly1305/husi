@@ -10,6 +10,8 @@ import java.io.File
  */
 actual object Logs {
 
+    private const val CORE_LOG_TAG = "husi-core"
+
     @Volatile
     private var file: LogFile? = null
 
@@ -35,6 +37,15 @@ actual object Logs {
 
     private fun withStackTrace(message: String, exception: Throwable) =
         "$message\n${exception.stackTraceToString()}"
+
+    /**
+     * Logs a line husi-core printed at the level it printed it with, so the log file keeps only
+     * the core lines the configured level asks for. A line without a level, such as part of a Go
+     * panic, is logged as a warning to stay in the file at the default level.
+     */
+    fun core(line: String) {
+        log(coreLogLineLevel(line) ?: LogLevel.WARN, CORE_LOG_TAG, line)
+    }
 
     actual fun d(message: String) {
         log(LogLevel.DEBUG, mkTag(), message)

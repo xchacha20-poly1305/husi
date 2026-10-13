@@ -55,7 +55,8 @@ type HostOptions struct {
 	AppHandler  AppHandler
 
 	// FileLogSink is attached after a successful StartOrReloadService so box
-	// logs also land in stderr.log. Optional.
+	// logs at or above the configured log level also land in stderr.log.
+	// Optional.
 	FileLogSink log.PlatformWriter
 	// Services contribute the gRPC surfaces the Host does not implement itself.
 	Services      []ServiceRegistrar
@@ -265,7 +266,7 @@ func (h *Host) attachFileLogSink() {
 		log.Warn("file log sink: log factory is not observable")
 		return
 	}
-	factory.AttachPlatformWriter(h.fileLogSink)
+	factory.AttachPlatformWriter(FilterPlatformWriter(h.fileLogSink, factory.Level()))
 }
 
 func (h *Host) CloseService(timeout time.Duration) error {

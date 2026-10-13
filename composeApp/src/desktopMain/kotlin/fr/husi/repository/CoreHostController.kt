@@ -728,7 +728,7 @@ internal class CoreHostController(
                 try {
                     BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
                         reader.lineSequence().forEach { line ->
-                            Logs.d("[husi-core] $line")
+                            Logs.core(line)
                         }
                     }
                 } catch (_: IOException) {
@@ -745,7 +745,7 @@ internal class CoreHostController(
                 try {
                     BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
                         reader.lineSequence().forEach { line ->
-                            Logs.d("[husi-core] $line")
+                            Logs.core(line)
                         }
                     }
                 } catch (_: IOException) {
