@@ -898,4 +898,6 @@
     <string name="search_outbounds">Поиск исходящих</string>
     <string name="switch_search_mode">Сменить режим поиска</string>
     <string name="search_proxy_sets">Поиск наборов</string>
+    <string name="clash_mode_lowercase_hint">Для обеспечения совместимости рекомендуется использовать строчные буквы.</string>
+    <string name="route_clash_mode">Режим Clash: %1$s</string>
 </resources>
