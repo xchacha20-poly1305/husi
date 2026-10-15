@@ -81,7 +81,7 @@ func setupLog(maxLogLine int, path string, level log.Level) (err error) {
 		writers = append(writers, os.Stderr)
 	}
 
-	platformLogWrapper = newLogWriter(writers)
+	platformLogWrapper = newLogWriter(writers, level)
 	logFactory = log.NewDefaultFactory(
 		context.Background(),
 		log.Formatter{
@@ -137,11 +137,12 @@ func cleanLogCache(cacheDir string) {
 // live on daemon.StartedService now (D-P1.5).
 type logWriter struct {
 	writers []io.Writer
+	level   log.Level
 	access  sync.Mutex
 }
 
-func newLogWriter(writers []io.Writer) *logWriter {
-	return &logWriter{writers: writers}
+func newLogWriter(writers []io.Writer, level log.Level) *logWriter {
+	return &logWriter{writers: writers, level: level}
 }
 
 func (w *logWriter) DisableColors() bool {
@@ -149,6 +150,9 @@ func (w *logWriter) DisableColors() bool {
 }
 
 func (w *logWriter) WriteMessage(level log.Level, message string) {
+	if level > w.level {
+		return
+	}
 	_, _ = io.WriteString(w, message+"\n")
 }
 

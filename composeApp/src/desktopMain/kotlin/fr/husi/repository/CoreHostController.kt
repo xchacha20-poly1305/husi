@@ -54,10 +54,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.context.GlobalContext
-import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
-import java.io.InputStreamReader
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
@@ -156,10 +154,6 @@ internal class CoreHostController(
         field = MutableStateFlow(CoreHostState())
 
     private var systemProxyApplied = false
-
-    /** Whether the shared client is attached to the privileged system daemon. */
-    val isDaemonMode: Boolean
-        get() = connectedToDaemon
 
     private val coreRunDir: File
         get() = repository.coreRunDir
@@ -717,45 +711,12 @@ internal class CoreHostController(
 
         val process = ProcessBuilder(command)
             .directory(coreRunDir)
-            .redirectErrorStream(false)
+            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .redirectError(ProcessBuilder.Redirect.INHERIT)
             .start()
 
         sessionProcess = process
         sessionStdin = process.outputStream
-
-        Thread(
-            {
-                try {
-                    BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
-                        reader.lineSequence().forEach { line ->
-                            Logs.d("[husi-core] $line")
-                        }
-                    }
-                } catch (_: IOException) {
-                }
-            },
-            "husi-core-stderr",
-        ).apply {
-            isDaemon = true
-            start()
-        }
-
-        Thread(
-            {
-                try {
-                    BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-                        reader.lineSequence().forEach { line ->
-                            Logs.d("[husi-core] $line")
-                        }
-                    }
-                } catch (_: IOException) {
-                }
-            },
-            "husi-core-stdout",
-        ).apply {
-            isDaemon = true
-            start()
-        }
 
         scope.launch {
             val exit = runInterruptible(Dispatchers.IO) { process.waitFor() }

@@ -5,8 +5,7 @@ import java.io.File
 
 /**
  * Prints every message to stderr. Once [openFile] has run, messages at or above the configured
- * level also go to the log file that bug reports attach, together with what the core host
- * process prints, which [fr.husi.repository.CoreHostController] forwards here.
+ * level also go to the log file that bug reports attach.
  */
 actual object Logs {
 

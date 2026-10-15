@@ -5,9 +5,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
+	"github.com/sagernet/sing-box/log"
 	F "github.com/sagernet/sing/common/format"
 
 	"github.com/stretchr/testify/assert"
@@ -25,13 +27,13 @@ func TestLogWriterConcurrentWritesStayWholeLines(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	writer := newLogWriter([]io.Writer{file, io.Discard})
+	writer := newLogWriter([]io.Writer{file, io.Discard}, log.LevelTrace)
 
 	var group sync.WaitGroup
 	for id := range writerCount {
 		group.Go(func() {
 			for line := range linesPerWriter {
-				writer.WriteMessage(0, F.ToString("writer ", id, " line ", id, line))
+				writer.WriteMessage(log.LevelInfo, F.ToString("writer ", id, " line ", id, line))
 			}
 		})
 	}
@@ -55,4 +57,16 @@ func TestLogWriterConcurrentWritesStayWholeLines(t *testing.T) {
 		}
 	}
 	assert.Equal(t, len(seen), writerCount*linesPerWriter)
+}
+
+func TestLogWriterDropsMessagesAboveItsLevel(t *testing.T) {
+	var output strings.Builder
+	writer := newLogWriter([]io.Writer{&output}, log.LevelWarn)
+
+	writer.WriteMessage(log.LevelError, "error")
+	writer.WriteMessage(log.LevelWarn, "warn")
+	writer.WriteMessage(log.LevelInfo, "info")
+	writer.WriteMessage(log.LevelDebug, "debug")
+
+	assert.Equal(t, "error\nwarn\n", output.String())
 }
