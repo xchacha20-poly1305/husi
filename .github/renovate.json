@@ -261,7 +261,7 @@
       "extractVersion": "^v(?<version>.+)$"
     },
     {
-      "description": "Tags look like jbr-release-25.0.4.1b635.70; JAVA_VERSION follows the feature version",
+      "description": "Tags look like jbr-release-25.0.4.1b635.70; JAVA_VERSION follows the feature version. Regex versioning compares at most five numbers (build and revision), so the optional fourth feature component is left out: the build branch (635) and its release counter (70) are what change between JBR releases",
       "matchManagers": [
         "custom.regex"
       ],
@@ -269,7 +269,7 @@
         "JetBrains/JetBrainsRuntime"
       ],
       "extractVersion": "^jbr-release-(?<version>.+)$",
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?b(?<revision>\\d+)\\.\\d+$"
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.\\d+)?b(?<build>\\d+)\\.(?<revision>\\d+)$"
     },
     {
       "description": "Date-tagged rule sets (YYYYMMDD, geosite appends HHMMSS as it tags several times a day). Split the date into fields so Renovate does not read the whole tag as one semver major and skip it for exceeding maxMajorIncrement",
