@@ -12,13 +12,16 @@ object DesktopNotificationCenter {
     private val activatedEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val activations: SharedFlow<Unit> = activatedEvents
 
-    fun show(title: String, message: String) {
+    fun show(title: String, message: String, onActivated: () -> Unit = {}) {
         runCatching {
             when (
                 val result = notification(
                     title = title,
                     message = message,
-                    onActivated = { activatedEvents.tryEmit(Unit) },
+                    onActivated = {
+                        activatedEvents.tryEmit(Unit)
+                        onActivated()
+                    },
                 ).send()
             ) {
                 is NotificationResult.Success -> {}

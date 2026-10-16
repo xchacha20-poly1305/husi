@@ -888,4 +888,71 @@
     <string name="app_update_installing">安装中…</string>
     <string name="app_update_install_failed">安装失败：%1$s</string>
     <string name="app_update_no_matching_asset">没有与此设备匹配的安装包。请打开发布页面手动下载。</string>
+    <string name="tailscale_state_needs_login">等待登录</string>
+    <string name="tailscale_state_stopped">已停止</string>
+    <string name="tailscale_hostname">主机名</string>
+    <string name="tailscale_open_auth_url">打开认证链接</string>
+    <string name="tailscale_open_auth_url_qr_code">显示认证链接二维码</string>
+    <string name="tailscale_this_device">此设备</string>
+    <string name="tailscale_logout">登出</string>
+    <string name="tailscale_addresses">Tailscale 地址</string>
+    <string name="tailscale_details">详情</string>
+    <string name="tailscale_key_expiry">密钥过期</string>
+    <string name="tailscale_exit_node">出口节点</string>
+    <string name="tailscale_exit_node_disabled">已禁用</string>
+    <string name="tailscale_active">活跃</string>
+    <string name="tailscale_ping">Ping</string>
+    <string name="tailscale_ping_direct">直接连接</string>
+    <string name="tailscale_ping_derp">DERP 中继连接</string>
+    <string name="tailscale_ping_peer_relay">对等中继连接</string>
+    <string name="tailscale_ping_endpoint">端点</string>
+    <string name="tailscale_ping_derp_region">DERP 区域</string>
+    <string name="tailscale_ping_peer_relay_address">对等中继</string>
+    <string name="tailscale_ping_no_data">无数据</string>
+    <string name="tailscale_ping_latency">%1$d 毫秒</string>
+    <string name="tailscale_shared_in">共享至此</string>
+    <string name="tailscale_expired">已过期</string>
+    <string name="tailscale_expires_relative">%1$s 过期</string>
+    <string name="tailscale_key_expiry_disabled">密钥过期已禁用</string>
+    <string name="tailscale_last_seen">最后在线</string>
+    <string name="tailscale_received">已接收</string>
+    <string name="tailscale_transmitted">已发送</string>
+    <string name="tailscale_peers">节点</string>
+    <plurals name="tailscale_unread_count">
+        <item quantity="other">%1$d 条未读</item>
+    </plurals>
+
+    <plurals name="taildrop_file_count">
+        <item quantity="other">%1$d 个文件</item>
+    </plurals>
+    <plurals name="taildrop_received_notification">
+        <item quantity="other">收到 %1$d 个文件</item>
+    </plurals>
+    <string name="taildrop_send">发送</string>
+    <string name="taildrop_receive">接收</string>
+    <string name="taildrop_files">文件</string>
+    <string name="taildrop_to">发送至 %1$s</string>
+    <string name="taildrop_from">来自 %1$s</string>
+    <string name="taildrop_save">另存为</string>
+    <string name="taildrop_delete">删除</string>
+    <string name="taildrop_delete_all">全部删除</string>
+    <plurals name="taildrop_delete_all_confirm">
+        <item quantity="one">删除 %1$d 个已接收的文件？此操作无法撤销。</item>
+        <item quantity="other">删除全部 %1$d 个已接收的文件？此操作无法撤销。</item>
+    </plurals>
+    <string name="taildrop_open_directory">打开接收目录</string>
+    <string name="taildrop_open_download_directory">打开下载的文件</string>
+    <string name="taildrop_drop_zone">拖放文件到此处发送，或轻点选择</string>
+    <string name="taildrop_no_targets">没有可接收文件的设备</string>
+    <string name="taildrop_empty">没有文件</string>
+    <string name="taildrop_dismiss">关闭</string>
+    <string name="taildrop_saved">已保存</string>
+    <string name="taildrop_choose_peer">选择设备</string>
+    <string name="taildrop_service_not_running">发送文件前请先启动服务</string>
+    <string name="taildrop_no_files">没有要发送的文件</string>
+    <string name="taildrop_no_share_endpoint">没有可以发送文件的 Tailscale 端点</string>
+    <string name="taildrop_sending">正在发送文件</string>
+    <string name="taildrop_notification_others">%1$s 及其他 %2$d 个</string>
+    <string name="taildrop_open_directory_failed">无法打开目录</string>
+    <string name="taildrop_open_app">打开虎兕</string>
 </resources>

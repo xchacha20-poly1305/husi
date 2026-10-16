@@ -35,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboard
@@ -52,8 +53,11 @@ import kotlinx.coroutines.launch
 import fr.husi.resources.*
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.ktx.formatMemoryBytes
+import fr.husi.tailscale.TailscaleEndpointState
+import fr.husi.tailscale.TailscaleStatusRepository
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openvpn.OpenVPNAuthController
+import org.koin.compose.koinInject
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
@@ -70,6 +74,7 @@ internal fun DashboardStatusScreen(
     showError: (String) -> Unit,
     onCopySuccess: () -> Unit,
     onWidgetsChange: (List<DashboardWidgetEntry>) -> Unit,
+    onOpenTailscaleEndpoint: (String) -> Unit,
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -79,12 +84,16 @@ internal fun DashboardStatusScreen(
 
     val openConnectEndpoints by openConnectController.endpoints.collectAsStateWithLifecycle()
     val openVPNEndpoints by openVPNController.endpoints.collectAsStateWithLifecycle()
+    val tailscaleRepository = koinInject<TailscaleStatusRepository>()
+    val tailscaleSnapshot by tailscaleRepository.snapshot.collectAsStateWithLifecycle()
+    val tailscaleEndpoints = tailscaleSnapshot.endpoints
 
     val entries = uiState.dashboardWidgets
     val hasContent = { widget: DashboardWidget ->
         when (widget) {
             DashboardWidget.OpenConnect -> openConnectEndpoints.isNotEmpty()
             DashboardWidget.OpenVPN -> openVPNEndpoints.isNotEmpty()
+            DashboardWidget.Tailscale -> tailscaleEndpoints.isNotEmpty()
             DashboardWidget.ClashMode -> uiState.clashModes.isNotEmpty()
             DashboardWidget.SystemProxy -> uiState.systemProxy != null && !uiState.isRemote
             else -> true
@@ -139,6 +148,8 @@ internal fun DashboardStatusScreen(
                         selectClashMode = selectClashMode,
                         setSystemProxyEnabled = setSystemProxyEnabled,
                         showError = showError,
+                        tailscaleEndpoints = tailscaleEndpoints,
+                        onOpenTailscaleEndpoint = onOpenTailscaleEndpoint,
                         onCopy = { value ->
                             scope.launch { clipboard.setPlainText(value) }
                             onCopySuccess()
@@ -197,6 +208,8 @@ private fun DashboardWidgetContent(
     selectClashMode: (mode: String) -> Unit,
     setSystemProxyEnabled: (Boolean) -> Unit,
     showError: (String) -> Unit,
+    tailscaleEndpoints: List<TailscaleEndpointState>,
+    onOpenTailscaleEndpoint: (String) -> Unit,
     onCopy: (String) -> Unit,
 ) {
     when (widget) {
@@ -220,6 +233,11 @@ private fun DashboardWidgetContent(
         DashboardWidget.OpenVPN -> OpenVPNStatusSection(
             controller = openVPNController,
             showError = showError,
+        )
+
+        DashboardWidget.Tailscale -> TailscaleStatusSection(
+            endpoints = tailscaleEndpoints,
+            onOpenEndpoint = onOpenTailscaleEndpoint,
         )
 
         DashboardWidget.SourceAddress -> SourceAddressCard(
@@ -298,6 +316,7 @@ private fun dashboardWidgetTitle(widget: DashboardWidget): String = stringResour
         DashboardWidget.Status -> Res.string.status_status
         DashboardWidget.OpenConnect -> Res.string.action_openconnect
         DashboardWidget.OpenVPN -> Res.string.action_openvpn
+        DashboardWidget.Tailscale -> Res.string.tailscale
         DashboardWidget.SourceAddress -> Res.string.source_address
         DashboardWidget.ClashMode -> Res.string.clash_mode
         DashboardWidget.SystemProxy -> Res.string.system_proxy
@@ -540,9 +559,11 @@ private fun SourceAddressRow(
             text = text,
             modifier = Modifier
                 .weight(1f)
+                .clip(MaterialTheme.shapes.small)
                 .clickable(enabled = address != null) {
                     onCopy(address ?: return@clickable)
-                },
+                }
+                .padding(horizontal = 6.dp, vertical = 2.dp),
             textAlign = TextAlign.End,
             fontFamily = FontFamily.Monospace,
             style = MaterialTheme.typography.bodySmallEmphasized,

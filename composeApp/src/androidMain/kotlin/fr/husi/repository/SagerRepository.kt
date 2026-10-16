@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import fr.husi.Action
 import fr.husi.bg.SagerConnection
+import fr.husi.bg.TAILSCALE_NOTIFICATION_CHANNEL_ID
 import fr.husi.libcore.Service
 import fr.husi.libcore.createBoxService
 import fr.husi.resources.Res
@@ -24,8 +25,11 @@ import fr.husi.resources.openconnect_authentication
 import fr.husi.resources.openvpn_authentication
 import fr.husi.resources.service_proxy
 import fr.husi.resources.service_subscription
+import fr.husi.resources.service_tailscale
 import fr.husi.resources.service_vpn
 import fr.husi.resources.service_vpn_request
+import fr.husi.resources.taildrop_sending
+import fr.husi.tailscale.TaildropSendService
 import fr.husi.ui.MainActivity
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.setResourceReaderAndroidContext
@@ -168,6 +172,16 @@ open class SagerRepository(
                 "service-openvpn-auth",
                 getString(Res.string.openvpn_authentication),
                 NotificationManager.IMPORTANCE_HIGH,
+            ),
+            NotificationChannel(
+                TAILSCALE_NOTIFICATION_CHANNEL_ID,
+                getString(Res.string.service_tailscale),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+            NotificationChannel(
+                TaildropSendService.CHANNEL_ID,
+                getString(Res.string.taildrop_sending),
+                NotificationManager.IMPORTANCE_LOW,
             ),
         )
         notification.createNotificationChannels(channels)

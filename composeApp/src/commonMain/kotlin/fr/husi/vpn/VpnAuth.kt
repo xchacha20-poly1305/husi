@@ -1,6 +1,8 @@
 package fr.husi.vpn
 
-import fr.husi.bg.BackendState
+import fr.husi.core.CoreClient
+import fr.husi.core.remote.CoreTarget
+import fr.husi.core.remote.requireRunning
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
 import kotlinx.coroutines.CancellationException
@@ -14,8 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -47,7 +47,8 @@ data class VpnAuthPendingNotice(
 )
 
 class VpnAuthSession<E, C>(
-    private val subscribe: () -> Flow<List<E>>,
+    private val targets: StateFlow<CoreTarget?>,
+    private val subscribe: (CoreClient) -> Flow<List<E>>,
     private val pendingOf: (E) -> PendingVpnAuth<C>?,
     private val challengeId: (C) -> String,
     private val logLabel: String,
@@ -73,20 +74,17 @@ class VpnAuthSession<E, C>(
 
     init {
         scope.launch {
-            BackendState.status
-                .map { it.state.started }
-                .distinctUntilChanged()
-                .collect { started ->
-                    if (started) start() else stop()
-                }
+            targets.collect { target ->
+                stop()
+                if (target != null) start(target.client)
+            }
         }
     }
 
-    private fun start() {
-        if (subscriptionJob != null) return
+    private fun start(client: CoreClient) {
         subscriptionJob = scope.launch {
             try {
-                subscribe().collect { update ->
+                subscribe(client).collect { update ->
                     endpoints.value = update
                 }
             } catch (e: CancellationException) {
@@ -108,11 +106,10 @@ class VpnAuthSession<E, C>(
         dismissedChallenges.update { it + vpnAuthChallengeKey(endpointTag, challengeId) }
     }
 
-    /** @return an error message, or null on success. */
-    suspend fun perform(action: String, block: suspend () -> Unit): String? =
+    suspend fun perform(action: String, block: suspend (CoreTarget) -> Unit): String? =
         withContext(dispatcher) {
             try {
-                block()
+                block(targets.requireRunning())
                 null
             } catch (e: CancellationException) {
                 throw e

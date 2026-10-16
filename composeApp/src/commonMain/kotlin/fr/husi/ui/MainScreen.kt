@@ -137,6 +137,13 @@ private fun MainScreenContent(
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
     val resultBus = remember { ResultEventBus() }
     val navigator = remember(backStack) { Navigator(backStack) }
+    LaunchedEffect(navigator) {
+        PendingNavigation.routes.collect { route ->
+            if (navigator.currentRoute != route) {
+                navigator.navigateTo(route)
+            }
+        }
+    }
     val selectedTopLevelRoute = navigator.selectedTopLevelRoute
     val isAtStartDestination = navigator.isAtStartDestination
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()

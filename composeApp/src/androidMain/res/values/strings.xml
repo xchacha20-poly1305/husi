@@ -7,4 +7,5 @@
     <string name="profile_import">Import profile</string>
     <string name="select_profile">Select Profile</string>
     <string name="tile_title">Switcher</string>
+    <string name="taildrop_share_label" translatable="false">Taildrop</string>
 </resources>

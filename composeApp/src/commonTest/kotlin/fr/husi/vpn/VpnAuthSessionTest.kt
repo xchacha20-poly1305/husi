@@ -1,24 +1,19 @@
 package fr.husi.vpn
 
-import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
+import fr.husi.core.remote.CoreTarget
+import fr.husi.test.FakeCoreClient
 import fr.husi.test.MainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VpnAuthSessionTest : MainDispatcherTest() {
-
-    @AfterTest
-    fun resetBackendState() {
-        BackendState.reset()
-    }
 
     @Test
     fun `firstVpnAuthPending skips non-pending endpoints`() {
@@ -38,7 +33,9 @@ class VpnAuthSessionTest : MainDispatcherTest() {
     @Test
     fun `dismissed challenge stays hidden until a new id arrives`() = runTest(dispatcher.scheduler) {
         val updates = MutableSharedFlow<List<FakeEndpoint>>(replay = 1)
+        val targets = MutableStateFlow<CoreTarget?>(null)
         val session = VpnAuthSession(
+            targets = targets,
             subscribe = { updates },
             pendingOf = { endpoint ->
                 endpoint.challengeId?.takeIf {
@@ -49,7 +46,7 @@ class VpnAuthSessionTest : MainDispatcherTest() {
             logLabel = "test",
             dispatcher = dispatcher,
         )
-        BackendState.updateState(ServiceState.Connected)
+        targets.value = CoreTarget(FakeCoreClient())
         advanceUntilIdle()
 
         updates.emit(

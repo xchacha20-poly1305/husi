@@ -74,6 +74,10 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
     }
 
     private fun dispatchDeepLink(intent: Intent) {
+        TailscaleRouteIntent.routeOf(intent)?.let { route ->
+            PendingNavigation.request(route)
+            return
+        }
         if (intent.action != Intent.ACTION_VIEW) return
         val uri = intent.data ?: return
         DeepLinkDispatcher.emit(uri.toString())

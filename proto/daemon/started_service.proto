@@ -39,6 +39,17 @@ service StartedService {
   rpc SubscribeOutbounds(google.protobuf.Empty) returns (stream OutboundList) {}
   rpc StartNetworkQualityTest(NetworkQualityTestRequest) returns (stream NetworkQualityTestProgress) {}
   rpc StartSTUNTest(STUNTestRequest) returns (stream STUNTestProgress) {}
+  rpc SubscribeTailscaleStatus(google.protobuf.Empty) returns (stream TailscaleStatusUpdate) {}
+  rpc StartTailscalePing(TailscalePingRequest) returns (stream TailscalePingResponse) {}
+  rpc SetTailscaleExitNode(SetTailscaleExitNodeRequest) returns (google.protobuf.Empty) {}
+  rpc TailscaleLogout(TailscaleLogoutRequest) returns (google.protobuf.Empty) {}
+  rpc GetTailscaleCertificate(TailscaleCertificateRequest) returns (TailscaleCertificate) {}
+  rpc SubscribeTaildropInbox(SubscribeTaildropInboxRequest) returns (stream TaildropInbox) {}
+  rpc MarkTaildropInboxRead(MarkTaildropInboxReadRequest) returns (google.protobuf.Empty) {}
+  rpc SendTaildropFiles(stream TaildropSendClientMessage) returns (stream TaildropSendServerMessage) {}
+  rpc DownloadTaildropFile(DownloadTaildropFileRequest) returns (stream DownloadTaildropFileChunk) {}
+  rpc DeleteTaildropFile(DeleteTaildropFileRequest) returns (google.protobuf.Empty) {}
+  rpc CancelTaildropReceiving(CancelTaildropReceivingRequest) returns (google.protobuf.Empty) {}
   rpc SubscribeOpenConnectStatus(google.protobuf.Empty) returns (stream OpenConnectStatusUpdate) {}
   rpc SubmitOpenConnectAuthResponse(OpenConnectAuthResponseSubmission) returns (google.protobuf.Empty) {}
   rpc CancelOpenConnectAuthChallenge(OpenConnectAuthChallengeCancel) returns (google.protobuf.Empty) {}
@@ -253,6 +264,179 @@ message STUNTestProgress {
   bool isFinal = 6;
   string error = 7;
   bool natTypeSupported = 8;
+}
+
+message TailscaleStatusUpdate {
+  repeated TailscaleEndpointStatus endpoints = 1;
+}
+
+message TailscaleEndpointStatus {
+  string endpointTag = 1;
+  string backendState = 2;
+  string stateText = 3;
+  string authURL = 4;
+  string networkName = 5;
+  string magicDNSSuffix = 6;
+  TailscalePeer self = 7;
+  repeated TailscaleUserGroup userGroups = 8;
+  TailscalePeer exitNode = 9;
+  bool keyAuth = 10;
+  bool canShareFiles = 11;
+  int32 waitingFileCount = 12;
+  int32 receivingFileCount = 13;
+  int32 unreadFileCount = 14;
+  repeated string certDomains = 15;
+}
+
+message TailscaleUserGroup {
+  int64 userID = 1;
+  string loginName = 2;
+  string displayName = 3;
+  string profilePicURL = 4;
+  repeated TailscalePeer peers = 5;
+}
+
+message TailscalePeer {
+  string hostName = 1;
+  string dnsName = 2;
+  string os = 3;
+  repeated string tailscaleIPs = 4;
+  bool online = 5;
+  bool exitNode = 6;
+  bool exitNodeOption = 7;
+  bool active = 8;
+  int64 rxBytes = 9;
+  int64 txBytes = 10;
+  int64 keyExpiry = 11;
+  string stableID = 12;
+  bool expired = 13;
+  repeated string sshHostKeys = 14;
+  bool shareeNode = 15;
+  int64 lastSeen = 16;
+  bool canReceiveFiles = 17;
+}
+
+message TailscalePingRequest {
+  string endpointTag = 1;
+  string peerIP = 2;
+}
+
+message TailscalePingResponse {
+  double latencyMs = 1;
+  bool isDirect = 2;
+  string endpoint = 3;
+  int32 derpRegionID = 4;
+  string derpRegionCode = 5;
+  string error = 6;
+  string peerRelay = 7;
+}
+
+message SetTailscaleExitNodeRequest {
+  string endpointTag = 1;
+  string stableID = 2;
+}
+
+message TailscaleLogoutRequest {
+  string endpointTag = 1;
+}
+
+message TailscaleCertificateRequest {
+  string endpointTag = 1;
+  string domain = 2;
+  int64 minValiditySeconds = 3;
+}
+
+message TailscaleCertificate {
+  bytes certificatePEM = 1;
+  bytes privateKeyPEM = 2;
+}
+
+message SubscribeTaildropInboxRequest {
+  string endpointTag = 1;
+}
+
+message MarkTaildropInboxReadRequest {
+  string endpointTag = 1;
+}
+
+message TaildropInbox {
+  string endpointTag = 1;
+  repeated TaildropFile files = 2;
+  repeated TaildropReceivingFile receiving = 3;
+}
+
+message TaildropFile {
+  string name = 1;
+  int64 size = 2;
+  string senderName = 3;
+  int64 modifiedAt = 4;
+}
+
+message TaildropReceivingFile {
+  string name = 1;
+  int64 size = 2;
+  int64 receivedBytes = 3;
+  string senderID = 4;
+  string senderName = 5;
+}
+
+message TaildropSendClientMessage {
+  oneof message {
+    TaildropSendStart start = 1;
+    TaildropFileChunk chunk = 2;
+    TaildropFileDone fileDone = 3;
+  }
+}
+
+message TaildropSendStart {
+  string endpointTag = 1;
+  string peerStableID = 2;
+  repeated TaildropOutgoingFile files = 3;
+}
+
+message TaildropOutgoingFile {
+  string name = 1;
+  int64 size = 2;
+}
+
+message TaildropFileChunk {
+  bytes data = 1;
+}
+
+message TaildropFileDone {}
+
+message TaildropSendServerMessage {
+  oneof message {
+    TaildropSendProgress progress = 1;
+    int64 receivedBytes = 2;
+  }
+}
+
+message TaildropSendProgress {
+  int32 fileIndex = 1;
+  int64 sentBytes = 2;
+  bool fileCompleted = 3;
+}
+
+message DownloadTaildropFileRequest {
+  string endpointTag = 1;
+  string name = 2;
+}
+
+message DownloadTaildropFileChunk {
+  int64 size = 1;
+  bytes data = 2;
+}
+
+message DeleteTaildropFileRequest {
+  string endpointTag = 1;
+  string name = 2;
+}
+
+message CancelTaildropReceivingRequest {
+  string endpointTag = 1;
+  string senderID = 2;
+  string name = 3;
 }
 
 message OpenConnectStatusUpdate {

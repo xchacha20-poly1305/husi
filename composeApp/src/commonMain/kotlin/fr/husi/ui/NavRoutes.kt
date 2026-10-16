@@ -44,6 +44,10 @@ sealed class NavRoutes : NavKey {
                         subclass(RouteSettings::class, RouteSettings.serializer())
                         subclass(RemoteControl::class, RemoteControl.serializer())
                         subclass(RemoteServerEdit::class, RemoteServerEdit.serializer())
+                        subclass(Tailscale.Endpoint::class, Tailscale.Endpoint.serializer())
+                        subclass(Tailscale.Peer::class, Tailscale.Peer.serializer())
+                        subclass(Tailscale.ExitNodePicker::class, Tailscale.ExitNodePicker.serializer())
+                        subclass(Tailscale.TaildropInbox::class, Tailscale.TaildropInbox.serializer())
                     }
                 }
             }
@@ -178,5 +182,23 @@ sealed class NavRoutes : NavKey {
     data class RemoteServerEdit(
         val id: Long = 0L,
     ) : NavRoutes()
+
+    @Serializable
+    sealed class Tailscale : NavRoutes() {
+        @Serializable
+        data class Endpoint(val endpointTag: String) : Tailscale()
+
+        @Serializable
+        data class Peer(
+            val endpointTag: String,
+            val peerId: String,
+        ) : Tailscale()
+
+        @Serializable
+        data class ExitNodePicker(val endpointTag: String) : Tailscale()
+
+        @Serializable
+        data class TaildropInbox(val endpointTag: String) : Tailscale()
+    }
 
 }

@@ -19,9 +19,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -46,6 +49,18 @@ data class RemoteSessionFailure(
     val wasConnected: Boolean,
     val message: String,
 )
+
+data class CoreTarget(
+    val client: CoreClient,
+    val remoteServerId: Long? = null,
+) {
+    val isRemote: Boolean
+        get() = remoteServerId != null
+}
+
+class CoreNotRunningException : IllegalStateException("core is not running")
+
+fun StateFlow<CoreTarget?>.requireRunning(): CoreTarget = value ?: throw CoreNotRunningException()
 
 fun interface RemoteClientFactory {
     fun create(serverURL: String, secret: String): CoreClient
@@ -74,6 +89,26 @@ class RemoteControlManager(
 
     val targetConnected: StateFlow<Boolean>
         field = MutableStateFlow(false)
+
+    val runningTarget: StateFlow<CoreTarget?> = combine(
+        session,
+        BackendState.status.map { it.state.started }.distinctUntilChanged(),
+    ) { remoteSession, localStarted ->
+        runningTargetOf(remoteSession, localStarted)
+    }.distinctUntilChanged().stateIn(
+        scope = scope,
+        started = SharingStarted.Eagerly,
+        initialValue = runningTargetOf(null, BackendState.status.value.state.started),
+    )
+
+    private fun runningTargetOf(remoteSession: RemoteSession?, localStarted: Boolean): CoreTarget? = when {
+        remoteSession != null -> remoteSession
+            .takeIf { it.state == RemoteSessionState.CONNECTED }
+            ?.let { CoreTarget(it.client, it.server.id) }
+
+        localStarted -> CoreTarget(localClient)
+        else -> null
+    }
 
     val failures: SharedFlow<RemoteSessionFailure>
         field = MutableSharedFlow(

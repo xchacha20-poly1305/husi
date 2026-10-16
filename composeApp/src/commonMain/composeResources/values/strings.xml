@@ -961,4 +961,80 @@
     <string name="app_update_installing">Installing…</string>
     <string name="app_update_install_failed">Install failed: %1$s</string>
     <string name="app_update_no_matching_asset">No package matches this device. Open the release page to download it manually.</string>
+
+    <string name="tailscale" translatable="false">Tailscale</string>
+    <string name="tailscale_with_tag" translatable="false">Tailscale: %1$s</string>
+    <string name="tailscale_state_needs_login">Waiting for login</string>
+    <string name="tailscale_state_stopped">Stopped</string>
+    <string name="tailscale_magic_dns" translatable="false">MagicDNS</string>
+    <string name="tailscale_hostname">Hostname</string>
+    <string name="tailscale_open_auth_url">Open Auth URL</string>
+    <string name="tailscale_open_auth_url_qr_code">Show Auth URL QR Code</string>
+    <string name="tailscale_this_device">This Device</string>
+    <string name="tailscale_logout">Log out</string>
+    <string name="tailscale_addresses">Tailscale Addresses</string>
+    <string name="tailscale_details">Details</string>
+    <string name="tailscale_key_expiry">Key Expiry</string>
+    <string name="tailscale_os" translatable="false">OS</string>
+    <string name="tailscale_exit_node">Exit Node</string>
+    <string name="tailscale_exit_node_disabled">Disabled</string>
+    <string name="tailscale_active">Active</string>
+    <string name="tailscale_ping">Ping</string>
+    <string name="tailscale_ping_direct">Direct connection</string>
+    <string name="tailscale_ping_derp">DERP-relayed connection</string>
+    <string name="tailscale_ping_peer_relay">Peer relay connection</string>
+    <string name="tailscale_ping_endpoint">Endpoint</string>
+    <string name="tailscale_ping_derp_region">DERP region</string>
+    <string name="tailscale_ping_peer_relay_address">Peer relay</string>
+    <string name="tailscale_ping_no_data">No data</string>
+    <string name="tailscale_ping_latency">%1$d ms</string>
+    <string name="tailscale_shared_in">Shared in</string>
+    <string name="tailscale_expired">Expired</string>
+    <string name="tailscale_expires_relative">Expires %1$s</string>
+    <string name="tailscale_key_expiry_disabled">Key expiry disabled</string>
+    <string name="tailscale_last_seen">Last Seen</string>
+    <string name="tailscale_received">Received</string>
+    <string name="tailscale_transmitted">Sent</string>
+    <string name="tailscale_peers">Peers</string>
+    <plurals name="tailscale_unread_count">
+        <item quantity="one">%1$d unread</item>
+        <item quantity="other">%1$d unread</item>
+    </plurals>
+
+    <string name="taildrop" translatable="false">Taildrop</string>
+    <plurals name="taildrop_file_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <plurals name="taildrop_received_notification">
+        <item quantity="one">Received %1$d file</item>
+        <item quantity="other">Received %1$d files</item>
+    </plurals>
+    <string name="taildrop_send">Send</string>
+    <string name="taildrop_receive">Receive</string>
+    <string name="taildrop_files">Files</string>
+    <string name="taildrop_to">to %1$s</string>
+    <string name="taildrop_from">from %1$s</string>
+    <string name="taildrop_save">Save as</string>
+    <string name="taildrop_delete">Delete</string>
+    <string name="taildrop_delete_all">Delete all</string>
+    <plurals name="taildrop_delete_all_confirm">
+        <item quantity="one">Delete %1$d received file? This cannot be undone.</item>
+        <item quantity="other">Delete all %1$d received files? This cannot be undone.</item>
+    </plurals>
+    <string name="taildrop_open_directory">Open receive directory</string>
+    <string name="taildrop_open_download_directory">Open downloaded files</string>
+    <string name="taildrop_drop_zone">Drop files here to send, or tap to select</string>
+    <string name="taildrop_no_targets">No devices can receive files</string>
+    <string name="taildrop_empty">No files</string>
+    <string name="taildrop_dismiss">Dismiss</string>
+    <string name="taildrop_saved">Saved</string>
+    <string name="taildrop_choose_peer">Choose a device</string>
+    <string name="taildrop_service_not_running">Start the service before sending files</string>
+    <string name="taildrop_no_files">No files to send</string>
+    <string name="taildrop_no_share_endpoint">No Tailscale endpoint can send files</string>
+    <string name="taildrop_sending">Sending files</string>
+    <string name="taildrop_notification_others">%1$s and %2$d more</string>
+    <string name="taildrop_open_directory_failed">Could not open the directory</string>
+    <string name="taildrop_open_app">Open Husi</string>
 </resources>

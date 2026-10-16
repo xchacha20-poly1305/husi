@@ -97,6 +97,7 @@ func EndpointRegistry() *endpoint.Registry {
 	registerOpenConnectEndpoint(registry)
 	registerOpenVPNEndpoints(registry)
 	masque.RegisterEndpoint(registry)
+	registerTailscaleEndpoint(registry)
 
 	return registry
 }

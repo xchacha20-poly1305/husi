@@ -11,9 +11,16 @@ import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.NetworkQualityTestProgress
 import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
+import fr.husi.proto.daemon.DownloadTaildropFileChunk
 import fr.husi.proto.daemon.OpenVPNChallengeSubmission
 import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.proto.daemon.OutboundList
+import fr.husi.proto.daemon.TaildropInbox
+import fr.husi.proto.daemon.TaildropSendClientMessage
+import fr.husi.proto.daemon.TaildropSendServerMessage
+import fr.husi.proto.daemon.TailscaleCertificate
+import fr.husi.proto.daemon.TailscalePingResponse
+import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.Status
@@ -38,6 +45,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlin.time.Duration
 
 /**
@@ -96,6 +104,84 @@ open class FakeCoreClient : CoreClient {
     override suspend fun cancelOpenVPNChallenge(endpointTag: String, challengeId: String) {
         lastOpenVPNCancel = endpointTag to challengeId
         cancelOpenVPNThrowable?.let { throw it }
+    }
+
+    val tailscaleStatusFlow =
+        MutableSharedFlow<TailscaleStatusUpdate>(replay = 1, extraBufferCapacity = 16)
+    val taildropInboxFlow = MutableSharedFlow<TaildropInbox>(replay = 1, extraBufferCapacity = 16)
+
+    override fun subscribeTailscaleStatus(): Flow<TailscaleStatusUpdate> = tailscaleStatusFlow
+
+    var lastTailscalePing: Pair<String, String>? = null
+
+    override fun tailscalePing(tag: String, ip: String): Flow<TailscalePingResponse> {
+        lastTailscalePing = tag to ip
+        return emptyFlow()
+    }
+
+    var lastTailscaleExitNode: Pair<String, String>? = null
+
+    override suspend fun setTailscaleExitNode(tag: String, stableId: String) {
+        lastTailscaleExitNode = tag to stableId
+    }
+
+    var lastTailscaleLogout: String? = null
+
+    override suspend fun tailscaleLogout(tag: String) {
+        lastTailscaleLogout = tag
+    }
+
+    var lastTailscaleCertificate: Triple<String, String, Long>? = null
+    var nextTailscaleCertificate: TailscaleCertificate = TailscaleCertificate.getDefaultInstance()
+
+    override suspend fun getTailscaleCertificate(
+        tag: String,
+        domain: String,
+        minValiditySeconds: Long,
+    ): TailscaleCertificate {
+        lastTailscaleCertificate = Triple(tag, domain, minValiditySeconds)
+        return nextTailscaleCertificate
+    }
+
+    var lastTaildropInboxTag: String? = null
+
+    override fun subscribeTaildropInbox(tag: String): Flow<TaildropInbox> {
+        lastTaildropInboxTag = tag
+        return taildropInboxFlow
+    }
+
+    var lastTaildropInboxRead: String? = null
+
+    override suspend fun markTaildropInboxRead(tag: String) {
+        lastTaildropInboxRead = tag
+    }
+
+    var lastDeletedTaildropFile: Pair<String, String>? = null
+
+    override suspend fun deleteTaildropFile(tag: String, name: String) {
+        lastDeletedTaildropFile = tag to name
+    }
+
+    var lastCancelledTaildropReceiving: Triple<String, String, String>? = null
+
+    override suspend fun cancelTaildropReceiving(tag: String, senderId: String, name: String) {
+        lastCancelledTaildropReceiving = Triple(tag, senderId, name)
+    }
+
+    var lastTaildropDownload: Pair<String, String>? = null
+
+    override fun downloadTaildropFile(tag: String, name: String): Flow<DownloadTaildropFileChunk> {
+        lastTaildropDownload = tag to name
+        return emptyFlow()
+    }
+
+    /** Client messages from the latest [sendTaildropFiles], recorded when the returned flow is collected. */
+    var taildropSendRequests: List<TaildropSendClientMessage> = emptyList()
+
+    override fun sendTaildropFiles(
+        requests: Flow<TaildropSendClientMessage>,
+    ): Flow<TaildropSendServerMessage> = flow {
+        taildropSendRequests = requests.toList()
     }
 
     var lastOpenVPNSubmission: OpenVPNChallengeSubmission? = null

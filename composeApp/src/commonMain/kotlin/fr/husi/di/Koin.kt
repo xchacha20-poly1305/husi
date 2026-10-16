@@ -12,6 +12,8 @@ import fr.husi.core.remote.RemoteClientFactory
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
 import fr.husi.repository.Repository
+import fr.husi.tailscale.TaildropSendManager
+import fr.husi.tailscale.TailscaleStatusRepository
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openvpn.OpenVPNAuthController
@@ -45,8 +47,10 @@ private fun commonUiModule() = module {
     }
     single { AppUpdateAutoChecker() }
     singleOf(::ImportLinkInteractor)
-    singleOf(::OpenConnectAuthController)
-    single { OpenVPNAuthController(coreClient = get()) }
+    single { OpenConnectAuthController(targets = get<RemoteControlManager>().runningTarget) }
+    single { OpenVPNAuthController(targets = get<RemoteControlManager>().runningTarget) }
+    single { TailscaleStatusRepository(targets = get<RemoteControlManager>().runningTarget) }
+    single { TaildropSendManager(targets = get<RemoteControlManager>().runningTarget) }
 }
 
 /**

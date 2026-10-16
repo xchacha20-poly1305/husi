@@ -1,5 +1,7 @@
 package fr.husi.core.remote
 
+import fr.husi.bg.BackendState
+import fr.husi.bg.ServiceState
 import fr.husi.core.CoreRpcException
 import fr.husi.database.DataStore
 import fr.husi.database.RemoteServer
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -35,6 +38,11 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
 
     private val localClient = FakeCoreClient()
     private val dao = FakeRemoteServerDao()
+
+    @AfterTest
+    fun resetBackendState() {
+        BackendState.reset()
+    }
 
     private fun newManager(
         factory: RemoteClientFactory,
@@ -137,6 +145,35 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
             manager.close()
         }
     }
+
+    @Test
+    fun `runningTarget follows the local service and the connected remote session`() =
+        runTest(dispatcher.scheduler) {
+            val remote = FakeCoreClient()
+            val manager = newManager({ _, _ -> remote })
+            try {
+                runCurrent()
+                assertNull(manager.runningTarget.value)
+
+                BackendState.updateState(ServiceState.Connecting)
+                runCurrent()
+                assertEquals(CoreTarget(localClient), manager.runningTarget.value)
+
+                manager.enterRemote(server())
+                runCurrent()
+                assertEquals(CoreTarget(remote, remoteServerId = 1L), manager.runningTarget.value)
+
+                manager.exitRemote()
+                runCurrent()
+                assertEquals(CoreTarget(localClient), manager.runningTarget.value)
+
+                BackendState.updateState(ServiceState.Stopped)
+                runCurrent()
+                assertNull(manager.runningTarget.value)
+            } finally {
+                manager.close()
+            }
+        }
 
     @Test
     fun `exitRemote closes remote client and restores local`() = runTest(dispatcher.scheduler) {

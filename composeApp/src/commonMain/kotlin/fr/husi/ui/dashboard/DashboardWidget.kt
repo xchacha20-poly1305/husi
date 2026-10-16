@@ -20,6 +20,7 @@ enum class DashboardWidget(
     Status("status", DashboardWidgetWidth.Half),
     OpenConnect("openConnect", DashboardWidgetWidth.Full),
     OpenVPN("openVPN", DashboardWidgetWidth.Full),
+    Tailscale("tailscale", DashboardWidgetWidth.Full),
     SourceAddress("sourceAddress", DashboardWidgetWidth.Half),
     ClashMode("clashMode", DashboardWidgetWidth.Half),
     SystemProxy("systemProxy", DashboardWidgetWidth.Half),

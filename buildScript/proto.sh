@@ -46,6 +46,10 @@ KEEP_STARTED_SERVICE_RPCS=(
   SubscribeConnections CloseConnection CloseAllConnections
   SubscribeOpenConnectStatus SubmitOpenConnectAuthResponse CancelOpenConnectAuthChallenge
   SubscribeOpenVPNStatus SubmitOpenVPNChallengeResponse CancelOpenVPNChallenge
+  SubscribeTailscaleStatus StartTailscalePing SetTailscaleExitNode TailscaleLogout
+  GetTailscaleCertificate
+  SubscribeTaildropInbox MarkTaildropInboxRead SendTaildropFiles
+  DownloadTaildropFile DeleteTaildropFile CancelTaildropReceiving
 )
 
 # Husi speaks sing-box's own contract on the wire, so the core-scoped schema is

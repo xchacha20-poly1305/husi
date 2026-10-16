@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -273,6 +274,12 @@ private class FakeCoreChannel : CoreChannel {
         val stream = FakeStream(method, request)
         synchronized(streams) { streams += stream }
         return stream.flow
+    }
+
+    override fun bidiStreaming(method: String, requests: Flow<ByteArray>): Flow<ByteArray> = flow {
+        val stream = FakeStream(method, ByteArray(0))
+        synchronized(streams) { streams += stream }
+        requests.collect { }
     }
 
     override fun close() {

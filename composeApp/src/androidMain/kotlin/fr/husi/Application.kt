@@ -25,6 +25,7 @@ import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.repository.AndroidRepository
 import fr.husi.repository.SagerRepository
+import fr.husi.tailscale.TaildropSendService
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.PackageCache
 import fr.husi.utils.installBundledRuleSets
@@ -63,6 +64,8 @@ class Application : Application(),
         if (isMainProcess) runOnIoDispatcher {
             clearClipboardImageCache(cacheDir)
         }
+
+        if (isMainProcess) TaildropSendService.observe(this)
 
         if (isMainProcess) runOnDefaultDispatcher {
             // The component state may drift from the preference, e.g. after a backup restore.

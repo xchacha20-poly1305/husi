@@ -1,7 +1,6 @@
 package fr.husi.ui.openvpn
 
-import fr.husi.bg.BackendState
-import fr.husi.bg.ServiceState
+import fr.husi.core.remote.CoreTarget
 import fr.husi.proto.daemon.openVPNChallenge
 import fr.husi.proto.daemon.openVPNEndpointStatus
 import fr.husi.proto.daemon.openVPNStatusUpdate
@@ -11,9 +10,9 @@ import fr.husi.vpn.OPENVPN_CHALLENGE_CREDENTIALS
 import fr.husi.vpn.OPENVPN_STATE_AUTH_PENDING
 import fr.husi.vpn.OPENVPN_STATE_CONNECTED
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -23,16 +22,12 @@ import kotlin.test.assertNull
 class OpenVPNAuthControllerTest : MainDispatcherTest() {
 
     private val coreClient = FakeCoreClient()
-
-    @AfterTest
-    fun resetBackendState() {
-        BackendState.reset()
-    }
+    private val targets = MutableStateFlow<CoreTarget?>(null)
 
     @Test
     fun `pending dialog follows auth-pending challenge`() = runTest(dispatcher.scheduler) {
         val controller = newController()
-        BackendState.updateState(ServiceState.Connected)
+        targets.value = CoreTarget(coreClient)
         advanceUntilIdle()
 
         coreClient.openVPNFlow.emit(statusUpdate(state = OPENVPN_STATE_AUTH_PENDING))
@@ -48,7 +43,7 @@ class OpenVPNAuthControllerTest : MainDispatcherTest() {
     fun `dismissDialog hides pending challenge until a new one arrives`() =
         runTest(dispatcher.scheduler) {
             val controller = newController()
-            BackendState.updateState(ServiceState.Connected)
+            targets.value = CoreTarget(coreClient)
             advanceUntilIdle()
             coreClient.openVPNFlow.emit(statusUpdate(challengeId = "c1"))
             advanceUntilIdle()
@@ -65,7 +60,7 @@ class OpenVPNAuthControllerTest : MainDispatcherTest() {
     @Test
     fun `submitAuthChallenge sends username password and secret`() = runTest(dispatcher.scheduler) {
         val controller = newController()
-        BackendState.updateState(ServiceState.Connected)
+        targets.value = CoreTarget(coreClient)
         advanceUntilIdle()
         coreClient.openVPNFlow.emit(statusUpdate())
         advanceUntilIdle()
@@ -92,6 +87,7 @@ class OpenVPNAuthControllerTest : MainDispatcherTest() {
     @Test
     fun `cancelAuthChallenge reports the core error`() = runTest(dispatcher.scheduler) {
         val controller = newController()
+        targets.value = CoreTarget(coreClient)
         coreClient.cancelOpenVPNThrowable = IllegalStateException("stopped")
 
         val error = controller.cancelAuthChallenge("home", "c1")
@@ -102,22 +98,57 @@ class OpenVPNAuthControllerTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `stopping the service clears endpoints`() = runTest(dispatcher.scheduler) {
+    fun `stopping the target clears endpoints`() = runTest(dispatcher.scheduler) {
         val controller = newController()
-        BackendState.updateState(ServiceState.Connected)
+        targets.value = CoreTarget(coreClient)
         advanceUntilIdle()
         coreClient.openVPNFlow.emit(statusUpdate(state = OPENVPN_STATE_CONNECTED, challengeId = null))
         advanceUntilIdle()
         assertEquals(1, controller.endpoints.value.size)
 
-        BackendState.updateState(ServiceState.Stopped)
+        targets.value = null
         advanceUntilIdle()
         assertEquals(emptyList(), controller.endpoints.value)
         assertNull(controller.pendingDialogAuth.value)
     }
 
+    @Test
+    fun `switching to a remote core follows its status and sends actions there`() =
+        runTest(dispatcher.scheduler) {
+            val controller = newController()
+            targets.value = CoreTarget(coreClient)
+            advanceUntilIdle()
+            coreClient.openVPNFlow.emit(statusUpdate(challengeId = "local"))
+            advanceUntilIdle()
+
+            val remoteClient = FakeCoreClient()
+            targets.value = CoreTarget(remoteClient, remoteServerId = 1L)
+            advanceUntilIdle()
+            assertEquals(emptyList(), controller.endpoints.value)
+
+            remoteClient.openVPNFlow.emit(statusUpdate(challengeId = "remote"))
+            advanceUntilIdle()
+            assertEquals("remote", controller.pendingDialogAuth.value?.challenge?.id)
+
+            controller.cancelAuthChallenge("home", "remote")
+            advanceUntilIdle()
+            assertEquals("home" to "remote", remoteClient.lastOpenVPNCancel)
+            assertNull(coreClient.lastOpenVPNCancel)
+        }
+
+    @Test
+    fun `an action without a running core reports an error`() = runTest(dispatcher.scheduler) {
+        val controller = newController()
+
+        val error = controller.cancelAuthChallenge("home", "c1")
+        advanceUntilIdle()
+
+        assertEquals("core is not running", error)
+        assertNull(coreClient.lastOpenVPNCancel)
+    }
+
     private fun newController() = OpenVPNAuthController(
-        coreClient = coreClient,
+        targets = targets,
         ioDispatcher = dispatcher,
     )
 

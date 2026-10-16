@@ -136,6 +136,7 @@ fun DashboardScreen(
     openVPNController: OpenVPNAuthController,
     openRouteSettings: (RouteSettingsUiState) -> Unit,
     onOpenRemoteControl: () -> Unit,
+    onOpenTailscaleEndpoint: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarEmitter.current
@@ -547,6 +548,7 @@ fun DashboardScreen(
                         },
                         isEditing = isEditingDashboard,
                         onWidgetsChange = { dashboardViewModel.setDashboardWidgets(it) },
+                        onOpenTailscaleEndpoint = onOpenTailscaleEndpoint,
                     )
 
                     PAGE_CONNECTIONS -> DashboardConnectionsScreen(

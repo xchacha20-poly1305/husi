@@ -4,6 +4,7 @@
     <string name="vpn_session_name">VPN session name</string>
     <string name="vpn_session_name_summary">Leave empty to use app name</string>
     <string name="service_vpn_request">VPN Permission Request</string>
+    <string name="service_tailscale" translatable="false">Tailscale</string>
     <string name="vpn_permission_required">VPN permission required</string>
     <string name="vpn_permission_required_summary">Tap to grant the VPN permission and start the service.</string>
     <string name="route_opt_bypass_lan">Bypass LAN</string>

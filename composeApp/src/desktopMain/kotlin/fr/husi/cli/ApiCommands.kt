@@ -172,6 +172,7 @@ class ApiCommand : CliktCommand("api") {
             ApiStunCommand(),
             ApiOpenVPNCommand(),
             ApiOpenConnectCommand(),
+            ApiTailscaleCommand(),
         )
     }
 
