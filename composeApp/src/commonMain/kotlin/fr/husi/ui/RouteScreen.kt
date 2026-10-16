@@ -548,65 +548,64 @@ internal fun RuleEntity.behaviorColor(darkMode: Boolean): Color {
     }
 }
 
+/** [TextOverflow.Ellipsis] does not show ellipsis on skia background */
 @Composable
 private fun RuleEntity.summary(): String {
     if (dnsOnly) return stringResource(Res.string.dns_only)
 
-    var summary = ""
-    if (domains.isNotBlank()) summary += "$domains\n"
-    if (ip.isNotBlank()) summary += "$ip\n"
-    if (source.isNotBlank()) summary += "source: $source\n"
-    if (sourcePort.isNotBlank()) summary += "sourcePort: $sourcePort\n"
-    if (port.isNotBlank()) summary += "port: $port\n"
-    if (network.isNotEmpty()) summary += "network: $network\n"
-    if (protocol.isNotEmpty()) summary += "protocol: $protocol\n"
-    if (clientType.isNotEmpty()) summary += "client: $clientType\n"
+    val summary = mutableListOf<String>()
+    if (domains.isNotBlank()) summary += domains
+    if (ip.isNotBlank()) summary += ip
+    if (source.isNotBlank()) summary += "source: $source"
+    if (sourcePort.isNotBlank()) summary += "sourcePort: $sourcePort"
+    if (port.isNotBlank()) summary += "port: $port"
+    if (network.isNotEmpty()) summary += "network: $network"
+    if (protocol.isNotEmpty()) summary += "protocol: $protocol"
+    if (clientType.isNotEmpty()) summary += "client: $clientType"
     if (packages.isNotEmpty()) {
         summary += if (PlatformInfo.isAndroid) {
             pluralStringResource(Res.plurals.apps_message, packages.size, packages.size)
         } else {
             "${stringResource(Res.string.process)}: ${packages.joinToString(", ")}"
-        } + "\n"
+        }
     }
-    if (packageNameRegex.isNotBlank()) summary += "packageNameRegex: $packageNameRegex\n"
-    if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
-    if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
-    if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"
-    if (networkType.isNotEmpty()) summary += "networkType: $networkType\n"
-    if (networkIsExpensive) summary += "networkIsExpensive\n"
-    if (networkInterfaceAddress.isNotEmpty()) summary += "networkInterfaceAddress: $networkInterfaceAddress\n"
+    if (packageNameRegex.isNotBlank()) summary += "packageNameRegex: $packageNameRegex"
+    if (ssid.isNotBlank()) summary += "ssid: $ssid"
+    if (bssid.isNotBlank()) summary += "bssid: $bssid"
+    if (clashMode.isNotBlank()) summary += "clashMode: $clashMode"
+    if (networkType.isNotEmpty()) summary += "networkType: $networkType"
+    if (networkIsExpensive) summary += "networkIsExpensive"
+    if (networkInterfaceAddress.isNotEmpty()) summary += "networkInterfaceAddress: $networkInterfaceAddress"
 
-    if (overrideAddress.isNotBlank()) summary += "overrideAddress: $overrideAddress\n"
-    if (overridePort > 0) summary += "overridePort: $overridePort\n"
+    if (overrideAddress.isNotBlank()) summary += "overrideAddress: $overrideAddress"
+    if (overridePort > 0) summary += "overridePort: $overridePort"
     if (tlsFragment) {
-        summary += "TLS fragment\n"
+        summary += "TLS fragment"
         if (tlsFragmentFallbackDelay.isNotBlank()) {
-            summary += "tlsFragmentFallbackDelay: $tlsFragmentFallbackDelay\n"
+            summary += "tlsFragmentFallbackDelay: $tlsFragmentFallbackDelay"
         }
     }
     if (tlsRecordFragment) {
-        summary += "TLS record fragment\n"
+        summary += "TLS record fragment"
     }
-    if (tlsSpoof.isNotBlank()) summary += "tlsSpoof: $tlsSpoof\n"
-    if (tlsSpoofMethod.isNotBlank()) summary += "tlsSpoofMethod: $tlsSpoofMethod\n"
+    if (tlsSpoof.isNotBlank()) summary += "tlsSpoof: $tlsSpoof"
+    if (tlsSpoofMethod.isNotBlank()) summary += "tlsSpoofMethod: $tlsSpoofMethod"
 
-    if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy\n"
+    if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy"
     if (resolveDisableCache) summary += "resolveDisableCache\n"
-    if (resolveRewriteTTL >= 0) summary += "resolveRewriteTTL: $resolveRewriteTTL\n"
-    if (resolveClientSubnet.isNotBlank()) summary += "resolveClientSubnet: $resolveClientSubnet\n"
+    if (resolveRewriteTTL >= 0) summary += "resolveRewriteTTL: $resolveRewriteTTL"
+    if (resolveClientSubnet.isNotBlank()) summary += "resolveClientSubnet: $resolveClientSubnet"
 
-    if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout\n"
-    if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers\n"
+    if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout"
+    if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers"
 
-    if (customConfig.isNotBlank()) summary += stringResource(Res.string.menu_route) + "\n"
-    if (customDnsConfig.isNotBlank()) summary += stringResource(Res.string.cag_dns) + "\n"
+    if (customConfig.isNotBlank()) summary += stringResource(Res.string.menu_route)
+    if (customDnsConfig.isNotBlank()) summary += stringResource(Res.string.cag_dns)
 
-    // Even has "\n" suffix, TextView's "..." will be added and remove the last "\n".
-    val lines = summary.trim().split("\n")
-    return if (lines.size > 5) {
-        lines.subList(0, 5).joinToString("\n", postfix = "\n...")
+    return if (summary.size > 5) {
+        summary.subList(0, 5).joinToString("\n", postfix = "\n...")
     } else {
-        summary.trim()
+        summary.joinToString("\n")
     }
 }
 
