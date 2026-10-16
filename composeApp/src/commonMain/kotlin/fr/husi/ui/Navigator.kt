@@ -34,9 +34,6 @@ class Navigator(
     val isCurrentTopLevel: Boolean
         get() = currentRoute?.isTopLevelRoute() == true
 
-    val isAtStartDestination: Boolean
-        get() = currentRoute == NavRoutes.Configuration
-
     fun popBackStack(): Boolean {
         if (backStack.size <= 1) {
             return false

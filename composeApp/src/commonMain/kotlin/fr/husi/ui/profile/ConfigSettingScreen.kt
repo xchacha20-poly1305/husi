@@ -94,8 +94,7 @@ fun ConfigSettingScreen(
         viewModel.editingId.takeIf { it >= 0L } ?: Random.nextLong()
     }
     val resultKey = "config-settings-result-$resultKeyNumber"
-    ResultEffect<String?>(resultKey = resultKey) { result ->
-        if (result == null) return@ResultEffect
+    ResultEffect<String>(resultKey = resultKey) { result ->
         viewModel.setConfigForResult(result)
     }
 

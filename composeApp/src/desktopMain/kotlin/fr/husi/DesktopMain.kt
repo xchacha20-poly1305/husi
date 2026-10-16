@@ -276,9 +276,7 @@ class DesktopMain(
                     icon = iconServiceActive,
                 ) {
                     AppTheme {
-                        MainScreen(
-                            moveToBackground = leaveWindow,
-                        )
+                        MainScreen()
                     }
                 }
             }

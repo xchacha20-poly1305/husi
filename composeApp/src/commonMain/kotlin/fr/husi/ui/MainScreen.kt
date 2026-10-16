@@ -28,7 +28,6 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
 import fr.husi.bg.ServiceAlert
 import fr.husi.bg.ServiceState
-import fr.husi.compose.BackHandler
 import fr.husi.compose.SagerFab
 import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.SwipeableSnackbarHost
@@ -99,7 +98,6 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    moveToBackground: () -> Unit,
     initialProcessText: String? = null,
 ) {
     val koin = getKoin()
@@ -112,7 +110,6 @@ fun MainScreen(
             MainScreenContent(
                 modifier = modifier,
                 viewModel = mainScreenScope.get<MainViewModel>(),
-                moveToBackground = moveToBackground,
                 initialProcessText = initialProcessText,
                 koinScope = mainScreenScope,
                 entryProvider = entryProvider,
@@ -125,7 +122,6 @@ fun MainScreen(
 private fun MainScreenContent(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel,
-    moveToBackground: () -> Unit,
     initialProcessText: String?,
     koinScope: Scope,
     entryProvider: EntryProvider<NavKey>,
@@ -145,7 +141,6 @@ private fun MainScreenContent(
         }
     }
     val selectedTopLevelRoute = navigator.selectedTopLevelRoute
-    val isAtStartDestination = navigator.isAtStartDestination
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     val profilePickerController = remember(koinScope) {
         koinScope.get<ProfilePickerController>()
@@ -199,19 +194,6 @@ private fun MainScreenContent(
             permission.requestPermission(AppPermission.LocalNetwork) { granted ->
                 if (!granted) showLocalNetworkDeniedDialog = true
             }
-        }
-    }
-
-    BackHandler(enabled = true) {
-        when {
-            !isAtStartDestination -> {
-                val popped = navigator.popBackStack()
-                if (!popped) {
-                    navigator.navigateToTopLevelRoute(NavRoutes.Configuration)
-                }
-            }
-
-            else -> moveToBackground()
         }
     }
 

@@ -5,13 +5,13 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.compose.BackHandler
 import fr.husi.resources.Res
 import fr.husi.resources.cleaning_services
 import fr.husi.resources.clear_selections
@@ -43,12 +43,12 @@ internal actual fun AppListScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    fun saveAndExit() {
-        resultBus.sendResult<Set<String>>(resultKey, viewModel.allPackages().toSet())
-        onBack()
-    }
-    BackHandler(enabled = true) {
-        saveAndExit()
+    // Selections apply without a confirm step, so the result goes out whenever the screen leaves,
+    // however it was dismissed. Not intercepting back keeps the predictive back animation.
+    DisposableEffect(viewModel, resultBus, resultKey) {
+        onDispose {
+            resultBus.sendResult<Set<String>>(resultKey, viewModel.allPackages().toSet())
+        }
     }
 
     AppListScaffold(
@@ -58,7 +58,7 @@ internal actual fun AppListScreen(
         apps = uiState.apps,
         filteredApps = uiState.filteredApps,
         snackbarMessage = uiState.snackbarMessage,
-        onNavigationClick = ::saveAndExit,
+        onNavigationClick = onBack,
         modifier = modifier,
         dropdownMenuItems = { onDismiss ->
             DropdownMenuItem(

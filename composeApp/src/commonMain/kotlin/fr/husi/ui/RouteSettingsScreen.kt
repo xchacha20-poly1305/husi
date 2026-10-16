@@ -226,12 +226,10 @@ internal fun RouteSettingsScreen(
     ResultEffect<Set<String>>(resultKey = appListResultKey) { result ->
         viewModel.setPackages(result)
     }
-    ResultEffect<String?>(resultKey = configEditResultKey) { result ->
-        if (result == null) return@ResultEffect
+    ResultEffect<String>(resultKey = configEditResultKey) { result ->
         viewModel.setCustomConfig(result)
     }
-    ResultEffect<String?>(resultKey = dnsConfigEditResultKey) { result ->
-        if (result == null) return@ResultEffect
+    ResultEffect<String>(resultKey = dnsConfigEditResultKey) { result ->
         viewModel.setCustomDnsConfig(result)
     }
 

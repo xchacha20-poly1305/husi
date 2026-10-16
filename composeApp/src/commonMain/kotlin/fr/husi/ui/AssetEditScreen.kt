@@ -99,9 +99,6 @@ sealed interface AssetEditResult {
         val assetName: String,
     ) : AssetEditResult
 
-    @Serializable
-    data object Canceled : AssetEditResult
-
 }
 
 @Composable
@@ -116,13 +113,8 @@ internal fun AssetEditScreen(
 
     val isDirty by viewModel.isDirty.collectAsState()
     var showBackAlert by remember { mutableStateOf(false) }
-    BackHandler(enabled = true) {
-        if (isDirty) {
-            showBackAlert = true
-        } else {
-            resultBus.sendResult<AssetEditResult>(resultKey, AssetEditResult.Canceled)
-            onBack()
-        }
+    BackHandler(enabled = isDirty) {
+        showBackAlert = true
     }
 
     val uiState by viewModel.uiState.collectAsState()
@@ -162,10 +154,6 @@ internal fun AssetEditScreen(
                         if (isDirty) {
                             showBackAlert = true
                         } else {
-                            resultBus.sendResult<AssetEditResult>(
-                                resultKey,
-                                AssetEditResult.Canceled,
-                            )
                             onBack()
                         }
                     }
@@ -179,10 +167,6 @@ internal fun AssetEditScreen(
                         ) {
                             val editingAssetName = viewModel.editingName
                             if (editingAssetName.isEmpty()) {
-                                resultBus.sendResult<AssetEditResult>(
-                                    resultKey,
-                                    AssetEditResult.Canceled,
-                                )
                                 onBack()
                             } else {
                                 showDeleteConfirm = true
@@ -329,7 +313,6 @@ internal fun AssetEditScreen(
             },
             dismissButton = {
                 TextButton(stringResource(Res.string.no)) {
-                    resultBus.sendResult<AssetEditResult>(resultKey, AssetEditResult.Canceled)
                     onBack()
                 }
             },
@@ -352,7 +335,6 @@ internal fun AssetEditScreen(
             },
             dismissButton = {
                 TextButton(stringResource(Res.string.cancel)) {
-                    resultBus.sendResult<AssetEditResult>(resultKey, AssetEditResult.Canceled)
                     onBack()
                 }
             },

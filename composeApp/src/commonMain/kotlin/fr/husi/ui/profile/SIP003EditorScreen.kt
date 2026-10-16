@@ -92,18 +92,14 @@ fun SIP003EditorScreen(
     var showBackAlert by remember { mutableStateOf(false) }
 
     val saveAndExit: () -> Unit = {
-        resultBus.sendResult<String?>(resultKey, viewModel.serialize())
-        onBack()
-    }
-    val discardAndExit: () -> Unit = {
-        resultBus.sendResult<String?>(resultKey, null)
+        resultBus.sendResult<String>(resultKey, viewModel.serialize())
         onBack()
     }
     val confirmBack: () -> Unit = {
         if (isDirty) {
             showBackAlert = true
         } else {
-            discardAndExit()
+            onBack()
         }
     }
 
@@ -159,7 +155,7 @@ fun SIP003EditorScreen(
             },
             dismissButton = {
                 TextButton(stringResource(Res.string.no)) {
-                    discardAndExit()
+                    onBack()
                 }
             },
             icon = { Icon(vectorResource(Res.drawable.question_mark), null) },

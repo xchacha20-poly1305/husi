@@ -57,7 +57,6 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
                 ) {
                     AppTheme {
                         MainScreen(
-                            moveToBackground = { moveTaskToBack(true) },
                             initialProcessText = initialProcessText,
                         )
                     }

@@ -329,12 +329,10 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
         rememberSaveable { viewModel.editingId.takeIf { it >= 0 } ?: Random.nextLong() }
     val configResultKey = remember { "config-edit-${resultNumber}" }
     val outboundConfigResultKey = remember { "outbound-config-edit-${resultNumber}" }
-    ResultEffect<String?>(resultKey = configResultKey) { result ->
-        if (result == null) return@ResultEffect
+    ResultEffect<String>(resultKey = configResultKey) { result ->
         viewModel.setCustomConfig(result)
     }
-    ResultEffect<String?>(resultKey = outboundConfigResultKey) { result ->
-        if (result == null) return@ResultEffect
+    ResultEffect<String>(resultKey = outboundConfigResultKey) { result ->
         viewModel.setCustomOutbound(result)
     }
 

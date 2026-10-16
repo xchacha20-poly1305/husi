@@ -21,7 +21,6 @@ ln -s ../.agents/skills .claude/skills
 |------------------|-------------------------------------------------|
 | android-cli      | Powerful Android developing cli manual          |
 | navigation-3     | The guide of a fasion new navigation fragmework |
-| navigation-event | Correct navigation usage                        |
 
 They are on [android/skills](https://github.com/android/skills). Install
 with [Android CLI](https://developer.android.com/tools/agents/android-cli).

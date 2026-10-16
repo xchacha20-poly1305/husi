@@ -45,7 +45,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.compose.BackHandler
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -98,12 +97,6 @@ internal fun StunScreen(
         StunScreenViewModel(remoteControl = remoteControl)
     },
 ) {
-    fun exit() {
-        viewModel.cancel()
-        onBackPress()
-    }
-    BackHandler(true, ::exit)
-
     var alertMessage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -132,7 +125,7 @@ internal fun StunScreen(
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
                         contentDescription = stringResource(Res.string.back),
-                        onClick = ::exit,
+                        onClick = onBackPress,
                     )
                 },
                 title = { Text(stringResource(Res.string.stun_test)) },

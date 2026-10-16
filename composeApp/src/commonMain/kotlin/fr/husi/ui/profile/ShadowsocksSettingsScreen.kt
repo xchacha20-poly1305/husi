@@ -86,8 +86,7 @@ fun ShadowsocksSettingsScreen(
         val number = viewModel.editingId.takeIf { it >= 0 } ?: Random.nextLong()
         "sip003-editor-$number"
     }
-    ResultEffect<String?>(resultKey = sip003ResultKey) { result ->
-        if (result == null) return@ResultEffect
+    ResultEffect<String>(resultKey = sip003ResultKey) { result ->
         viewModel.setPluginConfig(result)
     }
 

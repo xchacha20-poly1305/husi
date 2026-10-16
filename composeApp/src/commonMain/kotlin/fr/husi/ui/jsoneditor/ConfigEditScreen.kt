@@ -353,7 +353,7 @@ private fun BoxScope.ConfigSchemaCompletionBar(
 }
 
 /**
- * Result definition: String? ( null means user cancel, otherwise is the edited config )
+ * Sends the edited config as a String result. Nothing is sent when the user leaves without saving.
  */
 @Composable
 fun ConfigEditScreen(
@@ -394,7 +394,7 @@ private fun ConfigEditScreenContent(
         viewModel.uiEvent.collect { uiEvent ->
             when (uiEvent) {
                 is ConfigEditUiEvent.Finish -> {
-                    resultBus.sendResult<String?>(resultKey, uiEvent.text)
+                    resultBus.sendResult<String>(resultKey, uiEvent.text)
                     onBack()
                 }
 
@@ -408,13 +408,11 @@ private fun ConfigEditScreenContent(
     val uiState by viewModel.uiState.collectAsState()
 
     var showBackDialog by remember { mutableStateOf(false) }
-    BackHandler(enabled = true) {
-        if (viewModel.textFieldState.text.toString() != initialText) {
-            showBackDialog = true
-        } else {
-            resultBus.sendResult<String?>(resultKey, null)
-            onBack()
-        }
+    val isDirty by remember(viewModel, initialText) {
+        derivedStateOf { viewModel.textFieldState.text.toString() != initialText }
+    }
+    BackHandler(enabled = isDirty) {
+        showBackDialog = true
     }
 
     LaunchedEffect(viewModel) {
@@ -445,8 +443,11 @@ private fun ConfigEditScreenContent(
                         imageVector = vectorResource(Res.drawable.close),
                         contentDescription = stringResource(Res.string.close),
                     ) {
-                        resultBus.sendResult<String?>(resultKey, null)
-                        onBack()
+                        if (isDirty) {
+                            showBackDialog = true
+                        } else {
+                            onBack()
+                        }
                     }
                 },
                 title = { Text(stringResource(Res.string.edit_config)) },
@@ -633,7 +634,6 @@ private fun ConfigEditScreenContent(
         },
         dismissButton = {
             TextButton(stringResource(Res.string.no)) {
-                resultBus.sendResult<String?>(resultKey, null)
                 onBack()
             }
         },
