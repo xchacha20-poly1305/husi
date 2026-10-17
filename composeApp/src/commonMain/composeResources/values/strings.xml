@@ -197,6 +197,7 @@
     <string name="share">Share</string>
     <string name="add_profile">Add Profile</string>
     <string name="add_group">Add Group</string>
+    <string name="add_proxy_set_members">Add Proxy Set Members</string>
     <string name="add_source">Add Source</string>
     <string name="action_socks" translatable="false">SOCKS</string>
     <string name="action_http" translatable="false">HTTP</string>
@@ -651,6 +652,7 @@
     <string name="minimum_mtu">Minimum MTU</string>
     <string name="management">Management</string>
     <string name="proxy_set">Proxy Set</string>
+    <string name="proxy_set_members">Proxy Set Members</string>
     <string name="interrupt_exist_connections">Interrupt Exist Connections</string>
     <string name="urltest_interval">URLTest Interval</string>
     <string name="rotate_interval">Rotate Interval</string>

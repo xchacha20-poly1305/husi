@@ -1,17 +1,11 @@
 package fr.husi.fmt.internal
 
 import fr.husi.CONNECTION_TEST_URL
-import fr.husi.database.ProxyEntity
-import fr.husi.database.SagerDatabase
 import fr.husi.fmt.BeanConverters
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
 import fr.husi.io.readList
 import fr.husi.io.writeList
-import fr.husi.ktx.blankAsNull
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable as KxsSerializable
 
 @KxsSerializable
@@ -48,19 +42,19 @@ class ProxySetBean : InternalBean() {
         companion object {
             const val TYPE_SINGLE = 0.toByte()
             const val TYPE_GROUP = 1.toByte()
+            const val TYPE_MEMBERS = 2.toByte()
 
             fun deserialize(input: BinaryInput): Provider {
                 return when (val type = input.readByte()) {
                     TYPE_SINGLE -> Single.deserialize(input)
                     TYPE_GROUP -> Group.deserialize(input)
+                    TYPE_MEMBERS -> Members.deserialize(input)
                     else -> error("Unsupported type: $type")
                 }
             }
         }
 
         val type: Byte
-
-        suspend fun entities(): List<ProxyEntity>
 
         fun serialize(output: BinaryOutput) {
             output.writeByte(type)
@@ -76,10 +70,6 @@ class ProxySetBean : InternalBean() {
             }
 
             override val type: Byte get() = TYPE_SINGLE
-
-            override suspend fun entities(): List<ProxyEntity> = withContext(Dispatchers.IO) {
-                SagerDatabase.proxyDao.getEntities(listOf(id))
-            }
 
             override fun serialize(output: BinaryOutput) {
                 super.serialize(output)
@@ -102,19 +92,28 @@ class ProxySetBean : InternalBean() {
 
             override val type: Byte get() = TYPE_GROUP
 
-            override suspend fun entities(): List<ProxyEntity> {
-                val filter = filterNotRegex.blankAsNull()?.toRegex()
-                val entities = withContext(Dispatchers.IO) {
-                    SagerDatabase.proxyDao.getByGroup(groupID).first()
-                }
-                if (filter == null) return entities
-                return entities.filter { filter.containsMatchIn(it.displayName()) }
-            }
-
             override fun serialize(output: BinaryOutput) {
                 super.serialize(output)
                 output.writeLong(groupID)
                 output.writeString(filterNotRegex)
+            }
+        }
+
+        /** Expands to the members of another proxy set, instead of nesting it as one outbound. */
+        @KxsSerializable
+        data class Members(val proxySetID: Long) : Provider {
+            companion object {
+                fun deserialize(input: BinaryInput): Members {
+                    val proxySetID = input.readLong()
+                    return Members(proxySetID)
+                }
+            }
+
+            override val type: Byte get() = TYPE_MEMBERS
+
+            override fun serialize(output: BinaryOutput) {
+                super.serialize(output)
+                output.writeLong(proxySetID)
             }
         }
 

@@ -573,6 +573,8 @@
     <string name="minimum_mtu">最小 MTU</string>
     <string name="management">管理</string>
     <string name="proxy_set">代理集</string>
+    <string name="add_proxy_set_members">添加代理集成员</string>
+    <string name="proxy_set_members">代理集成员</string>
     <string name="interrupt_exist_connections">在切换时打断现有连接</string>
     <string name="urltest_interval">URLTest 时间间隔</string>
     <string name="idle_timeout">空闲超时</string>

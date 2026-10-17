@@ -166,6 +166,116 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
             assertTrue(viewModel.uiState.value.providers.isEmpty())
         }
 
+    @Test
+    fun `proxy set editor allows a member that expands the edited set`() =
+        runTest(dispatcher.scheduler) {
+            val group = createGroup()
+            val editedSet = createProxySet(group.id, "set")
+            val expandingSet = createProxySet(
+                group.id,
+                "auto",
+                expandProxySetIds = listOf(editedSet.id),
+            )
+            val viewModel = ProxySetSettingsViewModel()
+            viewModel.initialize(editedSet.id, isSubscription = false)
+            awaitProxySetInitialized(viewModel)
+
+            viewModel.onSelectProfile(expandingSet.id)
+
+            awaitState("Expanding set was not added") {
+                viewModel.uiState.value.providers.map { it.toProvider() } ==
+                        listOf(ProxySetBean.Provider.Single(expandingSet.id))
+            }
+        }
+
+    @Test
+    fun `proxy set editor rejects a member that reaches a set expanding the edited set`() =
+        runTest(dispatcher.scheduler) {
+            val group = createGroup()
+            val editedSet = createProxySet(group.id, "set")
+            val expandingSet = createProxySet(
+                group.id,
+                "auto",
+                expandProxySetIds = listOf(editedSet.id),
+            )
+            val candidateChain = createChain(group.id, "chain", listOf(expandingSet.id))
+            val viewModel = ProxySetSettingsViewModel()
+            viewModel.initialize(editedSet.id, isSubscription = false)
+            awaitProxySetInitialized(viewModel)
+            val event = backgroundScope.async { viewModel.uiEvent.first() }
+
+            viewModel.onSelectProfile(candidateChain.id)
+            advanceUntilIdle()
+
+            assertCircularReference(event.await())
+            assertTrue(viewModel.uiState.value.providers.isEmpty())
+        }
+
+    @Test
+    fun `proxy set editor rejects expanding a set that expands the edited set`() =
+        runTest(dispatcher.scheduler) {
+            val group = createGroup()
+            val editedSet = createProxySet(group.id, "set")
+            val middleSet = createProxySet(
+                group.id,
+                "middle",
+                expandProxySetIds = listOf(editedSet.id),
+            )
+            val outerSet = createProxySet(
+                group.id,
+                "outer",
+                expandProxySetIds = listOf(middleSet.id),
+            )
+            val viewModel = ProxySetSettingsViewModel()
+            viewModel.initialize(editedSet.id, isSubscription = false)
+            awaitProxySetInitialized(viewModel)
+            val event = backgroundScope.async { viewModel.uiEvent.first() }
+
+            viewModel.addMembersProvider(outerSet.id)
+            advanceUntilIdle()
+
+            assertCircularReference(event.await())
+            assertTrue(viewModel.uiState.value.providers.isEmpty())
+        }
+
+    @Test
+    fun `proxy set editor rejects expanded members that reference the edited set`() =
+        runTest(dispatcher.scheduler) {
+            val group = createGroup()
+            val editedSet = createProxySet(group.id, "set")
+            val chain = createChain(group.id, "chain", listOf(editedSet.id))
+            val expandedSet = createProxySet(group.id, "expanded", listOf(chain.id))
+            val viewModel = ProxySetSettingsViewModel()
+            viewModel.initialize(editedSet.id, isSubscription = false)
+            awaitProxySetInitialized(viewModel)
+            val event = backgroundScope.async { viewModel.uiEvent.first() }
+
+            viewModel.addMembersProvider(expandedSet.id)
+            advanceUntilIdle()
+
+            assertCircularReference(event.await())
+            assertTrue(viewModel.uiState.value.providers.isEmpty())
+        }
+
+    @Test
+    fun `proxy set editor adds the members of another proxy set`() =
+        runTest(dispatcher.scheduler) {
+            val group = createGroup()
+            val editedSet = createProxySet(group.id, "set")
+            val member = createSocksProxy(group.id, "member")
+            val expandedSet = createProxySet(group.id, "expanded", listOf(member.id))
+            val viewModel = ProxySetSettingsViewModel()
+            viewModel.initialize(editedSet.id, isSubscription = false)
+            awaitProxySetInitialized(viewModel)
+
+            viewModel.addMembersProvider(expandedSet.id)
+
+            awaitState("Members provider was not added") {
+                viewModel.uiState.value.providers.map { it.toProvider() } ==
+                        listOf(ProxySetBean.Provider.Members(expandedSet.id))
+            }
+        }
+
     // Name is written before load() fills groups; waiting only on name races later provider edits.
     private suspend fun TestScope.awaitProxySetInitialized(
         viewModel: ProxySetSettingsViewModel,
@@ -214,11 +324,13 @@ class ProfileReferenceValidationTest : HusiKoinMainDispatcherTest() {
         groupId: Long,
         name: String,
         proxies: List<Long> = emptyList(),
+        expandProxySetIds: List<Long> = emptyList(),
     ): ProxyEntity {
         val proxySet = ProxyEntity(groupId = groupId).putBean(
             ProxySetBean().apply {
                 this.name = name
-                this.providers = proxies.map { ProxySetBean.Provider.Single(it) }
+                this.providers = proxies.map { ProxySetBean.Provider.Single(it) } +
+                        expandProxySetIds.map { ProxySetBean.Provider.Members(it) }
             }.applyDefaultValues(),
         )
         proxySet.id = SagerDatabase.proxyDao.addProxy(proxySet)

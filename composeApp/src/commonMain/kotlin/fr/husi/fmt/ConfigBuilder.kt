@@ -462,7 +462,7 @@ suspend fun buildConfig(
                 }
 
                 is ProxySetBean -> {
-                    val memberProfiles = bean.resolveMembers(id, failOnMissing = true)
+                    val memberProfiles = bean.resolveMembers(id, strict = true)
 
                     val memberChains = mutableListOf<ResolvedChain>()
                     for (member in memberProfiles) {

@@ -53,6 +53,7 @@ import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
+import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
 import fr.husi.database.displayType
 import fr.husi.fmt.internal.ProxySetBean
@@ -63,6 +64,7 @@ import fr.husi.resources.action_selector
 import fr.husi.resources.action_urltest
 import fr.husi.resources.add_group
 import fr.husi.resources.add_profile
+import fr.husi.resources.add_proxy_set_members
 import fr.husi.resources.add_source
 import fr.husi.resources.cancel
 import fr.husi.resources.cast_connected
@@ -83,6 +85,8 @@ import fr.husi.resources.not_set
 import fr.husi.resources.ok
 import fr.husi.resources.photo_camera
 import fr.husi.resources.profile_name
+import fr.husi.resources.proxy_set
+import fr.husi.resources.proxy_set_members
 import fr.husi.resources.rotate_interval
 import fr.husi.resources.stop
 import fr.husi.resources.urltest_interval
@@ -95,7 +99,14 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
-private data class GroupProviderEdit(val index: Int, val item: ProviderUiItem.Group?)
+/** A provider being added (negative [index]) or edited in a dialog. */
+private sealed interface ProviderEdit {
+    val index: Int
+
+    data class Group(override val index: Int, val item: ProviderUiItem.Group?) : ProviderEdit
+
+    data class Members(override val index: Int, val item: ProviderUiItem.Members?) : ProviderEdit
+}
 
 @Composable
 fun ProxySetSettingsScreen(
@@ -109,7 +120,7 @@ fun ProxySetSettingsScreen(
         profileEditorViewModel(profileId = profileId, isSubscription = isSubscription) {
             ProxySetSettingsViewModel()
         }
-    var groupEdit by remember { mutableStateOf<GroupProviderEdit?>(null) }
+    var providerEdit by remember { mutableStateOf<ProviderEdit?>(null) }
 
     ProfileSettingsScreenScaffold(
         title = Res.string.group_settings,
@@ -133,19 +144,18 @@ fun ProxySetSettingsScreen(
                     viewModel.onSelectProfile(id)
                 }
             },
-            onAddGroup = { groupEdit = GroupProviderEdit(index = -1, item = null) },
-            onEditGroup = { index, item -> groupEdit = GroupProviderEdit(index, item) },
+            onEditProvider = { providerEdit = it },
         )
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    groupEdit?.let { edit ->
-        GroupProviderDialog(
+    when (val edit = providerEdit) {
+        is ProviderEdit.Group -> GroupProviderDialog(
             groups = uiState.groups,
             item = edit.item,
-            onDismissRequest = { groupEdit = null },
+            onDismissRequest = { providerEdit = null },
             onConfirm = { groupID, filterNotRegex ->
-                groupEdit = null
+                providerEdit = null
                 if (edit.index < 0) {
                     viewModel.addGroupProvider(groupID, filterNotRegex)
                 } else {
@@ -153,6 +163,22 @@ fun ProxySetSettingsScreen(
                 }
             },
         )
+
+        is ProviderEdit.Members -> MembersProviderDialog(
+            proxySets = uiState.proxySets,
+            item = edit.item,
+            onDismissRequest = { providerEdit = null },
+            onConfirm = { proxySetID ->
+                providerEdit = null
+                if (edit.index < 0) {
+                    viewModel.addMembersProvider(proxySetID)
+                } else {
+                    viewModel.setMembersProvider(edit.index, proxySetID)
+                }
+            },
+        )
+
+        null -> {}
     }
 }
 
@@ -161,8 +187,7 @@ private fun LazyListScope.proxySetSettings(
     viewModel: ProxySetSettingsViewModel,
     onAddProfile: () -> Unit,
     onReplaceProfile: (index: Int, profileId: Long) -> Unit,
-    onAddGroup: () -> Unit,
-    onEditGroup: (index: Int, item: ProviderUiItem.Group) -> Unit,
+    onEditProvider: (ProviderEdit) -> Unit,
 ) {
     preferenceGroup {
         TextFieldPreference(
@@ -255,7 +280,11 @@ private fun LazyListScope.proxySetSettings(
     }
 
     item("add_source") {
-        AddSourceCard(onAddProfile = onAddProfile, onAddGroup = onAddGroup)
+        AddSourceCard(
+            onAddProfile = onAddProfile,
+            onAddGroup = { onEditProvider(ProviderEdit.Group(index = -1, item = null)) },
+            onAddMembers = { onEditProvider(ProviderEdit.Members(index = -1, item = null)) },
+        )
     }
 
     item("list") {
@@ -301,7 +330,16 @@ private fun LazyListScope.proxySetSettings(
                     is ProviderUiItem.Group -> ProxySetGroupCard(
                         group = uiState.groups[provider.groupID],
                         filterNotRegex = provider.filterNotRegex,
-                        onEdit = { onEditGroup(i, provider) },
+                        onEdit = { onEditProvider(ProviderEdit.Group(i, provider)) },
+                        onRemove = { viewModel.remove(i) },
+                        dragHandleModifier = dragHandleModifier,
+                    )
+
+                    is ProviderUiItem.Members -> ProxySetSourceCard(
+                        title = uiState.proxySets[provider.proxySetID]?.displayName()
+                            ?: stringResource(Res.string.not_set),
+                        summary = stringResource(Res.string.proxy_set_members),
+                        onEdit = { onEditProvider(ProviderEdit.Members(i, provider)) },
                         onRemove = { viewModel.remove(i) },
                         dragHandleModifier = dragHandleModifier,
                     )
@@ -337,7 +375,11 @@ private fun IntervalPreference(
 }
 
 @Composable
-private fun AddSourceCard(onAddProfile: () -> Unit, onAddGroup: () -> Unit) {
+private fun AddSourceCard(
+    onAddProfile: () -> Unit,
+    onAddGroup: () -> Unit,
+    onAddMembers: () -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         ElevatedCard(
@@ -369,7 +411,7 @@ private fun AddSourceCard(onAddProfile: () -> Unit, onAddGroup: () -> Unit) {
                     expanded = false
                     onAddProfile()
                 },
-                shapes = MenuDefaults.itemShape(0, 2),
+                shapes = MenuDefaults.itemShape(0, 3),
             )
             DropdownMenuItem(
                 selected = false,
@@ -378,7 +420,16 @@ private fun AddSourceCard(onAddProfile: () -> Unit, onAddGroup: () -> Unit) {
                     expanded = false
                     onAddGroup()
                 },
-                shapes = MenuDefaults.itemShape(1, 2),
+                shapes = MenuDefaults.itemShape(1, 3),
+            )
+            DropdownMenuItem(
+                selected = false,
+                text = { Text(stringResource(Res.string.add_proxy_set_members)) },
+                onClick = {
+                    expanded = false
+                    onAddMembers()
+                },
+                shapes = MenuDefaults.itemShape(2, 3),
             )
         }
     }
@@ -432,6 +483,46 @@ private fun GroupProviderDialog(
                 singleLine = true,
             )
         }
+    }
+}
+
+@Composable
+private fun MembersProviderDialog(
+    proxySets: Map<Long, ProxyEntity>,
+    item: ProviderUiItem.Members?,
+    onDismissRequest: () -> Unit,
+    onConfirm: (proxySetID: Long) -> Unit,
+) {
+    val proxySetIDs = proxySets.keys.toList()
+    var proxySetID by remember {
+        mutableLongStateOf(item?.proxySetID ?: proxySetIDs.firstOrNull() ?: -1L)
+    }
+    val notSet = stringResource(Res.string.not_set)
+
+    ScrollableDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(stringResource(Res.string.proxy_set_members)) },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(proxySetID) },
+                enabled = proxySetID in proxySets,
+            ) {
+                Text(stringResource(Res.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(stringResource(Res.string.cancel))
+            }
+        },
+    ) {
+        DropDownSelector(
+            label = { Text(stringResource(Res.string.proxy_set)) },
+            value = proxySetID,
+            values = proxySetIDs,
+            onValueChange = { proxySetID = it },
+            displayValue = { proxySets[it]?.displayName() ?: notSet },
+        )
     }
 }
 

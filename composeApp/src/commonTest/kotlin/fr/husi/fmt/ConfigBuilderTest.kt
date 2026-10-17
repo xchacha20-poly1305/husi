@@ -944,6 +944,128 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig should expand proxy set members without the expanding set`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val first = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "first",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        val second = createSocksProxy(
+            groupId = group.id,
+            order = 2,
+            name = "second",
+            host = "2.2.2.2",
+            port = 1081,
+        )
+        val auto = createProxySet(
+            groupId = group.id,
+            order = 3,
+            name = "auto",
+            management = ProxySetBean.MANAGEMENT_URLTEST,
+        )
+        val manual = createProxySet(
+            groupId = group.id,
+            order = 4,
+            name = "manual",
+            proxies = listOf(auto.id, first.id, second.id),
+        )
+        auto.proxySetBean!!.providers = listOf(ProxySetBean.Provider.Members(manual.id))
+        SagerDatabase.proxyDao.updateProxy(auto)
+
+        val result = buildConfig(manual, forTest = true)
+        val outbounds = parseOutbounds(result)
+
+        // Each occurrence of a profile gets its own outbound, so compare profile IDs, not tags.
+        fun memberIds(tag: String) = outbounds[tag]!!["outbounds"]!!.jsonArray.map {
+            result.metadata.tagToID.getValue(it.jsonPrimitive.content)
+        }
+        assertEquals(listOf(auto.id, first.id, second.id), memberIds("manual"))
+        assertEquals(listOf(first.id, second.id), memberIds("auto"))
+    }
+
+    @Test
+    fun `buildConfig should expand nested proxy set members transitively`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val leaf = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "leaf",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        val inner = createProxySet(
+            groupId = group.id,
+            order = 2,
+            name = "inner",
+            proxies = listOf(leaf.id),
+        )
+        val middle = createProxySet(
+            groupId = group.id,
+            order = 3,
+            name = "middle",
+            expandProxySetIds = listOf(inner.id),
+        )
+        val outer = createProxySet(
+            groupId = group.id,
+            order = 4,
+            name = "outer",
+            expandProxySetIds = listOf(middle.id),
+        )
+
+        val result = buildConfig(outer, forTest = true)
+        val outbounds = parseOutbounds(result)
+
+        assertEquals(
+            listOf("leaf"),
+            outbounds["outer"]!!["outbounds"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+        assertTrue("inner" !in outbounds && "middle" !in outbounds)
+    }
+
+    @Test
+    fun `buildConfig should report circular and missing proxy set expansions`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val first = createProxySet(groupId = group.id, order = 1, name = "first")
+        val second = createProxySet(
+            groupId = group.id,
+            order = 2,
+            name = "second",
+            expandProxySetIds = listOf(first.id),
+        )
+        first.proxySetBean!!.providers = listOf(ProxySetBean.Provider.Members(second.id))
+        SagerDatabase.proxyDao.updateProxy(first)
+
+        val circularError = assertFailsWith<IllegalStateException> {
+            buildConfig(first, forTest = true)
+        }
+        assertEquals(
+            "Circular proxy set expansion: ${first.id} -> ${second.id} -> ${first.id}",
+            circularError.message,
+        )
+
+        val missingId = Long.MAX_VALUE
+        val dangling = createProxySet(
+            groupId = group.id,
+            order = 3,
+            name = "dangling",
+            expandProxySetIds = listOf(missingId),
+        )
+        val missingError = assertFailsWith<IllegalStateException> {
+            buildConfig(dangling, forTest = true)
+        }
+        assertEquals(
+            "Missing proxy set reference in proxy set ${dangling.id}: $missingId",
+            missingError.message,
+        )
+    }
+
+    @Test
     fun `buildConfig should tolerate a profile whose group was removed`() = runBlocking {
         val group = ProxyGroup(name = "orphaned").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -3129,6 +3251,7 @@ class ConfigBuilderTest : HusiKoinTest() {
         management: Int = ProxySetBean.MANAGEMENT_SELECTOR,
         collectGroupId: Long = 0L,
         filterNotRegex: String = "",
+        expandProxySetIds: List<Long> = emptyList(),
     ): ProxyEntity {
         val proxySet = ProxyEntity(groupId = groupId, userOrder = order).putBean(
             ProxySetBean().apply {
@@ -3140,6 +3263,9 @@ class ConfigBuilderTest : HusiKoinTest() {
                     }
                     if (collectGroupId > 0L) {
                         add(ProxySetBean.Provider.Group(collectGroupId, filterNotRegex))
+                    }
+                    for (proxySetId in expandProxySetIds) {
+                        add(ProxySetBean.Provider.Members(proxySetId))
                     }
                 }
             }.applyDefaultValues(),

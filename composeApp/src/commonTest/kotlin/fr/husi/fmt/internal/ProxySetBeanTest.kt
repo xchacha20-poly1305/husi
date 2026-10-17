@@ -18,6 +18,7 @@ class ProxySetBeanTest {
                 ProxySetBean.Provider.Single(7L),
                 ProxySetBean.Provider.Group(9L, "^premium"),
                 ProxySetBean.Provider.Single(11L),
+                ProxySetBean.Provider.Members(13L),
             )
         }
 

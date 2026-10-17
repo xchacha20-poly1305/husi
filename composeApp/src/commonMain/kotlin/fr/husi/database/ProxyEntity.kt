@@ -612,6 +612,9 @@ data class ProxyEntity(
         @Query("SELECT * FROM proxy_entities WHERE id in (:proxyIds)")
         suspend fun getEntities(proxyIds: List<Long>): List<ProxyEntity>
 
+        @Query("SELECT * FROM proxy_entities WHERE type = :type ORDER BY groupId, userOrder, id")
+        suspend fun getByType(type: Int): List<ProxyEntity>
+
         @Query("SELECT COUNT(*) FROM proxy_entities WHERE groupId = :groupId")
         fun countByGroup(groupId: Long): Flow<Long>
 

@@ -9,6 +9,7 @@ import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ProxySetBean
+import fr.husi.fmt.internal.resolveMembers
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.resources.Res
@@ -47,6 +48,17 @@ internal sealed interface ProviderUiItem {
     ) : ProviderUiItem {
         override fun toProvider() = ProxySetBean.Provider.Group(groupID, filterNotRegex)
     }
+
+    data class Members(override val key: Long, val proxySetID: Long) : ProviderUiItem {
+        override fun toProvider() = ProxySetBean.Provider.Members(proxySetID)
+    }
+}
+
+/** UI item of a provider that needs no loaded profile to be shown. */
+private fun ProxySetBean.Provider.toCollectingUiItem(key: Long): ProviderUiItem = when (this) {
+    is ProxySetBean.Provider.Group -> ProviderUiItem.Group(key, groupID, filterNotRegex)
+    is ProxySetBean.Provider.Members -> ProviderUiItem.Members(key, proxySetID)
+    is ProxySetBean.Provider.Single -> error("A single provider is shown with its profile")
 }
 
 @Immutable
@@ -64,6 +76,8 @@ internal data class ProxySetUiState(
 
     val providers: ImmutableList<ProviderUiItem> = persistentListOf(),
     val groups: LinkedHashMap<Long, ProxyGroup> = LinkedHashMap(),
+    /** Proxy sets other than the edited one, the choices for a members provider. */
+    val proxySets: LinkedHashMap<Long, ProxyEntity> = LinkedHashMap(),
 ) : ProfileEditorUiState
 
 @Stable
@@ -114,6 +128,9 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         val groups = SagerDatabase.groupDao.allGroups().first()
         val groupMap = LinkedHashMap<Long, ProxyGroup>(groups.size)
         groups.associateByTo(groupMap) { it.id }
+        val proxySets = SagerDatabase.proxyDao.getByType(ProxyEntity.TYPE_PROXY_SET)
+        val proxySetMap = LinkedHashMap<Long, ProxyEntity>(proxySets.size)
+        proxySets.filter { it.id != editingId }.associateByTo(proxySetMap) { it.id }
 
         val singleIDs = providers.filterIsInstance<ProxySetBean.Provider.Single>().map { it.id }
         val profiles = ProfileManager.getProfiles(singleIDs).associateBy { it.id }
@@ -126,19 +143,24 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
                         items.add(ProviderUiItem.Profile(newItemKey(), profile))
                     }
 
-                    is ProxySetBean.Provider.Group -> items.add(
-                        ProviderUiItem.Group(
-                            key = newItemKey(),
-                            groupID = provider.groupID,
-                            filterNotRegex = provider.filterNotRegex,
-                        ),
-                    )
+                    is ProxySetBean.Provider.Group -> {
+                        items.add(provider.toCollectingUiItem(newItemKey()))
+                    }
+
+                    is ProxySetBean.Provider.Members -> {
+                        if (provider.proxySetID !in proxySetMap) continue
+                        items.add(provider.toCollectingUiItem(newItemKey()))
+                    }
                 }
             }
             items
         }
         uiState.update { state ->
-            state.copy(groups = groupMap, providers = items.toImmutableList())
+            state.copy(
+                groups = groupMap,
+                proxySets = proxySetMap,
+                providers = items.toImmutableList(),
+            )
         }
     }
 
@@ -176,17 +198,21 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         mutationJob = null
     }
 
+    private suspend fun resolveMembers(providers: List<ProxySetBean.Provider>): List<ProxyEntity> {
+        return ProxySetBean().also { it.providers = providers }.resolveMembers(editingId)
+    }
+
     private suspend fun currentMemberProfiles(excludeIndex: Int): List<ProxyEntity> {
         val providers = uiState.value.providers
-        val members = mutableListOf<ProxyEntity>()
-        for ((index, item) in providers.withIndex()) {
-            if (index == excludeIndex) continue
-            when (item) {
-                is ProviderUiItem.Profile -> members.add(item.entity)
-                is ProviderUiItem.Group -> members.addAll(item.toProvider().entities())
-            }
-        }
-        return members.distinctBy { it.id }
+            .filterIndexed { index, _ -> index != excludeIndex }
+            .map { it.toProvider() }
+        return resolveMembers(providers)
+    }
+
+    private suspend fun ProxyEntity.closesCycle(expanders: Set<Long>): Boolean {
+        val references = profileReferenceIds()
+        if (editingId in references) return true
+        return expanders.any { it != id && it in references }
     }
 
     fun onSelectProfile(id: Long) {
@@ -213,7 +239,8 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
                     return@launch
                 }
                 val otherProfiles = currentMemberProfiles(replacingIndex)
-                if (!profile.canAdd(otherProfiles)) {
+                val expanders = proxySetsExpanding(editingId)
+                if (!profile.canAdd(otherProfiles, expanders)) {
                     if (version != mutationVersion) return@launch
                     emitAlert(
                         title = StringOrRes.Res(Res.string.circular_reference),
@@ -233,8 +260,11 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
         }
     }
 
-    private suspend fun ProxyEntity.canAdd(otherProfiles: List<ProxyEntity>): Boolean {
-        if (containsProfileReference(editingId)) return false
+    private suspend fun ProxyEntity.canAdd(
+        otherProfiles: List<ProxyEntity>,
+        expanders: Set<Long>,
+    ): Boolean {
+        if (closesCycle(expanders)) return false
         for (existingProfile in otherProfiles) {
             if (existingProfile.containsProfileReference(id)) {
                 return false
@@ -288,7 +318,7 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
     }
 
     private fun submitGroupProvider(index: Int, groupID: Long, filterNotRegex: String) {
-        val filterRegex = try {
+        try {
             filterNotRegex.blankAsNull()?.toRegex()
         } catch (error: IllegalArgumentException) {
             invalidateProviderMutation()
@@ -314,18 +344,52 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
             return
         }
 
+        submitCollectingProvider(index, ProxySetBean.Provider.Group(groupID, filterNotRegex))
+    }
+
+    fun addMembersProvider(proxySetID: Long) {
+        submitMembersProvider(index = -1, proxySetID = proxySetID)
+    }
+
+    fun setMembersProvider(index: Int, proxySetID: Long) {
+        submitMembersProvider(index = index, proxySetID = proxySetID)
+    }
+
+    private fun submitMembersProvider(index: Int, proxySetID: Long) {
+        val duplicated = uiState.value.providers.filterIndexed { itemIndex, item ->
+            itemIndex != index && item is ProviderUiItem.Members && item.proxySetID == proxySetID
+        }
+        if (duplicated.isNotEmpty()) {
+            invalidateProviderMutation()
+            viewModelScope.launch {
+                emitAlert(
+                    title = StringOrRes.Res(Res.string.duplicate_name),
+                    message = StringOrRes.Direct(
+                        uiState.value.proxySets[proxySetID]?.displayName().orEmpty(),
+                    ),
+                )
+            }
+            return
+        }
+
+        submitCollectingProvider(index, ProxySetBean.Provider.Members(proxySetID))
+    }
+
+    private fun submitCollectingProvider(index: Int, candidate: ProxySetBean.Provider) {
         val version = ++mutationVersion
         mutationJob?.cancel()
         mutationJob = viewModelScope.launch {
-            val groupProfiles = SagerDatabase.proxyDao.getByGroup(groupID).first()
+            val expanders = proxySetsExpanding(editingId)
             if (version != mutationVersion) return@launch
-            val selectedProfiles = groupProfiles.filter { profile ->
-                profile.id != editingId &&
-                        filterRegex?.containsMatchIn(profile.displayName()) != false
+            if (candidate is ProxySetBean.Provider.Members &&
+                (candidate.proxySetID == editingId || candidate.proxySetID in expanders)
+            ) {
+                emitCircularReference()
+                return@launch
             }
-            for (profile in selectedProfiles) {
+            for (profile in resolveMembers(listOf(candidate))) {
                 if (version != mutationVersion) return@launch
-                if (profile.containsProfileReference(editingId)) {
+                if (profile.closesCycle(expanders)) {
                     if (version != mutationVersion) return@launch
                     emitCircularReference()
                     return@launch
@@ -336,19 +400,9 @@ internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>(
             uiState.update { state ->
                 val providers = state.providers.toMutableList()
                 if (index in providers.indices) {
-                    providers[index] = ProviderUiItem.Group(
-                        key = providers[index].key,
-                        groupID = groupID,
-                        filterNotRegex = filterNotRegex,
-                    )
+                    providers[index] = candidate.toCollectingUiItem(providers[index].key)
                 } else {
-                    providers.add(
-                        ProviderUiItem.Group(
-                            key = newItemKey(),
-                            groupID = groupID,
-                            filterNotRegex = filterNotRegex,
-                        ),
-                    )
+                    providers.add(candidate.toCollectingUiItem(newItemKey()))
                 }
                 state.copy(providers = providers.toImmutableList())
             }

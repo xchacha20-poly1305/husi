@@ -32,6 +32,33 @@ private suspend fun collectProfileReferenceIds(
     return references
 }
 
+internal suspend fun ProxyEntity.profileReferenceIds(): Set<Long> {
+    return collectProfileReferenceIds(listOf(this))
+}
+
 internal suspend fun ProxyEntity.containsProfileReference(targetId: Long): Boolean {
-    return targetId in collectProfileReferenceIds(listOf(this))
+    return targetId in profileReferenceIds()
+}
+
+internal suspend fun proxySetsExpanding(proxySetId: Long): Set<Long> {
+    val expandersByTarget = HashMap<Long, MutableList<Long>>()
+    for (entity in SagerDatabase.proxyDao.getByType(ProxyEntity.TYPE_PROXY_SET)) {
+        val bean = entity.proxySetBean ?: continue
+        for (provider in bean.providers) {
+            if (provider is ProxySetBean.Provider.Members) {
+                expandersByTarget.getOrPut(provider.proxySetID) { mutableListOf() }.add(entity.id)
+            }
+        }
+    }
+
+    val expanders = LinkedHashSet<Long>()
+    val pending = ArrayDeque(listOf(proxySetId))
+    while (pending.isNotEmpty()) {
+        for (expander in expandersByTarget[pending.removeFirst()].orEmpty()) {
+            if (expander != proxySetId && expanders.add(expander)) {
+                pending.add(expander)
+            }
+        }
+    }
+    return expanders
 }
