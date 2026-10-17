@@ -44,7 +44,7 @@ class TailscaleBean : AbstractBean() {
     var taildropDirectory: String = ""
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(1)
+        output.writeInt(0)
         super.serialize(output)
         output.writeString(stateDirectory)
         output.writeString(authKey)
@@ -64,7 +64,7 @@ class TailscaleBean : AbstractBean() {
     }
 
     override fun deserialize(input: BinaryInput) {
-        val version = input.readInt()
+        input.readInt()
         super.deserialize(input)
         stateDirectory = input.readString()
         authKey = input.readString()
@@ -80,9 +80,7 @@ class TailscaleBean : AbstractBean() {
         listenPort = input.readInt()
         sshServer = input.readBoolean()
         taildropDirectory = input.readString()
-        if (version >= 1) {
-            advertiseFakeDNSRoutes = input.readBoolean()
-        }
+        advertiseFakeDNSRoutes = input.readBoolean()
     }
 
     override fun displayName(): String {
