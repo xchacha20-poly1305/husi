@@ -241,7 +241,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             )
             proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
 
-            fun advertisedRoutes(): List<String>? = parseEndpoints(buildConfig(proxy))["tailscale"]!!
+            suspend fun advertisedRoutes(): List<String>? = parseEndpoints(buildConfig(proxy))["tailscale"]!!
                 .get("advertise_routes")
                 ?.jsonArray
                 ?.map { it.jsonPrimitive.content }
