@@ -224,6 +224,38 @@ class ConfigBuilderTest : HusiKoinTest() {
         }
 
     @Test
+    fun `buildConfig should advertise Fake DNS ranges for Tailscale only while Fake DNS is enabled`() =
+        runBlocking {
+            disableFakeDns()
+            DataStore.networkStrategy.set(SingBoxOptions.STRATEGY_PREFER_IPV6)
+            DataStore.fakeDNSRange4.set("198.51.100.0/24")
+            DataStore.fakeDNSRange6.set("2001:2::/48")
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                TailscaleBean().apply {
+                    name = "tailscale"
+                    advertiseRoutes = "10.0.0.0/8"
+                    advertiseFakeDNSRoutes = true
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            fun advertisedRoutes(): List<String>? = parseEndpoints(buildConfig(proxy))["tailscale"]!!
+                .get("advertise_routes")
+                ?.jsonArray
+                ?.map { it.jsonPrimitive.content }
+
+            assertEquals(listOf("10.0.0.0/8"), advertisedRoutes())
+
+            DataStore.enableFakeDns.set(true)
+            assertEquals(
+                listOf("10.0.0.0/8", "198.51.100.0/24", "2001:2::/48"),
+                advertisedRoutes(),
+            )
+        }
+
+    @Test
     fun `buildConfig should preserve proxy set order through multiple nested chains`() = runBlocking {
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)

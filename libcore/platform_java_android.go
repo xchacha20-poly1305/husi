@@ -13,4 +13,7 @@ type PlatformInterface interface {
 	StartDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	CloseDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	GetInterfaces() (NetworkInterfaceIterator, error)
+	// TailscaleHostname is the device name a Tailscale endpoint registers with when its
+	// hostname is unset.
+	TailscaleHostname() string
 }

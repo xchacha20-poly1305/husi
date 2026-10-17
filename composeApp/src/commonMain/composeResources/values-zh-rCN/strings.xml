@@ -855,4 +855,6 @@
     <string name="tailcat_derp_map_url">DERP Map URL</string>
     <string name="tailcat_derp_region">DERP 区域</string>
     <string name="tailcat_derp_servers">DERP 服务器</string>
+    <string name="tailscale_advertise_fake_dns_routes">通告 Fake DNS 网段</string>
+    <string name="tailscale_advertise_fake_dns_routes_summary">启用 Fake DNS 时，将 Fake DNS 网段作为子网路由通告</string>
 </resources>

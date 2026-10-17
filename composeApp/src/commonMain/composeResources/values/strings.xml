@@ -928,4 +928,6 @@
     <string name="tailcat_derp_map_url">DERP Map URL</string>
     <string name="tailcat_derp_region">DERP Region</string>
     <string name="tailcat_derp_servers">DERP Servers</string>
+    <string name="tailscale_advertise_fake_dns_routes">Advertise Fake DNS Routes</string>
+    <string name="tailscale_advertise_fake_dns_routes_summary">Advertise the Fake DNS ranges as subnet routes while Fake DNS is enabled</string>
 </resources>

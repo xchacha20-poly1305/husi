@@ -589,6 +589,16 @@ suspend fun buildConfig(
     val externalIndexMap = ArrayList<IndexEntity>()
     val protectedPluginPorts = HashSet<Int>()
     val networkStrategy = DataStore.networkStrategy.get()
+    val fakeDNSRange4 = if (!useFakeDns || networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {
+        null
+    } else {
+        DataStore.fakeDNSRange4.get().blankAsNull()
+    }
+    val fakeDNSRange6 = if (!useFakeDns || networkStrategy == SingBoxOptions.STRATEGY_IPV4_ONLY) {
+        null
+    } else {
+        DataStore.fakeDNSRange6.get().blankAsNull()
+    }
     val networkInterfaceStrategy = DataStore.networkInterfaceType.get()
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.get().toList()
     val defaultStrategy = networkStrategy.blankAsNull()
@@ -894,7 +904,16 @@ suspend fun buildConfig(
 
                         is TailscaleBean -> {
                             vpnWithPushDNS[tagOut] = SingBoxOptions.DNS_TYPE_TAILSCALE
-                            buildSingBoxEndpointTailscaleBean(bean).asKxsMap()
+                            buildSingBoxEndpointTailscaleBean(bean).apply {
+                                if (bean.advertiseFakeDNSRoutes) {
+                                    val fakeRanges = listOfNotNull(fakeDNSRange4, fakeDNSRange6)
+                                    if (fakeRanges.isNotEmpty()) {
+                                        advertise_routes = (advertise_routes.orEmpty() + fakeRanges)
+                                            .distinct()
+                                            .toMutableList()
+                                    }
+                                }
+                            }.asKxsMap()
                         }
 
                         is TailcatBean -> buildSingBoxOutboundTailcatBean(bean).asKxsMap()
@@ -1595,22 +1614,12 @@ suspend fun buildConfig(
 
             // FakeDNS obj
             if (useFakeDns) {
-                val fakeRange4 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {
-                    null
-                } else {
-                    DataStore.fakeDNSRange4.get().blankAsNull()
-                }
-                val fakeRange6 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV4_ONLY) {
-                    null
-                } else {
-                    DataStore.fakeDNSRange6.get().blankAsNull()
-                }
                 dns!!.servers!!.add(
                     NewDNSServerOptions_FakeIPDNSServerOptions().apply {
                         type = SingBoxOptions.DNS_TYPE_FAKEIP
                         tag = TAG_DNS_FAKE
-                        inet4_range = fakeRange4
-                        inet6_range = fakeRange6
+                        inet4_range = fakeDNSRange4
+                        inet6_range = fakeDNSRange6
                     },
                 )
                 dns!!.rules!!.add(

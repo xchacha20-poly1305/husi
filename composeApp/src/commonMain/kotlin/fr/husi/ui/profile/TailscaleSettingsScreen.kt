@@ -27,6 +27,7 @@ import fr.husi.resources.home
 import fr.husi.resources.label
 import fr.husi.resources.link
 import fr.husi.resources.listen_port
+import fr.husi.resources.nat
 import fr.husi.resources.outbond
 import fr.husi.resources.profile_config
 import fr.husi.resources.profile_name
@@ -35,6 +36,8 @@ import fr.husi.resources.route
 import fr.husi.resources.stream
 import fr.husi.resources.tailscale_accept_routes
 import fr.husi.resources.tailscale_advertise_exit_node
+import fr.husi.resources.tailscale_advertise_fake_dns_routes
+import fr.husi.resources.tailscale_advertise_fake_dns_routes_summary
 import fr.husi.resources.tailscale_advertise_routes
 import fr.husi.resources.tailscale_advertise_tags
 import fr.husi.resources.tailscale_auth_key
@@ -240,6 +243,19 @@ private fun LazyListScope.tailscaleSettings(
             },
         )
         SwitchPreference(
+            value = uiState.advertiseFakeDNSRoutes,
+            onValueChange = { viewModel.setAdvertiseFakeDNSRoutes(it) },
+            title = { Text(stringResource(Res.string.tailscale_advertise_fake_dns_routes)) },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.nat,
+                    color = IconMaskColors.IconCyan,
+                    shape = IconMaskShapes.route(),
+                )
+            },
+            summary = { Text(stringResource(Res.string.tailscale_advertise_fake_dns_routes_summary)) },
+        )
+        SwitchPreference(
             value = uiState.advertiseExitNode,
             onValueChange = { viewModel.setAdvertiseExitNode(it) },
             title = { Text(stringResource(Res.string.tailscale_advertise_exit_node)) },
@@ -269,6 +285,10 @@ private fun LazyListScope.tailscaleSettings(
         )
     }
 
+    // Android has no SSH server support, and serves received files from the default directory
+    // through its documents provider.
+    if (PlatformInfo.isAndroid) return
+
     preferenceGroup {
         SwitchPreference(
             value = uiState.sshServer,
@@ -282,22 +302,19 @@ private fun LazyListScope.tailscaleSettings(
                 )
             },
         )
-        // Android serves received files from the default directory through its documents provider.
-        if (!PlatformInfo.isAndroid) {
-            TextFieldPreference(
-                value = uiState.taildropDirectory,
-                onValueChange = { viewModel.setTaildropDirectory(it) },
-                title = { Text(stringResource(Res.string.taildrop_directory)) },
-                textToValue = { it },
-                icon = {
-                    MaskedIcon(
-                        Res.drawable.download,
-                        color = IconMaskColors.IconLightGreen,
-                    )
-                },
-                summary = { Text(contentOrUnset(uiState.taildropDirectory)) },
-                valueToText = { it },
-            )
-        }
+        TextFieldPreference(
+            value = uiState.taildropDirectory,
+            onValueChange = { viewModel.setTaildropDirectory(it) },
+            title = { Text(stringResource(Res.string.taildrop_directory)) },
+            textToValue = { it },
+            icon = {
+                MaskedIcon(
+                    Res.drawable.download,
+                    color = IconMaskColors.IconLightGreen,
+                )
+            },
+            summary = { Text(contentOrUnset(uiState.taildropDirectory)) },
+            valueToText = { it },
+        )
     }
 }

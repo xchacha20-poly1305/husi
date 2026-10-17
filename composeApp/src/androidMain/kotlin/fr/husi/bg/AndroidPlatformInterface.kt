@@ -5,6 +5,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Process
+import android.provider.Settings
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
 import fr.husi.ktx.Logs
@@ -140,6 +141,17 @@ class AndroidPlatformInterface : PlatformInterface {
     }
 
     override fun localDNSTransport(): LocalDNSTransport = LocalResolver
+
+    override fun tailscaleHostname(): String {
+        if (SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            val deviceName = Settings.Global.getString(
+                resolveAndroidRepository().context.contentResolver,
+                Settings.Global.DEVICE_NAME,
+            )
+            if (!deviceName.isNullOrBlank()) return deviceName
+        }
+        return Build.MODEL
+    }
 
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,

@@ -25,6 +25,7 @@ internal data class TailscaleUiState(
     val advertiseExitNode: Boolean = false,
     val advertiseTags: String = "",
     val listenPort: Int = 0,
+    val advertiseFakeDNSRoutes: Boolean = false,
     val sshServer: Boolean = false,
     val taildropDirectory: String = "",
 ) : ProfileEditorUiState
@@ -54,6 +55,7 @@ internal class TailscaleSettingsViewModel : ProfileEditorViewModel<TailscaleBean
                 advertiseExitNode = advertiseExitNode,
                 advertiseTags = advertiseTags,
                 listenPort = listenPort,
+                advertiseFakeDNSRoutes = advertiseFakeDNSRoutes,
                 sshServer = sshServer,
                 taildropDirectory = taildropDirectory,
             )
@@ -78,6 +80,7 @@ internal class TailscaleSettingsViewModel : ProfileEditorViewModel<TailscaleBean
         advertiseExitNode = state.advertiseExitNode
         advertiseTags = state.advertiseTags
         listenPort = state.listenPort
+        advertiseFakeDNSRoutes = state.advertiseFakeDNSRoutes
         sshServer = state.sshServer
         taildropDirectory = state.taildropDirectory
     }
@@ -140,6 +143,10 @@ internal class TailscaleSettingsViewModel : ProfileEditorViewModel<TailscaleBean
 
     fun setListenPort(port: Int) {
         uiState.update { it.copy(listenPort = port) }
+    }
+
+    fun setAdvertiseFakeDNSRoutes(advertise: Boolean) {
+        uiState.update { it.copy(advertiseFakeDNSRoutes = advertise) }
     }
 
     fun setSSHServer(enabled: Boolean) {

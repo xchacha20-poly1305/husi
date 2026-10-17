@@ -37,11 +37,14 @@ class TailscaleBean : AbstractBean() {
     var listenPort: Int = 0
     var sshServer: Boolean = false
 
+    /** Appends the Fake DNS ranges to the advertised routes while Fake DNS is enabled. */
+    var advertiseFakeDNSRoutes: Boolean = false
+
     /** Only the desktop core honors it; Android keeps the default for its documents provider. */
     var taildropDirectory: String = ""
 
     override fun serialize(output: BinaryOutput) {
-        output.writeInt(0)
+        output.writeInt(1)
         super.serialize(output)
         output.writeString(stateDirectory)
         output.writeString(authKey)
@@ -57,10 +60,11 @@ class TailscaleBean : AbstractBean() {
         output.writeInt(listenPort)
         output.writeBoolean(sshServer)
         output.writeString(taildropDirectory)
+        output.writeBoolean(advertiseFakeDNSRoutes)
     }
 
     override fun deserialize(input: BinaryInput) {
-        input.readInt()
+        val version = input.readInt()
         super.deserialize(input)
         stateDirectory = input.readString()
         authKey = input.readString()
@@ -76,6 +80,9 @@ class TailscaleBean : AbstractBean() {
         listenPort = input.readInt()
         sshServer = input.readBoolean()
         taildropDirectory = input.readString()
+        if (version >= 1) {
+            advertiseFakeDNSRoutes = input.readBoolean()
+        }
     }
 
     override fun displayName(): String {

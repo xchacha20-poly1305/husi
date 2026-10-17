@@ -311,7 +311,7 @@ func (w *boxPlatformInterfaceWrapper) ReadSystemSSHHostKey() ([]byte, error) {
 }
 
 func (w *boxPlatformInterfaceWrapper) TailscaleHostname() string {
-	return ""
+	return w.iif.TailscaleHostname()
 }
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformAutoRedirect() bool {

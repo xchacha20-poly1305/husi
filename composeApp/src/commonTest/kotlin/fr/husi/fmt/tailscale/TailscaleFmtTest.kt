@@ -109,12 +109,14 @@ class TailscaleFmtTest {
             listenPort = 1234
             sshServer = true
             taildropDirectory = "drop"
+            advertiseFakeDNSRoutes = true
         }
 
         val parsed = BeanConverters.deserialize(TailscaleBean(), BeanConverters.serialize(source))
 
         assertEquals(BeanConverters.serialize(source).toList(), BeanConverters.serialize(parsed).toList())
         assertEquals("drop", parsed.taildropDirectory)
+        assertTrue(parsed.advertiseFakeDNSRoutes)
     }
 
     @Test

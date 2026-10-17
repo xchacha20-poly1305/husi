@@ -22,7 +22,7 @@ fun buildSingBoxEndpointTailscaleBean(bean: TailscaleBean): SingBoxOptions.Endpo
         advertise_exit_node = bean.advertiseExitNode.takeIf { it }
         advertise_tags = bean.advertiseTags.blankAsNull()?.listByLineOrComma()?.toMutableList()
         listen_port = bean.listenPort.takeIf { it > 0 }
-        if (bean.sshServer) {
+        if (bean.sshServer && !PlatformInfo.isAndroid) {
             ssh_server = SingBoxOptions.TailscaleSSHServerOptions().apply {
                 enabled = true
             }
