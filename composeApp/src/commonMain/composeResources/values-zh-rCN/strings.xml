@@ -909,7 +909,6 @@
     <string name="tailscale_ping_derp_region">DERP 区域</string>
     <string name="tailscale_ping_peer_relay_address">对等中继</string>
     <string name="tailscale_ping_no_data">无数据</string>
-    <string name="tailscale_ping_latency">%1$d 毫秒</string>
     <string name="tailscale_shared_in">共享至此</string>
     <string name="tailscale_expired">已过期</string>
     <string name="tailscale_expires_relative">%1$s 过期</string>
@@ -943,6 +942,7 @@
     <string name="taildrop_open_directory">打开接收目录</string>
     <string name="taildrop_open_download_directory">打开下载的文件</string>
     <string name="taildrop_drop_zone">拖放文件到此处发送，或轻点选择</string>
+    <string name="taildrop_send_to">发送文件给 %1$s</string>
     <string name="taildrop_no_targets">没有可接收文件的设备</string>
     <string name="taildrop_empty">没有文件</string>
     <string name="taildrop_dismiss">关闭</string>

@@ -236,17 +236,13 @@ fun TaildropInboxScreen(
             item(key = "send-header") {
                 PreferenceCategory { Text(stringResource(Res.string.taildrop_send)) }
             }
-            item(key = "send") {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                ) {
-                    for (session in endpointSessions) {
-                        TaildropSendSessionRow(
-                            session = session,
-                            onCancel = { sendManager.cancel(session.id) },
-                            onDismiss = { sendManager.dismiss(session.id) },
-                        )
-                    }
+            preferenceGroup(key = "send") {
+                for (session in endpointSessions) {
+                    TaildropSendSessionRow(
+                        session = session,
+                        onCancel = { sendManager.cancel(session.id) },
+                        onDismiss = { sendManager.dismiss(session.id) },
+                    )
                 }
             }
         }

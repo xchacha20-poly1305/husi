@@ -987,7 +987,6 @@
     <string name="tailscale_ping_derp_region">DERP region</string>
     <string name="tailscale_ping_peer_relay_address">Peer relay</string>
     <string name="tailscale_ping_no_data">No data</string>
-    <string name="tailscale_ping_latency">%1$d ms</string>
     <string name="tailscale_shared_in">Shared in</string>
     <string name="tailscale_expired">Expired</string>
     <string name="tailscale_expires_relative">Expires %1$s</string>
@@ -1025,6 +1024,7 @@
     <string name="taildrop_open_directory">Open receive directory</string>
     <string name="taildrop_open_download_directory">Open downloaded files</string>
     <string name="taildrop_drop_zone">Drop files here to send, or tap to select</string>
+    <string name="taildrop_send_to">Send files to %1$s</string>
     <string name="taildrop_no_targets">No devices can receive files</string>
     <string name="taildrop_empty">No files</string>
     <string name="taildrop_dismiss">Dismiss</string>

@@ -132,23 +132,26 @@ fun TailscaleUserGroup.toState(): TailscaleUserGroupState = TailscaleUserGroupSt
     peers = peersList.map { it.toState() },
 )
 
-fun TailscalePeer.toState(): TailscalePeerState = TailscalePeerState(
-    id = dnsName.ifEmpty { hostName },
-    stableId = stableID,
-    hostName = hostName,
-    dnsName = dnsName,
-    operatingSystem = os,
-    tailscaleIps = tailscaleIPsList,
-    sshHostKeys = sshHostKeysList,
-    online = online,
-    exitNode = exitNode,
-    exitNodeOption = exitNodeOption,
-    shareeNode = shareeNode,
-    expired = expired,
-    active = active,
-    receivedBytes = rxBytes,
-    transmittedBytes = txBytes,
-    keyExpiry = keyExpiry,
-    lastSeen = lastSeen,
-    canReceiveFiles = canReceiveFiles,
-)
+fun TailscalePeer.toState(): TailscalePeerState {
+    val magicDNS = dnsName.removeSuffix(".")
+    return TailscalePeerState(
+        id = magicDNS.ifEmpty { hostName },
+        stableId = stableID,
+        hostName = hostName,
+        dnsName = magicDNS,
+        operatingSystem = os,
+        tailscaleIps = tailscaleIPsList,
+        sshHostKeys = sshHostKeysList,
+        online = online,
+        exitNode = exitNode,
+        exitNodeOption = exitNodeOption,
+        shareeNode = shareeNode,
+        expired = expired,
+        active = active,
+        receivedBytes = rxBytes,
+        transmittedBytes = txBytes,
+        keyExpiry = keyExpiry,
+        lastSeen = lastSeen,
+        canReceiveFiles = canReceiveFiles,
+    )
+}

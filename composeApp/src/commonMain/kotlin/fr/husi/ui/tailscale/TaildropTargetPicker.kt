@@ -19,7 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import fr.husi.compose.PreferenceGroupDefaults
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.material3.Text
 import fr.husi.resources.Res
 import fr.husi.resources.connected
@@ -117,12 +120,21 @@ fun TaildropTargetPicker(
                     }
                 }
             }
-            for (session in visibleSessions) {
-                TaildropSendSessionRow(
-                    session = session,
-                    onCancel = { onCancelSession(session.id) },
-                    onDismiss = { onDismissSession(session.id) },
-                )
+            if (visibleSessions.isNotEmpty()) {
+                ProvidePreferenceLocals {
+                    Column(
+                        modifier = Modifier.clip(PreferenceGroupDefaults.groupShape),
+                        verticalArrangement = PreferenceGroupDefaults.itemArrangement,
+                    ) {
+                        for (session in visibleSessions) {
+                            TaildropSendSessionRow(
+                                session = session,
+                                onCancel = { onCancelSession(session.id) },
+                                onDismiss = { onDismissSession(session.id) },
+                            )
+                        }
+                    }
+                }
             }
         }
     }

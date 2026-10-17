@@ -33,6 +33,17 @@ class TailscaleStatusTest {
     }
 
     @Test
+    fun `the dns name drops the trailing root dot`() {
+        val peer = tailscalePeer {
+            hostName = "other"
+            dnsName = "laptop.tailnet.ts.net."
+        }.toState()
+
+        assertEquals("laptop.tailnet.ts.net", peer.dnsName)
+        assertEquals("laptop.tailnet.ts.net", peer.id)
+    }
+
+    @Test
     fun `peer id and display name fall back to the host name`() {
         val peer = tailscalePeer {
             hostName = "laptop"
