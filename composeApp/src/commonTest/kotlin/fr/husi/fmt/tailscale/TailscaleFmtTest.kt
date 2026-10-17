@@ -41,9 +41,9 @@ class TailscaleFmtTest {
         assertEquals(true, endpoint.accept_routes)
         assertEquals("100.64.0.1", endpoint.exit_node)
         assertEquals(true, endpoint.exit_node_allow_lan_access)
-        assertEquals(listOf("192.168.1.0/24", "10.0.0.0/8"), endpoint.advertise_routes)
+        assertEquals<List<String>?>(listOf("192.168.1.0/24", "10.0.0.0/8"), endpoint.advertise_routes)
         assertNull(endpoint.advertise_exit_node)
-        assertEquals(listOf("tag:a", "tag:b"), endpoint.advertise_tags)
+        assertEquals<List<String>?>(listOf("tag:a", "tag:b"), endpoint.advertise_tags)
         assertEquals(41641, endpoint.listen_port)
         assertEquals(true, endpoint.ssh_server?.enabled)
         // Tests run on the desktop JVM, where the Taildrop directory is honored.
