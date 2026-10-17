@@ -9,6 +9,8 @@ import android.provider.Settings
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
 import fr.husi.ktx.Logs
+import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.defaultOr
 import fr.husi.ktx.toPrefix
 import fr.husi.ktx.toStringIterator
 import fr.husi.libcore.ConnectionOwner
@@ -22,6 +24,7 @@ import fr.husi.repository.resolveAndroidRepository
 import fr.husi.utils.PackageCache
 import java.net.InetSocketAddress
 import java.net.NetworkInterface
+import java.util.*
 import fr.husi.libcore.NetworkInterface as LibcoreNetworkInterface
 
 class AndroidPlatformInterface : PlatformInterface {
@@ -90,7 +93,8 @@ class AndroidPlatformInterface : PlatformInterface {
         for (network in networks) {
             val boxInterface = LibcoreNetworkInterface()
             val linkProperties = resolveAndroidRepository().connectivity.getLinkProperties(network) ?: continue
-            val networkCapabilities = resolveAndroidRepository().connectivity.getNetworkCapabilities(network) ?: continue
+            val networkCapabilities =
+                resolveAndroidRepository().connectivity.getNetworkCapabilities(network) ?: continue
             boxInterface.name = linkProperties.interfaceName
             val networkInterface =
                 networkInterfaces.find { it.name == boxInterface.name } ?: continue
@@ -143,14 +147,29 @@ class AndroidPlatformInterface : PlatformInterface {
     override fun localDNSTransport(): LocalDNSTransport = LocalResolver
 
     override fun tailscaleHostname(): String {
-        if (SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            val deviceName = Settings.Global.getString(
-                resolveAndroidRepository().context.contentResolver,
-                Settings.Global.DEVICE_NAME,
-            )
-            if (!deviceName.isNullOrBlank()) return deviceName
-        }
-        return Build.MODEL
+        return defaultOr(
+            "",
+            {
+                if (SDK_INT >= Build.VERSION_CODES.N_MR1) {
+                    Settings.Global.getString(
+                        resolveAndroidRepository().context.contentResolver,
+                        Settings.Global.DEVICE_NAME,
+                    ).blankAsNull()
+                } else {
+                    null
+                }
+            },
+            {
+                val manu = Build.MANUFACTURER
+                var model = Build.MODEL
+                // Strip manufacturer from model.
+                val index = model.lowercase(Locale.getDefault()).indexOf(manu.lowercase(Locale.getDefault()))
+                if (index != -1) {
+                    model = model.substring(index + manu.length).trim()
+                }
+                "$manu $model"
+            },
+        )
     }
 
     private class InterfaceArray(

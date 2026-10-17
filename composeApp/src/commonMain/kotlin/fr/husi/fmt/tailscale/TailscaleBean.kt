@@ -3,9 +3,9 @@ package fr.husi.fmt.tailscale
 import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.BeanConverters
-import fr.husi.fmt.SingBoxOptions
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
+import kotlin.math.absoluteValue
 
 @KxsSerializable
 class TailscaleBean : AbstractBean() {
@@ -37,10 +37,9 @@ class TailscaleBean : AbstractBean() {
     var listenPort: Int = 0
     var sshServer: Boolean = false
 
-    /** Appends the Fake DNS ranges to the advertised routes while Fake DNS is enabled. */
     var advertiseFakeDNSRoutes: Boolean = false
 
-    /** Only the desktop core honors it; Android keeps the default for its documents provider. */
+    /** Desktop only */
     var taildropDirectory: String = ""
 
     override fun serialize(output: BinaryOutput) {
@@ -84,7 +83,10 @@ class TailscaleBean : AbstractBean() {
     }
 
     override fun displayName(): String {
-        return name.ifEmpty { hostname.ifEmpty { SingBoxOptions.TYPE_TAILSCALE } }
+        return name.ifEmpty { hostname }.ifEmpty {
+            val hash = hashCode().absoluteValue
+            "Tailscale $hash"
+        }
     }
 
     override fun displayAddress(): String {

@@ -3,9 +3,9 @@ package fr.husi.fmt.tailscale
 import kotlinx.serialization.Serializable as KxsSerializable
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.BeanConverters
-import fr.husi.fmt.SingBoxOptions
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
+import kotlin.math.absoluteValue
 
 @KxsSerializable
 class TailcatBean : AbstractBean() {
@@ -29,7 +29,6 @@ class TailcatBean : AbstractBean() {
     var preSharedKey: String = ""
     var derpMapURL: String = ""
 
-    /** Region ID in the DERP map; 0 lets sing-box pick one. */
     var derpRegion: Int = 0
 
     /** One DERP host per line. Conflicts with [derpMapURL] and [derpRegion]. */
@@ -60,7 +59,10 @@ class TailcatBean : AbstractBean() {
     }
 
     override fun displayName(): String {
-        return name.ifEmpty { SingBoxOptions.TYPE_TAILCAT }
+        return name.ifEmpty {
+            val hash = hashCode().absoluteValue
+            "Tailcat $hash"
+        }
     }
 
     override fun displayAddress(): String {

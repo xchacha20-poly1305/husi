@@ -904,16 +904,12 @@ suspend fun buildConfig(
 
                         is TailscaleBean -> {
                             vpnWithPushDNS[tagOut] = SingBoxOptions.DNS_TYPE_TAILSCALE
-                            buildSingBoxEndpointTailscaleBean(bean).apply {
-                                if (bean.advertiseFakeDNSRoutes) {
-                                    val fakeRanges = listOfNotNull(fakeDNSRange4, fakeDNSRange6)
-                                    if (fakeRanges.isNotEmpty()) {
-                                        advertise_routes = (advertise_routes.orEmpty() + fakeRanges)
-                                            .distinct()
-                                            .toMutableList()
-                                    }
-                                }
-                            }.asKxsMap()
+                            val extraRoutes = if (bean.advertiseFakeDNSRoutes) {
+                                listOfNotNull(fakeDNSRange4, fakeDNSRange6)
+                            } else {
+                                emptyList()
+                            }
+                            buildSingBoxEndpointTailscaleBean(bean, extraRoutes).asKxsMap()
                         }
 
                         is TailcatBean -> buildSingBoxOutboundTailcatBean(bean).asKxsMap()
