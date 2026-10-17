@@ -20,7 +20,9 @@ import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.resources.Res
+import fr.husi.resources.auth_open_url
 import fr.husi.resources.connected
+import fr.husi.resources.disabled
 import fr.husi.resources.fiber_smart_record
 import fr.husi.resources.folder_open
 import fr.husi.resources.link
@@ -34,9 +36,7 @@ import fr.husi.resources.taildrop
 import fr.husi.resources.taildrop_file_count
 import fr.husi.resources.tailscale
 import fr.husi.resources.tailscale_exit_node
-import fr.husi.resources.tailscale_exit_node_disabled
 import fr.husi.resources.tailscale_expired
-import fr.husi.resources.tailscale_open_auth_url
 import fr.husi.resources.tailscale_open_auth_url_qr_code
 import fr.husi.resources.tailscale_peers
 import fr.husi.resources.tailscale_this_device
@@ -144,7 +144,7 @@ fun TailscaleEndpointScreen(
                     summary = {
                         Text(
                             current.exitNode?.displayName
-                                ?: stringResource(Res.string.tailscale_exit_node_disabled),
+                                ?: stringResource(Res.string.disabled),
                         )
                     },
                     icon = {
@@ -185,7 +185,7 @@ fun TailscaleEndpointScreen(
             )
             if (current.authUrl.isNotEmpty()) {
                 Preference(
-                    title = { Text(stringResource(Res.string.tailscale_open_auth_url)) },
+                    title = { Text(stringResource(Res.string.auth_open_url)) },
                     icon = {
                         MaskedIcon(
                             resource = Res.drawable.link,

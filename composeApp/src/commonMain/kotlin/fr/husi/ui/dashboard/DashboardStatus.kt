@@ -311,8 +311,8 @@ private fun DashboardWidgetPlaceholderCard(widget: DashboardWidget) {
 @Composable
 private fun dashboardWidgetTitle(widget: DashboardWidget): String = stringResource(
     when (widget) {
-        DashboardWidget.ProxySpeed -> Res.string.status_proxy
-        DashboardWidget.DirectSpeed -> Res.string.status_direct
+        DashboardWidget.ProxySpeed -> Res.string.proxy
+        DashboardWidget.DirectSpeed -> Res.string.direct
         DashboardWidget.Status -> Res.string.status_status
         DashboardWidget.OpenConnect -> Res.string.action_openconnect
         DashboardWidget.OpenVPN -> Res.string.action_openvpn

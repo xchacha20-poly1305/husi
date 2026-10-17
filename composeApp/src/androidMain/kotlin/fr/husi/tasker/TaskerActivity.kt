@@ -71,8 +71,8 @@ import fr.husi.resources.no
 import fr.husi.resources.not_set
 import fr.husi.resources.ok
 import fr.husi.resources.question_mark
-import fr.husi.resources.route_profile
 import fr.husi.resources.router
+import fr.husi.resources.select_profile
 import fr.husi.resources.tasker_action
 import fr.husi.resources.tasker_action_start_service
 import fr.husi.resources.tasker_action_stop_service
@@ -301,7 +301,7 @@ class TaskerActivity : ComposeActivity() {
                     val id = if (it == -1L) {
                         Res.string.tasker_start_current_profile
                     } else {
-                        Res.string.route_profile
+                        Res.string.select_profile
                     }
                     val text = runBlocking { resolveRepository().getString(id) }
                     AnnotatedString(text)

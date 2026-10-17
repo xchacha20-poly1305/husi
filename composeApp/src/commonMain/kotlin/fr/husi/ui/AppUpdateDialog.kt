@@ -29,7 +29,6 @@ import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.app_update_available
-import fr.husi.resources.app_update_download
 import fr.husi.resources.app_update_downloading
 import fr.husi.resources.app_update_install_failed
 import fr.husi.resources.app_update_installing
@@ -118,7 +117,7 @@ fun AppUpdateDialog(
         confirmButton = {
             if (canDownload) {
                 TextButton(onClick = ::requestInstallPermissionThenUpdate, enabled = !busy) {
-                    Text(stringResource(Res.string.app_update_download))
+                    Text(stringResource(Res.string.update))
                 }
             } else {
                 TextButton(

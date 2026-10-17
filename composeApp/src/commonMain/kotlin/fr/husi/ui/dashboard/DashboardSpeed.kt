@@ -29,9 +29,9 @@ import androidx.compose.ui.util.fastCoerceIn
 import fr.husi.compose.material3.Text
 import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
+import fr.husi.resources.direct
+import fr.husi.resources.proxy
 import fr.husi.resources.speed
-import fr.husi.resources.status_direct
-import fr.husi.resources.status_proxy
 import org.jetbrains.compose.resources.stringResource
 
 // Reference: https://github.com/SagerNet/sing-box-for-android/blob/8f6343802a6d8e0fa478d9e642cbb58c147e671b/app/src/main/java/io/nekohasekai/sfa/compose/LineChart.kt
@@ -50,7 +50,7 @@ internal fun ProxySpeedCard(
     modifier: Modifier = Modifier,
 ) {
     SpeedCard(
-        title = stringResource(Res.string.status_proxy),
+        title = stringResource(Res.string.proxy),
         txRate = uiState.txRateProxy,
         rxRate = uiState.rxRateProxy,
         history = uiState.proxySpeedHistory,
@@ -66,7 +66,7 @@ internal fun DirectSpeedCard(
     modifier: Modifier = Modifier,
 ) {
     SpeedCard(
-        title = stringResource(Res.string.status_direct),
+        title = stringResource(Res.string.direct),
         txRate = uiState.txRateDirect,
         rxRate = uiState.rxRateDirect,
         history = uiState.directSpeedHistory,

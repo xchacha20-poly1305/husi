@@ -161,7 +161,6 @@ import fr.husi.resources.proxy_set
 import fr.husi.resources.remove_duplicate
 import fr.husi.resources.removed
 import fr.husi.resources.search
-import fr.husi.resources.search_go
 import fr.husi.resources.sort_mode
 import fr.husi.resources.undo
 import fr.husi.resources.view_list
@@ -265,7 +264,7 @@ fun ConfigurationScreen(
             textFieldState = searchTextFieldState,
             searchBarState = searchBarState,
             onSearch = { focusManager.clearFocus() },
-            placeholder = { Text(stringResource(Res.string.search_go)) },
+            placeholder = { Text(stringResource(Res.string.search)) },
             leadingIcon = {
                 Icon(vectorResource(Res.drawable.search), null)
             },

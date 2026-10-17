@@ -296,7 +296,7 @@ val searchInputField: @Composable () -> Unit = {
         textFieldState = vm.searchTextFieldState,
         searchBarState = searchBarState,
         onSearch = { focusManager.clearFocus() },
-        placeholder = { Text(stringResource(Res.string.search_go)) },
+        placeholder = { Text(stringResource(Res.string.search)) },
         leadingIcon = { Icon(vectorResource(Res.drawable.search), null) },
         trailingIcon = if (searchBarState.currentValue == SearchBarValue.Expanded) {
             { SimpleIconButton(/* close icon */) }

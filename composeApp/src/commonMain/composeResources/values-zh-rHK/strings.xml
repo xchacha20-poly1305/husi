@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="github">源碼</string>
-    <string name="app_version">版本</string>
     <string name="version_x">版本 (%1$s)</string>
     <string name="menu_about">關於</string>
-    <string name="telegram">Telegram 更新頻道</string>
-    <string name="group_update">更新</string>
+    <string name="update">更新</string>
     <!-- themes -->
     <string name="theme">主題顏色</string>
     <string name="themes_amber">寒松凝液</string>
@@ -44,32 +42,24 @@
     <string name="group_added">已新增：\n%1$s</string>
     <string name="group_changed">已更新：\n%1$s</string>
     <string name="group_deleted">已移除：\n%1$s</string>
-    <string name="connection_test_testing">測試中……</string>
-    <string name="connection_test_available">連接成功: HTTPS 握手需時 %1$dms</string>
     <string name="tls">使用 TLS</string>
     <string name="server_address">伺服器</string>
     <string name="server_port">伺服器端口</string>
     <string name="username">用户名稱</string>
     <string name="username_opt">用户名稱 （可選）</string>
-    <string name="key_opt">鑰匙（可選）</string>
     <string name="password">密碼</string>
     <string name="enc_method">加密方式</string>
     <string name="protocol">協議</string>
-    <string name="route_opt_block_analysis">封鎖追蹤器</string>
-    <string name="domain_strategy">域名解析策略</string>
     <string name="share_qr_nfc">二維碼</string>
     <string name="plugin">插件</string>
     <string name="action_download">下載</string>
-    <string name="install_from_fdroid">從 F-Droid 安裝</string>
-    <string name="menu_tools">工具</string>
     <string name="tools_network">網絡</string>
     <string name="backup">備份</string>
     <string name="delete">移除</string>
     <string name="enable">啟用</string>
-    <string name="route_direct">直連</string>
+    <string name="direct">直連</string>
     <string name="route_block">封鎖</string>
     <string name="add_profile_methods_scan_qr_code">掃描二維碼</string>
-    <string name="install_from_play_store">從 Play Store 安裝</string>
     <string name="auto_update">自動更新</string>
     <string name="disable">禁用</string>
     <string name="auto">自動</string>
@@ -80,29 +70,21 @@
     <string name="by_upload_speed">根據上行速度</string>
     <string name="by_download_speed">根據下行速度</string>
     <string name="apply">套用</string>
-    <string name="random">隨機</string>
     <string name="connection_test">連接測試</string>
     <string name="group_create">創建分組</string>
-    <string name="group_delete_confirm_prompt">你確定要移除這個分組嗎？</string>
+    <string name="delete_group_prompt">你確定要移除這個分組嗎？</string>
     <plurals name="group_status_proxies">
         <item quantity="other">%1$d 個代理</item>
     </plurals>
-    <plurals name="group_status_proxies_subscription">
-        <item quantity="other">%1$d 個代理 | 於 %2$s 更新</item>
-    </plurals>
     <string name="group_diff">變化 (%1$s)</string>
-    <string name="group_show_diff">變化</string>
     <string name="group_duplicate">重複：\n%1$s</string>
     <string name="general_settings">應用程式設定</string>
     <string name="cag_misc">其他設定</string>
     <string name="speed">%1$s/s</string>
     <string name="connection_test_error">失敗：%1$s</string>
-    <string name="connection_test_available_http">連接成功: HTTP 握手需時 %1$dms</string>
     <string name="password_opt">密碼（可選）</string>
     <string name="start">開始</string>
     <string name="quick_toggle">切換</string>
-    <string name="group_edit">編輯</string>
-    <string name="cag_ws">WebSocket 設定</string>
     <string name="show_direct_speed">顯示直連速度</string>
     <string name="security_settings">安全設定</string>
     <string name="speed_detail">代理： %1$s↑ %2$s↓\n直連： %3$s↑ %4$s↓</string>
@@ -131,9 +113,8 @@
     <string name="openconnect_authentication">OpenConnect 驗證</string>
     <string name="openvpn_authentication">OpenVPN 驗證</string>
     <string name="clear_remembered_authentication_answers">清除已記住的驗證答案</string>
-    <string name="auth_later">稍後</string>
+    <string name="later">稍後</string>
     <string name="auth_submit">提交</string>
-    <string name="auth_continue">繼續</string>
     <string name="auth_open_url">開啟驗證頁面</string>
     <string name="auth_response">回應</string>
     <string name="auth_browser_callback_hint">請在瀏覽器中完成登入，然後填寫所需的回呼資料。</string>
@@ -181,10 +162,8 @@
     <string name="app_update_last_check">上次檢查：%1$s</string>
     <string name="app_update_up_to_date">已是最新版本</string>
     <string name="app_update_available">版本 %1$s 可用</string>
-    <string name="app_update_download">更新</string>
     <string name="app_update_open_release">開啟發布頁面</string>
     <string name="app_update_skip_version">跳過此版本</string>
-    <string name="app_update_later">稍後</string>
     <string name="app_update_downloading">下載中… %1$d%</string>
     <string name="app_update_installing">安裝中…</string>
     <string name="app_update_install_failed">安裝失敗：%1$s</string>

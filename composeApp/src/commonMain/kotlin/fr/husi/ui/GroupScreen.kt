@@ -73,9 +73,9 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
 import fr.husi.resources.action_export_clipboard
+import fr.husi.resources.action_export_file
 import fr.husi.resources.arrow_back
 import fr.husi.resources.back
-import fr.husi.resources.action_export_file
 import fr.husi.resources.cancel
 import fr.husi.resources.clear_profiles
 import fr.husi.resources.clear_profiles_message
@@ -91,7 +91,6 @@ import fr.husi.resources.group_status_empty
 import fr.husi.resources.group_status_empty_subscription
 import fr.husi.resources.group_status_proxies
 import fr.husi.resources.group_status_updated_empty
-import fr.husi.resources.group_update
 import fr.husi.resources.internal_link
 import fr.husi.resources.link
 import fr.husi.resources.menu
@@ -753,7 +752,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                 enabled = !state.isUpdating,
                             ) {
                                 Text(
-                                    text = stringResource(Res.string.group_update),
+                                    text = stringResource(Res.string.update),
                                     color = MaterialTheme.colorScheme.primary,
                                 )
                             }

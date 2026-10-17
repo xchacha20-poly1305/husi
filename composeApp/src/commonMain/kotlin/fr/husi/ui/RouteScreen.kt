@@ -86,6 +86,7 @@ import fr.husi.resources.cag_dns
 import fr.husi.resources.cancel
 import fr.husi.resources.clear_profiles_message
 import fr.husi.resources.confirm
+import fr.husi.resources.direct
 import fr.husi.resources.dns_only
 import fr.husi.resources.drag_indicator
 import fr.husi.resources.edit
@@ -97,20 +98,20 @@ import fr.husi.resources.more_vert
 import fr.husi.resources.need_reload
 import fr.husi.resources.ok
 import fr.husi.resources.process
+import fr.husi.resources.proxy
 import fr.husi.resources.removed
 import fr.husi.resources.replay
 import fr.husi.resources.route_add
 import fr.husi.resources.route_block
 import fr.husi.resources.route_bridge
-import fr.husi.resources.route_direct
 import fr.husi.resources.route_manage_assets
-import fr.husi.resources.route_proxy
 import fr.husi.resources.route_reset
 import fr.husi.resources.route_warn
 import fr.husi.resources.undo
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -609,19 +610,21 @@ private fun RuleEntity.summary(): String {
     }
 }
 
+/** Name of a built-in outbound, or null when [outbound] is a profile ID. */
+internal fun builtinOutboundName(outbound: Long): StringResource? = when (outbound) {
+    OUTBOUND_PROXY -> Res.string.proxy
+    OUTBOUND_DIRECT -> Res.string.direct
+    OUTBOUND_BLOCK -> Res.string.route_block
+    OUTBOUND_BRIDGE -> Res.string.route_bridge
+    else -> null
+}
+
 @Composable
 private fun RuleEntity.displayOutbound(): String {
-    return when (outbound) {
-        OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
-        OUTBOUND_DIRECT -> stringResource(Res.string.route_direct)
-        OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
-        OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
-        else -> {
-            val unknownProfile = stringResource(Res.string.error_title)
-            val profileName by produceState<String?>(null, outbound) {
-                value = ProfileManager.getProfile(outbound)?.displayName() ?: unknownProfile
-            }
-            profileName.orEmpty()
-        }
+    builtinOutboundName(outbound)?.let { return stringResource(it) }
+    val unknownProfile = stringResource(Res.string.error_title)
+    val profileName by produceState<String?>(null, outbound) {
+        value = ProfileManager.getProfile(outbound)?.displayName() ?: unknownProfile
     }
+    return profileName.orEmpty()
 }

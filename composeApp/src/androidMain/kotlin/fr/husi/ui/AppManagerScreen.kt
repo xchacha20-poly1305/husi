@@ -165,7 +165,7 @@ private fun ProxyModeSelector(
                     },
                 )
             },
-            label = { Text(stringResource(Res.string.route_proxy)) },
+            label = { Text(stringResource(Res.string.proxy)) },
         )
         val isBypass = selectedMode == ProxyMode.BYPASS
         SegmentedButton(

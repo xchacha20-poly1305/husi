@@ -81,7 +81,6 @@ import fr.husi.ktx.contentOrUnset
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
-import fr.husi.resources.action_direct
 import fr.husi.resources.add_road
 import fr.husi.resources.apply
 import fr.husi.resources.auto
@@ -96,7 +95,7 @@ import fr.husi.resources.compare_arrows
 import fr.husi.resources.computer_cancel
 import fr.husi.resources.custom_config
 import fr.husi.resources.delete
-import fr.husi.resources.delete_confirm_prompt
+import fr.husi.resources.delete_route_prompt
 import fr.husi.resources.directions_boat
 import fr.husi.resources.dns
 import fr.husi.resources.dns_only
@@ -136,15 +135,11 @@ import fr.husi.resources.public_icon
 import fr.husi.resources.push_pin
 import fr.husi.resources.question_mark
 import fr.husi.resources.route_action
-import fr.husi.resources.route_block
-import fr.husi.resources.route_bridge
-import fr.husi.resources.route_direct
 import fr.husi.resources.route_invert
 import fr.husi.resources.route_name
 import fr.husi.resources.route_options
-import fr.husi.resources.route_proxy
-import fr.husi.resources.rule_set_match
 import fr.husi.resources.router
+import fr.husi.resources.rule_set_match
 import fr.husi.resources.segment
 import fr.husi.resources.select_profile
 import fr.husi.resources.settings
@@ -414,7 +409,7 @@ internal fun RouteSettingsScreen(
                 }
             },
             icon = { Icon(vectorResource(Res.drawable.warning), null) },
-            title = { Text(stringResource(Res.string.delete_confirm_prompt)) },
+            title = { Text(stringResource(Res.string.delete_route_prompt)) },
         )
     }
     if (showEmptyRouteAlert) {
@@ -847,26 +842,14 @@ private fun RouteSettings(
                                 )
                             },
                             summary = {
-                                val text = when (uiState.outbound) {
-                                    RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
-                                    RuleEntity.OUTBOUND_DIRECT -> stringResource(Res.string.route_direct)
-                                    RuleEntity.OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
-                                    RuleEntity.OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
-                                    else -> runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }
-                                        ?.displayName()
-                                        ?: stringResource(Res.string.not_set)
-                                }
+                                val text = builtinOutboundName(uiState.outbound)?.let { stringResource(it) }
+                                    ?: runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }?.displayName()
+                                    ?: stringResource(Res.string.not_set)
                                 Text(text)
                             },
                             type = ListPreferenceType.DROPDOWN_MENU,
                             valueToText = {
-                                val id = when (it) {
-                                    RuleEntity.OUTBOUND_PROXY -> Res.string.route_proxy
-                                    RuleEntity.OUTBOUND_DIRECT -> Res.string.route_direct
-                                    RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
-                                    RuleEntity.OUTBOUND_BRIDGE -> Res.string.route_bridge
-                                    else -> Res.string.select_profile
-                                }
+                                val id = builtinOutboundName(it) ?: Res.string.select_profile
                                 AnnotatedString(stringResource(id))
                             },
                         )
@@ -900,26 +883,14 @@ private fun RouteSettings(
                                 )
                             },
                             summary = {
-                                val text = when (uiState.outbound) {
-                                    RuleEntity.OUTBOUND_PROXY -> stringResource(Res.string.route_proxy)
-                                    RuleEntity.OUTBOUND_DIRECT -> stringResource(Res.string.action_direct)
-                                    RuleEntity.OUTBOUND_BLOCK -> stringResource(Res.string.route_block)
-                                    RuleEntity.OUTBOUND_BRIDGE -> stringResource(Res.string.route_bridge)
-                                    else -> runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }
-                                        ?.displayName()
-                                        ?: stringResource(Res.string.not_set)
-                                }
+                                val text = builtinOutboundName(uiState.outbound)?.let { stringResource(it) }
+                                    ?: runBlocking { SagerDatabase.proxyDao.getById(uiState.outbound) }?.displayName()
+                                    ?: stringResource(Res.string.not_set)
                                 Text(text)
                             },
                             type = ListPreferenceType.DROPDOWN_MENU,
                             valueToText = {
-                                val id = when (it) {
-                                    RuleEntity.OUTBOUND_PROXY -> Res.string.route_proxy
-                                    RuleEntity.OUTBOUND_DIRECT -> Res.string.action_direct
-                                    RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
-                                    RuleEntity.OUTBOUND_BRIDGE -> Res.string.route_bridge
-                                    else -> Res.string.select_profile
-                                }
+                                val id = builtinOutboundName(it) ?: Res.string.select_profile
                                 AnnotatedString(stringResource(id))
                             },
                         )

@@ -37,13 +37,13 @@ import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.theme.LogColors
 import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
+import fr.husi.resources.active
 import fr.husi.resources.connection_empty_active
 import fr.husi.resources.connection_empty_all
 import fr.husi.resources.connection_empty_closed
 import fr.husi.resources.connection_empty_no_status
 import fr.husi.resources.connection_empty_search
 import fr.husi.resources.connection_speed
-import fr.husi.resources.connection_status_active
 import fr.husi.resources.connection_status_closed
 import fr.husi.resources.delete_forever
 import fr.husi.resources.traffic
@@ -241,7 +241,7 @@ private fun ConnectionCard(
                         if (connection.isClosed) {
                             Res.string.connection_status_closed
                         } else {
-                            Res.string.connection_status_active
+                            Res.string.active
                         },
                     ),
                     fontSize = 14.sp,

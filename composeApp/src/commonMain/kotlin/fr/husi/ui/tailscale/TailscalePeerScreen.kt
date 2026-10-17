@@ -22,16 +22,16 @@ import fr.husi.compose.setPlainText
 import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
 import fr.husi.resources.action_copy
+import fr.husi.resources.active
 import fr.husi.resources.computer_cancel
 import fr.husi.resources.content_copy
 import fr.husi.resources.copy_success
+import fr.husi.resources.details
 import fr.husi.resources.dns
 import fr.husi.resources.ipv4
 import fr.husi.resources.ipv6
 import fr.husi.resources.person
 import fr.husi.resources.send
-import fr.husi.resources.tailscale_active
-import fr.husi.resources.tailscale_details
 import fr.husi.resources.tailscale_exit_node
 import fr.husi.resources.tailscale_expired
 import fr.husi.resources.tailscale_hostname
@@ -119,7 +119,7 @@ fun TailscalePeerScreen(
     )
 
     TailscaleScreenScaffold(
-        title = peer?.displayName ?: stringResource(Res.string.tailscale_details),
+        title = peer?.displayName ?: stringResource(Res.string.details),
         onBackPress = onBackPress,
         modifier = modifier,
     ) {
@@ -286,7 +286,7 @@ fun TailscalePeerScreen(
             )
             peerBadgeSummary(peer)?.let { summary ->
                 Preference(
-                    title = { Text(stringResource(Res.string.tailscale_details)) },
+                    title = { Text(stringResource(Res.string.details)) },
                     summary = { Text(summary) },
                     icon = {
                         MaskedIcon(
@@ -324,7 +324,7 @@ fun TailscalePeerScreen(
 private fun peerBadgeSummary(peer: TailscalePeerState): String? {
     val parts = buildList {
         if (peer.exitNode) add(stringResource(Res.string.tailscale_exit_node))
-        if (peer.active) add(stringResource(Res.string.tailscale_active))
+        if (peer.active) add(stringResource(Res.string.active))
         if (peer.expired) add(stringResource(Res.string.tailscale_expired))
         if (peer.shareeNode) add(stringResource(Res.string.tailscale_shared_in))
     }

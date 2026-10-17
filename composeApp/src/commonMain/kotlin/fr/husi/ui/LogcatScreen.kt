@@ -91,7 +91,6 @@ import fr.husi.resources.play_arrow
 import fr.husi.resources.resume
 import fr.husi.resources.scroll_to_bottom
 import fr.husi.resources.search
-import fr.husi.resources.search_go
 import fr.husi.resources.share
 import fr.husi.ui.remote.RemoteSessionBanner
 import fr.husi.ui.remote.RemoteTargetMenuSection
@@ -177,7 +176,7 @@ fun LogcatScreen(
             textFieldState = searchTextFieldState,
             searchBarState = searchBarState,
             onSearch = { focusManager.clearFocus() },
-            placeholder = { Text(stringResource(Res.string.search_go)) },
+            placeholder = { Text(stringResource(Res.string.search)) },
             leadingIcon = {
                 Icon(vectorResource(Res.drawable.search), null)
             },

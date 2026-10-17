@@ -142,7 +142,7 @@ For rows that toggle a boolean and show a checkbox, prefer making the row itself
 
 ```kotlin
 DropdownMenuItem(
-    text = { Text(stringResource(Res.string.connection_status_active)) },
+    text = { Text(stringResource(Res.string.active)) },
     onClick = {
         viewModel.setQueryActivate(!uiState.showActivate)
     },

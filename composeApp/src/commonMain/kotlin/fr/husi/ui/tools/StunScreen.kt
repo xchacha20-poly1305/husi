@@ -77,10 +77,10 @@ import fr.husi.resources.nat_result_hint
 import fr.husi.resources.nat_stun_server_hint
 import fr.husi.resources.nat_type_detection
 import fr.husi.resources.nat_type_not_supported
-import fr.husi.resources.nat_unknown
 import fr.husi.resources.start
 import fr.husi.resources.stun_attest_loading
 import fr.husi.resources.stun_test
+import fr.husi.resources.unknown
 import fr.husi.ui.PreviewContainer
 import fr.husi.ui.remote.RemoteTargetMenuSection
 import org.jetbrains.compose.resources.stringResource
@@ -412,7 +412,7 @@ private fun PendingIndicator(modifier: Modifier = Modifier) {
 @Composable
 private fun natBehaviourLabel(value: NatBehaviour): String = stringResource(
     when (value) {
-        NatBehaviour.Unknown -> Res.string.nat_unknown
+        NatBehaviour.Unknown -> Res.string.unknown
         NatBehaviour.EndpointIndependent -> Res.string.nat_endpoint_independent
         NatBehaviour.AddressDependent -> Res.string.nat_address_dependent
         NatBehaviour.AddressAndPortDependent -> Res.string.nat_address_and_port_dependent

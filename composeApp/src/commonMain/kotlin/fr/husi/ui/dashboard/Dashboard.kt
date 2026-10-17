@@ -67,6 +67,7 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingHorizontal
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.resources.Res
+import fr.husi.resources.active
 import fr.husi.resources.ascending
 import fr.husi.resources.by_destination
 import fr.husi.resources.by_download
@@ -81,7 +82,6 @@ import fr.husi.resources.cancel
 import fr.husi.resources.cleaning_services
 import fr.husi.resources.close
 import fr.husi.resources.connection_status
-import fr.husi.resources.connection_status_active
 import fr.husi.resources.connection_status_closed
 import fr.husi.resources.copy_success
 import fr.husi.resources.dashboard_done_editing
@@ -104,12 +104,11 @@ import fr.husi.resources.proxy_set
 import fr.husi.resources.public_icon
 import fr.husi.resources.reset_connections
 import fr.husi.resources.search
-import fr.husi.resources.search_go
 import fr.husi.resources.search_outbounds
 import fr.husi.resources.search_proxy_sets
-import fr.husi.resources.switch_search_mode
 import fr.husi.resources.sort
 import fr.husi.resources.sort_mode
+import fr.husi.resources.switch_search_mode
 import fr.husi.resources.traffic_connections
 import fr.husi.resources.traffic_status
 import fr.husi.resources.warning_amber
@@ -174,7 +173,7 @@ fun DashboardScreen(
             textFieldState = searchTextFieldState,
             searchBarState = searchBarState,
             onSearch = { focusManager.clearFocus() },
-            placeholder = { Text(stringResource(Res.string.search_go)) },
+            placeholder = { Text(stringResource(Res.string.search)) },
             leadingIcon = {
                 Icon(vectorResource(Res.drawable.search), null)
             },
@@ -397,7 +396,7 @@ fun DashboardScreen(
                                             ) {
                                                 DropdownMenuSectionHeader(stringResource(Res.string.connection_status))
                                                 DropdownMenuItem(
-                                                    text = { Text(stringResource(Res.string.connection_status_active)) },
+                                                    text = { Text(stringResource(Res.string.active)) },
                                                     onClick = {
                                                         dashboardViewModel.setQueryActivate(!uiState.showActivate)
                                                     },

@@ -44,6 +44,7 @@ import fr.husi.resources.client_key
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.copyright
 import fr.husi.resources.directions_boat
+import fr.husi.resources.disabled
 import fr.husi.resources.domino_mask
 import fr.husi.resources.ech
 import fr.husi.resources.ech_config
@@ -63,7 +64,6 @@ import fr.husi.resources.hysteria_auth_type
 import fr.husi.resources.hysteria_bbr_profile
 import fr.husi.resources.hysteria_bbr_profile_aggressive
 import fr.husi.resources.hysteria_bbr_profile_conservative
-import fr.husi.resources.hysteria_bbr_profile_standard
 import fr.husi.resources.hysteria_hop_interval_range_hint
 import fr.husi.resources.hysteria_obfs
 import fr.husi.resources.layers
@@ -73,7 +73,6 @@ import fr.husi.resources.mutual_tls
 import fr.husi.resources.nfc
 import fr.husi.resources.not_set
 import fr.husi.resources.password
-import fr.husi.resources.plugin_disabled
 import fr.husi.resources.profile_config
 import fr.husi.resources.profile_name
 import fr.husi.resources.protocol
@@ -93,6 +92,7 @@ import fr.husi.resources.security
 import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.sni
+import fr.husi.resources.standard
 import fr.husi.resources.texture
 import fr.husi.resources.timelapse
 import fr.husi.resources.toc
@@ -217,7 +217,7 @@ private fun LazyListScope.hysteriaSettings(
         )
         if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {
             fun obfsTypeName(type: String): StringOrRes = when (type) {
-                HysteriaBean.OBFS_TYPE_NONE -> StringOrRes.Res(Res.string.plugin_disabled)
+                HysteriaBean.OBFS_TYPE_NONE -> StringOrRes.Res(Res.string.disabled)
                 HysteriaBean.OBFS_TYPE_SALAMANDER -> StringOrRes.Direct("Salamander")
                 HysteriaBean.OBFS_TYPE_GECKO -> StringOrRes.Direct("Gecko")
                 else -> StringOrRes.Direct(type)
@@ -285,7 +285,7 @@ private fun LazyListScope.hysteriaSettings(
         )
         if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
             fun authTypeName(type: Int): StringOrRes = when (type) {
-                HysteriaBean.TYPE_NONE -> StringOrRes.Res(Res.string.plugin_disabled)
+                HysteriaBean.TYPE_NONE -> StringOrRes.Res(Res.string.disabled)
                 HysteriaBean.TYPE_STRING -> StringOrRes.Direct("STRING")
                 HysteriaBean.TYPE_BASE64 -> StringOrRes.Direct("BASE64")
                 else -> error("impossible")
@@ -662,7 +662,7 @@ private fun LazyListScope.hysteriaSettings(
             if (uiState.congestionControl == HysteriaBean.CONGESTION_CONTROL_BBR) {
                 fun bbrProfileName(profile: Int): StringResource = when (profile) {
                     HysteriaBean.BBR_PROFILE_CONSERVATIVE -> Res.string.hysteria_bbr_profile_conservative
-                    HysteriaBean.BBR_PROFILE_STANDARD -> Res.string.hysteria_bbr_profile_standard
+                    HysteriaBean.BBR_PROFILE_STANDARD -> Res.string.standard
                     HysteriaBean.BBR_PROFILE_AGGRESSIVE -> Res.string.hysteria_bbr_profile_aggressive
                     else -> error("impossible")
                 }

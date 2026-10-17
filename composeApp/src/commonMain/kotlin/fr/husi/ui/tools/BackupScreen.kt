@@ -69,13 +69,13 @@ import fr.husi.resources.backup_groups_and_configurations
 import fr.husi.resources.backup_import
 import fr.husi.resources.backup_import_summary
 import fr.husi.resources.backup_rules
-import fr.husi.resources.backup_settings
 import fr.husi.resources.backup_summary
 import fr.husi.resources.cancel
 import fr.husi.resources.error
 import fr.husi.resources.error_title
 import fr.husi.resources.ok
 import fr.husi.resources.question_mark
+import fr.husi.resources.settings
 import fr.husi.resources.share
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
@@ -230,7 +230,7 @@ internal fun BackupScreen(
                         CheckBoxLine(
                             checked = uiState.backupSettings,
                             onCheckedChange = { viewModel.setBackupSettings(it) },
-                            text = stringResource(Res.string.backup_settings),
+                            text = stringResource(Res.string.settings),
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
@@ -374,7 +374,7 @@ internal fun BackupScreen(
                     CheckBoxLine(
                         checked = importSettings,
                         onCheckedChange = { importSettings = it },
-                        text = stringResource(Res.string.backup_settings),
+                        text = stringResource(Res.string.settings),
                     )
                     Text(
                         text = stringResource(Res.string.backup_import_summary),

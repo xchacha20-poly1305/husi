@@ -48,13 +48,13 @@ import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.formatBytes
 import fr.husi.ktx.splitAddress
 import fr.husi.resources.Res
+import fr.husi.resources.active
 import fr.husi.resources.add_road
 import fr.husi.resources.cancel
 import fr.husi.resources.chain
 import fr.husi.resources.close
 import fr.husi.resources.closed_time
 import fr.husi.resources.connection_status
-import fr.husi.resources.connection_status_active
 import fr.husi.resources.connection_status_closed
 import fr.husi.resources.create_rule
 import fr.husi.resources.delete_forever
@@ -194,7 +194,7 @@ internal fun ConnectionDetailSheet(
                                 text = if (connection.isClosed) {
                                     stringResource(Res.string.connection_status_closed)
                                 } else {
-                                    stringResource(Res.string.connection_status_active)
+                                    stringResource(Res.string.active)
                                 },
                                 color = if (connection.isClosed) {
                                     Color.Red

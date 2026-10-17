@@ -87,7 +87,6 @@ import fr.husi.resources.back
 import fr.husi.resources.cancel
 import fr.husi.resources.delete
 import fr.husi.resources.edit
-import fr.husi.resources.group_update
 import fr.husi.resources.import_url
 import fr.husi.resources.link
 import fr.husi.resources.more
@@ -570,7 +569,7 @@ private fun AssetCard(
                             ),
                             modifier = Modifier.defaultMinSize(minHeight = 36.dp),
                         ) {
-                            Text(stringResource(Res.string.group_update))
+                            Text(stringResource(Res.string.update))
                         }
                     }
                 }

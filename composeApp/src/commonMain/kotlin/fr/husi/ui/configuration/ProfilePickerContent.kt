@@ -52,7 +52,6 @@ import fr.husi.resources.Res
 import fr.husi.resources.cancel
 import fr.husi.resources.close
 import fr.husi.resources.search
-import fr.husi.resources.search_go
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.SnackbarEmitter
 import fr.husi.ui.SnackbarEmitterEffect
@@ -145,7 +144,7 @@ fun ProfilePickerContent(
             textFieldState = state.searchTextFieldState,
             searchBarState = searchBarState,
             onSearch = { focusManager.clearFocus() },
-            placeholder = { Text(stringResource(Res.string.search_go)) },
+            placeholder = { Text(stringResource(Res.string.search)) },
             leadingIcon = {
                 Icon(vectorResource(Res.drawable.search), null)
             },

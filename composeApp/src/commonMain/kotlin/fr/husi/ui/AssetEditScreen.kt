@@ -55,7 +55,7 @@ import fr.husi.resources.auto_update_on
 import fr.husi.resources.cancel
 import fr.husi.resources.close
 import fr.husi.resources.delete
-import fr.husi.resources.delete_confirm_prompt
+import fr.husi.resources.delete_asset_prompt
 import fr.husi.resources.done
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.error_title
@@ -339,7 +339,7 @@ internal fun AssetEditScreen(
                 }
             },
             icon = { Icon(vectorResource(Res.drawable.warning), null) },
-            title = { Text(stringResource(Res.string.delete_confirm_prompt)) },
+            title = { Text(stringResource(Res.string.delete_asset_prompt)) },
         )
     }
 

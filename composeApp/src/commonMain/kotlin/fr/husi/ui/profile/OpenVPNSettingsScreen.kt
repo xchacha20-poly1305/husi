@@ -40,7 +40,6 @@ import fr.husi.resources.openvpn_control_wrap_direction
 import fr.husi.resources.openvpn_control_wrap_key
 import fr.husi.resources.openvpn_control_wrap_type
 import fr.husi.resources.openvpn_data_ciphers
-import fr.husi.resources.openvpn_peer_fingerprint
 import fr.husi.resources.openvpn_redirect_gateway
 import fr.husi.resources.openvpn_remote_certificate_eku
 import fr.husi.resources.openvpn_remote_certificate_ku
@@ -57,6 +56,7 @@ import fr.husi.resources.security_settings
 import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.sni
+import fr.husi.resources.tls_peer_fingerprint
 import fr.husi.resources.username
 import fr.husi.resources.vpn_key
 import fr.husi.resources.wifi
@@ -309,7 +309,7 @@ private fun LazyListScope.openVPNSettings(
         TextFieldPreference(
             value = state.peerFingerprint,
             onValueChange = viewModel::setPeerFingerprint,
-            title = { Text(stringResource(Res.string.openvpn_peer_fingerprint)) },
+            title = { Text(stringResource(Res.string.tls_peer_fingerprint)) },
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.peerFingerprint)) },

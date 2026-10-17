@@ -24,10 +24,10 @@ import fr.husi.compose.WindowedDialog
 import fr.husi.compose.material3.Text
 import fr.husi.ktx.readableMessage
 import fr.husi.resources.Res
-import fr.husi.resources.auth_later
 import fr.husi.resources.auth_open_url
 import fr.husi.resources.auth_submit
 import fr.husi.resources.auth_verifying
+import fr.husi.resources.later
 import fr.husi.resources.openvpn_authentication
 import fr.husi.resources.share_qr_nfc
 import fr.husi.ui.AuthDialogWindowSize
@@ -109,7 +109,7 @@ fun OpenVPNAuthDialog(
         buttons = {
             val snackbar = LocalSnackbarEmitter.current
             val uriHandler = LocalUriHandler.current
-            TextButton(stringResource(Res.string.auth_later), onClick = ::dismiss)
+            TextButton(stringResource(Res.string.later), onClick = ::dismiss)
             if (!submitted) {
                 if (challenge.kind == OPENVPN_CHALLENGE_OPEN_URL && challenge.url.isNotEmpty()) {
                     TextButton(stringResource(Res.string.auth_open_url)) {

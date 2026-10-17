@@ -23,12 +23,11 @@ import fr.husi.resources.Res
 import fr.husi.resources.block
 import fr.husi.resources.check
 import fr.husi.resources.connected
+import fr.husi.resources.disabled
 import fr.husi.resources.not_connected
 import fr.husi.resources.public_icon
 import fr.husi.resources.search
-import fr.husi.resources.search_go
 import fr.husi.resources.tailscale_exit_node
-import fr.husi.resources.tailscale_exit_node_disabled
 import fr.husi.tailscale.TailscaleEndpointViewModel
 import fr.husi.tailscale.TailscalePeerState
 import fr.husi.tailscale.TailscaleStatusRepository
@@ -77,14 +76,14 @@ fun TailscaleExitNodeScreen(
                         contentDescription = null,
                     )
                 },
-                placeholder = { Text(stringResource(Res.string.search_go)) },
+                placeholder = { Text(stringResource(Res.string.search)) },
             )
         }
         val current = endpoint ?: return@TailscaleScreenScaffold
         val selectedId = current.exitNode?.stableId
         preferenceGroup(key = "exit-nodes") {
             Preference(
-                title = { Text(stringResource(Res.string.tailscale_exit_node_disabled)) },
+                title = { Text(stringResource(Res.string.disabled)) },
                 icon = {
                     MaskedIcon(
                         resource = Res.drawable.block,
