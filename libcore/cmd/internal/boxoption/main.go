@@ -110,6 +110,8 @@ var boxList = []any{
 	option.OpenVPNControlWrapOptions{},
 	option.OpenVPNRemoteOptions{},
 	option.OpenVPNPullFilterOptions{},
+	option.TailscaleSSHServerOptions{},
+	option.TailcatDERPServer{},
 	// option.V2RayTransportOptions{},
 	option.DomainResolveOptions{},
 	option.CertificateProvider{},
@@ -180,6 +182,7 @@ var outboundList = []any{
 	option.NaiveOutboundOptions{},
 	pluginoption.TrustTunnelOutboundOptions{},
 	option.SnellOutboundOptions{},
+	option.TailcatOutboundOptions{},
 	option.BridgeOutboundOptions{},
 	pluginoption.BalancerOutboundOptions{},
 }
@@ -189,6 +192,7 @@ var endpointList = []any{
 	option.OpenConnectEndpointOptions{},
 	option.OpenVPNClientEndpointOptions{},
 	option.MASQUEClientEndpointOptions{},
+	option.TailscaleEndpointOptions{},
 }
 
 var serviceList = []any{
@@ -260,4 +264,5 @@ var newDNSServerList = []any{
 	option.MDNSDNSServerOptions{},
 	option.OpenConnectDNSServerOptions{},
 	option.OpenVPNDNSServerOptions{},
+	option.TailscaleDNSServerOptions{},
 }

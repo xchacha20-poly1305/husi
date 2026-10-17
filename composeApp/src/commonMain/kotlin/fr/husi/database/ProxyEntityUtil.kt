@@ -19,6 +19,8 @@ import fr.husi.database.ProxyEntity.Companion.TYPE_SNELL
 import fr.husi.database.ProxyEntity.Companion.TYPE_SOCKS
 import fr.husi.database.ProxyEntity.Companion.TYPE_SS
 import fr.husi.database.ProxyEntity.Companion.TYPE_SSH
+import fr.husi.database.ProxyEntity.Companion.TYPE_TAILCAT
+import fr.husi.database.ProxyEntity.Companion.TYPE_TAILSCALE
 import fr.husi.database.ProxyEntity.Companion.TYPE_TROJAN
 import fr.husi.database.ProxyEntity.Companion.TYPE_TRUST_TUNNEL
 import fr.husi.database.ProxyEntity.Companion.TYPE_TUIC
@@ -45,6 +47,8 @@ fun ProxyEntity.displayType(): String = when (type) {
     TYPE_OPENCONNECT -> "OpenConnect"
     TYPE_OPENVPN -> "OpenVPN"
     TYPE_MASQUE -> "MASQUE"
+    TYPE_TAILSCALE -> "Tailscale"
+    TYPE_TAILCAT -> "Tailcat"
     TYPE_TUIC -> "TUIC"
     TYPE_JUICITY -> "Juicity"
     TYPE_SHADOWTLS -> "ShadowTLS"

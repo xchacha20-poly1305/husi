@@ -68,6 +68,10 @@ import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.fmt.socks.buildSingBoxOutboundSocksBean
 import fr.husi.fmt.ssh.SSHBean
 import fr.husi.fmt.ssh.buildSingBoxOutboundSSHBean
+import fr.husi.fmt.tailscale.TailcatBean
+import fr.husi.fmt.tailscale.TailscaleBean
+import fr.husi.fmt.tailscale.buildSingBoxEndpointTailscaleBean
+import fr.husi.fmt.tailscale.buildSingBoxOutboundTailcatBean
 import fr.husi.fmt.trusttunnel.TrustTunnelBean
 import fr.husi.fmt.trusttunnel.buildSingBoxOutboundTrustTunnelBean
 import fr.husi.fmt.tuic.TuicBean
@@ -888,6 +892,13 @@ suspend fun buildConfig(
 
                         is MASQUEBean -> buildSingBoxEndpointMASQUEBean(bean).asKxsMap()
 
+                        is TailscaleBean -> {
+                            vpnWithPushDNS[tagOut] = SingBoxOptions.DNS_TYPE_TAILSCALE
+                            buildSingBoxEndpointTailscaleBean(bean).asKxsMap()
+                        }
+
+                        is TailcatBean -> buildSingBoxOutboundTailcatBean(bean).asKxsMap()
+
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asKxsMap()
 
                         is DirectBean -> buildSingBoxOutboundDirectBean(bean).asKxsMap()
@@ -1653,6 +1664,14 @@ suspend fun buildConfig(
 
                     SingBoxOptions.DNS_TYPE_OPENVPN -> {
                         SingBoxOptions.NewDNSServerOptions_OpenVPNDNSServerOptions().apply {
+                            type = dnsType
+                            tag = dnsTag
+                            endpoint = endpointTag
+                        }
+                    }
+
+                    SingBoxOptions.DNS_TYPE_TAILSCALE -> {
+                        SingBoxOptions.NewDNSServerOptions_TailscaleDNSServerOptions().apply {
                             type = dnsType
                             tag = dnsTag
                             endpoint = endpointTag

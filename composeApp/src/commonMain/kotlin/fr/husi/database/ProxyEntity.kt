@@ -48,6 +48,8 @@ import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.fmt.socks.toUri
 import fr.husi.fmt.ssh.SSHBean
 import fr.husi.fmt.toUniversalLink
+import fr.husi.fmt.tailscale.TailcatBean
+import fr.husi.fmt.tailscale.TailscaleBean
 import fr.husi.fmt.trojan.TrojanBean
 import fr.husi.fmt.trusttunnel.TrustTunnelBean
 import fr.husi.fmt.trusttunnel.toUri
@@ -94,6 +96,8 @@ data class ProxyEntity(
     var openConnectBean: OpenConnectBean? = null,
     var openVPNBean: OpenVPNBean? = null,
     var masqueBean: MASQUEBean? = null,
+    var tailscaleBean: TailscaleBean? = null,
+    var tailcatBean: TailcatBean? = null,
     var shadowTLSBean: ShadowTLSBean? = null,
     var directBean: DirectBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
@@ -131,6 +135,8 @@ data class ProxyEntity(
         const val TYPE_OPENCONNECT = 29
         const val TYPE_OPENVPN = 30
         const val TYPE_MASQUE = 31
+        const val TYPE_TAILSCALE = 32
+        const val TYPE_TAILCAT = 33
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -224,6 +230,8 @@ data class ProxyEntity(
             TYPE_OPENCONNECT -> openConnectBean = BeanConverters.openConnectDeserialize(byteArray)
             TYPE_OPENVPN -> openVPNBean = BeanConverters.openVPNDeserialize(byteArray)
             TYPE_MASQUE -> masqueBean = BeanConverters.masqueDeserialize(byteArray)
+            TYPE_TAILSCALE -> tailscaleBean = BeanConverters.tailscaleDeserialize(byteArray)
+            TYPE_TAILCAT -> tailcatBean = BeanConverters.tailcatDeserialize(byteArray)
             TYPE_TUIC -> tuicBean = BeanConverters.tuicDeserialize(byteArray)
             TYPE_JUICITY -> juicityBean = BeanConverters.juicityDeserialize(byteArray)
             TYPE_DIRECT -> directBean = BeanConverters.directDeserialize(byteArray)
@@ -266,6 +274,8 @@ data class ProxyEntity(
             TYPE_OPENCONNECT -> openConnectBean
             TYPE_OPENVPN -> openVPNBean
             TYPE_MASQUE -> masqueBean
+            TYPE_TAILSCALE -> tailscaleBean
+            TYPE_TAILCAT -> tailcatBean
             TYPE_TUIC -> tuicBean
             TYPE_JUICITY -> juicityBean
             TYPE_DIRECT -> directBean
@@ -298,6 +308,8 @@ data class ProxyEntity(
         TYPE_CONFIG -> false
         TYPE_SNELL -> false
         TYPE_MASQUE -> false
+        TYPE_TAILSCALE -> false
+        TYPE_TAILCAT -> false
         TYPE_SHADOWQUIC -> shadowQUICBean!!.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC
         else -> true
     }
@@ -430,6 +442,8 @@ data class ProxyEntity(
         openConnectBean = null
         openVPNBean = null
         masqueBean = null
+        tailscaleBean = null
+        tailcatBean = null
         tuicBean = null
         juicityBean = null
         directBean = null
@@ -516,6 +530,16 @@ data class ProxyEntity(
             is MASQUEBean -> {
                 type = TYPE_MASQUE
                 masqueBean = bean
+            }
+
+            is TailscaleBean -> {
+                type = TYPE_TAILSCALE
+                tailscaleBean = bean
+            }
+
+            is TailcatBean -> {
+                type = TYPE_TAILCAT
+                tailcatBean = bean
             }
 
             is TuicBean -> {

@@ -193,7 +193,7 @@ func className(valueType reflect.Type) string {
 	case reflect.Struct:
 		valueName := valueType.Name()
 		switch valueName {
-		case "Addr", "Prefix", "Prefixable",
+		case "Addr", "AddrPort", "Prefix", "Prefixable",
 			"Regexp", "DNSRecordOptions", "NetworkBytesCompat":
 			return kotlinString
 		case "DNSRuleMatchResponse":

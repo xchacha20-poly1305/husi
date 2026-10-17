@@ -21,6 +21,8 @@ import fr.husi.fmt.shadowtls.ShadowTLSBean
 import fr.husi.fmt.snell.SnellBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.fmt.ssh.SSHBean
+import fr.husi.fmt.tailscale.TailcatBean
+import fr.husi.fmt.tailscale.TailscaleBean
 import fr.husi.fmt.trojan.TrojanBean
 import fr.husi.fmt.trusttunnel.TrustTunnelBean
 import fr.husi.fmt.tuic.TuicBean
@@ -173,6 +175,20 @@ class BeanConverters {
         fun masqueDeserialize(bytes: ByteArray?): MASQUEBean? {
             if (bytes?.isNotEmpty() != true) return null
             return deserialize(MASQUEBean(), bytes)
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun tailscaleDeserialize(bytes: ByteArray?): TailscaleBean? {
+            if (bytes?.isNotEmpty() != true) return null
+            return deserialize(TailscaleBean(), bytes)
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun tailcatDeserialize(bytes: ByteArray?): TailcatBean? {
+            if (bytes?.isNotEmpty() != true) return null
+            return deserialize(TailcatBean(), bytes)
         }
 
         @TypeConverter

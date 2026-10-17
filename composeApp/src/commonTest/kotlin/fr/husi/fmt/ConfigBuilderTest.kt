@@ -19,6 +19,7 @@ import fr.husi.fmt.openvpn.OpenVPNBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.fmt.socks.SOCKSBean
+import fr.husi.fmt.tailscale.TailscaleBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
 import fr.husi.test.HusiKoinTest
@@ -205,6 +206,21 @@ class ConfigBuilderTest : HusiKoinTest() {
             proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
 
             assertEndpointDNS(buildConfig(proxy), "openvpn", SingBoxOptions.DNS_TYPE_OPENVPN)
+        }
+
+    @Test
+    fun `buildConfig should add endpoint DNS server and preferred rule for Tailscale`() =
+        runBlocking {
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                TailscaleBean().apply {
+                    name = "tailscale"
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            assertEndpointDNS(buildConfig(proxy), "tailscale", SingBoxOptions.DNS_TYPE_TAILSCALE)
         }
 
     @Test
