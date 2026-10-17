@@ -239,6 +239,20 @@ fun ProfileEditorScreen(
             onOpenConfigEditor = onOpenConfigEditor,
         )
 
+        ProxyEntity.TYPE_TAILSCALE -> TailscaleSettingsScreen(
+            profileId = profileId,
+            isSubscription = isSubscription,
+            onResult = onResult,
+            onOpenConfigEditor = onOpenConfigEditor,
+        )
+
+        ProxyEntity.TYPE_TAILCAT -> TailcatSettingsScreen(
+            profileId = profileId,
+            isSubscription = isSubscription,
+            onResult = onResult,
+            onOpenConfigEditor = onOpenConfigEditor,
+        )
+
         ProxyEntity.TYPE_TUIC -> TuicSettingsScreen(
             profileId = profileId,
             isSubscription = isSubscription,

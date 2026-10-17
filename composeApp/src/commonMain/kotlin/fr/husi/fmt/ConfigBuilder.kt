@@ -68,6 +68,10 @@ import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.fmt.socks.buildSingBoxOutboundSocksBean
 import fr.husi.fmt.ssh.SSHBean
 import fr.husi.fmt.ssh.buildSingBoxOutboundSSHBean
+import fr.husi.fmt.tailscale.TailcatBean
+import fr.husi.fmt.tailscale.TailscaleBean
+import fr.husi.fmt.tailscale.buildSingBoxEndpointTailscaleBean
+import fr.husi.fmt.tailscale.buildSingBoxOutboundTailcatBean
 import fr.husi.fmt.trusttunnel.TrustTunnelBean
 import fr.husi.fmt.trusttunnel.buildSingBoxOutboundTrustTunnelBean
 import fr.husi.fmt.tuic.TuicBean
@@ -585,6 +589,16 @@ suspend fun buildConfig(
     val externalIndexMap = ArrayList<IndexEntity>()
     val protectedPluginPorts = HashSet<Int>()
     val networkStrategy = DataStore.networkStrategy.get()
+    val fakeDNSRange4 = if (!useFakeDns || networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {
+        null
+    } else {
+        DataStore.fakeDNSRange4.get().blankAsNull()
+    }
+    val fakeDNSRange6 = if (!useFakeDns || networkStrategy == SingBoxOptions.STRATEGY_IPV4_ONLY) {
+        null
+    } else {
+        DataStore.fakeDNSRange6.get().blankAsNull()
+    }
     val networkInterfaceStrategy = DataStore.networkInterfaceType.get()
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.get().toList()
     val defaultStrategy = networkStrategy.blankAsNull()
@@ -888,6 +902,18 @@ suspend fun buildConfig(
 
                         is MASQUEBean -> buildSingBoxEndpointMASQUEBean(bean).asKxsMap()
 
+                        is TailscaleBean -> {
+                            vpnWithPushDNS[tagOut] = SingBoxOptions.DNS_TYPE_TAILSCALE
+                            val extraRoutes = if (bean.advertiseFakeDNSRoutes) {
+                                listOfNotNull(fakeDNSRange4, fakeDNSRange6)
+                            } else {
+                                emptyList()
+                            }
+                            buildSingBoxEndpointTailscaleBean(bean, extraRoutes).asKxsMap()
+                        }
+
+                        is TailcatBean -> buildSingBoxOutboundTailcatBean(bean).asKxsMap()
+
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asKxsMap()
 
                         is DirectBean -> buildSingBoxOutboundDirectBean(bean).asKxsMap()
@@ -1031,6 +1057,17 @@ suspend fun buildConfig(
                 val previousEntry = checkNotNull(profileEntriesByKey[link.from])
                 val currentTag = checkNotNull(reservedTags[link.to])
                 connectChainNode(previousEntry, currentTag)
+            }
+
+            // Tailcat fetches its DERP map with its own HTTP client, which must leave through
+            // the same detour as the DERP connections.
+            for (outbound in outboundsByTag.values) {
+                if (outbound["type"] != SingBoxOptions.TYPE_TAILCAT) continue
+                val detour = outbound["detour"] ?: continue
+                @Suppress("UNCHECKED_CAST")
+                val httpClient = outbound["http_client"] as? JSONMap ?: mutableMapOf()
+                httpClient.putIfAbsent("detour", detour)
+                outbound["http_client"] = httpClient
             }
 
             // Mirror the shape of what was just emitted, so traffic accounting can walk
@@ -1584,22 +1621,12 @@ suspend fun buildConfig(
 
             // FakeDNS obj
             if (useFakeDns) {
-                val fakeRange4 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {
-                    null
-                } else {
-                    DataStore.fakeDNSRange4.get().blankAsNull()
-                }
-                val fakeRange6 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV4_ONLY) {
-                    null
-                } else {
-                    DataStore.fakeDNSRange6.get().blankAsNull()
-                }
                 dns!!.servers!!.add(
                     NewDNSServerOptions_FakeIPDNSServerOptions().apply {
                         type = SingBoxOptions.DNS_TYPE_FAKEIP
                         tag = TAG_DNS_FAKE
-                        inet4_range = fakeRange4
-                        inet6_range = fakeRange6
+                        inet4_range = fakeDNSRange4
+                        inet6_range = fakeDNSRange6
                     },
                 )
                 dns!!.rules!!.add(
@@ -1653,6 +1680,14 @@ suspend fun buildConfig(
 
                     SingBoxOptions.DNS_TYPE_OPENVPN -> {
                         SingBoxOptions.NewDNSServerOptions_OpenVPNDNSServerOptions().apply {
+                            type = dnsType
+                            tag = dnsTag
+                            endpoint = endpointTag
+                        }
+                    }
+
+                    SingBoxOptions.DNS_TYPE_TAILSCALE -> {
+                        SingBoxOptions.NewDNSServerOptions_TailscaleDNSServerOptions().apply {
                             type = dnsType
                             tag = dnsTag
                             endpoint = endpointTag

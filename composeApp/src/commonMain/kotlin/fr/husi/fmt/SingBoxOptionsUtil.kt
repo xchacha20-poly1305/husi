@@ -469,6 +469,7 @@ fun isEndpoint(type: String): Boolean = when (type) {
     SingBoxOptions.TYPE_OPENCONNECT -> true
     SingBoxOptions.TYPE_OPENVPN_CLIENT -> true
     SingBoxOptions.TYPE_MASQUE_CLIENT -> true
+    SingBoxOptions.TYPE_TAILSCALE -> true
     else -> false
 }
 
@@ -499,6 +500,8 @@ fun proxyDisplayName(type: String): String = when (type) {
     SingBoxOptions.TYPE_OPENCONNECT -> "OpenConnect"
     SingBoxOptions.TYPE_OPENVPN_CLIENT -> "OpenVPN"
     SingBoxOptions.TYPE_MASQUE_CLIENT -> "MASQUE"
+    SingBoxOptions.TYPE_TAILSCALE -> "Tailscale"
+    SingBoxOptions.TYPE_TAILCAT -> "Tailcat"
     else -> type
 }
 

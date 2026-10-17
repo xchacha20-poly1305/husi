@@ -11,6 +11,7 @@ run:
     - "with_wireguard"
     - "with_openconnect"
     - "with_openvpn"
+    - "with_tailscale"
     - "with_utls"
     - "badlinkname"
     - "tfogo_checklinkname0"

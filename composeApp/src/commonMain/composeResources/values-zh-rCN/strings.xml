@@ -839,4 +839,22 @@
     <string name="taildrop_sending">正在发送文件</string>
     <string name="taildrop_notification_others">%1$s 及其他 %2$d 个</string>
     <string name="taildrop_open_directory_failed">无法打开目录</string>
+    <string name="tailscale_state_directory">状态目录</string>
+    <string name="tailscale_auth_key">认证密钥</string>
+    <string name="tailscale_control_url">控制服务器 URL</string>
+    <string name="tailscale_ephemeral">临时节点</string>
+    <string name="tailscale_accept_routes">接受路由</string>
+    <string name="tailscale_exit_node_allow_lan_access">使用出口节点时允许访问局域网</string>
+    <string name="tailscale_advertise_routes">通告路由</string>
+    <string name="tailscale_advertise_exit_node">通告为出口节点</string>
+    <string name="tailscale_advertise_tags">通告标签</string>
+    <string name="tailscale_ssh_server">Tailscale SSH 服务器</string>
+    <string name="taildrop_directory">Taildrop 目录</string>
+    <string name="tailcat_server_public_key">服务器公钥</string>
+    <string name="tailcat_server_disco_key">服务器 Disco 公钥</string>
+    <string name="tailcat_derp_map_url">DERP Map URL</string>
+    <string name="tailcat_derp_region">DERP 区域</string>
+    <string name="tailcat_derp_servers">DERP 服务器</string>
+    <string name="tailscale_advertise_fake_dns_routes">通告 Fake DNS 网段</string>
+    <string name="tailscale_advertise_fake_dns_routes_summary">启用 Fake DNS 时，将 Fake DNS 网段作为子网路由通告</string>
 </resources>

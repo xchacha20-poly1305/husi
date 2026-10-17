@@ -19,6 +19,8 @@ import fr.husi.fmt.openvpn.OpenVPNBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.fmt.socks.SOCKSBean
+import fr.husi.fmt.tailscale.TailcatBean
+import fr.husi.fmt.tailscale.TailscaleBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
 import fr.husi.test.HusiKoinTest
@@ -118,6 +120,42 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `buildConfig should send Tailcat HTTP client through the chain detour`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val local = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "local",
+            host = "127.0.0.1",
+            port = 1080,
+        )
+        val tailcat = ProxyEntity(groupId = group.id, userOrder = 2).putBean(
+            TailcatBean().apply {
+                name = "tailcat"
+                serverPublicKey = "nodekey:server"
+                serverDiscoKey = "discokey:server"
+            }.applyDefaultValues(),
+        )
+        tailcat.id = SagerDatabase.proxyDao.addProxy(tailcat)
+        val chain = createChain(
+            groupId = group.id,
+            order = 3,
+            name = "chain",
+            proxies = listOf(local.id, tailcat.id),
+        )
+
+        val outbound = assertNotNull(parseOutbounds(buildConfig(chain))["tailcat"])
+
+        assertEquals("local", outbound["detour"]?.jsonPrimitive?.content)
+        assertEquals(
+            "local",
+            outbound["http_client"]?.jsonObject?.get("detour")?.jsonPrimitive?.content,
+        )
+    }
+
+    @Test
     fun `buildConfig should keep remote DNS domain through detour`() = runBlocking {
         DataStore.remoteDns.set("tcp://dns.example.com")
 
@@ -205,6 +243,53 @@ class ConfigBuilderTest : HusiKoinTest() {
             proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
 
             assertEndpointDNS(buildConfig(proxy), "openvpn", SingBoxOptions.DNS_TYPE_OPENVPN)
+        }
+
+    @Test
+    fun `buildConfig should add endpoint DNS server and preferred rule for Tailscale`() =
+        runBlocking {
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                TailscaleBean().apply {
+                    name = "tailscale"
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            assertEndpointDNS(buildConfig(proxy), "tailscale", SingBoxOptions.DNS_TYPE_TAILSCALE)
+        }
+
+    @Test
+    fun `buildConfig should advertise Fake DNS ranges for Tailscale only while Fake DNS is enabled`() =
+        runBlocking {
+            disableFakeDns()
+            DataStore.networkStrategy.set(SingBoxOptions.STRATEGY_PREFER_IPV6)
+            DataStore.fakeDNSRange4.set("198.51.100.0/24")
+            DataStore.fakeDNSRange6.set("2001:2::/48")
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                TailscaleBean().apply {
+                    name = "tailscale"
+                    advertiseRoutes = "10.0.0.0/8"
+                    advertiseFakeDNSRoutes = true
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            suspend fun advertisedRoutes(): List<String>? = parseEndpoints(buildConfig(proxy))["tailscale"]!!
+                .get("advertise_routes")
+                ?.jsonArray
+                ?.map { it.jsonPrimitive.content }
+
+            assertEquals(listOf("10.0.0.0/8"), advertisedRoutes())
+
+            DataStore.enableFakeDns.set(true)
+            assertEquals(
+                listOf("10.0.0.0/8", "198.51.100.0/24", "2001:2::/48"),
+                advertisedRoutes(),
+            )
         }
 
     @Test

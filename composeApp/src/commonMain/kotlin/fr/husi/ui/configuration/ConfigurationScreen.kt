@@ -115,6 +115,7 @@ import fr.husi.resources.action_shadowtls
 import fr.husi.resources.action_snell
 import fr.husi.resources.action_socks
 import fr.husi.resources.action_ssh
+import fr.husi.resources.action_tailcat
 import fr.husi.resources.action_trojan
 import fr.husi.resources.action_trusttunnel
 import fr.husi.resources.action_tuic
@@ -162,6 +163,7 @@ import fr.husi.resources.remove_duplicate
 import fr.husi.resources.removed
 import fr.husi.resources.search
 import fr.husi.resources.sort_mode
+import fr.husi.resources.tailscale
 import fr.husi.resources.undo
 import fr.husi.resources.view_list
 import fr.husi.results.ResultEffect
@@ -321,6 +323,8 @@ fun ConfigurationScreen(
             Res.string.action_openconnect to ProxyEntity.TYPE_OPENCONNECT,
             Res.string.action_openvpn to ProxyEntity.TYPE_OPENVPN,
             Res.string.action_masque to ProxyEntity.TYPE_MASQUE,
+            Res.string.tailscale to ProxyEntity.TYPE_TAILSCALE,
+            Res.string.action_tailcat to ProxyEntity.TYPE_TAILCAT,
             Res.string.action_shadowtls to ProxyEntity.TYPE_SHADOWTLS,
             Res.string.action_anytls to ProxyEntity.TYPE_ANYTLS,
             Res.string.action_shadowquic to ProxyEntity.TYPE_SHADOWQUIC,

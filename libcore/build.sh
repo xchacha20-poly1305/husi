@@ -8,6 +8,7 @@ TAGS=(
     "with_wireguard"
     "with_openconnect"
     "with_openvpn"
+    "with_tailscale"
     "with_utls"
     "with_naive_outbound"
     "badlinkname"

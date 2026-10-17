@@ -81,6 +81,7 @@ func OutboundRegistry() *outbound.Registry {
 	anytls.RegisterOutbound(registry)
 	snell.RegisterOutbound(registry)
 	bridge.RegisterOutbound(registry)
+	registerTailcatOutbound(registry)
 
 	registerQUICOutbounds(registry)
 	registerNaiveOutbound(registry)
@@ -133,6 +134,7 @@ func DNSTransportRegistry() *dns.TransportRegistry {
 	registerQUICTransports(registry)
 	registerOpenConnectDNSTransport(registry)
 	registerOpenVPNDNSTransport(registry)
+	registerTailscaleDNSTransport(registry)
 
 	return registry
 }

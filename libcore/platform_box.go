@@ -228,6 +228,10 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformWIFIMonitor() bool {
 	return true
 }
 
+func (w *boxPlatformInterfaceWrapper) TailscaleHostname() string {
+	return w.iif.TailscaleHostname()
+}
+
 // Android not using
 
 func (w *boxPlatformInterfaceWrapper) UnderNetworkExtension() bool {
@@ -284,7 +288,7 @@ func (w *boxPlatformInterfaceWrapper) CreateBridge(options adapter.BridgeOptions
 	return nil, os.ErrInvalid
 }
 
-// Unused Tailscale
+// Unused Tailscale (root required)
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformShell() bool {
 	return false
@@ -308,10 +312,6 @@ func (w *boxPlatformInterfaceWrapper) LookupSFTPServer() (string, error) {
 
 func (w *boxPlatformInterfaceWrapper) ReadSystemSSHHostKey() ([]byte, error) {
 	return nil, os.ErrInvalid
-}
-
-func (w *boxPlatformInterfaceWrapper) TailscaleHostname() string {
-	return ""
 }
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformAutoRedirect() bool {
