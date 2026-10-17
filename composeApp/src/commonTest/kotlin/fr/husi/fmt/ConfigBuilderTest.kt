@@ -19,6 +19,7 @@ import fr.husi.fmt.openvpn.OpenVPNBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.fmt.socks.SOCKSBean
+import fr.husi.fmt.tailscale.TailcatBean
 import fr.husi.fmt.tailscale.TailscaleBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
@@ -116,6 +117,42 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         assertEquals("local", outbounds["remote"]?.get("detour")?.jsonPrimitive?.content)
         assertEquals(null, outbounds["remote"]?.get("domain_resolver"))
+    }
+
+    @Test
+    fun `buildConfig should send Tailcat HTTP client through the chain detour`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val local = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "local",
+            host = "127.0.0.1",
+            port = 1080,
+        )
+        val tailcat = ProxyEntity(groupId = group.id, userOrder = 2).putBean(
+            TailcatBean().apply {
+                name = "tailcat"
+                serverPublicKey = "nodekey:server"
+                serverDiscoKey = "discokey:server"
+            }.applyDefaultValues(),
+        )
+        tailcat.id = SagerDatabase.proxyDao.addProxy(tailcat)
+        val chain = createChain(
+            groupId = group.id,
+            order = 3,
+            name = "chain",
+            proxies = listOf(local.id, tailcat.id),
+        )
+
+        val outbound = assertNotNull(parseOutbounds(buildConfig(chain))["tailcat"])
+
+        assertEquals("local", outbound["detour"]?.jsonPrimitive?.content)
+        assertEquals(
+            "local",
+            outbound["http_client"]?.jsonObject?.get("detour")?.jsonPrimitive?.content,
+        )
     }
 
     @Test

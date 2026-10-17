@@ -1063,6 +1063,17 @@ suspend fun buildConfig(
                 connectChainNode(previousEntry, currentTag)
             }
 
+            // Tailcat fetches its DERP map with its own HTTP client, which must leave through
+            // the same detour as the DERP connections.
+            for (outbound in outboundsByTag.values) {
+                if (outbound["type"] != SingBoxOptions.TYPE_TAILCAT) continue
+                val detour = outbound["detour"] ?: continue
+                @Suppress("UNCHECKED_CAST")
+                val httpClient = outbound["http_client"] as? JSONMap ?: mutableMapOf()
+                httpClient.putIfAbsent("detour", detour)
+                outbound["http_client"] = httpClient
+            }
+
             // Mirror the shape of what was just emitted, so traffic accounting can walk
             // a connection back to every profile that carried it. ProxyEntity equality
             // includes mutable bean state (finalAddress/finalPort), so profiles are
