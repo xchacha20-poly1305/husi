@@ -38,6 +38,12 @@ import fr.husi.proto.v1.RootCertificateStore
 import fr.husi.proto.v1.SchemaKind
 import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.URLTestOptions
+import fr.husi.proto.v1.WebDAVDeleteRequest
+import fr.husi.proto.v1.WebDAVDownloadRequest
+import fr.husi.proto.v1.WebDAVDownloadResponse
+import fr.husi.proto.v1.WebDAVListRequest
+import fr.husi.proto.v1.WebDAVListResponse
+import fr.husi.proto.v1.WebDAVUploadRequest
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -337,6 +343,33 @@ open class FakeCoreClient : CoreClient {
     override fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse> {
         lastHttpFetch = request
         return replay(httpFetchResponses, httpFetchThrowable)
+    }
+
+    override suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse =
+        WebDAVListResponse.getDefaultInstance()
+
+    /** Every message of the last [webdavUpload], in order. */
+    var lastWebDAVUpload: List<WebDAVUploadRequest> = emptyList()
+        private set
+
+    override suspend fun webdavUpload(requests: Flow<WebDAVUploadRequest>) {
+        lastWebDAVUpload = requests.toList()
+    }
+
+    var lastWebDAVDownload: WebDAVDownloadRequest? = null
+        private set
+    var webdavDownloadResponses: List<WebDAVDownloadResponse> = emptyList()
+
+    override fun webdavDownload(request: WebDAVDownloadRequest): Flow<WebDAVDownloadResponse> {
+        lastWebDAVDownload = request
+        return replay(webdavDownloadResponses, throwable = null)
+    }
+
+    var lastWebDAVDelete: WebDAVDeleteRequest? = null
+        private set
+
+    override suspend fun webdavDelete(request: WebDAVDeleteRequest) {
+        lastWebDAVDelete = request
     }
 
     override suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int = 0

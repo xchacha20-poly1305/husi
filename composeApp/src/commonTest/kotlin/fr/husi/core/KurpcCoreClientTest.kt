@@ -276,6 +276,12 @@ private class FakeCoreChannel : CoreChannel {
         return stream.flow
     }
 
+    override suspend fun clientStreaming(
+        method: String,
+        requests: Flow<ByteArray>,
+        options: CallOptions,
+    ): ByteArray = error("unexpected client stream $method")
+
     override fun bidiStreaming(method: String, requests: Flow<ByteArray>): Flow<ByteArray> = flow {
         val stream = FakeStream(method, ByteArray(0))
         synchronized(streams) { streams += stream }

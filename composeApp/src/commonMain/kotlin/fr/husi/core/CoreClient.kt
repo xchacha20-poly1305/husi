@@ -76,6 +76,12 @@ import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.SubscribeServiceEventsResponse
 import fr.husi.proto.v1.URLTestOptions
 import fr.husi.proto.v1.URLTestResponse
+import fr.husi.proto.v1.WebDAVDeleteRequest
+import fr.husi.proto.v1.WebDAVDownloadRequest
+import fr.husi.proto.v1.WebDAVDownloadResponse
+import fr.husi.proto.v1.WebDAVListRequest
+import fr.husi.proto.v1.WebDAVListResponse
+import fr.husi.proto.v1.WebDAVUploadRequest
 import fr.husi.proto.v1.attachClientRequest
 import fr.husi.proto.v1.checkConfigRequest
 import fr.husi.proto.v1.claimServiceRequest
@@ -113,6 +119,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import javax.net.ssl.SSLSocketFactory
 import java.io.File
 import kotlin.time.Duration
@@ -234,6 +241,16 @@ interface CoreClient {
     /** One head message, then the body in chunks. */
     fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse>
 
+    suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse
+
+    /** One head message, then the file in chunks. */
+    suspend fun webdavUpload(requests: Flow<WebDAVUploadRequest>)
+
+    /** The file in chunks. */
+    fun webdavDownload(request: WebDAVDownloadRequest): Flow<WebDAVDownloadResponse>
+
+    suspend fun webdavDelete(request: WebDAVDeleteRequest)
+
     /** Latency in milliseconds. [port] is ignored by ICMP. */
     suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int
 
@@ -280,6 +297,7 @@ const val TAILDROP_CHUNK_SIZE = 16 * 1024 - 64
 internal interface CoreChannel {
     suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray
     fun serverStreaming(method: String, request: ByteArray): Flow<ByteArray>
+    suspend fun clientStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): ByteArray
     fun bidiStreaming(method: String, requests: Flow<ByteArray>): Flow<ByteArray>
     fun close()
 }
@@ -292,6 +310,12 @@ private class KurpcCoreChannel(private val channel: RpcChannel) : CoreChannel {
     // starting should connect, not fail and back off.
     override fun serverStreaming(method: String, request: ByteArray): Flow<ByteArray> =
         channel.serverStreaming(method, request, CallOptions(waitForReady = true))
+
+    override suspend fun clientStreaming(
+        method: String,
+        requests: Flow<ByteArray>,
+        options: CallOptions,
+    ): ByteArray = channel.clientStreaming(method, requests, options)
 
     override fun bidiStreaming(method: String, requests: Flow<ByteArray>): Flow<ByteArray> =
         channel.bidiStreaming(method, requests, CallOptions(waitForReady = true))
@@ -335,6 +359,12 @@ class KurpcCoreClient internal constructor(
         request: ByteArray = EMPTY_PROTO,
         timeout: Duration = DEFAULT_UNARY_TIMEOUT,
     ): ByteArray = rpc { channel().unary(method, request, CallOptions(timeout = timeout)) }
+
+    private suspend fun clientStream(
+        method: String,
+        requests: Flow<ByteArray>,
+        timeout: Duration,
+    ): ByteArray = rpc { channel().clientStreaming(method, requests, CallOptions(timeout = timeout)) }
 
     /**
      * Long-lived server stream. Whenever the stream ends, cleanly or not, it is opened again
@@ -691,6 +721,30 @@ class KurpcCoreClient internal constructor(
         return GetCertResponse.parseFrom(bytes).pem
     }
 
+    override suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse {
+        val bytes = unary(Methods.WEBDAV_LIST, request.toByteArray(), WEBDAV_TIMEOUT)
+        return WebDAVListResponse.parseFrom(bytes)
+    }
+
+    override suspend fun webdavUpload(requests: Flow<WebDAVUploadRequest>) {
+        clientStream(Methods.WEBDAV_UPLOAD, requests.map { it.toByteArray() }, WEBDAV_TIMEOUT)
+    }
+
+    // A server stream carries no deadline of its own, so the download sets the upload's.
+    override fun webdavDownload(request: WebDAVDownloadRequest): Flow<WebDAVDownloadResponse> = flow {
+        withTimeout(WEBDAV_TIMEOUT) {
+            emitAll(
+                oneShotStream(Methods.WEBDAV_DOWNLOAD, request.toByteArray()) {
+                    WebDAVDownloadResponse.parseFrom(it)
+                },
+            )
+        }
+    }
+
+    override suspend fun webdavDelete(request: WebDAVDeleteRequest) {
+        unary(Methods.WEBDAV_DELETE, request.toByteArray(), WEBDAV_TIMEOUT)
+    }
+
     override suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int {
         val bytes = unary(
             Methods.PING,
@@ -937,6 +991,10 @@ class KurpcCoreClient internal constructor(
         const val STANDALONE_NETWORK_QUALITY_TEST =
             "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
         const val HTTP_FETCH = "/husi.v1.ApplicationService/HTTPFetch"
+        const val WEBDAV_LIST = "/husi.v1.ApplicationService/WebDAVList"
+        const val WEBDAV_UPLOAD = "/husi.v1.ApplicationService/WebDAVUpload"
+        const val WEBDAV_DOWNLOAD = "/husi.v1.ApplicationService/WebDAVDownload"
+        const val WEBDAV_DELETE = "/husi.v1.ApplicationService/WebDAVDelete"
         const val PING = "/husi.v1.ApplicationService/Ping"
         const val MATCH_RULE_SETS = "/husi.v1.ApplicationService/MatchRuleSets"
         const val GET_ROOT_CERTIFICATES = "/husi.v1.ApplicationService/GetRootCertificates"
@@ -956,6 +1014,7 @@ class KurpcCoreClient internal constructor(
 
     companion object {
         private val DEFAULT_UNARY_TIMEOUT = 10.seconds
+        private val WEBDAV_TIMEOUT = 2.minutes
 
         /**
          * Longer than [DEFAULT_UNARY_TIMEOUT]: take-over blocks on a human

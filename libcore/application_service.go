@@ -130,12 +130,12 @@ func (s *applicationService) StandaloneSTUNTest(
 		},
 	})
 	if err != nil {
-		return streamError(stream.Context(), stream.Send(&daemon.STUNTestProgress{
+		return callError(stream.Context(), stream.Send(&daemon.STUNTestProgress{
 			IsFinal: true,
 			Error:   err.Error(),
 		}))
 	}
-	return streamError(stream.Context(), stream.Send(daemon.NewSTUNTestResult(result)))
+	return callError(stream.Context(), stream.Send(daemon.NewSTUNTestResult(result)))
 }
 
 func (s *applicationService) StandaloneNetworkQualityTest(
@@ -162,12 +162,12 @@ func (s *applicationService) StandaloneNetworkQualityTest(
 		},
 	})
 	if err != nil {
-		return streamError(stream.Context(), stream.Send(&daemon.NetworkQualityTestProgress{
+		return callError(stream.Context(), stream.Send(&daemon.NetworkQualityTestProgress{
 			IsFinal: true,
 			Error:   err.Error(),
 		}))
 	}
-	return streamError(stream.Context(), stream.Send(daemon.NewNetworkQualityTestResult(result)))
+	return callError(stream.Context(), stream.Send(daemon.NewNetworkQualityTestResult(result)))
 }
 
 func (s *applicationService) Ping(ctx context.Context, req *husiv1.PingRequest) (*husiv1.PingResponse, error) {
@@ -226,9 +226,9 @@ func rpcError(err error, fallback codes.Code) error {
 	return status.Error(fallback, err.Error())
 }
 
-// streamError reports a cancelled or expired stream as such: the client hanging
+// callError reports a canceled or expired call as such: the client hanging
 // up is not an internal failure.
-func streamError(ctx context.Context, err error) error {
+func callError(ctx context.Context, err error) error {
 	if err == nil {
 		return nil
 	}

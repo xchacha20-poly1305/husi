@@ -120,7 +120,7 @@ func TestClientPinnedSHA256(t *testing.T) {
 				request.RootCAs = x509.NewCertPool()
 				request.RootCAs.AddCert(keyPair.Leaf)
 			}
-			client := newClient(request, test.requestHost)
+			client := newClient(request.Transport, test.requestHost)
 			client.transport.DialContext = func(ctx context.Context, network, _ string) (net.Conn, error) {
 				return N.SystemDialer.DialContext(ctx, network, address)
 			}

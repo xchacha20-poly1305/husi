@@ -23,7 +23,7 @@ func (s *applicationService) HTTPFetch(
 	}
 	response, err := httpfetch.Get(stream.Context(), request)
 	if err != nil {
-		return streamError(stream.Context(), err)
+		return callError(stream.Context(), err)
 	}
 	defer response.Body.Close()
 
@@ -34,7 +34,7 @@ func (s *applicationService) HTTPFetch(
 		}},
 	})
 	if err != nil {
-		return streamError(stream.Context(), err)
+		return callError(stream.Context(), err)
 	}
 
 	// buf.BufferSize keeps each body message far below gRPC's 4 MiB limit.
@@ -49,38 +49,34 @@ func (s *applicationService) HTTPFetch(
 				Payload: &husiv1.HTTPFetchResponse_Chunk{Chunk: chunk.Bytes()},
 			})
 			if err != nil {
-				return streamError(stream.Context(), err)
+				return callError(stream.Context(), err)
 			}
 		}
 		if readErr == io.EOF {
 			return nil
 		}
 		if readErr != nil {
-			return streamError(stream.Context(), readErr)
+			return callError(stream.Context(), readErr)
 		}
 	}
 }
 
 func httpFetchRequestFromProto(req *husiv1.HTTPFetchRequest) (httpfetch.Request, error) {
 	request := httpfetch.Request{
-		URL:           req.GetUrl(),
-		Header:        http.Header{},
-		Timeout:       C.TCPTimeout,
-		RestrictedTLS: req.GetRestrictedTls(),
-		PinnedSHA256:  req.GetPinnedSha256(),
+		URL:     req.GetUrl(),
+		Header:  http.Header{},
+		Timeout: C.TCPTimeout,
+		Transport: httpfetch.Transport{
+			RestrictedTLS: req.GetRestrictedTls(),
+			PinnedSHA256:  req.GetPinnedSha256(),
+			Socks5:        socks5FromProto(req.GetSocks5()),
+		},
 	}
 	for key, value := range req.GetHeaders() {
 		request.Header.Set(key, value)
 	}
 	if req.GetNoOverallDeadline() {
 		request.Timeout = 0
-	}
-	if socks5 := req.GetSocks5(); socks5 != nil {
-		request.Socks5 = &httpfetch.Socks5{
-			Port:     uint16(socks5.GetPort()),
-			Username: socks5.GetUsername(),
-			Password: socks5.GetPassword(),
-		}
 	}
 	if identities := req.GetAgeIdentities(); identities != "" {
 		var err error
@@ -90,6 +86,18 @@ func httpFetchRequestFromProto(req *husiv1.HTTPFetchRequest) (httpfetch.Request,
 		}
 	}
 	return request, nil
+}
+
+// socks5FromProto returns nil for an unset socks5, which dials directly.
+func socks5FromProto(socks5 *husiv1.HTTPFetchSocks5) *httpfetch.Socks5 {
+	if socks5 == nil {
+		return nil
+	}
+	return &httpfetch.Socks5{
+		Port:     uint16(socks5.GetPort()),
+		Username: socks5.GetUsername(),
+		Password: socks5.GetPassword(),
+	}
 }
 
 func firstHeaderValues(header http.Header) map[string]string {

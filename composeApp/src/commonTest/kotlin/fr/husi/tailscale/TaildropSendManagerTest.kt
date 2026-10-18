@@ -271,6 +271,12 @@ private class ScriptedCoreChannel : CoreChannel {
     override fun serverStreaming(method: String, request: ByteArray): Flow<ByteArray> =
         error("unexpected server stream $method")
 
+    override suspend fun clientStreaming(
+        method: String,
+        requests: Flow<ByteArray>,
+        options: CallOptions,
+    ): ByteArray = error("unexpected client stream $method")
+
     override fun bidiStreaming(method: String, requests: Flow<ByteArray>): Flow<ByteArray> = flow {
         methods += method
         coroutineScope {

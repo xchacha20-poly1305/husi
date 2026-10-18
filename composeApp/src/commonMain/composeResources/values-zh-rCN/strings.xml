@@ -393,6 +393,19 @@
     <string name="responsiveness_rpm">%1$s RPM</string>
     <string name="outbound_default">默认</string>
     <string name="backup_import_summary">导入将覆盖现有的数据。</string>
+    <string name="webdav_configure">配置</string>
+    <string name="webdav_directory_url">目录 URL</string>
+    <string name="webdav_not_configured">未配置 WebDAV 服务器。</string>
+    <string name="webdav_upload">上传备份</string>
+    <string name="webdav_upload_summary">上传“导出”中勾选的项目。</string>
+    <string name="webdav_upload_success">备份已上传</string>
+    <string name="webdav_restore">从 WebDAV 恢复</string>
+    <string name="webdav_no_backups">未找到备份。</string>
+    <string name="webdav_delete">删除备份</string>
+    <plurals name="webdav_delete_confirm">
+        <item quantity="other">要从 WebDAV 服务器删除这 %1$d 个备份吗？</item>
+    </plurals>
+    <string name="webdav_delete_success">备份已删除</string>
     <string name="action_copy">复制</string>
     <string name="action_open">打开</string>
     <string name="connection_test_delete_unavailable">清理不可用配置</string>

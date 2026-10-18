@@ -1,5 +1,6 @@
 // Package httpfetch performs the HTTP GETs husi makes on its own behalf:
-// subscription, rule set and app update downloads.
+// subscription, rule set and app update downloads. Its [Transport] is shared
+// with other clients husi runs on its own behalf.
 //
 // It is shared by the Android binding (libcore.HTTPClient) and the desktop
 // core host (husi.v1.ApplicationService/HTTPFetch), so both platforms verify
@@ -43,6 +44,18 @@ type Socks5 struct {
 	Password string
 }
 
+type Transport struct {
+	// RestrictedTLS forces TLS 1.3.
+	RestrictedTLS bool
+	// PinnedSHA256 is the hex SHA-256 of a leaf certificate that is accepted
+	// even when it does not chain to RootCAs. This is designed for OOCv1:
+	// https://github.com/Shadowsocks-NET/OpenOnlineConfig/blob/0db1f2452f8ad579967ca4c5092f5e11053c813c/docs/0001-open-online-config-v1.md?plain=1#L69
+	PinnedSHA256 string
+	RootCAs      *x509.CertPool
+	// Socks5 unset dials the server directly.
+	Socks5 *Socks5
+}
+
 type Request struct {
 	URL    string
 	Header http.Header
@@ -51,14 +64,7 @@ type Request struct {
 	// setup still times out, and a body that stops making progress for
 	// [StallTimeout] fails.
 	Timeout time.Duration
-	// RestrictedTLS forces TLS 1.3.
-	RestrictedTLS bool
-	// PinnedSHA256 is the hex SHA-256 of a leaf certificate that is accepted
-	// even when it does not chain to RootCAs. This is designed for OOCv1:
-	// https://github.com/Shadowsocks-NET/OpenOnlineConfig/blob/0db1f2452f8ad579967ca4c5092f5e11053c813c/docs/0001-open-online-config-v1.md?plain=1#L69
-	PinnedSHA256  string
-	RootCAs       *x509.CertPool
-	Socks5        *Socks5
+	Transport
 	AgeIdentities []age.Identity
 }
 
@@ -76,11 +82,15 @@ func Get(ctx context.Context, request Request) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newClient(request, link.Hostname()).do(ctx, request, link)
+	return newClient(request.Transport, link.Hostname()).do(ctx, request, link)
 }
 
-// client serves a single [Request]: its TLS verification is bound to the
-// requested host, and it keeps no connection alive afterwards.
+func NewClient(transport Transport, hostname string) *http.Client {
+	return &newClient(transport, hostname).client
+}
+
+// client serves the requests of one host: its TLS verification is bound to
+// that host, and it keeps no connection alive afterwards.
 type client struct {
 	tls          tls.Config
 	transport    http.Transport
@@ -88,12 +98,12 @@ type client struct {
 	pinnedSHA256 string
 }
 
-func newClient(request Request, hostname string) *client {
+func newClient(transport Transport, hostname string) *client {
 	c := &client{
-		pinnedSHA256: strings.ToLower(strings.TrimSpace(request.PinnedSHA256)),
+		pinnedSHA256: strings.ToLower(strings.TrimSpace(transport.PinnedSHA256)),
 	}
-	c.tls.RootCAs = request.RootCAs
-	if request.RestrictedTLS {
+	c.tls.RootCAs = transport.RootCAs
+	if transport.RestrictedTLS {
 		c.tls.MinVersion = tls.VersionTLS13
 	}
 	if c.pinnedSHA256 != "" {
@@ -108,8 +118,8 @@ func newClient(request Request, hostname string) *client {
 	c.transport.ResponseHeaderTimeout = C.TCPTimeout
 	c.transport.DisableKeepAlives = true
 	c.transport.ForceAttemptHTTP2 = true
-	if request.Socks5 != nil {
-		c.transport.DialContext = socks5DialContext(*request.Socks5)
+	if transport.Socks5 != nil {
+		c.transport.DialContext = socks5DialContext(*transport.Socks5)
 	}
 	c.client.Transport = &c.transport
 	return c
@@ -197,7 +207,7 @@ func (c *client) do(ctx context.Context, request Request, link *url.URL) (*Respo
 		return nil, err
 	}
 	if httpResponse.StatusCode != http.StatusOK {
-		err = statusError(httpResponse)
+		err = StatusError(httpResponse)
 		release(err)
 		return nil, err
 	}
@@ -223,7 +233,9 @@ func (c *client) do(ctx context.Context, request Request, link *url.URL) (*Respo
 	return response, nil
 }
 
-func statusError(response *http.Response) error {
+// StatusError closes the body of an unexpected response and describes the
+// response with its status and the start of its body.
+func StatusError(response *http.Response) error {
 	defer response.Body.Close()
 	preview, err := io.ReadAll(io.LimitReader(response.Body, errorBodyPreviewLength+1))
 	if err != nil || len(preview) == 0 {

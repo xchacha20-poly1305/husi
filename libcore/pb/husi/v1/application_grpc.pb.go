@@ -28,6 +28,10 @@ const (
 	ApplicationService_StandaloneSTUNTest_FullMethodName           = "/husi.v1.ApplicationService/StandaloneSTUNTest"
 	ApplicationService_StandaloneNetworkQualityTest_FullMethodName = "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
 	ApplicationService_HTTPFetch_FullMethodName                    = "/husi.v1.ApplicationService/HTTPFetch"
+	ApplicationService_WebDAVList_FullMethodName                   = "/husi.v1.ApplicationService/WebDAVList"
+	ApplicationService_WebDAVUpload_FullMethodName                 = "/husi.v1.ApplicationService/WebDAVUpload"
+	ApplicationService_WebDAVDownload_FullMethodName               = "/husi.v1.ApplicationService/WebDAVDownload"
+	ApplicationService_WebDAVDelete_FullMethodName                 = "/husi.v1.ApplicationService/WebDAVDelete"
 	ApplicationService_Ping_FullMethodName                         = "/husi.v1.ApplicationService/Ping"
 	ApplicationService_MatchRuleSets_FullMethodName                = "/husi.v1.ApplicationService/MatchRuleSets"
 	ApplicationService_GetRootCertificates_FullMethodName          = "/husi.v1.ApplicationService/GetRootCertificates"
@@ -57,6 +61,9 @@ const (
 // code in-process through the libcore binding. It runs here so the desktop UI
 // needs no Go runtime of its own.
 //
+// The WebDAV RPCs keep backups in a remote directory. File contents travel in
+// chunks, so a backup of any size stays below gRPC's message limit.
+//
 // Ping, MatchRuleSets and GetRootCertificates answer for the UI what it cannot
 // compute without Go: an ICMP socket (and on Android, a socket protected from
 // the VPN), sing-box's rule-set matcher, and the root bundles embedded in
@@ -77,6 +84,10 @@ type ApplicationServiceClient interface {
 	StandaloneSTUNTest(ctx context.Context, in *StandaloneSTUNTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.STUNTestProgress], error)
 	StandaloneNetworkQualityTest(ctx context.Context, in *StandaloneNetworkQualityTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.NetworkQualityTestProgress], error)
 	HTTPFetch(ctx context.Context, in *HTTPFetchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HTTPFetchResponse], error)
+	WebDAVList(ctx context.Context, in *WebDAVListRequest, opts ...grpc.CallOption) (*WebDAVListResponse, error)
+	WebDAVUpload(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[WebDAVUploadRequest, WebDAVUploadResponse], error)
+	WebDAVDownload(ctx context.Context, in *WebDAVDownloadRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WebDAVDownloadResponse], error)
+	WebDAVDelete(ctx context.Context, in *WebDAVDeleteRequest, opts ...grpc.CallOption) (*WebDAVDeleteResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	MatchRuleSets(ctx context.Context, in *MatchRuleSetsRequest, opts ...grpc.CallOption) (*MatchRuleSetsResponse, error)
 	GetRootCertificates(ctx context.Context, in *GetRootCertificatesRequest, opts ...grpc.CallOption) (*GetRootCertificatesResponse, error)
@@ -199,6 +210,58 @@ func (c *applicationServiceClient) HTTPFetch(ctx context.Context, in *HTTPFetchR
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ApplicationService_HTTPFetchClient = grpc.ServerStreamingClient[HTTPFetchResponse]
 
+func (c *applicationServiceClient) WebDAVList(ctx context.Context, in *WebDAVListRequest, opts ...grpc.CallOption) (*WebDAVListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WebDAVListResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_WebDAVList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) WebDAVUpload(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[WebDAVUploadRequest, WebDAVUploadResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ApplicationService_ServiceDesc.Streams[3], ApplicationService_WebDAVUpload_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WebDAVUploadRequest, WebDAVUploadResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ApplicationService_WebDAVUploadClient = grpc.ClientStreamingClient[WebDAVUploadRequest, WebDAVUploadResponse]
+
+func (c *applicationServiceClient) WebDAVDownload(ctx context.Context, in *WebDAVDownloadRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WebDAVDownloadResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ApplicationService_ServiceDesc.Streams[4], ApplicationService_WebDAVDownload_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WebDAVDownloadRequest, WebDAVDownloadResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ApplicationService_WebDAVDownloadClient = grpc.ServerStreamingClient[WebDAVDownloadResponse]
+
+func (c *applicationServiceClient) WebDAVDelete(ctx context.Context, in *WebDAVDeleteRequest, opts ...grpc.CallOption) (*WebDAVDeleteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WebDAVDeleteResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_WebDAVDelete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *applicationServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PingResponse)
@@ -262,6 +325,9 @@ func (c *applicationServiceClient) ReadAndroidVPNType(ctx context.Context, in *R
 // code in-process through the libcore binding. It runs here so the desktop UI
 // needs no Go runtime of its own.
 //
+// The WebDAV RPCs keep backups in a remote directory. File contents travel in
+// chunks, so a backup of any size stays below gRPC's message limit.
+//
 // Ping, MatchRuleSets and GetRootCertificates answer for the UI what it cannot
 // compute without Go: an ICMP socket (and on Android, a socket protected from
 // the VPN), sing-box's rule-set matcher, and the root bundles embedded in
@@ -282,6 +348,10 @@ type ApplicationServiceServer interface {
 	StandaloneSTUNTest(*StandaloneSTUNTestRequest, grpc.ServerStreamingServer[daemon.STUNTestProgress]) error
 	StandaloneNetworkQualityTest(*StandaloneNetworkQualityTestRequest, grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]) error
 	HTTPFetch(*HTTPFetchRequest, grpc.ServerStreamingServer[HTTPFetchResponse]) error
+	WebDAVList(context.Context, *WebDAVListRequest) (*WebDAVListResponse, error)
+	WebDAVUpload(grpc.ClientStreamingServer[WebDAVUploadRequest, WebDAVUploadResponse]) error
+	WebDAVDownload(*WebDAVDownloadRequest, grpc.ServerStreamingServer[WebDAVDownloadResponse]) error
+	WebDAVDelete(context.Context, *WebDAVDeleteRequest) (*WebDAVDeleteResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	MatchRuleSets(context.Context, *MatchRuleSetsRequest) (*MatchRuleSetsResponse, error)
 	GetRootCertificates(context.Context, *GetRootCertificatesRequest) (*GetRootCertificatesResponse, error)
@@ -320,6 +390,18 @@ func (UnimplementedApplicationServiceServer) StandaloneNetworkQualityTest(*Stand
 }
 func (UnimplementedApplicationServiceServer) HTTPFetch(*HTTPFetchRequest, grpc.ServerStreamingServer[HTTPFetchResponse]) error {
 	return status.Error(codes.Unimplemented, "method HTTPFetch not implemented")
+}
+func (UnimplementedApplicationServiceServer) WebDAVList(context.Context, *WebDAVListRequest) (*WebDAVListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method WebDAVList not implemented")
+}
+func (UnimplementedApplicationServiceServer) WebDAVUpload(grpc.ClientStreamingServer[WebDAVUploadRequest, WebDAVUploadResponse]) error {
+	return status.Error(codes.Unimplemented, "method WebDAVUpload not implemented")
+}
+func (UnimplementedApplicationServiceServer) WebDAVDownload(*WebDAVDownloadRequest, grpc.ServerStreamingServer[WebDAVDownloadResponse]) error {
+	return status.Error(codes.Unimplemented, "method WebDAVDownload not implemented")
+}
+func (UnimplementedApplicationServiceServer) WebDAVDelete(context.Context, *WebDAVDeleteRequest) (*WebDAVDeleteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method WebDAVDelete not implemented")
 }
 func (UnimplementedApplicationServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
@@ -477,6 +559,60 @@ func _ApplicationService_HTTPFetch_Handler(srv interface{}, stream grpc.ServerSt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ApplicationService_HTTPFetchServer = grpc.ServerStreamingServer[HTTPFetchResponse]
 
+func _ApplicationService_WebDAVList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WebDAVListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).WebDAVList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_WebDAVList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).WebDAVList(ctx, req.(*WebDAVListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_WebDAVUpload_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ApplicationServiceServer).WebDAVUpload(&grpc.GenericServerStream[WebDAVUploadRequest, WebDAVUploadResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ApplicationService_WebDAVUploadServer = grpc.ClientStreamingServer[WebDAVUploadRequest, WebDAVUploadResponse]
+
+func _ApplicationService_WebDAVDownload_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WebDAVDownloadRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApplicationServiceServer).WebDAVDownload(m, &grpc.GenericServerStream[WebDAVDownloadRequest, WebDAVDownloadResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ApplicationService_WebDAVDownloadServer = grpc.ServerStreamingServer[WebDAVDownloadResponse]
+
+func _ApplicationService_WebDAVDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WebDAVDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).WebDAVDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_WebDAVDelete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).WebDAVDelete(ctx, req.(*WebDAVDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ApplicationService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
@@ -577,6 +713,14 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ApplicationService_GetCert_Handler,
 		},
 		{
+			MethodName: "WebDAVList",
+			Handler:    _ApplicationService_WebDAVList_Handler,
+		},
+		{
+			MethodName: "WebDAVDelete",
+			Handler:    _ApplicationService_WebDAVDelete_Handler,
+		},
+		{
 			MethodName: "Ping",
 			Handler:    _ApplicationService_Ping_Handler,
 		},
@@ -607,6 +751,16 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "HTTPFetch",
 			Handler:       _ApplicationService_HTTPFetch_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "WebDAVUpload",
+			Handler:       _ApplicationService_WebDAVUpload_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "WebDAVDownload",
+			Handler:       _ApplicationService_WebDAVDownload_Handler,
 			ServerStreams: true,
 		},
 	},

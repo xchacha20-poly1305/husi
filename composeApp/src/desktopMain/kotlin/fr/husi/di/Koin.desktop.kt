@@ -5,7 +5,9 @@ import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.compose.theme.standardPlatformThemeApi
 import fr.husi.net.GrpcHttpFetcher
+import fr.husi.net.GrpcWebDAVClient
 import fr.husi.net.HttpFetcher
+import fr.husi.net.WebDAVClient
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.Repository
 import org.koin.core.module.Module
@@ -22,6 +24,7 @@ internal actual fun platformRepositoryModule(repository: Repository): Module = m
 
 private val desktopHttpModule = module {
     single<HttpFetcher> { GrpcHttpFetcher(coreClient = get()) }
+    single<WebDAVClient> { GrpcWebDAVClient(coreClient = get()) }
 }
 
 internal actual fun platformKoinModules(): List<Module> = listOf(desktopHttpModule)

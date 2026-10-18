@@ -153,6 +153,10 @@ object Key {
     const val APP_UPDATE_LAST_CHECK_EPOCH_DAY = "appUpdateLastCheckEpochDay"
     const val APP_UPDATE_SKIPPED_VERSION = "appUpdateSkippedVersion"
 
+    const val WEBDAV_URL = "webdavURL"
+    const val WEBDAV_USERNAME = "webdavUsername"
+    const val WEBDAV_PASSWORD = "webdavPassword"
+
     const val NETWORK_QUALITY_CONFIG_URL = "networkQualityConfigURL"
     const val NETWORK_QUALITY_SERIAL = "networkQualitySerial"
     const val NETWORK_QUALITY_MAX_RUNTIME = "networkQualityMaxRuntime"

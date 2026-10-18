@@ -280,4 +280,10 @@ object DataStore {
     val appUpdateLastCheckEpochDay = configurationStore.long(Key.APP_UPDATE_LAST_CHECK_EPOCH_DAY) { 0L }
     val appUpdateSkippedVersion = configurationStore.string(Key.APP_UPDATE_SKIPPED_VERSION)
 
+    // backup
+
+    val webdavURL = configurationStore.string(Key.WEBDAV_URL) { "" }
+    val webdavUsername = configurationStore.string(Key.WEBDAV_USERNAME) { "" }
+    val webdavPassword = configurationStore.string(Key.WEBDAV_PASSWORD) { "" }
+
 }

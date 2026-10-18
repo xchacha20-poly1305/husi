@@ -468,6 +468,21 @@
     <string name="backup_summary">If the routing settings are not backed up with configurations, then custom outbounds will be lost.</string>
     <string name="backup_import">Import</string>
     <string name="backup_import_summary">Importing overwrites existing data.</string>
+    <string name="webdav" translatable="false">WebDAV</string>
+    <string name="webdav_configure">Configure</string>
+    <string name="webdav_directory_url">Directory URL</string>
+    <string name="webdav_not_configured">No WebDAV server configured.</string>
+    <string name="webdav_upload">Upload backup</string>
+    <string name="webdav_upload_summary">Uploads the items selected under Export.</string>
+    <string name="webdav_upload_success">Backup uploaded</string>
+    <string name="webdav_restore">Restore from WebDAV</string>
+    <string name="webdav_no_backups">No backups found.</string>
+    <string name="webdav_delete">Delete backups</string>
+    <plurals name="webdav_delete_confirm">
+        <item quantity="one">Remove this backup from the WebDAV server?</item>
+        <item quantity="other">Remove these %1$d backups from the WebDAV server?</item>
+    </plurals>
+    <string name="webdav_delete_success">Backups deleted</string>
     <string name="packet_encoding">Packet Encoding</string>
     <string name="acquire_wake_lock">Acquire WakeLock</string>
     <string name="acquire_wake_lock_summary">Keep the CPU on</string>
