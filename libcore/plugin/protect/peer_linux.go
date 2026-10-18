@@ -38,11 +38,11 @@ func parentProcessIDOf(processID int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	commandEnd := bytes.LastIndexByte(content, ')')
-	if commandEnd < 0 {
+	_, afterCommand, cut := bytes.CutLast(content, []byte{')'})
+	if !cut {
 		return 0, E.New("invalid process stat")
 	}
-	fields := bytes.Fields(content[commandEnd+1:])
+	fields := bytes.Fields(afterCommand)
 	if len(fields) <= parentProcessIDField {
 		return 0, E.New("incomplete process stat")
 	}

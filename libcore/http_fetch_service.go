@@ -63,14 +63,12 @@ func (s *applicationService) HTTPFetch(
 
 func httpFetchRequestFromProto(req *husiv1.HTTPFetchRequest) (httpfetch.Request, error) {
 	request := httpfetch.Request{
-		URL:     req.GetUrl(),
-		Header:  http.Header{},
-		Timeout: C.TCPTimeout,
-		Transport: httpfetch.Transport{
-			RestrictedTLS: req.GetRestrictedTls(),
-			PinnedSHA256:  req.GetPinnedSha256(),
-			Socks5:        socks5FromProto(req.GetSocks5()),
-		},
+		URL:           req.GetUrl(),
+		Header:        make(http.Header),
+		Timeout:       C.TCPTimeout,
+		RestrictedTLS: req.GetRestrictedTls(),
+		PinnedSHA256:  req.GetPinnedSha256(),
+		Socks5:        socks5FromProto(req.GetSocks5()),
 	}
 	for key, value := range req.GetHeaders() {
 		request.Header.Set(key, value)

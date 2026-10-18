@@ -63,8 +63,8 @@ func (c *localTransportCredentials) ServerHandshake(rawConnection net.Conn) (net
 		c.registry.register(connection)
 	}
 	return connection, &peerAuthInfo{
-		CommonAuthInfo: credentials.CommonAuthInfo{SecurityLevel: credentials.PrivacyAndIntegrity},
-		identity:       identity,
+		SecurityLevel: credentials.PrivacyAndIntegrity,
+		identity:      identity,
 	}, nil
 }
 
@@ -81,8 +81,8 @@ func (c *localTransportCredentials) Clone() credentials.TransportCredentials {
 func (c *localTransportCredentials) OverrideServerName(string) error { return nil }
 
 func linuxPeerIdentity(connection net.Conn) (PeerIdentity, error) {
-	syscallConnection, ok := connection.(syscall.Conn)
-	if !ok {
+	syscallConnection, isSyscallConn := connection.(syscall.Conn)
+	if !isSyscallConn {
 		return PeerIdentity{}, E.New("daemon endpoint does not expose a syscall connection")
 	}
 	rawConnection, err := syscallConnection.SyscallConn()
@@ -128,11 +128,11 @@ func linuxProcessStartTime(processID int32) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	commandEnd := bytes.LastIndexByte(content, ')')
-	if commandEnd < 0 {
+	_, afterCommand, cut := bytes.CutLast(content, []byte{')'})
+	if !cut {
 		return 0, E.New("invalid process stat")
 	}
-	fields := bytes.Fields(content[commandEnd+1:])
+	fields := bytes.Fields(afterCommand)
 	if len(fields) <= startTimeField {
 		return 0, E.New("incomplete process stat")
 	}

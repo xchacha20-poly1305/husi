@@ -66,8 +66,8 @@ func (c *localTransportCredentials) ServerHandshake(rawConnection net.Conn) (net
 		c.registry.register(connection)
 	}
 	return connection, &peerAuthInfo{
-		CommonAuthInfo: credentials.CommonAuthInfo{SecurityLevel: credentials.PrivacyAndIntegrity},
-		identity:       identity,
+		SecurityLevel: credentials.PrivacyAndIntegrity,
+		identity:      identity,
 	}, nil
 }
 

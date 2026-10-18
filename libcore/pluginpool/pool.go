@@ -383,8 +383,7 @@ func exitCodeOf(err error) int {
 	if err == nil {
 		return 0
 	}
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
+	if exitErr, isExit := errors.AsType[*exec.ExitError](err); isExit {
 		return exitErr.ExitCode()
 	}
 	return -1

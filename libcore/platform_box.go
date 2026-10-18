@@ -126,13 +126,11 @@ func (w *boxPlatformInterfaceWrapper) NetworkInterfaces() ([]adapter.NetworkInte
 		// isDefault := w.defaultInterface != nil && int(netInterface.Index) == w.defaultInterface.Index
 		// w.defaultInterfaceAccess.Unlock()
 		interfaces = append(interfaces, adapter.NetworkInterface{
-			Interface: control.Interface{
-				Index:     int(netInterface.Index),
-				MTU:       int(netInterface.MTU),
-				Name:      netInterface.Name,
-				Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
-				Flags:     linkFlags(uint32(netInterface.Flags)),
-			},
+			Index:            int(netInterface.Index),
+			MTU:              int(netInterface.MTU),
+			Name:             netInterface.Name,
+			Addresses:        common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
+			Flags:            linkFlags(uint32(netInterface.Flags)),
 			Type:             C.InterfaceType(netInterface.Type),
 			DNSServers:       iteratorToArray[string](netInterface.DNSServer),
 			DNSSearchDomains: iteratorToArray[string](netInterface.DNSSearchDomain),
