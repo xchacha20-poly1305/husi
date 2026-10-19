@@ -32,4 +32,4 @@ PROTOC_VERSION="36.1"
 GEOIP_VERSION="20261012"
 
 # renovate: datasource=github-releases depName=v2fly/domain-list-community
-GEOSITE_VERSION="20261009101206"
+GEOSITE_VERSION="20261019074502"
