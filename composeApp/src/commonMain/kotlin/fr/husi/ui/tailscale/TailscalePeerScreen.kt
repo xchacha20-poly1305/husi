@@ -42,13 +42,19 @@ import fr.husi.resources.tailscale_magic_dns
 import fr.husi.resources.tailscale_os
 import fr.husi.resources.tailscale_received
 import fr.husi.resources.tailscale_shared_in
+import fr.husi.resources.tailscale_ssh
+import fr.husi.resources.tailscale_ssh_summary
 import fr.husi.resources.tailscale_transmitted
+import fr.husi.resources.terminal
 import fr.husi.resources.tools_network
 import fr.husi.tailscale.TAILSCALE_STATE_RUNNING
 import fr.husi.tailscale.TaildropSendManager
 import fr.husi.tailscale.TaildropSource
 import fr.husi.tailscale.TailscalePeerState
 import fr.husi.tailscale.TailscalePeerViewModel
+import fr.husi.tailscale.TailscaleSSHLogins
+import fr.husi.tailscale.TailscaleSSHSessionManager
+import fr.husi.tailscale.TailscaleSSHTarget
 import fr.husi.tailscale.TailscaleStatusRepository
 import fr.husi.tailscale.taildropDropTarget
 import fr.husi.ui.LocalSnackbarEmitter
@@ -68,6 +74,7 @@ fun TailscalePeerScreen(
     modifier: Modifier = Modifier,
     repository: TailscaleStatusRepository = koinInject(),
     sendManager: TaildropSendManager = koinInject(),
+    sshManager: TailscaleSSHSessionManager = koinInject(),
     viewModel: TailscalePeerViewModel = viewModel(key = "$endpointTag/$peerId") {
         TailscalePeerViewModel(
             endpointTag = endpointTag,
@@ -81,6 +88,9 @@ fun TailscalePeerScreen(
     val endpoint = uiState.endpoint
     val peer = uiState.peer
     var dragging by remember { mutableStateOf(false) }
+    var showSSHLogin by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val openSSHTerminal = rememberOpenTailscaleSSHTerminal()
 
     CollectTailscaleEvents(
         events = viewModel.uiEvent,
@@ -117,6 +127,35 @@ fun TailscalePeerScreen(
             )
         },
     )
+
+    val canSSH = endpoint != null
+        && peer != null
+        && peer.online
+        && peer.sshHostKeys.isNotEmpty()
+        && peer.tailscaleIps.isNotEmpty()
+        && endpoint.selfPeer?.id != peer.id
+    if (showSSHLogin && canSSH) {
+        TailscaleSSHLoginDialog(
+            peerStableId = peer.stableId,
+            peerName = peer.displayName,
+            onDismiss = { showSSHLogin = false },
+            onConnect = { login ->
+                showSSHLogin = false
+                scope.launch { TailscaleSSHLogins.put(peer.stableId, login) }
+                sshManager.open(
+                    TailscaleSSHTarget(
+                        endpointTag = endpointTag,
+                        peerStableId = peer.stableId,
+                        peerHostName = peer.displayName,
+                        peerAddress = peer.tailscaleIps.first(),
+                        hostKeys = peer.sshHostKeys,
+                        login = login,
+                    ),
+                )
+                openSSHTerminal()
+            },
+        )
+    }
 
     TailscaleScreenScaffold(
         title = peer?.displayName ?: stringResource(Res.string.details),
@@ -195,6 +234,21 @@ fun TailscalePeerScreen(
                 onStart = { viewModel.startPing(peer.tailscaleIps.first()) },
                 onStop = viewModel::stopPing,
             )
+        }
+        if (canSSH) {
+            preferenceGroup(key = "ssh") {
+                Preference(
+                    title = { Text(stringResource(Res.string.tailscale_ssh)) },
+                    summary = { Text(stringResource(Res.string.tailscale_ssh_summary)) },
+                    icon = {
+                        MaskedIcon(
+                            resource = Res.drawable.terminal,
+                            color = IconMaskColors.IconLightGreen,
+                        )
+                    },
+                    onClick = { showSSHLogin = true },
+                )
+            }
         }
         if (canSend) {
             item(key = "send") {

@@ -47,7 +47,7 @@ KEEP_STARTED_SERVICE_RPCS=(
   SubscribeOpenConnectStatus SubmitOpenConnectAuthResponse CancelOpenConnectAuthChallenge
   SubscribeOpenVPNStatus SubmitOpenVPNChallengeResponse CancelOpenVPNChallenge
   SubscribeTailscaleStatus StartTailscalePing SetTailscaleExitNode TailscaleLogout
-  GetTailscaleCertificate
+  GetTailscaleCertificate StartTailscaleSSHSession
   SubscribeTaildropInbox MarkTaildropInboxRead SendTaildropFiles
   DownloadTaildropFile DeleteTaildropFile CancelTaildropReceiving
 )

@@ -286,4 +286,9 @@ object DataStore {
     val webdavUsername = configurationStore.string(Key.WEBDAV_USERNAME) { "" }
     val webdavPassword = configurationStore.string(Key.WEBDAV_PASSWORD) { "" }
 
+    // tailscale
+
+    /** JSON of the SSH login each peer was last connected with; see [fr.husi.tailscale.TailscaleSSHLogins]. */
+    val tailscaleSSHLogins = configurationStore.string(Key.TAILSCALE_SSH_LOGINS) { "" }
+
 }

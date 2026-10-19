@@ -122,6 +122,13 @@
             </intent-filter>
         </activity>
 
+        <!-- The terminal lays itself out again on any of these; recreating would drop its view state. -->
+        <activity
+            android:name="fr.husi.ui.tailscale.TailscaleSSHActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"

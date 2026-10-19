@@ -32,6 +32,12 @@
     *;
 }
 
+# libghostty's JNI library calls these back by name; they have no Java caller.
+-keepclasseswithmembernames class io.github.xchacha20_poly1305.libghostty.GhosttyTerminalSession {
+    private boolean clipboardHasText();
+    private byte[] readClipboardForProgram(boolean);
+}
+
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
 
