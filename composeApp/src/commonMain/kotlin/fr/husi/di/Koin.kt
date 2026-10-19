@@ -13,6 +13,7 @@ import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
 import fr.husi.repository.Repository
 import fr.husi.tailscale.TaildropSendManager
+import fr.husi.tailscale.TailscaleSSHSessionManager
 import fr.husi.tailscale.TailscaleStatusRepository
 import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.openconnect.OpenConnectAuthController
@@ -51,6 +52,7 @@ private fun commonUiModule() = module {
     single { OpenVPNAuthController(targets = get<RemoteControlManager>().runningTarget) }
     single { TailscaleStatusRepository(targets = get<RemoteControlManager>().runningTarget) }
     single { TaildropSendManager(targets = get<RemoteControlManager>().runningTarget) }
+    single { TailscaleSSHSessionManager(targets = get<RemoteControlManager>().runningTarget) }
 }
 
 /**

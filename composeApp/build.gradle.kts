@@ -146,6 +146,10 @@ data class DesktopTarget(
         setOf(
             "nucleus/native/${platform.jnaName}-${arch.nucleusName}/",
         )
+    /** Where libghostty keeps its JNI library for every target, one directory each. */
+    val ghosttyNativePrefix: String = "io/github/xchacha20_poly1305/libghostty/native/"
+    /** libghostty names its native directories with the same OS and arch tokens as kurpc. */
+    val ghosttyNativeKeepPrefix: String = "$ghosttyNativePrefix${platform.kurpcName}-${arch.kurpcName}/"
     val skikoNativeKeepEntries: Set<String> =
         buildSet {
             val baseName = "skiko-${platform.composeDependencyId}-${arch.composeDependencyId}"
@@ -378,6 +382,8 @@ kotlin {
                 implementation(libs.haze.blur.material3)
                 implementation(libs.zxing.core)
                 implementation(libs.kpuri)
+                implementation(libs.libghostty)
+                implementation(libs.libghostty.compose)
                 implementation(project(":proto"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
 
@@ -560,6 +566,8 @@ tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach 
         val jnaNativeKeepPrefixes = desktopTarget.jnaNativeKeepPrefixes
         val composeTrayNativeKeepPrefixes = desktopTarget.composeTrayNativeKeepPrefixes
         val nucleusNativeKeepPrefixes = desktopTarget.nucleusNativeKeepPrefixes
+        val ghosttyNativePrefix = desktopTarget.ghosttyNativePrefix
+        val ghosttyNativeKeepPrefix = desktopTarget.ghosttyNativeKeepPrefix
         val skikoNativeKeepEntries = desktopTarget.skikoNativeKeepEntries
         val targetJar = layout.buildDirectory.file("compose/jars/$desktopArtifactBaseName.jar")
 
@@ -596,6 +604,14 @@ tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach 
             if (
                 entryPath.startsWith("nucleus/native/") &&
                 nucleusNativeKeepPrefixes.none(entryPath::startsWith)
+            ) {
+                exclude()
+                return@eachFile
+            }
+
+            if (
+                entryPath.startsWith(ghosttyNativePrefix) &&
+                !entryPath.startsWith(ghosttyNativeKeepPrefix)
             ) {
                 exclude()
                 return@eachFile

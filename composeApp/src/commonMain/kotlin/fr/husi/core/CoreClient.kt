@@ -31,6 +31,8 @@ import fr.husi.proto.daemon.TaildropSendClientMessage
 import fr.husi.proto.daemon.TaildropSendServerMessage
 import fr.husi.proto.daemon.TailscaleCertificate
 import fr.husi.proto.daemon.TailscalePingResponse
+import fr.husi.proto.daemon.TailscaleSSHClientMessage
+import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.Version
 import fr.husi.proto.daemon.cancelTaildropReceivingRequest
@@ -178,6 +180,9 @@ interface CoreClient {
      */
     fun downloadTaildropFile(tag: String, name: String): Flow<DownloadTaildropFileChunk>
     fun sendTaildropFiles(requests: Flow<TaildropSendClientMessage>): Flow<TaildropSendServerMessage>
+
+    /** The first request must be the start message; the rest carry input and window sizes. */
+    fun startTailscaleSSHSession(requests: Flow<TailscaleSSHClientMessage>): Flow<TailscaleSSHServerMessage>
     suspend fun getVersion(): GetVersionResponse
     suspend fun getDaemonVersion(): Version
     suspend fun getStartedAt(): Long
@@ -615,6 +620,13 @@ class KurpcCoreClient internal constructor(
         requests.map { it.toByteArray() },
     ) { TaildropSendServerMessage.parseFrom(it) }
 
+    override fun startTailscaleSSHSession(
+        requests: Flow<TailscaleSSHClientMessage>,
+    ): Flow<TailscaleSSHServerMessage> = bidiStream(
+        Methods.START_TAILSCALE_SSH_SESSION,
+        requests.map { it.toByteArray() },
+    ) { TailscaleSSHServerMessage.parseFrom(it) }
+
     override suspend fun getVersion(): GetVersionResponse {
         return GetVersionResponse.parseFrom(
             unary(Methods.HUSI_GET_VERSION, getVersionRequest { }.toByteArray()),
@@ -970,6 +982,7 @@ class KurpcCoreClient internal constructor(
         const val SET_TAILSCALE_EXIT_NODE = "/daemon.StartedService/SetTailscaleExitNode"
         const val TAILSCALE_LOGOUT = "/daemon.StartedService/TailscaleLogout"
         const val GET_TAILSCALE_CERTIFICATE = "/daemon.StartedService/GetTailscaleCertificate"
+        const val START_TAILSCALE_SSH_SESSION = "/daemon.StartedService/StartTailscaleSSHSession"
         const val SUBSCRIBE_TAILDROP_INBOX = "/daemon.StartedService/SubscribeTaildropInbox"
         const val MARK_TAILDROP_INBOX_READ = "/daemon.StartedService/MarkTaildropInboxRead"
         const val SEND_TAILDROP_FILES = "/daemon.StartedService/SendTaildropFiles"

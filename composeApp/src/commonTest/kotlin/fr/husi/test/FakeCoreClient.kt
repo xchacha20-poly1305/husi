@@ -20,6 +20,8 @@ import fr.husi.proto.daemon.TaildropSendClientMessage
 import fr.husi.proto.daemon.TaildropSendServerMessage
 import fr.husi.proto.daemon.TailscaleCertificate
 import fr.husi.proto.daemon.TailscalePingResponse
+import fr.husi.proto.daemon.TailscaleSSHClientMessage
+import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
@@ -49,6 +51,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -188,6 +192,22 @@ open class FakeCoreClient : CoreClient {
         requests: Flow<TaildropSendClientMessage>,
     ): Flow<TaildropSendServerMessage> = flow {
         taildropSendRequests = requests.toList()
+    }
+
+    /** Client messages the latest [startTailscaleSSHSession] sent, recorded while it runs. */
+    val tailscaleSSHRequests = mutableListOf<TailscaleSSHClientMessage>()
+
+    /** Server messages the next [startTailscaleSSHSession] answers with once it has the start message. */
+    var tailscaleSSHResponses: List<TailscaleSSHServerMessage> = emptyList()
+
+    override fun startTailscaleSSHSession(
+        requests: Flow<TailscaleSSHClientMessage>,
+    ): Flow<TailscaleSSHServerMessage> = channelFlow {
+        tailscaleSSHRequests.clear()
+        launch {
+            requests.collect { tailscaleSSHRequests += it }
+        }
+        for (response in tailscaleSSHResponses) send(response)
     }
 
     var lastOpenVPNSubmission: OpenVPNChallengeSubmission? = null

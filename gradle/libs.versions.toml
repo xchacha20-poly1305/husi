@@ -7,7 +7,9 @@ composeMaterial3 = "1.12.0-alpha03"
 koin = "4.2.2"
 kotlinCoroutines = "1.11.0"
 kurpc = "0.1.0"
+libghostty = "0.3.1"
 kotlinxSerialization = "1.11.0"
+kotlinxSerialization = "1.12.0"
 kotlinxDatetime = "0.8.0"
 kotlinxImmutable = "0.5.2"
 androidxAppcompat = "1.8.0"
@@ -51,6 +53,8 @@ haze = "2.0.1"
 kurpc = { module = "io.github.xchacha20-poly1305:kurpc", version.ref = "kurpc" }
 # One jar per desktop classifier; composeApp picks the one matching desktopTarget.
 kurpc-natives-jvm = { module = "io.github.xchacha20-poly1305:kurpc-natives-jvm", version.ref = "kurpc" }
+libghostty = { module = "io.github.xchacha20-poly1305:libghostty", version.ref = "libghostty" }
+libghostty-compose = { module = "io.github.xchacha20-poly1305:libghostty-compose", version.ref = "libghostty" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }

@@ -939,6 +939,16 @@
     <string name="tailscale_advertise_exit_node">Advertise as Exit Node</string>
     <string name="tailscale_advertise_tags">Advertise Tags</string>
     <string name="tailscale_ssh_server">Tailscale SSH Server</string>
+    <string name="tailscale_ssh" translatable="false">SSH</string>
+    <string name="tailscale_ssh_summary">Open a shell on this peer through Tailscale SSH</string>
+    <string name="tailscale_ssh_terminal_type">Terminal Type</string>
+    <string name="tailscale_ssh_terminal_type_hint">Sent to the peer as TERM; it must have a matching terminfo entry.</string>
+    <string name="tailscale_ssh_connecting">Connecting…</string>
+    <string name="tailscale_ssh_new_session">New Session</string>
+    <string name="tailscale_ssh_close_session">Close Session</string>
+    <string name="tailscale_ssh_sessions">Sessions</string>
+    <string name="terminal_session_ended">Session ended</string>
+    <string name="terminal_press_any_key">press any key to close</string>
     <string name="taildrop_directory">Taildrop Directory</string>
     <string name="tailcat_server_public_key">Server Public Key</string>
     <string name="tailcat_server_disco_key">Server Disco Key</string>

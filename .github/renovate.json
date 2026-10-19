@@ -159,7 +159,8 @@
         "com.google.accompanist{/,}**",
         "me.zhanghai.compose.preference{/,}**",
         "io.github.oikvpqya.compose.fastscroller{/,}**",
-        "io.github.vinceglb{/,}**"
+        "io.github.vinceglb{/,}**",
+        "io.github.xchacha20-poly1305{/,}**"
       ],
       "groupName": "Compose Ecosystem",
       "groupSlug": "compose-ecosystem"

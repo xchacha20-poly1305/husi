@@ -157,6 +157,8 @@ object Key {
     const val WEBDAV_USERNAME = "webdavUsername"
     const val WEBDAV_PASSWORD = "webdavPassword"
 
+    const val TAILSCALE_SSH_LOGINS = "tailscaleSSHLogins"
+
     const val NETWORK_QUALITY_CONFIG_URL = "networkQualityConfigURL"
     const val NETWORK_QUALITY_SERIAL = "networkQualitySerial"
     const val NETWORK_QUALITY_MAX_RUNTIME = "networkQualityMaxRuntime"

@@ -864,6 +864,15 @@
     <string name="tailscale_advertise_exit_node">通告为出口节点</string>
     <string name="tailscale_advertise_tags">通告标签</string>
     <string name="tailscale_ssh_server">Tailscale SSH 服务器</string>
+    <string name="tailscale_ssh_summary">通过 Tailscale SSH 在此设备上打开 shell</string>
+    <string name="tailscale_ssh_terminal_type">终端类型</string>
+    <string name="tailscale_ssh_terminal_type_hint">作为 TERM 发送给对端，对端须有对应的 terminfo。</string>
+    <string name="tailscale_ssh_connecting">正在连接…</string>
+    <string name="tailscale_ssh_new_session">新建会话</string>
+    <string name="tailscale_ssh_close_session">关闭会话</string>
+    <string name="tailscale_ssh_sessions">会话</string>
+    <string name="terminal_session_ended">会话已结束</string>
+    <string name="terminal_press_any_key">按任意键关闭</string>
     <string name="taildrop_directory">Taildrop 目录</string>
     <string name="tailcat_server_public_key">服务器公钥</string>
     <string name="tailcat_server_disco_key">服务器 Disco 公钥</string>

@@ -48,6 +48,7 @@ import fr.husi.resources.app_name
 import fr.husi.resources.ic_service_active
 import fr.husi.ui.AuthChallengeDialogs
 import fr.husi.ui.MainScreen
+import fr.husi.ui.tailscale.TailscaleSSHWindow
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.installBundledRuleSets
 import kotlinx.coroutines.flow.first
@@ -267,6 +268,7 @@ class DesktopMain(
                 }
 
                 AuthChallengeDialogs(onDismissed = {})
+                TailscaleSSHWindow()
 
                 Window(
                     onCloseRequest = leaveWindow,
