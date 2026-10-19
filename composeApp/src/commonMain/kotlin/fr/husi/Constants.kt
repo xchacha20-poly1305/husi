@@ -105,6 +105,7 @@ object Key {
     const val TCP_KEEP_ALIVE_INTERVAL_0 = "tcpKeepAliveInterval0"
     const val LOG_LEVEL = "logLevel"
     const val LOG_MAX_LINE = "logMaxLine"
+    const val LOG_TERMINAL_MODE = "logTerminalMode"
     const val MTU = "mtu"
     const val VPN_SESSION_NAME = "vpnSessionName"
     const val TUN_INTERFACE_NAME = "tunInterfaceName"
