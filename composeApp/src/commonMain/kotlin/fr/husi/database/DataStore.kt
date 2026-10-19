@@ -184,6 +184,7 @@ object DataStore {
     val routeAssetsLastUpdated = configurationStore.long(Key.ROUTE_ASSETS_LAST_UPDATED) { 0L }
     val logLevel = configurationStore.int(Key.LOG_LEVEL) { 3 /* WARN */ }
     val logMaxLine = configurationStore.int(Key.LOG_MAX_LINE) { 1024 }
+    val logTerminalMode = configurationStore.boolean(Key.LOG_TERMINAL_MODE) { false }
     val acquireWakeLock = configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
 
     val mixedPort = configurationStore.port(Key.MIXED_PORT, 2080)

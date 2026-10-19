@@ -24,8 +24,6 @@ fun TerminalPane(
     modifier: Modifier = Modifier,
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
-    // Follows the app theme rather than the system one, which the app may override.
-    val darkColorScheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     Column(modifier = modifier) {
         GhosttyProgressIndicator(session, Modifier.fillMaxWidth())
         Box(modifier = Modifier.weight(1f)) {
@@ -33,7 +31,7 @@ fun TerminalPane(
                 session = session,
                 modifier = Modifier.fillMaxSize(),
                 state = state,
-                darkColorScheme = darkColorScheme,
+                darkColorScheme = isAppThemeDark(),
                 onFinishedSessionKey = onFinishedSessionKey,
             )
             overlay()
@@ -44,3 +42,6 @@ fun TerminalPane(
     }
 }
 
+/** Follows the app theme rather than the system one, which the app may override. */
+@Composable
+fun isAppThemeDark(): Boolean = MaterialTheme.colorScheme.background.luminance() < 0.5f

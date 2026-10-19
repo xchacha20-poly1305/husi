@@ -665,6 +665,8 @@
     <string name="long_click_to_see_name">长按以显示名称</string>
     <string name="provider_naive">NaïveProxy 提供程序</string>
     <string name="max_log_line">最大日志行数</string>
+    <string name="log_terminal_mode">终端日志视图</string>
+    <string name="log_terminal_mode_sum">像终端一样显示日志，保留其颜色</string>
     <string name="scroll_to_bottom">滚动到底部</string>
     <string name="ech_query_server_name">用于查询的服务名称</string>
     <string name="force_resolve_error">强制解析失败：%1$s</string>

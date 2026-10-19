@@ -76,6 +76,8 @@ import fr.husi.resources.insecure_warn
 import fr.husi.resources.language
 import fr.husi.resources.language_system_default
 import fr.husi.resources.log_level
+import fr.husi.resources.log_terminal_mode
+import fr.husi.resources.log_terminal_mode_sum
 import fr.husi.resources.long_click_to_see_name
 import fr.husi.resources.max_log_line
 import fr.husi.resources.mtu
@@ -92,6 +94,7 @@ import fr.husi.resources.show_direct_speed_sum
 import fr.husi.resources.shutter_speed
 import fr.husi.resources.speed
 import fr.husi.resources.speed_interval
+import fr.husi.resources.terminal
 import fr.husi.resources.theme
 import fr.husi.resources.traffic
 import fr.husi.resources.transform
@@ -493,6 +496,20 @@ internal fun GeneralSettingsGroup(
             )
         },
         valueText = { Text(previewValue.toInt().toString()) },
+    )
+
+    val logTerminalModeValue by DataStore.logTerminalMode.collectAsStateWithLifecycle()
+    SwitchPreference(
+        value = logTerminalModeValue,
+        onValueChange = { DataStore.logTerminalMode.setBlocking(it) },
+        title = { Text(stringResource(Res.string.log_terminal_mode)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.terminal,
+                color = IconMaskColors.IconCyan,
+            )
+        },
+        summary = { Text(stringResource(Res.string.log_terminal_mode_sum)) },
     )
     if (isExpertState) {
         val debugListenValue by DataStore.debugListen.collectAsStateWithLifecycle()
