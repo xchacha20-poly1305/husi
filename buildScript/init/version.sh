@@ -19,7 +19,7 @@ JAVA_VERSION="${JBR_VERSION%%.*}"
 # NDK version as named by sdkmanager under $ANDROID_HOME/ndk/.
 # Renovate has no datasource for it; keep androidApp/build.gradle.kts `ndkVersion` equal.
 ANDROID_NDK_VERSION="30.0.16248370"
-ZIG_VERSION="0.16.0"
+ZIG_VERSION="0.17.0"
 # renovate: datasource=github-releases depName=goreleaser/nfpm
 NFPM_VERSION="2.48.0"
 # renovate: datasource=github-releases depName=AppImage/appimagetool
