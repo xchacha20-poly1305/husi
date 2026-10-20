@@ -12,7 +12,7 @@ RUST_VERSION="1.99.0"
 # JAVA_VERSION is the JBR feature version: the host jlink links these jmods,
 # and jlink cannot read jmods newer than itself.
 # renovate: datasource=github-releases depName=JetBrains/JetBrainsRuntime
-JBR_RELEASE="25.0.4.1b635.72"
+JBR_RELEASE="25.0.4.1b635.75"
 JBR_VERSION="${JBR_RELEASE%b*}"
 JBR_BUILD="${JBR_RELEASE#*b}"
 JAVA_VERSION="${JBR_VERSION%%.*}"
@@ -32,4 +32,4 @@ PROTOC_VERSION="36.1"
 GEOIP_VERSION="20261012"
 
 # renovate: datasource=github-releases depName=v2fly/domain-list-community
-GEOSITE_VERSION="20261009101206"
+GEOSITE_VERSION="20261019074502"
