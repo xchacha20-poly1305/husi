@@ -4,7 +4,7 @@
 # the matching custom manager lives in .github/renovate.json.
 
 # renovate: datasource=golang-version depName=go
-GO_VERSION="1.27.2"
+GO_VERSION="1.27.3"
 # renovate: datasource=github-releases depName=rust-lang/rust
 RUST_VERSION="1.99.0"
 # The only JDK in use: CI builds with it (.github/actions/setup-jbr), and its
