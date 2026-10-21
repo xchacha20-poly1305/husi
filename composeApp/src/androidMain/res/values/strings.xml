@@ -8,4 +8,5 @@
     <string name="select_profile">Select Profile</string>
     <string name="tile_title">Switcher</string>
     <string name="taildrop_share_label" translatable="false">Taildrop</string>
+    <string name="tailscale_ssh_label" translatable="false">Tailscale SSH</string>
 </resources>

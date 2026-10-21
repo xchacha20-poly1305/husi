@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.DropdownMenuSectionHeader
 import fr.husi.compose.SimpleIconButton
@@ -79,11 +81,12 @@ fun TailscaleSSHTerminalScreen(
     }
 
     val windowInsets = WindowInsets.safeDrawing
+    val hazeState = rememberHazeState()
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             CapsuleTopBar(
-                hazeState = null,
+                hazeState = hazeState,
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.arrow_back),
@@ -123,10 +126,14 @@ fun TailscaleSSHTerminalScreen(
             session = activeSession.terminal,
             state = terminalState,
             onFinishedSessionKey = { manager.close(activeSession.id) },
+            hazeState = hazeState,
+            // The input method shrinks the pane, so the terminal resizes to the rows left above it; the bars stay
+            // padding so the rows behind them show through.
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .imePadding(),
+            contentPadding = innerPadding,
             overlay = { SessionStatus(activeSession) },
         )
     }

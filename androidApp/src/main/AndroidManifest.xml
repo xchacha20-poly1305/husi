@@ -122,11 +122,17 @@
             </intent-filter>
         </activity>
 
-        <!-- The terminal lays itself out again on any of these; recreating would drop its view state. -->
+        <!--
+            The terminal lays itself out again on any of these; recreating would drop its view state.
+            Its own task affinity with singleTask gives the terminal a separate card in recents.
+        -->
         <activity
             android:name="fr.husi.ui.tailscale.TailscaleSSHActivity"
+            android:autoRemoveFromRecents="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode"
-            android:launchMode="singleTop"
+            android:label="@string/tailscale_ssh_label"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.tailscale_ssh"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
