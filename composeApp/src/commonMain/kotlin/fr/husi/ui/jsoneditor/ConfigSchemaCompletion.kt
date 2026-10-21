@@ -179,7 +179,7 @@ class ConfigSchemaCompleter(
                     val childSchema = if (parent.isArray) {
                         itemsOf(parent.schema)
                     } else {
-                        parent.pendingKey?.let { key -> propertiesOf(parent.schema)[key] }
+                        parent.pendingKey?.let { key -> propertyOf(parent.schema, key) }
                     } ?: JsonObject(emptyMap())
                     frames += SchemaFrame(childSchema, isArray = text[token.start] == '[')
                 }
@@ -212,7 +212,7 @@ class ConfigSchemaCompleter(
     private fun valueSchema(frame: SchemaFrame): JsonObject = if (frame.isArray) {
         itemsOf(frame.schema) ?: JsonObject(emptyMap())
     } else {
-        frame.pendingKey?.let { key -> propertiesOf(frame.schema)[key] } ?: JsonObject(emptyMap())
+        frame.pendingKey?.let { key -> propertyOf(frame.schema, key) } ?: JsonObject(emptyMap())
     }
 
     private fun propertiesOf(schema: JsonObject): Map<String, JsonObject> = variants(schema)
@@ -223,6 +223,14 @@ class ConfigSchemaCompleter(
         }
         .groupBy({ it.first }, { it.second })
         .mapValues { (_, schemas) -> combine(schemas) }
+
+    /** Looks up one property without building the whole [propertiesOf] map, which the scan would discard. */
+    private fun propertyOf(schema: JsonObject, name: String): JsonObject? {
+        val schemas = variants(schema).mapNotNull { variant ->
+            (variant["properties"] as? JsonObject)?.get(name) as? JsonObject
+        }
+        return schemas.takeIf { it.isNotEmpty() }?.let(::combine)
+    }
 
     private fun itemsOf(schema: JsonObject): JsonObject? {
         val schemas = variants(schema).mapNotNull { it["items"] as? JsonObject }
