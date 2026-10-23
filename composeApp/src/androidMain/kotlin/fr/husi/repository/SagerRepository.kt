@@ -147,12 +147,12 @@ open class SagerRepository(
                 "service-vpn",
                 getString(Res.string.service_vpn),
                 importanceVpn,
-            ),
+            ).also { it.setShowBadge(false) },
             NotificationChannel(
                 "service-proxy",
                 getString(Res.string.service_proxy),
                 NotificationManager.IMPORTANCE_LOW,
-            ),
+            ).also { it.setShowBadge(false) },
             NotificationChannel(
                 "service-vpn-request",
                 getString(Res.string.service_vpn_request),
@@ -182,7 +182,7 @@ open class SagerRepository(
                 TaildropSendService.CHANNEL_ID,
                 getString(Res.string.taildrop_sending),
                 NotificationManager.IMPORTANCE_LOW,
-            ),
+            ).also { it.setShowBadge(false) },
         )
         notification.createNotificationChannels(channels)
     }
