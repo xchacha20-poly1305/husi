@@ -6,8 +6,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import fr.husi.ktx.Logs
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.io.File
 import java.util.zip.ZipFile
+import kotlin.coroutines.cancellation.CancellationException
 
 object AppScanner {
     private val skipPrefixList by lazy {
@@ -70,9 +73,14 @@ object AppScanner {
         ("(" + chinaAppPrefixList.joinToString("|").replace(".", "\\.") + ").*").toRegex()
     }
 
-    fun isChinaApp(packageName: String, packageManager: PackageManager): Boolean {
+    /**
+     * Cancellable between the expensive steps; a single archive or dex read still runs to its end.
+     */
+    suspend fun isChinaApp(packageName: String, packageManager: PackageManager): Boolean {
         skipPrefixList.forEach {
-            if (packageName == it || packageName.startsWith("$it.")) return false
+            if (packageName == it || packageName.startsWith("$it.")) {
+                return false
+            }
         }
 
         if (packageName.matches(chinaAppRegex)) {
@@ -81,6 +89,7 @@ object AppScanner {
         }
         try {
             val applicationInfo = getApplicationInfo(packageManager, packageName)
+            currentCoroutineContext().ensureActive()
             val archiveInfo = getComponentArchiveInfo(packageManager, applicationInfo)
             archiveInfo?.services?.forEach {
                 if (it.name.matches(chinaAppRegex)) {
@@ -106,11 +115,13 @@ object AppScanner {
                     return true
                 }
             }
+            currentCoroutineContext().ensureActive()
             ZipFile(File(applicationInfo.publicSourceDir)).use {
                 for (packageEntry in it.entries()) {
                     if (packageEntry.name.startsWith("firebase-")) return false
                 }
                 for (packageEntry in it.entries()) {
+                    currentCoroutineContext().ensureActive()
                     if (!(packageEntry.name.startsWith("classes") && packageEntry.name.endsWith(
                             ".dex",
                         ))
@@ -129,6 +140,7 @@ object AppScanner {
                         return false
                     }
                     for (clazz in dexFile.classes) {
+                        currentCoroutineContext().ensureActive()
                         val clazzName =
                             clazz.type.substring(1, clazz.type.length - 1).replace("/", ".")
                                 .replace("$", ".")
@@ -139,6 +151,8 @@ object AppScanner {
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logs.e("Error scanning package $packageName", e)
         }

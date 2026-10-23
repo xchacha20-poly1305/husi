@@ -1,18 +1,22 @@
 package fr.husi.ui
 
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import fr.husi.database.DataStore
 import fr.husi.utils.AppScanner
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Immutable
@@ -112,43 +116,41 @@ internal class AppManagerViewModel(
                     scanProcess = null,
                 )
             }
-            for ((packageName, packageInfo) in cachedApps) {
-                if (!isActive) {
-                    uiState.update {
-                        it.copy(
-                            scanned = null,
-                            scanProcess = null,
-                        )
+            try {
+                val chinaAppByUid = scanConcurrently(cachedApps)
+                for ((uid, isChinaApp) in chinaAppByUid) {
+                    if (isChinaApp == bypass) {
+                        proxiedUids.add(uid)
+                    } else {
+                        proxiedUids.remove(uid)
                     }
-                    return@launch
                 }
+                writeToDataStore()
+            } finally {
+                uiState.update { it.copy(scanned = null, scanProcess = null) }
+            }
+        }
+    }
 
+    private suspend fun scanConcurrently(
+        apps: Map<String, PackageInfo>,
+    ): List<Pair<Int, Boolean>> = coroutineScope {
+        val scanDispatcher = Dispatchers.IO.limitedParallelism(
+            Runtime.getRuntime().availableProcessors(),
+        )
+        apps.map { (packageName, packageInfo) ->
+            async(scanDispatcher) {
+                val isChinaApp = AppScanner.isChinaApp(packageName, packageManager)
                 uiState.update { state ->
                     val scanned = state.scanned!! + packageName
                     state.copy(
                         scanned = scanned,
-                        scanProcess = (scanned.size.toDouble() / cachedApps.size.toDouble()).toFloat(),
+                        scanProcess = scanned.size.toFloat() / apps.size,
                     )
                 }
-
-                val appInfo = packageInfo.applicationInfo!!
-                if (AppScanner.isChinaApp(packageName, packageManager)) {
-                    if (bypass) {
-                        proxiedUids.add(appInfo.uid)
-                    } else {
-                        proxiedUids.remove(appInfo.uid)
-                    }
-                } else {
-                    if (!bypass) {
-                        proxiedUids.add(appInfo.uid)
-                    } else {
-                        proxiedUids.remove(appInfo.uid)
-                    }
-                }
+                packageInfo.applicationInfo!!.uid to isChinaApp
             }
-            writeToDataStore()
-            uiState.emit(uiState.value.copy(scanned = null, scanProcess = null))
-        }
+        }.awaitAll()
     }
 
     fun cancelScan() {

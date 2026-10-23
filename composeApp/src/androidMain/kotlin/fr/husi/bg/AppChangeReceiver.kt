@@ -23,12 +23,12 @@ class AppChangeReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun checkUpdate(intent: Intent) {
-        if (!DataStore.proxyApps.getBlocking()) {
+    private suspend fun checkUpdate(intent: Intent) {
+        if (!DataStore.proxyApps.get()) {
             Logs.d("should not check in bypass mode")
             return
         }
-        if (!DataStore.updateProxyAppsWhenInstall.getBlocking()) {
+        if (!DataStore.updateProxyAppsWhenInstall.get()) {
             Logs.d("per app proxy disabled")
             return
         }
@@ -43,11 +43,11 @@ class AppChangeReceiver : BroadcastReceiver() {
         }
         val isChinaApp = AppScanner.isChinaApp(packageName, PackageCache.packageManager)
         Logs.d("scan china app result for $packageName: $isChinaApp")
-        val bypassMode = DataStore.bypassMode.getBlocking()
+        val bypassMode = DataStore.bypassMode.get()
         if (isChinaApp && bypassMode) {
-            DataStore.packages.updateBlocking { it + packageName }
+            DataStore.packages.update { it + packageName }
         } else if (!isChinaApp && !bypassMode) {
-            DataStore.packages.updateBlocking { it + packageName }
+            DataStore.packages.update { it + packageName }
         }
     }
 
