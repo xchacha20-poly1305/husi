@@ -22,11 +22,7 @@ func appendPlatformRootCAs(roots *Bundle, withUserTrust bool) error {
 	}
 
 	for name, path := range paths {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return E.Cause(err, "load cert")
-		}
-		if err := roots.Append(content); err != nil {
+		if err := appendRootCAFile(roots, path); err != nil {
 			log.Warn("add cert ", name, ": ", err)
 		}
 	}

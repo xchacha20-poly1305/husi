@@ -4,7 +4,9 @@ package rootcerts
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/pem"
 	_ "unsafe" // for go:linkname
 
@@ -54,12 +56,16 @@ func StoreFromProto(store husiv1.RootCertificateStore) (Store, bool) {
 // Bundle is a root set kept both as a pool for Go and as PEM for processes
 // that read a certificate file.
 type Bundle struct {
-	pool *x509.CertPool
-	pem  bytes.Buffer
+	pool         *x509.CertPool
+	pem          bytes.Buffer
+	fingerprints fingerprintSet
 }
 
 func NewBundle() *Bundle {
-	return &Bundle{pool: x509.NewCertPool()}
+	return &Bundle{
+		pool:         x509.NewCertPool(),
+		fingerprints: make(fingerprintSet),
+	}
 }
 
 // Load reads the roots of store. A store that cannot be read falls back to
@@ -103,52 +109,73 @@ func Install(bundle *Bundle) {
 }
 
 // Append adds the certificates of raw, which is PEM or concatenated DER.
+//
+// A certificate that does not parse is skipped rather than failing the rest:
+// system stores may hold certificates Go rejects, such as ones with a negative
+// serial number. The returned error lists what was skipped; every certificate
+// that parsed is added regardless.
+//
+// Certificates in [distrustedRoots] are left out silently, whichever store
+// still lists them.
 func (b *Bundle) Append(raw []byte) error {
-	foundPEM := false
-	remaining := raw
+	certificates, err := splitCertificates(raw)
+	var errors []error
+	if err != nil {
+		errors = append(errors, err)
+	}
+	for i, der := range certificates {
+		fingerprint := sha256.Sum256(der)
+		// Stores often list the same root more than once
+		// (Linux bundle file and its hashed directory).
+		if _, loaded := b.fingerprints[fingerprint]; loaded {
+			continue
+		}
+		if _, isDistrusted := distrustedRoots[fingerprint]; isDistrusted {
+			continue
+		}
+		certificate, err := x509.ParseCertificate(der)
+		if err != nil {
+			errors = append(errors, E.Cause(err, "parse certificate #", i))
+			continue
+		}
+		b.fingerprints[fingerprint] = struct{}{}
+		b.pool.AddCert(certificate)
+		_ = pem.Encode(&b.pem, &pem.Block{Type: typeCert, Bytes: der})
+	}
+	return E.Errors(errors...)
+}
+
+// splitCertificates returns the DER of each certificate in raw without
+// parsing it. If raw holds no PEM certificate, it is read as concatenated DER;
+// malformed DER ends the split with an error.
+func splitCertificates(raw []byte) ([][]byte, error) {
+	var certificates [][]byte
+	remained := raw
 	for {
-		block, rest := pem.Decode(remaining)
+		block, rest := pem.Decode(remained)
 		if block == nil {
 			break
 		}
-		remaining = rest
-		if block.Type != typeCert {
-			continue
-		}
-		foundPEM = true
-		certificate, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			return E.Cause(err, "parse PEM certificate")
-		}
-		err = b.add(certificate)
-		if err != nil {
-			return err
+		remained = rest
+		if block.Type == typeCert {
+			certificates = append(certificates, block.Bytes)
 		}
 	}
-	if foundPEM {
-		return nil
+	if len(certificates) > 0 {
+		return certificates, nil
 	}
 
-	certificates, err := x509.ParseCertificates(raw)
-	if err != nil {
-		return err
-	}
-	for _, certificate := range certificates {
-		err = b.add(certificate)
+	remained = raw
+	for len(remained) > 0 {
+		var element asn1.RawValue
+		rest, err := asn1.Unmarshal(remained, &element)
 		if err != nil {
-			return err
+			return certificates, E.Cause(err, "split DER certificates")
 		}
+		certificates = append(certificates, element.FullBytes)
+		remained = rest
 	}
-	return nil
-}
-
-func (b *Bundle) add(certificate *x509.Certificate) error {
-	b.pool.AddCert(certificate)
-	err := pem.Encode(&b.pem, &pem.Block{Type: typeCert, Bytes: certificate.Raw})
-	if err != nil {
-		return E.Cause(err, "encode certificate")
-	}
-	return nil
+	return certificates, nil
 }
 
 func (b *Bundle) PEM() []byte {

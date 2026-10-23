@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
@@ -28,9 +29,14 @@ func appendOnDiskRootCAs(roots *Bundle, certFilePath, certDirPath string) error 
 		files = []string{certFilePath}
 	}
 	for _, file := range files {
-		if err := appendRootCAFile(roots, file); err == nil {
-			break
+		content, err := os.ReadFile(file)
+		if err != nil {
+			continue
 		}
+		if err := roots.Append(content); err != nil {
+			log.Warn("load certificates from ", file, ": ", err)
+		}
+		break
 	}
 
 	directories := certDirectories
@@ -42,7 +48,9 @@ func appendOnDiskRootCAs(roots *Bundle, certFilePath, certDirPath string) error 
 			if err != nil || entry.IsDir() || !isCertificateFileName(path) {
 				return nil
 			}
-			_ = appendRootCAFile(roots, path)
+			if err := appendRootCAFile(roots, path); err != nil {
+				log.Warn("load certificates from ", path, ": ", err)
+			}
 			return nil
 		})
 	}

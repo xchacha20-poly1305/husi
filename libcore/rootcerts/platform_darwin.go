@@ -3,6 +3,7 @@
 package rootcerts
 
 import (
+	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/shell"
 )
@@ -22,7 +23,7 @@ func appendPlatformRootCAs(roots *Bundle, withUserTrust bool) error {
 			return E.Cause(err, "export certificates from ", keychain)
 		}
 		if err := roots.Append(content); err != nil {
-			return E.Cause(err, "load certificates from ", keychain)
+			log.Warn(E.Cause(err, "load certificates from ", keychain))
 		}
 	}
 	if roots.pem.Len() == 0 {

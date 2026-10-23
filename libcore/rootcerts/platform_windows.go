@@ -3,6 +3,7 @@
 package rootcerts
 
 import (
+	"errors"
 	"unsafe"
 
 	"github.com/sagernet/sing-box/log"
@@ -40,14 +41,16 @@ func appendPlatformRootCAs(roots *Bundle, withUserTrust bool) error {
 	for context := (*windows.CertContext)(nil); ; {
 		context, err = windows.CertEnumCertificatesInStore(store, context)
 		if err != nil {
-			log.Warn(E.Cause(err, "CertEnumCertificatesInStore"))
+			if !errors.Is(err, windows.Errno(windows.CRYPT_E_NOT_FOUND)) {
+				log.Warn(E.Cause(err, "CertEnumCertificatesInStore"))
+			}
 			break
 		}
 		if context == nil {
 			break
 		}
 		if err := roots.Append(unsafe.Slice(context.EncodedCert, context.Length)); err != nil {
-			return E.Cause(err, "load certificate from Windows root store")
+			log.Warn(E.Cause(err, "load certificate from Windows root store"))
 		}
 	}
 	if roots.pem.Len() == 0 {
