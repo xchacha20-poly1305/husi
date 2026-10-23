@@ -1,4 +1,4 @@
-package fr.husi.ui
+package fr.husi.ui.log
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -35,7 +35,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.context.GlobalContext
 
-private const val MAX_LOG_ENTRIES = 3000
+// The list draws a card per entry, while the terminal only appends new text, so it can hold more.
+private const val MAX_LIST_LOG_ENTRIES = 3000
+private const val MAX_TERMINAL_LOG_ENTRIES = 10_000
 
 private const val LOG_TRIM_SLACK = 500
 
@@ -86,12 +88,28 @@ private data class LogcatStatus(
     val isRemote: Boolean = false,
 )
 
+private fun maxLogEntries(terminalMode: Boolean): Int {
+    return if (terminalMode) {
+        MAX_TERMINAL_LOG_ENTRIES
+    } else {
+        MAX_LIST_LOG_ENTRIES
+    }
+}
+
+private fun PersistentList<LogEntry>.trimmedTo(maxEntries: Int): PersistentList<LogEntry> {
+    if (size <= maxEntries) return this
+    return subList(size - maxEntries, size).toPersistentList()
+}
+
 private fun PersistentList<LogEntry>.appendBounded(
     entries: List<LogEntry>,
+    maxEntries: Int,
 ): PersistentList<LogEntry> {
     val appended = addingAll(entries)
-    if (appended.size <= MAX_LOG_ENTRIES + LOG_TRIM_SLACK) return appended
-    return appended.subList(appended.size - MAX_LOG_ENTRIES, appended.size).toPersistentList()
+    if (appended.size <= maxEntries + LOG_TRIM_SLACK) {
+        return appended
+    }
+    return appended.trimmedTo(maxEntries)
 }
 
 private fun buildUiState(
@@ -130,6 +148,8 @@ class LogcatScreenViewModel(
     private val localLogLevel: LogLevel
         get() = LogLevel.forNumber(DataStore.logLevel.getBlocking()) ?: LogLevel.WARN
 
+    private var maxEntries = maxLogEntries(DataStore.logTerminalMode.getBlocking())
+
     private val liveLogs = MutableStateFlow(persistentListOf<LogEntry>())
 
     private val pausedLogs = MutableStateFlow<PersistentList<LogEntry>?>(null)
@@ -164,6 +184,13 @@ class LogcatScreenViewModel(
                 .drop(1)
                 .distinctUntilChanged()
                 .collect { setSearchQuery(it.ifEmpty { null }) }
+        }
+        viewModelScope.launch {
+            DataStore.logTerminalMode.flow().collect { terminalMode ->
+                maxEntries = maxLogEntries(terminalMode)
+                liveLogs.update { it.trimmedTo(maxEntries) }
+                pausedLogs.update { it?.trimmedTo(maxEntries) }
+            }
         }
     }
 
@@ -228,7 +255,7 @@ class LogcatScreenViewModel(
                 coreClient.subscribeLog().collect { batch ->
                     if (batch.reset) clearLogBuffers()
                     val entries = batch.messagesList.map { it.toLogEntry() }
-                    liveLogs.update { it.appendBounded(entries) }
+                    liveLogs.update { it.appendBounded(entries, maxEntries) }
                 }
             } catch (e: Exception) {
                 Logs.w("subscribe logs", e)

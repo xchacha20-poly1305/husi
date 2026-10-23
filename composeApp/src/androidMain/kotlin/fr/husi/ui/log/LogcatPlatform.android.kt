@@ -1,4 +1,4 @@
-package fr.husi.ui
+package fr.husi.ui.log
 
 import android.content.Context
 import android.content.Intent

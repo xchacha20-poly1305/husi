@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
-package fr.husi.ui
+package fr.husi.ui.log
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -94,6 +94,8 @@ import fr.husi.resources.resume
 import fr.husi.resources.scroll_to_bottom
 import fr.husi.resources.search
 import fr.husi.resources.share
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.StringOrRes
 import fr.husi.ui.remote.RemoteSessionBanner
 import fr.husi.ui.remote.RemoteTargetMenuSection
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -388,17 +390,19 @@ fun LogcatScreen(
                     }
                 }
 
-                if (terminalSession == null) {
-                    BoxedVerticalScrollbar(
-                        modifier = Modifier
-                            .padding(contentPadding)
-                            .fillMaxHeight(),
-                        adapter = rememberScrollbarAdapter(scrollState = listState),
-                        style = defaultMaterialScrollbarStyle().copy(
-                            thickness = 12.dp,
-                        ),
-                    )
-                }
+                BoxedVerticalScrollbar(
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .fillMaxHeight(),
+                    adapter = if (terminalSession != null) {
+                        rememberLogcatTerminalScrollbarAdapter(terminalState)
+                    } else {
+                        rememberScrollbarAdapter(scrollState = listState)
+                    },
+                    style = defaultMaterialScrollbarStyle().copy(
+                        thickness = 12.dp,
+                    ),
+                )
             }
         }
     }

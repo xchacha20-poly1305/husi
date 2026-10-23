@@ -33,7 +33,7 @@ import fr.husi.proto.daemon.NetworkQualityTestProgress
 import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.Status
-import fr.husi.ui.logLevels
+import fr.husi.ui.log.logLevels
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

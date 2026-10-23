@@ -1,4 +1,4 @@
-package fr.husi.ui
+package fr.husi.ui.log
 
 import fr.husi.proto.daemon.LogLevel
 import kotlin.test.Test

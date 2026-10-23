@@ -10,7 +10,7 @@ import fr.husi.ui.GroupScreen
 import fr.husi.ui.GroupSettingsScreen
 import fr.husi.ui.LibrariesScreen
 import fr.husi.ui.LocalNavigator
-import fr.husi.ui.LogcatScreen
+import fr.husi.ui.log.LogcatScreen
 import fr.husi.ui.MainScreenScope
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.SnackbarEmitter
@@ -42,7 +42,6 @@ import fr.husi.ui.tools.RuleSetMatchScreen
 import fr.husi.ui.tools.StunScreen
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.module.dsl.scopedOf
-import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import org.koin.dsl.navigation3.navigation
 import org.koin.dsl.onClose
