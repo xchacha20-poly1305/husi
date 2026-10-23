@@ -39,6 +39,9 @@ class OpenVPNAuthController(
     val endpoints: StateFlow<List<OpenVPNEndpointState>>
         get() = session.endpoints
 
+    val pendingChallengeKeys: StateFlow<Set<String>>
+        get() = session.pendingChallengeKeys
+
     val pendingDialogAuth: StateFlow<PendingOpenVPNAuth?>
         get() = session.pendingDialogAuth
 

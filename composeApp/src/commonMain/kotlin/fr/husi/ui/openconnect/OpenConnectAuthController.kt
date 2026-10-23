@@ -57,6 +57,9 @@ class OpenConnectAuthController(
     val endpoints: StateFlow<List<OpenConnectEndpointState>>
         get() = session.endpoints
 
+    val pendingChallengeKeys: StateFlow<Set<String>>
+        get() = session.pendingChallengeKeys
+
     val pendingDialogAuth: StateFlow<PendingOpenConnectAuth?>
         get() = session.pendingDialogAuth
 

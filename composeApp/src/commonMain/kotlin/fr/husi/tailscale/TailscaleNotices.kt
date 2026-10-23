@@ -1,5 +1,7 @@
 package fr.husi.tailscale
 
+import fr.husi.vpn.vpnAuthChallengeKey
+
 data class TailscaleNoticeSnapshot(
     val unreadFileCount: Int,
     val authUrl: String,
@@ -28,6 +30,21 @@ fun TailscaleEndpointState.toNoticeSnapshot() = TailscaleNoticeSnapshot(
 
 fun List<TailscaleEndpointState>.toNoticeSnapshots(): Map<String, TailscaleNoticeSnapshot> =
     associate { endpoint -> endpoint.endpointTag to endpoint.toNoticeSnapshot() }
+
+private fun taildropUnreadNoticeKey(endpointTag: String) = "$endpointTag\ntaildrop"
+
+fun List<TailscaleEndpointState>.dashboardNoticeCounts(): Map<String, Int> = buildMap {
+    for (endpoint in this@dashboardNoticeCounts) {
+        val waitingForLogin = endpoint.backendState == TAILSCALE_STATE_NEEDS_LOGIN &&
+            endpoint.authUrl.isNotEmpty()
+        if (waitingForLogin) {
+            put(vpnAuthChallengeKey(endpoint.endpointTag, endpoint.authUrl), 1)
+        }
+        if (endpoint.unreadFileCount > 0) {
+            put(taildropUnreadNoticeKey(endpoint.endpointTag), endpoint.unreadFileCount)
+        }
+    }
+}
 
 fun tailscaleNotices(
     previous: Map<String, TailscaleNoticeSnapshot>,

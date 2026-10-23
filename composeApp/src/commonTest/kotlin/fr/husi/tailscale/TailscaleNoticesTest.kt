@@ -1,6 +1,7 @@
 package fr.husi.tailscale
 
 import kotlin.test.Test
+import fr.husi.vpn.vpnAuthChallengeKey
 import kotlin.test.assertEquals
 
 class TailscaleNoticesTest {
@@ -104,6 +105,25 @@ class TailscaleNoticesTest {
                 listOf(endpoint(authUrl = "https://login.example/a", state = TAILSCALE_STATE_NEEDS_LOGIN)),
             ),
         )
+    }
+}
+
+class TailscaleDashboardNoticeCountsTest {
+
+    @Test
+    fun `pending logins count once and unread files count each`() {
+        val endpoints = listOf(
+            endpoint(tag = "running", authUrl = "https://login.example/a"),
+            endpoint(tag = "no-url", state = TAILSCALE_STATE_NEEDS_LOGIN),
+            endpoint(tag = "login", authUrl = "https://login.example/b", state = TAILSCALE_STATE_NEEDS_LOGIN),
+            endpoint(tag = "files", unread = 3),
+        )
+
+        val counts = endpoints.dashboardNoticeCounts()
+
+        assertEquals(2, counts.size)
+        assertEquals(1, counts[vpnAuthChallengeKey("login", "https://login.example/b")])
+        assertEquals(3, counts.values.max())
     }
 }
 

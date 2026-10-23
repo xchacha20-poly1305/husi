@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card as MaterialCard
@@ -67,7 +69,31 @@ class NavigationSuiteItem(
     val icon: DrawableResource,
     val selected: Boolean,
     val onClick: () -> Unit,
+    val badgeCount: Int = 0,
 )
+
+private const val NAVIGATION_BADGE_MAX_COUNT = 99
+
+@Composable
+internal fun NavigationSuiteItemIcon(item: NavigationSuiteItem) {
+    BadgedBox(
+        badge = {
+            if (item.badgeCount > 0) Badge {
+                val count = if (item.badgeCount > NAVIGATION_BADGE_MAX_COUNT) {
+                    "$NAVIGATION_BADGE_MAX_COUNT+"
+                } else {
+                    item.badgeCount.toString()
+                }
+                MaterialText(count)
+            }
+        },
+    ) {
+        MaterialIcon(
+            imageVector = vectorResource(item.icon),
+            contentDescription = stringResource(item.label),
+        )
+    }
+}
 
 internal interface PlatformTabRowScope {
     @Composable
@@ -319,12 +345,7 @@ private object MaterialPlatformMaterialApi : PlatformMaterialApi {
                             ShortNavigationBarItem(
                                 selected = item.selected,
                                 onClick = item.onClick,
-                                icon = {
-                                    MaterialIcon(
-                                        imageVector = vectorResource(item.icon),
-                                        contentDescription = stringResource(item.label),
-                                    )
-                                },
+                                icon = { NavigationSuiteItemIcon(item) },
                                 label = { MaterialText(stringResource(item.label)) },
                             )
                         }

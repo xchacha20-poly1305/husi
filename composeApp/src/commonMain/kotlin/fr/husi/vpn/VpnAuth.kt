@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -59,6 +60,15 @@ class VpnAuthSession<E, C>(
 
     val endpoints: StateFlow<List<E>>
         field = MutableStateFlow(emptyList())
+
+    val pendingChallengeKeys: StateFlow<Set<String>> =
+        endpoints.map { endpointList ->
+            endpointList.mapNotNullTo(HashSet()) { endpoint ->
+                pendingOf(endpoint)?.let {
+                    vpnAuthChallengeKey(it.endpointTag, challengeId(it.challenge))
+                }
+            }
+        }.stateIn(scope, SharingStarted.Eagerly, emptySet())
 
     private val dismissedChallenges = MutableStateFlow<Set<String>>(emptySet())
 

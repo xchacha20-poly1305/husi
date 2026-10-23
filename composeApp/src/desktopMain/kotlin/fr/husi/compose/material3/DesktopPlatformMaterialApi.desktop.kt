@@ -52,7 +52,6 @@ import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import java.awt.geom.Rectangle2D
 
 internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlatformMaterialApi() {
@@ -99,12 +98,7 @@ internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlat
                                 WideNavigationRailItem(
                                     selected = item.selected,
                                     onClick = item.onClick,
-                                    icon = {
-                                        Icon(
-                                            imageVector = vectorResource(item.icon),
-                                            contentDescription = stringResource(item.label),
-                                        )
-                                    },
+                                    icon = { NavigationSuiteItemIcon(item) },
                                     label = { Text(stringResource(item.label)) },
                                     railExpanded = true,
                                 )

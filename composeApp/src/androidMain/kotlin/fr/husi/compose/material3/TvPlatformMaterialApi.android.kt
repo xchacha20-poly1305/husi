@@ -23,7 +23,6 @@ import androidx.compose.material3.LocalTextStyle as MaterialLocalTextStyle
 import androidx.compose.material3.Text as MaterialText
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -189,10 +188,7 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
                 onClick = item.onClick,
                 leadingContent = {
                     ProvideTvMaterialBridge {
-                        MaterialIcon(
-                            imageVector = vectorResource(item.icon),
-                            contentDescription = stringResource(item.label),
-                        )
+                        NavigationSuiteItemIcon(item)
                     }
                 },
                 modifier = Modifier.focusRequester(focusRequester),

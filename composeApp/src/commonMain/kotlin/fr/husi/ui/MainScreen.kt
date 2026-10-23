@@ -77,6 +77,7 @@ import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
+import fr.husi.ui.dashboard.DashboardNoticeTracker
 import fr.husi.ui.remote.serverDisplayName
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -265,6 +266,14 @@ private fun MainScreenContent(
             TopLevelDestination(Res.string.settings, Res.drawable.settings, NavRoutes.Settings),
         )
     }
+    val dashboardNoticeTracker = koinInject<DashboardNoticeTracker>()
+    val unreadDashboardNoticeCount by dashboardNoticeTracker.unreadCount.collectAsStateWithLifecycle()
+    val isDashboardSelected = selectedTopLevelRoute.matchesRoute(NavRoutes.Dashboard)
+    LaunchedEffect(isDashboardSelected, unreadDashboardNoticeCount) {
+        if (isDashboardSelected && unreadDashboardNoticeCount > 0) {
+            dashboardNoticeTracker.markAllRead()
+        }
+    }
     val navigationItems = topLevelDestinations.map { destination ->
         val selected = selectedTopLevelRoute.matchesRoute(destination.route)
         NavigationSuiteItem(
@@ -275,6 +284,11 @@ private fun MainScreenContent(
                 if (!selected) {
                     navigator.navigateToTopLevelRoute(destination.route)
                 }
+            },
+            badgeCount = if (destination.route == NavRoutes.Dashboard) {
+                unreadDashboardNoticeCount
+            } else {
+                0
             },
         )
     }.toPersistentList()
