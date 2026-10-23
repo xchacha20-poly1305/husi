@@ -1,5 +1,7 @@
 package fr.husi.utils
 
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
@@ -73,50 +75,38 @@ object AppScanner {
             if (packageName == it || packageName.startsWith("$it.")) return false
         }
 
-        val packageManagerFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
-        } else {
-            @Suppress("DEPRECATION")
-            PackageManager.GET_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
-        }
         if (packageName.matches(chinaAppRegex)) {
             Logs.d("Match package name: $packageName")
             return true
         }
         try {
-            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                packageManager.getPackageInfo(
-                    packageName,
-                    PackageManager.PackageInfoFlags.of(packageManagerFlags.toLong()),
-                )
-            } else {
-                packageManager.getPackageInfo(packageName, packageManagerFlags)
-            }
-            packageInfo.services?.forEach {
+            val applicationInfo = getApplicationInfo(packageManager, packageName)
+            val archiveInfo = getComponentArchiveInfo(packageManager, applicationInfo)
+            archiveInfo?.services?.forEach {
                 if (it.name.matches(chinaAppRegex)) {
                     Logs.d("Match service ${it.name} in $packageName")
                     return true
                 }
             }
-            packageInfo.activities?.forEach {
+            archiveInfo?.activities?.forEach {
                 if (it.name.matches(chinaAppRegex)) {
                     Logs.d("Match activity ${it.name} in $packageName")
                     return true
                 }
             }
-            packageInfo.receivers?.forEach {
+            archiveInfo?.receivers?.forEach {
                 if (it.name.matches(chinaAppRegex)) {
                     Logs.d("Match receiver ${it.name} in $packageName")
                     return true
                 }
             }
-            packageInfo.providers?.forEach {
+            archiveInfo?.providers?.forEach {
                 if (it.name.matches(chinaAppRegex)) {
                     Logs.d("Match provider ${it.name} in $packageName")
                     return true
                 }
             }
-            ZipFile(File(packageInfo.applicationInfo!!.publicSourceDir)).use {
+            ZipFile(File(applicationInfo.publicSourceDir)).use {
                 for (packageEntry in it.entries()) {
                     if (packageEntry.name.startsWith("firebase-")) return false
                 }
@@ -153,5 +143,46 @@ object AppScanner {
             Logs.e("Error scanning package $packageName", e)
         }
         return false
+    }
+
+    private fun getApplicationInfo(
+        packageManager: PackageManager,
+        packageName: String,
+    ): ApplicationInfo {
+        val flags = PackageManager.MATCH_UNINSTALLED_PACKAGES
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getApplicationInfo(
+                packageName,
+                PackageManager.ApplicationInfoFlags.of(flags.toLong()),
+            )
+        } else {
+            packageManager.getApplicationInfo(packageName, flags)
+        }
+    }
+
+    private fun getComponentArchiveInfo(
+        packageManager: PackageManager,
+        applicationInfo: ApplicationInfo,
+    ): PackageInfo? {
+        val componentFlags = PackageManager.GET_ACTIVITIES or
+            PackageManager.GET_SERVICES or
+            PackageManager.GET_RECEIVERS or
+            PackageManager.GET_PROVIDERS
+        // Since Android 11, parsing the install directory includes the components of split APKs.
+        val archivePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+            && !applicationInfo.splitPublicSourceDirs.isNullOrEmpty()
+        ) {
+            File(applicationInfo.publicSourceDir).parent
+        } else {
+            applicationInfo.publicSourceDir
+        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getPackageArchiveInfo(
+                archivePath,
+                PackageManager.PackageInfoFlags.of(componentFlags.toLong()),
+            )
+        } else {
+            packageManager.getPackageArchiveInfo(archivePath, componentFlags)
+        }
     }
 }
