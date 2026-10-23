@@ -7,7 +7,6 @@ import (
 	"net/netip"
 	"os"
 	"sync"
-	"syscall"
 
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
@@ -17,14 +16,11 @@ import (
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
-	N "github.com/sagernet/sing/common/network"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/oscall"
-	"github.com/xchacha20-poly1305/husi/libcore/v2/procfs"
 )
 
 type boxPlatformInterfaceWrapper struct {
-	useProcFS              bool // Store iif.UseProcFS()
 	iif                    PlatformInterface
 	networkManager         adapter.NetworkManager
 	myTunName              string
@@ -184,33 +180,6 @@ func NewConnectionOwner(userId int32, androidPackageNames StringIterator) *Conne
 }
 
 func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindConnectionOwnerRequest) (*adapter.ConnectionOwner, error) {
-	if w.useProcFS {
-		var source netip.AddrPort
-		var destination netip.AddrPort
-		sourceAddr, _ := netip.ParseAddr(request.SourceAddress)
-		source = netip.AddrPortFrom(sourceAddr, uint16(request.SourcePort))
-		destAddr, _ := netip.ParseAddr(request.DestinationAddress)
-		destination = netip.AddrPortFrom(destAddr, uint16(request.DestinationPort))
-
-		var network string
-		switch request.IpProtocol {
-		case int32(syscall.IPPROTO_TCP):
-			network = N.NetworkTCP
-		case int32(syscall.IPPROTO_UDP):
-			network = N.NetworkUDP
-		default:
-			return nil, E.New("unknown protocol: ", request.IpProtocol)
-		}
-
-		uid := procfs.ResolveSocketByProcSearch(network, source, destination)
-		if uid == -1 {
-			return nil, E.New("procfs: not found")
-		}
-		return &adapter.ConnectionOwner{
-			UserId: uid,
-		}, nil
-	}
-
 	result, err := w.iif.FindConnectionOwner(request.IpProtocol, request.SourceAddress, request.SourcePort, request.DestinationAddress, request.DestinationPort)
 	if err != nil {
 		return nil, err

@@ -17,9 +17,8 @@ func registerPlatformInterface(ctx context.Context, platformInterface PlatformIn
 		return
 	}
 	interfaceWrapper := &boxPlatformInterfaceWrapper{
-		useProcFS: platformInterface.UseProcFS(),
-		iif:       platformInterface,
-		forTest:   forTest,
+		iif:     platformInterface,
+		forTest: forTest,
 	}
 	service.MustRegister[adapter.PlatformInterface](ctx, interfaceWrapper)
 	service.MustRegister[protect.Protector](ctx, protect.ProtectorFunc(func(fileDescriptor int) error {

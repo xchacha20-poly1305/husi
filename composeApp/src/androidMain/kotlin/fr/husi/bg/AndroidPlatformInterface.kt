@@ -7,7 +7,6 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Process
 import android.provider.Settings
 import android.system.OsConstants
-import androidx.annotation.RequiresApi
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.defaultOr
@@ -48,9 +47,6 @@ class AndroidPlatformInterface : PlatformInterface {
         return ServiceRegistry.vpnService!!.startVpn()
     }
 
-    override fun useProcFS(): Boolean = SDK_INT < Build.VERSION_CODES.Q
-
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun findConnectionOwner(
         ipProtocol: Int,
         sourceAddress: String,
@@ -59,11 +55,21 @@ class AndroidPlatformInterface : PlatformInterface {
         destinationPort: Int,
     ): ConnectionOwner {
         try {
-            val uid = resolveAndroidRepository().connectivity.getConnectionOwnerUid(
-                ipProtocol,
-                InetSocketAddress(sourceAddress, sourcePort),
-                InetSocketAddress(destinationAddress, destinationPort),
-            )
+            val uid = if (SDK_INT >= Build.VERSION_CODES.Q) {
+                resolveAndroidRepository().connectivity.getConnectionOwnerUid(
+                    ipProtocol,
+                    InetSocketAddress(sourceAddress, sourcePort),
+                    InetSocketAddress(destinationAddress, destinationPort),
+                )
+            } else {
+                Libcore.findConnectionOwnerUid(
+                    ipProtocol,
+                    sourceAddress,
+                    sourcePort,
+                    destinationAddress,
+                    destinationPort,
+                )
+            }
             if (uid == Process.INVALID_UID) error("android: connection owner not found")
             PackageCache.awaitLoadSync()
             val packages = PackageCache.uidMap[uid]
