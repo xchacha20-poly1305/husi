@@ -190,6 +190,7 @@
     <string name="route_name">路由名稱</string>
     <string name="proxy">代理</string>
     <string name="direct">直連</string>
+    <string name="dashboard_speed">速度</string>
     <string name="route_block">封鎖</string>
     <string name="select_profile">選擇設定檔</string>
     <string name="empty_route">空白路由規則</string>

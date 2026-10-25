@@ -95,6 +95,8 @@ internal fun DashboardStatusScreen(
             DashboardWidget.OpenVPN -> openVPNEndpoints.isNotEmpty()
             DashboardWidget.Tailscale -> tailscaleEndpoints.isNotEmpty()
             DashboardWidget.ClashMode -> uiState.clashModes.isNotEmpty()
+            // A remote core reports only its total rate, with no direct split.
+            DashboardWidget.DirectSpeed -> !uiState.isRemote
             DashboardWidget.SystemProxy -> uiState.systemProxy != null && !uiState.isRemote
             else -> true
         }

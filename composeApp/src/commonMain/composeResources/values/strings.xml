@@ -141,6 +141,7 @@
     <string name="route_name">Route Name</string>
     <string name="proxy">Proxy</string>
     <string name="direct">Direct</string>
+    <string name="dashboard_speed">Speed</string>
     <string name="route_block">Block</string>
     <string name="route_bridge">Bridge</string>
     <string name="select_profile">Select Profile</string>

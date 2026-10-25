@@ -237,6 +237,7 @@
     <string name="empty_route">Пустой маршрут</string>
     <string name="route_block">Блокировать</string>
     <string name="direct">Напрямую</string>
+    <string name="dashboard_speed">Скорость</string>
     <string name="proxy">Прокси</string>
     <string name="route_name">Название маршрута</string>
     <string name="delete_route_prompt">Вы уверены, что хотите удалить этот маршрут?</string>

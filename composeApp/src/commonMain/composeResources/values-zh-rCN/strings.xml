@@ -138,6 +138,7 @@
     <string name="apply">应用</string>
     <string name="proxy">代理</string>
     <string name="direct">直连</string>
+    <string name="dashboard_speed">速度</string>
     <string name="route_block">屏蔽</string>
     <!-- TODO add better translation for "bridge" -->
     <string name="route_bridge">Bridge</string>
