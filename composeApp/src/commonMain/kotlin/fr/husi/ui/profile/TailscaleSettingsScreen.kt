@@ -3,6 +3,7 @@ package fr.husi.ui.profile
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import fr.husi.Key
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
@@ -12,7 +13,7 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
-import fr.husi.compose.collectAsStateWithLifecycle
+import fr.husi.compose.collectAdvancedFeatureAsStateWithLifecycle
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.database.DataStore
@@ -70,7 +71,7 @@ fun TailscaleSettingsScreen(
     ) {
         TailscaleSettingsViewModel()
     }
-    val isExpert by DataStore.isExpert.collectAsStateWithLifecycle()
+    val sshServerFeature by collectAdvancedFeatureAsStateWithLifecycle(Key.ADVANCED_TAILSCALE_SSH_SERVER)
 
     ProfileSettingsScreenScaffold(
         title = Res.string.profile_config,
@@ -78,14 +79,14 @@ fun TailscaleSettingsScreen(
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
     ) { uiState, _ ->
-        tailscaleSettings(uiState as TailscaleUiState, viewModel, isExpert)
+        tailscaleSettings(uiState as TailscaleUiState, viewModel, sshServerFeature != null)
     }
 }
 
 private fun LazyListScope.tailscaleSettings(
     uiState: TailscaleUiState,
     viewModel: TailscaleSettingsViewModel,
-    isExpert: Boolean,
+    isSSHServerEnabled: Boolean,
 ) {
     preferenceGroup {
         TextFieldPreference(
@@ -295,7 +296,7 @@ private fun LazyListScope.tailscaleSettings(
     if (PlatformInfo.isAndroid) return
 
     preferenceGroup {
-        if (isExpert) {
+        if (isSSHServerEnabled) {
             SwitchPreference(
                 value = uiState.sshServer,
                 onValueChange = { viewModel.setSSHServer(it) },

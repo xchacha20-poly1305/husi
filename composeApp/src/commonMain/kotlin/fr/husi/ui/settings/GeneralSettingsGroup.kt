@@ -37,6 +37,7 @@ import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.ListPreference
 import fr.husi.compose.collectAsStateWithLifecycle
+import fr.husi.compose.collectAdvancedFeatureAsStateWithLifecycle
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.Preference
 import fr.husi.compose.SliderPreference
@@ -239,7 +240,7 @@ internal fun GeneralSettingsGroup(
     showMessage: (String) -> Unit,
 ) {
     val applyNightMode = rememberApplyNightMode()
-    val isExpertState by DataStore.isExpert.collectAsStateWithLifecycle()
+    val debugListenFeature by collectAdvancedFeatureAsStateWithLifecycle(Key.DEBUG_LISTEN)
 
     AutoConnectPreference(showMessage = showMessage)
 
@@ -511,7 +512,7 @@ internal fun GeneralSettingsGroup(
         },
         summary = { Text(stringResource(Res.string.log_terminal_mode_sum)) },
     )
-    if (isExpertState) {
+    if (debugListenFeature != null) {
         val debugListenValue by DataStore.debugListen.collectAsStateWithLifecycle()
         TextFieldPreference(
             value = debugListenValue,

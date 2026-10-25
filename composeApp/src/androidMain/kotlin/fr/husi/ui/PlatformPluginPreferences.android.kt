@@ -16,10 +16,10 @@ import fr.husi.resources.custom_plugin_prefix_summary
 import org.jetbrains.compose.resources.stringResource
 
 internal actual fun LazyListScope.platformPluginPreferences(
-    isExpert: Boolean,
+    isCustomPluginPrefixEnabled: Boolean,
     needRestart: () -> Unit,
 ) {
-    if (!isExpert) return
+    if (!isCustomPluginPrefixEnabled) return
     preferenceGroup {
         val value by DataStore.customPluginPrefix.collectAsStateWithLifecycle()
         TextFieldPreference(

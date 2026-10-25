@@ -593,6 +593,8 @@
     <string name="desktop_plugins">Desktop Plugins</string>
     <string name="custom_plugin_prefix">Custom plugin prefix</string>
     <string name="custom_plugin_prefix_summary">Please make sure you totally trust the plugin provider.</string>
+    <string name="advanced_features">Advanced features</string>
+    <string name="advanced_features_summary">One feature per line: key or key=value</string>
     <string name="traffic_status">Stats</string>
     <string name="traffic_connections">Connections</string>
     <string name="status_goroutines" translatable="false">Goroutines</string>

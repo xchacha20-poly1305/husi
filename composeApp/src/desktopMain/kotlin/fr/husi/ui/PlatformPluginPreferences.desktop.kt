@@ -60,7 +60,7 @@ import org.jetbrains.compose.resources.vectorResource
 import kotlin.enums.enumEntries
 
 internal actual fun LazyListScope.platformPluginPreferences(
-    isExpert: Boolean,
+    isCustomPluginPrefixEnabled: Boolean,
     needRestart: () -> Unit,
 ) {
     item("desktop_plugins_category") {

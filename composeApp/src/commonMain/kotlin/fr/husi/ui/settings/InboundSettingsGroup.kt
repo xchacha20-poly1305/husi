@@ -2,8 +2,10 @@ package fr.husi.ui.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import fr.husi.Key
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.collectAsStateWithLifecycle
+import fr.husi.compose.collectAdvancedFeatureAsStateWithLifecycle
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PortTextField
@@ -31,7 +33,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun InboundSettingsGroup(
     needReload: () -> Unit,
 ) {
-    val isExpertState by DataStore.isExpert.collectAsStateWithLifecycle()
+    val anchorSSIDFeature by collectAdvancedFeatureAsStateWithLifecycle(Key.ANCHOR_SSID)
 
     val mixedPort by DataStore.mixedPort.collectAsStateWithLifecycle()
     val mixedPortValue = mixedPort.toString()
@@ -115,7 +117,7 @@ internal fun InboundSettingsGroup(
         },
         title = { Text(stringResource(Res.string.inbound_password)) },
     )
-    if (isExpertState) {
+    if (anchorSSIDFeature != null) {
         val anchorSSIDValue by DataStore.anchorSSID.collectAsStateWithLifecycle()
         TextFieldPreference(
             value = anchorSSIDValue,

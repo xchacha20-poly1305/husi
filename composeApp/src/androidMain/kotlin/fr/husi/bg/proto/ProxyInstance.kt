@@ -1,5 +1,6 @@
 package fr.husi.bg.proto
 
+import fr.husi.Key
 import fr.husi.bg.BaseService
 import fr.husi.bg.ServiceEventPublisher
 import fr.husi.core.CoreClient
@@ -27,7 +28,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
 
     override suspend fun buildConfig(): ConfigBuildResult = super.buildConfig().also {
         Logs.d(it.configJson)
-        if (DataStore.isExpert.get()) {
+        if (DataStore.advancedFeature(Key.ADVANCED_DEBUG) != null) {
             Logs.d("trafficProfiles: " + it.metadata.trafficProfiles.toString())
         }
     }

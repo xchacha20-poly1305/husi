@@ -37,13 +37,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import fr.husi.Key
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
-import fr.husi.compose.collectAsStateWithLifecycle
+import fr.husi.compose.collectAdvancedFeatureAsStateWithLifecycle
 import fr.husi.compose.material3.Text
 import fr.husi.compose.platformCombinedClickable
 import fr.husi.compose.withNavigation
@@ -84,7 +85,7 @@ fun PluginScreen(
     val uriHandler = LocalUriHandler.current
     val openPluginCard = rememberOpenPluginCard()
 
-    val isExpert by DataStore.isExpert.collectAsStateWithLifecycle()
+    val customPluginPrefixFeature by collectAdvancedFeatureAsStateWithLifecycle(Key.CUSTOM_PLUGIN_PREFIX)
 
     val notInstalledPlugins = remember(plugins) {
         val installedIDs = plugins.mapTo(mutableSetOf()) { it.id }
@@ -140,7 +141,7 @@ fun PluginScreen(
                     notInstalledPlugins(notInstalledPlugins) {
                         uriHandler.openUri(it.platformDownloadUri)
                     }
-                    platformPluginPreferences(isExpert, ::needRestart)
+                    platformPluginPreferences(customPluginPrefixFeature != null, ::needRestart)
                 }
 
                 BoxedVerticalScrollbar(

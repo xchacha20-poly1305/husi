@@ -620,7 +620,7 @@ suspend fun buildConfig(
         `$schema` = CONFIG_SCHEMA_URL
         if (!forTest) experimental = ExperimentalOptions().apply {
             if (!forExport) {
-                if (DataStore.isExpert.get()) {
+                if (DataStore.advancedFeature(Key.DEBUG_LISTEN) != null) {
                     DataStore.debugListen.get().blankAsNull()?.let {
                         debug = SingBoxOptions.DebugOptions().apply {
                             listen = it

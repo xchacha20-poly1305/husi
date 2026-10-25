@@ -40,7 +40,12 @@ object Key {
     const val WINDOW_WIDTH = "windowWidth"
     const val WINDOW_HEIGHT = "windowHeight"
 
-    const val APP_EXPERT = "isExpert"
+    const val ADVANCED_FEATURES = "advancedFeatures"
+
+    // Advanced feature keys. A feature that reveals one preference reuses that preference's key.
+    const val ADVANCED_DEBUG = "debug"
+    const val ADVANCED_TAILSCALE_SSH_SERVER = "tailscaleSSHServer"
+
     const val APP_THEME = "appTheme"
     const val NIGHT_THEME = "nightTheme"
     const val APP_LANGUAGE = "appLanguage"

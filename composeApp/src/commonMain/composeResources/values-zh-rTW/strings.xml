@@ -481,6 +481,8 @@
     <string name="done">完成</string>
     <string name="custom_plugin_prefix">自訂插件前綴</string>
     <string name="custom_plugin_prefix_summary">請確保您完全信任插件提供者。</string>
+    <string name="advanced_features">進階功能</string>
+    <string name="advanced_features_summary">每行一項：key 或 key=value</string>
     <string name="padding">填充</string>
     <string name="disable_post_quantum">禁用後量子密鑰協商</string>
     <string name="mux_strategy">多路復用策略</string>
