@@ -3,10 +3,12 @@ package fr.husi.core
 import fr.husi.proto.daemon.SubscribeConnectionsRequest
 import fr.husi.proto.daemon.SubscribeStatusRequest
 import io.github.xchacha20_poly1305.kurpc.CallOptions
+import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
 import io.github.xchacha20_poly1305.kurpc.Metadata
 import io.github.xchacha20_poly1305.kurpc.Status
 import io.github.xchacha20_poly1305.kurpc.StatusException
 import io.github.xchacha20_poly1305.kurpc.TransportException
+import io.github.xchacha20_poly1305.kurpc.UnaryResponse
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -148,6 +150,25 @@ class KurpcCoreClientTest {
     }
 
     @Test
+    fun `one-shot stream message that does not parse fails with INTERNAL`() = runTest {
+        val factory = RecordingChannelFactory()
+        val client = newClient(factory)
+        val failure = CompletableDeferred<Throwable>()
+
+        backgroundScope.launch(Dispatchers.Default) {
+            failure.complete(runCatching { client.standaloneStunTest("stun.example").collect() }.exceptionOrNull()!!)
+        }
+        val first = factory.awaitFirst()
+        awaitCondition("one-shot stream opened") { first.streamCount() == 1 }
+        // Field 1, length-delimited, claiming 127 bytes that never come.
+        first.stream(0).emit(byteArrayOf(0x0a, 0x7f))
+
+        val error = failure.await()
+        assertEquals(Status.Code.INTERNAL, (error as CoreRpcException).code)
+        client.close()
+    }
+
+    @Test
     fun `an empty message is an all-default message`() = runTest {
         val factory = RecordingChannelFactory()
         val client = newClient(factory)
@@ -270,7 +291,10 @@ private class FakeCoreChannel : CoreChannel {
         return ByteArray(0)
     }
 
-    override fun serverStreaming(method: String, request: ByteArray): Flow<ByteArray> {
+    override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions): UnaryResponse =
+        error("unexpected unaryCall $method")
+
+    override fun serverStreaming(method: String, request: ByteArray, options: CallOptions): Flow<ByteArray> {
         val stream = FakeStream(method, request)
         synchronized(streams) { streams += stream }
         return stream.flow
@@ -282,7 +306,7 @@ private class FakeCoreChannel : CoreChannel {
         options: CallOptions,
     ): ByteArray = error("unexpected client stream $method")
 
-    override fun bidiStreaming(method: String, requests: Flow<ByteArray>): Flow<ByteArray> = flow {
+    override fun bidiStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): Flow<ByteArray> = flow {
         val stream = FakeStream(method, ByteArray(0))
         synchronized(streams) { streams += stream }
         requests.collect { }
@@ -290,6 +314,6 @@ private class FakeCoreChannel : CoreChannel {
 
     override fun close() {
         closed = true
-        streams().forEach { it.fail(io.github.xchacha20_poly1305.kurpc.ChannelClosedException()) }
+        streams().forEach { it.fail(ChannelClosedException()) }
     }
 }

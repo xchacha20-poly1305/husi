@@ -9,6 +9,7 @@ import fr.husi.proto.daemon.TaildropSendServerMessage
 import fr.husi.proto.daemon.taildropSendProgress
 import fr.husi.proto.daemon.taildropSendServerMessage
 import io.github.xchacha20_poly1305.kurpc.CallOptions
+import io.github.xchacha20_poly1305.kurpc.UnaryResponse
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -268,7 +269,10 @@ private class ScriptedCoreChannel : CoreChannel {
     override suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray =
         error("unexpected unary $method")
 
-    override fun serverStreaming(method: String, request: ByteArray): Flow<ByteArray> =
+    override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions): UnaryResponse =
+        error("unexpected unaryCall $method")
+
+    override fun serverStreaming(method: String, request: ByteArray, options: CallOptions): Flow<ByteArray> =
         error("unexpected server stream $method")
 
     override suspend fun clientStreaming(
@@ -277,7 +281,7 @@ private class ScriptedCoreChannel : CoreChannel {
         options: CallOptions,
     ): ByteArray = error("unexpected client stream $method")
 
-    override fun bidiStreaming(method: String, requests: Flow<ByteArray>): Flow<ByteArray> = flow {
+    override fun bidiStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): Flow<ByteArray> = flow {
         methods += method
         coroutineScope {
             val incoming = launch {

@@ -1,3 +1,4 @@
+import com.google.protobuf.gradle.id
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -33,13 +34,20 @@ sourceSets {
 }
 
 dependencies {
-    // api, because every generated class exposes the protobuf runtime types.
+    // api, because every generated class exposes the protobuf runtime types,
+    // and the generated kurpc clients the kurpc ones.
     api(libs.protobuf.kotlin.lite)
+    api(libs.kurpc)
 }
 
 protobuf {
     protoc {
         artifact = libs.protobuf.protoc.get().toString()
+    }
+    plugins {
+        id("kurpc") {
+            artifact = "${libs.protoc.gen.kurpc.get()}:all@jar"
+        }
     }
     generateProtoTasks {
         all().forEach { task ->
@@ -50,6 +58,9 @@ protobuf {
                 create("kotlin") {
                     option("lite")
                 }
+            }
+            task.plugins {
+                id("kurpc")
             }
         }
     }

@@ -6,7 +6,7 @@ composeMultiplatform = "1.12.2"
 composeMaterial3 = "1.12.0-alpha03"
 koin = "4.2.2"
 kotlinCoroutines = "1.11.0"
-kurpc = "0.1.0"
+kurpc = "0.2.0"
 libghostty = "0.4.1"
 kotlinxSerialization = "1.12.0"
 kotlinxDatetime = "0.8.0"
@@ -52,6 +52,8 @@ haze = "2.0.1"
 kurpc = { module = "io.github.xchacha20-poly1305:kurpc", version.ref = "kurpc" }
 # One jar per desktop classifier; composeApp picks the one matching desktopTarget.
 kurpc-natives-jvm = { module = "io.github.xchacha20-poly1305:kurpc-natives-jvm", version.ref = "kurpc" }
+# protoc plugin; proto/ runs its self-contained `all` jar.
+protoc-gen-kurpc = { module = "io.github.xchacha20-poly1305:protoc-gen-kurpc", version.ref = "kurpc" }
 libghostty-compose = { module = "io.github.xchacha20-poly1305:libghostty-compose", version.ref = "libghostty" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinCoroutines" }
