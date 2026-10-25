@@ -1,5 +1,7 @@
 package fr.husi.bg.proto
 
+import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.TAG_BRIDGE
 import fr.husi.fmt.TAG_DIRECT
 import fr.husi.fmt.TrafficNode
 import fr.husi.proto.daemon.ConnectionEventType
@@ -141,7 +143,10 @@ class OutboundTrafficAggregatorTest {
         val aggregator = OutboundTrafficAggregator(proxyGraph)
 
         aggregator.onEvents(
-            newConnection(uplink = 6, downlink = 1, chain = listOf(TAG_DIRECT), id = "direct"),
+            newConnection(uplink = 6, downlink = 1, chain = listOf(TAG_DIRECT),
+                outboundType = SingBoxOptions.TYPE_DIRECT,
+                id = "direct",
+            ),
         )
         aggregator.onEvents(newConnection(uplink = 2, downlink = 8))
 
@@ -149,6 +154,74 @@ class OutboundTrafficAggregatorTest {
         assertEquals(TrafficDelta(6, 1), snapshot.direct)
         assertEquals(TrafficDelta(2, 8), snapshot.proxied)
         assertEquals(mapOf(PROXY_ID to TrafficDelta(2, 8)), snapshot.byProfile)
+    }
+
+    @Test
+    fun `bridge traffic is counted as direct`() {
+        val aggregator = OutboundTrafficAggregator(proxyGraph)
+
+        aggregator.onEvents(
+            newConnection(uplink = 3, downlink = 4, chain = listOf(TAG_BRIDGE),
+                outboundType = SingBoxOptions.TYPE_BRIDGE,
+                id = "bridge",
+            ),
+        )
+        aggregator.onEvents(
+            newConnection(uplink = 6, downlink = 1, chain = listOf(TAG_DIRECT),
+                outboundType = SingBoxOptions.TYPE_DIRECT,
+                id = "direct",
+            ),
+        )
+
+        val snapshot = aggregator.drain()
+        assertEquals(TrafficDelta(9, 5), snapshot.direct)
+        assertEquals(TrafficDelta(), snapshot.proxied)
+    }
+
+    @Test
+    fun `direct typed profile counts as direct and keeps its profile traffic`() {
+        val graph = mapOf("direct-profile" to TrafficNode(profileIDs = setOf(PROXY_ID)))
+        val aggregator = OutboundTrafficAggregator(graph)
+
+        aggregator.onEvents(
+            newConnection(
+                uplink = 5,
+                downlink = 7,
+                chain = listOf("direct-profile"),
+                outboundType = SingBoxOptions.TYPE_DIRECT,
+            ),
+        )
+
+        val snapshot = aggregator.drain()
+        assertEquals(TrafficDelta(5, 7), snapshot.direct)
+        assertEquals(TrafficDelta(), snapshot.proxied)
+        assertEquals(mapOf(PROXY_ID to TrafficDelta(5, 7)), snapshot.byProfile)
+    }
+
+    @Test
+    fun `direct typed outbound with a detour counts as proxied`() {
+        val graph = mapOf(
+            "direct-profile" to TrafficNode(profileIDs = setOf(ENTRY_ID), detour = "proxy"),
+            "proxy" to TrafficNode(profileIDs = setOf(EXIT_ID)),
+        )
+        val aggregator = OutboundTrafficAggregator(graph)
+
+        aggregator.onEvents(
+            newConnection(
+                uplink = 2,
+                downlink = 3,
+                chain = listOf("direct-profile"),
+                outboundType = SingBoxOptions.TYPE_DIRECT,
+            ),
+        )
+
+        val snapshot = aggregator.drain()
+        assertEquals(TrafficDelta(), snapshot.direct)
+        assertEquals(TrafficDelta(2, 3), snapshot.proxied)
+        assertEquals(
+            mapOf(ENTRY_ID to TrafficDelta(2, 3), EXIT_ID to TrafficDelta(2, 3)),
+            snapshot.byProfile,
+        )
     }
 
     /** selector -> ["member-entry" (a chain of entry -> exit), "other-member"]. */
@@ -169,6 +242,7 @@ class OutboundTrafficAggregatorTest {
         uplink: Long,
         downlink: Long,
         chain: List<String> = listOf("proxy"),
+        outboundType: String = SingBoxOptions.TYPE_SHADOWSOCKS,
         id: String = "c1",
         reset: Boolean = false,
     ) = connectionEvents {
@@ -178,6 +252,7 @@ class OutboundTrafficAggregatorTest {
             this.id = id
             connection = connection {
                 outbound = chain.last()
+                this.outboundType = outboundType
                 chainList += chain
                 uplinkTotal = uplink
                 downlinkTotal = downlink
