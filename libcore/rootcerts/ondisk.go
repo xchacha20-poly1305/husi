@@ -75,3 +75,24 @@ func isCertificateFileName(path string) bool {
 		return strings.HasSuffix(path, it)
 	})
 }
+
+// distrustDirectory reads certificate contents, not hash-based filenames.
+// Two different certificates can have the same subject hash.
+func distrustDirectory(roots *Bundle, directory string) error {
+	return filepath.WalkDir(directory, func(path string, entry os.DirEntry, err error) error {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		return roots.distrust(content)
+	})
+}

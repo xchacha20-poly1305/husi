@@ -40,3 +40,14 @@ var distrustedRoots = newFingerprintSet(
 	// Microsoft still include it.
 	"D7A7A0FB5D7E2731D771E9484EBCDEF71D5F0C3E0A2948782BC83EE0EA699EF4",
 )
+
+func (b *Bundle) distrust(raw []byte) error {
+	certificates, err := splitCertificates(raw)
+	if b.distrusted == nil {
+		b.distrusted = make(fingerprintSet)
+	}
+	for _, der := range certificates {
+		b.distrusted[sha256.Sum256(der)] = struct{}{}
+	}
+	return err
+}

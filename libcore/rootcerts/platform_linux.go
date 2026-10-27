@@ -2,6 +2,15 @@
 
 package rootcerts
 
+import (
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/sagernet/sing-box/log"
+	E "github.com/sagernet/sing/common/exceptions"
+)
+
 // Possible certificate files; stop after finding one.
 var certFiles = []string{
 	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
@@ -18,8 +27,58 @@ var certDirectories = []string{
 	"/etc/pki/tls/certs", // Fedora/RHEL
 }
 
-// Linux has no certificate store beyond those files, and no notion of user
-// trust either.
+// Linux trust policy is machine-wide.
 func appendPlatformRootCAs(roots *Bundle, withUserTrust bool) error {
+	err := readLinuxDistrust(roots)
+	if err != nil {
+		log.Warn(E.Cause(err, "read Linux distrust"))
+	}
 	return appendOnDiskRootCAs(roots, "", "")
+}
+
+func readLinuxDistrust(roots *Bundle) error {
+	for _, directory := range []string{
+		"/etc/ca-certificates/trust-source/blocklist",
+		"/usr/share/ca-certificates/trust-source/blocklist",
+		"/etc/pki/ca-trust/source/blocklist",
+		"/usr/share/pki/ca-trust-source/blocklist",
+		"/etc/pki/trust/blacklist",
+		"/usr/share/pki/trust/blacklist",
+	} {
+		if err := distrustDirectory(roots, directory); err != nil {
+			return E.Cause(err, "read blocklist ", directory)
+		}
+	}
+	return readDisabledCertificates(roots, "/etc/ca-certificates.conf", "/usr/share/ca-certificates")
+}
+
+func readDisabledCertificates(roots *Bundle, configPath, certificateDirectory string) error {
+	content, err := os.ReadFile(configPath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	for line := range strings.SplitSeq(string(content), "\n") {
+		line = strings.TrimSpace(line)
+		name, disabled := strings.CutPrefix(line, "!")
+		if !disabled {
+			continue
+		}
+		if !filepath.IsLocal(name) {
+			return E.New("invalid disabled certificate path: ", name)
+		}
+		content, err := os.ReadFile(filepath.Join(certificateDirectory, name))
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if err := roots.distrust(content); err != nil {
+			return err
+		}
+	}
+	return nil
 }

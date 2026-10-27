@@ -16,14 +16,18 @@ func appendPlatformRootCAs(roots *Bundle, withUserTrust bool) error {
 	// Inspired by https://github.com/ExclaveNetwork/LibExclaveCore/blob/a715e817dd2cfc585163084b19fd4bd2614fe058/ca.go#L134
 	// Workaround for https://github.com/golang/go/issues/71258
 
+	removedDir := fmt.Sprintf("/data/misc/user/%d/cacerts-removed", os.Getuid()/100000)
+	if err := distrustDirectory(roots, removedDir); err != nil {
+		log.Warn("read user removed certificates: ", err)
+	}
 	paths, err := systemCertPaths(withUserTrust)
 	if err != nil {
 		return err
 	}
 
-	for name, path := range paths {
+	for _, path := range paths {
 		if err := appendRootCAFile(roots, path); err != nil {
-			log.Warn("add cert ", name, ": ", err)
+			log.Warn("add cert ", path, ": ", err)
 		}
 	}
 	if roots.pem.Len() == 0 {
@@ -32,8 +36,8 @@ func appendPlatformRootCAs(roots *Bundle, withUserTrust bool) error {
 	return nil
 }
 
-func systemCertPaths(withUserTrust bool) (map[string]string, error) {
-	var paths map[string]string // name:fullPath
+func systemCertPaths(withUserTrust bool) ([]string, error) {
+	var paths []string
 
 	systemDir := "/apex/com.android.conscrypt/cacerts" // Android 14+
 	entries, err1 := os.ReadDir(systemDir)
@@ -45,9 +49,11 @@ func systemCertPaths(withUserTrust bool) (map[string]string, error) {
 			return nil, E.Cause(E.Errors(err1, err2), "read system cert dir")
 		}
 	}
-	paths = make(map[string]string, len(entries))
+	paths = make([]string, 0, len(entries))
 	for _, entry := range entries {
-		paths[entry.Name()] = filepath.Join(systemDir, entry.Name())
+		if !entry.IsDir() {
+			paths = append(paths, filepath.Join(systemDir, entry.Name()))
+		}
 	}
 
 	userId := os.Getuid() / 100000
@@ -56,19 +62,13 @@ func systemCertPaths(withUserTrust bool) (map[string]string, error) {
 		entries, err := os.ReadDir(userDir)
 		if err == nil {
 			for _, entry := range entries {
-				paths[entry.Name()] = filepath.Join(userDir, entry.Name())
+				if !entry.IsDir() {
+					paths = append(paths, filepath.Join(userDir, entry.Name()))
+				}
 			}
 		} else {
 			log.Warn("read user added cert dir: ", err)
 		}
-	}
-	entries, err := os.ReadDir(fmt.Sprintf("/data/misc/user/%d/cacerts-removed", userId))
-	if err == nil {
-		for _, entry := range entries {
-			delete(paths, entry.Name())
-		}
-	} else {
-		log.Warn("read user removed cert dir: ", err)
 	}
 
 	return paths, nil

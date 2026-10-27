@@ -49,6 +49,7 @@ require (
 	golang.org/x/sys v0.49.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
+	howett.net/plist v1.0.1
 )
 
 require (

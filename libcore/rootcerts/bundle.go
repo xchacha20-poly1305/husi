@@ -59,6 +59,7 @@ type Bundle struct {
 	pool         *x509.CertPool
 	pem          bytes.Buffer
 	fingerprints fingerprintSet
+	distrusted   fingerprintSet
 }
 
 func NewBundle() *Bundle {
@@ -116,7 +117,8 @@ func Install(bundle *Bundle) {
 // that parsed is added regardless.
 //
 // Certificates in [distrustedRoots] are left out silently, whichever store
-// still lists them.
+// still lists them. Platform loaders additionally exclude locally distrusted
+// certificates before appending roots.
 func (b *Bundle) Append(raw []byte) error {
 	certificates, err := splitCertificates(raw)
 	var errors []error
@@ -131,6 +133,9 @@ func (b *Bundle) Append(raw []byte) error {
 			continue
 		}
 		if _, isDistrusted := distrustedRoots[fingerprint]; isDistrusted {
+			continue
+		}
+		if _, isDistrusted := b.distrusted[fingerprint]; isDistrusted {
 			continue
 		}
 		certificate, err := x509.ParseCertificate(der)
