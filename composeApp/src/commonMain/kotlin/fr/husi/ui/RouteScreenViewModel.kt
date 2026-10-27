@@ -40,14 +40,14 @@ class RouteScreenViewModel : ViewModel() {
 
     private var deleteTimer: Job? = null
 
+    private val hiddenRulesAccess = Mutex()
+    private val hiddenRules = mutableSetOf<Long>()
+
     init {
         viewModelScope.launch {
             ProfileManager.getRules().distinctUntilChanged().collectLatest(::reloadRules)
         }
     }
-
-    private val hiddenRulesAccess = Mutex()
-    private val hiddenRules = mutableSetOf<Long>()
 
     private suspend fun reloadRules(_rules: List<RuleEntity>?) {
         val rules = _rules ?: withContext(Dispatchers.IO) {
@@ -64,6 +64,11 @@ class RouteScreenViewModel : ViewModel() {
     }
 
     fun reset() = runOnIoDispatcher {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        hiddenRulesAccess.withLock {
+            hiddenRules.clear()
+        }
         SagerDatabase.rulesDao.reset()
         DataStore.rulesFirstCreate.set(false)
         reloadRules(null)
