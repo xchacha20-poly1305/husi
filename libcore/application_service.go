@@ -237,3 +237,11 @@ func callError(ctx context.Context, err error) error {
 	}
 	return rpcError(err, codes.Unknown)
 }
+
+func (s *applicationService) LookupIPCountry(ctx context.Context, req *husiv1.LookupIPCountryRequest) (*husiv1.LookupIPCountryResponse, error) {
+	code, err := lookupIPCountry(ctx, req.GetDirectory(), req.GetIp())
+	if err != nil {
+		return nil, rpcError(err, codes.Internal)
+	}
+	return &husiv1.LookupIPCountryResponse{CountryCode: code}, nil
+}

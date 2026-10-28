@@ -62,6 +62,8 @@ import fr.husi.proto.daemon.tailscaleCertificateRequest
 import fr.husi.proto.daemon.tailscaleLogoutRequest
 import fr.husi.proto.daemon.tailscalePingRequest
 import fr.husi.proto.daemon.uRLTestRequest as daemonURLTestRequest
+import fr.husi.proto.v1.detectIPRequest
+import fr.husi.proto.v1.lookupIPCountryRequest
 import fr.husi.proto.v1.GetCertMode
 import fr.husi.proto.v1.AndroidVPNType
 import fr.husi.proto.v1.AppServiceKurpc
@@ -267,6 +269,9 @@ interface CoreClient {
 
     /** The Go core of the VPN app in [apkPaths], or null when none is revealed. Android only. */
     suspend fun readAndroidVPNType(apkPaths: List<String>): AndroidVPNType?
+
+    suspend fun detectIP(server: String): String
+    suspend fun lookupIPCountry(dir: File, ip: String): String
 
     suspend fun resetNetwork()
     suspend fun runTask(taskId: String)
@@ -701,6 +706,17 @@ class KurpcCoreClient internal constructor(
             this.timeoutMs = timeoutMs
         }
         return unary(ApplicationServiceKurpc.ping, request, timeoutMs.milliseconds + DEFAULT_UNARY_TIMEOUT).latencyMs
+    }
+
+    override suspend fun detectIP(server: String): String =
+        unary(CoreServiceKurpc.detectIP, detectIPRequest { this.server = server }, 15.seconds).ip
+
+    override suspend fun lookupIPCountry(dir: File, ip: String): String {
+        val request = lookupIPCountryRequest {
+            this.ip = ip
+            directory = dir.invariantPathString()
+        }
+        return unary(ApplicationServiceKurpc.lookupIPCountry, request, 30.seconds).countryCode
     }
 
     override suspend fun matchRuleSets(dir: File, keyword: String): List<String> {

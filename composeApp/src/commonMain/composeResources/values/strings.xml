@@ -962,4 +962,11 @@
     <string name="tailcat_derp_servers">DERP Servers</string>
     <string name="tailscale_advertise_fake_dns_routes">Advertise Fake DNS Routes</string>
     <string name="tailscale_advertise_fake_dns_routes_summary">Advertise the Fake DNS ranges as subnet routes while Fake DNS is enabled</string>
+    <string name="ip_test">Exit IP</string>
+    <string name="ip_test_detect">Detect IP</string>
+    <string name="ip_test_running">Detecting…</string>
+    <string name="ip_test_servers">IP detection servers</string>
+    <string name="ip_test_servers_summary">One server per line. Use stun:// (default port 3478) or stuns:// (TLS, default port 5379). Without a scheme, STUN is used. Add ?transport=udp or ?transport=tcp to choose the transport; TLS requires TCP. Each detection randomly selects one server.</string>
+    <string name="ip_test_no_servers">Configure an IP detection server in miscellaneous settings.</string>
+    <string name="ip_test_start_service">Start the service to detect the main outbound IP.</string>
 </resources>

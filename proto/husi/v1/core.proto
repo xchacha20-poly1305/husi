@@ -20,6 +20,8 @@ service CoreService {
 
   rpc URLTest(URLTestRequest) returns (URLTestResponse);
 
+  rpc DetectIP(DetectIPRequest) returns (DetectIPResponse);
+
   rpc ResetNetwork(ResetNetworkRequest) returns (ResetNetworkResponse);
 
   // SubscribeServiceEvents carries what only the host that started the service
@@ -129,4 +131,13 @@ enum AlertKind {
   ALERT_KIND_COMMON = 1;
   ALERT_KIND_MISSING_PLUGIN = 2;
   ALERT_KIND_NEED_WIFI_PERMISSION = 3;
+}
+
+// One binding request through the running instance default outbound.
+message DetectIPRequest {
+  string server = 1;
+}
+
+message DetectIPResponse {
+  string ip = 1;
 }

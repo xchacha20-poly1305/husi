@@ -886,4 +886,11 @@
     <string name="tailcat_derp_servers">DERP 服务器</string>
     <string name="tailscale_advertise_fake_dns_routes">通告 Fake DNS 网段</string>
     <string name="tailscale_advertise_fake_dns_routes_summary">启用 Fake DNS 时，将 Fake DNS 网段作为子网路由通告</string>
+    <string name="ip_test">出口 IP</string>
+    <string name="ip_test_detect">检测 IP</string>
+    <string name="ip_test_running">正在检测…</string>
+    <string name="ip_test_servers">IP 检测服务器</string>
+    <string name="ip_test_servers_summary">一行一个，支持 stun://（默认端口 3478）和 stuns://（TLS，默认端口 5379）。省略 scheme 时使用 STUN。可添加 ?transport=udp 或 ?transport=tcp 指定传输协议，TLS 必须使用 TCP。每次检测随机选择一个服务器。</string>
+    <string name="ip_test_no_servers">请先在杂项设置中填写 IP 检测服务器。</string>
+    <string name="ip_test_start_service">启动服务后可检测主出口 IP。</string>
 </resources>

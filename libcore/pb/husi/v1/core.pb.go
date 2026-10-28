@@ -817,6 +817,95 @@ func (x *ServiceAlert) GetMessage() string {
 	return ""
 }
 
+// One binding request through the running instance default outbound.
+type DetectIPRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Server        string                 `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DetectIPRequest) Reset() {
+	*x = DetectIPRequest{}
+	mi := &file_husi_v1_core_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetectIPRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetectIPRequest) ProtoMessage() {}
+
+func (x *DetectIPRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_core_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetectIPRequest.ProtoReflect.Descriptor instead.
+func (*DetectIPRequest) Descriptor() ([]byte, []int) {
+	return file_husi_v1_core_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DetectIPRequest) GetServer() string {
+	if x != nil {
+		return x.Server
+	}
+	return ""
+}
+
+type DetectIPResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ip            string                 `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DetectIPResponse) Reset() {
+	*x = DetectIPResponse{}
+	mi := &file_husi_v1_core_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetectIPResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetectIPResponse) ProtoMessage() {}
+
+func (x *DetectIPResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_core_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetectIPResponse.ProtoReflect.Descriptor instead.
+func (*DetectIPResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_core_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *DetectIPResponse) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
 var File_husi_v1_core_proto protoreflect.FileDescriptor
 
 const file_husi_v1_core_proto_rawDesc = "" +
@@ -861,7 +950,11 @@ const file_husi_v1_core_proto_rawDesc = "" +
 	"\brx_total\x18\x06 \x01(\x03R\arxTotal\"P\n" +
 	"\fServiceAlert\x12&\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x12.husi.v1.AlertKindR\x04kind\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage*\xd2\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\")\n" +
+	"\x0fDetectIPRequest\x12\x16\n" +
+	"\x06server\x18\x01 \x01(\tR\x06server\"\"\n" +
+	"\x10DetectIPResponse\x12\x0e\n" +
+	"\x02ip\x18\x01 \x01(\tR\x02ip*\xd2\x01\n" +
 	"\x0fServiceRunState\x12!\n" +
 	"\x1dSERVICE_RUN_STATE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16SERVICE_RUN_STATE_IDLE\x10\x01\x12 \n" +
@@ -873,11 +966,12 @@ const file_husi_v1_core_proto_rawDesc = "" +
 	"\x16ALERT_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11ALERT_KIND_COMMON\x10\x01\x12\x1d\n" +
 	"\x19ALERT_KIND_MISSING_PLUGIN\x10\x02\x12#\n" +
-	"\x1fALERT_KIND_NEED_WIFI_PERMISSION\x10\x032\xcc\x02\n" +
+	"\x1fALERT_KIND_NEED_WIFI_PERMISSION\x10\x032\x8d\x03\n" +
 	"\vCoreService\x12E\n" +
 	"\n" +
 	"GetVersion\x12\x1a.husi.v1.GetVersionRequest\x1a\x1b.husi.v1.GetVersionResponse\x12<\n" +
-	"\aURLTest\x12\x17.husi.v1.URLTestRequest\x1a\x18.husi.v1.URLTestResponse\x12K\n" +
+	"\aURLTest\x12\x17.husi.v1.URLTestRequest\x1a\x18.husi.v1.URLTestResponse\x12?\n" +
+	"\bDetectIP\x12\x18.husi.v1.DetectIPRequest\x1a\x19.husi.v1.DetectIPResponse\x12K\n" +
 	"\fResetNetwork\x12\x1c.husi.v1.ResetNetworkRequest\x1a\x1d.husi.v1.ResetNetworkResponse\x12k\n" +
 	"\x16SubscribeServiceEvents\x12&.husi.v1.SubscribeServiceEventsRequest\x1a'.husi.v1.SubscribeServiceEventsResponse0\x01B:\n" +
 	"\x10fr.husi.proto.v1B\tCoreProtoP\x01Z\x19libcore/pb/husi/v1;husiv1b\x06proto3"
@@ -895,7 +989,7 @@ func file_husi_v1_core_proto_rawDescGZIP() []byte {
 }
 
 var file_husi_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_husi_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_husi_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_husi_v1_core_proto_goTypes = []any{
 	(ServiceRunState)(0),                   // 0: husi.v1.ServiceRunState
 	(AlertKind)(0),                         // 1: husi.v1.AlertKind
@@ -911,6 +1005,8 @@ var file_husi_v1_core_proto_goTypes = []any{
 	(*ServiceStateUpdate)(nil),             // 11: husi.v1.ServiceStateUpdate
 	(*SpeedUpdate)(nil),                    // 12: husi.v1.SpeedUpdate
 	(*ServiceAlert)(nil),                   // 13: husi.v1.ServiceAlert
+	(*DetectIPRequest)(nil),                // 14: husi.v1.DetectIPRequest
+	(*DetectIPResponse)(nil),               // 15: husi.v1.DetectIPResponse
 }
 var file_husi_v1_core_proto_depIdxs = []int32{
 	6,  // 0: husi.v1.URLTestRequest.options:type_name -> husi.v1.URLTestOptions
@@ -921,14 +1017,16 @@ var file_husi_v1_core_proto_depIdxs = []int32{
 	1,  // 5: husi.v1.ServiceAlert.kind:type_name -> husi.v1.AlertKind
 	2,  // 6: husi.v1.CoreService.GetVersion:input_type -> husi.v1.GetVersionRequest
 	4,  // 7: husi.v1.CoreService.URLTest:input_type -> husi.v1.URLTestRequest
-	7,  // 8: husi.v1.CoreService.ResetNetwork:input_type -> husi.v1.ResetNetworkRequest
-	9,  // 9: husi.v1.CoreService.SubscribeServiceEvents:input_type -> husi.v1.SubscribeServiceEventsRequest
-	3,  // 10: husi.v1.CoreService.GetVersion:output_type -> husi.v1.GetVersionResponse
-	5,  // 11: husi.v1.CoreService.URLTest:output_type -> husi.v1.URLTestResponse
-	8,  // 12: husi.v1.CoreService.ResetNetwork:output_type -> husi.v1.ResetNetworkResponse
-	10, // 13: husi.v1.CoreService.SubscribeServiceEvents:output_type -> husi.v1.SubscribeServiceEventsResponse
-	10, // [10:14] is the sub-list for method output_type
-	6,  // [6:10] is the sub-list for method input_type
+	14, // 8: husi.v1.CoreService.DetectIP:input_type -> husi.v1.DetectIPRequest
+	7,  // 9: husi.v1.CoreService.ResetNetwork:input_type -> husi.v1.ResetNetworkRequest
+	9,  // 10: husi.v1.CoreService.SubscribeServiceEvents:input_type -> husi.v1.SubscribeServiceEventsRequest
+	3,  // 11: husi.v1.CoreService.GetVersion:output_type -> husi.v1.GetVersionResponse
+	5,  // 12: husi.v1.CoreService.URLTest:output_type -> husi.v1.URLTestResponse
+	15, // 13: husi.v1.CoreService.DetectIP:output_type -> husi.v1.DetectIPResponse
+	8,  // 14: husi.v1.CoreService.ResetNetwork:output_type -> husi.v1.ResetNetworkResponse
+	10, // 15: husi.v1.CoreService.SubscribeServiceEvents:output_type -> husi.v1.SubscribeServiceEventsResponse
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
@@ -950,7 +1048,7 @@ func file_husi_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_core_proto_rawDesc), len(file_husi_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -537,6 +537,7 @@ fun DashboardScreen(
                         openConnectController = openConnectController,
                         openVPNController = openVPNController,
                         contentPadding = pageContentPadding,
+                        detectIP = dashboardViewModel::detectIP,
                         selectClashMode = { dashboardViewModel.setClashMode(it) },
                         setSystemProxyEnabled = { dashboardViewModel.setSystemProxyEnabled(it) },
                         showError = { message ->

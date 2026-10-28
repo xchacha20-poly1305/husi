@@ -58,6 +58,7 @@ service ApplicationService {
   rpc WebDAVDownload(WebDAVDownloadRequest) returns (stream WebDAVDownloadResponse);
   rpc WebDAVDelete(WebDAVDeleteRequest) returns (WebDAVDeleteResponse);
   rpc Ping(PingRequest) returns (PingResponse);
+  rpc LookupIPCountry(LookupIPCountryRequest) returns (LookupIPCountryResponse);
   rpc MatchRuleSets(MatchRuleSetsRequest) returns (MatchRuleSetsResponse);
   rpc GetRootCertificates(GetRootCertificatesRequest) returns (GetRootCertificatesResponse);
   // Android only; other platforms answer UNIMPLEMENTED.
@@ -320,4 +321,14 @@ message AndroidVPNType {
 message ReadAndroidVPNTypeResponse {
   // Unset when no APK has a native library that reveals its core.
   AndroidVPNType type = 1;
+}
+
+// The first country rule set matching the IP in the host bundled GeoIP pack.
+message LookupIPCountryRequest {
+  string ip = 1;
+  string directory = 2;
+}
+
+message LookupIPCountryResponse {
+  string country_code = 1;
 }

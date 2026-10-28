@@ -33,6 +33,7 @@ const (
 	ApplicationService_WebDAVDownload_FullMethodName               = "/husi.v1.ApplicationService/WebDAVDownload"
 	ApplicationService_WebDAVDelete_FullMethodName                 = "/husi.v1.ApplicationService/WebDAVDelete"
 	ApplicationService_Ping_FullMethodName                         = "/husi.v1.ApplicationService/Ping"
+	ApplicationService_LookupIPCountry_FullMethodName              = "/husi.v1.ApplicationService/LookupIPCountry"
 	ApplicationService_MatchRuleSets_FullMethodName                = "/husi.v1.ApplicationService/MatchRuleSets"
 	ApplicationService_GetRootCertificates_FullMethodName          = "/husi.v1.ApplicationService/GetRootCertificates"
 	ApplicationService_ReadAndroidVPNType_FullMethodName           = "/husi.v1.ApplicationService/ReadAndroidVPNType"
@@ -89,6 +90,7 @@ type ApplicationServiceClient interface {
 	WebDAVDownload(ctx context.Context, in *WebDAVDownloadRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WebDAVDownloadResponse], error)
 	WebDAVDelete(ctx context.Context, in *WebDAVDeleteRequest, opts ...grpc.CallOption) (*WebDAVDeleteResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	LookupIPCountry(ctx context.Context, in *LookupIPCountryRequest, opts ...grpc.CallOption) (*LookupIPCountryResponse, error)
 	MatchRuleSets(ctx context.Context, in *MatchRuleSetsRequest, opts ...grpc.CallOption) (*MatchRuleSetsResponse, error)
 	GetRootCertificates(ctx context.Context, in *GetRootCertificatesRequest, opts ...grpc.CallOption) (*GetRootCertificatesResponse, error)
 	// Android only; other platforms answer UNIMPLEMENTED.
@@ -272,6 +274,16 @@ func (c *applicationServiceClient) Ping(ctx context.Context, in *PingRequest, op
 	return out, nil
 }
 
+func (c *applicationServiceClient) LookupIPCountry(ctx context.Context, in *LookupIPCountryRequest, opts ...grpc.CallOption) (*LookupIPCountryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LookupIPCountryResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_LookupIPCountry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *applicationServiceClient) MatchRuleSets(ctx context.Context, in *MatchRuleSetsRequest, opts ...grpc.CallOption) (*MatchRuleSetsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MatchRuleSetsResponse)
@@ -353,6 +365,7 @@ type ApplicationServiceServer interface {
 	WebDAVDownload(*WebDAVDownloadRequest, grpc.ServerStreamingServer[WebDAVDownloadResponse]) error
 	WebDAVDelete(context.Context, *WebDAVDeleteRequest) (*WebDAVDeleteResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	LookupIPCountry(context.Context, *LookupIPCountryRequest) (*LookupIPCountryResponse, error)
 	MatchRuleSets(context.Context, *MatchRuleSetsRequest) (*MatchRuleSetsResponse, error)
 	GetRootCertificates(context.Context, *GetRootCertificatesRequest) (*GetRootCertificatesResponse, error)
 	// Android only; other platforms answer UNIMPLEMENTED.
@@ -405,6 +418,9 @@ func (UnimplementedApplicationServiceServer) WebDAVDelete(context.Context, *WebD
 }
 func (UnimplementedApplicationServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedApplicationServiceServer) LookupIPCountry(context.Context, *LookupIPCountryRequest) (*LookupIPCountryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method LookupIPCountry not implemented")
 }
 func (UnimplementedApplicationServiceServer) MatchRuleSets(context.Context, *MatchRuleSetsRequest) (*MatchRuleSetsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MatchRuleSets not implemented")
@@ -631,6 +647,24 @@ func _ApplicationService_Ping_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ApplicationService_LookupIPCountry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LookupIPCountryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).LookupIPCountry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_LookupIPCountry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).LookupIPCountry(ctx, req.(*LookupIPCountryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ApplicationService_MatchRuleSets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MatchRuleSetsRequest)
 	if err := dec(in); err != nil {
@@ -723,6 +757,10 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _ApplicationService_Ping_Handler,
+		},
+		{
+			MethodName: "LookupIPCountry",
+			Handler:    _ApplicationService_LookupIPCountry_Handler,
 		},
 		{
 			MethodName: "MatchRuleSets",

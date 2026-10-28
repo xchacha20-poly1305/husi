@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.CertProvider
 import fr.husi.compose.IconMaskColors
-import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.ListPreference
@@ -17,6 +16,7 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.SliderPreference
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextFieldPreference
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.ktx.blankAsNull
@@ -34,6 +34,8 @@ import fr.husi.resources.connection_test_url
 import fr.husi.resources.developer_mode
 import fr.husi.resources.fast_forward
 import fr.husi.resources.follow_system
+import fr.husi.resources.ip_test_servers
+import fr.husi.resources.ip_test_servers_summary
 import fr.husi.resources.mozilla
 import fr.husi.resources.push_pin
 import fr.husi.resources.question_mark
@@ -70,6 +72,19 @@ internal fun MiscSettingsGroup(
         valueToText = { it },
     ) { value, onValueChange, onOk ->
         LinkOrContentTextField(value, onValueChange, onOk)
+    }
+
+    val ipTestServers by DataStore.ipTestServers.collectAsStateWithLifecycle()
+    TextFieldPreference(
+        value = ipTestServers,
+        onValueChange = { DataStore.ipTestServers.setBlocking(it) },
+        title = { Text(stringResource(Res.string.ip_test_servers)) },
+        textToValue = { it },
+        valueToText = { it },
+        icon = { MaskedIcon(Res.drawable.cast_connected, color = IconMaskColors.IconCyan) },
+        summary = { Text(stringResource(Res.string.ip_test_servers_summary)) },
+    ) { value, onValueChange, onOk ->
+        MultilineTextField(value, onValueChange, onOk)
     }
 
     val connectionTestConcurrentValue by DataStore.connectionTestConcurrent.collectAsStateWithLifecycle()

@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	CoreService_GetVersion_FullMethodName             = "/husi.v1.CoreService/GetVersion"
 	CoreService_URLTest_FullMethodName                = "/husi.v1.CoreService/URLTest"
+	CoreService_DetectIP_FullMethodName               = "/husi.v1.CoreService/DetectIP"
 	CoreService_ResetNetwork_FullMethodName           = "/husi.v1.CoreService/ResetNetwork"
 	CoreService_SubscribeServiceEvents_FullMethodName = "/husi.v1.CoreService/SubscribeServiceEvents"
 )
@@ -40,6 +41,7 @@ const (
 type CoreServiceClient interface {
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
 	URLTest(ctx context.Context, in *URLTestRequest, opts ...grpc.CallOption) (*URLTestResponse, error)
+	DetectIP(ctx context.Context, in *DetectIPRequest, opts ...grpc.CallOption) (*DetectIPResponse, error)
 	ResetNetwork(ctx context.Context, in *ResetNetworkRequest, opts ...grpc.CallOption) (*ResetNetworkResponse, error)
 	// SubscribeServiceEvents carries what only the host that started the service
 	// knows: husi's own lifecycle state with the profile behind it, the
@@ -74,6 +76,16 @@ func (c *coreServiceClient) URLTest(ctx context.Context, in *URLTestRequest, opt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(URLTestResponse)
 	err := c.cc.Invoke(ctx, CoreService_URLTest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreServiceClient) DetectIP(ctx context.Context, in *DetectIPRequest, opts ...grpc.CallOption) (*DetectIPResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DetectIPResponse)
+	err := c.cc.Invoke(ctx, CoreService_DetectIP_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +136,7 @@ type CoreService_SubscribeServiceEventsClient = grpc.ServerStreamingClient[Subsc
 type CoreServiceServer interface {
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
 	URLTest(context.Context, *URLTestRequest) (*URLTestResponse, error)
+	DetectIP(context.Context, *DetectIPRequest) (*DetectIPResponse, error)
 	ResetNetwork(context.Context, *ResetNetworkRequest) (*ResetNetworkResponse, error)
 	// SubscribeServiceEvents carries what only the host that started the service
 	// knows: husi's own lifecycle state with the profile behind it, the
@@ -149,6 +162,9 @@ func (UnimplementedCoreServiceServer) GetVersion(context.Context, *GetVersionReq
 }
 func (UnimplementedCoreServiceServer) URLTest(context.Context, *URLTestRequest) (*URLTestResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method URLTest not implemented")
+}
+func (UnimplementedCoreServiceServer) DetectIP(context.Context, *DetectIPRequest) (*DetectIPResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DetectIP not implemented")
 }
 func (UnimplementedCoreServiceServer) ResetNetwork(context.Context, *ResetNetworkRequest) (*ResetNetworkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResetNetwork not implemented")
@@ -213,6 +229,24 @@ func _CoreService_URLTest_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CoreService_DetectIP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DetectIPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServiceServer).DetectIP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CoreService_DetectIP_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServiceServer).DetectIP(ctx, req.(*DetectIPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CoreService_ResetNetwork_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResetNetworkRequest)
 	if err := dec(in); err != nil {
@@ -256,6 +290,10 @@ var CoreService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "URLTest",
 			Handler:    _CoreService_URLTest_Handler,
+		},
+		{
+			MethodName: "DetectIP",
+			Handler:    _CoreService_DetectIP_Handler,
 		},
 		{
 			MethodName: "ResetNetwork",

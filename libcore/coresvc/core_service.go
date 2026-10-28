@@ -10,6 +10,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/ipprobe"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/urltest"
 	"google.golang.org/grpc/codes"
@@ -90,4 +91,24 @@ func defaultURLTest(host *Host, tag, link string, timeoutMs int32, options urlte
 		timeoutMs,
 		options,
 	)
+}
+
+func (s *coreService) DetectIP(ctx context.Context, req *husiv1.DetectIPRequest) (*husiv1.DetectIPResponse, error) {
+	instanceCtx := s.host.liveInstanceContext()
+	if instanceCtx == nil {
+		return nil, status.Error(codes.FailedPrecondition, "instance not created")
+	}
+	manager := service.FromContext[adapter.OutboundManager](instanceCtx)
+	if manager == nil || manager.Default() == nil {
+		return nil, status.Error(codes.FailedPrecondition, "default outbound unavailable")
+	}
+	probeCtx, cancel := context.WithCancel(instanceCtx)
+	defer cancel()
+	stop := context.AfterFunc(ctx, cancel)
+	defer stop()
+	address, err := ipprobe.Probe(probeCtx, manager.Default(), req.GetServer())
+	if err != nil {
+		return nil, status.Error(codes.Unavailable, err.Error())
+	}
+	return &husiv1.DetectIPResponse{Ip: address.String()}, nil
 }

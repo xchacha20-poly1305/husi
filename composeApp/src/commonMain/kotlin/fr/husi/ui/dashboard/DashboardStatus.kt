@@ -16,16 +16,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import fr.husi.compose.material3.Button
-import fr.husi.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Switch
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -39,8 +34,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboard
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -48,18 +41,53 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.material3.Button
+import fr.husi.compose.material3.ButtonDefaults
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Switch
+import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
-import kotlinx.coroutines.launch
-import fr.husi.resources.*
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.ktx.formatMemoryBytes
+import fr.husi.resources.Res
+import fr.husi.resources.action_openconnect
+import fr.husi.resources.action_openvpn
+import fr.husi.resources.add
+import fr.husi.resources.clash_mode
+import fr.husi.resources.close
+import fr.husi.resources.dashboard_hidden_widgets
+import fr.husi.resources.dashboard_hide_widget
+import fr.husi.resources.dashboard_show_widget
+import fr.husi.resources.direct
+import fr.husi.resources.hide
+import fr.husi.resources.ip_test
+import fr.husi.resources.ip_test_detect
+import fr.husi.resources.ip_test_running
+import fr.husi.resources.ip_test_start_service
+import fr.husi.resources.network_interfaces
+import fr.husi.resources.no_statistics
+import fr.husi.resources.proxy
+import fr.husi.resources.show
+import fr.husi.resources.source_address
+import fr.husi.resources.status_goroutines
+import fr.husi.resources.status_memory
+import fr.husi.resources.status_status
+import fr.husi.resources.system_proxy
+import fr.husi.resources.system_proxy_unavailable_inbound_auth
+import fr.husi.resources.tailscale
+import fr.husi.resources.visibility
+import fr.husi.resources.visibility_off
 import fr.husi.tailscale.TailscaleEndpointState
 import fr.husi.tailscale.TailscaleStatusRepository
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openvpn.OpenVPNAuthController
-import org.koin.compose.koinInject
+import fr.husi.ui.stringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.koinInject
 
 @Composable
 internal fun DashboardStatusScreen(
@@ -69,6 +97,7 @@ internal fun DashboardStatusScreen(
     openVPNController: OpenVPNAuthController,
     contentPadding: PaddingValues,
     isEditing: Boolean,
+    detectIP: () -> Unit,
     selectClashMode: (mode: String) -> Unit,
     setSystemProxyEnabled: (Boolean) -> Unit,
     showError: (String) -> Unit,
@@ -147,6 +176,7 @@ internal fun DashboardStatusScreen(
                         onToggleNetworkInterfacesVisible = {
                             networkInterfacesVisible = !networkInterfacesVisible
                         },
+                        detectIP = detectIP,
                         selectClashMode = selectClashMode,
                         setSystemProxyEnabled = setSystemProxyEnabled,
                         showError = showError,
@@ -207,6 +237,7 @@ private fun DashboardWidgetContent(
     onToggleSourceAddressesVisible: () -> Unit,
     networkInterfacesVisible: Boolean,
     onToggleNetworkInterfacesVisible: () -> Unit,
+    detectIP: () -> Unit,
     selectClashMode: (mode: String) -> Unit,
     setSystemProxyEnabled: (Boolean) -> Unit,
     showError: (String) -> Unit,
@@ -224,6 +255,8 @@ private fun DashboardWidgetContent(
             uiState = uiState,
             modifier = Modifier.fillMaxSize(),
         )
+
+        DashboardWidget.ExitIP -> ExitIPCard(uiState.ipProbe, uiState.canProbeIP, detectIP, onCopy)
 
         DashboardWidget.Status -> StatusCard(uiState = uiState)
 
@@ -315,6 +348,7 @@ private fun dashboardWidgetTitle(widget: DashboardWidget): String = stringResour
     when (widget) {
         DashboardWidget.ProxySpeed -> Res.string.proxy
         DashboardWidget.DirectSpeed -> Res.string.direct
+        DashboardWidget.ExitIP -> Res.string.ip_test
         DashboardWidget.Status -> Res.string.status_status
         DashboardWidget.OpenConnect -> Res.string.action_openconnect
         DashboardWidget.OpenVPN -> Res.string.action_openvpn
@@ -614,5 +648,54 @@ private fun maskNetworkAddress(address: String): String {
         "*::*"
     } else {
         "*.*.*.*"
+    }
+}
+
+@Composable
+private fun ExitIPCard(
+    state: IPProbeState,
+    enabled: Boolean,
+    detectIP: () -> Unit,
+    onCopy: (String) -> Unit,
+) {
+    ElevatedCard(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(stringResource(Res.string.ip_test), style = MaterialTheme.typography.titleMedium)
+            state.ip?.let { ip ->
+                SelectionContainer {
+                    val displayText = countryEmoji(state.countryCode)?.let { emoji ->
+                        "$emoji $ip"
+                    } ?: ip
+                    Text(
+                        text = displayText,
+                        modifier = Modifier.clickable { onCopy(ip) },
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+            }
+            state.error?.let { error ->
+                Text(stringOrRes(error), color = MaterialTheme.colorScheme.error)
+            }
+            if (!enabled) {
+                Text(
+                    stringResource(Res.string.ip_test_start_service),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Button(onClick = detectIP, enabled = enabled && !state.isDoing) {
+                Text(
+                    stringResource(
+                        if (state.isDoing) {
+                            Res.string.ip_test_running
+                        } else {
+                            Res.string.ip_test_detect
+                        },
+                    ),
+                )
+            }
+        }
     }
 }

@@ -394,6 +394,15 @@ open class FakeCoreClient : CoreClient {
 
     override suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int = 0
 
+    var detectedIP = "203.0.113.1"
+    var detectedCountry = ""
+    var lastIPServer: String? = null
+    override suspend fun detectIP(server: String): String {
+        lastIPServer = server
+        return detectedIP
+    }
+    override suspend fun lookupIPCountry(dir: File, ip: String): String = detectedCountry
+
     override suspend fun matchRuleSets(dir: File, keyword: String): List<String> = emptyList()
 
     override suspend fun getRootCertificates(store: RootCertificateStore): String = ""

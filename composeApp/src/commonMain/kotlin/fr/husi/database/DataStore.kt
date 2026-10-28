@@ -10,6 +10,7 @@ import fr.husi.Key
 import fr.husi.NETWORK_QUALITY_CONFIG_URL
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.ProtocolProvider
+import fr.husi.STUN_SERVERS
 import fr.husi.TrafficSortMode
 import fr.husi.bg.ServiceState
 import fr.husi.compose.theme.DEFAULT
@@ -259,6 +260,7 @@ object DataStore {
     val systemProxy = configurationStore.boolean(Key.SYSTEM_PROXY)
     val httpProxyBypass = configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }
 
+    val ipTestServers = configurationStore.string(Key.IP_TEST_SERVERS) { STUN_SERVERS }
     val connectionTestURL = configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
     val connectionTestConcurrent = configurationStore.int(Key.CONNECTION_TEST_CONCURRENT) { 5 }
     val connectionTestTimeout = configurationStore.int(Key.CONNECTION_TEST_TIMEOUT) { 3000 }
