@@ -149,7 +149,7 @@ internal fun DashboardStatusScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            DashboardWidgetFlexBox(
+            DashboardWidgetGrid(
                 widgets = visibleWidgets,
                 isReorderable = isEditing,
                 onOrderChange = { order -> onWidgetsChange(entries.reorderVisibleWidgets(order)) },
@@ -197,7 +197,7 @@ internal fun DashboardStatusScreen(
                     text = stringResource(Res.string.dashboard_hidden_widgets),
                     style = MaterialTheme.typography.titleMedium,
                 )
-                DashboardWidgetFlexBox(
+                DashboardWidgetGrid(
                     widgets = hiddenWidgets,
                     isReorderable = false,
                     onOrderChange = {},

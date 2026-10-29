@@ -560,6 +560,8 @@ applicable MaxMind license terms.
 - [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
 - [dyhkwong/Exclave](https://github.com/dyhkwong/Exclave)
 - [chen08209/FlClash](https://github.com/chen08209/FlClash)
+- [appshubcc/Bettbox](https://github.com/appshubcc/Bettbox)
+- [Zephyruso/zashboard](https://github.com/Zephyruso/zashboard)
 - [RikkaApps/RikkaX](https://github.com/RikkaApps/RikkaX)
 
 Developing

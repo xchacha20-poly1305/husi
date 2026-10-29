@@ -6,26 +6,26 @@ import kotlinx.serialization.json.Json
 
 // Inspired by https://github.com/chen08209/FlClash/blob/62addf738a76b1a492e19af2dbabdb6d572b9e72/lib/enum/enum.dart#L248
 
-enum class DashboardWidgetWidth {
-    Half,
-    Full,
+enum class DashboardWidgetWidth(val cells: Int) {
+    Small(4),
+    Wide(8),
 }
 
 enum class DashboardWidget(
     val preferenceValue: String,
     val width: DashboardWidgetWidth,
 ) {
-    ProxySpeed("proxySpeed", DashboardWidgetWidth.Half),
-    DirectSpeed("directSpeed", DashboardWidgetWidth.Half),
-    Status("status", DashboardWidgetWidth.Half),
-    OpenConnect("openConnect", DashboardWidgetWidth.Full),
-    OpenVPN("openVPN", DashboardWidgetWidth.Full),
-    Tailscale("tailscale", DashboardWidgetWidth.Full),
-    ExitIP("exitIP", DashboardWidgetWidth.Full),
-    SourceAddress("sourceAddress", DashboardWidgetWidth.Half),
-    ClashMode("clashMode", DashboardWidgetWidth.Half),
-    SystemProxy("systemProxy", DashboardWidgetWidth.Half),
-    NetworkInterfaces("networkInterfaces", DashboardWidgetWidth.Full),
+    ProxySpeed("proxySpeed", DashboardWidgetWidth.Small),
+    DirectSpeed("directSpeed", DashboardWidgetWidth.Small),
+    Status("status", DashboardWidgetWidth.Small),
+    OpenConnect("openConnect", DashboardWidgetWidth.Wide),
+    OpenVPN("openVPN", DashboardWidgetWidth.Wide),
+    Tailscale("tailscale", DashboardWidgetWidth.Wide),
+    ExitIP("exitIP", DashboardWidgetWidth.Wide),
+    SourceAddress("sourceAddress", DashboardWidgetWidth.Small),
+    ClashMode("clashMode", DashboardWidgetWidth.Small),
+    SystemProxy("systemProxy", DashboardWidgetWidth.Small),
+    NetworkInterfaces("networkInterfaces", DashboardWidgetWidth.Wide),
 }
 
 @Immutable
