@@ -2184,61 +2184,6 @@ object SingBoxOptions {
         @JvmField
         var tls_spoof_method: String? = null
 
-        // Generate note: nested type AbstractDialerOptions
-        @JvmField
-        var bind_interface: String? = null
-
-        @JvmField
-        var inet4_bind_address: String? = null
-
-        @JvmField
-        var inet6_bind_address: String? = null
-
-        @JvmField
-        var bind_address_no_port: Boolean? = null
-
-        @JvmField
-        var protect_path: String? = null
-
-        @JvmField
-        var routing_mark: Int? = null
-
-        @JvmField
-        var reuse_addr: Boolean? = null
-
-        @JvmField
-        var netns: String? = null
-
-        @JvmField
-        var connect_timeout: String? = null
-
-        @JvmField
-        var tcp_fast_open: Boolean? = null
-
-        @JvmField
-        var tcp_multi_path: Boolean? = null
-
-        @JvmField
-        var disable_tcp_keep_alive: Boolean? = null
-
-        @JvmField
-        var tcp_keep_alive: String? = null
-
-        @JvmField
-        var tcp_keep_alive_interval: String? = null
-
-        @JvmField
-        var udp_fragment: Boolean? = null
-
-        @JvmField
-        var domain_resolver: DomainResolveOptions? = null
-
-        @JvmField
-        var fallback_network_type: MutableList<String>? = null
-
-        @JvmField
-        var domain_strategy: String? = null
-
         // Generate note: nested type RawRouteOptionsActionOptions
         @JvmField
         var method: String? = null
@@ -2328,64 +2273,6 @@ object SingBoxOptions {
 
         @JvmField
         var tls_spoof_method: String? = null
-
-        // Generate note: nested type AbstractDialerOptions
-        @JvmField
-        var bind_interface: String? = null
-
-        @JvmField
-        var inet4_bind_address: String? = null
-
-        @JvmField
-        var inet6_bind_address: String? = null
-
-        @JvmField
-        var bind_address_no_port: Boolean? = null
-
-        @JvmField
-        var protect_path: String? = null
-
-        @JvmField
-        var routing_mark: Int? = null
-
-        @JvmField
-        var reuse_addr: Boolean? = null
-
-        @JvmField
-        var netns: String? = null
-
-        @JvmField
-        var connect_timeout: String? = null
-
-        @JvmField
-        var tcp_fast_open: Boolean? = null
-
-        @JvmField
-        var tcp_multi_path: Boolean? = null
-
-        @JvmField
-        var disable_tcp_keep_alive: Boolean? = null
-
-        @JvmField
-        var tcp_keep_alive: String? = null
-
-        @JvmField
-        var tcp_keep_alive_interval: String? = null
-
-        @JvmField
-        var udp_fragment: Boolean? = null
-
-        @JvmField
-        var domain_resolver: DomainResolveOptions? = null
-
-        @JvmField
-        var network_type: MutableList<String>? = null
-
-        @JvmField
-        var fallback_network_type: MutableList<String>? = null
-
-        @JvmField
-        var domain_strategy: String? = null
 
         // Generate note: nested type RawRouteOptionsActionOptions
         @JvmField

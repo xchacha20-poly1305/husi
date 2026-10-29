@@ -86,9 +86,7 @@ func generatedClassName(valueType reflect.Type, belongs string) string {
 func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []byte {
 	builder := bytes.NewBuffer(nil)
 
-	for i := 0; i < valueType.NumField(); i++ {
-		field := valueType.Field(i)
-
+	for field := range valueType.Fields() {
 		tag := field.Tag.Get("json")
 		tag = strings.TrimSuffix(tag, ",omitempty")
 
@@ -156,7 +154,7 @@ const (
 
 func className(valueType reflect.Type) string {
 	switch valueType.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		return className(valueType.Elem())
 	case reflect.Bool:
 		return kotlinBoolean
@@ -292,10 +290,6 @@ func init() {
 		{
 			Key:   "RouteOptionsActionOptions",
 			Value: option.RouteOptionsActionOptions{},
-		},
-		{
-			Key:   "DirectActionOptions",
-			Value: option.DirectActionOptions{},
 		},
 		{
 			Key:   "BypassOptions",
