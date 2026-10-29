@@ -1,11 +1,15 @@
 package fr.husi.ui.settings
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
 import fr.husi.CertProvider
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
@@ -35,6 +39,7 @@ import fr.husi.resources.developer_mode
 import fr.husi.resources.fast_forward
 import fr.husi.resources.follow_system
 import fr.husi.resources.ip_test_servers
+import fr.husi.resources.ip_test_servers_description
 import fr.husi.resources.ip_test_servers_summary
 import fr.husi.resources.mozilla
 import fr.husi.resources.push_pin
@@ -84,7 +89,13 @@ internal fun MiscSettingsGroup(
         icon = { MaskedIcon(Res.drawable.cast_connected, color = IconMaskColors.IconCyan) },
         summary = { Text(stringResource(Res.string.ip_test_servers_summary)) },
     ) { value, onValueChange, onOk ->
-        MultilineTextField(value, onValueChange, onOk)
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                text = stringResource(Res.string.ip_test_servers_description),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            MultilineTextField(value, onValueChange, onOk)
+        }
     }
 
     val connectionTestConcurrentValue by DataStore.connectionTestConcurrent.collectAsStateWithLifecycle()
