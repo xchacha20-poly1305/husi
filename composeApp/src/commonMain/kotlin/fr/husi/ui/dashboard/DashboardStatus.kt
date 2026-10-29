@@ -63,7 +63,6 @@ import fr.husi.resources.hide
 import fr.husi.resources.ip_test
 import fr.husi.resources.ip_test_detect
 import fr.husi.resources.ip_test_running
-import fr.husi.resources.ip_test_start_service
 import fr.husi.resources.network_interfaces
 import fr.husi.resources.no_statistics
 import fr.husi.resources.proxy
@@ -126,6 +125,7 @@ internal fun DashboardStatusScreen(
             DashboardWidget.ClashMode -> uiState.clashModes.isNotEmpty()
             // A remote core reports only its total rate, with no direct split.
             DashboardWidget.DirectSpeed -> !uiState.isRemote
+            DashboardWidget.ExitIP -> !uiState.isRemote
             DashboardWidget.SystemProxy -> uiState.systemProxy != null && !uiState.isRemote
             else -> true
         }
@@ -256,7 +256,7 @@ private fun DashboardWidgetContent(
             modifier = Modifier.fillMaxSize(),
         )
 
-        DashboardWidget.ExitIP -> ExitIPCard(uiState.ipProbe, uiState.canProbeIP, detectIP, onCopy)
+        DashboardWidget.ExitIP -> ExitIPCard(uiState.ipProbe, detectIP, onCopy)
 
         DashboardWidget.Status -> StatusCard(uiState = uiState)
 
@@ -654,7 +654,6 @@ private fun maskNetworkAddress(address: String): String {
 @Composable
 private fun ExitIPCard(
     state: IPProbeState,
-    enabled: Boolean,
     detectIP: () -> Unit,
     onCopy: (String) -> Unit,
 ) {
@@ -679,13 +678,7 @@ private fun ExitIPCard(
             state.error?.let { error ->
                 Text(stringOrRes(error), color = MaterialTheme.colorScheme.error)
             }
-            if (!enabled) {
-                Text(
-                    stringResource(Res.string.ip_test_start_service),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Button(onClick = detectIP, enabled = enabled && !state.isDoing) {
+            Button(onClick = detectIP, enabled = !state.isDoing) {
                 Text(
                     stringResource(
                         if (state.isDoing) {

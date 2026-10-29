@@ -3,7 +3,9 @@ package ipprobe
 import (
 	"cmp"
 	"context"
+	"errors"
 	"math/rand/v2"
+	"net"
 	"net/netip"
 	"slices"
 	"strings"
@@ -13,6 +15,7 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
 
 	mDNS "github.com/miekg/dns"
 )
@@ -26,11 +29,70 @@ func discoverServers(ctx context.Context, resolver Resolver, server stunServer) 
 	if server.address.IsIP() {
 		return []M.Socksaddr{server.address}, nil
 	}
-	if resolver == nil {
-		return nil, E.New("require DNS router")
-	}
 	ctx, cancel := context.WithTimeout(ctx, C.DNSTimeout)
 	defer cancel()
+	records, err := lookupSRV(ctx, resolver, server)
+	if err != nil {
+		return nil, err
+	}
+
+	targets := []M.Socksaddr{server.address}
+	if len(records) > 0 {
+		targets = nil
+		for _, record := range orderSRV(records) {
+			if record.Target == "." {
+				return nil, E.New("STUN service unavailable")
+			}
+			targets = append(targets, M.ParseSocksaddrHostPort(strings.TrimSuffix(record.Target, "."), record.Port))
+		}
+	}
+	var addresses []M.Socksaddr
+	var lookupErrors []error
+	for _, target := range targets {
+		var ips []netip.Addr
+		if resolver == nil {
+			ips, err = net.DefaultResolver.LookupNetIP(ctx, N.NetworkIP, target.Fqdn)
+		} else {
+			ips, err = resolver.Lookup(ctx, target.Fqdn, adapter.DNSQueryOptions{})
+		}
+		if err != nil {
+			lookupErrors = append(lookupErrors, err)
+			continue
+		}
+		for _, ip := range ips {
+			addresses = append(addresses, M.Socksaddr{Addr: ip.Unmap(), Port: target.Port})
+		}
+	}
+	err = ctx.Err()
+	if err != nil {
+		return nil, err
+	}
+	if len(addresses) == 0 {
+		return nil, E.Cause(E.Errors(lookupErrors...), "no STUN server addresses")
+	}
+	return addresses, nil
+}
+
+func lookupSRV(ctx context.Context, resolver Resolver, server stunServer) ([]*mDNS.SRV, error) {
+	if resolver == nil {
+		// LookupSRV orders SRV so we don't need to order again.
+		_, records, err := net.DefaultResolver.LookupSRV(ctx, server.scheme, server.transport, server.address.Fqdn)
+		if err != nil {
+			if dnsError, isDNSError := errors.AsType[*net.DNSError](err); isDNSError && dnsError.IsNotFound {
+				return nil, nil
+			}
+			return nil, E.Cause(err, "lookup STUN SRV")
+		}
+		return common.Map(records, func(it *net.SRV) *mDNS.SRV {
+			return &mDNS.SRV{
+				Target:   it.Target,
+				Port:     it.Port,
+				Priority: it.Priority,
+				Weight:   it.Weight,
+			}
+		}), nil
+	}
+
 	question := new(mDNS.Msg)
 	question.SetQuestion(mDNS.Fqdn("_"+server.scheme+"._"+server.transport+"."+server.address.Fqdn), mDNS.TypeSRV)
 	response, err := resolver.Exchange(ctx, question, adapter.DNSQueryOptions{})
@@ -47,35 +109,7 @@ func discoverServers(ctx context.Context, resolver Resolver, server stunServer) 
 		srv, isSRV := it.(*mDNS.SRV)
 		return srv, isSRV
 	})
-	targets := []M.Socksaddr{server.address}
-	if len(records) > 0 {
-		targets = nil
-		for _, record := range orderSRV(records) {
-			if record.Target == "." {
-				return nil, E.New("STUN service unavailable")
-			}
-			targets = append(targets, M.ParseSocksaddrHostPort(strings.TrimSuffix(record.Target, "."), record.Port))
-		}
-	}
-	var addresses []M.Socksaddr
-	var lookupErrors []error
-	for _, target := range targets {
-		ips, err := resolver.Lookup(ctx, target.Fqdn, adapter.DNSQueryOptions{})
-		if err != nil {
-			lookupErrors = append(lookupErrors, err)
-			continue
-		}
-		for _, ip := range ips {
-			addresses = append(addresses, M.Socksaddr{Addr: ip, Port: target.Port})
-		}
-	}
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	if len(addresses) == 0 {
-		return nil, E.Cause(E.Errors(lookupErrors...), "no STUN server addresses")
-	}
-	return addresses, nil
+	return records, nil
 }
 
 // RFC 2782: select by priority, then weighted random selection without replacement.

@@ -88,7 +88,6 @@ data class DashboardState(
     val proxySpeedHistory: List<Float> = idleSpeedHistory(),
     val directSpeedHistory: List<Float> = idleSpeedHistory(),
     val ipProbe: IPProbeState = IPProbeState(),
-    val canProbeIP: Boolean = false,
     val ipv4: String? = null,
     val ipv6: String? = null,
     val selectedClashMode: String = "",
@@ -405,7 +404,6 @@ class DashboardViewModel(
         uiState.update { state ->
             state.copy(
                 ipProbe = IPProbeState(),
-                canProbeIP = isConnected,
                 connections = emptyList(),
                 activeConnectionCount = 0,
                 proxySets = emptyList(),
@@ -986,7 +984,7 @@ class DashboardViewModel(
     private var ipProbeJob: Job? = null
 
     fun detectIP() {
-        if (!uiState.value.canProbeIP || ipProbeJob?.isActive == true) return
+        if (isRemote || ipProbeJob?.isActive == true) return
         ipProbeJob = viewModelScope.launch {
             uiState.update { it.copy(ipProbe = IPProbeState(isDoing = true)) }
             try {
@@ -1000,13 +998,7 @@ class DashboardViewModel(
                 val client = coreClient
                 val ip = client.detectIP(server)
                 uiState.update { it.copy(ipProbe = IPProbeState(isDoing = true, ip = ip)) }
-                // GeoIP belongs to this app's bundled pack, including when the exit is remote.
-                val countryClient = if (isRemote) {
-                    GlobalContext.get().get<CoreClient>()
-                } else {
-                    client
-                }
-                val country = countryClient.lookupIPCountry(
+                val country = client.lookupIPCountry(
                     routeGeoDir(resolveRepository().externalAssetsDir), ip,
                 )
                 uiState.update { it.copy(ipProbe = IPProbeState(ip = ip, countryCode = country)) }

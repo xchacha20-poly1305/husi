@@ -969,5 +969,4 @@
     <string name="ip_test_servers_summary">Servers used by the dashboard to detect the IP address.</string>
     <string name="ip_test_servers_description">One server per line. Use stun:host (UDP, default port 3478), turn:host (default port 3478), or turns:host (TLS, default port 5349). TURN servers are used only for STUN binding requests. TURN URIs accept ?transport=udp or ?transport=tcp; TLS requires TCP. Each detection randomly selects one server.</string>
     <string name="ip_test_no_servers">Configure an IP detection server in miscellaneous settings.</string>
-    <string name="ip_test_start_service">Start the service to detect the main outbound IP.</string>
 </resources>

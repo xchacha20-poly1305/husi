@@ -42,7 +42,7 @@ class IPProbeTest : HusiKoinMainDispatcherTest() {
     }
 
     @Test
-    fun `empty configuration and stopped service do not send requests`() = runTest(dispatcher.scheduler) {
+    fun `empty configuration does not send requests`() = runTest(dispatcher.scheduler) {
         DataStore.ipTestServers.set(" \n ")
         val client = FakeCoreClient()
         val model = newViewModel(client)
@@ -51,15 +51,25 @@ class IPProbeTest : HusiKoinMainDispatcherTest() {
         advanceUntilIdle()
         assertIs<StringOrRes.Res>(model.uiState.value.ipProbe.error)
         assertNull(client.lastIPServer)
+    }
+
+    @Test
+    fun `stopped service can query exit IP`() = runTest(dispatcher.scheduler) {
+        DataStore.ipTestServers.set("stun:one.example")
+        val client = FakeCoreClient().also { it.detectedCountry = "JP" }
+        val model = newViewModel(client)
         model.initialize(false)
         model.detectIP()
         advanceUntilIdle()
-        assertEquals(IPProbeState(), model.uiState.value.ipProbe)
-        assertNull(client.lastIPServer)
+        assertEquals("stun:one.example", client.lastIPServer)
+        assertEquals(client.detectedIP, model.uiState.value.ipProbe.ip)
+        assertEquals("JP", model.uiState.value.ipProbe.countryCode)
+        assertFalse(model.uiState.value.ipProbe.isDoing)
     }
 
     @Test
     fun `repeated click sends one request and disconnect cancels it`() = runTest(dispatcher.scheduler) {
+        DataStore.ipTestServers.set("stun:one.example")
         val pending = CompletableDeferred<String>()
         var calls = 0
         val client = object : FakeCoreClient() {
@@ -80,10 +90,15 @@ class IPProbeTest : HusiKoinMainDispatcherTest() {
         pending.complete("203.0.113.1")
         advanceUntilIdle()
         assertEquals(IPProbeState(), model.uiState.value.ipProbe)
+        model.detectIP()
+        advanceUntilIdle()
+        assertEquals(2, calls)
+        assertEquals("203.0.113.1", model.uiState.value.ipProbe.ip)
     }
 
     @Test
     fun `lookup failure preserves detected IP`() = runTest(dispatcher.scheduler) {
+        DataStore.ipTestServers.set("stun:one.example")
         val client = object : FakeCoreClient() {
             override suspend fun lookupIPCountry(dir: File, ip: String): String = error("GeoIP unavailable")
         }

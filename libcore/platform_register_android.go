@@ -9,6 +9,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
+	"github.com/xchacha20-poly1305/husi/libcore/v2/ipprobe"
 	"github.com/xchacha20-poly1305/protect-go"
 )
 
@@ -27,4 +28,7 @@ func registerPlatformInterface(ctx context.Context, platformInterface PlatformIn
 		}
 		return nil
 	}))
+	if transport := platformInterface.LocalDNSTransport(); transport != nil {
+		service.MustRegister[ipprobe.Resolver](ctx, platformIPResolver{transport: transport})
+	}
 }
