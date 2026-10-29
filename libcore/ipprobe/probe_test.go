@@ -10,7 +10,6 @@ import (
 	"net"
 	"net/http/httptest"
 	"net/netip"
-	"net/url"
 	"strconv"
 	"testing"
 	"testing/iotest"
@@ -23,41 +22,189 @@ import (
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 
+	mDNS "github.com/miekg/dns"
 	"github.com/stretchr/testify/require"
 )
 
-func TestProbeServerURL(t *testing.T) {
-	for _, test := range []struct {
-		input, address string
-		transport      string
+// This is not for testing RFC7064 or RFC7065, but is a test for our reject logic.
+func TestParseStunServer(t *testing.T) {
+	tests := []struct {
+		name    string
+		uri     string
+		wantErr string
+		want    stunServer
 	}{
-		{"example.com", "example.com:3478", "udp"},
-		{"stun://example.com:1234", "example.com:1234", "udp"},
-		{"stuns://example.com", "example.com:5379", "tcp"},
-		{" stuns://[2001:db8::1]:443 ", "[2001:db8::1]:443", "tcp"},
-		{"stun://example.com?transport=udp", "example.com:3478", "udp"},
-		{"stun://example.com?transport=tcp", "example.com:3478", "tcp"},
-		{"example.com:1234?transport=TCP", "example.com:1234", "tcp"},
-		{"stuns://example.com?transport=tcp", "example.com:5379", "tcp"},
-	} {
-		t.Run(test.input, func(t *testing.T) {
-			dialer := &recordingDialer{err: E.New("stop before connecting")}
-			_, err := Probe(t.Context(), dialer, test.input)
-			require.ErrorIs(t, err, dialer.err)
-			require.Equal(t, test.address, dialer.address.String())
-			require.Equal(t, test.transport, dialer.transport)
-		})
+		{
+			name: "stun default",
+			uri:  "stun:example.org",
+			want: stunServer{
+				scheme:    "stun",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultPort),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name: "trim space",
+			uri:  "  stun:example.org  ",
+			want: stunServer{
+				scheme:    "stun",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultPort),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name: "stuns default",
+			uri:  "stuns:example.org",
+			want: stunServer{
+				scheme:    "stuns",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultTLSPort),
+				transport: N.NetworkTCP,
+				tls:       true,
+			},
+		},
+		{
+			name: "turn default",
+			uri:  "turn:example.org",
+			want: stunServer{
+				scheme:    "turn",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultPort),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name: "turns default",
+			uri:  "turns:example.org",
+			want: stunServer{
+				scheme:    "turns",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultTLSPort),
+				transport: N.NetworkTCP,
+				tls:       true,
+			},
+		},
+		{
+			name: "explicit port",
+			uri:  "stun:example.org:8000",
+			want: stunServer{
+				scheme:    "stun",
+				address:   M.ParseSocksaddrHostPort("example.org", 8000),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name: "explicit tls port",
+			uri:  "turns:example.org:443",
+			want: stunServer{
+				scheme:    "turns",
+				address:   M.ParseSocksaddrHostPort("example.org", 443),
+				transport: N.NetworkTCP,
+				tls:       true,
+			},
+		},
+		{
+			name: "zero port",
+			uri:  "stun:example.org:0",
+			want: stunServer{
+				scheme:    "stun",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultPort),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name: "empty port",
+			uri:  "stuns:example.org:",
+			want: stunServer{
+				scheme:    "stuns",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultTLSPort),
+				transport: N.NetworkTCP,
+				tls:       true,
+			},
+		},
+		{
+			name: "turn tcp",
+			uri:  "turn:example.org?transport=tcp",
+			want: stunServer{
+				scheme:    "turn",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultPort),
+				transport: N.NetworkTCP,
+			},
+		},
+		{
+			name: "turn udp",
+			uri:  "turn:example.org:8000?transport=udp",
+			want: stunServer{
+				scheme:    "turn",
+				address:   M.ParseSocksaddrHostPort("example.org", 8000),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name: "transport case",
+			uri:  "turns:example.org?transport=TCP",
+			want: stunServer{
+				scheme:    "turns",
+				address:   M.ParseSocksaddrHostPort("example.org", defaultTLSPort),
+				transport: N.NetworkTCP,
+				tls:       true,
+			},
+		},
+		{
+			name: "ipv4",
+			uri:  "stun:192.0.2.1:3478",
+			want: stunServer{
+				scheme:    "stun",
+				address:   M.ParseSocksaddrHostPort("192.0.2.1", 3478),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name: "ipv6",
+			uri:  "stun:[2001:db8::1]",
+			want: stunServer{
+				scheme:    "stun",
+				address:   M.ParseSocksaddrHostPort("[2001:db8::1]", defaultPort),
+				transport: N.NetworkUDP,
+			},
+		},
+		{
+			name:    "unsupported transport",
+			uri:     "turn:example.org?transport=sctp",
+			wantErr: "unsupported transport",
+		},
+		{
+			name:    "udp over tls",
+			uri:     "turns:example.org?transport=udp",
+			wantErr: "unsupported UDP over TLS",
+		},
+		{
+			name:    "udp over tls before ip",
+			uri:     "  turns:192.0.2.1?transport=UDP  ",
+			wantErr: "unsupported UDP over TLS",
+		},
+		{
+			name:    "tls ipv4",
+			uri:     "stuns:192.0.2.1",
+			wantErr: "reject TLS with IP address",
+		},
+		{
+			name:    "tls ipv6",
+			uri:     "stuns:[2001:db8::1]:5349",
+			wantErr: "reject TLS with IP address",
+		},
+		{
+			name:    "tls ipv4-mapped",
+			uri:     "turns:[::ffff:192.0.2.1]?transport=tcp",
+			wantErr: "reject TLS with IP address",
+		},
 	}
-
-	for _, input := range []string{
-		"",
-		"https://example.com",
-		"stun://example.com?transport=quic",
-		"stun://example.com?transport=%zz",
-	} {
-		t.Run(input, func(t *testing.T) {
-			_, err := Probe(t.Context(), nil, input)
-			require.Error(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseStunServer(tt.uri)
+			if tt.wantErr != "" {
+				require.ErrorContains(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -106,32 +253,40 @@ func (c testPacketConn) WriteTo(b []byte, address net.Addr) (int, error) {
 }
 
 func TestProbeUDP(t *testing.T) {
-	for _, ip := range []string{"203.0.113.7", "2001:db8::7"} {
-		t.Run(ip, func(t *testing.T) {
-			listener, err := net.ListenPacket(N.NetworkUDP, "127.0.0.1:0")
-			require.NoError(t, err)
-			defer listener.Close()
-			completed := make(chan error, 1)
-			go func() {
-				packet := make([]byte, 1024)
-				count, source, err := listener.ReadFrom(packet)
-				if err == nil {
-					var transaction stunTxID
-					transaction, err = parseBindingRequest(packet[:count])
+	for _, server := range []struct {
+		scheme, query string
+	}{
+		{"stun", ""},
+		{"turn", ""},
+		{"turn", "?transport=udp"},
+	} {
+		for _, ip := range []string{"203.0.113.7", "2001:db8::7"} {
+			t.Run(server.scheme+server.query+"/"+ip, func(t *testing.T) {
+				listener, err := net.ListenPacket(N.NetworkUDP, "127.0.0.1:0")
+				require.NoError(t, err)
+				defer listener.Close()
+				completed := make(chan error, 1)
+				go func() {
+					packet := make([]byte, 1024)
+					count, source, err := listener.ReadFrom(packet)
 					if err == nil {
-						_, err = listener.WriteTo(stunResponse(transaction, netip.AddrPortFrom(netip.MustParseAddr(ip), 1234)), source)
+						var transaction stunTxID
+						transaction, err = parseBindingRequest(packet[:count])
+						if err == nil {
+							_, err = listener.WriteTo(stunResponse(transaction, netip.AddrPortFrom(netip.MustParseAddr(ip), 1234)), source)
+						}
 					}
-				}
-				completed <- err
-			}()
-			result, err := Probe(t.Context(), testDialer{}, listener.LocalAddr().String())
-			require.NoError(t, err)
-			require.Equal(t, ip, result.String())
-			require.NoError(t, <-completed)
-			require.NoError(t, listener.SetReadDeadline(time.Now().Add(20*time.Millisecond)))
-			_, _, err = listener.ReadFrom(make([]byte, 1024))
-			require.Error(t, err, "probe must send only one binding request")
-		})
+					completed <- err
+				}()
+				result, err := Probe(t.Context(), testDialer{}, nil, server.scheme+":"+listener.LocalAddr().String()+server.query)
+				require.NoError(t, err)
+				require.Equal(t, ip, result.String())
+				require.NoError(t, <-completed)
+				require.NoError(t, listener.SetReadDeadline(time.Now().Add(20*time.Millisecond)))
+				_, _, err = listener.ReadFrom(make([]byte, 1024))
+				require.Error(t, err, "probe must send only one binding request")
+			})
+		}
 	}
 }
 
@@ -146,18 +301,20 @@ func TestProbeTCP(t *testing.T) {
 	tests := []struct {
 		name   string
 		secure bool
+		query  string
 	}{
-		{"TCP", false},
-		{"TLS", true},
+		{"TCP", false, "?transport=tcp"},
+		{"TLS", true, "?transport=tcp"},
+		{"TLS default transport", true, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testProbeTCP(t, tt.secure)
+			testProbeTCP(t, tt.secure, tt.query)
 		})
 	}
 }
 
-func testProbeTCP(t *testing.T, secure bool) {
+func testProbeTCP(t *testing.T, secure bool, query string) {
 	t.Helper()
 	certificateServer := httptest.NewTLSServer(nil)
 	certificate := certificateServer.TLS.Certificates[0]
@@ -205,19 +362,25 @@ func testProbeTCP(t *testing.T, secure bool) {
 	}()
 	var scheme string
 	if secure {
-		scheme = "stuns"
+		scheme = "turns"
 	} else {
-		scheme = "stun"
+		scheme = "turn"
 	}
-	serverURL := &url.URL{
-		Scheme: scheme,
-		Host:   listener.Addr().String(),
-		RawQuery: url.Values{
-			"transport": {"tcp"},
-		}.Encode(),
-	}
+	serverURI := scheme + ":" + listener.Addr().String() + query
 	ctx := service.ContextWith[adapter.CertificateStore](t.Context(), testCertificateStore{pool: pool})
-	result, err := Probe(ctx, testDialer{}, serverURL.String())
+	resolver := testResolver{
+		exchange: func(context.Context, *mDNS.Msg) (*mDNS.Msg, error) {
+			return &mDNS.Msg{Answer: []mDNS.RR{&mDNS.SRV{Target: "srv.example.net.", Port: uint16(listener.Addr().(*net.TCPAddr).Port)}}}, nil
+		},
+		lookup: func(_ context.Context, host string) ([]netip.Addr, error) {
+			require.Equal(t, "srv.example.net", host)
+			return []netip.Addr{netip.MustParseAddr("127.0.0.2"), netip.MustParseAddr("127.0.0.1")}, nil
+		},
+	}
+	if secure {
+		serverURI = scheme + ":example.com" + query
+	}
+	result, err := Probe(ctx, testDialer{}, resolver, serverURI)
 	require.NoError(t, err)
 	require.Equal(t, "2001:db8::8", result.String())
 	require.NoError(t, <-completed)
@@ -227,11 +390,11 @@ func TestProbeCancellation(t *testing.T) {
 	listener, err := net.ListenPacket(N.NetworkUDP, "127.0.0.1:0")
 	require.NoError(t, err)
 	defer listener.Close()
-	serverURL := listener.LocalAddr().String()
+	serverURI := "stun:" + listener.LocalAddr().String()
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Millisecond)
 	defer cancel()
 	started := time.Now()
-	_, err = Probe(ctx, testDialer{}, serverURL)
+	_, err = Probe(ctx, testDialer{}, nil, serverURI)
 	require.Error(t, err)
 	require.Less(t, time.Since(started), time.Second)
 }

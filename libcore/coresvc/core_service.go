@@ -106,7 +106,7 @@ func (s *coreService) DetectIP(ctx context.Context, req *husiv1.DetectIPRequest)
 	defer cancel()
 	stop := context.AfterFunc(ctx, cancel)
 	defer stop()
-	address, err := ipprobe.Probe(probeCtx, manager.Default(), req.GetServer())
+	address, err := ipprobe.Probe(probeCtx, manager.Default(), service.FromContext[adapter.DNSRouter](instanceCtx), req.GetServer())
 	if err != nil {
 		return nil, status.Error(codes.Unavailable, err.Error())
 	}

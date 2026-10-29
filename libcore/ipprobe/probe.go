@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"io"
 	"net/netip"
-	"net/url"
 	"strings"
 	"time"
 
@@ -18,6 +17,8 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/common/ntp"
+
+	"github.com/xchacha20-poly1305/stunuri-go"
 )
 
 const (
@@ -27,69 +28,86 @@ const (
 
 const (
 	defaultPort    = 3478
-	defaultTLSPort = 5379
+	defaultTLSPort = 5349
 )
 
-func parseStunServer(rawURL string) (serverAddr M.Socksaddr, transport string, isTLS bool, err error) {
-	rawURL = strings.TrimSpace(rawURL)
-	if !strings.Contains(rawURL, "://") {
-		rawURL = "stun://" + rawURL
-	}
-	parsed, err := url.Parse(rawURL)
-	if err != nil {
-		err = E.Cause(err, "invalid server")
-		return
-	}
-	if parsed.Scheme != "stun" && parsed.Scheme != "stuns" {
-		err = E.New("invalid scheme: ", parsed.Scheme)
-		return
-	}
-	query, err := url.ParseQuery(parsed.RawQuery)
-	if err != nil {
-		err = E.Cause(err, "parse query")
-		return
-	}
-	transport = strings.ToLower(query.Get("transport"))
-	isTLS = parsed.Scheme == "stuns"
-	switch transport {
-	case "":
-		if isTLS {
-			transport = N.NetworkTCP
-		} else {
-			transport = N.NetworkUDP
-		}
-	case N.NetworkTCP:
-	case N.NetworkUDP:
-		if isTLS {
-			err = E.New("unsupported UDP over TLS")
-			return
-		}
-	default:
-		err = E.New("unsupported transport")
-		return
-	}
-	serverAddr = M.ParseSocksaddr(parsed.Host)
-	if !serverAddr.IsValid() {
-		err = E.New("invalid host")
-		return
-	}
-	if serverAddr.Port == 0 {
-		if isTLS {
-			serverAddr.Port = defaultTLSPort
-		} else {
-			serverAddr.Port = defaultPort
-		}
-	}
-	return
+type stunServer struct {
+	scheme    string
+	address   M.Socksaddr
+	transport string
+	tls       bool
 }
 
-func Probe(ctx context.Context, dialer N.Dialer, value string) (netip.Addr, error) {
-	serverAddr, transport, isTLS, err := parseStunServer(value)
+func parseStunServer(rawURI string) (stunServer, error) {
+	rawURI = strings.TrimSpace(rawURI)
+	parsed, err := stunuri.Parse(rawURI)
+	if err != nil {
+		return stunServer{}, err
+	}
+	server := stunServer{
+		scheme:    parsed.Scheme,
+		transport: strings.ToLower(parsed.Transport),
+		tls:       parsed.Secure(),
+	}
+	switch server.transport {
+	case "":
+		if server.tls {
+			server.transport = N.NetworkTCP
+		} else {
+			server.transport = N.NetworkUDP
+		}
+	case N.NetworkTCP, N.NetworkUDP:
+	default:
+		return stunServer{}, E.New("unsupported transport: ", parsed.Transport)
+	}
+	if server.tls && server.transport == N.NetworkUDP {
+		return stunServer{}, E.New("unsupported UDP over TLS")
+	}
+	server.address = M.ParseSocksaddrHostPortStr(parsed.Host, parsed.Port)
+	if !server.address.IsValid() {
+		return stunServer{}, E.New("invalid server host")
+	}
+	if server.tls && server.address.IsIP() {
+		// https://www.rfc-editor.org/info/rfc8489/#section-8.1
+		return stunServer{}, E.New("reject TLS with IP address")
+	}
+	if server.address.Port == 0 {
+		if server.tls {
+			server.address.Port = defaultTLSPort
+		} else {
+			server.address.Port = defaultPort
+		}
+	}
+	return server, nil
+}
+
+func Probe(ctx context.Context, dialer N.Dialer, resolver Resolver, value string) (netip.Addr, error) {
+	server, err := parseStunServer(value)
 	if err != nil {
 		return netip.Addr{}, E.Cause(err, "parse stun server")
 	}
+	addresses, err := discoverServers(ctx, resolver, server)
+	if err != nil {
+		return netip.Addr{}, err
+	}
+	var failures []error
+	for _, address := range addresses {
+		result, err := probeServer(ctx, dialer, server, address)
+		if err == nil {
+			return result, nil
+		}
+		if ctx.Err() != nil {
+			return netip.Addr{}, ctx.Err()
+		}
+		failures = append(failures, err)
+	}
+	return netip.Addr{}, E.Errors(failures...)
+}
+
+func probeServer(ctx context.Context, dialer N.Dialer, server stunServer, address M.Socksaddr) (netip.Addr, error) {
+	var err error
 	var timeout time.Duration
-	if transport == N.NetworkTCP {
+	if server.transport == N.NetworkTCP {
 		timeout = C.TCPTimeout
 	} else {
 		timeout = C.UDPTimeout
@@ -101,22 +119,22 @@ func Probe(ctx context.Context, dialer N.Dialer, value string) (netip.Addr, erro
 	request := stunRequest(sendID)
 	response := buf.NewSize(maxResponseSize)
 	defer response.Release()
-	if transport == N.NetworkUDP {
-		err = probeUDP(ctx, dialer, serverAddr, request, response)
+	if server.transport == N.NetworkUDP {
+		err = probeUDP(ctx, dialer, address, request, response)
 	} else {
-		err = probeTCP(ctx, dialer, serverAddr, isTLS, request, response)
+		err = probeTCP(ctx, dialer, address, server.tls, server.address.Fqdn, request, response)
 	}
 	if err != nil {
 		return netip.Addr{}, err
 	}
-	receivedID, address, err := parseSTUNResponse(response.Bytes())
+	receivedID, mappedAddress, err := parseSTUNResponse(response.Bytes())
 	if err != nil {
 		return netip.Addr{}, E.Cause(err, "parse stun response")
 	}
 	if receivedID != sendID {
 		return netip.Addr{}, E.New("STUN transaction ID mismatch")
 	}
-	return address.Addr().Unmap(), nil
+	return mappedAddress.Addr().Unmap(), nil
 }
 
 func probeUDP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, request []byte, response *buf.Buffer) error {
@@ -143,7 +161,7 @@ func probeUDP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, requ
 	return nil
 }
 
-func probeTCP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, isTLS bool, request []byte, response *buf.Buffer) error {
+func probeTCP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, isTLS bool, serverName string, request []byte, response *buf.Buffer) error {
 	conn, err := dialer.DialContext(ctx, N.NetworkTCP, serverAddr)
 	if err != nil {
 		return err
@@ -154,7 +172,7 @@ func probeTCP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, isTL
 	defer stop()
 	if isTLS {
 		tlsConn := tls.Client(conn, &tls.Config{
-			ServerName: serverAddr.AddrString(),
+			ServerName: serverName,
 			RootCAs:    adapter.RootPoolFromContext(ctx),
 			Time:       ntp.TimeFuncFromContext(ctx),
 			MinVersion: tls.VersionTLS12,

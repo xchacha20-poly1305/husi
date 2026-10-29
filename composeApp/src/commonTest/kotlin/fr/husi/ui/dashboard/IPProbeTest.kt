@@ -29,13 +29,13 @@ class IPProbeTest : HusiKoinMainDispatcherTest() {
 
     @Test
     fun `configured server is selected and result includes country`() = runTest(dispatcher.scheduler) {
-        DataStore.ipTestServers.set("\n stun://one.example \n\nstuns://two.example\n")
+        DataStore.ipTestServers.set("\n stun:one.example \n\nturns:two.example\n")
         val client = FakeCoreClient().also { it.detectedCountry = "JP" }
         val model = newViewModel(client)
         model.initialize(true)
         model.detectIP()
         advanceUntilIdle()
-        assertTrue(client.lastIPServer in listOf("stun://one.example", "stuns://two.example"))
+        assertTrue(client.lastIPServer in listOf("stun:one.example", "turns:two.example"))
         assertEquals("203.0.113.1", model.uiState.value.ipProbe.ip)
         assertEquals("JP", model.uiState.value.ipProbe.countryCode)
         assertFalse(model.uiState.value.ipProbe.isDoing)

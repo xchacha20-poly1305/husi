@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 // Mod from https://github.com/tailscale/tailscale/blob/3a38840ccc7748643bfb2ce260caca7b4b918f3e/net/stun/stun.go
-// Removed software marks (https://github.com/tailscale/tailscale/blob/3a38840ccc7748643bfb2ce260caca7b4b918f3e/net/stun/stun.go#L29)
+// Removed software identification (https://github.com/tailscale/tailscale/blob/3a38840ccc7748643bfb2ce260caca7b4b918f3e/net/stun/stun.go#L29)
 
 package ipprobe
 
@@ -39,9 +39,7 @@ type stunTxID [12]byte
 // newSTUNTxID returns a new random stunTxID.
 func newSTUNTxID() stunTxID {
 	var tx stunTxID
-	if _, err := crand.Read(tx[:]); err != nil {
-		panic(err)
-	}
+	_, _ = crand.Read(tx[:])
 	return tx
 }
 
@@ -51,31 +49,24 @@ func stunRequest(tID stunTxID) []byte {
 	// STUN header, RFC5389 Section 6.
 	b := make([]byte, 0, headerLen+lenFingerprint)
 	b = append(b, bindingRequest...)
-	b = appendU16(b, uint16(lenFingerprint)) // number of bytes following header
+	b = binary.BigEndian.AppendUint16(b, uint16(lenFingerprint)) // number of bytes following header
 	b = append(b, magicCookie...)
 	b = append(b, tID[:]...)
 
 	// Attribute FINGERPRINT, RFC5389 Section 15.5.
 	fp := fingerPrint(b)
-	b = appendU16(b, attrNumFingerprint)
-	b = appendU16(b, 4)
-	b = appendU32(b, fp)
+	b = binary.BigEndian.AppendUint16(b, attrNumFingerprint)
+	b = binary.BigEndian.AppendUint16(b, 4)
+	b = binary.BigEndian.AppendUint32(b, fp)
 
 	return b
 }
 
-func fingerPrint(b []byte) uint32 { return crc32.ChecksumIEEE(b) ^ 0x5354554e }
-
-func appendU16(b []byte, v uint16) []byte {
-	return append(b, byte(v>>8), byte(v))
-}
-
-func appendU32(b []byte, v uint32) []byte {
-	return append(b, byte(v>>24), byte(v>>16), byte(v>>8), byte(v))
+func fingerPrint(b []byte) uint32 {
+	return crc32.ChecksumIEEE(b) ^ 0x5354554e
 }
 
 // parseBindingRequest parses a STUN binding request.
-
 func parseBindingRequest(b []byte) (stunTxID, error) {
 	if !isSTUN(b) {
 		return stunTxID{}, errNotSTUN
@@ -152,17 +143,17 @@ func stunResponse(txID stunTxID, addrPort netip.AddrPort) []byte {
 
 	// Header
 	b = append(b, 0x01, 0x01) // success
-	b = appendU16(b, uint16(attrsLen))
+	b = binary.BigEndian.AppendUint16(b, uint16(attrsLen))
 	b = append(b, magicCookie...)
 	b = append(b, txID[:]...)
 
 	// Attributes (well, one)
-	b = appendU16(b, attrXorMappedAddress)
-	b = appendU16(b, uint16(4+addr.BitLen()/8))
+	b = binary.BigEndian.AppendUint16(b, attrXorMappedAddress)
+	b = binary.BigEndian.AppendUint16(b, uint16(4+addr.BitLen()/8))
 	b = append(b,
 		0, // unused byte
 		fam)
-	b = appendU16(b, addrPort.Port()^0x2112) // first half of magicCookie
+	b = binary.BigEndian.AppendUint16(b, addrPort.Port()^0x2112) // first half of magicCookie
 	ipa := addr.As16()
 	for i, o := range ipa[16-addr.BitLen()/8:] {
 		if i < 4 {
