@@ -306,7 +306,7 @@
     <string name="stun_test">Detección de comportamiento NAT</string>
     <string name="stun_test_summary">Determina el comportamiento de mapeo NAT del cliente y el comportamiento de filtrado NAT definido en RFC 3478 utilizando STUN.</string>
     <string name="start">Iniciar</string>
-    <string name="stun_attest_loading">Esto puede tardar unos minutos…</string>
+    <string name="loading">Cargando...</string>
     <string name="nat_stun_server_hint">Servidor STUN</string>
     <string name="nat_result_hint">Resultado de comprobación NAT</string>
     <string name="tools_network">Red</string>

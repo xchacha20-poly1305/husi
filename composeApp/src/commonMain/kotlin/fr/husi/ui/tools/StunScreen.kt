@@ -65,6 +65,7 @@ import fr.husi.resources.cancel
 import fr.husi.resources.error
 import fr.husi.resources.error_title
 import fr.husi.resources.latency
+import fr.husi.resources.loading
 import fr.husi.resources.more
 import fr.husi.resources.more_vert
 import fr.husi.resources.nat_address_and_port_dependent
@@ -78,7 +79,6 @@ import fr.husi.resources.nat_stun_server_hint
 import fr.husi.resources.nat_type_detection
 import fr.husi.resources.nat_type_not_supported
 import fr.husi.resources.start
-import fr.husi.resources.stun_attest_loading
 import fr.husi.resources.stun_test
 import fr.husi.resources.unknown
 import fr.husi.ui.PreviewContainer
@@ -271,7 +271,7 @@ private fun StunReportContent(
                 )
                 if (isDoing) {
                     Text(
-                        text = stringResource(Res.string.stun_attest_loading),
+                        text = stringResource(Res.string.loading),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
                     )

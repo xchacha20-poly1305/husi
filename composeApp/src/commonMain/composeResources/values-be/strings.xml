@@ -318,7 +318,7 @@
     <string name="stun_test">Выяўленне паводзін NAT</string>
     <string name="stun_test_summary">Вызначце паводзіны кліента пры супастаўленні NAT і паводзіны пры фільтрацыі NAT, апісанае ў RFC 3478, з дапамогай пратаколу STUN.</string>
     <string name="start">Старт</string>
-    <string name="stun_attest_loading">Гэта можа заняць некалькі хвілін…</string>
+    <string name="loading">Загрузка...</string>
     <string name="nat_stun_server_hint">STUN сервер</string>
     <string name="nat_result_hint">Вынік праверкі NAT</string>
     <string name="nat_external_address">Знешні адрас</string>

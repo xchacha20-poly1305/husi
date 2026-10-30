@@ -62,7 +62,7 @@ import fr.husi.resources.direct
 import fr.husi.resources.hide
 import fr.husi.resources.ip_test
 import fr.husi.resources.ip_test_detect
-import fr.husi.resources.ip_test_running
+import fr.husi.resources.loading
 import fr.husi.resources.network_interfaces
 import fr.husi.resources.no_statistics
 import fr.husi.resources.proxy
@@ -256,7 +256,7 @@ private fun DashboardWidgetContent(
             modifier = Modifier.fillMaxSize(),
         )
 
-        DashboardWidget.ExitIP -> ExitIPCard(uiState.ipProbe, detectIP, onCopy)
+        DashboardWidget.ExitIP -> ExitIPCard(uiState.ipProbe, detectIP)
 
         DashboardWidget.Status -> StatusCard(uiState = uiState)
 
@@ -655,40 +655,51 @@ private fun maskNetworkAddress(address: String): String {
 private fun ExitIPCard(
     state: IPProbeState,
     detectIP: () -> Unit,
-    onCopy: (String) -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxSize()) {
+    var visible by remember(state.isDoing) { mutableStateOf(false) }
+
+    ElevatedCard(
+        onClick = detectIP,
+        enabled = !state.isDoing,
+        modifier = Modifier.fillMaxSize(),
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(stringResource(Res.string.ip_test), style = MaterialTheme.typography.titleMedium)
+            HideableSectionTitle(
+                title = stringResource(Res.string.ip_test),
+                visible = visible,
+                onToggleVisible = { visible = !visible },
+            )
             state.ip?.let { ip ->
-                SelectionContainer {
-                    val displayText = countryEmoji(state.countryCode)?.let { emoji ->
-                        "$emoji $ip"
-                    } ?: ip
-                    Text(
-                        text = displayText,
-                        modifier = Modifier.clickable { onCopy(ip) },
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                val address = if (visible) {
+                    ip
+                } else {
+                    maskNetworkAddress(ip)
                 }
+                val displayText = countryEmoji(state.countryCode)?.let { emoji ->
+                    "$emoji $address"
+                } ?: address
+                Text(
+                    text = displayText,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
             }
             state.error?.let { error ->
                 Text(stringOrRes(error), color = MaterialTheme.colorScheme.error)
             }
-            Button(onClick = detectIP, enabled = !state.isDoing) {
-                Text(
-                    stringResource(
-                        if (state.isDoing) {
-                            Res.string.ip_test_running
-                        } else {
-                            Res.string.ip_test_detect
-                        },
-                    ),
-                )
-            }
+            Text(
+                text = stringResource(
+                    if (state.isDoing) {
+                        Res.string.loading
+                    } else {
+                        Res.string.ip_test_detect
+                    },
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
 }

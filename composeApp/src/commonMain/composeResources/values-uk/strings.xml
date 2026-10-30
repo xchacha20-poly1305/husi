@@ -165,7 +165,7 @@
     <string name="ssh_public_key">Відкритий ключ</string>
     <string name="wireguard_local_address">Приватна адреса</string>
     <string name="start">Старт</string>
-    <string name="stun_attest_loading">Це може зайняти декілька хвилин…</string>
+    <string name="loading">Завантаження...</string>
     <string name="backup_rules">Правила маршрутизації</string>
     <string name="acquire_wake_lock">Увімкнути WakeLock</string>
     <string name="action_switch">Перемкнути</string>

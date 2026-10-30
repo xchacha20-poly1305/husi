@@ -300,7 +300,7 @@
     <string name="stun_test">کشف رفتار NAT</string>
     <string name="stun_test_summary">رفتار نگاشت NAT کلاینت و رفتار فیلتر NAT تعریف شده در RFC 3478 را با استفاده از STUN تعیین کنید.</string>
     <string name="start">شروع</string>
-    <string name="stun_attest_loading">این ممکن است چند دقیقه طول بکشد…</string>
+    <string name="loading">در حال بارگیری...</string>
     <string name="nat_stun_server_hint">سرور STUN</string>
     <string name="nat_result_hint">نتیجه بررسی NAT</string>
     <string name="tools_network">شبکه</string>

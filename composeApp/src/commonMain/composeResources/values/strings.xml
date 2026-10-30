@@ -435,7 +435,7 @@
     <string name="stun_test">NAT behaviour discovery</string>
     <string name="stun_test_summary">Determine the client\'s NAT mapping behaviour and the NAT filtering behaviour defined in RFC 3478 using STUN.</string>
     <string name="start">Start</string>
-    <string name="stun_attest_loading">This may take a few minutes…</string>
+    <string name="loading">Loading...</string>
     <string name="nat_stun_server_hint">STUN server</string>
     <string name="nat_result_hint">NAT check result</string>
     <string name="nat_external_address">External address</string>
@@ -963,8 +963,7 @@
     <string name="tailscale_advertise_fake_dns_routes">Advertise Fake DNS Routes</string>
     <string name="tailscale_advertise_fake_dns_routes_summary">Advertise the Fake DNS ranges as subnet routes while Fake DNS is enabled</string>
     <string name="ip_test">Exit IP</string>
-    <string name="ip_test_detect">Detect IP</string>
-    <string name="ip_test_running">Detecting…</string>
+    <string name="ip_test_detect">Tap the card to detect</string>
     <string name="ip_test_servers">IP detection servers</string>
     <string name="ip_test_servers_summary">Servers used by the dashboard to detect the IP address.</string>
     <string name="ip_test_servers_description">One server per line. Use stun:host (UDP, default port 3478), turn:host (default port 3478), or turns:host (TLS, default port 5349). TURN servers are used only for STUN binding requests. TURN URIs accept ?transport=udp or ?transport=tcp; TLS requires TCP. Each detection randomly selects one server.</string>
