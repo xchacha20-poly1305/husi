@@ -104,6 +104,7 @@ object Key {
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"
     const val LOCAL_DNS_PORT = "portLocalDns"
 
+    const val AUTO_DETECT_IP = "autoDetectIP"
     const val IP_TEST_SERVERS = "ipTestServers"
     const val CONNECTION_TEST_URL = "connectionTestURL"
     const val CONNECTION_TEST_CONCURRENT = "connectionTestConcurrent"

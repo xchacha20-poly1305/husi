@@ -27,6 +27,122 @@ class IPProbeTest : HusiKoinMainDispatcherTest() {
         coreClient = client,
     )
 
+    private suspend fun configureAutoDetection(enabled: Boolean = true, visible: Boolean = true) {
+        DataStore.autoDetectIP.set(enabled)
+        DataStore.ipTestServers.set("stun:one.example")
+        DataStore.dashboardWidgets.set(
+            encodeDashboardWidgets(defaultDashboardWidgets().setWidgetVisible(DashboardWidget.ExitIP, visible)),
+        )
+    }
+
+    private class CountingCoreClient : FakeCoreClient() {
+        var detections = 0
+
+        override suspend fun detectIP(server: String): String {
+            detections++
+            return super.detectIP(server)
+        }
+    }
+
+    @Test
+    fun `entering dashboard detects once and reentry detects again`() = runTest(dispatcher.scheduler) {
+        configureAutoDetection()
+        val client = CountingCoreClient()
+        val model = newViewModel(client)
+        model.setDashboardActive(true)
+        model.initialize(false)
+        advanceUntilIdle()
+        assertEquals(1, client.detections)
+        model.setDashboardActive(true)
+        advanceUntilIdle()
+        assertEquals(1, client.detections)
+        model.setDashboardActive(false)
+        model.setDashboardActive(true)
+        advanceUntilIdle()
+        assertEquals(2, client.detections)
+    }
+
+    @Test
+    fun `starting instance detects again but stopping does not`() = runTest(dispatcher.scheduler) {
+        configureAutoDetection()
+        val client = CountingCoreClient()
+        val model = newViewModel(client)
+        model.initialize(false)
+        model.setDashboardActive(true)
+        advanceUntilIdle()
+        assertEquals(1, client.detections)
+        model.initialize(true)
+        advanceUntilIdle()
+        assertEquals(2, client.detections)
+        model.initialize(false)
+        advanceUntilIdle()
+        assertEquals(2, client.detections)
+    }
+
+    @Test
+    fun `starting instance replaces pending disconnected detection`() = runTest(dispatcher.scheduler) {
+        configureAutoDetection()
+        val pending = CompletableDeferred<String>()
+        var calls = 0
+        val client = object : FakeCoreClient() {
+            override suspend fun detectIP(server: String): String {
+                calls++
+                return if (calls == 1) pending.await() else super.detectIP(server)
+            }
+        }
+        val model = newViewModel(client)
+        model.setDashboardActive(true)
+        model.initialize(false)
+        advanceUntilIdle()
+        assertEquals(1, calls)
+        assertTrue(model.uiState.value.ipProbe.isDoing)
+        model.initialize(true)
+        advanceUntilIdle()
+        assertEquals(2, calls)
+        assertEquals(client.detectedIP, model.uiState.value.ipProbe.ip)
+        assertFalse(model.uiState.value.ipProbe.isDoing)
+    }
+
+    @Test
+    fun `hidden IP card prevents automatic detection including during initialization`() = runTest(dispatcher.scheduler) {
+        configureAutoDetection(visible = false)
+        val client = CountingCoreClient()
+        val model = newViewModel(client)
+        model.setDashboardActive(true)
+        model.initialize(false)
+        advanceUntilIdle()
+        model.initialize(true)
+        advanceUntilIdle()
+        assertEquals(0, client.detections)
+    }
+
+    @Test
+    fun `disabled setting prevents automatic detection`() = runTest(dispatcher.scheduler) {
+        configureAutoDetection(enabled = false)
+        val client = CountingCoreClient()
+        val model = newViewModel(client)
+        model.setDashboardActive(true)
+        model.initialize(false)
+        advanceUntilIdle()
+        model.initialize(true)
+        advanceUntilIdle()
+        assertEquals(0, client.detections)
+    }
+
+    @Test
+    fun `starting instance outside dashboard waits until entry to detect`() = runTest(dispatcher.scheduler) {
+        configureAutoDetection()
+        val client = CountingCoreClient()
+        val model = newViewModel(client)
+        model.initialize(false)
+        model.initialize(true)
+        advanceUntilIdle()
+        assertEquals(0, client.detections)
+        model.setDashboardActive(true)
+        advanceUntilIdle()
+        assertEquals(1, client.detections)
+    }
+
     @Test
     fun `configured server is selected and result includes country`() = runTest(dispatcher.scheduler) {
         DataStore.ipTestServers.set("\n stun:one.example \n\nturns:two.example\n")

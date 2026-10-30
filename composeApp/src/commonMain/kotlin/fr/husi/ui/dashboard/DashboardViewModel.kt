@@ -388,7 +388,26 @@ class DashboardViewModel(
     private var clashModeJob: Job? = null
     private val processInfoResolver = ProcessInfoResolver()
 
+    private var dashboardActive = false
+    private var initialized = false
+
+    fun setDashboardActive(active: Boolean) {
+        if (dashboardActive == active) return
+        dashboardActive = active
+        if (active && initialized) autoDetectIP()
+    }
+
+    private fun autoDetectIP() = viewModelScope.launch {
+        if (!dashboardActive || !initialized || isRemote || !DataStore.autoDetectIP.get()) return@launch
+        val widgets = decodeDashboardWidgets(DataStore.dashboardWidgets.get())
+        if (dashboardActive && initialized && widgets.any { it.widget == DashboardWidget.ExitIP && it.visible }) {
+            detectIP()
+        }
+    }
+
     suspend fun initialize(isConnected: Boolean) {
+        val firstInitialization = !initialized
+        initialized = false
         ipProbeJob?.cancelAndJoin()
         statusJob?.cancel()
         groupsJob?.cancel()
@@ -419,6 +438,8 @@ class DashboardViewModel(
                 directSpeedHistory = idleSpeedHistory(),
             )
         }
+        initialized = true
+        if (firstInitialization || isConnected) autoDetectIP()
         if (!isConnected) return
         if (!isRemote) {
             BackendState.status.value.speed?.let(::appendSpeed)

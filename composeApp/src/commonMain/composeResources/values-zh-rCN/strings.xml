@@ -888,6 +888,8 @@
     <string name="tailscale_advertise_fake_dns_routes_summary">启用 Fake DNS 时，将 Fake DNS 网段作为子网路由通告</string>
     <string name="ip_test">出口 IP</string>
     <string name="ip_test_detect">轻触卡片检测</string>
+    <string name="auto_detect_ip">进入仪表盘时检测 IP</string>
+    <string name="auto_detect_ip_summary">此行为可能会使 IP 检测服务提供商得知您的代理使用习惯。</string>
     <string name="ip_test_servers">IP 检测服务器</string>
     <string name="ip_test_servers_summary">用于仪表盘探测 IP 的服务器。</string>
     <string name="ip_test_servers_description">一行一个，使用 stun:host（UDP，默认端口 3478）、turn:host（默认端口 3478）或 turns:host（TLS，默认端口 5349）。TURN 服务器仅用于 STUN 绑定请求。TURN URI 可添加 ?transport=udp 或 ?transport=tcp，TLS 必须使用 TCP。每次检测随机选择一个服务器。</string>

@@ -33,6 +33,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -265,8 +266,13 @@ fun DashboardScreen(
         }
     }
 
+    DisposableEffect(dashboardViewModel) {
+        onDispose { dashboardViewModel.setDashboardActive(false) }
+    }
+
     LaunchedEffect(remoteSession?.server?.id, targetConnected) {
         dashboardViewModel.initialize(targetConnected)
+        dashboardViewModel.setDashboardActive(true)
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = rememberHazeState()

@@ -29,6 +29,8 @@ import fr.husi.resources.Res
 import fr.husi.resources.advanced_features
 import fr.husi.resources.advanced_features_summary
 import fr.husi.resources.apps
+import fr.husi.resources.auto_detect_ip
+import fr.husi.resources.auto_detect_ip_summary
 import fr.husi.resources.cast_connected
 import fr.husi.resources.cert_chrome
 import fr.husi.resources.certificate_authority
@@ -97,6 +99,20 @@ internal fun MiscSettingsGroup(
             MultilineTextField(value, onValueChange, onOk)
         }
     }
+    val autoDetectIP by DataStore.autoDetectIP.collectAsStateWithLifecycle()
+    SwitchPreference(
+        value = autoDetectIP,
+        onValueChange = { DataStore.autoDetectIP.setBlocking(it) },
+        title = { Text(stringResource(Res.string.auto_detect_ip)) },
+        summary = { Text(stringResource(Res.string.auto_detect_ip_summary)) },
+        icon = {
+            MaskedIcon(
+                resource = Res.drawable.cast_connected,
+                color = IconMaskColors.IconCoral,
+                shape = IconMaskShapes.risk(),
+            )
+        },
+    )
 
     val connectionTestConcurrentValue by DataStore.connectionTestConcurrent.collectAsStateWithLifecycle()
     var concurrentPreview by remember { mutableFloatStateOf(connectionTestConcurrentValue.toFloat()) }
