@@ -1,7 +1,6 @@
 package ipprobe
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -10,13 +9,10 @@ import (
 	"net"
 	"net/http/httptest"
 	"net/netip"
-	"strconv"
 	"testing"
-	"testing/iotest"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing/common/buf"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
@@ -397,41 +393,4 @@ func TestProbeCancellation(t *testing.T) {
 	_, err = Probe(ctx, testDialer{}, nil, serverURI)
 	require.Error(t, err)
 	require.Less(t, time.Since(started), time.Second)
-}
-
-func TestReadTCPResponse(t *testing.T) {
-	response := stunResponse(newSTUNTxID(), netip.MustParseAddrPort("[2001:db8::8]:1234"))
-	maximumResponse := make([]byte, maxResponseSize)
-	binary.BigEndian.PutUint16(maximumResponse[2:4], maxMessageSize)
-	for _, test := range []struct {
-		name string
-		data []byte
-		err  error
-	}{
-		{"fragmented", response, nil},
-		{"truncated header", response[:10], io.ErrUnexpectedEOF},
-		{"truncated body", response[:len(response)-1], io.ErrUnexpectedEOF},
-		{"maximum body", maximumResponse, nil},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			buffer := buf.NewSize(maxResponseSize)
-			defer buffer.Release()
-			err := readTCPResponse(iotest.OneByteReader(bytes.NewReader(test.data)), buffer)
-			if test.err != nil {
-				require.ErrorIs(t, err, test.err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, test.data, buffer.Bytes())
-			}
-		})
-	}
-	for _, size := range []uint16{1, 65535} {
-		t.Run("invalid length "+strconv.Itoa(int(size)), func(t *testing.T) {
-			header := make([]byte, headerLen)
-			binary.BigEndian.PutUint16(header[2:4], size)
-			buffer := buf.NewSize(maxResponseSize)
-			defer buffer.Release()
-			require.ErrorContains(t, readTCPResponse(bytes.NewReader(header), buffer), "invalid STUN message length")
-		})
-	}
 }

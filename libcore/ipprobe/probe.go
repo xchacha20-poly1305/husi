@@ -3,8 +3,6 @@ package ipprobe
 import (
 	"context"
 	"crypto/tls"
-	"encoding/binary"
-	"io"
 	"net/netip"
 	"strings"
 	"time"
@@ -19,11 +17,6 @@ import (
 	"github.com/sagernet/sing/common/ntp"
 
 	"github.com/xchacha20-poly1305/stunuri-go"
-)
-
-const (
-	maxMessageSize  = 65532 // The biggest multiple of 4 under max uint16
-	maxResponseSize = headerLen + maxMessageSize
 )
 
 const (
@@ -117,19 +110,15 @@ func probeServer(ctx context.Context, dialer N.Dialer, server stunServer, addres
 	defer cancel()
 	sendID := newSTUNTxID()
 	request := stunRequest(sendID)
-	response := buf.NewSize(maxResponseSize)
-	defer response.Release()
+	var receivedID stunTxID
+	var mappedAddress netip.AddrPort
 	if server.transport == N.NetworkUDP {
-		err = probeUDP(ctx, dialer, address, request, response)
+		receivedID, mappedAddress, err = probeUDP(ctx, dialer, address, request)
 	} else {
-		err = probeTCP(ctx, dialer, address, server.tls, server.address.Fqdn, request, response)
+		receivedID, mappedAddress, err = probeTCP(ctx, dialer, address, server.tls, server.address.Fqdn, request)
 	}
 	if err != nil {
 		return netip.Addr{}, err
-	}
-	receivedID, mappedAddress, err := parseSTUNResponse(response.Bytes())
-	if err != nil {
-		return netip.Addr{}, E.Cause(err, "parse stun response")
 	}
 	if receivedID != sendID {
 		return netip.Addr{}, E.New("STUN transaction ID mismatch")
@@ -137,10 +126,10 @@ func probeServer(ctx context.Context, dialer N.Dialer, server stunServer, addres
 	return mappedAddress.Addr().Unmap(), nil
 }
 
-func probeUDP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, request []byte, response *buf.Buffer) error {
+func probeUDP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, request []byte) (stunTxID, netip.AddrPort, error) {
 	conn, err := dialer.ListenPacket(ctx, serverAddr)
 	if err != nil {
-		return err
+		return stunTxID{}, netip.AddrPort{}, err
 	}
 	defer conn.Close()
 	stop := context.AfterFunc(ctx, func() { _ = conn.Close() })
@@ -149,27 +138,30 @@ func probeUDP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, requ
 	packetConn := bufio.NewPacketConn(conn)
 	err = packetConn.WritePacket(buf.As(request), serverAddr)
 	if err != nil {
-		return E.Cause(err, "write stun request")
+		return stunTxID{}, netip.AddrPort{}, E.Cause(err, "write stun request")
 	}
+	response := buf.NewSize(maxResponseSize)
+	defer response.Release()
 	_, err = packetConn.ReadPacket(response)
 	if err != nil {
-		return E.Cause(err, "read stun response")
+		return stunTxID{}, netip.AddrPort{}, E.Cause(err, "read stun response")
 	}
 	if response.Len() < headerLen {
-		return E.New("response too short")
+		return stunTxID{}, netip.AddrPort{}, E.New("response too short")
 	}
-	return nil
+	receivedID, mappedAddress, err := parseSTUNResponse(response.Bytes())
+	if err != nil {
+		return stunTxID{}, netip.AddrPort{}, E.Cause(err, "parse stun response")
+	}
+	return receivedID, mappedAddress, nil
 }
 
-func probeTCP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, isTLS bool, serverName string, request []byte, response *buf.Buffer) error {
+func probeTCP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, isTLS bool, serverName string, request []byte) (stunTxID, netip.AddrPort, error) {
 	conn, err := dialer.DialContext(ctx, N.NetworkTCP, serverAddr)
 	if err != nil {
-		return err
+		return stunTxID{}, netip.AddrPort{}, err
 	}
 	defer conn.Close()
-	underlyingConn := conn
-	stop := context.AfterFunc(ctx, func() { _ = underlyingConn.Close() })
-	defer stop()
 	if isTLS {
 		tlsConn := tls.Client(conn, &tls.Config{
 			ServerName: serverName,
@@ -179,7 +171,7 @@ func probeTCP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, isTL
 		})
 		err := tlsConn.HandshakeContext(ctx)
 		if err != nil {
-			return err
+			return stunTxID{}, netip.AddrPort{}, err
 		}
 		defer tlsConn.Close()
 		conn = tlsConn
@@ -187,24 +179,11 @@ func probeTCP(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, isTL
 
 	_, err = conn.Write(request)
 	if err != nil {
-		return E.Cause(err, "write stun request")
+		return stunTxID{}, netip.AddrPort{}, E.Cause(err, "write stun request")
 	}
-	err = readTCPResponse(conn, response)
+	receivedID, mappedAddress, err := parseSTUNResponseReader(conn)
 	if err != nil {
-		return E.Cause(err, "read stun response")
+		return stunTxID{}, netip.AddrPort{}, E.Cause(err, "read stun response")
 	}
-	return nil
-}
-
-func readTCPResponse(reader io.Reader, response *buf.Buffer) error {
-	_, err := response.ReadFullFrom(reader, headerLen)
-	if err != nil {
-		return err
-	}
-	messageSize := int(binary.BigEndian.Uint16(response.Bytes()[2:4]))
-	if messageSize > maxMessageSize || messageSize%4 != 0 {
-		return E.New("invalid STUN message length: ", messageSize)
-	}
-	_, err = response.ReadFullFrom(reader, messageSize)
-	return err
+	return receivedID, mappedAddress, nil
 }
