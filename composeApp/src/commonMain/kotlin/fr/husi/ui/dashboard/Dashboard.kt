@@ -50,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.TrafficSortMode
+import fr.husi.compose.BackHandler
 import fr.husi.compose.CapsuleActionsScope
 import fr.husi.compose.CapsuleHeader
 import fr.husi.compose.CapsuleSearchInputField
@@ -60,9 +61,9 @@ import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.Checkbox
-import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.PrimaryTabRow
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingHorizontal
@@ -103,6 +104,8 @@ import fr.husi.resources.pause
 import fr.husi.resources.play_arrow
 import fr.husi.resources.proxy_set
 import fr.husi.resources.public_icon
+import fr.husi.resources.replay
+import fr.husi.resources.reset
 import fr.husi.resources.reset_connections
 import fr.husi.resources.search
 import fr.husi.resources.search_outbounds
@@ -161,6 +164,9 @@ fun DashboardScreen(
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
     var isEditingDashboard by remember { mutableStateOf(false) }
+    BackHandler(enabled = isEditingDashboard) {
+        isEditingDashboard = false
+    }
     val focusManager = LocalFocusManager.current
     val isConnectionsPage = pagerState.currentPage == PAGE_CONNECTIONS
     val isProxySetPage = pagerState.currentPage == PAGE_PROXY_SET
@@ -464,6 +470,15 @@ fun DashboardScreen(
                             navigationIcon = null,
                             title = { Text(stringResource(Res.string.menu_dashboard)) },
                             actions = {
+                                if (isEditingDashboard) {
+                                    CapsuleActionButton {
+                                        SimpleIconButton(
+                                            imageVector = vectorResource(Res.drawable.replay),
+                                            contentDescription = stringResource(Res.string.reset),
+                                            onClick = { dashboardViewModel.resetDashboardWidgets() },
+                                        )
+                                    }
+                                }
                                 DashboardPageOverflowMenu(
                                     expanded = isOverflowMenuExpanded,
                                     onExpandedChange = { isOverflowMenuExpanded = it },

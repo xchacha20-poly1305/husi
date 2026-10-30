@@ -184,7 +184,7 @@
     <string name="route_direct_ip">%1$s IP 规则</string>
     <string name="no_proxies_found_in_file">未在此文件内找到服务器配置</string>
     <string name="no_proxies_found_in_clipboard">未在剪切板内找到服务器配置</string>
-    <string name="route_reset">重置</string>
+    <string name="reset">重置</string>
     <string name="reset_rule_set">重置规则集</string>
     <string name="clear_profiles">清空</string>
     <string name="need_reload">重载代理服务以应用修改</string>

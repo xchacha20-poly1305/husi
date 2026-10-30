@@ -152,7 +152,7 @@
     <string name="route_direct_domain">Domain rule for %1$s</string>
     <string name="route_play_store">Play store rule for %1$s</string>
     <string name="route_direct_ip">IP rule for %1$s</string>
-    <string name="route_reset">Reset</string>
+    <string name="reset">Reset</string>
     <string name="reset_rule_set">Reset rule-set</string>
     <string name="route_manage_assets">Manage Route Assets</string>
     <string name="route_assets">Assets</string>

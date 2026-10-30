@@ -205,7 +205,7 @@
     <string name="route_play_store">Правило Play Store для %1$s</string>
     <string name="route_direct_ip">Правило IP для %1$s</string>
     <string name="route_rules_official">Офіційний</string>
-    <string name="route_reset">Скидання</string>
+    <string name="reset">Скидання</string>
     <string name="reset_rule_set">Скинути набір правил</string>
     <string name="route_manage_assets">Керування ресурсами маршрутів</string>
     <string name="route_rules_provider">Постачальник ресурсів правил</string>

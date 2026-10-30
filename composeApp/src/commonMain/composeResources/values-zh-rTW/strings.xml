@@ -199,7 +199,7 @@
     <string name="no_changes_notice">沒有任何修改</string>
     <string name="route_direct_domain">%1$s 網域規則</string>
     <string name="route_direct_ip">%1$s IP 規則</string>
-    <string name="route_reset">重設</string>
+    <string name="reset">重設</string>
     <string name="reset_rule_set">重置規則集</string>
     <string name="route_manage_assets">管理路由資源</string>
     <string name="route_assets">資源</string>

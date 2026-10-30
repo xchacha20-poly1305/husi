@@ -107,7 +107,7 @@
     <string name="route_direct_domain">قانون دامنه برای %1$s</string>
     <string name="route_play_store">قانون فروشگاه Play برای %1$s</string>
     <string name="route_direct_ip">قانون IP برای %1$s</string>
-    <string name="route_reset">بازنشانی کنید</string>
+    <string name="reset">بازنشانی کنید</string>
     <string name="reset_rule_set">بازنشانی مجموعهٔ قوانین</string>
     <string name="route_manage_assets">مدیریت دارایی‌های مسیر</string>
     <string name="route_assets">دارایی‌ها</string>

@@ -109,7 +109,7 @@
     <string name="route_direct_domain">Regla de dominio para %1$s</string>
     <string name="route_play_store">Regla de la Play Store para %1$s</string>
     <string name="route_direct_ip">Regla de IP para %1$s</string>
-    <string name="route_reset">Restablecer</string>
+    <string name="reset">Restablecer</string>
     <string name="reset_rule_set">Restablecer conjunto de reglas</string>
     <string name="route_manage_assets">Administrar activos de ruta</string>
     <string name="route_assets">Activos</string>

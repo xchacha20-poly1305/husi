@@ -229,7 +229,7 @@
     <string name="route_rules_provider">Поставщик ресурсов правил</string>
     <string name="route_assets">Ресурсы</string>
     <string name="route_manage_assets">Управление ресурсами маршрутов</string>
-    <string name="route_reset">Сброс</string>
+    <string name="reset">Сброс</string>
     <string name="reset_rule_set">Сбросить набор правил</string>
     <string name="route_direct_ip">Правило IP для %1$s</string>
     <string name="route_direct_domain">Правило домена для %1$s</string>

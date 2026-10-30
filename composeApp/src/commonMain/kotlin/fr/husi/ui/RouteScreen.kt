@@ -101,11 +101,11 @@ import fr.husi.resources.process
 import fr.husi.resources.proxy
 import fr.husi.resources.removed
 import fr.husi.resources.replay
+import fr.husi.resources.reset
 import fr.husi.resources.route_add
 import fr.husi.resources.route_block
 import fr.husi.resources.route_bridge
 import fr.husi.resources.route_manage_assets
-import fr.husi.resources.route_reset
 import fr.husi.resources.route_warn
 import fr.husi.resources.undo
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
@@ -208,7 +208,7 @@ fun RouteScreen(
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.route_reset)) },
+                                    text = { Text(stringResource(Res.string.reset)) },
                                     onClick = {
                                         showMoreAction = false
                                         showResetAlert = true

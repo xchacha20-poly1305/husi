@@ -135,7 +135,7 @@
     <string name="route_direct_domain">Правіла дамена для %1$s</string>
     <string name="route_play_store">Правіла Play Store для %1$s</string>
     <string name="route_direct_ip">Правіла IP для %1$s</string>
-    <string name="route_reset">Скід</string>
+    <string name="reset">Скід</string>
     <string name="route_manage_assets">Кіраванне рэсурсамі маршрутаў</string>
     <string name="route_assets">Рэсурсы</string>
     <string name="route_rules_provider">Пастаўшчык рэсурсаў правілаў</string>

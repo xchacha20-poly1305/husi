@@ -82,7 +82,7 @@
     <string name="route_rules_provider">مزود أصول القاعدة</string>
     <string name="route_assets">الأصول</string>
     <string name="route_manage_assets">إدارة أصول الطريق</string>
-    <string name="route_reset">إعادة تعيين</string>
+    <string name="reset">إعادة تعيين</string>
     <string name="reset_rule_set">إعادة تعيين مجموعة القواعد</string>
     <string name="route_direct_ip">قاعدة IP ل %1$s</string>
     <string name="route_direct_domain">قاعدة المجال ل %1$s</string>

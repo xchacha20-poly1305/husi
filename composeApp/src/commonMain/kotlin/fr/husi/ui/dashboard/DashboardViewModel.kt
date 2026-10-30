@@ -605,9 +605,11 @@ class DashboardViewModel(
     }
 
     fun setDashboardWidgets(entries: List<DashboardWidgetEntry>) =
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(Dispatchers.IO) {
             DataStore.dashboardWidgets.set(encodeDashboardWidgets(entries))
         }
+
+    fun resetDashboardWidgets() = setDashboardWidgets(defaultDashboardWidgets())
 
     fun setQueryActivate(queryActivate: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions
