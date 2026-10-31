@@ -187,8 +187,8 @@ private fun LazyListScope.tailscaleSettings(
             },
             summary = { Text(contentOrUnset(uiState.listenPort)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
     }
@@ -244,8 +244,8 @@ private fun LazyListScope.tailscaleSettings(
             },
             summary = { Text(contentOrUnset(uiState.advertiseRoutes)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         SwitchPreference(
@@ -285,8 +285,8 @@ private fun LazyListScope.tailscaleSettings(
             },
             summary = { Text(contentOrUnset(uiState.advertiseTags)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
     }

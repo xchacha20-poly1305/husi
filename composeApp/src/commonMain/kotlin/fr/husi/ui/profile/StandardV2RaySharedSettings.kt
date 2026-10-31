@@ -151,7 +151,7 @@ internal fun LazyListScope.headSettings(
                 )
             },
             summary = { Text(contentOrUnset(state.port)) },
-            textField = { value, onValueChange, onOk -> PortTextField(value, onValueChange, onOk) },
+            textField = { state, onOk -> PortTextField(state, onOk) },
         )
     }
 }
@@ -219,8 +219,8 @@ internal fun LazyListScope.tlsSettings(
                 },
                 summary = { Text(contentOrUnset(state.alpn)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -237,8 +237,8 @@ internal fun LazyListScope.tlsSettings(
                 },
                 summary = { Text(contentOrUnset(state.certificate)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -255,8 +255,8 @@ internal fun LazyListScope.tlsSettings(
                 },
                 summary = { Text(contentOrUnset(state.certificateSha256)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -272,8 +272,8 @@ internal fun LazyListScope.tlsSettings(
                 },
                 summary = { Text(contentOrUnset(state.certPublicKeySha256)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             SwitchPreference(
@@ -455,8 +455,8 @@ internal fun LazyListScope.tlsSettings(
                 enabled = state.ech,
                 summary = { Text(contentOrUnset(state.echConfig)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -494,8 +494,8 @@ internal fun LazyListScope.tlsSettings(
                 },
                 summary = { Text(contentOrUnset(state.clientCert)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -512,8 +512,8 @@ internal fun LazyListScope.tlsSettings(
                 },
                 summary = { Text(contentOrUnset(state.clientKey)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
         }
@@ -666,8 +666,8 @@ internal fun LazyListScope.transportSettings(
                     },
                     summary = { Text(contentOrUnset(state.host)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 TextFieldPreference(
@@ -698,8 +698,8 @@ internal fun LazyListScope.transportSettings(
                     },
                     summary = { Text(contentOrUnset(state.headers)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
             }
@@ -718,8 +718,8 @@ internal fun LazyListScope.transportSettings(
                     },
                     summary = { Text(contentOrUnset(state.host)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 TextFieldPreference(
@@ -750,8 +750,8 @@ internal fun LazyListScope.transportSettings(
                     },
                     summary = { Text(contentOrUnset(state.headers)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 TextFieldPreference(
@@ -816,8 +816,8 @@ internal fun LazyListScope.transportSettings(
                     },
                     summary = { Text(contentOrUnset(state.host)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 TextFieldPreference(
@@ -847,8 +847,8 @@ internal fun LazyListScope.transportSettings(
                     },
                     summary = { Text(contentOrUnset(state.headers)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
             }

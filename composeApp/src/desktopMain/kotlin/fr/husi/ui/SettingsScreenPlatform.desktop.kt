@@ -395,10 +395,9 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         },
         valueToText = { it },
         enabled = isVpnMode,
-    ) { value, onValueChange, onOk ->
+    ) { state, onOk ->
         ValidatedTextField(
-            value = value,
-            onValueChange = onValueChange,
+            state = state,
             onOk = onOk,
             validator = ::validateTunInterfaceName,
         )

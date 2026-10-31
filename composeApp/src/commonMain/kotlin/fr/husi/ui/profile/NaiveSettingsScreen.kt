@@ -140,8 +140,8 @@ private fun LazyListScope.naiveSettings(
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -206,8 +206,8 @@ private fun LazyListScope.naiveSettings(
             },
             summary = { Text(contentOrUnset(uiState.extraHeaders)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                HostTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                HostTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -226,14 +226,14 @@ private fun LazyListScope.naiveSettings(
                 }
                 Text(text)
             },
-            textField = { value, onValueChange, onOk ->
+            textField = { state, onOk ->
                 Column {
                     Text(
                         text = stringResource(Res.string.naive_insecure_concurrency_summary),
                         modifier = Modifier.padding(16.dp),
                     )
 
-                    UIntegerTextField(value, onValueChange, onOk)
+                    UIntegerTextField(state, onOk)
                 }
             },
         )
@@ -254,8 +254,8 @@ private fun LazyListScope.naiveSettings(
                 Text(text)
             },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -275,8 +275,8 @@ private fun LazyListScope.naiveSettings(
                 Text(text)
             },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
     }
@@ -326,8 +326,8 @@ private fun LazyListScope.naiveSettings(
             enabled = uiState.enableEch,
             summary = { Text(contentOrUnset(uiState.echConfig)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(

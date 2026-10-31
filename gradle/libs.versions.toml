@@ -19,7 +19,6 @@ androidxDatastore = "1.3.0"
 androidxComposeBom = "2026.09.00"
 jetbrainsNavigation3Ui = "1.2.0"
 accompanist = "0.37.3"
-composePreference = "2.2.0"
 fastScroller = "0.3.2"
 androidxCamera = "1.6.2"
 zxing = "3.5.4"
@@ -75,7 +74,6 @@ androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = 
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
-compose-preference = { module = "me.zhanghai.compose.preference:preference", version.ref = "composePreference" }
 fastscroller-material3 = { module = "io.github.oikvpqya.compose.fastscroller:fastscroller-material3", version.ref = "fastScroller" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "androidxCamera" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "androidxCamera" }

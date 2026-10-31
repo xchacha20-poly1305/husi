@@ -77,8 +77,8 @@ internal fun MiscSettingsGroup(
         },
         summary = { Text(contentOrUnset(connectionTestUrlValue)) },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
-        LinkOrContentTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        LinkOrContentTextField(state, onOk)
     }
 
     val ipTestServers by DataStore.ipTestServers.collectAsStateWithLifecycle()
@@ -90,13 +90,13 @@ internal fun MiscSettingsGroup(
         valueToText = { it },
         icon = { MaskedIcon(Res.drawable.cast_connected, color = IconMaskColors.IconCyan) },
         summary = { Text(stringResource(Res.string.ip_test_servers_summary)) },
-    ) { value, onValueChange, onOk ->
+    ) { state, onOk ->
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(
                 text = stringResource(Res.string.ip_test_servers_description),
                 style = MaterialTheme.typography.bodySmall,
             )
-            MultilineTextField(value, onValueChange, onOk)
+            MultilineTextField(state, onOk)
         }
     }
     val autoDetectIP by DataStore.autoDetectIP.collectAsStateWithLifecycle()
@@ -237,7 +237,7 @@ internal fun MiscSettingsGroup(
             )
         },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
-        MultilineTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        MultilineTextField(state, onOk)
     }
 }

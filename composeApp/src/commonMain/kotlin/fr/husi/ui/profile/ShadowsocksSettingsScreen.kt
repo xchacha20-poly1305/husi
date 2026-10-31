@@ -180,8 +180,8 @@ private fun LazyListScope.shadowsocksSettings(
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         ListPreference(
@@ -329,13 +329,12 @@ private fun LazyListScope.shadowsocksSettings(
             },
             summary = { Text(contentOrUnset(uiState.pluginConfig)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
+            textField = { state, onOk ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     MultilineTextField(
-                        value = value,
-                        onValueChange = onValueChange,
+                        state = state,
                         onOk = onOk,
                         modifier = Modifier.weight(1f),
                     )
@@ -346,7 +345,7 @@ private fun LazyListScope.shadowsocksSettings(
                             onOpenSIP003Editor(
                                 NavRoutes.SIP003Editor(
                                     pluginName = uiState.pluginName,
-                                    initialOpts = value.text,
+                                    initialOpts = state.text.toString(),
                                     resultKey = sip003ResultKey,
                                 ),
                             )

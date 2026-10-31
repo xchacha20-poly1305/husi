@@ -18,11 +18,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.toShape
@@ -33,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +44,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,15 +56,22 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.theme.LocalAppDarkMode
 import fr.husi.resources.Res
 import fr.husi.resources.cancel
+import fr.husi.resources.action_copy
+import fr.husi.resources.content_copy
+import fr.husi.resources.hide
+import fr.husi.resources.show
+import fr.husi.resources.visibility
+import fr.husi.resources.visibility_off
 import fr.husi.resources.not_set
 import fr.husi.resources.ok
 import fr.husi.resources.password
 import fr.husi.resources.wifi
+import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.PreferenceCategory
-import me.zhanghai.compose.preference.ProvidePreferenceLocals as BaseProvidePreferenceLocals
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import me.zhanghai.compose.preference.ProvidePreferenceLocals as BaseProvidePreferenceLocals
 
 object PreferenceType {
     const val CATEGORY = 0
@@ -124,21 +135,59 @@ fun PasswordPreference(
             Text(text = summaryText)
         },
         valueToText = { it },
-        textField = { textFieldValue, onTextFieldValueChange, onOk ->
+        textField = { state, onOk ->
+            var passwordVisible by remember(state) { mutableStateOf(false) }
+            val clipboard = LocalClipboard.current
+            val scope = rememberCoroutineScope()
             Column(horizontalAlignment = Alignment.End) {
-                OutlinedTextField(
-                    value = textFieldValue,
-                    onValueChange = onTextFieldValueChange,
+                OutlinedSecureTextField(
+                    state = state,
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    // visualTransformation = PasswordVisualTransformation(),
+                    textObfuscationMode = if (passwordVisible) {
+                        TextObfuscationMode.Visible
+                    } else {
+                        TextObfuscationMode.RevealLastTyped
+                    },
+                    trailingIcon = {
+                        SimpleIconButton(
+                            imageVector = vectorResource(
+                                if (passwordVisible) {
+                                    Res.drawable.visibility_off
+                                }
+                                else {
+                                    Res.drawable.visibility
+                                },
+                            ),
+                            contentDescription = stringResource(
+                                if (passwordVisible) {
+                                    Res.string.hide
+                                } else {
+                                    Res.string.show
+                                },
+                            ),
+                            onClick = { passwordVisible = !passwordVisible },
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
+                        autoCorrectEnabled = false,
                         imeAction = ImeAction.Done,
                     ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onOk() },
-                    ),
+                    onKeyboardAction = { onOk() },
+                )
+                // SecureTextField always disable cut and copy. So we have to provide one ourselves.
+                SimpleIconButton(
+                    imageVector = vectorResource(Res.drawable.content_copy),
+                    contentDescription = stringResource(Res.string.action_copy),
+                    // Only enabled it on visible to prevent accidentally touch.
+                    enabled = passwordVisible,
+                    onClick = {
+                        val password = state.text.toString()
+                        scope.launch {
+                            clipboard.setPlainText(password)
+                            // TODO: Show copy confirmation once a CompositionLocal provides the snackbar.
+                        }
+                    },
                 )
                 dialogFooter?.invoke()
             }

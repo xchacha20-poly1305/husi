@@ -117,8 +117,8 @@ internal fun DnsSettingsGroup(
         },
         summary = { Text(contentOrUnset(optimisticCacheValue)) },
         valueToText = { it },
-        textField = { value, onValueChange, onOk ->
-            DurationTextField(value, onValueChange, onOk)
+        textField = { state, onOk ->
+            DurationTextField(state, onOk)
         },
     )
 
@@ -262,7 +262,7 @@ internal fun DnsSettingsGroup(
         },
         summary = { Text(contentOrUnset(dnsHostsValue)) },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
-        HostTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        HostTextField(state, onOk)
     }
 }

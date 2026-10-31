@@ -111,8 +111,8 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -183,8 +183,8 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
                     },
                     summary = { Text(contentOrUnset(uiState.privateKey)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 PasswordPreference(
@@ -207,8 +207,8 @@ private fun LazyListScope.sshSettings(uiState: SshUiState, viewModel: SSHSetting
             },
             summary = { Text(contentOrUnset(uiState.publicKey)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
     }

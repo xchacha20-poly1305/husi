@@ -221,10 +221,9 @@ internal fun AssetEditScreen(
                             },
                             summary = { Text(contentOrUnset(uiState.name)) },
                             valueToText = { it },
-                            textField = { value, onValueChange, onOk ->
+                            textField = { state, onOk ->
                                 ValidatedTextField(
-                                    value = value,
-                                    onValueChange = onValueChange,
+                                    state = state,
                                     onOk = onOk,
                                     validator = { name ->
                                         viewModel.validate(name)?.let { getStringOrRes(it) }
@@ -245,8 +244,8 @@ internal fun AssetEditScreen(
                             },
                             summary = { Text(contentOrUnset(uiState.link)) },
                             valueToText = { it },
-                            textField = { value, onValueChange, onOk ->
-                                LinkOrContentTextField(value, onValueChange, onOk)
+                            textField = { state, onOk ->
+                                LinkOrContentTextField(state, onOk)
                             },
                         )
                         TextFieldPreference(
@@ -272,8 +271,8 @@ internal fun AssetEditScreen(
                                 )
                             },
                             valueToText = { it.toString() },
-                            textField = { value, onValueChange, onOk ->
-                                UIntegerTextField(value, onValueChange, onOk)
+                            textField = { state, onOk ->
+                                UIntegerTextField(state, onOk)
                             },
                         )
                     }

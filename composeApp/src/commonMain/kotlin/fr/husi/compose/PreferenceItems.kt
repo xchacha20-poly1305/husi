@@ -1,9 +1,9 @@
 package fr.husi.compose
 
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.TextFieldValue
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.ListPreference as BaseListPreference
 import me.zhanghai.compose.preference.MultiSelectListPreference as BaseMultiSelectListPreference
@@ -18,11 +18,10 @@ import me.zhanghai.compose.preference.TwoTargetSwitchPreference as BaseTwoTarget
  */
 object PreferenceTextFieldDefaults {
     val TextField: @Composable (
-        value: TextFieldValue,
-        onValueChange: (TextFieldValue) -> Unit,
+        state: TextFieldState,
         onOk: () -> Unit,
-    ) -> Unit = { value, onValueChange, onOk ->
-        SingleLineTextField(value, onValueChange, onOk)
+    ) -> Unit = { state, onOk ->
+        SingleLineTextField(state, onOk)
     }
 }
 
@@ -157,8 +156,7 @@ fun <T> TextFieldPreference(
     summary: @Composable (() -> Unit)? = null,
     valueToText: (T) -> String = { it.toString() },
     textField: @Composable (
-        value: TextFieldValue,
-        onValueChange: (TextFieldValue) -> Unit,
+        state: TextFieldState,
         onOk: () -> Unit,
     ) -> Unit = PreferenceTextFieldDefaults.TextField,
 ) = PreferenceItemSurface {

@@ -116,8 +116,8 @@ private fun LazyListScope.wireGuardSettings(
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -133,8 +133,8 @@ private fun LazyListScope.wireGuardSettings(
             },
             summary = { Text(contentOrUnset(uiState.localAddress)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         PasswordPreference(
@@ -185,8 +185,8 @@ private fun LazyListScope.wireGuardSettings(
             },
             summary = { Text(contentOrUnset(uiState.mtu.toString())) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -203,8 +203,8 @@ private fun LazyListScope.wireGuardSettings(
             },
             summary = { Text(contentOrUnset(uiState.reserved)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -220,8 +220,8 @@ private fun LazyListScope.wireGuardSettings(
             },
             summary = { Text(contentOrUnset(uiState.listenPort)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -239,8 +239,8 @@ private fun LazyListScope.wireGuardSettings(
                 Text(contentOrUnset(uiState.persistentKeepaliveInterval))
             },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
     }

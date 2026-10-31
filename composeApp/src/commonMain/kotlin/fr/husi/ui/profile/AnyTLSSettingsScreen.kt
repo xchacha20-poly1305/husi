@@ -148,8 +148,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         PasswordPreference(
@@ -166,8 +166,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.idleSessionCheckInterval)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                DurationTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                DurationTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -180,8 +180,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.idleSessionTimeout)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                DurationTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                DurationTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -200,8 +200,8 @@ private fun LazyListScope.anyTlsSettings(
                 }
                 Text(text)
             },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -261,8 +261,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.alpn)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -279,8 +279,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.certificates)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -297,8 +297,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.certificateSha256)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -311,8 +311,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.certPublicKeySha256)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         ListPreference(
@@ -394,8 +394,8 @@ private fun LazyListScope.anyTlsSettings(
             enabled = uiState.tlsFragment,
             summary = { Text(contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                DurationTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                DurationTextField(state, onOk)
             },
         )
         SwitchPreference(
@@ -436,8 +436,8 @@ private fun LazyListScope.anyTlsSettings(
             enabled = uiState.ech,
             summary = { Text(contentOrUnset(uiState.echConfig)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -472,8 +472,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.clientCert)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -490,8 +490,8 @@ private fun LazyListScope.anyTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.clientKey)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
     }

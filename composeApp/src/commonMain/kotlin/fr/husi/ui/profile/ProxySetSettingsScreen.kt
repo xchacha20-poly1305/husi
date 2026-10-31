@@ -260,8 +260,8 @@ private fun LazyListScope.proxySetSettings(
                 icon = { MaskedIcon(Res.drawable.photo_camera, IconMaskColors.IconWarmGray) },
                 summary = { Text(contentOrUnset(uiState.testIdleTimeout)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    DurationTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    DurationTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -272,8 +272,8 @@ private fun LazyListScope.proxySetSettings(
                 icon = { MaskedIcon(Res.drawable.emoji_emotions, IconMaskColors.IconLightGreen) },
                 summary = { Text(uiState.testTolerance.toString()) },
                 valueToText = { it.toString() },
-                textField = { value, onValueChange, onOk ->
-                    UIntegerTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    UIntegerTextField(state, onOk)
                 },
             )
         }
@@ -368,8 +368,8 @@ private fun IntervalPreference(
         },
         summary = { Text(contentOrUnset(value)) },
         valueToText = { it },
-        textField = { fieldValue, onFieldValueChange, onOk ->
-            DurationTextField(fieldValue, onFieldValueChange, onOk)
+        textField = { fieldState, onOk ->
+            DurationTextField(fieldState, onOk)
         },
     )
 }

@@ -53,8 +53,8 @@ internal fun InboundSettingsGroup(
         },
         summary = { Text(contentOrUnset(mixedPortValue)) },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
-        PortTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        PortTextField(state, onOk)
     }
 
     val localDnsPort by DataStore.localDNSPort.collectAsStateWithLifecycle()
@@ -72,8 +72,8 @@ internal fun InboundSettingsGroup(
         },
         summary = { Text(contentOrUnset(localDnsPortValue)) },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
-        PortTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        PortTextField(state, onOk)
     }
 
     PlatformAppendHttpProxyPreferences(needReload)

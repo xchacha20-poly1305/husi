@@ -90,8 +90,8 @@ private fun LazyListScope.vmessSettings(
             },
             summary = { Text(contentOrUnset(uiState.alterID)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         ListPreference(

@@ -37,5 +37,10 @@ include(":androidApp")
 include(":composeApp")
 include(":proto")
 include(":library:DragDropSwipeLazyColumn")
+include(":library:ComposePreference")
+project(":library:ComposePreference").apply {
+    projectDir = file("library/ComposePreference/preference")
+    buildFileName = "husi.gradle.kts"
+}
 
 rootProject.name = "husi"

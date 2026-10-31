@@ -6,12 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,43 +21,39 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import fr.husi.compose.material3.Text
 import fr.husi.ktx.parseGoDuration
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.resolveRepository
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.cleartext_http_warning
 import io.github.xchacha20_poly1305.kpuri.Url
 
 @Composable
 fun ValidatedTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     singleLine: Boolean = true,
     maxLine: Int = 50,
+    modifier: Modifier = Modifier,
+    inputTransformation: InputTransformation? = null,
     validator: suspend (String) -> String? = { null },
 ) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(value) {
-        errorMessage = validator(value.text)
+    LaunchedEffect(state.text.toString()) {
+        errorMessage = validator(state.text.toString())
     }
 
     Column {
         OutlinedTextField(
-            value = value,
-            onValueChange = {
-                onValueChange(it)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardActions = KeyboardActions {
-                onOk()
-            },
-            singleLine = singleLine,
-            maxLines = maxLine,
+            state = state,
+            inputTransformation = inputTransformation,
+            modifier = modifier.fillMaxWidth(),
+            onKeyboardAction = { onOk() },
+            lineLimits = if (singleLine) TextFieldLineLimits.SingleLine
+            else TextFieldLineLimits.MultiLine(maxHeightInLines = maxLine),
             isError = errorMessage != null,
             supportingText = {
                 errorMessage?.let {
@@ -74,8 +71,7 @@ fun ValidatedTextField(
 
 @Composable
 fun LinkOrContentTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     allowMultiLine: Boolean = false,
 ) {
@@ -106,13 +102,12 @@ fun LinkOrContentTextField(
             null
         }
     }
-    ValidatedTextField(value, onValueChange, onOk, false, validator = ::validate)
+    ValidatedTextField(state, onOk, false, validator = ::validate)
 }
 
 @Composable
 fun DurationTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
 ) {
     fun validate(text: String): String? {
@@ -131,13 +126,12 @@ fun DurationTextField(
             e.readableMessage
         }
     }
-    ValidatedTextField(value, onValueChange, onOk, true, validator = ::validate)
+    ValidatedTextField(state, onOk, true, validator = ::validate)
 }
 
 @Composable
 fun UIntegerTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
     minValue: Int? = null,
@@ -159,40 +153,18 @@ fun UIntegerTextField(
         return null
     }
 
-    LaunchedEffect(value.text) {
-        errorMessage = validate(value.text)
+    LaunchedEffect(state.text.toString()) {
+        errorMessage = validate(state.text.toString())
     }
 
     Column {
         OutlinedTextField(
-            value = value,
-            onValueChange = { newValue ->
-                val text = newValue.text
-                if (text.isBlank()) {
-                    onValueChange(
-                        TextFieldValue(
-                            text = "0",
-                            selection = TextRange(1),
-                        ),
-                    )
-                } else if (text.toUIntOrNull() != null) {
-                    onValueChange(
-                        if (text.startsWith("0")) {
-                            TextFieldValue(
-                                text = text.trimStart('0'),
-                                selection = TextRange((text.trimStart('0')).length),
-                            )
-                        } else {
-                            newValue
-                        },
-                    )
-                    errorMessage = validate(text)
-                }
-            },
+            state = state,
+            inputTransformation = unsignedIntegerInputTransformation(),
             modifier = modifier.fillMaxWidth(),
-            keyboardActions = KeyboardActions { onOk() },
+            onKeyboardAction = { onOk() },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
+            lineLimits = TextFieldLineLimits.SingleLine,
             isError = errorMessage != null,
             supportingText = errorMessage?.let {
                 {
@@ -210,69 +182,40 @@ fun UIntegerTextField(
 
 @Composable
 fun PortTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
-        value = value,
-        onValueChange = { newValue ->
-            val text = newValue.text
-            // Port: 0-65535, max 5 digits
-            if (text.isBlank()) {
-                onValueChange(
-                    TextFieldValue(
-                        text = "0",
-                        selection = TextRange(1),
-                    ),
-                )
-            } else {
-                val intValue = text.toIntOrNull()
-                if (intValue != null && intValue <= 65535) {
-                    onValueChange(
-                        if (text.startsWith("0")) {
-                            TextFieldValue(
-                                text = text.trimStart('0'),
-                                selection = TextRange(text.trimStart('0').length),
-                            )
-                        } else {
-                            newValue
-                        },
-                    )
-                }
-            }
-        },
+        state = state,
+        inputTransformation = unsignedIntegerInputTransformation(maxValue = 65535u),
         modifier = modifier.fillMaxWidth(),
-        keyboardActions = KeyboardActions { onOk() },
+        onKeyboardAction = { onOk() },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        singleLine = true,
+        lineLimits = TextFieldLineLimits.SingleLine,
     )
 }
 
 @Composable
 fun HostTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
+        state = state,
         modifier = modifier
             .fillMaxWidth()
             .horizontalScroll(scrollState),
-        keyboardActions = KeyboardActions { onOk() },
-        singleLine = false,
+        onKeyboardAction = { onOk() },
+        lineLimits = TextFieldLineLimits.MultiLine(),
     )
 }
 
 @Composable
 fun ValidatedIntegerTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     minValue: Int? = null,
     maxValue: Int? = null,
@@ -293,14 +236,13 @@ fun ValidatedIntegerTextField(
     }
 
     ValidatedTextField(
-        value = value,
-        onValueChange = { newValue ->
-            val text = newValue.text
-            if (text.isBlank() || text.toIntOrNull() != null) {
-                onValueChange(newValue)
-            }
+        state = state,
+        inputTransformation = InputTransformation {
+            val text = asCharSequence().toString()
+            if (text.isNotBlank() && text.toIntOrNull() == null) revertAllChanges()
         },
         onOk = onOk,
+        modifier = modifier,
         singleLine = true,
         validator = ::validate,
     )
@@ -308,48 +250,66 @@ fun ValidatedIntegerTextField(
 
 @Composable
 fun SingleLineTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
     supportingText: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
+        state = state,
         modifier = modifier.fillMaxWidth(),
-        keyboardActions = KeyboardActions { onOk() },
-        singleLine = true,
+        onKeyboardAction = { onOk() },
+        lineLimits = TextFieldLineLimits.SingleLine,
         supportingText = supportingText,
     )
 }
 
 @Composable
 fun MultilineTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
+        state = state,
         modifier = modifier.fillMaxWidth(),
         enabled = enabled,
-        keyboardActions = KeyboardActions { onOk() },
-        singleLine = false,
-        maxLines = maxLines,
-        label = label,
+        onKeyboardAction = { onOk() },
+        lineLimits = TextFieldLineLimits.MultiLine(maxHeightInLines = maxLines),
+        label = label?.let { content -> { content() } },
         placeholder = placeholder,
-        visualTransformation = visualTransformation,
         colors = colors,
         interactionSource = interactionSource,
     )
 }
+
+internal fun unsignedIntegerInputTransformation(maxValue: UInt = UInt.MAX_VALUE): InputTransformation =
+    InputTransformation {
+        val text = asCharSequence().toString()
+        if (text.isBlank()) {
+            replace(0, length, "0")
+        } else {
+            val number = text.toUIntOrNull()
+            if (number == null || number > maxValue) {
+                revertAllChanges()
+            } else {
+                // Keep one zero when the entire input consists of zeros.
+                val leadingZeros = text.indexOfFirst { it != '0' }.let {
+                    if (it < 0) {
+                        text.length - 1
+                    } else {
+                        it
+                    }
+                }
+                if (leadingZeros > 0) {
+                    replace(0, leadingZeros, "")
+                }
+            }
+        }
+    }

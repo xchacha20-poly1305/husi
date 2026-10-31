@@ -243,8 +243,8 @@ private fun LazyListScope.openConnectSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.certificateAuthority)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.enhanced_encryption, IconMaskColors.IconLightBlue) },
         )
@@ -255,8 +255,8 @@ private fun LazyListScope.openConnectSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.clientCertificate)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.fingerprint, IconMaskColors.IconLavender, IconMaskShapes.credential()) },
         )
@@ -267,8 +267,8 @@ private fun LazyListScope.openConnectSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.clientKey)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.vpn_key, IconMaskColors.IconCoral, IconMaskShapes.credential()) },
         )
@@ -283,8 +283,8 @@ private fun LazyListScope.openConnectSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.mcaCertificate)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.lock, IconMaskColors.IconLightOrange, IconMaskShapes.credential()) },
         )
@@ -295,8 +295,8 @@ private fun LazyListScope.openConnectSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.mcaKey)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.vpn_key, IconMaskColors.IconLightPink, IconMaskShapes.credential()) },
         )

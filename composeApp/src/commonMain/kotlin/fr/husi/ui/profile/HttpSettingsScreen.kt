@@ -140,8 +140,8 @@ private fun LazyListScope.httpSettings(
             },
             summary = { Text(contentOrUnset(uiState.headers)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
     }

@@ -369,7 +369,6 @@ kotlin {
 
                 implementation(libs.ini4j)
                 implementation(libs.okio)
-                implementation(libs.compose.preference)
                 implementation(libs.fastscroller.material3)
                 implementation(libs.filekit.dialogs.compose)
                 implementation(libs.aboutlibraries.compose.m3)
@@ -379,6 +378,7 @@ kotlin {
                 implementation(libs.libghostty.compose)
                 implementation(project(":proto"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
+                implementation(project(":library:ComposePreference"))
 
                 implementation(project.dependencies.platform(libs.koin.bom))
                 implementation(libs.koin.compose.viewmodel)

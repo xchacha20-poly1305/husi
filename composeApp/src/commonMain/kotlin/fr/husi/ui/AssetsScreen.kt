@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -49,7 +50,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,8 +68,8 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Button
-import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
 import fr.husi.compose.withNavigation
@@ -108,12 +108,12 @@ import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
+import java.io.File
+import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
-import kotlin.random.Random
 
 private const val ASSET_BUILT_IN = 0
 private const val ASSET_CUSTOM = 1
@@ -135,13 +135,13 @@ internal fun AssetsScreen(
     val rulesProvider by DataStore.rulesProvider.collectAsStateWithLifecycle()
     val routeAssetsAutoUpdateDelay by DataStore.routeAssetsAutoUpdateDelay.collectAsStateWithLifecycle()
     var showAutoUpdateDelayDialog by remember { mutableStateOf(false) }
-    var autoUpdateDelayValue by remember(routeAssetsAutoUpdateDelay, showAutoUpdateDelayDialog) {
-        mutableStateOf(TextFieldValue(routeAssetsAutoUpdateDelay.toString()))
+    val autoUpdateDelayValue = remember(routeAssetsAutoUpdateDelay, showAutoUpdateDelayDialog) {
+        TextFieldState(routeAssetsAutoUpdateDelay.toString())
     }
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
 
     fun saveRouteAssetsAutoUpdateDelay() {
-        val delay = autoUpdateDelayValue.text.toIntOrNull() ?: 0
+        val delay = autoUpdateDelayValue.text.toString().toIntOrNull() ?: 0
         showAutoUpdateDelayDialog = false
         scope.launch(Dispatchers.Default) {
             DataStore.routeAssetsAutoUpdateDelay.set(delay)
@@ -464,8 +464,7 @@ internal fun AssetsScreen(
             title = { Text(stringResource(Res.string.route_global_asset_auto_update_delay)) },
             text = {
                 UIntegerTextField(
-                    value = autoUpdateDelayValue,
-                    onValueChange = { autoUpdateDelayValue = it },
+                    state = autoUpdateDelayValue,
                     onOk = ::saveRouteAssetsAutoUpdateDelay,
                 )
             },

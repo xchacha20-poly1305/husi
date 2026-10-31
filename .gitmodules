@@ -16,3 +16,6 @@
 [submodule "library/DragDropSwipeLazyColumn"]
 	path = library/DragDropSwipeLazyColumn
 	url = https://github.com/xchacha20-poly1305/DragDropSwipeLazyColumn.git
+[submodule "library/ComposePreference"]
+	path = library/ComposePreference
+	url = https://github.com/xchacha20-poly1305/ComposePreference.git

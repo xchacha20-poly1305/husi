@@ -124,8 +124,8 @@ private fun LazyListScope.mieruSettings(
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         ListPreference(
@@ -179,8 +179,8 @@ private fun LazyListScope.mieruSettings(
                 },
                 summary = { Text(contentOrUnset(uiState.mtu)) },
                 valueToText = { it.toString() },
-                textField = { value, onValueChange, onOk ->
-                    UIntegerTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    UIntegerTextField(state, onOk)
                 },
             )
         }
@@ -228,8 +228,8 @@ private fun LazyListScope.mieruSettings(
             },
             summary = { Text(contentOrUnset(uiState.trafficPattern)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
     }

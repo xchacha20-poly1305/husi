@@ -298,8 +298,8 @@ private fun V2RayPluginForm(
                 },
                 summary = { Text(uiState.mux.toString()) },
                 valueToText = { it.toString() },
-                textField = { value, onValueChange, onOk ->
-                    UIntegerTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    UIntegerTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -316,8 +316,8 @@ private fun V2RayPluginForm(
                 },
                 summary = { Text(contentOrUnset(uiState.certRaw)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
         }

@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.IconMaskColors
@@ -206,10 +206,9 @@ private fun LazyListScope.hysteriaSettings(
             },
             summary = { Text(contentOrUnset(uiState.hopInterval)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
+            textField = { state, onOk ->
                 HopIntervalTextField(
-                    value = value,
-                    onValueChange = onValueChange,
+                    state = state,
                     onOk = onOk,
                     supportRange = uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2,
                 )
@@ -255,8 +254,8 @@ private fun LazyListScope.hysteriaSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.geckoMinPacketSize)) },
                     valueToText = { it.toString() },
-                    textField = { value, onValueChange, onOk ->
-                        UIntegerTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        UIntegerTextField(state, onOk)
                     },
                 )
                 TextFieldPreference(
@@ -267,8 +266,8 @@ private fun LazyListScope.hysteriaSettings(
                     icon = { Spacer(Modifier.size(24.dp)) },
                     summary = { Text(contentOrUnset(uiState.geckoMaxPacketSize)) },
                     valueToText = { it.toString() },
-                    textField = { value, onValueChange, onOk ->
-                        UIntegerTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        UIntegerTextField(state, onOk)
                     },
                 )
             }
@@ -367,8 +366,8 @@ private fun LazyListScope.hysteriaSettings(
                 },
                 summary = { Text(contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
         }
@@ -386,8 +385,8 @@ private fun LazyListScope.hysteriaSettings(
             },
             summary = { Text(contentOrUnset(uiState.certificates)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -404,8 +403,8 @@ private fun LazyListScope.hysteriaSettings(
             },
             summary = { Text(contentOrUnset(uiState.certificateSha256)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -418,8 +417,8 @@ private fun LazyListScope.hysteriaSettings(
             },
             summary = { Text(contentOrUnset(uiState.certPublicKeySha256)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         SwitchPreference(
@@ -466,8 +465,8 @@ private fun LazyListScope.hysteriaSettings(
                 Text(text)
             },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -488,8 +487,8 @@ private fun LazyListScope.hysteriaSettings(
                 Text(text)
             },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         SwitchPreference(
@@ -526,8 +525,8 @@ private fun LazyListScope.hysteriaSettings(
             },
             summary = { Text(contentOrUnset(uiState.idleTimeout)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                DurationTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                DurationTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -540,8 +539,8 @@ private fun LazyListScope.hysteriaSettings(
             },
             summary = { Text(contentOrUnset(uiState.keepAlivePeriod)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                DurationTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                DurationTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -562,8 +561,8 @@ private fun LazyListScope.hysteriaSettings(
                 Text(text)
             },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -584,8 +583,8 @@ private fun LazyListScope.hysteriaSettings(
                 Text(text)
             },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
     }
@@ -609,8 +608,8 @@ private fun LazyListScope.hysteriaSettings(
                 },
                 summary = { Text(contentOrUnset(uiState.clientCert)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -627,8 +626,8 @@ private fun LazyListScope.hysteriaSettings(
                 },
                 summary = { Text(contentOrUnset(uiState.clientKey)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             val hysteriaCongestionControls = remember {
@@ -708,8 +707,8 @@ private fun LazyListScope.hysteriaSettings(
             enabled = uiState.ech,
             summary = { Text(contentOrUnset(uiState.echConfig)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -729,13 +728,12 @@ private fun LazyListScope.hysteriaSettings(
 
 @Composable
 private fun HopIntervalTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     supportRange: Boolean,
 ) {
     if (!supportRange) {
-        DurationTextField(value, onValueChange, onOk)
+        DurationTextField(state, onOk)
         return
     }
 
@@ -746,8 +744,7 @@ private fun HopIntervalTextField(
             style = MaterialTheme.typography.bodySmall,
         )
         ValidatedTextField(
-            value = value,
-            onValueChange = onValueChange,
+            state = state,
             onOk = onOk,
             validator = { text ->
                 when {

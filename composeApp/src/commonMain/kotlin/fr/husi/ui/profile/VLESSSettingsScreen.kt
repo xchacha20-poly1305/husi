@@ -99,8 +99,8 @@ private fun LazyListScope.vlessSettings(
             },
             summary = { Text(contentOrUnset(uiState.encryption)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         fun packetEncodingName(packetEncoding: Int): StringOrRes = when (packetEncoding) {

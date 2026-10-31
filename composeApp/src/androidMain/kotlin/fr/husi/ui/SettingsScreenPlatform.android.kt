@@ -140,10 +140,9 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
             Text(text)
         },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
+    ) { state, onOk ->
         ValidatedTextField(
-            value = value,
-            onValueChange = onValueChange,
+            state = state,
             onOk = onOk,
             validator = { text ->
                 if (text.lines().size > 1) {
@@ -294,8 +293,8 @@ internal actual fun PlatformAppendHttpProxyPreferences(needReload: () -> Unit) {
         },
         valueToText = { it },
         enabled = appendHttpProxyValue,
-    ) { value, onValueChange, onOk ->
-        HostTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        HostTextField(state, onOk)
     }
 }
 

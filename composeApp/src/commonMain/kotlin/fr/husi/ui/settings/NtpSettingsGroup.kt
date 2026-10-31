@@ -80,8 +80,8 @@ internal fun NtpSettingsGroup(
         summary = { Text(ntpPortValue.toString()) },
         valueToText = { it.toString() },
         enabled = enableNtpValue,
-    ) { value, onValueChange, onOk ->
-        PortTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        PortTextField(state, onOk)
     }
 
     val ntpIntervalValue by DataStore.ntpInterval.collectAsStateWithLifecycle()
@@ -102,7 +102,7 @@ internal fun NtpSettingsGroup(
         summary = { Text(contentOrUnset(ntpIntervalValue)) },
         valueToText = { it },
         enabled = enableNtpValue,
-    ) { value, onValueChange, onOk ->
-        DurationTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        DurationTextField(state, onOk)
     }
 }

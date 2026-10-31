@@ -159,8 +159,8 @@ private fun LazyListScope.openVPNSettings(
             textToValue = { it.toIntOrNull() ?: 1194 },
             valueToText = Int::toString,
             summary = { Text(contentOrUnset(state.port)) },
-            textField = { value, change, ok ->
-                UIntegerTextField(value, change, ok)
+            textField = { fieldState, ok ->
+                UIntegerTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.directions_boat, IconMaskColors.IconLightOrange) },
         )
@@ -195,8 +195,8 @@ private fun LazyListScope.openVPNSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.certificate)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.enhanced_encryption, IconMaskColors.IconLightBlue) },
         )
@@ -207,8 +207,8 @@ private fun LazyListScope.openVPNSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.clientCertificate)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.fingerprint, IconMaskColors.IconLavender, IconMaskShapes.credential()) },
         )
@@ -219,8 +219,8 @@ private fun LazyListScope.openVPNSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.clientKey)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.vpn_key, IconMaskColors.IconCoral, IconMaskShapes.credential()) },
         )
@@ -269,8 +269,8 @@ private fun LazyListScope.openVPNSettings(
             textToValue = { it.toIntOrNull() ?: 1500 },
             valueToText = Int::toString,
             summary = { Text(state.mtu.toString()) },
-            textField = { value, change, ok ->
-                UIntegerTextField(value, change, ok)
+            textField = { fieldState, ok ->
+                UIntegerTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.directions_boat, IconMaskColors.IconLightOrange) },
         )
@@ -359,8 +359,8 @@ private fun LazyListScope.openVPNSettings(
             textToValue = { it },
             valueToText = { it },
             summary = { Text(contentOrUnset(state.controlWrapKey)) },
-            textField = { fieldValue, change, ok ->
-                MultilineTextField(fieldValue, change, ok)
+            textField = { fieldState, ok ->
+                MultilineTextField(fieldState, ok)
             },
             icon = { MaskedIcon(Res.drawable.vpn_key, IconMaskColors.IconCoral, IconMaskShapes.credential()) },
         )

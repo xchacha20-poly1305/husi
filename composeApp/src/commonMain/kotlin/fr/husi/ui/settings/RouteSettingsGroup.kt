@@ -179,8 +179,8 @@ internal fun RouteSettingsGroup(
         },
         summary = { Text(contentOrUnset(tcpKeepAliveIdleValue)) },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
-        DurationTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        DurationTextField(state, onOk)
     }
 
     val tcpKeepAliveIntervalValue by DataStore.tcpKeepAliveInterval.collectAsStateWithLifecycle()
@@ -198,8 +198,8 @@ internal fun RouteSettingsGroup(
         },
         summary = { Text(contentOrUnset(tcpKeepAliveIntervalValue)) },
         valueToText = { it },
-    ) { value, onValueChange, onOk ->
-        DurationTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        DurationTextField(state, onOk)
     }
 
     fun rulesProviderText(index: Int): StringOrRes = when (index) {
@@ -248,8 +248,8 @@ internal fun RouteSettingsGroup(
             },
             summary = { Text(contentOrUnset(customRuleProviderValue)) },
             valueToText = { it },
-        ) { value, onValueChange, onOk ->
-            LinkOrContentTextField(value, onValueChange, onOk)
+        ) { state, onOk ->
+            LinkOrContentTextField(state, onOk)
         }
     }
 }

@@ -48,8 +48,8 @@ internal fun ProtocolSettingsGroup(
         },
         summary = { Text(uploadSpeedValue.toString()) },
         valueToText = { it.toString() },
-    ) { value, onValueChange, onOk ->
-        UIntegerTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        UIntegerTextField(state, onOk)
     }
 
     val downloadSpeedValue by DataStore.downloadSpeed.collectAsStateWithLifecycle()
@@ -66,8 +66,8 @@ internal fun ProtocolSettingsGroup(
         },
         summary = { Text(downloadSpeedValue.toString()) },
         valueToText = { it.toString() },
-    ) { value, onValueChange, onOk ->
-        UIntegerTextField(value, onValueChange, onOk)
+    ) { state, onOk ->
+        UIntegerTextField(state, onOk)
     }
 
     fun pluginProviderText(index: Int): StringOrRes = when (index) {

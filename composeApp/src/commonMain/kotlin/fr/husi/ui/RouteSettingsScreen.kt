@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
@@ -37,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,8 +67,8 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.fadingEdge
-import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.compose.withNavigation
@@ -164,14 +164,14 @@ import fr.husi.ui.profile.tlsSpoofMethod
 import fr.husi.ui.tools.RuleSetMatchDialog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import java.io.File
+import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import me.zhanghai.compose.preference.ListPreferenceType
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.io.File
-import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
 private const val CUSTOM_OUTBOUND_OPTION = -5L // Placeholder
@@ -579,10 +579,9 @@ private fun RouteSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.domains)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
+                    textField = { state, onOk ->
                         RuleSetAutoCompleteTextField(
-                            value = value,
-                            onValueChange = onValueChange,
+                            state = state,
                             onOk = onOk,
                             geoDirs = geoDirs,
                         )
@@ -601,10 +600,9 @@ private fun RouteSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.ip)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
+                    textField = { state, onOk ->
                         RuleSetAutoCompleteTextField(
-                            value = value,
-                            onValueChange = onValueChange,
+                            state = state,
                             onOk = onOk,
                             geoDirs = geoDirs,
                         )
@@ -623,8 +621,8 @@ private fun RouteSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.port)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 TextFieldPreference(
@@ -640,8 +638,8 @@ private fun RouteSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.sourcePort)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 MultiSelectListPreference(
@@ -682,8 +680,8 @@ private fun RouteSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.source)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 MultiSelectListPreference(
@@ -720,8 +718,8 @@ private fun RouteSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.client)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                    textField = { state, onOk ->
+                        MultilineTextField(state, onOk)
                     },
                 )
                 val showWifi = uiState.networkType.contains(SingBoxOptions.NETWORK_TYPE_WIFI)
@@ -739,8 +737,8 @@ private fun RouteSettings(
                         },
                         summary = { Text(contentOrUnset(uiState.ssid)) },
                         valueToText = { it },
-                        textField = { value, onValueChange, onOk ->
-                            MultilineTextField(value, onValueChange, onOk)
+                        textField = { state, onOk ->
+                            MultilineTextField(state, onOk)
                         },
                     )
                     TextFieldPreference(
@@ -756,8 +754,8 @@ private fun RouteSettings(
                         },
                         summary = { Text(contentOrUnset(uiState.bssid)) },
                         valueToText = { it },
-                        textField = { value, onValueChange, onOk ->
-                            MultilineTextField(value, onValueChange, onOk)
+                        textField = { state, onOk ->
+                            MultilineTextField(state, onOk)
                         },
                     )
                 }
@@ -774,10 +772,9 @@ private fun RouteSettings(
                     },
                     summary = { Text(contentOrUnset(uiState.clashMode)) },
                     valueToText = { it },
-                    textField = { value, onValueChange, onOk ->
+                    textField = { state, onOk ->
                         SingleLineTextField(
-                            value = value,
-                            onValueChange = onValueChange,
+                            state = state,
                             onOk = onOk,
                             supportingText = {
                                 Text(stringResource(Res.string.clash_mode_lowercase_hint))
@@ -928,8 +925,8 @@ private fun RouteSettings(
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.overridePort)) },
-                            textField = { value, onValueChange, onOk ->
-                                UIntegerTextField(value, onValueChange, onOk)
+                            textField = { state, onOk ->
+                                UIntegerTextField(state, onOk)
                             },
                         )
                         SwitchPreference(
@@ -956,8 +953,8 @@ private fun RouteSettings(
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
-                            textField = { value, onValueChange, onOk ->
-                                DurationTextField(value, onValueChange, onOk)
+                            textField = { state, onOk ->
+                                DurationTextField(state, onOk)
                             },
                         )
                         SwitchPreference(
@@ -1064,8 +1061,8 @@ private fun RouteSettings(
                                         ?: stringResource(Res.string.not_set)
                                 Text(text)
                             },
-                            textField = { value, onValueChange, onOk ->
-                                UIntegerTextField(value, onValueChange, onOk)
+                            textField = { state, onOk ->
+                                UIntegerTextField(state, onOk)
                             },
                         )
                         TextFieldPreference(
@@ -1102,8 +1099,8 @@ private fun RouteSettings(
                                 )
                             },
                             summary = { Text(contentOrUnset(uiState.sniffTimeout)) },
-                            textField = { value, onValueChange, onOk ->
-                                DurationTextField(value, onValueChange, onOk)
+                            textField = { state, onOk ->
+                                DurationTextField(state, onOk)
                             },
                         )
                         MultiSelectListPreference(
@@ -1174,11 +1171,10 @@ internal data class SelectedLine(
     val suffix = if (raw.endsWith('\r')) "\r" else ""
 }
 
-internal fun TextFieldValue.selectedLine(): SelectedLine? {
+internal fun selectedLine(text: String, selection: TextRange): SelectedLine? {
     if (!selection.collapsed) return null
 
-    val cursor = selection.end.fastCoerceIn(0, annotatedString.length)
-    val text = annotatedString.text
+    val cursor = selection.end.fastCoerceIn(0, text.length)
     val end = text.indexOf('\n', cursor).let {
         if (it >= 0) {
             it
@@ -1207,8 +1203,7 @@ internal fun TextFieldValue.selectedLine(): SelectedLine? {
 
 @Composable
 private fun RuleSetAutoCompleteTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     onOk: () -> Unit,
     geoDirs: List<File>,
     modifier: Modifier = Modifier,
@@ -1225,8 +1220,10 @@ private fun RuleSetAutoCompleteTextField(
         }
     }
 
-    val suggestions = remember(value, ruleSets) {
-        val prefix = value.selectedLine()?.ruleSetSuggestionPrefix() ?: return@remember emptyList()
+    val text = state.text.toString()
+    val selection = state.selection
+    val suggestions = remember(text, selection, ruleSets) {
+        val prefix = selectedLine(text, selection)?.ruleSetSuggestionPrefix() ?: return@remember emptyList()
         ruleSets.findRuleSetSuggestions(prefix, RULE_SET_SUGGESTION_LIMIT)
     }
 
@@ -1235,24 +1232,18 @@ private fun RuleSetAutoCompleteTextField(
     }
     Column(modifier = modifier) {
         AutoCompleteTextField(
-            value = value,
-            onValueChange = onValueChange,
+            state = state,
             onOk = onOk,
             suggestions = suggestions,
             onChooseSuggestion = { suggestion ->
-                val line = value.selectedLine() ?: return@AutoCompleteTextField
+                val line = selectedLine(state.text.toString(), state.selection) ?: return@AutoCompleteTextField
                 val linePrefix = line.raw.substringBefore(':', missingDelimiterValue = "")
                 if (linePrefix.isBlank()) return@AutoCompleteTextField
                 val replacement = "$linePrefix:$suggestion${line.suffix}"
-                onValueChange(
-                    value.copy(
-                        annotatedString = AnnotatedString(
-                            value.annotatedString.text.replaceRange(line.start, line.end, replacement),
-                        ),
-                        selection = TextRange(line.start + replacement.length),
-                        composition = null,
-                    ),
-                )
+                state.edit {
+                    replace(line.start, line.end, replacement)
+                    this.selection = TextRange(line.start + replacement.length)
+                }
             },
             displaySuggestion = { it },
         )

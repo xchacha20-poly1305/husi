@@ -151,8 +151,8 @@ private fun LazyListScope.shadowQuicSettings(
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         fun subProtocolText(subProtocol: Int) = when (subProtocol) {
@@ -258,8 +258,8 @@ private fun LazyListScope.shadowQuicSettings(
             },
             summary = { Text(contentOrUnset(uiState.initialMtu)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -275,8 +275,8 @@ private fun LazyListScope.shadowQuicSettings(
             },
             summary = { Text(contentOrUnset(uiState.minMtu)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         SwitchPreference(
@@ -305,8 +305,8 @@ private fun LazyListScope.shadowQuicSettings(
             },
             summary = { Text(contentOrUnset(uiState.keepAliveInterval)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         SwitchPreference(
@@ -350,8 +350,8 @@ private fun LazyListScope.shadowQuicSettings(
                 },
                 summary = { Text(contentOrUnset(uiState.extraPaths)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             TextFieldPreference(
@@ -368,8 +368,8 @@ private fun LazyListScope.shadowQuicSettings(
                 },
                 summary = { Text(contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    MultilineTextField(value, onValueChange, onOk)
+                textField = { state, onOk ->
+                    MultilineTextField(state, onOk)
                 },
             )
             val maxPathsFloat = uiState.maxPaths.toFloat()

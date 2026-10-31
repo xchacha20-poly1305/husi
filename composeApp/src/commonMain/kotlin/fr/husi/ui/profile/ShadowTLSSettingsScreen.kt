@@ -119,8 +119,8 @@ private fun LazyListScope.shadowTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.port)) },
             valueToText = { it.toString() },
-            textField = { value, onValueChange, onOk ->
-                UIntegerTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                UIntegerTextField(state, onOk)
             },
         )
         ListPreference(
@@ -165,8 +165,8 @@ private fun LazyListScope.shadowTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.alpn)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -183,8 +183,8 @@ private fun LazyListScope.shadowTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.certificates)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
@@ -201,8 +201,8 @@ private fun LazyListScope.shadowTlsSettings(
             },
             summary = { Text(contentOrUnset(uiState.certificateSha256)) },
             valueToText = { it },
-            textField = { value, onValueChange, onOk ->
-                MultilineTextField(value, onValueChange, onOk)
+            textField = { state, onOk ->
+                MultilineTextField(state, onOk)
             },
         )
         TextFieldPreference(
