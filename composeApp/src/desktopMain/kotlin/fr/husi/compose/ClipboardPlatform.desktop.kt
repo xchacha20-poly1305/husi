@@ -2,6 +2,7 @@ package fr.husi.compose
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
@@ -15,9 +16,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
-import javax.imageio.ImageIO
-import org.jetbrains.skia.Image as SkiaImage
 
 @OptIn(ExperimentalComposeUiApi::class)
 actual suspend fun Clipboard.setPlainText(text: String) {
@@ -82,19 +80,18 @@ private fun Image.toBufferedImage(): BufferedImage? {
     if (width <= 0 || height <= 0) return null
     return BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB).also {
         val graphics = it.createGraphics()
-        graphics.drawImage(this, 0, 0, null)
-        graphics.dispose()
+        try {
+            graphics.drawImage(this, 0, 0, null)
+        } finally {
+            graphics.dispose()
+        }
     }
 }
 
 private suspend fun Image.toImageBitmap(): ImageBitmap? = withContext(Dispatchers.IO) {
     try {
         val buffered = toBufferedImage() ?: return@withContext null
-        SkiaImage.makeFromEncoded(
-            ByteArrayOutputStream().also {
-                ImageIO.write(buffered, "png", it)
-            }.toByteArray(),
-        ).toComposeImageBitmap()
+        buffered.toComposeImageBitmap()
     } catch (e: Exception) {
         Logs.e(e)
         null
@@ -103,11 +100,7 @@ private suspend fun Image.toImageBitmap(): ImageBitmap? = withContext(Dispatcher
 
 @OptIn(ExperimentalComposeUiApi::class)
 actual suspend fun Clipboard.setImage(bitmap: ImageBitmap) {
-    val image = BufferedImage(bitmap.width, bitmap.height, BufferedImage.TYPE_INT_ARGB).also {
-        val pixels = IntArray(bitmap.width * bitmap.height)
-        bitmap.readPixels(pixels)
-        it.setRGB(0, 0, bitmap.width, bitmap.height, pixels, 0, bitmap.width)
-    }
+    val image = bitmap.toAwtImage()
     val transferable = object : Transferable {
         override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.imageFlavor)
 

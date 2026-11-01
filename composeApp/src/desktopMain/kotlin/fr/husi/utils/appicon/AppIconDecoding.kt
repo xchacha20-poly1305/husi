@@ -2,8 +2,8 @@ package fr.husi.utils.appicon
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.util.fastCoerceAtLeast
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.Icon
@@ -33,43 +33,37 @@ internal object AppIconDecoding {
 
     fun decodeSwingIcon(icon: Icon): ImageBitmap? {
         return try {
-            val width = icon.iconWidth.coerceAtLeast(1)
-            val height = icon.iconHeight.coerceAtLeast(1)
+            val width = icon.iconWidth.fastCoerceAtLeast(1)
+            val height = icon.iconHeight.fastCoerceAtLeast(1)
             val buffered = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
             val graphics = buffered.createGraphics()
-            icon.paintIcon(null, graphics, 0, 0)
-            graphics.dispose()
-            decodeEncodedBytes(buffered.toPngBytes() ?: return null)
+            try {
+                icon.paintIcon(null, graphics, 0, 0)
+            } finally {
+                graphics.dispose()
+            }
+            buffered.toComposeImageBitmap()
         } catch (_: Exception) {
             null
         }
     }
 
-    private fun decodeSvgBytes(bytes: ByteArray): ImageBitmap? {
+    private fun decodeSvgBytes(bytes: ByteArray): ImageBitmap {
         val svg = SVGDOM(Data.makeFromBytes(bytes))
         svg.setContainerSize(SVG_RENDER_SIZE.toFloat(), SVG_RENDER_SIZE.toFloat())
         val surface = Surface.makeRasterN32Premul(SVG_RENDER_SIZE, SVG_RENDER_SIZE)
-        try {
+        surface.use { surface ->
             svg.render(surface.canvas)
             return surface.makeImageSnapshot().toComposeImageBitmap()
-        } finally {
-            surface.close()
         }
     }
 
-    private fun decodeEncodedBytes(bytes: ByteArray): ImageBitmap? {
+    private fun decodeEncodedBytes(bytes: ByteArray): ImageBitmap {
         return SkiaImage.makeFromEncoded(bytes).toComposeImageBitmap()
     }
 
     private fun decodeWithImageIO(file: File): ImageBitmap? {
         val buffered = ImageIO.read(file) ?: return null
-        val png = buffered.toPngBytes() ?: return null
-        return decodeEncodedBytes(png)
-    }
-
-    private fun BufferedImage.toPngBytes(): ByteArray? {
-        val stream = ByteArrayOutputStream()
-        if (!ImageIO.write(this, "png", stream)) return null
-        return stream.toByteArray()
+        return buffered.toComposeImageBitmap()
     }
 }

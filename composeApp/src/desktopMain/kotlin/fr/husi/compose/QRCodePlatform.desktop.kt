@@ -1,6 +1,7 @@
 package fr.husi.compose
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -12,14 +13,12 @@ import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
+import org.jetbrains.skia.ImageInfo
 import java.awt.Desktop
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.charset.StandardCharsets
-import javax.imageio.ImageIO
 
 actual fun generateQRCodeBitmap(content: String, size: Int): ImageBitmap? {
     return try {
@@ -37,21 +36,29 @@ actual fun generateQRCodeBitmap(content: String, size: Int): ImageBitmap? {
             hints,
         )
 
-        val image = BufferedImage(size, size, BufferedImage.TYPE_USHORT_565_RGB)
-        for (x in 0 until size) {
-            for (y in 0 until size) {
-                image.setRGB(x, y, if (qrBits.get(x, y)) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+        val width = qrBits.width
+        val height = qrBits.height
+        val bytesPerPixel = 4
+        val pixels = ByteArray(width * height * bytesPerPixel)
+        var offset = 0
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val value = if (qrBits.get(x, y)) {
+                    0.toByte()
+                } else {
+                    0xFF.toByte()
+                }
+                pixels[offset++] = value
+                pixels[offset++] = value
+                pixels[offset++] = value
+                pixels[offset++] = 0xFF.toByte()
             }
         }
-        Image.makeFromBitmap(
-            Bitmap.makeFromImage(
-                Image.makeFromEncoded(
-                    ByteArrayOutputStream().also {
-                        ImageIO.write(image, "png", it)
-                    }.toByteArray()
-                )
-            )
-        ).toComposeImageBitmap()
+        Image.makeRaster(
+            ImageInfo.makeN32(width, height, ColorAlphaType.OPAQUE),
+            pixels,
+            width * bytesPerPixel,
+        ).use { it.toComposeImageBitmap() }
     } catch (e: Exception) {
         Logs.e(e)
         null
@@ -59,15 +66,10 @@ actual fun generateQRCodeBitmap(content: String, size: Int): ImageBitmap? {
 }
 
 actual fun encodeImageBitmapToPng(bitmap: ImageBitmap): ByteArray {
-    val width = bitmap.width
-    val height = bitmap.height
-    val pixels = IntArray(width * height)
-    bitmap.readPixels(pixels)
-    val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-    image.setRGB(0, 0, width, height, pixels, 0, width)
-    val stream = ByteArrayOutputStream()
-    ImageIO.write(image, "png", stream)
-    return stream.toByteArray()
+    return Image.makeFromBitmap(bitmap.asSkiaBitmap()).use { image ->
+        checkNotNull(image.encodeToData()) { "Failed to encode QR code image as PNG" }
+            .use { it.bytes }
+    }
 }
 
 actual suspend fun shareQRCodeImage(

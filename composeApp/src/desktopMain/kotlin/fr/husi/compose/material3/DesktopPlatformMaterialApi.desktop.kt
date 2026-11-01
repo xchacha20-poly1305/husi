@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.VerticalDivider
@@ -32,6 +32,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
@@ -39,20 +41,23 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.zIndex
 import fr.husi.database.DataStore
-import java.awt.BasicStroke
-import java.awt.Color
 import java.awt.Cursor
 import java.awt.Point
-import java.awt.RenderingHints
 import java.awt.Toolkit
-import java.awt.geom.Path2D
-import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
-import java.awt.geom.Rectangle2D
+import org.jetbrains.skia.Color
+import org.jetbrains.skia.Paint
+import org.jetbrains.skia.PaintMode
+import org.jetbrains.skia.PaintStrokeCap
+import org.jetbrains.skia.PaintStrokeJoin
+import org.jetbrains.skia.PathBuilder
+import org.jetbrains.skia.Rect
+import org.jetbrains.skia.Surface
 
 internal object DesktopPlatformMaterialApi : PlatformMaterialApi by standardPlatformMaterialApi() {
     @Composable
@@ -196,7 +201,8 @@ private fun DesktopNavRailResizeHandle(
 }
 
 /**
- * [java.awt.Cursor.E_RESIZE_CURSOR] only displays left and right arrow on Windows.
+ * [Cursor.E_RESIZE_CURSOR] displays left and right arrow on Windows,
+ * While on other platform, it only displays on direction arrow.
  * So we draw it ourselves to make sure it always left and right arrow.
  *
  * Translate from: [adwaita.svg - lc-resize](https://gitlab.gnome.org/GNOME/adwaita-icon-theme/-/blob/d78e7194cd8319914959e2abd40442108fe2805f/src/cursors/adwaita.svg#L11701)
@@ -207,59 +213,61 @@ private fun horizontalResizePointerIcon(): PointerIcon {
     val best = toolkit.getBestCursorSize(48, 48)
     val width = if (best.width > 0) best.width else 48
     val height = if (best.height > 0) best.height else 48
-    val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-    val graphics = image.createGraphics()
-    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     val centerX = width / 2f
     val centerY = height / 2f
+    val image = Surface.makeRasterN32Premul(width, height).use { surface ->
+        val canvas = surface.canvas
+        canvas.clear(Color.TRANSPARENT)
+        Paint().use { paint ->
+            paint.isAntiAlias = true
+            paint.strokeJoin = PaintStrokeJoin.MITER
+            paint.strokeMiter = 10f
+            PathBuilder().use { arrow ->
+                val tip = width * 0.46f
+                val neck = width * 0.22f
+                val bar = height * 0.11f
+                val head = height * 0.34f
+                arrow.moveTo(centerX - tip, centerY)
+                arrow.lineTo(centerX - neck, centerY - head)
+                arrow.lineTo(centerX - neck, centerY - bar)
+                arrow.lineTo(centerX + neck, centerY - bar)
+                arrow.lineTo(centerX + neck, centerY - head)
+                arrow.lineTo(centerX + tip, centerY)
+                arrow.lineTo(centerX + neck, centerY + head)
+                arrow.lineTo(centerX + neck, centerY + bar)
+                arrow.lineTo(centerX - neck, centerY + bar)
+                arrow.lineTo(centerX - neck, centerY + head)
+                arrow.closePath()
 
-    val arrow = Path2D.Float().apply {
-        val tip = width * 0.46f
-        val neck = width * 0.22f
-        val bar = height * 0.11f
-        val head = height * 0.34f
-        moveTo(centerX - tip, centerY)
-        lineTo(centerX - neck, centerY - head)
-        lineTo(centerX - neck, centerY - bar)
-        lineTo(centerX + neck, centerY - bar)
-        lineTo(centerX + neck, centerY - head)
-        lineTo(centerX + tip, centerY)
-        lineTo(centerX + neck, centerY + head)
-        lineTo(centerX + neck, centerY + bar)
-        lineTo(centerX - neck, centerY + bar)
-        lineTo(centerX - neck, centerY + head)
-        closePath()
+                arrow.detach().use { path ->
+                    paint.mode = PaintMode.STROKE
+                    paint.strokeWidth = (width / 24f).fastCoerceAtLeast(1f)
+                    paint.strokeCap = PaintStrokeCap.SQUARE
+                    paint.color = Color.WHITE
+                    canvas.drawPath(path, paint)
+                    paint.mode = PaintMode.FILL
+                    paint.color = Color.BLACK
+                    canvas.drawPath(path, paint)
+                }
+            }
+
+            val barHalfWidth = (width / 36f).fastCoerceAtLeast(0.5f)
+            val barHalfHeight = height * 0.46f
+            val bar = Rect.makeLTRB(
+                centerX - barHalfWidth, centerY - barHalfHeight,
+                centerX + barHalfWidth, centerY + barHalfHeight,
+            )
+            paint.mode = PaintMode.STROKE
+            paint.strokeWidth = (width / 12f).fastCoerceAtLeast(2f)
+            paint.strokeCap = PaintStrokeCap.BUTT
+            paint.color = Color.WHITE
+            canvas.drawRect(bar, paint)
+            paint.mode = PaintMode.FILL
+            paint.color = Color.BLACK
+            canvas.drawRect(bar, paint)
+        }
+        surface.makeImageSnapshot().use { it.toComposeImageBitmap().toAwtImage() }
     }
-
-    graphics.stroke = BasicStroke(
-        (width / 24f).coerceAtLeast(1f),
-        BasicStroke.CAP_SQUARE,
-        BasicStroke.JOIN_MITER,
-        10f,
-    )
-    graphics.color = Color.WHITE
-    graphics.draw(arrow)
-    graphics.color = Color.BLACK
-    graphics.fill(arrow)
-
-    val barHalfW = (width / 36f).coerceAtLeast(0.5f)
-    val barHalfH = height * 0.46f
-    val bar = Rectangle2D.Float(
-        centerX - barHalfW, centerY - barHalfH,
-        barHalfW * 2, barHalfH * 2,
-    )
-    graphics.stroke = BasicStroke(
-        (width / 12f).coerceAtLeast(2f),
-        BasicStroke.CAP_BUTT,
-        BasicStroke.JOIN_MITER,
-        10f,
-    )
-    graphics.color = Color.WHITE
-    graphics.draw(bar)
-    graphics.color = Color.BLACK
-    graphics.fill(bar)
-
-    graphics.dispose()
     return runCatching {
         PointerIcon(
             toolkit.createCustomCursor(image, Point(width / 2, height / 2), "col-resize"),
