@@ -74,6 +74,7 @@ import fr.husi.resources.status_status
 import fr.husi.resources.system_proxy
 import fr.husi.resources.system_proxy_unavailable_inbound_auth
 import fr.husi.resources.tailscale
+import fr.husi.resources.traffic_connections
 import fr.husi.resources.visibility
 import fr.husi.resources.visibility_off
 import fr.husi.tailscale.TailscaleEndpointState
@@ -386,6 +387,13 @@ private fun StatusCard(uiState: DashboardState) {
             ) {
                 Text(stringResource(Res.string.status_goroutines))
                 Text(uiState.goroutines.toString())
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(stringResource(Res.string.traffic_connections))
+                Text(uiState.activeConnectionCount.toString())
             }
         }
     }
