@@ -55,7 +55,9 @@ class DashboardWidgetTest {
 
     @Test
     fun `reorderVisibleWidgets keeps hidden widgets after the visible ones`() {
-        val hidden = defaultDashboardWidgets().setWidgetVisible(DashboardWidget.ProxySpeed, false)
+        val hidden = defaultDashboardWidgets()
+            .reorderVisibleWidgets(listOf(DashboardWidget.ProxySpeed, DashboardWidget.DirectSpeed, DashboardWidget.Status))
+            .setWidgetVisible(DashboardWidget.ProxySpeed, false)
         val swapped = hidden.visibleWidgets().toMutableList().apply { add(1, removeAt(0)) }
         val entries = hidden.reorderVisibleWidgets(swapped)
 

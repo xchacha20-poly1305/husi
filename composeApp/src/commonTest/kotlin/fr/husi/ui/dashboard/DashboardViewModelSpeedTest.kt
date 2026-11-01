@@ -34,6 +34,8 @@ class DashboardViewModelSpeedTest : HusiKoinMainDispatcherTest() {
         BackendState.updateState(ServiceState.Connected, "profile")
         BackendState.updateSpeed(
             SpeedStats(
+                txTotal = 1234,
+                rxTotal = 5678,
                 txRateProxy = 100,
                 rxRateProxy = 200,
                 txRateDirect = 10,
@@ -43,6 +45,8 @@ class DashboardViewModelSpeedTest : HusiKoinMainDispatcherTest() {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
+        assertEquals(1234, state.txTotal)
+        assertEquals(5678, state.rxTotal)
         assertEquals(100, state.txRateProxy)
         assertEquals(200, state.rxRateProxy)
         assertEquals(10, state.txRateDirect)
@@ -79,13 +83,15 @@ class DashboardViewModelSpeedTest : HusiKoinMainDispatcherTest() {
         advanceUntilIdle()
 
         BackendState.updateState(ServiceState.Connected, "profile")
-        BackendState.updateSpeed(SpeedStats(txRateProxy = 50, rxRateProxy = 50))
+        BackendState.updateSpeed(SpeedStats(txRateProxy = 50, rxRateProxy = 50, txTotal = 500, rxTotal = 600))
         advanceUntilIdle()
 
         BackendState.updateState(ServiceState.Stopped)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
+        assertEquals(0, state.txTotal)
+        assertEquals(0, state.rxTotal)
         assertEquals(0, state.txRateProxy)
         assertEquals(0, state.rxRateProxy)
         assertEquals(0, state.txRateDirect)

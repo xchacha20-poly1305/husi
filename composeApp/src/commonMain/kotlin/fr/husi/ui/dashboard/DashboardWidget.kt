@@ -17,6 +17,7 @@ enum class DashboardWidget(
 ) {
     ProxySpeed("proxySpeed", DashboardWidgetWidth.Small),
     DirectSpeed("directSpeed", DashboardWidgetWidth.Small),
+    TrafficUsage("trafficUsage", DashboardWidgetWidth.Wide),
     Status("status", DashboardWidgetWidth.Small),
     OpenConnect("openConnect", DashboardWidgetWidth.Wide),
     OpenVPN("openVPN", DashboardWidgetWidth.Wide),

@@ -79,6 +79,8 @@ data class DashboardState(
     val queryOptions: Byte = SHOW_TRACKER_ACTIVELY,
     val isSearchingConnections: Boolean = false,
 
+    val txTotal: Long = 0,
+    val rxTotal: Long = 0,
     val memory: Long = 0,
     val goroutines: Int = 0,
     val txRateProxy: Long = 0,
@@ -430,6 +432,8 @@ class DashboardViewModel(
                 clashModes = emptyList(),
                 memory = 0,
                 goroutines = 0,
+                txTotal = 0,
+                rxTotal = 0,
                 txRateProxy = 0,
                 rxRateProxy = 0,
                 txRateDirect = 0,
@@ -457,6 +461,8 @@ class DashboardViewModel(
                     if (isRemote) {
                         appendSpeed(
                             SpeedStats(
+                                txTotal = status.uplinkTotal,
+                                rxTotal = status.downlinkTotal,
                                 txRateProxy = status.uplink,
                                 rxRateProxy = status.downlink,
                             ),
@@ -671,6 +677,8 @@ class DashboardViewModel(
     private fun appendSpeed(speed: SpeedStats) {
         uiState.update { state ->
             state.copy(
+                txTotal = speed.txTotal,
+                rxTotal = speed.rxTotal,
                 txRateProxy = speed.txRateProxy,
                 rxRateProxy = speed.rxRateProxy,
                 txRateDirect = speed.txRateDirect,
@@ -690,6 +698,8 @@ class DashboardViewModel(
     private fun resetSpeedState() {
         uiState.update { state ->
             state.copy(
+                txTotal = 0,
+                rxTotal = 0,
                 txRateProxy = 0,
                 rxRateProxy = 0,
                 txRateDirect = 0,
