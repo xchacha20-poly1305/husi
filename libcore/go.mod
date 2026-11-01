@@ -2,6 +2,8 @@ module github.com/xchacha20-poly1305/husi/libcore/v2
 
 go 1.27
 
+godebug multipathtcp=0
+
 tool (
 	github.com/sagernet/gomobile/cmd/gobind
 	github.com/sagernet/gomobile/cmd/gomobile
