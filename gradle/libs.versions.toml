@@ -45,7 +45,7 @@ composeNativeTray = "2.1.7"
 agp = "9.5.0"
 desugarJdkLibs = "2.1.5"
 kotlinGradlePlugin = "2.4.21"
-haze = "2.0.1"
+haze = "2.1.0"
 
 [libraries]
 kurpc = { module = "io.github.xchacha20-poly1305:kurpc", version.ref = "kurpc" }
