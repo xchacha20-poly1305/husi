@@ -81,7 +81,7 @@ func (r platformIPResolver) Exchange(ctx context.Context, message *mDNS.Msg, _ a
 }
 
 func exchangePlatformDNS(ctx context.Context, transport LocalDNSTransport, message *mDNS.Msg) (*mDNS.Msg, error) {
-	messageBytes, err := message.Pack()
+	messageBytes, err := message.Copy().Pack()
 	if err != nil {
 		return nil, err
 	}
