@@ -38,6 +38,7 @@ import fr.husi.resources.Res
 import fr.husi.resources.invalid_server
 import fr.husi.resources.profile_empty
 import fr.husi.resources.service_failed
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -740,25 +741,43 @@ internal class CoreHostController(
         }
     }
 
-    private suspend fun waitForHostReady() {
-        var delayDuration = 50.milliseconds
-        val deadline = System.nanoTime() + HOST_READY_TIMEOUT.inWholeNanoseconds
-        while (System.nanoTime() < deadline) {
-            if (sessionProcess?.isAlive != true) {
-                throw IOException("husi-core session exited before becoming ready")
+    internal suspend fun waitForHostReady() {
+        var lastFailure: Exception? = null
+        val ready = withTimeoutOrNull(HOST_READY_TIMEOUT) {
+            var retryDelay = 50.milliseconds
+            var serving = false
+            while (!serving) {
+                if (sessionProcess?.isAlive != true) {
+                    throw IOException("husi-core session exited before becoming ready", lastFailure)
+                }
+                try {
+                    coreClient.probe()
+                    serving = true
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    lastFailure = e
+                }
+                if (!serving) {
+                    delay(retryDelay)
+                    retryDelay = (retryDelay * 2).coerceAtMost(500.milliseconds)
+                }
             }
-            if (probeHost()) return
-            delay(delayDuration)
-            delayDuration = (delayDuration * 2).coerceAtMost(500.milliseconds)
         }
-        throw IOException("timed out waiting for husi-core session on $socketBasePath")
+        if (ready != null) return
+        val detail = lastFailure?.let { ": ${it.readableMessage}" }.orEmpty()
+        throw IOException("timed out waiting for husi-core session on $socketBasePath$detail", lastFailure)
     }
 
     private suspend fun probeHost(): Boolean {
-        return runCatching {
+        return try {
             coreClient.probe()
             true
-        }.getOrDefault(false)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private suspend fun closeSessionLocked(
@@ -863,6 +882,11 @@ internal class CoreHostController(
             startDaemonLease()
         }
         publishHostState()
+    }
+
+    /** Test-only: pretend a session child is already running. */
+    internal fun attachSessionProcessForTest(process: Process) {
+        sessionProcess = process
     }
 
     companion object {

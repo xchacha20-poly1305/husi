@@ -237,6 +237,7 @@ open class FakeCoreClient : CoreClient {
     var daemonUrlTestCalls: Int = 0
     var probeCalls: Int = 0
     var probeThrowable: Throwable? = null
+    var probeAction: (suspend () -> Unit)? = null
 
     override suspend fun urlTest(
         tag: String,
@@ -467,6 +468,7 @@ open class FakeCoreClient : CoreClient {
 
     override suspend fun probe() {
         probeCalls += 1
+        probeAction?.invoke()
         probeThrowable?.let { throw it }
     }
 

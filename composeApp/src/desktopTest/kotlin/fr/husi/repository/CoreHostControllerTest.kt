@@ -14,12 +14,16 @@ import fr.husi.proto.v1.getDaemonInfoResponse
 import fr.husi.proto.v1.ownership
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -339,6 +343,77 @@ class CoreHostControllerTest : HusiKoinTest() {
             assertEquals(0, backend.disableCalls)
             assertFalse(DataStore.systemProxy.get())
         }
+
+    @Test
+    fun `retries until the host serves requests`() = runTest {
+        controller.attachSessionProcessForTest(ControllableProcess())
+        fakeClient.probeAction = {
+            if (fakeClient.probeCalls < 3) throw IOException("not listening yet")
+        }
+
+        controller.waitForHostReady()
+
+        assertEquals(3, fakeClient.probeCalls)
+    }
+
+    @Test
+    fun `timeout retains the connection failure`() = runTest {
+        controller.attachSessionProcessForTest(ControllableProcess())
+        val failure = IOException("transport 1 is not supported on this platform")
+        fakeClient.probeThrowable = failure
+
+        val error = assertFailsWith<IOException> {
+            controller.waitForHostReady()
+        }
+
+        assertEquals(failure.message, generateSequence<Throwable>(error) { it.cause }.last().message)
+        assertTrue(error.message.orEmpty().contains(failure.message!!))
+    }
+
+    @Test
+    fun `timeout also bounds a stalled probe`() = runTest {
+        controller.attachSessionProcessForTest(ControllableProcess())
+        fakeClient.probeAction = { awaitCancellation() }
+
+        val error = assertFailsWith<IOException> {
+            controller.waitForHostReady()
+        }
+
+        assertTrue(error.message.orEmpty().contains("timed out"))
+    }
+
+    @Test
+    fun `cancellation is propagated without retry`() = runTest {
+        controller.attachSessionProcessForTest(ControllableProcess())
+        val cancellation = CancellationException("cancelled")
+        fakeClient.probeThrowable = cancellation
+
+        assertEquals(
+            cancellation.message,
+            assertFailsWith<CancellationException> {
+                controller.waitForHostReady()
+            }.message,
+        )
+        assertEquals(1, fakeClient.probeCalls)
+    }
+
+    @Test
+    fun `process exit retains the preceding connection failure`() = runTest {
+        val process = ControllableProcess()
+        controller.attachSessionProcessForTest(process)
+        val failure = IOException("connection refused")
+        fakeClient.probeAction = {
+            process.alive = false
+            throw failure
+        }
+
+        val error = assertFailsWith<IOException> {
+            controller.waitForHostReady()
+        }
+
+        assertEquals(failure.message, generateSequence<Throwable>(error) { it.cause }.last().message)
+        assertTrue(error.message.orEmpty().contains("exited"))
+    }
 }
 
 private class RecordingSystemProxyBackend : SystemProxyBackend {
@@ -354,4 +429,20 @@ private class RecordingSystemProxyBackend : SystemProxyBackend {
     override fun disable() {
         disableCalls += 1
     }
+}
+
+private class ControllableProcess : Process() {
+    @Volatile
+    var alive: Boolean = true
+
+    override fun getOutputStream(): OutputStream = OutputStream.nullOutputStream()
+    override fun getInputStream(): InputStream = InputStream.nullInputStream()
+    override fun getErrorStream(): InputStream = InputStream.nullInputStream()
+    override fun waitFor(): Int = 0
+    override fun exitValue(): Int = if (alive) throw IllegalThreadStateException() else 0
+    override fun destroy() {
+        alive = false
+    }
+
+    override fun isAlive(): Boolean = alive
 }
