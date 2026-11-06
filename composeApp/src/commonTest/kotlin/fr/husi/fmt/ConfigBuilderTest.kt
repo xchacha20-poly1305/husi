@@ -2,9 +2,11 @@ package fr.husi.fmt
 
 import fr.husi.Key
 import fr.husi.ProtocolProvider
+import fr.husi.bg.buildPluginSpecs
 import fr.husi.RuleProvider
 import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
+import fr.husi.database.PluginEntity
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
@@ -32,6 +34,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -1653,6 +1656,7 @@ class ConfigBuilderTest : HusiKoinTest() {
     @Test
     fun `buildConfig should isolate cached external profiles between chains`() = runBlocking {
         DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.tunAutoRedirect.set(false)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -2886,6 +2890,7 @@ class ConfigBuilderTest : HusiKoinTest() {
     @Test
     fun `buildConfig should let a first-hop juicity plugin protect its sockets under VPN`() = runBlocking {
         DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.tunAutoRedirect.set(true)
         usePluginForJuicity()
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
@@ -2894,6 +2899,9 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         val result = buildConfig(proxy)
         val pluginPort = result.metadata.externalIndex.single().chain.keys.single()
+        assertTrue(parseRouteRules(result).none {
+            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
+        })
 
         if (PlatformInfo.isAndroid || PlatformInfo.isLinux) {
             assertEquals(setOf(pluginPort), result.metadata.protectedPluginPorts)
@@ -2984,6 +2992,7 @@ class ConfigBuilderTest : HusiKoinTest() {
     @Test
     fun `buildConfig should map a plugin whose protect client is Android-only off Android under VPN`() = runBlocking {
         DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.tunAutoRedirect.set(false)
 
         val group = ProxyGroup(name = "group").applyDefaultValues()
         group.id = SagerDatabase.groupDao.createGroup(group)
@@ -3005,6 +3014,83 @@ class ConfigBuilderTest : HusiKoinTest() {
         } else {
             assertTrue(result.metadata.protectedPluginPorts.isEmpty())
             assertEquals(LOCALHOST4, bean.finalAddress)
+        }
+    }
+
+    @Test
+    fun `buildConfig should bypass unprotected plugin processes only with Linux tun auto redirect`() = runBlocking {
+        if (!PlatformInfo.isLinux) return@runBlocking
+        DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.tunAutoRedirect.set(true)
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+            MieruBean().apply {
+                serverAddress = "1.1.1.1"
+                serverPort = 8964
+            }.applyDefaultValues(),
+        )
+        proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+        val directory = Files.createTempDirectory("husi-plugin-bypass").toFile()
+        try {
+            val executable = directory.resolve("mieru").apply {
+                writeText("")
+                check(setExecutable(true))
+            }
+            val link = directory.resolve("mieru-link")
+            Files.createSymbolicLink(link.toPath(), executable.toPath())
+            SagerDatabase.pluginDao.upsert(PluginEntity("mieru-plugin", link.absolutePath))
+
+            val result = buildConfig(proxy)
+            val bean = result.metadata.externalIndex.single().chain.values.single().requireBean()
+            assertEquals("1.1.1.1", bean.finalAddress)
+            assertEquals(8964, bean.finalPort)
+            assertTrue(result.metadata.protectedPluginPorts.isEmpty())
+            assertTrue(parseInbounds(result).none { it["type"]?.jsonPrimitive?.content == SingBoxOptions.TYPE_DIRECT })
+            val pluginPort = result.metadata.externalIndex.single().chain.keys.single()
+            val spec = buildPluginSpecs(result.metadata, mapOf(pluginPort to (proxy.type to "{}"))).single()
+            assertEquals(link.absolutePath, spec.commandList.first())
+            val bypass = parseRouteRules(result).first()
+            assertEquals(SingBoxOptions.ACTION_BYPASS, bypass["action"]?.jsonPrimitive?.content)
+            assertEquals(TAG_DIRECT, bypass["outbound"]?.jsonPrimitive?.content)
+            assertEquals(
+                listOf(executable.canonicalPath),
+                bypass["process_path"]!!.jsonArray.map { it.jsonPrimitive.content },
+            )
+
+            fun assertMapped(result: ConfigBuildResult) {
+                val mappedBean = result.metadata.externalIndex.single().chain.values.single().requireBean()
+                assertEquals(LOCALHOST4, mappedBean.finalAddress)
+                assertTrue(parseRouteRules(result).none {
+                    it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
+                })
+            }
+
+            assertMapped(buildConfig(proxy, forTest = true))
+            DataStore.tunAutoRedirect.set(false)
+            assertMapped(buildConfig(proxy))
+            DataStore.tunAutoRedirect.set(true)
+            DataStore.serviceMode.set(Key.MODE_PROXY)
+            assertMapped(buildConfig(proxy))
+
+            DataStore.serviceMode.set(Key.MODE_VPN)
+            val firstHop = createSocksProxy(
+                groupId = group.id,
+                order = 2,
+                name = "first-hop",
+                host = "2.2.2.2",
+                port = 1080,
+            )
+            val chain = createChain(
+                groupId = group.id,
+                order = 3,
+                name = "plugin-chain",
+                proxies = listOf(firstHop.id, proxy.id),
+            )
+            assertMapped(buildConfig(chain))
+        } finally {
+            directory.deleteRecursively()
         }
     }
 

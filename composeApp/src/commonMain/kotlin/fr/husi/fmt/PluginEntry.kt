@@ -1,5 +1,10 @@
 package fr.husi.fmt
 
+import fr.husi.fmt.hysteria.HysteriaBean
+import fr.husi.fmt.juicity.JuicityBean
+import fr.husi.fmt.mieru.MieruBean
+import fr.husi.fmt.naive.NaiveBean
+import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.resources.Res
 import fr.husi.resources.action_hysteria
 import fr.husi.resources.action_hysteria2
@@ -211,4 +216,16 @@ License GNU AGPLv3 <https://github.com/juicity/juicity/blob/main/LICENSE>
         }
     }
 
+}
+
+internal fun AbstractBean.pluginEntry(): PluginEntry = when (this) {
+    is MieruBean -> PluginEntry.MieruProxy
+    is NaiveBean -> PluginEntry.NaiveProxy
+    is HysteriaBean -> when (protocolVersion) {
+        HysteriaBean.PROTOCOL_VERSION_1 -> PluginEntry.Hysteria
+        else -> PluginEntry.Hysteria2
+    }
+    is JuicityBean -> PluginEntry.Juicity
+    is ShadowQUICBean -> PluginEntry.ShadowQuic
+    else -> error("No plugin for ${this::class.simpleName}")
 }

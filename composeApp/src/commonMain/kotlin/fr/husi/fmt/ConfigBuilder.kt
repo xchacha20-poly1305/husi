@@ -97,10 +97,12 @@ import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
+import fr.husi.plugin.PluginManager
 import fr.husi.repository.resolveRepository
 import io.github.xchacha20_poly1305.kpuri.Url
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.JsonPrimitive
+import java.io.File
 
 // Inbound
 const val TAG_MIXED = "mixed-in"
@@ -588,6 +590,7 @@ suspend fun buildConfig(
         .takeIf { it.isNotEmpty() }
     val externalIndexMap = ArrayList<IndexEntity>()
     val protectedPluginPorts = HashSet<Int>()
+    val bypassPluginPaths = LinkedHashSet<String>()
     val networkStrategy = DataStore.networkStrategy.get()
     val fakeDNSRange4 = if (!useFakeDns || networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {
         null
@@ -1004,7 +1007,15 @@ suspend fun buildConfig(
                     val needDirectRoute = entry.key !in entriesWithContinuation
                     // The test instance has no protect service and relies on the mapping for isolation.
                     val canProtect = !forTest && bean.canSelfProtect
-                    val canDialDirect = !bean.canMapping || (canProtect && needDirectRoute)
+                    val canBypassPluginProcesses = PlatformInfo.isLinux
+                        && !forTest
+                        && isVPN && DataStore.tunAutoRedirect.get()
+                    val canBypass = canBypassPluginProcesses && !bean.canSelfProtect
+                    val canDialDirect = !bean.canMapping || ((canProtect || canBypass) && needDirectRoute)
+                    if (canDialDirect && canBypass) {
+                        val executable = PluginManager.init(bean.pluginEntry().pluginId)!!.path
+                        bypassPluginPaths.add(File(executable).canonicalFile.invariantPathString())
+                    }
                     if (canDialDirect && canProtect && isVPN) { // Only VPN needs protect.
                         protectedPluginPorts.add(pluginPort)
                     }
@@ -1753,6 +1764,17 @@ suspend fun buildConfig(
                     inbound = inboundTags
                     override_address = serverInfo.first
                     override_port = serverInfo.second
+                }.asKxsMap(),
+            )
+        }
+
+        if (bypassPluginPaths.isNotEmpty()) {
+            route!!.rules!!.add(
+                0,
+                Rule_Default().apply {
+                    action = SingBoxOptions.ACTION_BYPASS
+                    process_path = bypassPluginPaths.toMutableList()
+                    outbound = TAG_DIRECT
                 }.asKxsMap(),
             )
         }
