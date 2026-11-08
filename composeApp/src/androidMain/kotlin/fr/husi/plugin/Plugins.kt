@@ -6,6 +6,7 @@ import android.content.pm.ProviderInfo
 import android.content.pm.Signature
 import android.os.Build
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.sha256Hex
 import fr.husi.repository.resolveRepository

@@ -25,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
+import fr.husi.database.preference.setBlocking
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
 import fr.husi.repository.resolveRepository

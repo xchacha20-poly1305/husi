@@ -5,6 +5,7 @@ enum class Platform {
     Linux,
     MacOs,
     Windows,
+    Web,
 }
 
 expect object PlatformInfo {

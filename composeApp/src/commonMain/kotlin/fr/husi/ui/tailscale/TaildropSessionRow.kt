@@ -53,10 +53,12 @@ internal fun TaildropSendSessionRow(
     onDismiss: () -> Unit,
 ) {
     val failed = session.errorMessage != null
-    val summary = listOfNotNull(
-        stringResource(Res.string.taildrop_to, session.peerName),
-        session.progressText(),
-    ).joinToString(separator = " · ")
+    val summary =
+        listOfNotNull(
+                stringResource(Res.string.taildrop_to, session.peerName),
+                session.progressText(),
+            )
+            .joinToString(separator = " · ")
     Preference(
         title = {
             Text(
@@ -89,17 +91,24 @@ internal fun TaildropSendSessionRow(
         },
         icon = {
             when {
-                failed -> MaskedIcon(resource = Res.drawable.error, color = IconMaskColors.IconCoral)
-                session.finished -> MaskedIcon(resource = Res.drawable.done, color = IconMaskColors.IconLightGreen)
-                else -> MaskedIcon(resource = Res.drawable.file_upload, color = IconMaskColors.IconLightBlue)
+                failed ->
+                    MaskedIcon(resource = Res.drawable.error, color = IconMaskColors.IconCoral)
+                session.finished ->
+                    MaskedIcon(resource = Res.drawable.done, color = IconMaskColors.IconLightGreen)
+                else ->
+                    MaskedIcon(
+                        resource = Res.drawable.file_upload,
+                        color = IconMaskColors.IconLightBlue,
+                    )
             }
         },
         widgetContainer = {
             SimpleIconButton(
                 imageVector = vectorResource(Res.drawable.close),
-                contentDescription = stringResource(
-                    if (session.finished) Res.string.taildrop_dismiss else Res.string.cancel,
-                ),
+                contentDescription =
+                    stringResource(
+                        if (session.finished) Res.string.taildrop_dismiss else Res.string.cancel,
+                    ),
                 onClick = if (session.finished) onDismiss else onCancel,
             )
         },

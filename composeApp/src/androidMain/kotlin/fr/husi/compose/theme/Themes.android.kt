@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.AndroidUiModes
 import androidx.core.content.ContextCompat
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 
 fun Resources.isDarkMode(mode: Int) = when (mode) {
     1 -> true

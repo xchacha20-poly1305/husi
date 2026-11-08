@@ -3,6 +3,7 @@ package fr.husi.repository
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
+import fr.husi.database.preference.reset
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.serviceStatus
 import fr.husi.proto.v1.clientMetadata

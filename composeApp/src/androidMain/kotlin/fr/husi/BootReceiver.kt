@@ -5,8 +5,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 

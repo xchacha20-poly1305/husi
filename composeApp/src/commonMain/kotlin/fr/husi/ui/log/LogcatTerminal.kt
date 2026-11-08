@@ -6,8 +6,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import fr.husi.proto.daemon.LogLevel
 import fr.husi.ui.terminal.isAppThemeDark
 import io.github.oikvpqya.compose.fastscroller.ScrollbarAdapter
 import io.github.xchacha20_poly1305.libghostty.GhosttyTerminalSession
@@ -41,21 +41,25 @@ internal fun rememberLogcatTerminalState(): GhosttyTerminalState = remember {
 }
 
 @Composable
-internal fun LogcatTerminal(
+internal fun <Level> LogcatTerminal(
     session: GhosttyTerminalSession,
     state: GhosttyTerminalState,
-    logs: List<LogEntry>,
-    logLevel: LogLevel,
+    logs: List<TerminalLogEntry<Level>>,
+    logLevel: Level,
     searchQuery: String?,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    fontFamily: FontFamily = FontFamily.Monospace,
 ) {
-    val writer = remember(session) { LogcatTerminalWriter() }
+    val writer = remember(session) { TerminalLogWriter<Level>() }
     LaunchedEffect(session, logs, logLevel, searchQuery) {
-        writer.update(logs, logLevel, searchQuery)?.let { session.feedOutput(it.encodeToByteArray()) }
+        writer.update(logs, logLevel, searchQuery)?.let {
+            session.feedOutput(it.encodeToByteArray())
+        }
     }
     GhosttyTerminal(
         session = session,
+        fontFamily = fontFamily,
         modifier = modifier,
         state = state,
         darkColorScheme = isAppThemeDark(),

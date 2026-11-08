@@ -31,3 +31,7 @@ go.work*
 /external
 
 __pycache__/
+
+node_modules/
+/composeApp/rpc/generated/
+/composeApp/rpc/dist/

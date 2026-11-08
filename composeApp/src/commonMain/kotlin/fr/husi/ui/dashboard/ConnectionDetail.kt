@@ -42,11 +42,10 @@ import androidx.compose.ui.unit.dp
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.platformCombinedClickable
-import fr.husi.fmt.SingBoxOptions
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.formatBytes
-import fr.husi.ktx.splitAddress
 import fr.husi.resources.Res
 import fr.husi.resources.active
 import fr.husi.resources.add_road
@@ -76,14 +75,12 @@ import fr.husi.resources.speed
 import fr.husi.resources.start_time
 import fr.husi.resources.upload
 import fr.husi.resources.upload_speed
-import fr.husi.ui.RouteSettingsUiState
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
-private enum class ConnectionFields {
+internal enum class ConnectionFields {
     // STATUS,
     // INBOUND,
     // IP_VERSION,
@@ -110,7 +107,7 @@ internal fun ConnectionDetailSheet(
     resolveProcessInfo: suspend (String?, Int) -> ProcessInfo?,
     closeConnection: (uuid: String) -> Unit,
     onDismiss: () -> Unit,
-    openRouteSettings: (RouteSettingsUiState) -> Unit,
+    openRouteSettings: ((Set<ConnectionFields>, ConnectionDetailState) -> Unit)? = null,
 ) {
     val uuid = connection.uuid
     var isSelecting by remember(uuid) { mutableStateOf(false) }
@@ -150,11 +147,11 @@ internal fun ConnectionDetailSheet(
                     imageVector = vectorResource(Res.drawable.done),
                     contentDescription = stringResource(Res.string.ok),
                     onClick = {
-                        openRouteSettings(createRouteDraft(selectedField, connection))
+                        openRouteSettings?.invoke(selectedField, connection)
                     },
                 )
             } else {
-                SimpleIconButton(
+                if (openRouteSettings != null) SimpleIconButton(
                     imageVector = vectorResource(Res.drawable.add_road),
                     contentDescription = stringResource(Res.string.create_rule),
                     onClick = { isSelecting = true },
@@ -412,9 +409,7 @@ internal fun ConnectionDetailSheet(
             BoxedVerticalScrollbar(
                 modifier = Modifier.fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = listState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 12.dp,
-                ),
+                style = HusiScrollbarDefaults.style(),
             )
         }
     }
@@ -522,76 +517,6 @@ private fun ConnectionField(
     }
 }
 
-private fun createRouteDraft(
-    fields: Set<ConnectionFields>,
-    connection: ConnectionDetailState,
-): RouteSettingsUiState {
-    var domains = ""
-    var ip = ""
-    var port = ""
-    var source = ""
-    var sourcePort = ""
-    var network = emptySet<String>()
-    var protocol = emptySet<String>()
-    var packages = emptySet<String>()
-
-    for (field in fields) {
-        when (field) {
-            ConnectionFields.HOST -> {
-                if (connection.host.isNotBlank()) {
-                    domains = "full:${connection.host}"
-                }
-            }
-
-            ConnectionFields.DESTINATION -> {
-                splitAddress(connection.dst)?.let { (dstIp, dstPort) ->
-                    ip = dstIp
-                    port = dstPort
-                }
-            }
-
-            ConnectionFields.SOURCE -> {
-                splitAddress(connection.src)?.let { (srcIp, srcPort) ->
-                    source = srcIp
-                    sourcePort = srcPort
-                }
-            }
-
-            ConnectionFields.NETWORK -> {
-                if (connection.network.isNotBlank()) {
-                    network = setOf(connection.network)
-                }
-            }
-
-            ConnectionFields.PROTOCOL -> {
-                if (connection.protocol != null) {
-                    protocol = setOf(connection.protocol)
-                }
-            }
-
-            ConnectionFields.PROCESS -> {
-                if (connection.processes?.isNotEmpty() == true) {
-                    packages = connection.processes.toSet()
-                }
-            }
-
-        }
-    }
-
-    return RouteSettingsUiState(
-        name = connection.uuid,
-        action = SingBoxOptions.ACTION_ROUTE,
-        domains = domains,
-        ip = ip,
-        port = port,
-        source = source,
-        sourcePort = sourcePort,
-        network = network,
-        protocol = protocol,
-        packages = packages,
-    )
-}
-
 @Preview
 @Composable
 private fun PreviewConnectionDetailSheet() {
@@ -622,6 +547,6 @@ private fun PreviewConnectionDetailSheet() {
         resolveProcessInfo = { _, _ -> null },
         closeConnection = {},
         onDismiss = {},
-        openRouteSettings = {},
+        openRouteSettings = { _, _ -> },
     )
 }

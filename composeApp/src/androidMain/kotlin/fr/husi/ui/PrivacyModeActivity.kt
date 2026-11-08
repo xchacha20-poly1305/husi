@@ -8,6 +8,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

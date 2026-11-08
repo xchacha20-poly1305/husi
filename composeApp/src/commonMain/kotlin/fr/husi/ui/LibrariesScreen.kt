@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
@@ -37,6 +36,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.emptyAsNull
 import fr.husi.resources.Res
@@ -45,7 +45,6 @@ import fr.husi.resources.back
 import fr.husi.resources.copyright
 import fr.husi.resources.ok
 import fr.husi.resources.oss_licenses
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -115,9 +114,7 @@ fun LibrariesScreen(
                     .padding(contentPadding)
                     .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = listState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 12.dp,
-                ),
+                style = HusiScrollbarDefaults.style(),
             )
         }
     }

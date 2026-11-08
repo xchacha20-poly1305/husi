@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import fr.husi.compose.theme.isDarkMode
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 
 open class ComposeActivity : PrivacyModeActivity() {
 

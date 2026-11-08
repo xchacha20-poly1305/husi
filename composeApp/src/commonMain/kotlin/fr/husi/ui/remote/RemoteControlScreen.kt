@@ -34,8 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -45,6 +43,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.core.remote.RemoteSessionState
 import fr.husi.database.RemoteServer
@@ -64,22 +63,21 @@ import fr.husi.resources.remote_delete_confirm
 import fr.husi.resources.remote_empty
 import fr.husi.resources.remote_server_add
 import fr.husi.resources.remote_target_local
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
 @Composable
-fun RemoteControlScreen(
-    modifier: Modifier = Modifier,
+fun RemoteControlContent(
+    uiState: RemoteControlState,
     onBackPress: () -> Unit,
-    onEditServer: (Long) -> Unit,
-    viewModel: RemoteControlScreenViewModel = viewModel {
-        RemoteControlScreenViewModel()
-    },
+    onEditServer: (Long?) -> Unit,
+    onSelectServer: suspend (Long) -> Unit,
+    onDeleteServer: suspend (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    onSelectLocal: (suspend () -> Unit)? = null,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = rememberHazeState()
@@ -88,9 +86,7 @@ fun RemoteControlScreen(
     var pendingDelete by remember { mutableStateOf<RemoteServer?>(null) }
 
     Scaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
                 hazeState = hazeState,
@@ -102,12 +98,13 @@ fun RemoteControlScreen(
                     )
                 },
                 title = { Text(stringResource(Res.string.remote_control)) },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                windowInsets =
+                    windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onEditServer(0L) }) {
+            FloatingActionButton(onClick = { onEditServer(null) }) {
                 Icon(
                     imageVector = vectorResource(Res.drawable.note_add),
                     contentDescription = stringResource(Res.string.remote_server_add),
@@ -117,33 +114,27 @@ fun RemoteControlScreen(
     ) { innerPadding ->
         val contentPadding = innerPadding.withNavigation()
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeSource(hazeState),
+            modifier = Modifier.fillMaxSize().hazeSource(hazeState),
         ) {
             LazyColumn(
                 state = listState,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .fadingEdge(listState),
+                modifier = Modifier.weight(1f).fillMaxHeight().fadingEdge(listState),
                 contentPadding = contentPadding,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                item(key = "local") {
-                    RemoteServerCard(
-                        title = stringResource(Res.string.remote_target_local),
-                        subtitle = null,
-                        selected = !uiState.isRemote,
-                        onClick = { scope.launch { viewModel.selectLocal() } },
-                    )
-                }
+                if (onSelectLocal != null)
+                    item(key = "local") {
+                        RemoteServerCard(
+                            title = stringResource(Res.string.remote_target_local),
+                            subtitle = null,
+                            selected = !uiState.isRemote,
+                            onClick = { scope.launch { onSelectLocal() } },
+                        )
+                    }
                 if (uiState.servers.isEmpty()) {
                     item(key = "empty") {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
+                            modifier = Modifier.fillMaxWidth().padding(24.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
@@ -160,7 +151,7 @@ fun RemoteControlScreen(
                         subtitle = server.url,
                         selected = selected,
                         status = if (selected) uiState.sessionState else null,
-                        onClick = { scope.launch { viewModel.selectServer(server) } },
+                        onClick = { scope.launch { onSelectServer(server.id) } },
                         onEdit = { onEditServer(server.id) },
                         onDelete = { pendingDelete = server },
                     )
@@ -168,11 +159,9 @@ fun RemoteControlScreen(
                 item { Spacer(Modifier.height(72.dp)) }
             }
             BoxedVerticalScrollbar(
-                modifier = Modifier
-                    .padding(contentPadding)
-                    .fillMaxHeight(),
+                modifier = Modifier.padding(contentPadding).fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = listState),
-                style = defaultMaterialScrollbarStyle().copy(thickness = 12.dp),
+                style = HusiScrollbarDefaults.style(),
             )
         }
     }
@@ -183,7 +172,7 @@ fun RemoteControlScreen(
             confirmButton = {
                 TextButton(stringResource(Res.string.delete)) {
                     scope.launch {
-                        viewModel.deleteServer(server.id)
+                        onDeleteServer(server.id)
                         pendingDelete = null
                     }
                 }
@@ -211,30 +200,24 @@ private fun RemoteServerCard(
     onDelete: (() -> Unit)? = null,
 ) {
     ElevatedCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = vectorResource(Res.drawable.phonelink_ring),
                 contentDescription = null,
-                tint = if (selected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                tint =
+                    if (selected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
             )
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp),
+                modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
             ) {
                 Text(
                     text = title,

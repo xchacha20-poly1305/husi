@@ -68,6 +68,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.blankAsNull
 import fr.husi.resources.Res
@@ -85,7 +86,6 @@ import fr.husi.resources.more_vert
 import fr.husi.resources.search
 import fr.husi.utils.PackageCache
 import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -318,9 +318,7 @@ internal fun AppListContent(
             VerticalScrollbar(
                 modifier = Modifier.fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 16.dp,
-                ),
+                style = HusiScrollbarDefaults.style(thickness = 16.dp),
             )
         }
     }

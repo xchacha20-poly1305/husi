@@ -8,6 +8,7 @@ import android.os.IBinder
 import fr.husi.Action
 import fr.husi.Key
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

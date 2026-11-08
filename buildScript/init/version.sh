@@ -5,6 +5,8 @@
 
 # renovate: datasource=golang-version depName=go
 GO_VERSION="1.27.3"
+# renovate: datasource=node-version depName=node
+NODE_VERSION="26.13.0"
 # renovate: datasource=github-releases depName=rust-lang/rust
 RUST_VERSION="1.99.1"
 # The only JDK in use: CI builds with it (.github/actions/setup-jbr), and its
@@ -19,7 +21,7 @@ JAVA_VERSION="${JBR_VERSION%%.*}"
 # NDK version as named by sdkmanager under $ANDROID_HOME/ndk/.
 # Renovate has no datasource for it; keep androidApp/build.gradle.kts `ndkVersion` equal.
 ANDROID_NDK_VERSION="30.0.16248370"
-ZIG_VERSION="0.17.0"
+ZIG_VERSION="0.17.1"
 # renovate: datasource=github-releases depName=goreleaser/nfpm
 NFPM_VERSION="2.48.0"
 # renovate: datasource=github-releases depName=AppImage/appimagetool

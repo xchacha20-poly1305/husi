@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalGridApi::class)
+@file:OptIn(ExperimentalGridApi::class)
 
 package fr.husi.ui.dashboard
 
@@ -32,7 +32,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -65,6 +64,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Surface
 import fr.husi.compose.material3.Text
 import fr.husi.compose.platformCombinedClickable
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.resources.Res
 import fr.husi.resources.bolt
 import fr.husi.resources.close
@@ -75,7 +75,6 @@ import fr.husi.resources.expand_more
 import fr.husi.resources.no_results
 import fr.husi.resources.search
 import fr.husi.resources.selected
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -131,9 +130,7 @@ internal fun DashboardProxySetScreen(
                 .padding(contentPadding)
                 .fillMaxHeight(),
             adapter = rememberScrollbarAdapter(scrollState = listState),
-            style = defaultMaterialScrollbarStyle().copy(
-                thickness = 12.dp,
-            ),
+            style = HusiScrollbarDefaults.style(),
         )
     }
 }

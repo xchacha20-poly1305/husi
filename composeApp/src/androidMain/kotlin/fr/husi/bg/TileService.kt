@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
+import fr.husi.database.preference.getBlocking
 import fr.husi.ktx.Logs
 import fr.husi.lib.R
 import fr.husi.repository.resolveRepository

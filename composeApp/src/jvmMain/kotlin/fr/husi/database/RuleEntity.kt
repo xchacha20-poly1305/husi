@@ -1,0 +1,138 @@
+package fr.husi.database
+
+import androidx.room3.ColumnInfo
+import androidx.room3.ColumnTypeConverters
+import androidx.room3.Delete
+import androidx.room3.Entity
+import androidx.room3.Insert
+import androidx.room3.PrimaryKey
+import androidx.room3.Query
+import androidx.room3.Update
+import fr.husi.fmt.SingBoxOptions
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
+
+@Serializable
+@Entity(tableName = "rules")
+@ColumnTypeConverters(StringCollectionConverter::class)
+data class RuleEntity(
+    @PrimaryKey(autoGenerate = true) var id: Long = 0L,
+    var name: String = "",
+    var userOrder: Long = 0L,
+    var enabled: Boolean = false,
+    @ColumnInfo(defaultValue = "0") var invert: Boolean = false,
+
+    // common rules
+    var domains: String = "",
+    var ip: String = "",
+    var port: String = "",
+    var sourcePort: String = "",
+    var network: Set<String> = emptySet(),
+    var source: String = "",
+    var protocol: Set<String> = emptySet(),
+    @ColumnInfo(defaultValue = "") var clientType: String = "",
+    var packages: Set<String> = emptySet(), // Also process in desktop
+    @ColumnInfo(defaultValue = "") var packageNameRegex: String = "",
+    var ssid: String = "",
+    var bssid: String = "",
+    @ColumnInfo(defaultValue = "") var clashMode: String = "",
+    @ColumnInfo(defaultValue = "") var networkType: Set<String> = emptySet(),
+    @ColumnInfo(defaultValue = "0") var networkIsExpensive: Boolean = false,
+    @ColumnInfo(defaultValue = "") var networkInterfaceAddress: LinkedHashMap<String, String> = LinkedHashMap(),
+
+    // Rule action
+
+    @ColumnInfo(defaultValue = "") var action: String = SingBoxOptions.ACTION_ROUTE,
+    @ColumnInfo(defaultValue = "0") var dnsOnly: Boolean = false,
+
+    // action: route
+    var outbound: Long = 0,
+
+    // action: route-options
+    @ColumnInfo(defaultValue = "") var overrideAddress: String = "",
+    @ColumnInfo(defaultValue = "0") var overridePort: Int = 0,
+    @ColumnInfo(defaultValue = "0") var tlsFragment: Boolean = false,
+    @ColumnInfo(defaultValue = "0") var tlsRecordFragment: Boolean = false,
+    @ColumnInfo(defaultValue = "") var tlsFragmentFallbackDelay: String = "",
+    @ColumnInfo(defaultValue = "") var tlsSpoof: String = "",
+    @ColumnInfo(defaultValue = "") var tlsSpoofMethod: String = "",
+
+    // action: resolve
+    @ColumnInfo(defaultValue = "") var resolveStrategy: String = "",
+    @ColumnInfo(defaultValue = "0") var resolveDisableCache: Boolean = false,
+    @ColumnInfo(defaultValue = "-1") var resolveRewriteTTL: Int = -1,
+    @ColumnInfo(defaultValue = "") var resolveClientSubnet: String = "",
+
+    // action: sniff
+    @ColumnInfo(defaultValue = "") var sniffTimeout: String = "",
+    @ColumnInfo(defaultValue = "") var sniffers: Set<String> = emptySet(),
+
+    @ColumnInfo(defaultValue = "") var customConfig: String = "",
+    @ColumnInfo(defaultValue = "") var customDnsConfig: String = "",
+) {
+
+    companion object {
+        const val OUTBOUND_PROXY = 0L
+        const val OUTBOUND_DIRECT = -1L
+        const val OUTBOUND_BLOCK = -2L
+        const val OUTBOUND_BRIDGE = -3L
+
+        // Clash Modes
+        // Use lower case to adapt with clash dashboard
+        const val MODE_DIRECT = "direct"
+        const val MODE_GLOBAL = "global"
+    }
+
+    fun displayName(): String {
+        return name.takeIf { it.isNotBlank() } ?: "Rule $id"
+    }
+
+    @androidx.room3.Dao
+    interface Dao {
+
+        /**
+         * Get all rules as a Flow.
+         *
+         * IMPORTANT: Prefer using [ProfileManager.getRules] instead of calling this directly.
+         * The wrapper handles first-time initialization of default rules (sniff, hijack_dns, etc).
+         */
+        @Query("SELECT * FROM rules ORDER BY userOrder, id")
+        fun allRules(): Flow<List<RuleEntity>>
+
+        @Query("SELECT MAX(userOrder) + 1 FROM rules")
+        suspend fun nextOrder(): Long?
+
+        @Query("SELECT * FROM rules WHERE id = :ruleId")
+        suspend fun getById(ruleId: Long): RuleEntity?
+
+        @Query("DELETE FROM rules WHERE id = :ruleId")
+        suspend fun deleteById(ruleId: Long): Int
+
+        @Query("DELETE FROM rules WHERE id IN (:ruleIds)")
+        suspend fun deleteByIds(ruleIds: List<Long>): Int
+
+        @Delete
+        suspend fun deleteRule(rule: RuleEntity)
+
+        @Delete
+        suspend fun deleteRules(rules: List<RuleEntity>)
+
+        @Insert
+        suspend fun createRule(rule: RuleEntity): Long
+
+        @Update
+        suspend fun updateRule(rule: RuleEntity)
+
+        @Update
+        suspend fun updateRules(rules: List<RuleEntity>)
+
+        @Query("DELETE FROM rules")
+        suspend fun reset()
+
+        @Insert
+        suspend fun insert(rules: List<RuleEntity>)
+
+    }
+
+
+}

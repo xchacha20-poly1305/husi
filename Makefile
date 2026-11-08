@@ -26,7 +26,7 @@ LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TA
 # never gets to split it — commas have to become spaces here instead.
 COMMA = ,
 
-.PHONY: libcore_android core_desktop core_desktop_common aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop apk apk_debug assets icon desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_jbr desktop_package_windows_all desktop_uberjar launcher lint_go lint_android proto proto_install test_go test_zig plugin generate_option lint_go_linux lint_go_android lint_go_windows lint_go_install fmt_go fmt_go_install
+.PHONY: libcore_android core_desktop core_desktop_common apk apk_debug assets icon desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_package_windows desktop_package_windows_jbr desktop_package_windows_all desktop_uberjar launcher lint_go lint_android proto proto_install test_go test_zig plugin generate_option lint_go_linux lint_go_android lint_go_windows lint_go_install fmt_go fmt_go_install
 
 build: libcore_android assets apk
 
@@ -119,7 +119,9 @@ desktop_package_windows_all:
 desktop_uberjar:
 	BUILD_PLUGIN=none ./gradlew packageReleaseUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 
-aboutlibraries: aboutlibraries_go aboutlibraries_android aboutlibraries_desktop
+.PHONY: aboutlibraries aboutlibraries_go aboutlibraries_android aboutlibraries_desktop aboutlibraries_web
+
+aboutlibraries: aboutlibraries_go aboutlibraries_android aboutlibraries_desktop aboutlibraries_web
 
 aboutlibraries_go:
 	cd libcore && go run ./cmd/internal/licencecollect -d ../composeApp/src/commonMain/aboutlibraries/libraries -clean
@@ -129,6 +131,9 @@ aboutlibraries_android:
 
 aboutlibraries_desktop:
 	./gradlew :composeApp:exportLibraryDefinitionsDesktop $(DESKTOP_TARGET_GRADLE_ARG)
+
+aboutlibraries_web:
+	BUILD_PLUGIN=none ./gradlew :composeApp:exportLibraryDefinitionsWasmJs
 
 launcher:
 	cd launcher && zig build -Doptimize=ReleaseSmall $(LAUNCHER_ZIG_TARGET_ARG)
@@ -175,12 +180,12 @@ fmt_go:
 
 fmt_go_install: lint_go_install
 
-test: test_gradle test_go test_zig
+test: test_gradle test_web test_go test_zig
 
 test_gradle:
-	./gradlew :composeApp:allTests
+	./gradlew :composeApp:desktopTest
 
-# Android lint, NewApi only: commonMain compiles against the desktop JDK, so a JDK API
+# Android lint, NewApi only: jvmMain compiles against the desktop JDK, so a JDK API
 # missing below minSdk passes compilation and crashes old Android at runtime.
 lint_android:
 	BUILD_PLUGIN=none ./gradlew :composeApp:lintAndroidMain
@@ -202,3 +207,18 @@ patch_go1230:
 
 patch_go1234:
 	curl $(GO_PATCH_1234) | sudo patch --verbose -p 1 -d $(GOROOT)
+
+.PHONY: web web_run web_zip test_web
+
+web:
+	BUILD_PLUGIN=none ./gradlew :composeApp:wasmJsBrowserDistribution
+
+web_run:
+	BUILD_PLUGIN=none ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+
+web_zip:
+	BUILD_PLUGIN=none ./gradlew :composeApp:webZip
+
+# commonTest plus wasmJsTest, in headless Chrome.
+test_web:
+	BUILD_PLUGIN=none ./gradlew :composeApp:wasmJsBrowserTest

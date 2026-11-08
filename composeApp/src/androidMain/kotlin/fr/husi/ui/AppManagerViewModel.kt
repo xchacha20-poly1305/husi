@@ -6,6 +6,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
+import fr.husi.database.preference.setBlocking
 import fr.husi.utils.AppScanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

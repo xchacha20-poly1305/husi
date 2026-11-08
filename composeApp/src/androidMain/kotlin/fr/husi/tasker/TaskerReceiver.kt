@@ -23,6 +23,8 @@ import android.content.Context
 import android.content.Intent
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
+import fr.husi.database.preference.getBlocking
+import fr.husi.database.preference.setBlocking
 import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.runBlocking
 

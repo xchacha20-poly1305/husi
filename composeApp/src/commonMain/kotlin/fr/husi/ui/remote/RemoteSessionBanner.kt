@@ -1,15 +1,11 @@
 package fr.husi.ui.remote
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -27,89 +23,67 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.compose.CapsuleDefaults
 import fr.husi.compose.CapsuleSurface
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
-import fr.husi.core.remote.RemoteControlManager
-import fr.husi.core.remote.RemoteSession
 import fr.husi.core.remote.RemoteSessionState
 import fr.husi.resources.Res
 import fr.husi.resources.cast_connected
 import fr.husi.resources.computer_cancel
 import fr.husi.resources.remote_disconnect
 import fr.husi.resources.remote_uptime
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import org.koin.compose.koinInject
-import kotlin.time.Duration.Companion.seconds
 
 private val IndicatorSize = 20.dp
 private val BannerVerticalPadding = 4.dp
 
 @Composable
-fun RemoteSessionBanner(
-    modifier: Modifier = Modifier,
-    windowInsets: WindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
-    remoteControl: RemoteControlManager = koinInject(),
-) {
-    val session by remoteControl.session.collectAsStateWithLifecycle()
-    AnimatedVisibility(visible = session != null, modifier = modifier) {
-        session?.let { current ->
-            RemoteSessionBannerContent(
-                session = current,
-                windowInsets = windowInsets,
-                onDisconnect = { remoteControl.exitRemote() },
-            )
-        }
-    }
-}
-
-@Composable
-private fun RemoteSessionBannerContent(
-    session: RemoteSession,
+fun RemoteSessionBannerContent(
+    session: RemoteSessionInfo,
     windowInsets: WindowInsets,
     onDisconnect: suspend () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var now by remember { mutableLongStateOf(Clock.System.now().toEpochMilliseconds()) }
     LaunchedEffect(session.startedAt, session.state) {
-        if (session.state != RemoteSessionState.CONNECTED || session.startedAt == null) return@LaunchedEffect
+        if (session.state != RemoteSessionState.CONNECTED || session.startedAt == null)
+            return@LaunchedEffect
         while (true) {
-            now = System.currentTimeMillis()
+            now = Clock.System.now().toEpochMilliseconds()
             delay(1.seconds)
         }
     }
     val accentColor = sessionAccentColor(session.state)
     CapsuleSurface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .windowInsetsPadding(windowInsets)
-            .padding(
-                horizontal = CapsuleDefaults.HorizontalPadding,
-                vertical = BannerVerticalPadding,
-            ),
+        modifier =
+            Modifier.fillMaxWidth()
+                .windowInsetsPadding(windowInsets)
+                .padding(
+                    horizontal = CapsuleDefaults.HorizontalPadding,
+                    vertical = BannerVerticalPadding,
+                ),
         borderColor = accentColor.copy(alpha = 0.6f),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = CapsuleDefaults.HorizontalPadding, end = 4.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(start = CapsuleDefaults.HorizontalPadding, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(CapsuleDefaults.Spacing),
         ) {
             SessionStateIndicator(state = session.state, color = accentColor)
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = CapsuleDefaults.VerticalPadding),
+                modifier = Modifier.weight(1f).padding(vertical = CapsuleDefaults.VerticalPadding),
             ) {
                 Text(
-                    text = serverDisplayName(session.server),
+                    text = session.name,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -149,13 +123,14 @@ private fun SessionStateIndicator(state: RemoteSessionState, color: Color) {
 }
 
 @Composable
-private fun sessionAccentColor(state: RemoteSessionState): Color = when (state) {
-    RemoteSessionState.CONNECTED -> MaterialTheme.colorScheme.primary
-    RemoteSessionState.CONNECTING -> MaterialTheme.colorScheme.tertiary
-}
+private fun sessionAccentColor(state: RemoteSessionState): Color =
+    when (state) {
+        RemoteSessionState.CONNECTED -> MaterialTheme.colorScheme.primary
+        RemoteSessionState.CONNECTING -> MaterialTheme.colorScheme.tertiary
+    }
 
 @Composable
-private fun bannerStatusText(session: RemoteSession, now: Long): String {
+private fun bannerStatusText(session: RemoteSessionInfo, now: Long): String {
     val status = remoteSessionStatusText(session.state)
     val startedAt = session.startedAt
     if (session.state == RemoteSessionState.CONNECTED && startedAt != null && startedAt > 0L) {
@@ -170,8 +145,8 @@ internal fun formatUptime(startedAtMillis: Long, nowMillis: Long): String {
     val minutes = (totalSeconds % 3600L) / 60L
     val seconds = totalSeconds % 60L
     return if (hours > 0L) {
-        "%d:%02d:%02d".format(hours, minutes, seconds)
+        "$hours:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
     } else {
-        "%d:%02d".format(minutes, seconds)
+        "$minutes:${seconds.toString().padStart(2, '0')}"
     }
 }

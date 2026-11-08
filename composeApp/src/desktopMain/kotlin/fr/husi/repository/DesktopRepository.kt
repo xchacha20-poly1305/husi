@@ -15,7 +15,7 @@ open class DesktopRepository(
      * keeps `core/` itself and stays the host CLI subcommands dial.
      */
     private val instanceId: String? = null,
-) : Repository {
+) : LocalRepository {
 
     override val isMainProcess: Boolean = true
     override val isBgProcess: Boolean = true

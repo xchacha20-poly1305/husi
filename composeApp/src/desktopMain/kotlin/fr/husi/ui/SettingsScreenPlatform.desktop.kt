@@ -27,6 +27,7 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.validateTunInterfaceName
 import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
+import fr.husi.database.preference.setBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
 import fr.husi.platform.PlatformInfo

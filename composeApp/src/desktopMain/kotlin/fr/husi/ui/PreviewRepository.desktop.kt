@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import fr.husi.repository.DesktopRepository
-import fr.husi.repository.Repository
+import fr.husi.repository.LocalRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,4 +22,4 @@ private class PreviewDesktopRepository : DesktopRepository(createPreviewRoot()) 
 }
 
 @Composable
-internal actual fun previewRepository(): Repository = remember { PreviewDesktopRepository() }
+internal actual fun previewRepository(): LocalRepository = remember { PreviewDesktopRepository() }

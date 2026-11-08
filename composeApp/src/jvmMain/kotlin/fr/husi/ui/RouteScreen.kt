@@ -1,0 +1,628 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
+package fr.husi.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ernestoyaquello.dragdropswipelazycolumn.AllowedSwipeDirections
+import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
+import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
+import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
+import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.SagerFabClearance
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TextButton
+import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
+import fr.husi.compose.material3.Switch
+import fr.husi.compose.material3.Text
+import fr.husi.compose.theme.HusiScrollbarDefaults
+import fr.husi.compose.theme.LocalAppDarkMode
+import fr.husi.compose.withNavigation
+import fr.husi.database.DataStore
+import fr.husi.database.ProfileManager
+import fr.husi.database.RuleEntity
+import fr.husi.database.RuleEntity.Companion.OUTBOUND_BLOCK
+import fr.husi.database.RuleEntity.Companion.OUTBOUND_BRIDGE
+import fr.husi.database.RuleEntity.Companion.OUTBOUND_DIRECT
+import fr.husi.database.RuleEntity.Companion.OUTBOUND_PROXY
+import fr.husi.fmt.SingBoxOptions
+import fr.husi.platform.PlatformInfo
+import fr.husi.repository.resolveRepository
+import fr.husi.resources.Res
+import fr.husi.resources.add_road
+import fr.husi.resources.apply
+import fr.husi.resources.apps_message
+import fr.husi.resources.cag_dns
+import fr.husi.resources.cancel
+import fr.husi.resources.clear_profiles_message
+import fr.husi.resources.confirm
+import fr.husi.resources.direct
+import fr.husi.resources.dns_only
+import fr.husi.resources.drag_indicator
+import fr.husi.resources.edit
+import fr.husi.resources.error_title
+import fr.husi.resources.layers
+import fr.husi.resources.menu_route
+import fr.husi.resources.more
+import fr.husi.resources.more_vert
+import fr.husi.resources.need_reload
+import fr.husi.resources.ok
+import fr.husi.resources.process
+import fr.husi.resources.proxy
+import fr.husi.resources.removed
+import fr.husi.resources.replay
+import fr.husi.resources.reset
+import fr.husi.resources.route_add
+import fr.husi.resources.route_block
+import fr.husi.resources.route_bridge
+import fr.husi.resources.route_manage_assets
+import fr.husi.resources.route_warn
+import fr.husi.resources.undo
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+
+@Composable
+fun RouteScreen(
+    modifier: Modifier = Modifier,
+    viewModel: RouteScreenViewModel = viewModel { RouteScreenViewModel() },
+    openRouteSettings: (Long) -> Unit,
+    openAssets: () -> Unit,
+) {
+    val snackbar = LocalSnackbarEmitter.current
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.commit()
+        }
+    }
+
+    val dragDropListState = rememberDragDropSwipeLazyColumnState()
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showMoreAction by remember { mutableStateOf(false) }
+    var showResetAlert by remember { mutableStateOf(false) }
+    fun needReload() {
+        if (!DataStore.serviceState.started) return
+        snackbar.show(
+            StringOrRes.Res(Res.string.need_reload),
+            StringOrRes.Res(Res.string.apply),
+        ) { result ->
+            if (result == SnackbarResult.ActionPerformed) {
+                resolveRepository().reloadService()
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.pendingDeleteCount) {
+        if (uiState.pendingDeleteCount > 0) {
+            snackbar.show(
+                StringOrRes.PluralsRes(
+                    Res.plurals.removed,
+                    uiState.pendingDeleteCount,
+                    uiState.pendingDeleteCount,
+                ),
+                StringOrRes.Res(Res.string.undo),
+            ) { result ->
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.undo()
+                }
+            }
+        }
+    }
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val windowInsets = WindowInsets.safeDrawing
+    val hazeState = rememberHazeState()
+
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CapsuleTopBar(
+                hazeState = hazeState,
+                title = null,
+                navigationIcon = null,
+                actions = {
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.add_road),
+                            contentDescription = stringResource(Res.string.route_add),
+                            onClick = {
+                                openRouteSettings(-1L)
+                            },
+                        )
+                    }
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.layers),
+                            contentDescription = stringResource(Res.string.route_manage_assets),
+                            onClick = openAssets,
+                        )
+                    }
+                    CapsuleActionButton {
+                        Box {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                                onClick = { showMoreAction = true },
+                            )
+                            DropdownMenu(
+                                expanded = showMoreAction,
+                                onDismissRequest = { showMoreAction = false },
+                                shape = MenuDefaults.standaloneGroupShape,
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.reset)) },
+                                    onClick = {
+                                        showMoreAction = false
+                                        showResetAlert = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = vectorResource(Res.drawable.replay),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                )
+                            }
+                        }
+                    }
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { innerPadding ->
+        val listContentPadding = innerPadding.withNavigation()
+        val layoutDirection = LocalLayoutDirection.current
+        val listItems = remember(uiState.rules) {
+            buildList(uiState.rules.size + 1) {
+                add(RouteListItem.Notification)
+                uiState.rules.forEach { add(RouteListItem.Rule(it)) }
+            }.toImmutableList()
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+        ) {
+            DragDropSwipeLazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .fadingEdge(dragDropListState.lazyListState),
+                state = dragDropListState,
+                items = listItems,
+                key = { it.key },
+                contentType = { it::class },
+                contentPadding = PaddingValues(
+                    start = listContentPadding.calculateStartPadding(layoutDirection),
+                    top = listContentPadding.calculateTopPadding(),
+                    end = listContentPadding.calculateEndPadding(layoutDirection),
+                    bottom = listContentPadding.calculateBottomPadding() + SagerFabClearance,
+                ),
+                userScrollEnabled = true,
+                fixedTopItemCount = RouteListItem.ROUTE_LIST_HEADER_COUNT,
+                onIndicesChangedViaDragAndDrop = { ordered ->
+                    viewModel.submitReorder(
+                        ordered.mapNotNull { item ->
+                            val rule = (item.value as? RouteListItem.Rule)?.entity
+                                ?: return@mapNotNull null
+                            OrderedItem(
+                                value = rule,
+                                initialIndex = item.initialIndex - RouteListItem.ROUTE_LIST_HEADER_COUNT,
+                                newIndex = item.newIndex - RouteListItem.ROUTE_LIST_HEADER_COUNT,
+                            )
+                        },
+                    )
+                    needReload()
+                },
+            ) { _, item ->
+                when (item) {
+                    is RouteListItem.Notification -> {
+                        DraggableSwipeableItem(
+                            modifier = Modifier.animateDraggableSwipeableItem(),
+                            colors = DraggableSwipeableItemColors.createRemembered(
+                                containerBackgroundColor = Color.Transparent,
+                                containerBackgroundColorWhileDragged = Color.Transparent,
+                            ),
+                            dragDropEnabled = false,
+                            allowedSwipeDirections = AllowedSwipeDirections.None,
+                        ) {
+                            RouteNotificationCard()
+                        }
+                    }
+
+                    is RouteListItem.Rule -> {
+                        val rule = item.entity
+
+                        DraggableSwipeableItem(
+                            modifier = Modifier.animateDraggableSwipeableItem(),
+                            colors = DraggableSwipeableItemColors.createRemembered(
+                                containerBackgroundColor = Color.Transparent,
+                                containerBackgroundColorWhileDragged = Color.Transparent,
+                            ),
+                            onSwipeDismiss = { viewModel.undoableRemove(rule.id) },
+                        ) {
+                            RuleCard(
+                                rule = rule,
+                                viewModel = viewModel,
+                                onNeedReload = { needReload() },
+                                openRouteSettings = openRouteSettings,
+                            )
+                        }
+                    }
+                }
+            }
+
+            BoxedVerticalScrollbar(
+                modifier = Modifier
+                    .padding(listContentPadding)
+                    .fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
+                style = HusiScrollbarDefaults.style(),
+            )
+        }
+    }
+
+    if (showResetAlert) AlertDialog(
+        onDismissRequest = { showResetAlert = false },
+        title = { Text(stringResource(Res.string.confirm)) },
+        text = { Text(stringResource(Res.string.clear_profiles_message)) },
+        confirmButton = {
+            TextButton(stringResource(Res.string.ok)) {
+                showResetAlert = false
+                viewModel.reset()
+            }
+        },
+        dismissButton = {
+            TextButton(stringResource(Res.string.cancel)) {
+                showResetAlert = false
+            }
+        },
+    )
+
+}
+
+private sealed interface RouteListItem {
+
+    companion object {
+        const val ROUTE_LIST_HEADER_COUNT = 1
+    }
+
+    val key: Any
+
+    data object Notification : RouteListItem {
+        override val key: Any get() = "route_notification"
+    }
+
+    data class Rule(val entity: RuleEntity) : RouteListItem {
+        override val key: Any get() = entity.id
+    }
+
+}
+
+@Composable
+private fun RouteNotificationCard(
+    modifier: Modifier = Modifier,
+) {
+    val uriHandler = LocalUriHandler.current
+    ElevatedCard(
+        onClick = {
+            uriHandler.openUri("https://github.com/xchacha20-poly1305/husi/wiki/Route")
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+    ) {
+        Text(
+            text = stringResource(Res.string.route_warn),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium.copy(background = Color.Transparent),
+        )
+    }
+}
+
+@Composable
+private fun DraggableSwipeableItemScope<RouteListItem>.RuleCard(
+    modifier: Modifier = Modifier,
+    rule: RuleEntity,
+    viewModel: RouteScreenViewModel,
+    onNeedReload: () -> Unit,
+    openRouteSettings: (Long) -> Unit,
+) {
+    ElevatedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(0.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = vectorResource(Res.drawable.drag_indicator),
+                contentDescription = "Drag to reorder",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(40.dp)
+                    .padding(8.dp)
+                    .dragDropModifier(),
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(0.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 0.dp, end = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = rule.displayName(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    IconButton(
+                        onClick = {
+                            openRouteSettings(rule.id)
+                        },
+                        modifier = Modifier.size(40.dp),
+                    ) {
+                        Icon(
+                            imageVector = vectorResource(Res.drawable.edit),
+                            contentDescription = stringResource(Res.string.edit),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(30.dp),
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 0.dp),
+                ) {
+                    Text(
+                        text = rule.summary(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 0.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RuleBehaviorLabel(
+                        rule = rule,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    Switch(
+                        checked = rule.enabled,
+                        onCheckedChange = {
+                            viewModel.toggleEnabled(rule)
+                            onNeedReload()
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RuleBehaviorLabel(
+    rule: RuleEntity,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = when (rule.action) {
+            "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound()
+            else -> "action: ${rule.action}"
+        },
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Bold,
+        color = rule.behaviorColor(LocalAppDarkMode.current),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+/** Vivid text colors that tell what a rule does; rules with the same effect share one. */
+private object RuleBehaviorColors {
+    val ProxyLight = Color(0xFF1E88E5)
+    val ProxyDark = Color(0xFF64B5F6)
+    val DirectLight = Color(0xFF43A047)
+    val DirectDark = Color(0xFF81C784)
+    val BlockLight = Color(0xFFE53935)
+    val BlockDark = Color(0xFFEF5350)
+    val BridgeLight = Color(0xFF8E24AA)
+    val BridgeDark = Color(0xFFBA68C8)
+    val ProfileLight = Color(0xFF00897B)
+    val ProfileDark = Color(0xFF4DB6AC)
+    val HijackDnsLight = Color(0xFFF4511E)
+    val HijackDnsDark = Color(0xFFFF8A65)
+    val SniffLight = Color(0xFFF9A825)
+    val SniffDark = Color(0xFFFFD54F)
+    val ResolveLight = Color(0xFFD81B60)
+    val ResolveDark = Color(0xFFF06292)
+    val OtherLight = Color(0xFF757575)
+    val OtherDark = Color(0xFFBDBDBD)
+}
+
+internal fun RuleEntity.behaviorColor(darkMode: Boolean): Color {
+    fun pick(light: Color, dark: Color) = if (darkMode) dark else light
+    return with(RuleBehaviorColors) {
+        when (action) {
+            "", SingBoxOptions.ACTION_ROUTE -> when (outbound) {
+                OUTBOUND_PROXY -> pick(ProxyLight, ProxyDark)
+                OUTBOUND_DIRECT -> pick(DirectLight, DirectDark)
+                OUTBOUND_BLOCK -> pick(BlockLight, BlockDark)
+                OUTBOUND_BRIDGE -> pick(BridgeLight, BridgeDark)
+                else -> pick(ProfileLight, ProfileDark)
+            }
+
+            SingBoxOptions.ACTION_BYPASS -> pick(DirectLight, DirectDark)
+            SingBoxOptions.ACTION_REJECT -> pick(BlockLight, BlockDark)
+            SingBoxOptions.ACTION_HIJACK_DNS -> pick(HijackDnsLight, HijackDnsDark)
+            SingBoxOptions.ACTION_SNIFF -> pick(SniffLight, SniffDark)
+            SingBoxOptions.ACTION_RESOLVE -> pick(ResolveLight, ResolveDark)
+            else -> pick(OtherLight, OtherDark)
+        }
+    }
+}
+
+/** [TextOverflow.Ellipsis] does not show ellipsis on skia background */
+@Composable
+private fun RuleEntity.summary(): String {
+    if (dnsOnly) return stringResource(Res.string.dns_only)
+
+    val summary = mutableListOf<String>()
+    if (domains.isNotBlank()) summary += domains
+    if (ip.isNotBlank()) summary += ip
+    if (source.isNotBlank()) summary += "source: $source"
+    if (sourcePort.isNotBlank()) summary += "sourcePort: $sourcePort"
+    if (port.isNotBlank()) summary += "port: $port"
+    if (network.isNotEmpty()) summary += "network: $network"
+    if (protocol.isNotEmpty()) summary += "protocol: $protocol"
+    if (clientType.isNotEmpty()) summary += "client: $clientType"
+    if (packages.isNotEmpty()) {
+        summary += if (PlatformInfo.isAndroid) {
+            pluralStringResource(Res.plurals.apps_message, packages.size, packages.size)
+        } else {
+            "${stringResource(Res.string.process)}: ${packages.joinToString(", ")}"
+        }
+    }
+    if (packageNameRegex.isNotBlank()) summary += "packageNameRegex: $packageNameRegex"
+    if (ssid.isNotBlank()) summary += "ssid: $ssid"
+    if (bssid.isNotBlank()) summary += "bssid: $bssid"
+    if (clashMode.isNotBlank()) summary += "clashMode: $clashMode"
+    if (networkType.isNotEmpty()) summary += "networkType: $networkType"
+    if (networkIsExpensive) summary += "networkIsExpensive"
+    if (networkInterfaceAddress.isNotEmpty()) summary += "networkInterfaceAddress: $networkInterfaceAddress"
+
+    if (overrideAddress.isNotBlank()) summary += "overrideAddress: $overrideAddress"
+    if (overridePort > 0) summary += "overridePort: $overridePort"
+    if (tlsFragment) {
+        summary += "TLS fragment"
+        if (tlsFragmentFallbackDelay.isNotBlank()) {
+            summary += "tlsFragmentFallbackDelay: $tlsFragmentFallbackDelay"
+        }
+    }
+    if (tlsRecordFragment) {
+        summary += "TLS record fragment"
+    }
+    if (tlsSpoof.isNotBlank()) summary += "tlsSpoof: $tlsSpoof"
+    if (tlsSpoofMethod.isNotBlank()) summary += "tlsSpoofMethod: $tlsSpoofMethod"
+
+    if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy"
+    if (resolveDisableCache) summary += "resolveDisableCache\n"
+    if (resolveRewriteTTL >= 0) summary += "resolveRewriteTTL: $resolveRewriteTTL"
+    if (resolveClientSubnet.isNotBlank()) summary += "resolveClientSubnet: $resolveClientSubnet"
+
+    if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout"
+    if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers"
+
+    if (customConfig.isNotBlank()) summary += stringResource(Res.string.menu_route)
+    if (customDnsConfig.isNotBlank()) summary += stringResource(Res.string.cag_dns)
+
+    return if (summary.size > 5) {
+        summary.subList(0, 5).joinToString("\n", postfix = "\n...")
+    } else {
+        summary.joinToString("\n")
+    }
+}
+
+/** Name of a built-in outbound, or null when [outbound] is a profile ID. */
+internal fun builtinOutboundName(outbound: Long): StringResource? = when (outbound) {
+    OUTBOUND_PROXY -> Res.string.proxy
+    OUTBOUND_DIRECT -> Res.string.direct
+    OUTBOUND_BLOCK -> Res.string.route_block
+    OUTBOUND_BRIDGE -> Res.string.route_bridge
+    else -> null
+}
+
+@Composable
+private fun RuleEntity.displayOutbound(): String {
+    builtinOutboundName(outbound)?.let { return stringResource(it) }
+    val unknownProfile = stringResource(Res.string.error_title)
+    val profileName by produceState<String?>(null, outbound) {
+        value = ProfileManager.getProfile(outbound)?.displayName() ?: unknownProfile
+    }
+    return profileName.orEmpty()
+}

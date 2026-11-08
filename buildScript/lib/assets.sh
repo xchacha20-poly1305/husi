@@ -4,7 +4,7 @@ set -euo pipefail
 
 source buildScript/init/version.sh
 
-DIR="composeApp/src/commonMain/composeResources/files/sing-box"
+DIR="composeApp/src/jvmMain/composeResources/files/sing-box"
 GENERATER="libcore/cmd/internal/ruleset_generate"
 rm -rf "$DIR"
 mkdir -p "$DIR"

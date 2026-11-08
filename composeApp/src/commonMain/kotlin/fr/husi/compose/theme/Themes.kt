@@ -1,13 +1,10 @@
 package fr.husi.compose.theme
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import fr.husi.compose.collectAsStateWithLifecycle
-import fr.husi.database.DataStore
 import fr.husi.resources.Res
 import fr.husi.resources.themes_amber
 import fr.husi.resources.themes_black
@@ -56,7 +53,6 @@ const val BLUE_GREY = 20
 const val BLACK = 21
 const val DYNAMIC = 22
 
-val LocalAppDarkMode = compositionLocalOf { false }
 
 val themes = listOf(
     Color(0xFFF44336),
@@ -82,19 +78,14 @@ val themes = listOf(
     Color(0xFF212121),
 )
 
+
 @Composable
-fun AppTheme(content: @Composable () -> Unit) {
-    val nightModeValue by DataStore.nightTheme.collectAsStateWithLifecycle()
-    val systemDarkMode = rememberPlatformSystemDarkMode()
-    val isDarkMode = remember(nightModeValue, systemDarkMode) {
-        when (nightModeValue) {
-            1 -> true
-            2 -> false
-            else -> systemDarkMode
-        }
-    }
-    val appTheme by DataStore.appTheme.collectAsStateWithLifecycle()
-    val dynamicScheme = if (appTheme == DYNAMIC) rememberDynamicColorScheme(isDarkMode) else null
+fun AppTheme(
+    appTheme: Int,
+    isDarkMode: Boolean,
+    dynamicScheme: ColorScheme? = null,
+    content: @Composable () -> Unit,
+) {
     val colorScheme = remember(appTheme, isDarkMode, dynamicScheme) {
         when (appTheme) {
             RED -> if (isDarkMode) Red.darkScheme else Red.lightScheme

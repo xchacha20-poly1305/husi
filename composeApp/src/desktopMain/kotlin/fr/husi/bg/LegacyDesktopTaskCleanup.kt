@@ -15,7 +15,7 @@ internal object LegacyDesktopTaskCleanup {
         for (taskId in taskIds) {
             runCatching {
                 when (PlatformInfo.platform) {
-                    Platform.Android -> error("Unsupported desktop platform")
+                    Platform.Android, Platform.Web -> error("Unsupported desktop platform")
                     Platform.Linux -> purgeLinuxTask(taskId)
                     Platform.MacOs -> purgeMacTask(taskId)
                     Platform.Windows -> purgeWindowsTask(taskId)

@@ -1,0 +1,28 @@
+<resources>
+    <string name="web_setup">Set up</string>
+    <string name="web_terminal_load_failed">Failed to load terminal: %1$s</string>
+    <string name="web_light_theme">Light theme</string>
+    <string name="web_dark_theme">Dark theme</string>
+    <string name="web_reconnect">Reconnect</string>
+    <string name="web_connect_current_site">Connect to this site</string>
+    <string name="web_current_server">Current server</string>
+    <string name="remote_server_url">API URL</string>
+    <string name="web_testing_connection">Testing connection…</string>
+    <string name="web_mark_read">Mark as read</string>
+    <string name="web_receiving_file">Receiving %1$s</string>
+    <string name="web_cancel_receiving">Cancel receiving</string>
+    <string name="web_delete_file_confirm">Delete file %1$s?</string>
+    <string name="web_outbound_hint">Outbound tag (leave blank for the default outbound)</string>
+    <string name="web_cancel_sending">Cancel sending files</string>
+    <string name="web_sending_cancelled">File sending cancelled</string>
+    <string name="web_send_progress">Sent %1$s bytes</string>
+    <string name="web_send_complete">Files sent</string>
+    <string name="web_no_tailscale_endpoints">No Tailscale endpoints</string>
+    <string name="web_download_certificate">Download certificate and private key for %1$s</string>
+    <string name="web_tailscale_logout_confirm">Log out of Tailscale on %1$s?</string>
+    <string name="web_terminal_not_ready">Terminal has not loaded yet</string>
+    <string name="web_terminal_exit">Exited: %1$s</string>
+    <string name="web_remote_ip_unavailable">This remote server does not provide independent IP detection</string>
+    <string name="web_system_proxy_unavailable">The browser cannot change the system proxy</string>
+    <string name="remote_stream_overflow">Too many remote updates arrived before they could be processed</string>
+</resources>

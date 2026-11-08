@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.theme.LogColors
 import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
@@ -47,7 +48,6 @@ import fr.husi.resources.connection_speed
 import fr.husi.resources.connection_status_closed
 import fr.husi.resources.delete_forever
 import fr.husi.resources.traffic
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -137,9 +137,7 @@ internal fun DashboardConnectionsScreen(
                     .padding(contentPadding)
                     .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = listState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 12.dp,
-                ),
+                style = HusiScrollbarDefaults.style(),
             )
         }
     }

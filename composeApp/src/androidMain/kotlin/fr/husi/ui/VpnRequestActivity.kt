@@ -13,6 +13,7 @@ import androidx.core.content.getSystemService
 import fr.husi.Key
 import fr.husi.bg.VpnRequestNotification
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.broadcastReceiver
 import fr.husi.ktx.showToast

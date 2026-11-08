@@ -71,9 +71,9 @@ private val DropZoneShape = RoundedCornerShape(DropZoneCornerRadius)
 private const val MIN_SPARKLINE_SAMPLES = 2
 
 /**
- * A titled block on the peer screen that is not a list of settings, so it is one card with room
- * to breathe instead of a group of segmented rows. It shares the groups' shape and colour, so it
- * still sits on the same ground as them.
+ * A titled block on the peer screen that is not a list of settings, so it is one card with room to
+ * breathe instead of a group of segmented rows. It shares the groups' shape and colour, so it still
+ * sits on the same ground as them.
  */
 @Composable
 private fun PeerSectionCard(
@@ -83,9 +83,7 @@ private fun PeerSectionCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         shape = PreferenceGroupDefaults.groupShape,
         color = PreferenceGroupDefaults.itemContainerColor,
     ) {
@@ -125,21 +123,23 @@ internal fun PingCard(
     ) {
         when {
             ping.hasResult -> PingResult(ping)
-            ping.running -> Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            ping.running ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Text(
+                        text = stringResource(Res.string.connecting),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+            else ->
                 Text(
-                    text = stringResource(Res.string.connecting),
+                    text = stringResource(Res.string.tailscale_ping_no_data),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-
-            else -> Text(
-                text = stringResource(Res.string.tailscale_ping_no_data),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
         if (ping.error.isNotEmpty()) {
             Text(
@@ -158,11 +158,12 @@ private fun PingToggleButton(running: Boolean, enabled: Boolean, onClick: () -> 
         icon = vectorResource(if (running) Res.drawable.stop else Res.drawable.play_arrow),
         contentDescription = stringResource(if (running) Res.string.stop else Res.string.start),
         enabled = enabled,
-        colors = if (running) {
-            IconButtonDefaults.filledTonalIconButtonColors()
-        } else {
-            IconButtonDefaults.filledIconButtonColors()
-        },
+        colors =
+            if (running) {
+                IconButtonDefaults.filledTonalIconButtonColors()
+            } else {
+                IconButtonDefaults.filledIconButtonColors()
+            },
     )
 }
 
@@ -196,11 +197,13 @@ private fun PingResult(ping: TailscalePingState) {
 @Composable
 private fun PingPathBadge(ping: TailscalePingState) {
     val colors = MaterialTheme.colorScheme
-    val (label, container) = when {
-        ping.peerRelay.isNotEmpty() -> Res.string.tailscale_ping_peer_relay to colors.secondaryContainer
-        ping.direct -> Res.string.tailscale_ping_direct to colors.tertiaryContainer
-        else -> Res.string.tailscale_ping_derp to colors.secondaryContainer
-    }
+    val (label, container) =
+        when {
+            ping.peerRelay.isNotEmpty() ->
+                Res.string.tailscale_ping_peer_relay to colors.secondaryContainer
+            ping.direct -> Res.string.tailscale_ping_direct to colors.tertiaryContainer
+            else -> Res.string.tailscale_ping_derp to colors.secondaryContainer
+        }
     Surface(shape = CircleShape, color = container) {
         Text(
             text = stringResource(label),
@@ -242,15 +245,11 @@ private fun PingSparkline(samples: List<Float>) {
     val min = samples.min()
     val max = samples.max()
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp),
+        modifier = Modifier.fillMaxWidth().height(64.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Canvas(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         ) {
             val strokeWidth = 2.dp.toPx()
             // Inset by half the stroke so the extremes are not clipped at the edges.
@@ -263,12 +262,13 @@ private fun PingSparkline(samples: List<Float>) {
                 val y = top + plotHeight - (sample - min) / span * plotHeight
                 if (index == 0) line.moveTo(x, y) else line.lineTo(x, y)
             }
-            val area = Path().also { area ->
-                area.addPath(line)
-                area.lineTo(size.width, size.height)
-                area.lineTo(0f, size.height)
-                area.close()
-            }
+            val area =
+                Path().also { area ->
+                    area.addPath(line)
+                    area.lineTo(size.width, size.height)
+                    area.lineTo(0f, size.height)
+                    area.close()
+                }
             drawPath(path = area, color = areaColor)
             drawPath(
                 path = line,
@@ -292,7 +292,9 @@ private fun PingSparkline(samples: List<Float>) {
     }
 }
 
-/** The whole card is the drop target, passed in through [modifier]; [dragging] highlights the zone. */
+/**
+ * The whole card is the drop target, passed in through [modifier]; [dragging] highlights the zone.
+ */
 @Composable
 internal fun SendFilesCard(
     peerName: String,
@@ -321,36 +323,37 @@ private fun DropZone(
     val colors = MaterialTheme.colorScheme
     val borderColor = if (dragging) colors.primary else colors.outlineVariant
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 176.dp)
-            .clip(DropZoneShape)
-            .background(if (dragging) colors.primaryContainer.copy(alpha = 0.4f) else Color.Transparent)
-            .drawBehind {
-                val strokeWidth = 1.5.dp.toPx()
-                drawRoundRect(
-                    color = borderColor,
-                    topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
-                    size = Size(size.width - strokeWidth, size.height - strokeWidth),
-                    cornerRadius = CornerRadius(DropZoneCornerRadius.toPx()),
-                    style = Stroke(
-                        width = strokeWidth,
-                        pathEffect = PathEffect.dashPathEffect(
-                            floatArrayOf(8.dp.toPx(), 6.dp.toPx()),
-                        ),
-                    ),
+        modifier =
+            Modifier.fillMaxWidth()
+                .heightIn(min = 176.dp)
+                .clip(DropZoneShape)
+                .background(
+                    if (dragging) colors.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
                 )
-            }
-            .clickable(onClick = onClick)
-            .padding(24.dp),
+                .drawBehind {
+                    val strokeWidth = 1.5.dp.toPx()
+                    drawRoundRect(
+                        color = borderColor,
+                        topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
+                        size = Size(size.width - strokeWidth, size.height - strokeWidth),
+                        cornerRadius = CornerRadius(DropZoneCornerRadius.toPx()),
+                        style =
+                            Stroke(
+                                width = strokeWidth,
+                                pathEffect =
+                                    PathEffect.dashPathEffect(
+                                        floatArrayOf(8.dp.toPx(), 6.dp.toPx()),
+                                    ),
+                            ),
+                    )
+                }
+                .clickable(onClick = onClick)
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
         Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(colors.primaryContainer),
+            modifier = Modifier.size(56.dp).clip(CircleShape).background(colors.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

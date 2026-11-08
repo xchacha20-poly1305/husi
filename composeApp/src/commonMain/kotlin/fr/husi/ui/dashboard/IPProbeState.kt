@@ -18,7 +18,9 @@ fun countryEmoji(code: String): String? {
     }
     return buildString {
         for (letter in normalized) {
-            appendCodePoint(0x1F1E6 + (letter - 'A'))
+            val value = 0x1F1E6 + (letter - 'A') - 0x10000
+            append((0xD800 + value / 1024).toChar())
+            append((0xDC00 + value % 1024).toChar())
         }
     }
 }

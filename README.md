@@ -479,6 +479,29 @@ Nothing in husi checks the signature at runtime.
 * If you redistribute your build, say so. The published fingerprint above is how users tell an official release from a
   rebuild, and nothing in husi makes that distinction for them.
 
+#### 🌐 Web dashboard (Wasm)
+
+Build with Node.js 26+, `protoc` (the version in [version.sh](./buildScript/init/version.sh)) and the project's JDK:
+
+```shell
+make web
+make web_run
+make web_zip
+```
+
+No libcore binary, route assets or native plugin builds are needed. Output is under `composeApp/build/dist/wasmJs/productionExecutable/`; the ZIP is under `composeApp/build/distributions/`. Serve the files through HTTP(S), including all relative paths. Opening `index.html` through `file://` is not supported.
+
+Config in sing-box:
+
+```json
+{
+  "dashboard": {
+    "enabled": true,
+    "download_url": "https://github.com/xchacha20-poly1305/husi/archive/refs/heads/gh-pages.zip"
+  }
+}
+```
+
 #### 🌈 Plugins
 
 ```shell

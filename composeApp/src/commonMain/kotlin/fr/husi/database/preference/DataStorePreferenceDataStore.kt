@@ -1,12 +1,11 @@
 package fr.husi.database.preference
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -68,16 +66,6 @@ class DataStorePreferenceDataStore private constructor(
         dataStore.edit(transform)
     }
 
-     // (put|get)String only for legacy usage. Do not use.
-
-    fun getString(key: String): String? = runBlocking {
-        readValue(stringPreferencesKey(key))
-    }
-
-    fun getStringSet(key: String): Set<String>? = runBlocking {
-        readValue(stringSetPreferencesKey(key))
-    }
-
     fun keysFlow(vararg keys: String, emitInitialState: Boolean = false): Flow<Unit> {
         val keysToWatch = keys.toSet()
 
@@ -98,51 +86,14 @@ class DataStorePreferenceDataStore private constructor(
         }
     }
 
-    fun reset() = runBlocking {
-        dataStore.edit { prefs ->
-            prefs.clear()
-        }
-    }
-
-    fun putString(key: String, value: String?) {
-        if (value == null) {
-            remove(key)
-            return
-        }
-        runBlocking {
-            writeValue(stringPreferencesKey(key), value)
-        }
-    }
-
-    fun putStringSet(key: String, values: Set<String>?) {
-        if (values == null) {
-            remove(key)
-            return
-        }
-        runBlocking {
-            writeValue(stringSetPreferencesKey(key), values)
-        }
-    }
-
-    fun remove(key: String) {
-        runBlocking {
-            dataStore.edit { prefs ->
-                prefs.remove(booleanPreferencesKey(key))
-                prefs.remove(floatPreferencesKey(key))
-                prefs.remove(intPreferencesKey(key))
-                prefs.remove(longPreferencesKey(key))
-                prefs.remove(stringPreferencesKey(key))
-                prefs.remove(stringSetPreferencesKey(key))
-            }
-        }
-    }
-
     suspend fun exportToJson(): JsonObject {
         val preferences = dataStore.data.first()
         val map = mutableMapOf<String, JsonElement>()
         map[KEY_BACKUP_VERSION] = JsonPrimitive(BACKUP_VERSION)
         preferences.asMap().forEach { (key, value) ->
-            if (key.name == KEY_MIGRATION) return@forEach
+            if (key.name == KEY_MIGRATION) {
+                return@forEach
+            }
             map[key.name] = toValueHolder(value)
         }
         return JsonObject(map)
@@ -248,7 +199,7 @@ class DataStorePreferenceDataStore private constructor(
                 is Long -> LONG
                 is String -> STRING
                 is Set<*> -> STRING_SET
-                else -> error("Unsupported value type: ${value::class.java}")
+                else -> error("Unsupported value type: ${value::class}")
             }
         }
     }

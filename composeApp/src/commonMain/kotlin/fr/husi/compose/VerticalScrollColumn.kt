@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @Composable
@@ -47,9 +47,7 @@ fun VerticalScrollColumn(
                     .padding(start = 4.dp)
                     .height(with(density) { viewportHeight.toDp() }),
                 adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 12.dp,
-                ),
+                style = HusiScrollbarDefaults.style(),
             )
         }
     }

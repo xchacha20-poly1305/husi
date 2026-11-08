@@ -16,26 +16,28 @@ import fr.husi.tailscale.TAILSCALE_STATE_RUNNING
 import fr.husi.tailscale.TAILSCALE_STATE_STOPPED
 import fr.husi.tailscale.TailscaleEndpointState
 import fr.husi.tailscale.TailscalePeerState
-import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun tailscaleStateColor(state: String): Color = when (state) {
-    TAILSCALE_STATE_RUNNING -> MaterialTheme.colorScheme.primary
-    TAILSCALE_STATE_NEEDS_LOGIN -> MaterialTheme.colorScheme.tertiary
-    TAILSCALE_STATE_STOPPED -> MaterialTheme.colorScheme.onSurfaceVariant
-    else -> MaterialTheme.colorScheme.error
-}
+internal fun tailscaleStateColor(state: String): Color =
+    when (state) {
+        TAILSCALE_STATE_RUNNING -> MaterialTheme.colorScheme.primary
+        TAILSCALE_STATE_NEEDS_LOGIN -> MaterialTheme.colorScheme.tertiary
+        TAILSCALE_STATE_STOPPED -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.error
+    }
 
 @Composable
 internal fun tailscaleStateLabel(endpoint: TailscaleEndpointState): String {
     if (endpoint.stateText.isNotEmpty()) return endpoint.stateText
-    val resource = when (endpoint.backendState) {
-        TAILSCALE_STATE_RUNNING -> Res.string.connected
-        TAILSCALE_STATE_NEEDS_LOGIN -> Res.string.tailscale_state_needs_login
-        TAILSCALE_STATE_STOPPED -> Res.string.tailscale_state_stopped
-        else -> null
-    }
+    val resource =
+        when (endpoint.backendState) {
+            TAILSCALE_STATE_RUNNING -> Res.string.connected
+            TAILSCALE_STATE_NEEDS_LOGIN -> Res.string.tailscale_state_needs_login
+            TAILSCALE_STATE_STOPPED -> Res.string.tailscale_state_stopped
+            else -> null
+        }
     return resource?.let { stringResource(it) } ?: endpoint.backendState
 }
 

@@ -16,6 +16,7 @@ wrong.
 | Instead of                                     | Run                     |
 |------------------------------------------------|-------------------------|
 | `./gradlew :composeApp:allTests` / `:desktopTest` | `make test_gradle`      |
+| `:composeApp:wasmJsBrowserTest` (web dashboard tests) | `make test_web`    |
 | `:composeApp:compileKotlinDesktop` (compile check) | `make test_gradle`      |
 | `:composeApp:compileAndroidMain` (compile check)   | `make apk_debug`        |
 | `cd libcore && go test ./...`                  | `make test_go`          |

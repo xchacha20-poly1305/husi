@@ -11,7 +11,7 @@ import fr.husi.libcore.Service
 import java.io.File
 import org.koin.core.context.GlobalContext
 
-interface AndroidRepository : Repository {
+interface AndroidRepository : LocalRepository {
     val context: Context
     val configureIntent: (Context) -> PendingIntent
     val connectivity: ConnectivityManager

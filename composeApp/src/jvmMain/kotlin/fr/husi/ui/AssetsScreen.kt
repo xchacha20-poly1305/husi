@@ -1,0 +1,626 @@
+package fr.husi.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.DropdownMenuGroup
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.ResultEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import fr.husi.RuleProvider
+import fr.husi.bg.RouteAssetUpdater
+import fr.husi.bg.createRouteCustomGeoDir
+import fr.husi.bg.createRouteGeoDir
+import fr.husi.bg.currentEpochSeconds
+import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TextButton
+import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.collectAsStateWithLifecycle
+import fr.husi.compose.material3.Button
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
+import fr.husi.compose.material3.Text
+import fr.husi.compose.rememberSwipeToDismissBoxStateUnsaveable
+import fr.husi.compose.theme.HusiScrollbarDefaults
+import fr.husi.compose.withNavigation
+import fr.husi.database.DataStore
+import fr.husi.ktx.Logs
+import fr.husi.ktx.unpackArchive
+import fr.husi.repository.resolveRepository
+import fr.husi.resources.Res
+import fr.husi.resources.action_import_file
+import fr.husi.resources.arrow_back
+import fr.husi.resources.assets_update
+import fr.husi.resources.auto_update_off
+import fr.husi.resources.auto_update_on
+import fr.husi.resources.back
+import fr.husi.resources.cancel
+import fr.husi.resources.delete
+import fr.husi.resources.edit
+import fr.husi.resources.import_url
+import fr.husi.resources.link
+import fr.husi.resources.more
+import fr.husi.resources.more_vert
+import fr.husi.resources.note_add
+import fr.husi.resources.ok
+import fr.husi.resources.removed
+import fr.husi.resources.replay
+import fr.husi.resources.reset_rule_set
+import fr.husi.resources.route_asset_status
+import fr.husi.resources.route_assets
+import fr.husi.resources.route_global_asset_auto_update_delay
+import fr.husi.resources.timer
+import fr.husi.resources.undo
+import fr.husi.resources.update
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
+import java.io.File
+import kotlin.random.Random
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+
+private const val ASSET_BUILT_IN = 0
+private const val ASSET_CUSTOM = 1
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun AssetsScreen(
+    onBackPress: () -> Unit,
+    onOpenAssetEditor: (NavRoutes.AssetEdit) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val cacheDir = resolveRepository().cacheDir
+    val assetsDir = resolveRepository().externalAssetsDir
+    val geoDir = remember { createRouteGeoDir(assetsDir) }
+    val customGeoDir = remember { createRouteCustomGeoDir(assetsDir) }
+    val viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel(assetsDir, customGeoDir) }
+    val scope = rememberCoroutineScope()
+    val activeResultKeys = remember { mutableStateListOf<String>() }
+    val rulesProvider by DataStore.rulesProvider.collectAsStateWithLifecycle()
+    val routeAssetsAutoUpdateDelay by DataStore.routeAssetsAutoUpdateDelay.collectAsStateWithLifecycle()
+    var showAutoUpdateDelayDialog by remember { mutableStateOf(false) }
+    val autoUpdateDelayValue = remember(routeAssetsAutoUpdateDelay, showAutoUpdateDelayDialog) {
+        TextFieldState(routeAssetsAutoUpdateDelay.toString())
+    }
+    var isOverflowMenuExpanded by remember { mutableStateOf(false) }
+
+    fun saveRouteAssetsAutoUpdateDelay() {
+        val delay = autoUpdateDelayValue.text.toString().toIntOrNull() ?: 0
+        showAutoUpdateDelayDialog = false
+        scope.launch(Dispatchers.Default) {
+            DataStore.routeAssetsAutoUpdateDelay.set(delay)
+            RouteAssetUpdater.reconfigureUpdater()
+        }
+    }
+
+    fun handleAssetEditResult(result: AssetEditResult) {
+        when (result) {
+            is AssetEditResult.ShouldUpdate -> {
+                viewModel.updateSingleAsset(customGeoDir.resolve(result.assetName))
+            }
+
+            is AssetEditResult.Deleted -> {
+                scope.launch(Dispatchers.IO) {
+                    viewModel.deleteAssets(listOf(customGeoDir.resolve(result.assetName)))
+                }
+            }
+
+            else -> {}
+        }
+    }
+
+    fun openAssetEditor(assetName: String) {
+        val resultKey = assetName.ifEmpty {
+            "asset-edit-new-${Random.nextLong()}"
+        }
+        if (resultKey !in activeResultKeys) {
+            activeResultKeys += resultKey
+        }
+        onOpenAssetEditor(
+            NavRoutes.AssetEdit(
+                assetName = assetName,
+                resultKey = resultKey,
+            ),
+        )
+    }
+
+    val importFile = rememberFilePickerLauncher { file ->
+        scope.launch(Dispatchers.IO) {
+            if (file == null) return@launch
+            val fileName = file.name
+
+            val tempImportFile = File(cacheDir, fileName).apply {
+                parentFile?.mkdirs()
+            }
+            try {
+                tempImportFile.writeBytes(file.readBytes())
+            } catch (e: Exception) {
+                Logs.e(e)
+                return@launch
+            }
+            try {
+                unpackArchive(tempImportFile, geoDir)
+            } catch (e: Exception) {
+                Logs.e(e)
+                return@launch
+            } finally {
+                tempImportFile.delete()
+            }
+
+            val nameList = listOf("geosite", "geoip")
+            for (name in nameList) {
+                val file = File(assetsDir, "$name.version.txt")
+                if (file.isFile) file.delete()
+                file.createNewFile()
+                file.writeText("Custom")
+            }
+
+            DataStore.routeAssetsLastUpdated.set(currentEpochSeconds())
+            RouteAssetUpdater.reconfigureUpdater()
+            viewModel.refreshAssets()
+        }
+    }
+
+    val windowInsets = WindowInsets.safeDrawing
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val snackbar = LocalSnackbarEmitter.current
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.commit()
+        }
+    }
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    for (resultKey in activeResultKeys.toList()) {
+        ResultEffect<AssetEditResult>(resultKey = resultKey) { result ->
+            handleAssetEditResult(result)
+        }
+    }
+
+    LaunchedEffect(uiState.pendingDeleteCount) {
+        if (uiState.pendingDeleteCount > 0) {
+            snackbar.show(
+                StringOrRes.PluralsRes(
+                    Res.plurals.removed,
+                    uiState.pendingDeleteCount,
+                    uiState.pendingDeleteCount,
+                ),
+                StringOrRes.Res(Res.string.undo),
+            ) { result ->
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.undo()
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AssetsScreenUiEvent.Snackbar -> snackbar.show(event.message)
+            }
+        }
+    }
+
+    val hazeState = rememberHazeState()
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                CapsuleTopBar(
+                    hazeState = hazeState,
+                    navigationIcon = {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.arrow_back),
+                            contentDescription = stringResource(Res.string.back),
+                            onClick = onBackPress,
+                        )
+                    },
+                    title = { Text(stringResource(Res.string.route_assets)) },
+                    actions = {
+                        val canOperate =
+                            uiState.process == null && uiState.assets.none { it.isUpdating }
+                        val canReset = canOperate && rulesProvider == RuleProvider.OFFICIAL
+
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.timer),
+                                contentDescription = stringResource(Res.string.route_global_asset_auto_update_delay),
+                                onClick = { showAutoUpdateDelayDialog = true },
+                            )
+                        }
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.update),
+                                contentDescription = stringResource(Res.string.assets_update),
+                                enabled = canOperate,
+                                onClick = {
+                                    viewModel.updateAsset(cacheDir = cacheDir)
+                                },
+                            )
+                        }
+                        CapsuleActionButton {
+                            Box {
+                                SimpleIconButton(
+                                    imageVector = vectorResource(Res.drawable.more_vert),
+                                    contentDescription = stringResource(Res.string.more),
+                                    onClick = { isOverflowMenuExpanded = true },
+                                )
+
+                                ScrollableDropdownMenuPopup(
+                                    expanded = isOverflowMenuExpanded,
+                                    onDismissRequest = { isOverflowMenuExpanded = false },
+                                ) {
+                                    DropdownMenuGroup(
+                                        shapes = MenuDefaults.groupShape(0, 1),
+                                    ) {
+                                        DropdownMenuItem(
+                                            selected = false,
+                                            text = { Text(stringResource(Res.string.reset_rule_set)) },
+                                            onClick = {
+                                                isOverflowMenuExpanded = false
+                                                viewModel.resetRuleSet()
+                                            },
+                                            leadingIcon = {
+                                                Icon(vectorResource(Res.drawable.replay), null)
+                                            },
+                                            enabled = canReset,
+                                            shapes = MenuDefaults.itemShape(0, 3),
+                                        )
+                                        DropdownMenuItem(
+                                            selected = false,
+                                            text = { Text(stringResource(Res.string.action_import_file)) },
+                                            onClick = {
+                                                isOverflowMenuExpanded = false
+                                                importFile.launch()
+                                            },
+                                            leadingIcon = {
+                                                Icon(vectorResource(Res.drawable.note_add), null)
+                                            },
+                                            shapes = MenuDefaults.itemShape(1, 3),
+                                        )
+                                        DropdownMenuItem(
+                                            selected = false,
+                                            text = { Text(stringResource(Res.string.import_url)) },
+                                            onClick = {
+                                                isOverflowMenuExpanded = false
+                                                openAssetEditor("")
+                                            },
+                                            leadingIcon = {
+                                                Icon(vectorResource(Res.drawable.link), null)
+                                            },
+                                            shapes = MenuDefaults.itemShape(2, 3),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                    scrollBehavior = scrollBehavior,
+                )
+
+                uiState.process?.let {
+                    LinearWavyProgressIndicator(
+                        progress = { it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter),
+                    )
+                }
+            }
+        },
+
+        ) { innerPadding ->
+        val listState = rememberLazyListState()
+        val contentPadding = innerPadding.withNavigation()
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = contentPadding,
+            ) {
+                items(
+                    items = uiState.assets,
+                    key = { asset -> asset.file.name },
+                    contentType = { asset ->
+                        if (asset.builtIn) {
+                            ASSET_BUILT_IN
+                        } else {
+                            ASSET_CUSTOM
+                        }
+                    },
+                ) { asset ->
+                    if (!asset.builtIn) {
+                        SwipeToDismissBox(
+                            state = rememberSwipeToDismissBoxStateUnsaveable(asset.file.name),
+                            enableDismissFromStartToEnd = true,
+                            enableDismissFromEndToStart = true,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp),
+                                    contentAlignment = Alignment.CenterEnd,
+                                ) {
+                                    Icon(vectorResource(Res.drawable.delete), null)
+                                }
+                            },
+                            onDismiss = { viewModel.undoableRemove(asset.file.name) },
+                        ) {
+                            AssetCard(
+                                asset = asset,
+                                globalAutoUpdateDelay = routeAssetsAutoUpdateDelay,
+                                enabled = uiState.process == null,
+                                onEditAsset = { openAssetEditor(it) },
+                                onUpdateAsset = { viewModel.updateSingleAsset(it) },
+                            )
+                        }
+                    } else {
+                        AssetCard(
+                            asset = asset,
+                            globalAutoUpdateDelay = routeAssetsAutoUpdateDelay,
+                            enabled = uiState.process == null,
+                            onEditAsset = { openAssetEditor(it) },
+                            onUpdateAsset = { viewModel.updateSingleAsset(it) },
+                        )
+                    }
+                }
+            }
+
+            BoxedVerticalScrollbar(
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = listState),
+                style = HusiScrollbarDefaults.style(),
+            )
+        }
+    }
+
+    if (showAutoUpdateDelayDialog) {
+        AlertDialog(
+            onDismissRequest = { showAutoUpdateDelayDialog = false },
+            confirmButton = {
+                TextButton(stringResource(Res.string.ok)) {
+                    saveRouteAssetsAutoUpdateDelay()
+                }
+            },
+            dismissButton = {
+                TextButton(stringResource(Res.string.cancel)) {
+                    showAutoUpdateDelayDialog = false
+                }
+            },
+            icon = { Icon(vectorResource(Res.drawable.timer), null) },
+            title = { Text(stringResource(Res.string.route_global_asset_auto_update_delay)) },
+            text = {
+                UIntegerTextField(
+                    state = autoUpdateDelayValue,
+                    onOk = ::saveRouteAssetsAutoUpdateDelay,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+private fun AssetCard(
+    asset: AssetItem,
+    globalAutoUpdateDelay: Int,
+    enabled: Boolean,
+    onEditAsset: (String) -> Unit,
+    onUpdateAsset: (File) -> Unit,
+) {
+    val autoUpdateDelay = if (asset.builtIn) {
+        globalAutoUpdateDelay
+    } else {
+        asset.autoUpdateDelay
+    }
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.elevatedCardElevation(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = asset.file.name,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
+                        )
+                        if (asset.isUpdating) {
+                            CircularWavyProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = stringResource(
+                            Res.string.route_asset_status,
+                            asset.version,
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = if (autoUpdateDelay > 0) {
+                            stringResource(Res.string.auto_update_on, autoUpdateDelay)
+                        } else {
+                            stringResource(Res.string.auto_update_off)
+                        },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                if (!asset.builtIn) {
+                    Column(
+                        modifier = Modifier.wrapContentWidth(),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        val clickable = enabled && !asset.isUpdating
+                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                            Box(modifier = Modifier.size(36.dp)) {
+                                SimpleIconButton(
+                                    imageVector = vectorResource(Res.drawable.edit),
+                                    contentDescription = stringResource(Res.string.edit),
+                                    enabled = clickable,
+                                    onClick = {
+                                        onEditAsset(asset.file.name)
+                                    },
+                                )
+                            }
+                        }
+                        Button(
+                            onClick = {
+                                onUpdateAsset(asset.file)
+                            },
+                            enabled = clickable,
+                            contentPadding = PaddingValues(
+                                horizontal = 12.dp,
+                                vertical = 6.dp,
+                            ),
+                            modifier = Modifier.defaultMinSize(minHeight = 36.dp),
+                        ) {
+                            Text(stringResource(Res.string.update))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewAssetCards() {
+    PreviewContainer {
+        val assetsDir = resolveRepository().externalAssetsDir
+        val geoDir = remember { createRouteGeoDir(assetsDir) }
+        val customGeoDir = remember { createRouteCustomGeoDir(assetsDir) }
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            AssetCard(
+                asset = AssetItem(
+                    file = geoDir.resolve("geoip.db"),
+                    version = "20260828",
+                    builtIn = true,
+                ),
+                globalAutoUpdateDelay = 0,
+                enabled = true,
+                onEditAsset = {},
+                onUpdateAsset = {},
+            )
+            AssetCard(
+                asset = AssetItem(
+                    file = geoDir.resolve("geosite.db"),
+                    version = "20260828",
+                    builtIn = true,
+                    autoUpdateDelay = 0,
+                    isUpdating = true,
+                ),
+                globalAutoUpdateDelay = 4400,
+                enabled = true,
+                onEditAsset = {},
+                onUpdateAsset = {},
+            )
+            AssetCard(
+                asset = AssetItem(
+                    file = customGeoDir.resolve("geosite-foo.srs"),
+                    version = "20260828",
+                    builtIn = false,
+                ),
+                globalAutoUpdateDelay = 0,
+                enabled = true,
+                onEditAsset = {},
+                onUpdateAsset = {},
+            )
+        }
+    }
+}

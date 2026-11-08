@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.zIndex
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
+import fr.husi.database.preference.setBlocking
 import java.awt.Cursor
 import java.awt.Point
 import java.awt.Toolkit

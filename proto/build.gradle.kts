@@ -25,8 +25,7 @@ layout.buildDirectory.set(file("../build/proto"))
 
 sourceSets {
     main {
-        // This directory is also the buf module root, so that Gradle and
-        // `make proto` compile the very same tree with the same import paths.
+        // Gradle and `make proto` compile the same schema tree and import paths.
         proto {
             setSrcDirs(listOf(projectDir))
         }

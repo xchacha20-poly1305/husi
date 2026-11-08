@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -56,28 +56,29 @@ import fr.husi.resources.tailscale_ssh_connecting
 import fr.husi.resources.tailscale_ssh_new_session
 import fr.husi.resources.tailscale_ssh_sessions
 import fr.husi.tailscale.TailscaleSSHPhase
-import fr.husi.tailscale.TailscaleSSHSession
-import fr.husi.tailscale.TailscaleSSHSessionManager
+import fr.husi.tailscale.TailscaleSSHSessionView
 import fr.husi.ui.terminal.TerminalPane
 import io.github.xchacha20_poly1305.libghostty.compose.GhosttyDialogs
 import io.github.xchacha20_poly1305.libghostty.compose.rememberGhosttyTerminalState
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import org.koin.compose.koinInject
 
 @Composable
-fun TailscaleSSHTerminalScreen(
+fun TailscaleSSHTerminalContent(
+    sessions: List<TailscaleSSHSessionView>,
+    activeSessionId: Long?,
     onClose: () -> Unit,
+    onCloseSession: (Long) -> Unit,
+    onSelectSession: (Long) -> Unit,
+    onDuplicateSession: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    manager: TailscaleSSHSessionManager = koinInject(),
 ) {
-    val state by manager.state.collectAsStateWithLifecycle()
-    val activeSession = state.activeSession
+    val activeSession = sessions.firstOrNull { it.id == activeSessionId }
     val terminalState = rememberGhosttyTerminalState()
     var isOverflowMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(state.sessions.isEmpty()) {
-        if (state.sessions.isEmpty()) onClose()
+    LaunchedEffect(sessions.isEmpty()) {
+        if (sessions.isEmpty()) onClose()
     }
 
     val windowInsets = WindowInsets.safeDrawing
@@ -110,14 +111,17 @@ fun TailscaleSSHTerminalScreen(
                             SessionMenu(
                                 expanded = isOverflowMenuExpanded,
                                 onDismissRequest = { isOverflowMenuExpanded = false },
-                                sessions = state.sessions,
+                                sessions = sessions,
                                 activeSession = activeSession,
-                                manager = manager,
+                                onCloseSession = onCloseSession,
+                                onSelectSession = onSelectSession,
+                                onDuplicateSession = onDuplicateSession,
                             )
                         }
                     }
                 },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                windowInsets =
+                    windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
             )
         },
     ) { innerPadding ->
@@ -125,14 +129,12 @@ fun TailscaleSSHTerminalScreen(
         TerminalPane(
             session = activeSession.terminal,
             state = terminalState,
-            onFinishedSessionKey = { manager.close(activeSession.id) },
+            onFinishedSessionKey = { onCloseSession(activeSession.id) },
             hazeState = hazeState,
-            // The input method shrinks the pane, so the terminal resizes to the rows left above it; the bars stay
+            // The input method shrinks the pane, so the terminal resizes to the rows left above it;
+            // the bars stay
             // padding so the rows behind them show through.
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(innerPadding)
-                .imePadding(),
+            modifier = Modifier.fillMaxSize().consumeWindowInsets(innerPadding).imePadding(),
             contentPadding = innerPadding,
             overlay = { SessionStatus(activeSession) },
         )
@@ -145,15 +147,18 @@ fun TailscaleSSHTerminalScreen(
 private fun SessionMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
-    sessions: List<TailscaleSSHSession>,
-    activeSession: TailscaleSSHSession?,
-    manager: TailscaleSSHSessionManager,
+    sessions: List<TailscaleSSHSessionView>,
+    activeSession: TailscaleSSHSessionView?,
+    onCloseSession: (Long) -> Unit,
+    onSelectSession: (Long) -> Unit,
+    onDuplicateSession: (Long) -> Unit,
 ) {
-    val groupCount = if (sessions.size > 1) {
-        2
-    } else {
-        1
-    }
+    val groupCount =
+        if (sessions.size > 1) {
+            2
+        } else {
+            1
+        }
     ScrollableDropdownMenuPopup(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
@@ -165,7 +170,7 @@ private fun SessionMenu(
                 text = { Text(stringResource(Res.string.tailscale_ssh_new_session)) },
                 onClick = {
                     onDismissRequest()
-                    activeSession?.let { manager.duplicate(it.id) }
+                    activeSession?.let { onDuplicateSession(it.id) }
                 },
                 leadingIcon = { Icon(vectorResource(Res.drawable.add), null) },
                 shape = MenuDefaults.itemShape(0, 2).shape,
@@ -174,7 +179,7 @@ private fun SessionMenu(
                 text = { Text(stringResource(Res.string.tailscale_ssh_close_session)) },
                 onClick = {
                     onDismissRequest()
-                    activeSession?.let { manager.close(it.id) }
+                    activeSession?.let { onCloseSession(it.id) }
                 },
                 leadingIcon = { Icon(vectorResource(Res.drawable.close), null) },
                 shape = MenuDefaults.itemShape(1, 2).shape,
@@ -191,7 +196,7 @@ private fun SessionMenu(
                         text = { Text(sessionTitle(session)) },
                         onClick = {
                             onDismissRequest()
-                            manager.select(session.id)
+                            onSelectSession(session.id)
                         },
                         trailingIcon = {
                             RadioButton(
@@ -208,7 +213,7 @@ private fun SessionMenu(
 }
 
 @Composable
-private fun SessionStatus(session: TailscaleSSHSession) {
+private fun SessionStatus(session: TailscaleSSHSessionView) {
     val phase by session.phase.collectAsStateWithLifecycle()
     val banner by session.banner.collectAsStateWithLifecycle()
     val connecting = phase == TailscaleSSHPhase.CONNECTING
@@ -243,7 +248,7 @@ private fun SessionStatus(session: TailscaleSSHSession) {
 }
 
 @Composable
-private fun sessionTitle(session: TailscaleSSHSession): String {
+private fun sessionTitle(session: TailscaleSSHSessionView): String {
     val terminalTitle by session.terminal.title.collectAsStateWithLifecycle()
     return terminalTitle.blankAsNull() ?: session.target.peerHostName
 }
@@ -254,11 +259,9 @@ private val bannerUrlSchemes = listOf("http://", "https://")
 private fun bannerText(text: String) = buildAnnotatedString {
     var lastIndex = 0
     while (true) {
-        val urlStart = bannerUrlSchemes
-            .map { text.indexOf(it, lastIndex) }
-            .filter { it >= 0 }
-            .minOrNull()
-            ?: break
+        val urlStart =
+            bannerUrlSchemes.map { text.indexOf(it, lastIndex) }.filter { it >= 0 }.minOrNull()
+                ?: break
         var urlEnd = urlStart
         while (urlEnd < text.length && !text[urlEnd].isWhitespace()) {
             urlEnd++

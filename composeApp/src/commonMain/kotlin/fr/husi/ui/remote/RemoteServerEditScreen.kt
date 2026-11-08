@@ -2,7 +2,6 @@ package fr.husi.ui.remote
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -20,14 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -43,6 +38,7 @@ import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_back
@@ -68,36 +64,35 @@ import fr.husi.resources.remote_test_success
 import fr.husi.resources.replay
 import fr.husi.resources.server_address
 import fr.husi.resources.wifi_find
-import fr.husi.ui.PreviewContainer
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
 @Composable
-fun RemoteServerEditScreen(
-    serverId: Long,
+fun RemoteServerEditContent(
+    uiState: RemoteServerEditUiState,
     onBackPress: () -> Unit,
+    onSave: () -> Unit,
+    onSetName: (String) -> Unit,
+    onSetUrl: (String) -> Unit,
+    onSetSecret: (String) -> Unit,
+    onTestConnection: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RemoteServerEditViewModel = viewModel {
-        RemoteServerEditViewModel(serverId)
-    },
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
     val listState = rememberLazyListState()
-    val title = if (uiState.isNew) {
-        stringResource(Res.string.remote_server_add)
-    } else {
-        stringResource(Res.string.remote_server_edit)
-    }
+    val title = stringResource(
+        if (uiState.isNew) {
+            Res.string.remote_server_add
+        } else {
+            Res.string.remote_server_edit
+        },
+    )
 
     val hazeState = rememberHazeState()
     Scaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CapsuleTopBar(
                 hazeState = hazeState,
@@ -114,11 +109,12 @@ fun RemoteServerEditScreen(
                         SimpleIconButton(
                             imageVector = vectorResource(Res.drawable.done),
                             contentDescription = stringResource(Res.string.done),
-                            onClick = { viewModel.save(onSaved = onBackPress) },
+                            onClick = { onSave() },
                         )
                     }
                 },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                windowInsets =
+                    windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -126,22 +122,17 @@ fun RemoteServerEditScreen(
         ProvidePreferenceLocals {
             val contentPadding = innerPadding.withNavigation()
             Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .hazeSource(hazeState),
+                modifier = Modifier.fillMaxSize().hazeSource(hazeState),
             ) {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .fadingEdge(listState),
+                    modifier = Modifier.weight(1f).fillMaxHeight().fadingEdge(listState),
                     contentPadding = contentPadding,
                 ) {
                     preferenceGroup {
                         TextFieldPreference(
                             value = uiState.name,
-                            onValueChange = viewModel::setName,
+                            onValueChange = onSetName,
                             title = { Text(stringResource(Res.string.profile_name)) },
                             textToValue = { it },
                             icon = {
@@ -161,7 +152,7 @@ fun RemoteServerEditScreen(
                         )
                         TextFieldPreference(
                             value = uiState.url,
-                            onValueChange = viewModel::setUrl,
+                            onValueChange = onSetUrl,
                             title = { Text(stringResource(Res.string.server_address)) },
                             textToValue = { it },
                             icon = {
@@ -185,7 +176,7 @@ fun RemoteServerEditScreen(
                         )
                         PasswordPreference(
                             value = uiState.secret,
-                            onValueChange = viewModel::setSecret,
+                            onValueChange = onSetSecret,
                             title = { Text(stringResource(Res.string.remote_server_secret)) },
                             icon = {
                                 MaskedIcon(
@@ -199,16 +190,14 @@ fun RemoteServerEditScreen(
                     item {
                         ConnectionTestStatus(
                             state = uiState.test,
-                            onRetry = viewModel::testConnection,
+                            onRetry = onTestConnection,
                         )
                     }
                 }
                 BoxedVerticalScrollbar(
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .fillMaxHeight(),
+                    modifier = Modifier.padding(contentPadding).fillMaxHeight(),
                     adapter = rememberScrollbarAdapter(scrollState = listState),
-                    style = defaultMaterialScrollbarStyle().copy(thickness = 12.dp),
+                    style = HusiScrollbarDefaults.style(),
                 )
             }
         }
@@ -222,34 +211,34 @@ private fun ConnectionTestStatus(
     modifier: Modifier = Modifier,
 ) {
     val indicatorSize = 20.dp
-    val message = when (state) {
-        RemoteServerTestState.Idle -> stringResource(Res.string.connection_test)
-        RemoteServerTestState.Testing -> stringResource(Res.string.connecting)
-        RemoteServerTestState.InvalidURL -> stringResource(Res.string.remote_server_url_invalid)
-        is RemoteServerTestState.Success -> stringResource(
-            Res.string.remote_test_success,
-            state.version,
-        )
-        is RemoteServerTestState.Failure -> stringResource(
-            Res.string.connection_test_error,
-            state.message,
-        )
-    }
-    val contentColor = when (state) {
-        is RemoteServerTestState.Success -> MaterialTheme.colorScheme.primary
-        RemoteServerTestState.InvalidURL,
-        is RemoteServerTestState.Failure,
-            -> MaterialTheme.colorScheme.error
+    val message =
+        when (state) {
+            RemoteServerTestState.Idle -> stringResource(Res.string.connection_test)
+            RemoteServerTestState.Testing -> stringResource(Res.string.connecting)
+            RemoteServerTestState.InvalidURL -> stringResource(Res.string.remote_server_url_invalid)
+            is RemoteServerTestState.Success ->
+                stringResource(
+                    Res.string.remote_test_success,
+                    state.version,
+                )
+            is RemoteServerTestState.Failure ->
+                stringResource(
+                    Res.string.connection_test_error,
+                    state.message,
+                )
+        }
+    val contentColor =
+        when (state) {
+            is RemoteServerTestState.Success -> MaterialTheme.colorScheme.primary
+            RemoteServerTestState.InvalidURL,
+            is RemoteServerTestState.Failure -> MaterialTheme.colorScheme.error
 
-        RemoteServerTestState.Idle,
-        RemoteServerTestState.Testing,
-            -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
+            RemoteServerTestState.Idle,
+            RemoteServerTestState.Testing -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -258,29 +247,32 @@ private fun ConnectionTestStatus(
             contentAlignment = Alignment.Center,
         ) {
             when (state) {
-                RemoteServerTestState.Testing -> LoadingIndicator(
-                    modifier = Modifier.size(indicatorSize),
-                )
+                RemoteServerTestState.Testing ->
+                    LoadingIndicator(
+                        modifier = Modifier.size(indicatorSize),
+                    )
 
-                is RemoteServerTestState.Success -> Icon(
-                    imageVector = vectorResource(Res.drawable.check),
-                    contentDescription = null,
-                    tint = contentColor,
-                )
+                is RemoteServerTestState.Success ->
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.check),
+                        contentDescription = null,
+                        tint = contentColor,
+                    )
 
                 RemoteServerTestState.InvalidURL,
-                is RemoteServerTestState.Failure,
-                    -> Icon(
-                    imageVector = vectorResource(Res.drawable.error),
-                    contentDescription = null,
-                    tint = contentColor,
-                )
+                is RemoteServerTestState.Failure ->
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.error),
+                        contentDescription = null,
+                        tint = contentColor,
+                    )
 
-                RemoteServerTestState.Idle -> Icon(
-                    imageVector = vectorResource(Res.drawable.wifi_find),
-                    contentDescription = null,
-                    tint = contentColor,
-                )
+                RemoteServerTestState.Idle ->
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.wifi_find),
+                        contentDescription = null,
+                        tint = contentColor,
+                    )
             }
         }
         Text(
@@ -294,37 +286,6 @@ private fun ConnectionTestStatus(
             contentDescription = stringResource(Res.string.refresh),
             enabled = state != RemoteServerTestState.Testing,
             onClick = onRetry,
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewConnectionTestStatus() {
-    PreviewContainer {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            ConnectionTestStatus(state = RemoteServerTestState.Idle, onRetry = {})
-            ConnectionTestStatus(state = RemoteServerTestState.Testing, onRetry = {})
-            ConnectionTestStatus(state = RemoteServerTestState.InvalidURL, onRetry = {})
-            ConnectionTestStatus(
-                state = RemoteServerTestState.Success(version = "1.13.0"),
-                onRetry = {},
-            )
-            ConnectionTestStatus(
-                state = RemoteServerTestState.Failure(message = "connection refused"),
-                onRetry = {},
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewRemoteServerEditScreen() {
-    PreviewContainer {
-        RemoteServerEditScreen(
-            serverId = 0L,
-            onBackPress = {},
         )
     }
 }

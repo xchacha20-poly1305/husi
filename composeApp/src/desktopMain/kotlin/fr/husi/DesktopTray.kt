@@ -12,6 +12,8 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.setSystemClipboardPlainText
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
+import fr.husi.database.preference.setBlocking
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DesktopRepository

@@ -2,7 +2,7 @@ package fr.husi.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import fr.husi.repository.resolveRepository
+import fr.husi.repository.Repository
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -37,16 +37,10 @@ fun stringOrRes(str: StringOrRes): String = when (str) {
     }
 }
 
-suspend fun getStringOrRes(str: StringOrRes): String = when (str) {
+suspend fun Repository.getStringOrRes(str: StringOrRes): String = when (str) {
     is StringOrRes.Direct -> str.value
-    is StringOrRes.Res -> resolveRepository().getString(str.resource)
-    is StringOrRes.ResWithParams -> resolveRepository().getString(str.resource, *str.params)
-    is StringOrRes.PluralsRes -> resolveRepository().getPluralString(str.resource, str.quantity, *str.params)
-    is StringOrRes.Compound -> {
-        val parts = ArrayList<String>(str.parts.size)
-        for (part in str.parts) {
-            parts += getStringOrRes(part)
-        }
-        parts.joinToString(str.separator)
-    }
+    is StringOrRes.Res -> getString(str.resource)
+    is StringOrRes.ResWithParams -> getString(str.resource, *str.params)
+    is StringOrRes.PluralsRes -> getPluralString(str.resource, str.quantity, *str.params)
+    is StringOrRes.Compound -> str.parts.map { getStringOrRes(it) }.joinToString(str.separator)
 }

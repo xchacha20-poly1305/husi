@@ -11,13 +11,14 @@ import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import fr.husi.ktx.showAndDismissOld
-import fr.husi.repository.resolveRepository
+import fr.husi.repository.Repository
 import fr.husi.resources.Res
 import fr.husi.resources.ok
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @Immutable
 class SnackbarMessage(
@@ -72,13 +73,15 @@ fun SnackbarEmitterEffect(
     emitter: SnackbarEmitter,
     hostState: SnackbarHostState,
 ) {
-    LaunchedEffect(emitter, hostState) {
+    val repository = koinInject<Repository>()
+    LaunchedEffect(emitter, hostState, repository) {
         emitter.messages.collect { snackbarMessage ->
             this@LaunchedEffect.launch {
                 val result = hostState.showAndDismissOld(
-                    message = getStringOrRes(snackbarMessage.message),
-                    actionLabel = snackbarMessage.actionLabel?.let { getStringOrRes(it) }
-                        ?: resolveRepository().getString(Res.string.ok),
+                    message = repository.getStringOrRes(snackbarMessage.message),
+                    actionLabel = repository.getStringOrRes(
+                        snackbarMessage.actionLabel ?: StringOrRes.Res(Res.string.ok),
+                    ),
                     duration = SnackbarDuration.Short,
                 )
                 snackbarMessage.onResult?.invoke(result)

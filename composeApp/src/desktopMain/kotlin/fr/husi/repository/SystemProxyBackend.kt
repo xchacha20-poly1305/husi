@@ -13,7 +13,7 @@ internal fun platformSystemProxyBackend(): SystemProxyBackend {
         Platform.Linux -> LinuxSystemProxyBackend()
         Platform.MacOs -> MacOsSystemProxyBackend()
         Platform.Windows -> WindowsSystemProxyBackend
-        Platform.Android -> error("system proxy is not controlled by the desktop host on Android")
+        Platform.Android, Platform.Web -> error("system proxy is not controlled by the desktop host on Android")
     }
 }
 

@@ -1,0 +1,655 @@
+package fr.husi.ui.jsoneditor
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.result.LocalResultEventBus
+import androidx.navigation3.runtime.result.rememberResultEventBus
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import fr.husi.compose.AutoCompleteSuggestionList
+import fr.husi.compose.BackHandler
+import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TextButton
+import fr.husi.compose.TooltipIconButton
+import fr.husi.compose.fadingEdge
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
+import fr.husi.compose.material3.Text
+import fr.husi.compose.theme.HusiScrollbarDefaults
+import fr.husi.keyevent.isTypeControlPressed
+import fr.husi.resources.Res
+import fr.husi.resources.action_format
+import fr.husi.resources.action_test_config
+import fr.husi.resources.apply
+import fr.husi.resources.close
+import fr.husi.resources.done
+import fr.husi.resources.edit_config
+import fr.husi.resources.error
+import fr.husi.resources.error_title
+import fr.husi.resources.format_align_left
+import fr.husi.resources.indent
+import fr.husi.resources.info
+import fr.husi.resources.keyboard_arrow_left
+import fr.husi.resources.keyboard_arrow_right
+import fr.husi.resources.keyboard_tab
+import fr.husi.resources.no
+import fr.husi.resources.ok
+import fr.husi.resources.redo
+import fr.husi.resources.undo
+import fr.husi.resources.unsaved_changes_prompt
+import fr.husi.resources.warning
+import fr.husi.ui.LocalSnackbarEmitter
+import fr.husi.ui.StringOrRes
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+
+@Composable
+private fun RepeatableIconButton(
+    imageVector: ImageVector,
+    contentDescription: String,
+    enabled: Boolean = true,
+    contentColor: Color = LocalContentColor.current,
+    initialDelay: Duration = 500.milliseconds,
+    repeatDelay: Duration = 60.milliseconds,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled) { } // Make ripple
+            .pointerInput(enabled) {
+                coroutineScope {
+                    awaitEachGesture {
+                        awaitFirstDown()
+                        val job = this@coroutineScope.launch {
+                            onClick()
+                            delay(initialDelay)
+                            while (true) {
+                                onClick()
+                                delay(repeatDelay)
+                            }
+                        }
+                        waitForUpOrCancellation()
+                        job.cancel()
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            tint = if (enabled) {
+                contentColor
+            } else {
+                contentColor.copy(alpha = 0.38f)
+            },
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.ConfigEditFloatingToolbar(
+    viewModel: ConfigEditViewModel,
+    uiState: ConfigEditUiState,
+    coroutineScope: CoroutineScope,
+    toolbarYOffset: Dp,
+    onHeightChanged: (Int) -> Unit,
+) {
+    val toolbarButtonContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+    val toolbarIconButtonColors = IconButtonDefaults.iconButtonColors(
+        contentColor = toolbarButtonContentColor,
+    )
+    HorizontalFloatingToolbar(
+        expanded = true,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .offset(y = -toolbarYOffset)
+            .zIndex(1f)
+            .onSizeChanged { onHeightChanged(it.height) },
+        colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+            toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(
+                alpha = 0.9f,
+            ),
+            toolbarContentColor = MaterialTheme.colorScheme.primary.copy(
+                alpha = 0.8f,
+            ),
+        ),
+    ) {
+        val toolbarScrollState = rememberScrollState()
+        Row(
+            modifier = Modifier
+                .then(
+                    if (useCompactConfigEditFloatingToolbar) {
+                        Modifier
+                    } else {
+                        Modifier.fillMaxWidth()
+                    },
+                )
+                .fadingEdge(
+                    scrollableState = toolbarScrollState,
+                    orientation = Orientation.Horizontal,
+                    fadeStart = true,
+                    fadeEnd = true,
+                )
+                .horizontalScroll(toolbarScrollState),
+        ) {
+            if (showFloatingToolbarSymbolAndCursorButtons) {
+                TooltipIconButton(
+                    icon = vectorResource(Res.drawable.keyboard_tab),
+                    contentDescription = stringResource(Res.string.indent),
+                    colors = toolbarIconButtonColors,
+                    onClick = {
+                        // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
+                        viewModel.insertText(" ".repeat(2))
+                    },
+                )
+            }
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.undo),
+                contentDescription = stringResource(Res.string.undo),
+                enabled = uiState.canUndo,
+                colors = toolbarIconButtonColors,
+                onClick = viewModel::undo,
+            )
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.redo),
+                contentDescription = stringResource(Res.string.redo),
+                enabled = uiState.canRedo,
+                colors = toolbarIconButtonColors,
+                onClick = viewModel::redo,
+            )
+            if (showFloatingToolbarSymbolAndCursorButtons) {
+                RepeatableIconButton(
+                    imageVector = vectorResource(Res.drawable.keyboard_arrow_left),
+                    contentDescription = "<-",
+                    contentColor = toolbarButtonContentColor,
+                    onClick = { viewModel.moveCursor(-1) },
+                )
+
+                RepeatableIconButton(
+                    imageVector = vectorResource(Res.drawable.keyboard_arrow_right),
+                    contentDescription = "->",
+                    contentColor = toolbarButtonContentColor,
+                    onClick = { viewModel.moveCursor(1) },
+                )
+
+                val keys = listOf("{", "}", "[", "]", ":", "\"", "_", "-")
+                keys.forEach { key ->
+                    IconButton(
+                        onClick = {
+                            viewModel.insertText(key)
+                        },
+                        contentColor = toolbarButtonContentColor,
+                    ) {
+                        Text(
+                            text = key,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
+                        )
+                    }
+                }
+            }
+
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.format_align_left),
+                contentDescription = stringResource(Res.string.action_format),
+                colors = toolbarIconButtonColors,
+                onClick = { viewModel.formatCurrentText() },
+            )
+            TooltipIconButton(
+                icon = vectorResource(Res.drawable.info),
+                contentDescription = stringResource(Res.string.action_test_config),
+                colors = toolbarIconButtonColors,
+                onClick = {
+                    coroutineScope.launch {
+                        viewModel.checkConfig()
+                    }
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ConfigSchemaCompletionBar(
+    completions: List<ConfigSchemaCompletion>,
+    selectedCompletion: Int,
+    isEditorFocused: Boolean,
+    cursorPosition: Offset?,
+    cursorRect: Rect?,
+    onCompletionClick: (ConfigSchemaCompletion) -> Unit,
+) {
+    if (!isEditorFocused || completions.isEmpty() || cursorPosition == null || cursorRect == null) return
+    val density = LocalDensity.current
+    val xOffset = with(density) { (cursorPosition.x + cursorRect.left).toDp() }
+    val yOffset = with(density) { (cursorPosition.y + cursorRect.bottom).toDp() }
+    Surface(
+        modifier = Modifier
+            .align(Alignment.TopStart)
+            .offset(x = xOffset, y = yOffset),
+        shape = MenuDefaults.standaloneGroupShape,
+        color = MenuDefaults.groupStandardContainerColor,
+        shadowElevation = 4.dp,
+    ) {
+        AutoCompleteSuggestionList(
+            suggestions = completions,
+            selectedIndex = selectedCompletion,
+            onChooseSuggestion = onCompletionClick,
+        ) { completion ->
+            Column {
+                Text(
+                    text = completion.label,
+                    fontWeight = FontWeight.Medium,
+                )
+                completion.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Medium,
+                        ),
+                        color = LocalContentColor.current,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Sends the edited config as a String result. Nothing is sent when the user leaves without saving.
+ */
+@Composable
+fun ConfigEditScreen(
+    modifier: Modifier = Modifier,
+    initialText: String,
+    resultKey: String,
+    schema: ConfigSchema = ConfigSchema.CONFIG,
+    onBack: () -> Unit,
+) {
+    val viewModel: ConfigEditViewModel = viewModel {
+        ConfigEditViewModel(initialText, schema)
+    }
+    // Force LTR ( this is JSON editor + make AutoMirrored arrow correct  )
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        ConfigEditScreenContent(
+            modifier = modifier,
+            viewModel = viewModel,
+            initialText = initialText,
+            resultKey = resultKey,
+            onBack = onBack,
+        )
+    }
+}
+
+@Composable
+private fun ConfigEditScreenContent(
+    modifier: Modifier = Modifier,
+    viewModel: ConfigEditViewModel,
+    initialText: String,
+    resultKey: String,
+    onBack: () -> Unit,
+) {
+    val resultBus = LocalResultEventBus.current
+    var alert by remember { mutableStateOf<String?>(null) }
+    val snackbar = LocalSnackbarEmitter.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { uiEvent ->
+            when (uiEvent) {
+                is ConfigEditUiEvent.Finish -> {
+                    resultBus.sendResult<String>(resultKey, uiEvent.text)
+                    onBack()
+                }
+
+                is ConfigEditUiEvent.Alert -> alert = uiEvent.message
+
+                is ConfigEditUiEvent.SnackBar -> snackbar.show(StringOrRes.Res(uiEvent.id))
+            }
+        }
+    }
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    var showBackDialog by remember { mutableStateOf(false) }
+    val isDirty by remember(viewModel, initialText) {
+        derivedStateOf { viewModel.textFieldState.text.toString() != initialText }
+    }
+    BackHandler(enabled = isDirty) {
+        showBackDialog = true
+    }
+
+    LaunchedEffect(viewModel) {
+        snapshotFlow {
+            viewModel.textFieldState.text.toString() to viewModel.textFieldState.selection
+        }.collect { (text, selection) ->
+            viewModel.onEditorChange(text, selection)
+        }
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+    val windowInsets = WindowInsets.safeDrawing
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val hazeState = rememberHazeState()
+
+    val colorScheme = MaterialTheme.colorScheme
+    val syntaxStyles = remember(colorScheme) { ConfigJsonSyntaxStyles(colorScheme) }
+
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CapsuleTopBar(
+                hazeState = hazeState,
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.close),
+                        contentDescription = stringResource(Res.string.close),
+                    ) {
+                        if (isDirty) {
+                            showBackDialog = true
+                        } else {
+                            onBack()
+                        }
+                    }
+                },
+                title = { Text(stringResource(Res.string.edit_config)) },
+                actions = {
+                    CapsuleActionButton {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.done),
+                            contentDescription = stringResource(Res.string.apply),
+                        ) {
+                            viewModel.saveAndExit()
+                        }
+                    }
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+            )
+        },
+
+    ) { innerPadding ->
+        var completionHostPosition by remember { mutableStateOf<Offset?>(null) }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState)
+                .onGloballyPositioned { completionHostPosition = it.positionInRoot() },
+        ) {
+            val density = LocalDensity.current
+            val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+            val navigationPadding =
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val toolbarYOffset = ScreenOffset + maxOf(imePadding, navigationPadding)
+            var toolbarHeightPx by remember { mutableIntStateOf(0) }
+            ConfigEditFloatingToolbar(
+                viewModel = viewModel,
+                uiState = uiState,
+                coroutineScope = coroutineScope,
+                toolbarYOffset = toolbarYOffset,
+                onHeightChanged = { toolbarHeightPx = it },
+            )
+            val extraHeight = with(density) { toolbarHeightPx.toDp() } + toolbarYOffset
+            var editorHeightPx by remember { mutableIntStateOf(0) }
+            var editorPosition by remember { mutableStateOf<Offset?>(null) }
+            var cursorRect by remember { mutableStateOf<Rect?>(null) }
+            var editorFocused by remember { mutableStateOf(false) }
+            var lineHeightPx by remember { mutableIntStateOf(0) }
+            val editorMinHeight = (
+                    with(density) { editorHeightPx.toDp() } - extraHeight
+                    ).coerceAtLeast(0.dp)
+            val focusRequester = remember { FocusRequester() }
+            val verticalScrollState = rememberScrollState()
+            val topPaddingPx = with(density) { innerPadding.calculateTopPadding().roundToPx() }
+            val highlightLines = remember(topPaddingPx) {
+                derivedStateOf {
+                    highlightedLineRange(
+                        scrollOffsetPx = verticalScrollState.value - topPaddingPx,
+                        viewportHeightPx = editorHeightPx,
+                        lineHeightPx = lineHeightPx,
+                    )
+                }
+            }
+            val outputTransformation = remember(syntaxStyles, highlightLines) {
+                configJsonOutputTransformation(syntaxStyles) { highlightLines.value }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onSizeChanged { editorHeightPx = it.height },
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .horizontalScroll(rememberScrollState())
+                        .verticalScroll(verticalScrollState)
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) { focusRequester.requestFocus() },
+                ) {
+                    Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
+                    BasicTextField(
+                        state = viewModel.textFieldState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = editorMinHeight)
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { editorFocused = it.isFocused }
+                            .onGloballyPositioned { editorPosition = it.positionInRoot() }
+                            .onPreviewKeyEvent { keyEvent ->
+                                if (keyEvent.type != KeyEventType.KeyDown) {
+                                    return@onPreviewKeyEvent false
+                                }
+                                if (keyEvent.key == Key.DirectionUp && uiState.schemaCompletions.isNotEmpty()) {
+                                    viewModel.selectSchemaCompletion(-1)
+                                    return@onPreviewKeyEvent true
+                                }
+                                if (keyEvent.key == Key.DirectionDown && uiState.schemaCompletions.isNotEmpty()) {
+                                    viewModel.selectSchemaCompletion(1)
+                                    return@onPreviewKeyEvent true
+                                }
+                                if (keyEvent.key == Key.Tab) {
+                                    val completion = uiState.schemaCompletions.getOrNull(
+                                        uiState.selectedSchemaCompletion,
+                                    )
+                                    if (completion != null) {
+                                        viewModel.applySchemaCompletion(completion)
+                                        return@onPreviewKeyEvent true
+                                    }
+                                }
+                                if (!keyEvent.isTypeControlPressed || keyEvent.key != Key.Z) {
+                                    return@onPreviewKeyEvent false
+                                }
+                                if (keyEvent.isShiftPressed) {
+                                    viewModel.redo()
+                                } else {
+                                    viewModel.undo()
+                                }
+                                true
+                            },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                        ),
+                        inputTransformation = configEditInputTransformation,
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        lineLimits = TextFieldLineLimits.MultiLine(),
+                        outputTransformation = outputTransformation,
+                        onTextLayout = { getResult ->
+                            val layout = getResult()
+                            if (layout != null && layout.lineCount > 0) {
+                                lineHeightPx =
+                                    (layout.getLineBottom(0) - layout.getLineTop(0)).toInt()
+                            }
+                            cursorRect =
+                                layout?.getCursorRect(viewModel.textFieldState.selection.end)
+                        },
+                    )
+                    Spacer(modifier = Modifier.height(extraHeight))
+                }
+
+                BoxedVerticalScrollbar(
+                    modifier = Modifier
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(scrollState = verticalScrollState),
+                    style = HusiScrollbarDefaults.style(),
+                )
+            }
+            ConfigSchemaCompletionBar(
+                completions = uiState.schemaCompletions,
+                selectedCompletion = uiState.selectedSchemaCompletion,
+                isEditorFocused = editorFocused,
+                cursorPosition = editorPosition?.minus(completionHostPosition ?: Offset.Zero),
+                cursorRect = cursorRect,
+                onCompletionClick = viewModel::applySchemaCompletion,
+            )
+        }
+    }
+
+    if (alert != null) AlertDialog(
+        onDismissRequest = {
+            alert = null
+        },
+        confirmButton = {
+            TextButton(stringResource(Res.string.ok)) {
+                alert = null
+            }
+        },
+        icon = { Icon(vectorResource(Res.drawable.error), null) },
+        title = { Text(stringResource(Res.string.error_title)) },
+        text = { Text(alert!!) },
+    )
+
+    if (showBackDialog) AlertDialog(
+        onDismissRequest = {
+            showBackDialog = false
+        },
+        confirmButton = {
+            TextButton(stringResource(Res.string.ok)) {
+                viewModel.saveAndExit()
+            }
+        },
+        dismissButton = {
+            TextButton(stringResource(Res.string.no)) {
+                onBack()
+            }
+        },
+        icon = { Icon(vectorResource(Res.drawable.warning), null) },
+        title = { Text(stringResource(Res.string.unsaved_changes_prompt)) },
+    )
+}
+
+@Preview
+@Composable
+private fun PreviewConfigEditScreen() {
+    CompositionLocalProvider(
+        LocalResultEventBus provides rememberResultEventBus(),
+    ) {
+        ConfigEditScreen(
+            initialText = "{}",
+            resultKey = "config-edit-${Random.nextLong()}",
+            onBack = {},
+        )
+    }
+}

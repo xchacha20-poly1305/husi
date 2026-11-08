@@ -30,13 +30,14 @@ Common targets:
 | `make aboutlibraries` | Regenerate OSS license JSON |
 | `make generate_option` | Regenerate sing-box option mappings; output piped through `$CLIP` |
 | `make proto` | Re-vendor sing-box schema and regenerate Go gRPC stubs |
-| `make test` | `test_gradle` + `test_go` + `test_zig` |
-| `make test_gradle` | `./gradlew :composeApp:allTests` (JUnit5) |
+| `make test` | `test_gradle` + `test_web` + `test_go` + `test_zig` |
+| `make test_gradle` | `./gradlew :composeApp:desktopTest` (JUnit5) |
+| `make test_web` | `./gradlew :composeApp:wasmJsBrowserTest` (`commonTest` + `wasmJsTest` in headless Chrome) |
 | `make test_go` | `cd libcore && go test -v -count=1 -tags with_quic,badlinkname -ldflags=-checklinkname=0 ./...` |
 | `make test_zig` | zig build test in `launcher/` |
 | `make lint_go` | golangci-lint for linux + android + windows + darwin |
 | `make fmt_go` | golangci-lint fmt |
-| `make lint_android` | Android lint (NewApi only) over composeApp's `commonMain` + `androidMain` |
+| `make lint_android` | Android lint (NewApi only) over composeApp's `commonMain` + `jvmMain` + `androidMain` |
 
 Run a single Gradle test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`.
 Run a single Go test: `cd libcore && go test -tags with_quic,badlinkname -ldflags=-checklinkname=0 -run TestName ./pkg/...`.
@@ -65,7 +66,7 @@ Package `libcore` is what gomobile binds. An exported interface there whose meth
 
 ### aboutlibraries
 
-Do not run `exportLibraryDefinitions` and `exportLibraryDefinitionsDesktop` in one Gradle invocation: `configPath` is chosen from the start-parameter task names, so both tasks would share the desktop merge output. `aboutlibraries_go` scans the local module cache — run `go mod download` in `libcore` first.
+Run `exportLibraryDefinitions`, `exportLibraryDefinitionsDesktop`, and `exportLibraryDefinitionsWasmJs` in separate Gradle invocations: `configPath` is chosen from the start-parameter task names, so exports in the same invocation would share one platform's presets. `aboutlibraries_go` scans the local module cache — run `go mod download` in `libcore` first. `make aboutlibraries_web` collects Wasm dependencies and browser RPC production dependencies with npm's `license-checker-rseidelsohn`; web CI runs it before packaging.
 
 ### Icon pipeline
 
@@ -107,3 +108,21 @@ Linux and Windows `husi-core` builds use no cgo: Cronet is loaded through purego
 
 Darwin keeps cgo (Cronet has no purego build there, and sing-box reads the system certificate store and DNS configuration through cgo). It builds natively on macOS with Xcode; on non-Darwin hosts it needs `zig` and `DARWIN_SDK=/path/to/MacOSX.sdk`.
 
+
+### Kotlin source sets
+
+`commonMain` holds only what the native app and the web dashboard both use: the shared
+dashboard and remote-tool UI and presentation models. `jvmMain` is shared by Android and
+Desktop and owns JVM protobuf/kurpc, Room/DataStore, local configuration, and native service
+integration. `skikoMain` is shared by Desktop and Wasm and owns Skia image and pointer
+implementations. `wasmJsMain` owns the web dashboard: its RPC session, presenters, screen
+bindings, Koin module, routes, browser JS interop and entrypoint; the same module also owns
+the static packaging.
+
+The source set is the platform boundary, so no package is named after a platform. Web code
+goes in the same feature package as its `jvmMain` counterpart (`ui.dashboard`, `ui.tools`,
+`tailscale`, ...).
+
+Pure tests belong in `commonTest`; tests using JVM services or protobuf belong in `jvmTest`;
+tests of web dashboard code belong in `wasmJsTest`. `make test_gradle` runs `commonTest` and
+`jvmTest` on the desktop JVM; `make test_web` runs `commonTest` and `wasmJsTest` in the browser.

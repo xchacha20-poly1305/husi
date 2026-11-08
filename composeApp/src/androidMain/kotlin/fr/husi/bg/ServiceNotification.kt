@@ -14,6 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import fr.husi.Action
 import fr.husi.compose.theme.getPrimaryColor
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import fr.husi.ktx.runOnMainDispatcher
 import fr.husi.lib.R
 import fr.husi.repository.resolveAndroidRepository

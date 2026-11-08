@@ -63,9 +63,12 @@ private fun matchesAll(keywords: List<String>, vararg texts: String): Boolean {
     return keywords.all { keyword -> haystacks.any { it.contains(keyword) } }
 }
 
-private fun keywordsOf(query: String): List<String> {
-    if (query.isBlank()) return emptyList()
-    return query.trim().split(WHITESPACE).map { it.lowercase() }
+private fun keywordsOf(query: String): List<String> = buildList {
+    var start = 0
+    for (index in 0..query.length) {
+        if (index == query.length || query[index].isWhitespace()) {
+            if (start < index) add(query.substring(start, index).lowercase())
+            start = index + 1
+        }
+    }
 }
-
-private val WHITESPACE = Regex("\\s+")

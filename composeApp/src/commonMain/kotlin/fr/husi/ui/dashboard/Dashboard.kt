@@ -1,9 +1,6 @@
-@file:OptIn(
-    ExperimentalMaterial3ExpressiveApi::class,
-    ExperimentalMaterial3Api::class,
-)
-
 package fr.husi.ui.dashboard
+
+import fr.husi.tailscale.TailscaleEndpointState
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +19,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExpandedFullScreenSearchBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -46,7 +41,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.max
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.TrafficSortMode
@@ -67,7 +61,6 @@ import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingHorizontal
-import fr.husi.core.remote.RemoteControlManager
 import fr.husi.resources.Res
 import fr.husi.resources.active
 import fr.husi.resources.ascending
@@ -117,50 +110,40 @@ import fr.husi.resources.traffic_connections
 import fr.husi.resources.traffic_status
 import fr.husi.resources.warning_amber
 import fr.husi.ui.LocalSnackbarEmitter
-import fr.husi.ui.RouteSettingsUiState
 import fr.husi.ui.StringOrRes
-import fr.husi.ui.openconnect.OpenConnectAuthController
-import fr.husi.ui.openvpn.OpenVPNAuthController
-import fr.husi.ui.remote.RemoteSessionBanner
-import fr.husi.ui.remote.RemoteTargetMenuSection
+import fr.husi.ui.openconnect.OpenConnectAuthActions
+import fr.husi.ui.openvpn.OpenVPNAuthActions
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import org.koin.compose.koinInject
 
 private const val PAGE_STATUS = 0
 private const val PAGE_CONNECTIONS = 1
 private const val PAGE_PROXY_SET = 2
 
 @Composable
-fun DashboardScreen(
+internal fun DashboardContent(
     modifier: Modifier = Modifier,
-    openConnectController: OpenConnectAuthController,
-    openVPNController: OpenVPNAuthController,
-    openRouteSettings: (RouteSettingsUiState) -> Unit,
-    onOpenRemoteControl: () -> Unit,
+    dashboardViewModel: DashboardPresenter,
+    openConnectController: OpenConnectAuthActions,
+    openVPNController: OpenVPNAuthActions,
+    onCreateRoute: ((Set<ConnectionFields>, ConnectionDetailState) -> Unit)? = null,
+    targetMenu: @Composable (groupCount: Int, dismiss: () -> Unit) -> Unit,
     onOpenTailscaleEndpoint: (String) -> Unit,
+    tailscaleEndpoints: List<TailscaleEndpointState>,
+    targetConnected: Boolean,
+    remoteSessionKey: Long?,
+    remoteBanner: @Composable () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarEmitter.current
-    val loadPlatformNetworkInfo = rememberLoadPlatformNetworkInfo()
 
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { 3 },
     )
 
-    val remoteControl = koinInject<RemoteControlManager>()
-    val dashboardViewModel: DashboardViewModel =
-        viewModel {
-            DashboardViewModel(
-                loadPlatformNetworkInfo = loadPlatformNetworkInfo,
-                remoteControl = remoteControl,
-            )
-        }
     val uiState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
-    val remoteSession by remoteControl.session.collectAsStateWithLifecycle()
-    val targetConnected by remoteControl.targetConnected.collectAsStateWithLifecycle()
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
     var isEditingDashboard by remember { mutableStateOf(false) }
@@ -276,7 +259,7 @@ fun DashboardScreen(
         onDispose { dashboardViewModel.setDashboardActive(false) }
     }
 
-    LaunchedEffect(remoteSession?.server?.id, targetConnected) {
+    LaunchedEffect(remoteSessionKey, targetConnected) {
         dashboardViewModel.initialize(targetConnected)
         dashboardViewModel.setDashboardActive(true)
     }
@@ -335,12 +318,7 @@ fun DashboardScreen(
                                             expanded = isOverflowMenuExpanded,
                                             onDismissRequest = { isOverflowMenuExpanded = false },
                                         ) {
-                                            RemoteTargetMenuSection(
-                                                groupIndex = 0,
-                                                groupCount = 4,
-                                                onManage = onOpenRemoteControl,
-                                                onDismiss = { isOverflowMenuExpanded = false },
-                                            )
+                                            targetMenu(4) { isOverflowMenuExpanded = false }
                                             DropdownMenuGroup(
                                                 shapes = MenuDefaults.groupShape(1, 4),
                                             ) {
@@ -450,7 +428,7 @@ fun DashboardScreen(
                                 DashboardPageOverflowMenu(
                                     expanded = isOverflowMenuExpanded,
                                     onExpandedChange = { isOverflowMenuExpanded = it },
-                                    onOpenRemoteControl = onOpenRemoteControl,
+                                    targetMenu = targetMenu,
                                 ) { dismiss ->
                                     ProxySetOrderMenuItems(
                                         proxySetOrder = uiState.proxySetOrder,
@@ -482,7 +460,7 @@ fun DashboardScreen(
                                 DashboardPageOverflowMenu(
                                     expanded = isOverflowMenuExpanded,
                                     onExpandedChange = { isOverflowMenuExpanded = it },
-                                    onOpenRemoteControl = onOpenRemoteControl,
+                                    targetMenu = targetMenu,
                                 ) { dismiss ->
                                     EditWidgetsMenuItem(
                                         isEditingDashboard = isEditingDashboard,
@@ -497,10 +475,7 @@ fun DashboardScreen(
                             scrollBehavior = scrollBehavior,
                         )
                     }
-                    RemoteSessionBanner(
-                        windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
-                        remoteControl = remoteControl,
-                    )
+                    remoteBanner()
 
                     PrimaryTabRow(
                         selectedTabIndex = pagerState.currentPage,
@@ -554,6 +529,7 @@ fun DashboardScreen(
             ) { page ->
                 when (page) {
                     PAGE_STATUS -> DashboardStatusScreen(
+                            tailscaleEndpoints = tailscaleEndpoints,
                         uiState = uiState,
                         openConnectController = openConnectController,
                         openVPNController = openVPNController,
@@ -629,9 +605,11 @@ fun DashboardScreen(
                 resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
                 closeConnection = dashboardViewModel::closeConnection,
                 onDismiss = { dashboardViewModel.selectConnection(null) },
-                openRouteSettings = { draft ->
-                    dashboardViewModel.selectConnection(null)
-                    openRouteSettings(draft)
+                openRouteSettings = onCreateRoute?.let { create ->
+                    { fields, selectedConnection ->
+                        dashboardViewModel.selectConnection(null)
+                        create(fields, selectedConnection)
+                    }
                 },
             )
         }
@@ -664,7 +642,7 @@ fun DashboardScreen(
 private fun CapsuleActionsScope.DashboardPageOverflowMenu(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    onOpenRemoteControl: () -> Unit,
+    targetMenu: @Composable (groupCount: Int, dismiss: () -> Unit) -> Unit,
     pageMenuGroup: @Composable (dismiss: () -> Unit) -> Unit,
 ) {
     val dismiss = { onExpandedChange(false) }
@@ -679,12 +657,7 @@ private fun CapsuleActionsScope.DashboardPageOverflowMenu(
                 expanded = expanded,
                 onDismissRequest = dismiss,
             ) {
-                RemoteTargetMenuSection(
-                    groupIndex = 0,
-                    groupCount = 2,
-                    onManage = onOpenRemoteControl,
-                    onDismiss = dismiss,
-                )
+                targetMenu(2, dismiss)
                 Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
                 DropdownMenuGroup(
                     shapes = MenuDefaults.groupShape(1, 2),

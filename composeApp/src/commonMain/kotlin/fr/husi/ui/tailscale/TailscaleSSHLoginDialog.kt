@@ -7,7 +7,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,28 +27,23 @@ import fr.husi.resources.terminal
 import fr.husi.resources.username
 import fr.husi.tailscale.DEFAULT_SSH_TERMINAL_TYPE
 import fr.husi.tailscale.TailscaleSSHLogin
-import fr.husi.tailscale.TailscaleSSHLogins
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
 @Composable
-internal fun TailscaleSSHLoginDialog(
-    peerStableId: String,
+internal fun TailscaleSSHLoginContent(
+    initialLogin: TailscaleSSHLogin,
     peerName: String,
     onDismiss: () -> Unit,
     onConnect: (TailscaleSSHLogin) -> Unit,
 ) {
-    var username by remember { mutableStateOf("") }
-    var terminalType by remember { mutableStateOf("") }
-    LaunchedEffect(peerStableId) {
-        val login = TailscaleSSHLogins.get(peerStableId)
-        username = login.username
-        terminalType = login.terminalType
-    }
-    val login = TailscaleSSHLogin(
-        username = username.trim(),
-        terminalType = terminalType.trim().ifEmpty { DEFAULT_SSH_TERMINAL_TYPE },
-    )
+    var username by remember(initialLogin) { mutableStateOf(initialLogin.username) }
+    var terminalType by remember(initialLogin) { mutableStateOf(initialLogin.terminalType) }
+    val login =
+        TailscaleSSHLogin(
+            username = username.trim(),
+            terminalType = terminalType.trim().ifEmpty { DEFAULT_SSH_TERMINAL_TYPE },
+        )
     val canConnect = login.username.isNotEmpty()
 
     AlertDialog(
@@ -71,24 +65,28 @@ internal fun TailscaleSSHLoginDialog(
                     onValueChange = { username = it },
                     label = { Text(stringResource(Res.string.username)) },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrectEnabled = false,
-                        imeAction = ImeAction.Next,
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrectEnabled = false,
+                            imeAction = ImeAction.Next,
+                        ),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = terminalType,
                     onValueChange = { terminalType = it },
                     label = { Text(stringResource(Res.string.tailscale_ssh_terminal_type)) },
-                    supportingText = { Text(stringResource(Res.string.tailscale_ssh_terminal_type_hint)) },
+                    supportingText = {
+                        Text(stringResource(Res.string.tailscale_ssh_terminal_type_hint))
+                    },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrectEnabled = false,
-                        imeAction = ImeAction.Done,
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrectEnabled = false,
+                            imeAction = ImeAction.Done,
+                        ),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

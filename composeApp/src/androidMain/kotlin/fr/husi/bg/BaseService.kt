@@ -16,6 +16,7 @@ import fr.husi.bg.proto.ProxyInstance
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.SagerDatabase
+import fr.husi.database.preference.getBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.broadcastReceiver
 import fr.husi.ktx.hasPermission

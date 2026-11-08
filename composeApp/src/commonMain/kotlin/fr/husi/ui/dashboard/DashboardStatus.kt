@@ -47,6 +47,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Switch
 import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.ktx.formatMemoryBytes
 import fr.husi.resources.Res
@@ -79,23 +80,20 @@ import fr.husi.resources.traffic_connections
 import fr.husi.resources.visibility
 import fr.husi.resources.visibility_off
 import fr.husi.tailscale.TailscaleEndpointState
-import fr.husi.tailscale.TailscaleStatusRepository
-import fr.husi.ui.openconnect.OpenConnectAuthController
-import fr.husi.ui.openvpn.OpenVPNAuthController
+import fr.husi.ui.openconnect.OpenConnectAuthActions
+import fr.husi.ui.openvpn.OpenVPNAuthActions
 import fr.husi.ui.stringOrRes
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import org.koin.compose.koinInject
 
 @Composable
 internal fun DashboardStatusScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
-    openConnectController: OpenConnectAuthController,
-    openVPNController: OpenVPNAuthController,
+    openConnectController: OpenConnectAuthActions,
+    openVPNController: OpenVPNAuthActions,
     contentPadding: PaddingValues,
     isEditing: Boolean,
     detectIP: () -> Unit,
@@ -105,6 +103,7 @@ internal fun DashboardStatusScreen(
     onCopySuccess: () -> Unit,
     onWidgetsChange: (List<DashboardWidgetEntry>) -> Unit,
     onOpenTailscaleEndpoint: (String) -> Unit,
+    tailscaleEndpoints: List<TailscaleEndpointState>,
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -114,9 +113,7 @@ internal fun DashboardStatusScreen(
 
     val openConnectEndpoints by openConnectController.endpoints.collectAsStateWithLifecycle()
     val openVPNEndpoints by openVPNController.endpoints.collectAsStateWithLifecycle()
-    val tailscaleRepository = koinInject<TailscaleStatusRepository>()
-    val tailscaleSnapshot by tailscaleRepository.snapshot.collectAsStateWithLifecycle()
-    val tailscaleEndpoints = tailscaleSnapshot.endpoints
+
 
     val entries = uiState.dashboardWidgets
     val hasContent = { widget: DashboardWidget ->
@@ -222,9 +219,7 @@ internal fun DashboardStatusScreen(
                 .padding(contentPadding)
                 .fillMaxHeight(),
             adapter = rememberScrollbarAdapter(scrollState = scrollState),
-            style = defaultMaterialScrollbarStyle().copy(
-                thickness = 12.dp,
-            ),
+            style = HusiScrollbarDefaults.style(),
         )
     }
 }
@@ -233,8 +228,8 @@ internal fun DashboardStatusScreen(
 private fun DashboardWidgetContent(
     widget: DashboardWidget,
     uiState: DashboardState,
-    openConnectController: OpenConnectAuthController,
-    openVPNController: OpenVPNAuthController,
+    openConnectController: OpenConnectAuthActions,
+    openVPNController: OpenVPNAuthActions,
     sourceAddressesVisible: Boolean,
     onToggleSourceAddressesVisible: () -> Unit,
     networkInterfacesVisible: Boolean,

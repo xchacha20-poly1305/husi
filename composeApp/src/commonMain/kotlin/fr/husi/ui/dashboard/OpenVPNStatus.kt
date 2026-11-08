@@ -23,7 +23,6 @@ import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Text
 import fr.husi.ktx.DisplayTime
-import fr.husi.ktx.readableMessage
 import fr.husi.resources.Res
 import fr.husi.resources.action_openvpn
 import fr.husi.resources.auth_open_url
@@ -42,7 +41,7 @@ import fr.husi.resources.state
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.openvpn.OpenVPNAuthChallengeContent
-import fr.husi.ui.openvpn.OpenVPNAuthController
+import fr.husi.ui.openvpn.OpenVPNAuthActions
 import fr.husi.vpn.OPENVPN_CHALLENGE_CREDENTIALS
 import fr.husi.vpn.OPENVPN_CHALLENGE_OPEN_URL
 import fr.husi.vpn.OPENVPN_STATE_AUTH_PENDING
@@ -54,11 +53,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 @Composable
 internal fun OpenVPNStatusSection(
-    controller: OpenVPNAuthController,
+    controller: OpenVPNAuthActions,
     showError: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -81,7 +81,7 @@ internal fun OpenVPNStatusSection(
 private fun EndpointContent(
     endpoint: OpenVPNEndpointState,
     showTag: Boolean,
-    controller: OpenVPNAuthController,
+    controller: OpenVPNAuthActions,
     showError: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -120,7 +120,7 @@ private fun EndpointContent(
 private fun AuthSection(
     endpointTag: String,
     challenge: OpenVPNChallengeState,
-    controller: OpenVPNAuthController,
+    controller: OpenVPNAuthActions,
     showError: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -138,7 +138,7 @@ private fun AuthSection(
     if (challenge.deadline > 0) {
         LaunchedEffect(challenge.id) {
             while (true) {
-                delay(1000)
+                delay(1000.milliseconds)
                 nowEpochSeconds = Clock.System.now().epochSeconds
             }
         }
@@ -152,7 +152,7 @@ private fun AuthSection(
             OutlinedButton(
                 onClick = {
                     runCatching { uriHandler.openUri(challenge.url) }
-                        .onFailure { showError(it.readableMessage) }
+                        .onFailure { showError(it.message ?: it.toString()) }
                 },
             ) {
                 Text(stringResource(Res.string.auth_open_url))
@@ -260,5 +260,3 @@ private fun TunnelInfoContent(info: OpenVPNTunnelInfoState) {
         }
     }
 }
-
-

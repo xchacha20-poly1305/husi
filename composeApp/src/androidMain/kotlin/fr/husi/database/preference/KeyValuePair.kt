@@ -2,12 +2,12 @@ package fr.husi.database.preference
 
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.PrimaryKey
-import androidx.room.Query
+import androidx.room3.Entity
+import androidx.room3.Ignore
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
+import androidx.room3.PrimaryKey
+import androidx.room3.Query
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -36,26 +36,26 @@ class KeyValuePair() : Parcelable {
         }
     }
 
-    @androidx.room.Dao
+    @androidx.room3.Dao
     interface Dao {
 
         @Query("SELECT * FROM `KeyValuePair`")
-        fun all(): List<KeyValuePair>
+        suspend fun all(): List<KeyValuePair>
 
         @Query("SELECT * FROM `KeyValuePair` WHERE `key` = :key")
-        operator fun get(key: String): KeyValuePair?
+        suspend fun get(key: String): KeyValuePair?
 
         @Insert(onConflict = OnConflictStrategy.REPLACE)
-        fun put(value: KeyValuePair): Long
+        suspend fun put(value: KeyValuePair): Long
 
         @Query("DELETE FROM `KeyValuePair` WHERE `key` = :key")
-        fun delete(key: String): Int
+        suspend fun delete(key: String): Int
 
         @Query("DELETE FROM `KeyValuePair`")
-        fun reset(): Int
+        suspend fun reset(): Int
 
         @Insert
-        fun insert(list: List<KeyValuePair>)
+        suspend fun insert(list: List<KeyValuePair>)
     }
 
     @PrimaryKey

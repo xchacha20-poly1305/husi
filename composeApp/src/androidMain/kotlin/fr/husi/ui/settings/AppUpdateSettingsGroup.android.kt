@@ -31,6 +31,7 @@ import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.database.DataStore
+import fr.husi.database.preference.setBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
 import fr.husi.permission.AppPermission

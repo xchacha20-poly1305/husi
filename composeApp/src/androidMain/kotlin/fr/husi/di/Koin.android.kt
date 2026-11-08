@@ -14,7 +14,7 @@ import fr.husi.net.GrpcWebDAVClient
 import fr.husi.net.HttpFetcher
 import fr.husi.net.WebDAVClient
 import fr.husi.repository.AndroidRepository
-import fr.husi.repository.Repository
+import fr.husi.repository.LocalRepository
 import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,11 +38,11 @@ internal actual fun platformThemeApi(): PlatformThemeApi {
     }
 }
 
-internal actual fun platformRepositoryModule(repository: Repository): Module = module {
+internal actual fun platformRepositoryModule(repository: LocalRepository): Module = module {
     val androidRepository = repository as? AndroidRepository
         ?: error("Android platform requires AndroidRepository, got ${repository::class.qualifiedName}")
     single<AndroidRepository> { androidRepository }
-    single<Repository> { get<AndroidRepository>() }
+    single<LocalRepository> { get<AndroidRepository>() }
     if (repository.isMainProcess) {
         single {
             ServiceEventMirror(
@@ -61,5 +61,5 @@ private val androidHttpModule = module {
 internal actual fun platformKoinModules(): List<Module> =
     listOf(androidNavigationModule, androidHttpModule)
 
-internal actual fun coreClientBasePath(repository: Repository): String =
+internal actual fun coreClientBasePath(repository: LocalRepository): String =
     (repository as AndroidRepository).context.filesDir.path

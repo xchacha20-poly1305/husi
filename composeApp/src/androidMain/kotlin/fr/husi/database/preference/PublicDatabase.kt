@@ -1,12 +1,12 @@
 package fr.husi.database.preference
 
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
+import androidx.room3.Database
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import fr.husi.Key
 import fr.husi.repository.resolveAndroidRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asExecutor
 
 @Database(entities = [KeyValuePair::class], version = 1)
 abstract class PublicDatabase : RoomDatabase() {
@@ -37,13 +37,11 @@ abstract class PublicDatabase : RoomDatabase() {
                 PublicDatabase::class.java,
                 dbFile.absolutePath,
             )
-                .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
                 .fallbackToDestructiveMigration(true)
                 .fallbackToDestructiveMigrationOnDowngrade(true)
-                // Room queries block, so they belong on the IO pool rather than the
-                // core-count limited default one.
-                .setQueryExecutor(Dispatchers.IO.asExecutor())
+                .setDriver(BundledSQLiteDriver())
+                .setQueryCoroutineContext(Dispatchers.IO)
                 .build()
         }
     }

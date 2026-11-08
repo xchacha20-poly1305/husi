@@ -8,7 +8,6 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Build
 import android.os.StrictMode
-import fr.husi.Key
 import fr.husi.bg.AppChangeReceiver
 import fr.husi.bg.DefaultNetworkMonitor
 import fr.husi.bg.RouteAssetUpdater
@@ -17,6 +16,7 @@ import fr.husi.bg.migrateCustomRouteAssets
 import fr.husi.compose.clearClipboardImageCache
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
+import fr.husi.database.preference.getBlocking
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
 import fr.husi.ktx.invariantDirectoryPathString

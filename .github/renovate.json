@@ -62,6 +62,16 @@
       "enabled": false
     },
     {
+      "description": "setup-node reads node-version from env.NODE_VERSION, which buildScript/init/version.sh owns and the custom manager tracks",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchPackageNames": [
+        "actions/node-versions"
+      ],
+      "enabled": false
+    },
+    {
       "matchManagers": [
         "gomod"
       ],
@@ -105,6 +115,49 @@
     },
     {
       "matchManagers": [
+        "npm"
+      ],
+      "addLabels": [
+        "javascript"
+      ]
+    },
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "@bufbuild/**",
+        "@connectrpc/**"
+      ],
+      "groupName": "Web RPC",
+      "groupSlug": "web-rpc"
+    },
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "@types/node",
+        "esbuild",
+        "tsx",
+        "typescript"
+      ],
+      "groupName": "Web Tooling",
+      "groupSlug": "web-tooling"
+    },
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "qrcode",
+        "@types/qrcode"
+      ],
+      "groupName": "QR Code",
+      "groupSlug": "qr-code"
+    },
+    {
+      "matchManagers": [
         "gradle"
       ],
       "matchPackageNames": [
@@ -123,10 +176,31 @@
       "groupSlug": "androidx-arch",
       "matchPackageNames": [
         "androidx.work{/,}**",
-        "androidx.datastore{/,}**",
-        "androidx.room{/,}**",
-        "androidx.sqlite{/,}**"
+        "androidx.datastore{/,}**"
       ]
+    },
+    {
+      "matchManagers": [
+        "gradle",
+        "npm"
+      ],
+      "groupName": "Room & SQLite",
+      "groupSlug": "room-sqlite",
+      "matchPackageNames": [
+        "androidx.room3{/,}**",
+        "androidx.sqlite{/,}**",
+        "@sqlite.org/sqlite-wasm"
+      ]
+    },
+    {
+      "description": "SQLite Wasm stable releases use a -buildN suffix; compare it as a build number instead of a prerelease",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "@sqlite.org/sqlite-wasm"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-build(?<build>\\d+)$"
     },
     {
       "matchManagers": [

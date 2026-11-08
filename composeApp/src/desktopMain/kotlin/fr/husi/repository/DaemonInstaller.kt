@@ -46,7 +46,7 @@ suspend fun installDaemon(): DaemonInstallResult = runInterruptible(Dispatchers.
         Platform.Linux -> installDaemonLinux(binary)
         Platform.MacOs -> installDaemonMacOs(binary)
         Platform.Windows -> installDaemonWindows(binary)
-        Platform.Android -> DaemonInstallResult.Failed("daemon install is not supported on Android")
+        Platform.Android, Platform.Web -> DaemonInstallResult.Failed("daemon install is not supported on Android")
     }
 }
 

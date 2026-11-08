@@ -16,7 +16,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import fr.husi.libcore.Service
 import fr.husi.repository.AndroidRepository
-import fr.husi.repository.Repository
+import fr.husi.repository.LocalRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.io.File
@@ -60,7 +60,7 @@ private class PreviewAndroidRepository(
 }
 
 @Composable
-internal actual fun previewRepository(): Repository {
+internal actual fun previewRepository(): LocalRepository {
     val context = LocalContext.current
     return remember(context) { PreviewAndroidRepository(context) }
 }

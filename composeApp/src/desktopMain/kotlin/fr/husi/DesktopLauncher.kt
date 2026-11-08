@@ -62,7 +62,7 @@ private fun resolvePackagedDesktopLauncher(): File? {
     // identifies nothing.
     val launcherName = runtimePath.nameWithoutExtension
     return when (PlatformInfo.platform) {
-        Platform.Android -> null
+        Platform.Android, Platform.Web -> null
         Platform.Linux -> resolveNamedDesktopLauncher(File(appRoot, "bin"), launcherName)
         Platform.MacOs -> resolveNamedDesktopLauncher(File(appRoot, "MacOS"), launcherName)
         Platform.Windows -> resolveWindowsDesktopLauncher(appRoot)

@@ -1,7 +1,10 @@
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.gradle.jvm.tasks.Jar
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
@@ -238,7 +241,7 @@ val checkLibcoreAar = tasks.register("checkLibcoreAar") {
 
 
 val bundledAssetFiles = listOf("geoip.tgz", "geosite.tgz")
-val bundledAssetsDir = layout.projectDirectory.dir("src/commonMain/composeResources/files/sing-box").asFile
+val bundledAssetsDir = layout.projectDirectory.dir("src/jvmMain/composeResources/files/sing-box").asFile
 val warnMissingAssets = tasks.register("warnMissingBundledAssets") {
     description = "Warns when the geoip/geosite assets have not been downloaded yet."
     val assetsDirPath = bundledAssetsDir.path
@@ -258,7 +261,7 @@ tasks.matching { it.name.startsWith("compile") }.configureEach {
     if (name.contains("Android", ignoreCase = true)) {
         dependsOn(checkLibcoreAar)
     }
-    dependsOn(warnMissingAssets)
+    if (!name.contains("Wasm", ignoreCase = true)) dependsOn(warnMissingAssets)
 }
 
 val desktopPackageName = packageNameProvider.get().trim()
@@ -318,6 +321,62 @@ val generateDesktopPlatformInfo = tasks.register<GeneratePlatformInfoTask>("gene
     )
 }
 
+val installRpc = tasks.register<Exec>("installRpc") {
+    group = "web"
+    description = "Install the pinned browser RPC dependencies."
+    workingDir("rpc")
+    commandLine("npm", "ci")
+    inputs.files("rpc/package.json", "rpc/package-lock.json")
+    outputs.dir("rpc/node_modules")
+}
+
+val buildRpc = tasks.register<Exec>("buildRpc") {
+    group = "web"
+    description = "Generate protobuf bindings and bundle the browser RPC client."
+    dependsOn(installRpc)
+    workingDir("rpc")
+    commandLine("npm", "run", "build")
+    inputs.dir(rootProject.file("proto"))
+    inputs.dir("rpc/src")
+    inputs.files(
+        "rpc/generate.mjs",
+        "rpc/build.mjs",
+        "rpc/tsconfig.json",
+        "rpc/package.json",
+        "rpc/package-lock.json",
+    )
+    outputs.dir("rpc/dist")
+    outputs.dir("rpc/generated")
+}
+
+val testRpc = tasks.register<Exec>("testRpc") {
+    group = "web"
+    description = "Run browser RPC unit tests with fake transports."
+    dependsOn(buildRpc)
+    workingDir("rpc")
+    commandLine("npm", "test")
+}
+
+val ghosttyWasm = configurations.create("ghosttyWasm") {
+    isCanBeConsumed = false
+}
+
+dependencies {
+    add(
+        ghosttyWasm.name,
+        "io.github.xchacha20-poly1305:libghostty-wasm-js:${libs.versions.libghostty.get()}:ghostty-vt@wasm",
+    )
+}
+
+val prepareWebResources = tasks.register<Sync>("prepareWebResources") {
+    group = "web"
+    description = "Collect the RPC bundle and Ghostty Wasm runtime."
+    dependsOn(buildRpc)
+    from("rpc/dist")
+    from(ghosttyWasm) { rename { "ghostty-vt.wasm" } }
+    into(layout.buildDirectory.dir("generated/webResources"))
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -337,7 +396,7 @@ kotlin {
         androidResources {
             enable = true
         }
-        // commonMain compiles against the desktop JDK, so only lint notices a JDK API that
+        // jvmMain compiles against the desktop JDK, so only lint notices a JDK API that
         // Android lacks below minSdk.
         lint {
             checkOnly += "NewApi"
@@ -347,42 +406,78 @@ kotlin {
 
     jvm("desktop")
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser {
+            commonWebpackConfig { outputFileName = "husi.js" }
+        }
+        binaries.executable()
+    }
+
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        common {
+            group("jvm") {
+                withJvm()
+                withCompilations {
+                    it.target.platformType == KotlinPlatformType.androidJvm
+                }
+            }
+            group("skiko") {
+                withJvm()
+                withWasmJs()
+            }
+        }
+    }
+
     sourceSets {
-        val commonMain = getByName("commonMain") {
+        getByName("wasmJsMain") {
+            resources.srcDir(prepareWebResources)
             dependencies {
-                implementation(libs.kurpc)
+                implementation(libs.androidx.sqlite.web)
+            }
+        }
+
+        getByName("commonMain") {
+            dependencies {
+                implementation(libs.androidx.room.runtime)
+                implementation(libs.androidx.datastore.preferences.core)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material3)
-                implementation(libs.jetbrains.compose.animation.graphics)
                 implementation(libs.jetbrains.compose.components.resources)
                 implementation(libs.jetbrains.compose.ui.tooling.preview)
-                implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
                 implementation(libs.jetbrains.lifecycle.runtime.compose)
-                implementation(libs.jetbrains.navigation3.ui)
-                implementation(libs.kotlinx.collections.immutable)
-                implementation(libs.androidx.datastore.preferences)
-                implementation(libs.androidx.room.runtime)
-                implementation(libs.androidx.sqlite.bundled)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.kotlinx.serialization.protobuf)
                 implementation(libs.kotlinx.datetime)
-
-                implementation(libs.ini4j)
-                implementation(libs.okio)
-                implementation(libs.fastscroller.material3)
-                implementation(libs.filekit.dialogs.compose)
-                implementation(libs.aboutlibraries.compose.m3)
+                implementation(libs.kotlinx.collections.immutable)
+                implementation(libs.fastscroller.core)
                 implementation(libs.haze.blur.material3)
-                implementation(libs.zxing.core)
-                implementation(libs.kpuri)
                 implementation(libs.libghostty.compose)
-                implementation(project(":proto"))
-                implementation(project(":library:DragDropSwipeLazyColumn"))
+                implementation(libs.aboutlibraries.compose.m3)
                 implementation(project(":library:ComposePreference"))
-
                 implementation(project.dependencies.platform(libs.koin.bom))
                 implementation(libs.koin.compose.viewmodel)
                 implementation(libs.koin.compose.navigation3)
+                implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
+                implementation(libs.jetbrains.navigation3.ui)
+            }
+        }
+        getByName("jvmMain") {
+            dependencies {
+                implementation(libs.kurpc)
+                implementation(libs.jetbrains.compose.animation.graphics)
+                implementation(libs.androidx.datastore.preferences)
+                implementation(libs.androidx.sqlite.bundled)
+                implementation(libs.kotlinx.serialization.protobuf)
+
+                implementation(libs.ini4j)
+                implementation(libs.okio)
+                implementation(libs.filekit.dialogs.compose)
+                implementation(libs.zxing.core)
+                implementation(libs.kpuri)
+                implementation(project(":proto"))
+                implementation(project(":library:DragDropSwipeLazyColumn"))
+
             }
         }
         val androidMain = getByName("androidMain") {
@@ -422,10 +517,13 @@ kotlin {
                 implementation(libs.androidx.tv.material)
             }
         }
-        val commonTest = getByName("commonTest") {
+        getByName("commonTest").dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
+        }
+        getByName("jvmTest") {
             dependencies {
                 implementation(kotlin("test"))
-                implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.mockk)
                 implementation(project.dependencies.platform(libs.junit.bom))
                 implementation(libs.junit.jupiter.api)
@@ -500,8 +598,39 @@ compose.resources {
 val commonAboutLibrariesDir = layout.projectDirectory.dir("src/commonMain/aboutlibraries")
 val desktopAboutLibrariesDir = layout.projectDirectory.dir("src/desktopMain/aboutlibraries")
 val desktopAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-desktop-config")
+val webAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-web-config")
+val webRpcAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-web-rpc")
 val exportDesktopAboutLibraries = gradle.startParameter.taskNames.any { taskName ->
     taskName.substringAfterLast(':').equals("exportLibraryDefinitionsDesktop", ignoreCase = true)
+}
+val exportWebAboutLibraries = gradle.startParameter.taskNames.any { taskName ->
+    taskName.substringAfterLast(':').equals("exportLibraryDefinitionsWasmJs", ignoreCase = true)
+}
+
+val collectWebRpcAboutLibraries = tasks.register<Exec>("collectWebRpcAboutLibraries") {
+    description = "Collect SPDX license identifiers for browser RPC production dependencies."
+    dependsOn(installRpc)
+    workingDir("rpc")
+    commandLine("npm", "run", "collect-licenses")
+    inputs.files("rpc/package.json", "rpc/package-lock.json")
+    outputs.file("rpc/generated/npm-licenses.json")
+}
+
+val convertWebRpcAboutLibraries = tasks.register<Exec>("convertWebRpcAboutLibraries") {
+    description = "Convert the npm license-checker report to AboutLibraries metadata."
+    dependsOn(collectWebRpcAboutLibraries)
+    workingDir("rpc")
+    commandLine("node", "convert-licenses.mjs", webRpcAboutLibrariesConfig.get().asFile.absolutePath)
+    inputs.file("rpc/convert-licenses.mjs")
+    inputs.file("rpc/generated/npm-licenses.json")
+    outputs.dir(webRpcAboutLibrariesConfig)
+}
+
+val mergeWebAboutLibraries = tasks.register<Sync>("mergeWebAboutLibraries") {
+    description = "Merge shared license presets with npm dependencies for the web dashboard."
+    from(commonAboutLibrariesDir) { exclude("libraries/go_*.json") }
+    from(convertWebRpcAboutLibraries)
+    into(webAboutLibrariesConfig)
 }
 
 val mergeDesktopAboutLibraries = tasks.register<Sync>("mergeDesktopAboutLibraries") {
@@ -514,11 +643,11 @@ val mergeDesktopAboutLibraries = tasks.register<Sync>("mergeDesktopAboutLibrarie
 aboutLibraries {
     offlineMode = true
     collect {
-        // Desktop-only presets are merged in only for exportLibraryDefinitionsDesktop.
-        configPath = if (exportDesktopAboutLibraries) {
-            desktopAboutLibrariesConfig.get().asFile
-        } else {
-            commonAboutLibrariesDir.asFile
+        // Each platform export runs separately because the plugin shares configPath across tasks.
+        configPath = when {
+            exportWebAboutLibraries -> webAboutLibrariesConfig.get().asFile
+            exportDesktopAboutLibraries -> desktopAboutLibrariesConfig.get().asFile
+            else -> commonAboutLibrariesDir.asFile
         }
     }
     export {
@@ -529,11 +658,18 @@ aboutLibraries {
         create("desktop") {
             outputFile = file("src/desktopMain/composeResources/files/aboutlibraries.json")
         }
+        create("wasmJs") {
+            outputFile = file("src/wasmJsMain/composeResources/files/aboutlibraries.json")
+        }
     }
 }
 
 tasks.named("exportLibraryDefinitionsDesktop") {
     dependsOn(mergeDesktopAboutLibraries)
+}
+
+tasks.named("exportLibraryDefinitionsWasmJs") {
+    dependsOn(mergeWebAboutLibraries)
 }
 
 ksp {
@@ -544,6 +680,7 @@ ksp {
 dependencies {
     kspAndroid(libs.androidx.room.compiler)
     add("kspDesktop", libs.androidx.room.compiler)
+    add("kspWasmJs", libs.androidx.room.compiler)
 }
 
 tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach {
@@ -631,4 +768,15 @@ tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach 
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+}
+
+val webZip = tasks.register<Zip>("webZip") {
+    group = "web"
+    description = "Package the browser dashboard for release."
+    dependsOn("wasmJsBrowserDistribution")
+    from(layout.buildDirectory.dir("dist/wasmJs/productionExecutable"))
+    archiveFileName.set(requireMetadata("VERSION_NAME").map { "husi-dashboard-$it.zip" })
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
 }

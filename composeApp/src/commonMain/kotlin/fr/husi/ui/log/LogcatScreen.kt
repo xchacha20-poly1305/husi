@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
-
 package fr.husi.ui.log
 
 import androidx.compose.foundation.layout.Arrangement
@@ -22,13 +20,12 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
@@ -55,8 +52,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
@@ -66,16 +61,13 @@ import fr.husi.compose.SagerFabClearance
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.ansiEscape
-import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.fadingEdge
-import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.RadioButton
+import fr.husi.compose.material3.ScrollableDropdownMenuPopup
 import fr.husi.compose.material3.Text
 import fr.husi.compose.setPlainText
-import fr.husi.core.remote.RemoteControlManager
-import fr.husi.database.DataStore
-import fr.husi.ktx.readableMessage
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.resources.Res
 import fr.husi.resources.action_copy
 import fr.husi.resources.cancel
@@ -96,23 +88,27 @@ import fr.husi.resources.search
 import fr.husi.resources.share
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
-import fr.husi.ui.remote.RemoteSessionBanner
-import fr.husi.ui.remote.RemoteTargetMenuSection
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import org.koin.compose.koinInject
 
 @Composable
-fun LogcatScreen(
+fun <Level> LogcatContent(
+    uiState: LogcatPresentation<Level>,
+    searchTextFieldState: TextFieldState,
+    levels: List<Level>,
+    levelLabel: (Level) -> String,
+    onClearSearch: () -> Unit,
+    onTogglePause: () -> Unit,
+    onClearLog: () -> Unit,
+    onSetLogLevel: (Level) -> Unit,
+    buildExportContent: suspend () -> String,
+    targetMenu: @Composable (onDismiss: () -> Unit) -> Unit,
+    remoteBanner: @Composable () -> Unit,
+    shareAction: @Composable () -> Unit,
+    terminalMode: Boolean,
     modifier: Modifier = Modifier,
-    onOpenRemoteControl: () -> Unit,
-    remoteControl: RemoteControlManager = koinInject(),
-    viewModel: LogcatScreenViewModel = viewModel {
-        LogcatScreenViewModel(remoteControl = remoteControl)
-    },
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -130,16 +126,8 @@ fun LogcatScreen(
     var expandMenu by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val terminalMode by DataStore.logTerminalMode.collectAsStateWithLifecycle()
     val terminalSession = if (terminalMode) rememberLogcatTerminalSession() else null
     val terminalState = rememberLogcatTerminalState()
-    val remoteSession by remoteControl.session.collectAsStateWithLifecycle()
-    val targetConnected by remoteControl.targetConnected.collectAsStateWithLifecycle()
-    val subscribeLogs = remoteSession == null || targetConnected
-    LaunchedEffect(remoteSession?.server?.id, subscribeLogs) {
-        viewModel.initialize(subscribeLogs)
-    }
     val queryLowerCase by remember {
         derivedStateOf { uiState.searchQuery?.lowercase() }
     }
@@ -177,7 +165,6 @@ fun LogcatScreen(
     val hazeState = rememberHazeState()
     val windowInsets = WindowInsets.safeDrawing
     val searchBarState = rememberSearchBarState()
-    val searchTextFieldState = viewModel.searchTextFieldState
     val searchInputField: @Composable () -> Unit = {
         CapsuleSearchInputField(
             textFieldState = searchTextFieldState,
@@ -187,27 +174,26 @@ fun LogcatScreen(
             leadingIcon = {
                 Icon(vectorResource(Res.drawable.search), null)
             },
-            trailingIcon = if (searchBarState.currentValue == SearchBarValue.Expanded) {
-                {
-                    SimpleIconButton(
-                        imageVector = vectorResource(Res.drawable.close),
-                        contentDescription = stringResource(Res.string.cancel),
-                        onClick = {
-                            viewModel.clearSearchQuery()
-                            scope.launch { searchBarState.animateToCollapsed() }
-                        },
-                    )
-                }
-            } else {
-                null
-            },
+            trailingIcon =
+                if (searchBarState.currentValue == SearchBarValue.Expanded) {
+                    {
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.close),
+                            contentDescription = stringResource(Res.string.cancel),
+                            onClick = {
+                                onClearSearch()
+                                scope.launch { searchBarState.animateToCollapsed() }
+                            },
+                        )
+                    }
+                } else {
+                    null
+                },
         )
     }
 
     Scaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Column {
                 CapsuleSearchTopBar(
@@ -217,17 +203,19 @@ fun LogcatScreen(
                     actions = {
                         CapsuleActionButton {
                             SimpleIconButton(
-                                imageVector = vectorResource(
-                                    if (uiState.pause) {
-                                        Res.drawable.play_arrow
-                                    } else {
-                                        Res.drawable.pause
-                                    },
-                                ),
-                                contentDescription = stringResource(
-                                    if (uiState.pause) Res.string.resume else Res.string.pause,
-                                ),
-                                onClick = viewModel::togglePause,
+                                imageVector =
+                                    vectorResource(
+                                        if (uiState.pause) {
+                                            Res.drawable.play_arrow
+                                        } else {
+                                            Res.drawable.pause
+                                        },
+                                    ),
+                                contentDescription =
+                                    stringResource(
+                                        if (uiState.pause) Res.string.resume else Res.string.pause,
+                                    ),
+                                onClick = onTogglePause,
                             )
                         }
                         CapsuleActionButton {
@@ -237,9 +225,10 @@ fun LogcatScreen(
                                 onClick = {
                                     if (terminalSession != null) {
                                         terminalState.scrollToBottom()
-                                    } else if (uiState.logs.isNotEmpty()) scope.launch {
-                                        listState.animateScrollToItem(uiState.logs.lastIndex)
-                                    }
+                                    } else if (uiState.logs.isNotEmpty())
+                                        scope.launch {
+                                            listState.animateScrollToItem(uiState.logs.lastIndex)
+                                        }
                                 },
                             )
                         }
@@ -261,24 +250,27 @@ fun LogcatScreen(
                                     expanded = expandMenu,
                                     onDismissRequest = { expandMenu = false },
                                 ) {
-                                    RemoteTargetMenuSection(
-                                        groupIndex = 0,
-                                        groupCount = 3,
-                                        onManage = onOpenRemoteControl,
-                                        onDismiss = { expandMenu = false },
-                                    )
+                                    targetMenu { expandMenu = false }
                                     DropdownMenuGroup(
                                         shapes = MenuDefaults.groupShape(1, 3),
                                     ) {
                                         DropdownMenuItem(
-                                            text = { Text(stringResource(Res.string.clear_logcat)) },
-                                            onClick = viewModel::clearLog,
-                                            leadingIcon = {
-                                                Icon(vectorResource(Res.drawable.delete_sweep), null)
+                                            text = {
+                                                Text(stringResource(Res.string.clear_logcat))
                                             },
-                                            colors = MenuDefaults.itemColors().copy(
-                                                leadingIconColor = MaterialTheme.colorScheme.error,
-                                            ),
+                                            onClick = onClearLog,
+                                            leadingIcon = {
+                                                Icon(
+                                                    vectorResource(Res.drawable.delete_sweep),
+                                                    null,
+                                                )
+                                            },
+                                            colors =
+                                                MenuDefaults.itemColors()
+                                                    .copy(
+                                                        leadingIconColor =
+                                                            MaterialTheme.colorScheme.error,
+                                                    ),
                                             shape = MenuDefaults.itemShape(0, 1).shape,
                                         )
                                     }
@@ -288,12 +280,12 @@ fun LogcatScreen(
                                     DropdownMenuGroup(
                                         shapes = MenuDefaults.groupShape(2, 3),
                                     ) {
-                                        val levels = logLevels
+                                        val levels = levels
                                         for ((index, level) in levels.withIndex()) {
                                             DropdownMenuItem(
-                                                text = { Text(level.name) },
+                                                text = { Text(levelLabel(level)) },
                                                 onClick = {
-                                                    viewModel.setLogLevel(level)
+                                                    onSetLogLevel(level)
                                                     expandMenu = false
                                                 },
                                                 trailingIcon = {
@@ -302,7 +294,9 @@ fun LogcatScreen(
                                                         onClick = null,
                                                     )
                                                 },
-                                                shape = MenuDefaults.itemShape(index, levels.size).shape,
+                                                shape =
+                                                    MenuDefaults.itemShape(index, levels.size)
+                                                        .shape,
                                             )
                                         }
                                     }
@@ -310,42 +304,35 @@ fun LogcatScreen(
                             }
                         }
                     },
-                    windowInsets = windowInsets.only(
-                        WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
-                    ),
+                    windowInsets =
+                        windowInsets.only(
+                            WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
+                        ),
                     scrollBehavior = scrollBehavior,
                 )
 
-                RemoteSessionBanner(
-                    windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
-                    remoteControl = remoteControl,
-                )
+                remoteBanner()
             }
         },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        val contentPadding = PaddingValues(
-            start = innerPadding.calculateStartPadding(layoutDirection),
-            top = innerPadding.calculateTopPadding(),
-            end = innerPadding.calculateEndPadding(layoutDirection),
-            bottom = max(innerPadding.calculateBottomPadding(), SagerFabClearance),
-        )
+        val contentPadding =
+            PaddingValues(
+                start = innerPadding.calculateStartPadding(layoutDirection),
+                top = innerPadding.calculateTopPadding(),
+                end = innerPadding.calculateEndPadding(layoutDirection),
+                bottom = max(innerPadding.calculateBottomPadding(), SagerFabClearance),
+            )
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeSource(hazeState),
+            modifier = Modifier.fillMaxSize().hazeSource(hazeState),
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                 ) {
                     if (uiState.connecting) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(contentPadding),
+                            modifier = Modifier.fillMaxSize().padding(contentPadding),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
@@ -369,9 +356,7 @@ fun LogcatScreen(
                     } else {
                         SelectionContainer {
                             LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .fadingEdge(listState),
+                                modifier = Modifier.fillMaxSize().fadingEdge(listState),
                                 state = listState,
                                 contentPadding = contentPadding,
                             ) {
@@ -391,53 +376,45 @@ fun LogcatScreen(
                 }
 
                 BoxedVerticalScrollbar(
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .fillMaxHeight(),
-                    adapter = if (terminalSession != null) {
-                        rememberLogcatTerminalScrollbarAdapter(terminalState)
-                    } else {
-                        rememberScrollbarAdapter(scrollState = listState)
-                    },
-                    style = defaultMaterialScrollbarStyle().copy(
-                        thickness = 12.dp,
-                    ),
+                    modifier = Modifier.padding(contentPadding).fillMaxHeight(),
+                    adapter =
+                        if (terminalSession != null) {
+                            rememberLogcatTerminalScrollbarAdapter(terminalState)
+                        } else {
+                            rememberScrollbarAdapter(scrollState = listState)
+                        },
+                    style = HusiScrollbarDefaults.style(),
                 )
             }
         }
     }
 
-    if (showBottomSheet) ModalBottomSheet(
-        onDismissRequest = { showBottomSheet = false },
-        sheetState = rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+    if (showBottomSheet)
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState =
+                rememberBottomSheetState(
+                    initialValue = SheetValue.Hidden,
+                    enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+                ),
         ) {
-            SheetActionRow(
-                text = stringResource(Res.string.action_copy),
-                leadingIcon = {
-                    Icon(vectorResource(Res.drawable.copy_all), null)
-                },
-                onClick = {
-                    scope.launch {
-                        clipboard.setPlainText(viewModel.buildExportLog().content)
-                    }
-                },
-            )
-            ShareActionRow(
-                scope = scope,
-                buildLog = viewModel::buildExportLog,
-            ) { e ->
-                snackbar.show(StringOrRes.Direct(e.readableMessage))
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+            ) {
+                SheetActionRow(
+                    text = stringResource(Res.string.action_copy),
+                    leadingIcon = {
+                        Icon(vectorResource(Res.drawable.copy_all), null)
+                    },
+                    onClick = {
+                        scope.launch {
+                            clipboard.setPlainText(buildExportContent())
+                        }
+                    },
+                )
+                shareAction()
             }
         }
-    }
 }
 
 @Composable
@@ -447,9 +424,7 @@ private fun LogCard(
     highlightQuery: String? = null,
 ) {
     ElevatedCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
         Text(
             text = logLine.ansiEscape(highlightQuery),

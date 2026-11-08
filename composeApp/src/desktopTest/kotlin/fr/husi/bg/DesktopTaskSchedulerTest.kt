@@ -9,6 +9,7 @@ import dev.nucleusframework.scheduler.TaskRegistry
 import dev.nucleusframework.scheduler.TaskResult
 import dev.nucleusframework.scheduler.testing.TestDesktopTaskScheduler
 import fr.husi.database.DataStore
+import fr.husi.database.preference.reset
 import fr.husi.test.HusiKoinTest
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest

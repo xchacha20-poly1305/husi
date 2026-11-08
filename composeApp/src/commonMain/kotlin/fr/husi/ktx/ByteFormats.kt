@@ -1,7 +1,6 @@
 package fr.husi.ktx
 
 import androidx.compose.ui.util.fastCoerceIn
-import java.util.Locale
 import kotlin.math.floor
 import kotlin.math.ln
 import kotlin.math.pow
@@ -26,10 +25,11 @@ private fun formatKiloBytes(bytes: Long, base: Double): String {
         .toInt()
         .fastCoerceIn(1, KILO_UNIT_NAMES.size)
     val value = floor(bytes / base.pow(exponent) * 10 + 0.5) / 10
-    val pattern = if (value < 10) {
-        "%.1f %s"
+    val formatted = if (value < 10) {
+        val tenths = floor(value * 10 + 0.5).toLong()
+        "${tenths / 10}.${tenths % 10}"
     } else {
-        "%.0f %s"
+        floor(value + 0.5).toLong().toString()
     }
-    return String.format(Locale.ROOT, pattern, value, KILO_UNIT_NAMES[exponent - 1])
+    return "$formatted ${KILO_UNIT_NAMES[exponent - 1]}"
 }

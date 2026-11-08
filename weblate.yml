@@ -25,6 +25,13 @@ components:
     filemask: composeApp/src/desktopMain/composeResources/values-*/strings.xml
     template: composeApp/src/desktopMain/composeResources/values/strings.xml
     file_format: cmp-resource
+  - name: Web
+    slug: web
+    project: husi
+    repo: weblate://husi/husi
+    filemask: composeApp/src/wasmJsMain/composeResources/values-*/strings.xml
+    template: composeApp/src/wasmJsMain/composeResources/values/strings.xml
+    file_format: cmp-resource
   - name: Android system
     slug: android-system
     project: husi

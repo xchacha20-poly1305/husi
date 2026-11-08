@@ -12,6 +12,7 @@ import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import fr.husi.Key
 import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.RuleApps
 import fr.husi.fmt.SingBoxOptions

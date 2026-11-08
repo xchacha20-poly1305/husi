@@ -30,6 +30,7 @@ import fr.husi.compose.TwoTargetSwitchPreference
 import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
+import fr.husi.database.preference.setBlocking
 import fr.husi.ktx.findActivity
 import fr.husi.ktx.getColour
 import fr.husi.resources.Res

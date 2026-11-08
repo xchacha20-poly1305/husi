@@ -33,30 +33,29 @@ import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.material3.Button
 import fr.husi.compose.material3.Text
+import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_back
 import fr.husi.resources.back
-import fr.husi.resources.get_cert
-import fr.husi.resources.get_cert_summary
 import fr.husi.resources.network_quality_test
 import fr.husi.resources.network_quality_test_summary
-import fr.husi.resources.rule_set_match
 import fr.husi.resources.start
 import fr.husi.resources.stun_test
 import fr.husi.resources.stun_test_summary
 import fr.husi.resources.tools_network
-import fr.husi.ui.NavRoutes
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
 @Composable
-internal fun NetworkScreen(
-    modifier: Modifier = Modifier,
+internal fun NetworkToolsContent(
     onBackPress: () -> Unit,
-    onOpenTool: (NavRoutes.ToolsPage) -> Unit,
+    onOpenStun: () -> Unit,
+    onOpenNetworkQuality: () -> Unit,
+    modifier: Modifier = Modifier,
+    additionalTools: @Composable () -> Unit = {},
+    trailingTools: @Composable () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
     val windowInsets = WindowInsets.safeDrawing
@@ -107,31 +106,18 @@ internal fun NetworkScreen(
                     title = stringResource(Res.string.stun_test),
                     description = stringResource(Res.string.stun_test_summary),
                     launch = {
-                        onOpenTool(NavRoutes.ToolsPage.Stun)
+                        onOpenStun()
                     },
                 )
-                ActivityCard(
-                    title = stringResource(Res.string.get_cert),
-                    description = stringResource(Res.string.get_cert_summary),
-                    launch = {
-                        onOpenTool(NavRoutes.ToolsPage.GetCert)
-                    },
-                )
-                PlatformNetworkTools(onOpenTool)
+                additionalTools()
                 ActivityCard(
                     title = stringResource(Res.string.network_quality_test),
                     description = stringResource(Res.string.network_quality_test_summary),
                     launch = {
-                        onOpenTool(NavRoutes.ToolsPage.NetworkQuality)
+                        onOpenNetworkQuality()
                     },
                 )
-                ActivityCard(
-                    title = stringResource(Res.string.rule_set_match),
-                    description = "",
-                    launch = {
-                        onOpenTool(NavRoutes.ToolsPage.RuleSetMatch)
-                    },
-                )
+                trailingTools()
                 Spacer(modifier = Modifier.height(16.dp))
                 Spacer(modifier = Modifier.height(contentPadding.calculateBottomPadding()))
             }
@@ -141,9 +127,7 @@ internal fun NetworkScreen(
                     .padding(contentPadding)
                     .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 12.dp,
-                ),
+                style = HusiScrollbarDefaults.style(),
             )
         }
     }

@@ -76,7 +76,7 @@ import fr.husi.ktx.forEachTry
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
-import fr.husi.repository.resolveRepository
+import fr.husi.repository.Repository
 import fr.husi.resources.Res
 import fr.husi.resources.action_flash_off
 import fr.husi.resources.action_flash_on
@@ -101,6 +101,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
+import org.koin.compose.koinInject
 
 class ScannerActivity : ComposeActivity() {
 
@@ -151,6 +152,7 @@ private fun ScannerScreen(
     viewModel: ScannerActivityViewModel,
     onBackPress: () -> Unit,
 ) {
+    val repository = koinInject<Repository>()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -221,8 +223,8 @@ private fun ScannerScreen(
 
                 is ScannerUiEvent.Snakebar -> {
                     snackbarHostState.showSnackbar(
-                        message = getStringOrRes(event.message),
-                        actionLabel = resolveRepository().getString(Res.string.ok),
+                        message = repository.getStringOrRes(event.message),
+                        actionLabel = repository.getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }

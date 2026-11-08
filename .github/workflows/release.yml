@@ -46,7 +46,7 @@ jobs:
         id: cache-assets
         uses: actions/cache@v6
         with:
-          path: composeApp/src/commonMain/composeResources/files/sing-box
+          path: composeApp/src/jvmMain/composeResources/files/sing-box
           key: >-
             assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/internal/ruleset_generate/**', 'libcore/go.mod', 'libcore/go.sum') }}
       - name: Prepare assets
@@ -178,7 +178,7 @@ jobs:
         id: cache-assets
         uses: actions/cache@v6
         with:
-          path: composeApp/src/commonMain/composeResources/files/sing-box
+          path: composeApp/src/jvmMain/composeResources/files/sing-box
           key: >-
             assets-v2-${{ env.GEOIP_VERSION }}-${{ env.GEOSITE_VERSION }}-${{ hashFiles('buildScript/lib/assets.sh', 'libcore/cmd/internal/ruleset_generate/**', 'libcore/go.mod', 'libcore/go.sum') }}
       - name: Prepare assets
@@ -232,8 +232,41 @@ jobs:
           if-no-files-found: error
           compression-level: 9
 
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          submodules: recursive
+      - uses: ./.github/actions/load-build-versions
+      - uses: ./.github/actions/setup-protoc
+      - uses: ./.github/actions/setup-jbr
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            composeApp/rpc/package-lock.json
+            kotlin-js-store/wasm/package-lock.json
+      - uses: ./.github/actions/gradle-cache
+        with:
+          read-only: 'true'
+          build-cache-name: release-web
+      - name: Collect dashboard licenses
+        run: make aboutlibraries_web
+      - name: Build dashboard ZIP
+        env:
+          BUILD_PLUGIN: none
+        run: ./gradlew :composeApp:webZip --build-cache
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dashboard
+          path: composeApp/build/distributions/*.zip
+          if-no-files-found: error
+
   publish:
-    needs: [android, desktop]
+    needs: [android, desktop, web]
     if: ${{ !inputs.no-publish }}
     runs-on: ubuntu-latest
     steps:
@@ -246,6 +279,11 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: desktop-*
+          path: release-artifacts
+      - name: Download dashboard artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dashboard
           path: release-artifacts
       - name: Download R8 mappings
         uses: actions/download-artifact@v8

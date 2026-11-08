@@ -35,6 +35,7 @@ import fr.husi.cli.directory
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
+import fr.husi.database.preference.getBlocking
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
 import fr.husi.ktx.exitApplication

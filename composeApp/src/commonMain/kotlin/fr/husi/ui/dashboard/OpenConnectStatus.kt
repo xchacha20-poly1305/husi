@@ -37,7 +37,7 @@ import fr.husi.vpn.OPENCONNECT_STATE_AUTH_PENDING
 import fr.husi.vpn.OPENCONNECT_STATE_CONNECTED
 import fr.husi.ui.openconnect.OpenConnectAuthChallengeContent
 import fr.husi.vpn.OpenConnectAuthChallengeState
-import fr.husi.ui.openconnect.OpenConnectAuthController
+import fr.husi.ui.openconnect.OpenConnectAuthActions
 import fr.husi.vpn.OpenConnectEndpointState
 import fr.husi.vpn.OpenConnectTunnelInfoState
 import fr.husi.ui.openconnect.PlatformOpenConnectBrowserDialog
@@ -49,7 +49,7 @@ import kotlin.time.Instant
 
 @Composable
 internal fun OpenConnectStatusSection(
-    controller: OpenConnectAuthController,
+    controller: OpenConnectAuthActions,
     showError: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -72,7 +72,7 @@ internal fun OpenConnectStatusSection(
 private fun EndpointContent(
     endpoint: OpenConnectEndpointState,
     showTag: Boolean,
-    controller: OpenConnectAuthController,
+    controller: OpenConnectAuthActions,
     showError: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -111,7 +111,7 @@ private fun EndpointContent(
 private fun AuthSection(
     endpointTag: String,
     challenge: OpenConnectAuthChallengeState,
-    controller: OpenConnectAuthController,
+    controller: OpenConnectAuthActions,
     showError: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -248,5 +248,3 @@ private fun TunnelInfoContent(info: OpenConnectTunnelInfoState) {
         }
     }
 }
-
-

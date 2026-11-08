@@ -61,7 +61,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
-import org.koin.core.context.GlobalContext
+import org.koin.mp.KoinPlatformTools
 
 @Immutable
 class NavigationSuiteItem(
@@ -785,7 +785,7 @@ internal fun standardPlatformMaterialApi(): PlatformMaterialApi = MaterialPlatfo
 
 @Composable
 private fun currentPlatformMaterialApi(): PlatformMaterialApi {
-    if (GlobalContext.getOrNull() == null) return MaterialPlatformMaterialApi
+    if (KoinPlatformTools.defaultContext().getOrNull() == null) return MaterialPlatformMaterialApi
     return koinInject()
 }
 

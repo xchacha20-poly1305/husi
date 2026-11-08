@@ -24,12 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.material3.Text
-import fr.husi.ktx.parseGoDuration
-import fr.husi.ktx.readableMessage
-import fr.husi.repository.resolveRepository
-import fr.husi.resources.Res
-import fr.husi.resources.cleartext_http_warning
-import io.github.xchacha20_poly1305.kpuri.Url
 
 @Composable
 fun ValidatedTextField(
@@ -67,66 +61,6 @@ fun ValidatedTextField(
             },
         )
     }
-}
-
-@Composable
-fun LinkOrContentTextField(
-    state: TextFieldState,
-    onOk: () -> Unit,
-    allowMultiLine: Boolean = false,
-) {
-    suspend fun validate(text: String): String? {
-        if (text.isBlank()) {
-            return null
-        }
-
-        val lines = text.lines()
-        if (lines.size > 1 && !allowMultiLine) {
-            return "Unexpected new line"
-        }
-
-        val errors = linkedSetOf<String>()
-        for (link in lines) try {
-            val url = Url.parse(link)
-            when (url.scheme) {
-                "content" -> continue
-                "http" -> errors.add(resolveRepository().getString(Res.string.cleartext_http_warning))
-            }
-        } catch (e: Exception) {
-            errors.add(e.readableMessage)
-        }
-
-        return if (errors.isNotEmpty()) {
-            errors.joinToString("\n")
-        } else {
-            null
-        }
-    }
-    ValidatedTextField(state, onOk, false, validator = ::validate)
-}
-
-@Composable
-fun DurationTextField(
-    state: TextFieldState,
-    onOk: () -> Unit,
-) {
-    fun validate(text: String): String? {
-        if (text.isBlank()) {
-            return null
-        }
-
-        if (text.lines().size > 1) {
-            return "Unexpected new line"
-        }
-
-        return try {
-            parseGoDuration(text)
-            null
-        } catch (e: Exception) {
-            e.readableMessage
-        }
-    }
-    ValidatedTextField(state, onOk, true, validator = ::validate)
 }
 
 @Composable

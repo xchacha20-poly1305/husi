@@ -930,7 +930,7 @@ internal class CoreHostController(
             return when (PlatformInfo.platform) {
                 Platform.Linux, Platform.MacOs -> DAEMON_SOCKET_DIR_UNIX
                 Platform.Windows -> DAEMON_PIPE_PATH_WINDOWS
-                Platform.Android -> error("impossible")
+                Platform.Android, Platform.Web -> error("impossible")
             }
         }
 
@@ -1026,7 +1026,7 @@ private fun resolvePackagedCoreSibling(fileName: String): File? {
         Platform.Linux -> listOf(appRoot.resolve("bin"), appRoot)
         Platform.MacOs -> listOf(appRoot.resolve("MacOS"), appRoot)
         Platform.Windows -> listOf(appRoot)
-        Platform.Android -> emptyList()
+        Platform.Android, Platform.Web -> emptyList()
     }
     for (dir in searchDirs) {
         val candidate = dir.resolve(fileName)
@@ -1042,7 +1042,7 @@ private fun hostCoreBuildDirName(): String {
         Platform.Linux -> "linux"
         Platform.MacOs -> "darwin"
         Platform.Windows -> "windows"
-        Platform.Android -> "linux"
+        Platform.Android, Platform.Web -> "linux"
     }
     val arch = when (val raw = System.getProperty("os.arch").orEmpty().lowercase()) {
         "amd64", "x86_64" -> "amd64"

@@ -9,30 +9,16 @@ val LocalNavigator = staticCompositionLocalOf<Navigator> {
 
 class Navigator(
     private val backStack: MutableList<NavKey>,
+    private val topLevelRoutes: Set<NavKey>,
 ) {
-    val currentRoute: NavRoutes?
-        get() = backStack.lastOrNull() as? NavRoutes
+    val currentRoute: NavKey?
+        get() = backStack.lastOrNull()
 
-    val selectedTopLevelRoute: NavRoutes?
-        get() = backStack.lastOrNull {
-            (it as? NavRoutes)?.isTopLevelRoute() == true
-        } as? NavRoutes
-
-    private fun NavRoutes.isTopLevelRoute(): Boolean {
-        return when (this) {
-            NavRoutes.Configuration,
-            NavRoutes.Dashboard,
-            NavRoutes.Route,
-            NavRoutes.Log,
-            NavRoutes.Settings,
-                -> true
-
-            else -> false
-        }
-    }
+    val selectedTopLevelRoute: NavKey?
+        get() = backStack.lastOrNull { it in topLevelRoutes }
 
     val isCurrentTopLevel: Boolean
-        get() = currentRoute?.isTopLevelRoute() == true
+        get() = currentRoute in topLevelRoutes
 
     fun popBackStack(): Boolean {
         if (backStack.size <= 1) {
@@ -42,11 +28,11 @@ class Navigator(
         return true
     }
 
-    fun navigateTo(route: NavRoutes) {
+    fun navigateTo(route: NavKey) {
         backStack.add(route)
     }
 
-    fun navigateToTopLevelRoute(route: NavRoutes) {
+    fun navigateToTopLevelRoute(route: NavKey) {
         while (backStack.size > 1) {
             backStack.removeLastOrNull()
         }

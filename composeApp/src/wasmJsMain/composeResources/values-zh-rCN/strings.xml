@@ -1,0 +1,28 @@
+<resources>
+    <string name="web_setup">开始设置</string>
+    <string name="web_terminal_load_failed">终端加载失败：%1$s</string>
+    <string name="web_light_theme">浅色主题</string>
+    <string name="web_dark_theme">深色主题</string>
+    <string name="web_reconnect">重新连接</string>
+    <string name="web_connect_current_site">连接当前站点</string>
+    <string name="web_current_server">当前服务器</string>
+    <string name="remote_server_url">API 地址</string>
+    <string name="web_testing_connection">正在测试连接…</string>
+    <string name="web_mark_read">标记已读</string>
+    <string name="web_receiving_file">正在接收 %1$s</string>
+    <string name="web_cancel_receiving">取消接收</string>
+    <string name="web_delete_file_confirm">删除文件 %1$s？</string>
+    <string name="web_outbound_hint">出口标签（留空使用默认出口）</string>
+    <string name="web_cancel_sending">取消文件发送</string>
+    <string name="web_sending_cancelled">已取消文件发送</string>
+    <string name="web_send_progress">已发送 %1$s 字节</string>
+    <string name="web_send_complete">文件发送完成</string>
+    <string name="web_no_tailscale_endpoints">没有 Tailscale 端点</string>
+    <string name="web_download_certificate">下载 %1$s 的证书和私钥</string>
+    <string name="web_tailscale_logout_confirm">退出 %1$s 的 Tailscale 登录？</string>
+    <string name="web_terminal_not_ready">终端尚未加载</string>
+    <string name="web_terminal_exit">已退出：%1$s</string>
+    <string name="web_remote_ip_unavailable">当前远端不提供独立 IP 检测</string>
+    <string name="web_system_proxy_unavailable">浏览器不能修改系统代理</string>
+    <string name="remote_stream_overflow">远程更新过快，无法及时处理</string>
+</resources>

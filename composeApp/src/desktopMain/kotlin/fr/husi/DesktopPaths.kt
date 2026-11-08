@@ -42,7 +42,7 @@ internal object DesktopPaths {
         fun envFile(name: String): File? = env[name]?.blankAsNull()?.let(::File)
 
         val userHomeDir = when (platform) {
-            Platform.Android -> error("Unsupported desktop platform")
+            Platform.Android, Platform.Web -> error("Unsupported desktop platform")
             Platform.Windows -> envFile("USERPROFILE")
                 ?: envFile("HOME")
                 ?: userHomeProperty?.blankAsNull()?.let(::File)
@@ -50,7 +50,7 @@ internal object DesktopPaths {
         } ?: error("Unable to resolve desktop user home directory")
 
         val configHomeDir = when (platform) {
-            Platform.Android -> error("Unsupported desktop platform")
+            Platform.Android, Platform.Web -> error("Unsupported desktop platform")
             Platform.Linux -> envFile("XDG_CONFIG_HOME") ?: userHomeDir.resolve(".config")
             Platform.MacOs -> userHomeDir.resolve("Library").resolve("Application Support")
             Platform.Windows -> envFile("APPDATA") ?: userHomeDir.resolve("AppData").resolve("Roaming")

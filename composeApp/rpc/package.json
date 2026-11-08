@@ -1,0 +1,29 @@
+{
+  "name": "husi-web-rpc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node generate.mjs",
+    "check": "tsc --noEmit",
+    "build": "npm run generate && npm run check && node build.mjs",
+    "collect-licenses": "license-checker-rseidelsohn --production --excludePrivatePackages --json --limitAttributes licenses,repository --out generated/npm-licenses.json",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "2.17.0",
+    "@connectrpc/connect": "2.3.0",
+    "@connectrpc/connect-web": "2.3.0",
+    "@sqlite.org/sqlite-wasm": "3.54.1-build1",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "@bufbuild/protoc-gen-es": "2.17.0",
+    "@types/node": "24.10.1",
+    "@types/qrcode": "1.5.6",
+    "esbuild": "0.28.2",
+    "license-checker-rseidelsohn": "5.0.1",
+    "spdx-expression-parse": "4.0.0",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

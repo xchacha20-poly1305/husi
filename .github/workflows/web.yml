@@ -1,0 +1,66 @@
+name: Web dashboard
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    paths:
+      - composeApp/**
+      - library/**
+      - proto/**
+      - gradle/**
+      - gradle.properties
+      - husi.properties
+      - kotlin-js-store/**
+      - build.gradle.kts
+      - settings.gradle.kts
+      - repositories.gradle.kts
+      - buildSrc/**
+      - buildScript/publish_web.sh
+      - .github/workflows/web.yml
+      - .github/actions/setup-protoc/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: ./.github/actions/load-build-versions
+      - uses: ./.github/actions/setup-protoc
+      - uses: ./.github/actions/setup-jbr
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            composeApp/rpc/package-lock.json
+            kotlin-js-store/wasm/package-lock.json
+      - uses: ./.github/actions/gradle-cache
+        with:
+          build-cache-name: web
+      - name: Collect dashboard licenses
+        run: make aboutlibraries_web
+      - name: Build and check dashboard
+        env:
+          BUILD_PLUGIN: none
+        run: ./gradlew :composeApp:webZip :composeApp:testRpc :composeApp:wasmJsBrowserTest --build-cache
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dashboard
+          path: composeApp/build/distributions/*.zip
+          if-no-files-found: error
+      - name: Publish single-commit gh-pages branch
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/dev'
+        run: bash buildScript/publish_web.sh composeApp/build/dist/wasmJs/productionExecutable
