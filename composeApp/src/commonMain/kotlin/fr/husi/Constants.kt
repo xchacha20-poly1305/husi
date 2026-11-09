@@ -184,8 +184,6 @@ object Key {
 
     const val RULES_FIRST_CREATE = "rulesFirstCreate"
 
-    const val DESKTOP_NAV_RAIL_WIDTH = "desktopNavRailWidth"
-
     const val ACTIVE_REMOTE_SERVER_ID = "activeRemoteServerId"
 
 }

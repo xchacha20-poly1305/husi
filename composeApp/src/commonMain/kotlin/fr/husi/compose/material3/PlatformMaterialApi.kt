@@ -1,19 +1,10 @@
 package fr.husi.compose.material3
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card as MaterialCard
 import androidx.compose.material3.CardDefaults as MaterialCardDefaults
 import androidx.compose.material3.Button as MaterialButton
@@ -24,8 +15,6 @@ import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.IconButtonColors as MaterialIconButtonColors
 import androidx.compose.material3.LocalTextStyle as MaterialLocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ShortNavigationBar
-import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.PrimaryScrollableTabRow as MaterialPrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow as MaterialPrimaryTabRow
 import androidx.compose.material3.RadioButton as MaterialRadioButton
@@ -55,45 +44,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import kotlinx.collections.immutable.ImmutableList
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
 import org.koin.mp.KoinPlatformTools
-
-@Immutable
-class NavigationSuiteItem(
-    val label: StringResource,
-    val icon: DrawableResource,
-    val selected: Boolean,
-    val onClick: () -> Unit,
-    val badgeCount: Int = 0,
-)
-
-private const val NAVIGATION_BADGE_MAX_COUNT = 99
-
-@Composable
-internal fun NavigationSuiteItemIcon(item: NavigationSuiteItem) {
-    BadgedBox(
-        badge = {
-            if (item.badgeCount > 0) Badge {
-                val count = if (item.badgeCount > NAVIGATION_BADGE_MAX_COUNT) {
-                    "$NAVIGATION_BADGE_MAX_COUNT+"
-                } else {
-                    item.badgeCount.toString()
-                }
-                MaterialText(count)
-            }
-        },
-    ) {
-        MaterialIcon(
-            imageVector = vectorResource(item.icon),
-            contentDescription = stringResource(item.label),
-        )
-    }
-}
 
 internal interface PlatformTabRowScope {
     @Composable
@@ -108,15 +60,6 @@ internal interface PlatformTabRowScope {
 }
 
 internal interface PlatformMaterialApi {
-    @Composable
-    fun NavigationSuite(
-        items: ImmutableList<NavigationSuiteItem>,
-        showNavigation: Boolean,
-        snackbarHost: @Composable () -> Unit,
-        floatingActionButton: @Composable () -> Unit,
-        content: @Composable () -> Unit,
-    )
-
     @Composable
     fun Text(
         text: String,
@@ -327,45 +270,6 @@ internal val LocalPlatformTabRowScope = staticCompositionLocalOf<PlatformTabRowS
 }
 
 private object MaterialPlatformMaterialApi : PlatformMaterialApi {
-    @Composable
-    override fun NavigationSuite(
-        items: ImmutableList<NavigationSuiteItem>,
-        showNavigation: Boolean,
-        snackbarHost: @Composable () -> Unit,
-        floatingActionButton: @Composable () -> Unit,
-        content: @Composable () -> Unit,
-    ) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            bottomBar = {
-                AnimatedVisibility(visible = showNavigation) {
-                    ShortNavigationBar {
-                        items.forEach { item ->
-                            ShortNavigationBarItem(
-                                selected = item.selected,
-                                onClick = item.onClick,
-                                icon = { NavigationSuiteItemIcon(item) },
-                                label = { MaterialText(stringResource(item.label)) },
-                            )
-                        }
-                    }
-                }
-            },
-            snackbarHost = snackbarHost,
-            floatingActionButton = floatingActionButton,
-        ) { innerPadding ->
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .consumeWindowInsets(innerPadding),
-            ) {
-                content()
-            }
-        }
-    }
-
     @Composable
     override fun Text(
         text: String,
@@ -880,23 +784,6 @@ object CardDefaults {
     ) = CardElevation(
         tonalElevation = defaultElevation,
         elevated = true,
-    )
-}
-
-@Composable
-fun NavigationSuite(
-    items: ImmutableList<NavigationSuiteItem>,
-    showNavigation: Boolean,
-    snackbarHost: @Composable () -> Unit,
-    floatingActionButton: @Composable () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    currentPlatformMaterialApi().NavigationSuite(
-        items = items,
-        showNavigation = showNavigation,
-        snackbarHost = snackbarHost,
-        floatingActionButton = floatingActionButton,
-        content = content,
     )
 }
 

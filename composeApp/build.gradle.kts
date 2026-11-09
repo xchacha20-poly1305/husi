@@ -444,6 +444,7 @@ kotlin {
                 implementation(libs.androidx.datastore.preferences.core)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material3)
+                implementation(libs.jetbrains.compose.material3.adaptive.navigation.suite)
                 implementation(libs.jetbrains.compose.components.resources)
                 implementation(libs.jetbrains.compose.ui.tooling.preview)
                 implementation(libs.jetbrains.lifecycle.runtime.compose)

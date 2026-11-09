@@ -42,10 +42,15 @@ choice determines which pattern to use.
   Android 11 and below Haze draws only `fallbackColorEffect`, which `blurStyle` sets to the opaque
   container color so text stays readable. Do not build a style without a fallback.
 
-Top-level destinations (Configuration, Dashboard, Route, Log, Settings) live in `NavigationSuite`
-(phone `NavigationBar`, desktop `WideNavigationRail`, TV drawer). Those screens pass
-`navigationIcon = null` so the capsule row collapses the nav slot. Pushed screens use a back
-`SimpleIconButton` (`arrow_back`) as `navigationIcon`.
+Top-level destinations (Configuration, Dashboard, Route, Log, Settings) live in the shared
+`NavigationSuite`, backed by `NavigationSuiteScaffold` on Android, Desktop, Web and TV. Available
+width below 600dp uses `ShortNavigationBarCompact`; at 600dp and above it uses
+`WideNavigationRailCollapsed`. Pushed pages hide navigation only on narrow screens. Web setup
+passes `navigationAvailable = false` to hide it at every width.
+The rail's items scroll vertically so all destinations remain reachable in short windows.
+
+Top-level screens pass `navigationIcon = null` so the capsule row collapses the nav slot. Pushed
+screens use a back `SimpleIconButton` (`arrow_back`) even when the side rail remains visible.
 
 ## Haze wiring
 

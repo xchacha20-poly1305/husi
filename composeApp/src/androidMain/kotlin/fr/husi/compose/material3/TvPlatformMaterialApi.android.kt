@@ -3,29 +3,17 @@ package fr.husi.compose.material3
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.material3.PrimaryScrollableTabRow as MaterialPrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow as MaterialPrimaryTabRow
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.LocalContentColor as MaterialLocalContentColor
 import androidx.compose.material3.LocalTextStyle as MaterialLocalTextStyle
 import androidx.compose.material3.Text as MaterialText
-import kotlinx.collections.immutable.ImmutableList
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -47,8 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.NavigationDrawerItemDefaults
-import androidx.tv.material3.DrawerValue as TvDrawerValue
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Card as TvCard
@@ -61,16 +47,9 @@ import androidx.tv.material3.IconButton as TvIconButton
 import androidx.tv.material3.IconButtonDefaults as TvIconButtonDefaults
 import androidx.tv.material3.MaterialTheme as TvMaterialTheme
 import androidx.tv.material3.RadioButton as TvRadioButton
-import androidx.tv.material3.NavigationDrawer as TvNavigationDrawer
-import androidx.tv.material3.NavigationDrawerItem as TvNavigationDrawerItem
-import androidx.tv.material3.NavigationDrawerScope
 import androidx.tv.material3.Surface as TvSurface
 import androidx.tv.material3.SurfaceDefaults as TvSurfaceDefaults
 import androidx.tv.material3.Switch as TvSwitch
-import androidx.tv.material3.rememberDrawerState as rememberTvDrawerState
-
-internal val LocalTvNavigationDrawerScope =
-    staticCompositionLocalOf<NavigationDrawerScope?> { null }
 
 internal object TvPlatformMaterialApi : PlatformMaterialApi {
     @Composable
@@ -129,75 +108,6 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         tvContentColorFor(containerColor)
     } else {
         contentColor
-    }
-
-    @Composable
-    override fun NavigationSuite(
-        items: ImmutableList<NavigationSuiteItem>,
-        showNavigation: Boolean,
-        snackbarHost: @Composable () -> Unit,
-        floatingActionButton: @Composable () -> Unit,
-        content: @Composable () -> Unit,
-    ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            snackbarHost = snackbarHost,
-            floatingActionButton = floatingActionButton,
-        ) { innerPadding ->
-            val drawerState = rememberTvDrawerState(TvDrawerValue.Open)
-            TvNavigationDrawer(
-                modifier = Modifier.padding(innerPadding),
-                drawerState = drawerState,
-                drawerContent = { drawerValue ->
-                    CompositionLocalProvider(LocalTvNavigationDrawerScope provides this) {
-                        val drawerWidth = when (drawerValue) {
-                            TvDrawerValue.Closed -> NavigationDrawerItemDefaults.CollapsedDrawerItemWidth
-                            TvDrawerValue.Open -> NavigationDrawerItemDefaults.ExpandedDrawerItemWidth
-                        }
-                        TvSurface(
-                            modifier = Modifier
-                                .width(drawerWidth)
-                                .fillMaxHeight(),
-                        ) {
-                            Column {
-                                items.forEach { item ->
-                                    TvNavigationSuiteItem(item)
-                                }
-                            }
-                        }
-                    }
-                },
-                content = content,
-            )
-        }
-    }
-
-    @Composable
-    private fun TvNavigationSuiteItem(item: NavigationSuiteItem) {
-        val tvScope = LocalTvNavigationDrawerScope.current
-        if (tvScope != null) with(tvScope) {
-            val focusRequester = remember { FocusRequester() }
-            LaunchedEffect(item.selected, hasFocus) {
-                if (item.selected && hasFocus) {
-                    focusRequester.requestFocus()
-                }
-            }
-            TvNavigationDrawerItem(
-                selected = item.selected,
-                onClick = item.onClick,
-                leadingContent = {
-                    ProvideTvMaterialBridge {
-                        NavigationSuiteItemIcon(item)
-                    }
-                },
-                modifier = Modifier.focusRequester(focusRequester),
-            ) {
-                ProvideTvMaterialBridge {
-                    MaterialText(stringResource(item.label))
-                }
-            }
-        }
     }
 
     @Composable

@@ -310,8 +310,6 @@ object DataStore : ApplicationPreferences(
 
     val rulesFirstCreate = configurationStore.boolean(Key.RULES_FIRST_CREATE)
 
-    val desktopNavRailWidth = configurationStore.int(Key.DESKTOP_NAV_RAIL_WIDTH) { 220 }
-
     // app update
 
     val appUpdateAutoCheck = configurationStore.boolean(Key.APP_UPDATE_AUTO_CHECK)

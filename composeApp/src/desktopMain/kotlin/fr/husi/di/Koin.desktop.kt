@@ -1,7 +1,7 @@
 package fr.husi.di
 
-import fr.husi.compose.material3.DesktopPlatformMaterialApi
 import fr.husi.compose.material3.PlatformMaterialApi
+import fr.husi.compose.material3.standardPlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.compose.theme.standardPlatformThemeApi
 import fr.husi.net.GrpcHttpFetcher
@@ -13,7 +13,7 @@ import fr.husi.repository.LocalRepository
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-internal actual fun platformMaterialApi(): PlatformMaterialApi = DesktopPlatformMaterialApi
+internal actual fun platformMaterialApi(): PlatformMaterialApi = standardPlatformMaterialApi()
 
 internal actual fun platformThemeApi(): PlatformThemeApi = standardPlatformThemeApi()
 

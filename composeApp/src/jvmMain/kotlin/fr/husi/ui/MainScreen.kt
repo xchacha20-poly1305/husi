@@ -2,7 +2,6 @@
 
 package fr.husi.ui
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -37,7 +36,6 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.NavigationSuite
 import fr.husi.compose.material3.NavigationSuiteItem
 import fr.husi.compose.material3.Text
-import fr.husi.compose.navigationBarsAlwaysInsets
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
@@ -279,7 +277,7 @@ private fun MainScreenContent(
             icon = destination.icon,
             selected = selected,
             onClick = {
-                if (!selected) {
+                if (!selected || !navigator.isCurrentTopLevel) {
                     navigator.navigateToTopLevelRoute(destination.route)
                 }
             },
@@ -293,15 +291,10 @@ private fun MainScreenContent(
 
     NavigationSuite(
         items = navigationItems,
-        showNavigation = navigator.isCurrentTopLevel,
+        isTopLevel = navigator.isCurrentTopLevel,
         snackbarHost = {
             SwipeableSnackbarHost(
                 hostState = snackbarHostState,
-                windowInsets = if (navigator.isCurrentTopLevel) {
-                    WindowInsets(0, 0, 0, 0)
-                } else {
-                    navigationBarsAlwaysInsets()
-                },
             )
         },
         floatingActionButton = {

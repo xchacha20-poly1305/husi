@@ -164,7 +164,8 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                                     )
                                 }
                                 .toPersistentList(),
-                        showNavigation = routes.last() in RemoteRoute.topLevel,
+                        isTopLevel = routes.last() in RemoteRoute.topLevel,
+                        navigationAvailable = state.selected != null,
                         snackbarHost = { SnackbarHost(snackbarHost) },
                         floatingActionButton = {},
                     ) {
