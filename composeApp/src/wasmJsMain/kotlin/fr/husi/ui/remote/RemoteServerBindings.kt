@@ -20,7 +20,10 @@ internal fun RemoteMenu(groupCount: Int, dismiss: () -> Unit) {
         onSelectServer = { id -> remote.servers.firstOrNull { it.id == id }?.let(remote::connect) },
         groupIndex = 0,
         groupCount = groupCount,
-        onManage = { navigator.navigateTo(RemoteRoute.Servers) },
+        onManage = {
+            navigator.navigateToTopLevelRoute(RemoteRoute.Settings)
+            navigator.navigateTo(RemoteRoute.Servers)
+        },
         onDismiss = dismiss,
     )
 }
@@ -65,7 +68,7 @@ internal fun RemoteServersBinding() {
         onEditServer = { navigator.navigateTo(RemoteRoute.ServerEdit(it)) },
         onSelectServer = { id ->
             remote.servers.firstOrNull { it.id == id }?.let(remote::connect)
-            navigator.navigateToTopLevelRoute(RemoteRoute.Dashboard)
+            navigator.navigateToTopLevelRoute(RemoteRoute.Stats)
         },
         onDeleteServer = { id -> remote.servers.firstOrNull { it.id == id }?.let { remote.delete(it) } },
     )

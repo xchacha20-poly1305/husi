@@ -11,11 +11,14 @@ import kotlinx.serialization.json.Json
 class RemoteRouteTest {
     @Test
     fun `remote routes round trip with the serializers used by the saved back stack`() {
-        val json = Json { serializersModule = RemoteRoute.savedStateConfiguration.serializersModule }
+        val json = Json {
+            serializersModule = RemoteRoute.savedStateConfiguration.serializersModule
+        }
         val serializer = PolymorphicSerializer(NavKey::class)
         val routes = listOf(
             RemoteRoute.Setup,
-            RemoteRoute.Dashboard, RemoteRoute.Logs, RemoteRoute.Tools, RemoteRoute.Servers,
+            RemoteRoute.Stats, RemoteRoute.ProxySet, RemoteRoute.Connections, RemoteRoute.Logs,
+            RemoteRoute.Tools, RemoteRoute.Servers, RemoteRoute.GeneralSettings,
             RemoteRoute.Settings, RemoteRoute.About, RemoteRoute.Libraries,
             RemoteRoute.ServerEdit(1L), RemoteRoute.Stun, RemoteRoute.NetworkQuality,
             RemoteRoute.Endpoint("tailscale"), RemoteRoute.Peer("tailscale", "peer"),
@@ -30,9 +33,9 @@ class RemoteRouteTest {
     fun `missing server replaces empty and restored navigation with setup`() {
         for (stack in listOf(
             emptyList(),
-            listOf(RemoteRoute.Dashboard),
-            listOf(RemoteRoute.Tools, RemoteRoute.Stun),
-            listOf(RemoteRoute.Servers, RemoteRoute.ServerEdit(1L)),
+            listOf(RemoteRoute.Stats),
+            listOf(RemoteRoute.Settings, RemoteRoute.Tools, RemoteRoute.Stun),
+            listOf(RemoteRoute.Settings, RemoteRoute.Servers, RemoteRoute.ServerEdit(1L)),
         )) {
             val routes = remoteBackStack(stack, hasServer = false)
             assertEquals(listOf(RemoteRoute.Setup), routes)
@@ -43,22 +46,40 @@ class RemoteRouteTest {
     @Test
     fun `selecting a server leaves setup with no back route to it`() {
         val routes = remoteBackStack(listOf(RemoteRoute.Setup), hasServer = true)
-        assertEquals(listOf(RemoteRoute.Dashboard), routes)
+        assertEquals(listOf(RemoteRoute.Stats), routes)
         assertFalse(Navigator(routes.toMutableList(), RemoteRoute.topLevel).popBackStack())
-        val tools = listOf(RemoteRoute.Tools, RemoteRoute.Stun)
+        val tools = listOf(RemoteRoute.Settings, RemoteRoute.Tools, RemoteRoute.Stun)
         assertEquals(tools, remoteBackStack(tools, hasServer = true))
     }
 
     @Test
     fun `the shared navigator returns from a remote subpage to its top level destination`() {
-        val stack = mutableListOf<NavKey>(RemoteRoute.Dashboard)
+        val stack = mutableListOf<NavKey>(RemoteRoute.Stats)
         val navigator = Navigator(stack, RemoteRoute.topLevel)
         navigator.navigateTo(RemoteRoute.Endpoint("tailscale"))
         assertFalse(navigator.isCurrentTopLevel)
-        assertEquals(RemoteRoute.Dashboard, navigator.selectedTopLevelRoute)
+        assertEquals(RemoteRoute.Stats, navigator.selectedTopLevelRoute)
         assertTrue(navigator.popBackStack())
         navigator.navigateToTopLevelRoute(RemoteRoute.Logs)
         assertEquals(RemoteRoute.Logs, navigator.currentRoute)
         assertTrue(navigator.isCurrentTopLevel)
+    }
+
+    @Test
+    fun `settings subpages keep settings selected and return to the hub`() {
+        for (destination in listOf(
+            RemoteRoute.GeneralSettings,
+            RemoteRoute.Tools,
+            RemoteRoute.Servers,
+        )) {
+            val stack = mutableListOf<NavKey>(RemoteRoute.Stats)
+            val navigator = Navigator(stack, RemoteRoute.topLevel)
+            navigator.navigateToTopLevelRoute(RemoteRoute.Settings)
+            navigator.navigateTo(destination)
+            assertFalse(navigator.isCurrentTopLevel)
+            assertEquals(RemoteRoute.Settings, navigator.selectedTopLevelRoute)
+            assertTrue(navigator.popBackStack())
+            assertEquals(RemoteRoute.Settings, navigator.currentRoute)
+        }
     }
 }

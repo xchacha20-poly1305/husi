@@ -2,7 +2,6 @@
 
 package fr.husi.di
 
-import org.koin.core.annotation.KoinExperimentalAPI
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.material3.standardPlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
@@ -17,12 +16,13 @@ import fr.husi.tailscale.RemoteInboxModel
 import fr.husi.tailscale.RemotePeerModel
 import fr.husi.tailscale.RemoteSshSessions
 import fr.husi.tailscale.RemoteUploads
-import fr.husi.ui.MainScreenScope
 import fr.husi.ui.LibrariesScreen
 import fr.husi.ui.LocalNavigator
+import fr.husi.ui.MainScreenScope
 import fr.husi.ui.RemoteAboutBinding
 import fr.husi.ui.RemoteRoute
 import fr.husi.ui.SnackbarEmitter
+import fr.husi.ui.dashboard.DashboardPage
 import fr.husi.ui.dashboard.RemoteDashboardBinding
 import fr.husi.ui.dashboard.RemoteDashboardPresenter
 import fr.husi.ui.log.RemoteLogBinding
@@ -31,6 +31,7 @@ import fr.husi.ui.remote.RemoteServerEditor
 import fr.husi.ui.remote.RemoteServerEditorBinding
 import fr.husi.ui.remote.RemoteServersBinding
 import fr.husi.ui.remote.RemoteSetupBinding
+import fr.husi.ui.settings.GeneralSettingsScreen
 import fr.husi.ui.settings.SettingsScreen
 import fr.husi.ui.tailscale.RemoteEndpointBinding
 import fr.husi.ui.tailscale.RemoteExitNodeBinding
@@ -46,6 +47,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -77,10 +79,13 @@ internal val remoteApplicationModule = module {
         viewModel { parameters -> RemoteInboxModel(parameters.get(), get()) }
 
         navigation<RemoteRoute.Setup> { RemoteSetupBinding() }
-        navigation<RemoteRoute.Dashboard> { RemoteDashboardBinding() }
+        navigation<RemoteRoute.Stats> { RemoteDashboardBinding(DashboardPage.Stats) }
+        navigation<RemoteRoute.ProxySet> { RemoteDashboardBinding(DashboardPage.ProxySet) }
+        navigation<RemoteRoute.Connections> { RemoteDashboardBinding(DashboardPage.Connections) }
         navigation<RemoteRoute.Logs> { RemoteLogBinding() }
         navigation<RemoteRoute.Tools> { RemoteNetworkBinding() }
         navigation<RemoteRoute.Settings> { SettingsScreen() }
+        navigation<RemoteRoute.GeneralSettings> { GeneralSettingsScreen() }
         navigation<RemoteRoute.About> { RemoteAboutBinding() }
         navigation<RemoteRoute.Libraries> {
             val navigator = LocalNavigator.current

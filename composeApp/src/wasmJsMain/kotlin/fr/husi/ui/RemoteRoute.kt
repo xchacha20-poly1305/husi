@@ -10,13 +10,19 @@ import kotlinx.serialization.modules.polymorphic
 internal sealed interface RemoteRoute : NavKey {
     @Serializable data object Setup : RemoteRoute
 
-    @Serializable data object Dashboard : RemoteRoute
+    @Serializable data object Stats : RemoteRoute
+
+    @Serializable data object ProxySet : RemoteRoute
+
+    @Serializable data object Connections : RemoteRoute
 
     @Serializable data object Logs : RemoteRoute
 
     @Serializable data object Tools : RemoteRoute
 
     @Serializable data object Settings : RemoteRoute
+
+    @Serializable data object GeneralSettings : RemoteRoute
 
     @Serializable data object About : RemoteRoute
 
@@ -41,16 +47,19 @@ internal sealed interface RemoteRoute : NavKey {
     @Serializable data object Ssh : RemoteRoute
 
     companion object {
-        val topLevel: Set<NavKey> = setOf(Dashboard, Logs, Tools, Servers, Settings)
+        val topLevel: Set<NavKey> = setOf(Stats, ProxySet, Connections, Logs, Settings)
         val savedStateConfiguration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
                     subclass(Setup::class, Setup.serializer())
-                    subclass(Dashboard::class, Dashboard.serializer())
+                    subclass(Stats::class, Stats.serializer())
+                    subclass(ProxySet::class, ProxySet.serializer())
+                    subclass(Connections::class, Connections.serializer())
                     subclass(Logs::class, Logs.serializer())
                     subclass(Tools::class, Tools.serializer())
                     subclass(Servers::class, Servers.serializer())
                     subclass(Settings::class, Settings.serializer())
+                    subclass(GeneralSettings::class, GeneralSettings.serializer())
                     subclass(About::class, About.serializer())
                     subclass(Libraries::class, Libraries.serializer())
                     subclass(ServerEdit::class, ServerEdit.serializer())
@@ -70,5 +79,5 @@ internal sealed interface RemoteRoute : NavKey {
 /** A selected server is required for every destination outside setup. */
 internal fun remoteBackStack(backStack: List<NavKey>, hasServer: Boolean): List<NavKey> {
     if (!hasServer) return listOf(RemoteRoute.Setup)
-    return backStack.filterNot { it == RemoteRoute.Setup }.ifEmpty { listOf(RemoteRoute.Dashboard) }
+    return backStack.filterNot { it == RemoteRoute.Setup }.ifEmpty { listOf(RemoteRoute.Stats) }
 }

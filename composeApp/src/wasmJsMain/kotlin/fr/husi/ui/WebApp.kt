@@ -2,7 +2,6 @@
 
 package fr.husi.ui
 
-import org.koin.core.annotation.KoinExperimentalAPI
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -30,15 +29,15 @@ import fr.husi.database.DataStore
 import fr.husi.installAppLanguageEnvironment
 import fr.husi.remote.RemoteState
 import fr.husi.resources.Res
-import fr.husi.resources.build
 import fr.husi.resources.description
-import fr.husi.resources.dns
-import fr.husi.resources.menu_dashboard
+import fr.husi.resources.layers
+import fr.husi.resources.link
 import fr.husi.resources.menu_log
-import fr.husi.resources.remote_control
+import fr.husi.resources.proxy_set
 import fr.husi.resources.settings
 import fr.husi.resources.speed
-import fr.husi.resources.tools_network
+import fr.husi.resources.traffic_connections
+import fr.husi.resources.traffic_status
 import fr.husi.resources.web_terminal_load_failed
 import io.github.xchacha20_poly1305.libghostty.GhosttyWebAssembly
 import kotlinx.collections.immutable.toPersistentList
@@ -50,6 +49,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.compose.scope.UnboundKoinScope
 import org.koin.core.annotation.KoinDelicateAPI
+import org.koin.core.annotation.KoinExperimentalAPI
 
 @Composable
 internal fun WebApp() {
@@ -130,24 +130,24 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                         items =
                             listOf(
                                     Triple(
-                                        RemoteRoute.Dashboard,
-                                        Res.string.menu_dashboard,
+                                        RemoteRoute.Stats,
+                                        Res.string.traffic_status,
                                         Res.drawable.speed,
+                                    ),
+                                    Triple(
+                                        RemoteRoute.ProxySet,
+                                        Res.string.proxy_set,
+                                        Res.drawable.layers,
+                                    ),
+                                    Triple(
+                                        RemoteRoute.Connections,
+                                        Res.string.traffic_connections,
+                                        Res.drawable.link,
                                     ),
                                     Triple(
                                         RemoteRoute.Logs,
                                         Res.string.menu_log,
                                         Res.drawable.description,
-                                    ),
-                                    Triple(
-                                        RemoteRoute.Tools,
-                                        Res.string.tools_network,
-                                        Res.drawable.build,
-                                    ),
-                                    Triple(
-                                        RemoteRoute.Servers,
-                                        Res.string.remote_control,
-                                        Res.drawable.dns,
                                     ),
                                     Triple(
                                         RemoteRoute.Settings,

@@ -28,7 +28,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.max
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
@@ -117,9 +117,11 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
-private const val PAGE_STATUS = 0
-private const val PAGE_CONNECTIONS = 1
-private const val PAGE_PROXY_SET = 2
+internal enum class DashboardPage {
+    Stats,
+    Connections,
+    ProxySet,
+}
 
 @Composable
 internal fun DashboardContent(
@@ -134,13 +136,13 @@ internal fun DashboardContent(
     targetConnected: Boolean,
     remoteSessionKey: Long?,
     remoteBanner: @Composable () -> Unit,
+    page: DashboardPage? = null,
 ) {
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarEmitter.current
 
     val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { 3 },
+        pageCount = { DashboardPage.entries.size },
     )
 
     val uiState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
@@ -151,8 +153,9 @@ internal fun DashboardContent(
         isEditingDashboard = false
     }
     val focusManager = LocalFocusManager.current
-    val isConnectionsPage = pagerState.currentPage == PAGE_CONNECTIONS
-    val isProxySetPage = pagerState.currentPage == PAGE_PROXY_SET
+    val currentPage = page ?: DashboardPage.entries[pagerState.currentPage]
+    val isConnectionsPage = currentPage == DashboardPage.Connections
+    val isProxySetPage = currentPage == DashboardPage.ProxySet
 
     val searchBarState = rememberSearchBarState()
     val proxySetSearchBarState = rememberSearchBarState()
@@ -228,9 +231,11 @@ internal fun DashboardContent(
     }
     val windowInsets = WindowInsets.safeDrawing
 
-    LaunchedEffect(pagerState.currentPage) {
-        if (pagerState.currentPage != PAGE_STATUS) isEditingDashboard = false
-        if (pagerState.currentPage != PAGE_PROXY_SET) {
+    LaunchedEffect(currentPage) {
+        if (currentPage != DashboardPage.Stats) {
+            isEditingDashboard = false
+        }
+        if (currentPage != DashboardPage.ProxySet) {
             dashboardViewModel.clearProxySetSearch()
             proxySetSearchBarState.animateToCollapsed()
         }
@@ -255,13 +260,13 @@ internal fun DashboardContent(
         }
     }
 
-    DisposableEffect(dashboardViewModel) {
-        onDispose { dashboardViewModel.setDashboardActive(false) }
+    LifecycleResumeEffect(dashboardViewModel) {
+        dashboardViewModel.setDashboardActive(true)
+        onPauseOrDispose { dashboardViewModel.setDashboardActive(false) }
     }
 
     LaunchedEffect(remoteSessionKey, targetConnected) {
         dashboardViewModel.initialize(targetConnected)
-        dashboardViewModel.setDashboardActive(true)
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = rememberHazeState()
@@ -446,7 +451,17 @@ internal fun DashboardContent(
                         CapsuleTopBar(
                             hazeState = hazeState,
                             navigationIcon = null,
-                            title = { Text(stringResource(Res.string.menu_dashboard)) },
+                            title = {
+                                Text(
+                                    stringResource(
+                                        if (page == null) {
+                                            Res.string.menu_dashboard
+                                        } else {
+                                            Res.string.traffic_status
+                                        },
+                                    ),
+                                )
+                            },
                             actions = {
                                 if (isEditingDashboard) {
                                     CapsuleActionButton {
@@ -477,37 +492,31 @@ internal fun DashboardContent(
                     }
                     remoteBanner()
 
-                    PrimaryTabRow(
-                        selectedTabIndex = pagerState.currentPage,
-                        containerColor = Color.Transparent,
-                    ) {
-                        Tab(
-                            text = { Text(stringResource(Res.string.traffic_status)) },
-                            selected = pagerState.currentPage == PAGE_STATUS,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(PAGE_STATUS)
-                                }
-                            },
-                        )
-                        Tab(
-                            text = { Text(stringResource(Res.string.traffic_connections)) },
-                            selected = pagerState.currentPage == PAGE_CONNECTIONS,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(PAGE_CONNECTIONS)
-                                }
-                            },
-                        )
-                        Tab(
-                            text = { Text(stringResource(Res.string.proxy_set)) },
-                            selected = pagerState.currentPage == PAGE_PROXY_SET,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(PAGE_PROXY_SET)
-                                }
-                            },
-                        )
+                    if (page == null) {
+                        PrimaryTabRow(
+                            selectedTabIndex = pagerState.currentPage,
+                            containerColor = Color.Transparent,
+                        ) {
+                            for ((index, tab) in DashboardPage.entries.withIndex()) {
+                                Tab(
+                                    text = {
+                                        Text(
+                                            stringResource(
+                                                when (tab) {
+                                                    DashboardPage.Stats -> Res.string.traffic_status
+                                                    DashboardPage.Connections -> Res.string.traffic_connections
+                                                    DashboardPage.ProxySet -> Res.string.proxy_set
+                                                },
+                                            ),
+                                        )
+                                    },
+                                    selected = currentPage == tab,
+                                    onClick = {
+                                        scope.launch { pagerState.animateScrollToPage(index) }
+                                    },
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -523,13 +532,10 @@ internal fun DashboardContent(
                 .paddingHorizontal(innerPadding)
                 .hazeSource(hazeState),
         ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-            ) { page ->
-                when (page) {
-                    PAGE_STATUS -> DashboardStatusScreen(
-                            tailscaleEndpoints = tailscaleEndpoints,
+            val pageContent: @Composable (DashboardPage) -> Unit = { dashboardPage ->
+                when (dashboardPage) {
+                    DashboardPage.Stats -> DashboardStatusScreen(
+                        tailscaleEndpoints = tailscaleEndpoints,
                         uiState = uiState,
                         openConnectController = openConnectController,
                         openVPNController = openVPNController,
@@ -548,7 +554,7 @@ internal fun DashboardContent(
                         onOpenTailscaleEndpoint = onOpenTailscaleEndpoint,
                     )
 
-                    PAGE_CONNECTIONS -> DashboardConnectionsScreen(
+                    DashboardPage.Connections -> DashboardConnectionsScreen(
                         uiState = uiState,
                         contentPadding = pageContentPadding,
                         resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
@@ -558,7 +564,7 @@ internal fun DashboardContent(
                         onConnectionClick = dashboardViewModel::selectConnection,
                     )
 
-                    PAGE_PROXY_SET -> DashboardProxySetScreen(
+                    DashboardPage.ProxySet -> DashboardProxySetScreen(
                         uiState = uiState,
                         contentPadding = pageContentPadding,
                         selectProxy = { group, proxy ->
@@ -570,8 +576,16 @@ internal fun DashboardContent(
                         openGroupSearch = dashboardViewModel::openProxyGroupSearch,
                         closeGroupSearch = dashboardViewModel::closeProxyGroupSearch,
                     )
-
-                    else -> error("impossible")
+                }
+            }
+            if (page != null) {
+                pageContent(page)
+            } else {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                ) { index ->
+                    pageContent(DashboardPage.entries[index])
                 }
             }
         }

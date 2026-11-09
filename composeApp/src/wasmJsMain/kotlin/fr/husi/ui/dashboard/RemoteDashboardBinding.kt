@@ -10,7 +10,7 @@ import fr.husi.ui.remote.RemoteMenu
 import org.koin.compose.koinInject
 
 @Composable
-internal fun RemoteDashboardBinding() {
+internal fun RemoteDashboardBinding(page: DashboardPage) {
     val remote = koinInject<RemoteState>()
     val presenter = koinInject<RemoteDashboardPresenter>()
     val navigator = LocalNavigator.current
@@ -24,5 +24,6 @@ internal fun RemoteDashboardBinding() {
         targetConnected = remote.connected,
         remoteSessionKey = remote.selected?.id?.hashCode()?.toLong(),
         remoteBanner = { RemoteBanner() },
+        page = page,
     )
 }
