@@ -2,6 +2,7 @@ import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { Code, ConnectError, type Transport } from "@connectrpc/connect";
 import { AsyncQueue, FrameDecoder, frame, metadata } from "./frames.js";
 
+/** Keep long-lived streams out of the browser's per-origin HTTP/1.1 connection pool. */
 export function withWebSocketStreams(
     base: Transport,
     baseUrl: string,
@@ -9,17 +10,7 @@ export function withWebSocketStreams(
 ): Transport {
     return {
         unary: base.unary,
-        async stream(method, signal, timeoutMs, header, input, contextValues) {
-            if (method.methodKind === "server_streaming") {
-                return base.stream(
-                    method,
-                    signal,
-                    timeoutMs,
-                    header,
-                    input,
-                    contextValues,
-                );
-            }
+        async stream(method, signal, timeoutMs, header, input) {
             const url = new URL(
                 `${baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl}/${method.parent.typeName}/${method.name}`,
             );

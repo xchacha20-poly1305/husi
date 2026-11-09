@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fromJson, toBinary } from "@bufbuild/protobuf";
+import { fromBinary, fromJson, toBinary } from "@bufbuild/protobuf";
 import {
     StartedService,
     TailscaleSSHServerMessageSchema,
@@ -46,6 +46,85 @@ const base = {
     },
 } as Transport;
 const method = StartedService.method.startTailscaleSSHSession;
+
+test("dashboard subscriptions use WebSockets beyond the HTTP/1.1 connection limit and keep receiving after half-close", async () => {
+    const original = globalThis.WebSocket;
+    globalThis.WebSocket = Socket as unknown as typeof WebSocket;
+    const controller = new AbortController();
+    try {
+        const transport = withWebSocketStreams(
+            base,
+            "http://example.org/api",
+            "Bearer secret",
+        );
+        const methods = [
+            StartedService.method.subscribeGroups,
+            StartedService.method.subscribeLog,
+            StartedService.method.subscribeTailscaleStatus,
+            StartedService.method.subscribeOpenConnectStatus,
+            StartedService.method.subscribeOpenVPNStatus,
+            StartedService.method.subscribeClashMode,
+            StartedService.method.subscribeServiceStatus,
+            StartedService.method.subscribeStatus,
+            StartedService.method.subscribeConnections,
+        ];
+        const subscriptions = [];
+        for (const method of methods) {
+            const input = fromJson(
+                method.input,
+                method.input.fields.some(field => field.name === "interval")
+                    ? { interval: "1000000000" }
+                    : {},
+            );
+            const response = await transport.stream(
+                method,
+                controller.signal,
+                undefined,
+                undefined,
+                (async function* () {
+                    yield input;
+                })(),
+            );
+            subscriptions.push({ method, input, response, socket: Socket.latest });
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        for (const { method, input, response, socket } of subscriptions) {
+            assert.equal(
+                socket.url.href,
+                `ws://example.org/api/daemon.StartedService/${method.name}`,
+            );
+            assert.match(
+                new TextDecoder().decode(socket.sent[0]),
+                /authorization: Bearer secret/,
+            );
+            assert.equal(socket.sent.length, 3);
+            assert.equal(socket.sent[1][0], 0);
+            assert.deepEqual(fromBinary(method.input, socket.sent[1].slice(6)), input);
+            assert.deepEqual(socket.sent[2], new Uint8Array([1]));
+            assert.equal(socket.closed, false);
+
+            const messages = response.message[Symbol.asyncIterator]();
+            for (const memory of [1048576, 2097152]) {
+                const output = fromJson(
+                    method.output,
+                    method.name === "SubscribeStatus"
+                        ? { memory: String(memory), goroutines: 42, uplinkTotal: "9007199254740993" }
+                        : {},
+                );
+                socket.receive(frame(toBinary(method.output, output)));
+                assert.deepEqual((await messages.next()).value, output);
+            }
+            socket.receive(
+                frame(new TextEncoder().encode("grpc-status: 0\r\n"), 128),
+            );
+            assert.equal((await messages.next()).done, true);
+            assert.equal(socket.closed, true);
+        }
+    } finally {
+        controller.abort();
+        globalThis.WebSocket = original;
+    }
+});
 
 test("WebSocket transport sends metadata, framed input and half-close, and decodes output and status", async () => {
     const original = globalThis.WebSocket;
