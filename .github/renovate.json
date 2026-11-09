@@ -122,6 +122,26 @@
       ]
     },
     {
+      "description": "Update only direct npm dependencies in package.json; do not bump lockfile-only transitives",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "indirect"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Lockfile maintenance rewrites the whole tree, including transitives",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "enabled": false
+    },
+    {
       "matchManagers": [
         "npm"
       ],
