@@ -332,7 +332,7 @@ val installRpc = tasks.register<Exec>("installRpc") {
 
 val buildRpc = tasks.register<Exec>("buildRpc") {
     group = "web"
-    description = "Generate protobuf bindings and bundle the browser RPC client."
+    description = "Generate protobuf bindings and bundle the browser RPC client and startup indicator."
     dependsOn(installRpc)
     workingDir("rpc")
     commandLine("npm", "run", "build")
@@ -769,6 +769,13 @@ tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach 
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+}
+
+// Webpack emits index.html with Wasm preloads and the inlined startup indicator.
+tasks.withType<AbstractCopyTask>().matching {
+    it.name.startsWith("wasmJsBrowser") && it.name.endsWith("Distribution")
+}.configureEach {
+    exclude("index.template.html", "loading-indicator.js", "loading-indicator.css")
 }
 
 val webZip = tasks.register<Zip>("webZip") {

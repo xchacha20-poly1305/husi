@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fef7ff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141218" media="(prefers-color-scheme: dark)">
+  <title>Husi Dashboard</title>
+  <link rel="preload" href="rpc.js" as="script" crossorigin="anonymous">
+  <link rel="preload" href="husi.js" as="script" crossorigin="anonymous">
+  <link rel="preload" href="ghostty-vt.wasm" as="fetch" type="application/wasm" crossorigin="anonymous">
+  <!-- webpack-wasm-preloads -->
+  <!-- loading-indicator-styles -->
+  <style>
+    :root {
+      color-scheme: light dark;
+      --loading-surface: #fef7ff;
+      --m3e-sys-color-primary-container: #eaddff;
+      --m3e-sys-color-on-primary-container: #4f378b;
+      --m3e-sys-shape-corner-full: 50%;
+    }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      background: var(--loading-surface);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --loading-surface: #141218;
+        --m3e-sys-color-primary-container: #4f378b;
+        --m3e-sys-color-on-primary-container: #eaddff;
+      }
+    }
+    @media (forced-colors: active) {
+      #loading { background: Canvas; }
+    }
+  </style>
+  <script src="rpc.js" defer crossorigin="anonymous"></script>
+  <script src="husi.js" defer crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="loading">
+    <m3e-loading-indicator contained aria-label="Loading Husi Dashboard"></m3e-loading-indicator>
+  </div>
+  <!-- loading-indicator-script -->
+</body>
+</html>
