@@ -5,11 +5,10 @@ import androidx.lifecycle.viewModelScope
 import fr.husi.core.NatBehaviour
 import fr.husi.core.NetworkQualityPhase
 import fr.husi.core.StunPhase
+import fr.husi.ktx.emptyAsNull
+import fr.husi.proto.daemon.NetworkQualityTestRequest
+import fr.husi.proto.daemon.STUNTestRequest
 import fr.husi.remote.RemoteState
-import fr.husi.remote.flag
-import fr.husi.remote.number
-import fr.husi.remote.request
-import fr.husi.remote.text
 import fr.husi.resources.Res
 import fr.husi.resources.can_not_be_empty
 import fr.husi.resources.done
@@ -22,8 +21,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 internal class RemoteStunPresenter(private val remote: RemoteState) : ViewModel(), StunPresenter {
     override val uiState: StateFlow<StunScreenUiState>
@@ -51,34 +48,23 @@ internal class RemoteStunPresenter(private val remote: RemoteState) : ViewModel(
         job = viewModelScope.launch {
             uiState.update { it.copy(isDoing = true, report = StunReport()) }
             try {
-                remote.client
-                    .stream(
-                        "StartSTUNTest",
-                        request("server" to input.server, "outboundTag" to input.outboundTag),
-                    )
+                remote.client.service
+                    .startSTUNTest(STUNTestRequest(server = input.server, outboundTag = input.outboundTag))
                     .collect { progress ->
-                        if (progress.text("error").isNotEmpty()) {
-                            uiEvent.emit(StunScreenUiEvent.Alert(progress.text("error")))
+                        if (progress.error.isNotEmpty()) {
+                            uiEvent.emit(StunScreenUiEvent.Alert(progress.error))
                         }
                         uiState.update {
                             it.copy(
-                                isDoing = !progress.flag("isFinal"),
+                                isDoing = !progress.isFinal,
                                 report =
                                     StunReport(
-                                        phase = StunPhase.ofWire(progress.number("phase").toInt()),
-                                        externalAddress =
-                                            progress.text("externalAddr").ifEmpty { null },
-                                        latencyMs =
-                                            progress.number("latencyMs").toInt().takeIf { it > 0 },
-                                        mapping =
-                                            NatBehaviour.ofMapping(
-                                                progress.number("natMapping").toInt(),
-                                            ),
-                                        filtering =
-                                            NatBehaviour.ofFiltering(
-                                                progress.number("natFiltering").toInt(),
-                                            ),
-                                        natTypeUnsupported = !progress.flag("natTypeSupported"),
+                                        phase = StunPhase.ofWire(progress.phase),
+                                        externalAddress = progress.externalAddr.emptyAsNull(),
+                                        latencyMs = progress.latencyMs.takeIf { it > 0 },
+                                        mapping = NatBehaviour.ofMapping(progress.natMapping),
+                                        filtering = NatBehaviour.ofFiltering(progress.natFiltering),
+                                        natTypeUnsupported = !progress.natTypeSupported,
                                     ),
                             )
                         }
@@ -141,22 +127,21 @@ internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
         job = viewModelScope.launch {
             uiState.update { it.copy(canTest = false, report = NetworkQualityReport()) }
             try {
-                remote.client
-                    .stream(
-                        "StartNetworkQualityTest",
-                        buildJsonObject {
-                            put("configURL", input.configUrl)
-                            put("outboundTag", input.outboundTag)
-                            put("serial", input.serial)
-                            put("http3", input.http3)
-                            put("maxRuntimeSeconds", input.maxRuntimeSeconds)
-                        },
+                remote.client.service
+                    .startNetworkQualityTest(
+                        NetworkQualityTestRequest(
+                            configURL = input.configUrl,
+                            outboundTag = input.outboundTag,
+                            serial = input.serial,
+                            http3 = input.http3,
+                            maxRuntimeSeconds = input.maxRuntimeSeconds,
+                        ),
                     )
                     .collect { progress ->
-                        if (progress.text("error").isNotEmpty()) {
+                        if (progress.error.isNotEmpty()) {
                             uiEvent.emit(
                                 NetworkQualityScreenUiEvent.ErrorAlert(
-                                    StringOrRes.Direct(progress.text("error")),
+                                    StringOrRes.Direct(progress.error),
                                 ),
                             )
                         }
@@ -164,16 +149,13 @@ internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
                             it.copy(
                                 report =
                                     NetworkQualityReport(
-                                        phase =
-                                            NetworkQualityPhase.ofWire(
-                                                progress.number("phase").toInt(),
-                                            ),
-                                        downloadCapacity = progress.number("downloadCapacity"),
-                                        uploadCapacity = progress.number("uploadCapacity"),
-                                        downloadRpm = progress.number("downloadRPM").toInt(),
-                                        uploadRpm = progress.number("uploadRPM").toInt(),
-                                        idleLatencyMs = progress.number("idleLatencyMs").toInt(),
-                                        elapsedMs = progress.number("elapsedMs"),
+                                        phase = NetworkQualityPhase.ofWire(progress.phase),
+                                        downloadCapacity = progress.downloadCapacity,
+                                        uploadCapacity = progress.uploadCapacity,
+                                        downloadRpm = progress.downloadRPM,
+                                        uploadRpm = progress.uploadRPM,
+                                        idleLatencyMs = progress.idleLatencyMs,
+                                        elapsedMs = progress.elapsedMs,
                                     ),
                             )
                         }

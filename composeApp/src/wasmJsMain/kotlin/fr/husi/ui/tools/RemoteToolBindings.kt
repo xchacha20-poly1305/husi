@@ -8,8 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import fr.husi.remote.RemoteState
-import fr.husi.remote.items
-import fr.husi.remote.text
 import fr.husi.ui.LocalNavigator
 import fr.husi.ui.RemoteRoute
 import fr.husi.ui.remote.RemoteMenu
@@ -61,8 +59,8 @@ private fun RemoteOutboundBinding(value: String, select: (String) -> Unit, modif
     var tags by remember(remote.selected) { mutableStateOf(listOf("")) }
     LaunchedEffect(remote.selected) {
         try {
-            remote.client.stream("SubscribeOutbounds").collect { update ->
-                tags = listOf("") + update.items("outbounds").map { it.text("tag") }
+            remote.client.service.subscribeOutbounds().collect { update ->
+                tags = listOf("") + update.outbounds.map { it.tag }
             }
         } catch (failure: Exception) {
             if (failure is CancellationException) throw failure

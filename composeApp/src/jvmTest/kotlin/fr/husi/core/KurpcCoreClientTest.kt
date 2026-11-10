@@ -5,6 +5,7 @@ import fr.husi.proto.daemon.SubscribeStatusRequest
 import io.github.xchacha20_poly1305.kurpc.CallOptions
 import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
 import io.github.xchacha20_poly1305.kurpc.Metadata
+import io.github.xchacha20_poly1305.kurpc.NativeCallOptions
 import io.github.xchacha20_poly1305.kurpc.Status
 import io.github.xchacha20_poly1305.kurpc.StatusException
 import io.github.xchacha20_poly1305.kurpc.TransportException
@@ -37,7 +38,7 @@ class KurpcCoreClientTest {
         client.probe()
         val channel = factory.awaitFirst()
         assertEquals("/grpc.health.v1.Health/Check", channel.unaryCalls.single().method)
-        assertFalse(channel.unaryCalls.single().options.waitForReady)
+        assertFalse((channel.unaryCalls.single().options as NativeCallOptions).waitForReady)
 
         channel.healthStatus = 2
         val error = assertFailsWith<CoreRpcException> { client.probe() }

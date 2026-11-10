@@ -10,6 +10,17 @@ import fr.husi.database.DataStore
 import fr.husi.database.RemoteServer
 import fr.husi.database.RemoteServerEntity
 import fr.husi.database.preference.PreferenceProxy
+import fr.husi.proto.daemon.ClashModeStatus
+import fr.husi.proto.daemon.Connection
+import fr.husi.proto.daemon.Group
+import fr.husi.proto.daemon.Log
+import fr.husi.proto.daemon.OpenConnectStatusUpdate
+import fr.husi.proto.daemon.OpenVPNStatusUpdate
+import fr.husi.proto.daemon.StartedServiceClient
+import fr.husi.proto.daemon.SubscribeConnectionsRequest
+import fr.husi.proto.daemon.SubscribeStatusRequest
+import fr.husi.proto.daemon.TailscaleStatusUpdate
+import fr.husi.proto.daemon.Version
 import fr.husi.ui.openconnect.RemoteOpenConnectActions
 import fr.husi.ui.openvpn.RemoteOpenVPNActions
 import kotlin.time.Duration.Companion.milliseconds
@@ -29,8 +40,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 
@@ -53,19 +62,19 @@ internal class RemoteState(
         private set
     var connecting by mutableStateOf(false)
         private set
-    var coreVersion by mutableStateOf<JsonObject?>(null)
+    var coreVersion by mutableStateOf<Version?>(null)
         private set
-    val version: String get() = coreVersion?.text("version").orEmpty()
+    val version: String get() = coreVersion?.version.orEmpty()
     var error by mutableStateOf("")
     var traffic by mutableStateOf(RemoteTraffic())
     val history = mutableStateListOf<Float>()
-    val groups = mutableStateListOf<JsonObject>()
-    val connections = mutableStateMapOf<String, JsonObject>()
-    val logs = mutableStateListOf<JsonObject>()
-    var tailscale by mutableStateOf(JsonObject(emptyMap()))
-    var openConnect by mutableStateOf(JsonObject(emptyMap()))
-    var openVPN by mutableStateOf(JsonObject(emptyMap()))
-    var clashMode by mutableStateOf(JsonObject(emptyMap()))
+    val groups = mutableStateListOf<Group>()
+    val connections = mutableStateMapOf<String, Connection>()
+    val logs = mutableStateListOf<Log.Message>()
+    var tailscale by mutableStateOf(TailscaleStatusUpdate())
+    var openConnect by mutableStateOf(OpenConnectStatusUpdate())
+    var openVPN by mutableStateOf(OpenVPNStatusUpdate())
+    var clashMode by mutableStateOf(ClashModeStatus())
     var serviceStatus by mutableStateOf("")
     private var session: Job? = null
     private var generation = 0
@@ -147,12 +156,12 @@ internal class RemoteState(
         logs.clear()
         history.clear()
         traffic = RemoteTraffic()
-        tailscale = JsonObject(emptyMap())
-        openConnect = JsonObject(emptyMap())
-        openVPN = JsonObject(emptyMap())
-        openConnectActions.update(JsonObject(emptyMap()))
-        openVPNActions.update(JsonObject(emptyMap()))
-        clashMode = JsonObject(emptyMap())
+        tailscale = TailscaleStatusUpdate()
+        openConnect = OpenConnectStatusUpdate()
+        openVPN = OpenVPNStatusUpdate()
+        openConnectActions.update(OpenConnectStatusUpdate())
+        openVPNActions.update(OpenVPNStatusUpdate())
+        clashMode = ClashModeStatus()
         serviceStatus = ""
     }
 
@@ -187,26 +196,27 @@ internal class RemoteState(
     }
 
     private suspend fun observeSession() = supervisorScope {
+        val service = client.service
         try {
-            subscribe(this, "SubscribeGroups") {
+            subscribe(this, "SubscribeGroups", { service.subscribeGroups() }) {
                 groups.clear()
-                groups.addAll(it.items("group"))
+                groups.addAll(it.group)
             }
             launch {
                 speedInterval.collectLatest { interval ->
                     coroutineScope {
                         if (interval <= 0) return@coroutineScope
-                        val request = request("interval" to interval.milliseconds.inWholeNanoseconds.toString())
-                        subscribe(this, "SubscribeStatus", request) {
-                            traffic = RemoteTraffic.fromJson(it)
+                        val nanoseconds = interval.milliseconds.inWholeNanoseconds
+                        subscribe(this, "SubscribeStatus", { service.subscribeStatus(SubscribeStatusRequest(nanoseconds)) }) {
+                            traffic = RemoteTraffic.fromStatus(it)
                             history.add((traffic.upload + traffic.download).toFloat())
                             if (history.size > 60) {
                                 history.removeAt(0)
                             }
                         }
-                        subscribe(this, "SubscribeConnections", request) { event ->
+                        subscribe(this, "SubscribeConnections", { service.subscribeConnections(SubscribeConnectionsRequest(nanoseconds)) }) { event ->
                             applyConnectionEvents(connections, event, keepClosed = true)
-                            val closed = connections.entries.filter { it.value.number("closedAt") > 0 }
+                            val closed = connections.entries.filter { it.value.closedAt > 0 }
                             for (entry in closed.take((closed.size - 1000).fastCoerceAtLeast(0))) {
                                 connections.remove(entry.key)
                             }
@@ -214,31 +224,31 @@ internal class RemoteState(
                     }
                 }
             }
-            subscribe(this, "SubscribeLog") { update ->
-                if (update.flag("reset")) logs.clear()
-                logs.addAll(update.items("messages"))
+            subscribe(this, "SubscribeLog", { service.subscribeLog() }) { update ->
+                if (update.reset) logs.clear()
+                logs.addAll(update.messages)
                 while (logs.size > 2000) logs.removeAt(0)
             }
-            subscribe(this, "SubscribeTailscaleStatus") { tailscale = it }
-            subscribe(this, "SubscribeOpenConnectStatus") {
+            subscribe(this, "SubscribeTailscaleStatus", { service.subscribeTailscaleStatus() }) { tailscale = it }
+            subscribe(this, "SubscribeOpenConnectStatus", { service.subscribeOpenConnectStatus() }) {
                 openConnect = it
                 openConnectActions.update(it)
             }
-            subscribe(this, "SubscribeOpenVPNStatus") {
+            subscribe(this, "SubscribeOpenVPNStatus", { service.subscribeOpenVPNStatus() }) {
                 openVPN = it
                 openVPNActions.update(it)
             }
-            subscribe(this, "SubscribeClashMode") {
+            subscribe(this, "SubscribeClashMode", { service.subscribeClashMode() }) {
                 clashMode =
-                    JsonObject(clashMode + ("currentMode" to JsonPrimitive(it.text("mode"))))
+                    clashMode.copy(currentMode = it.mode)
             }
-            subscribe(this, "SubscribeServiceStatus") { serviceStatus = it.text("status") }
+            subscribe(this, "SubscribeServiceStatus", { service.subscribeServiceStatus() }) { serviceStatus = it.status.name }
             launch {
-                runCatching { client.call("GetClashModeStatus") }.onSuccess { clashMode = it }
+                runCatching { service.getClashModeStatus() }.onSuccess { clashMode = it }
             }
             while (isActive) {
                 val remoteStartedAt = try {
-                    client.call("GetStartedAt").number("startedAt").takeIf { it > 0L }
+                    service.getStartedAt().startedAt.takeIf { it > 0L }
                 } catch (failure: Exception) {
                     if (failure is CancellationException) throw failure
                     null
@@ -246,24 +256,24 @@ internal class RemoteState(
                 ensureActive()
                 startedAt = remoteStartedAt
                 delay(HEARTBEAT_INTERVAL)
-                client.call("GetVersion")
+                service.getVersion()
             }
         } finally {
             coroutineContext.cancelChildren()
         }
     }
 
-    private fun subscribe(
+    private fun <T> subscribe(
         child: CoroutineScope,
         method: String,
-        input: JsonObject = JsonObject(emptyMap()),
-        receive: (JsonObject) -> Unit,
+        updates: () -> Flow<T>,
+        receive: (T) -> Unit,
     ) {
         child.launch {
             var retryDelay = INITIAL_RETRY_DELAY
             while (isActive) {
                 try {
-                    client.stream(method, input).collect {
+                    updates().collect {
                         retryDelay = INITIAL_RETRY_DELAY
                         receive(it)
                     }
@@ -279,16 +289,12 @@ internal class RemoteState(
         }
     }
 
-    fun call(
-        method: String,
-        input: JsonObject = JsonObject(emptyMap()),
-        done: (JsonObject) -> Unit = {},
-    ) {
+    fun call(action: suspend StartedServiceClient.() -> Unit) {
         val current = generation
         scope.launch {
+            if (generation != current) return@launch
             try {
-                val result = client.call(method, input)
-                if (generation == current) done(result)
+                client.service.action()
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
                 if (generation == current) error = failure.message.orEmpty()
@@ -296,13 +302,10 @@ internal class RemoteState(
         }
     }
 
-    /**
-     * Calls [method] and returns its failure message, or null on success. Auth dialogs show the
-     * message inline, so it does not go to [error].
-     */
-    suspend fun perform(method: String, input: JsonObject): String? =
+    /** Auth dialogs show failures inline instead of setting the session error. */
+    suspend fun perform(action: suspend StartedServiceClient.() -> Unit): String? =
         try {
-            client.call(method, input)
+            client.service.action()
             null
         } catch (failure: Exception) {
             if (failure is CancellationException) throw failure

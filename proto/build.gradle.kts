@@ -30,6 +30,18 @@ sourceSets {
             setSrcDirs(listOf(projectDir))
         }
     }
+    create("web") {
+        proto {
+            setSrcDirs(listOf(projectDir))
+            setIncludes(listOf("daemon/started_service.proto"))
+        }
+    }
+}
+
+val wireCompiler = configurations.create("wireCompiler")
+val webSources = configurations.create("webSources") {
+    isCanBeConsumed = true
+    isCanBeResolved = false
 }
 
 dependencies {
@@ -37,6 +49,9 @@ dependencies {
     // and the generated kurpc clients the kurpc ones.
     api(libs.protobuf.kotlin.lite)
     api(libs.kurpc)
+    add(wireCompiler.name, libs.wire.compiler)
+    // Supplies well-known proto imports to the web protoc invocation.
+    add("webCompileOnly", libs.protobuf.kotlin.lite)
 }
 
 protobuf {
@@ -49,7 +64,8 @@ protobuf {
         }
     }
     generateProtoTasks {
-        all().forEach { task ->
+        ofSourceSet("main").configureEach {
+            val task = this
             task.builtins {
                 named("java") {
                     option("lite")
@@ -62,6 +78,41 @@ protobuf {
                 id("kurpc")
             }
         }
+        ofSourceSet("web").configureEach {
+            builtins.clear()
+            plugins {
+                id("kurpc") { option("runtime=wire") }
+            }
+        }
+    }
+}
+
+val generateWebMessages = tasks.register<JavaExec>("generateWebMessages") {
+    description = "Generate Wire messages for the browser's kurpc client."
+    val schema = layout.projectDirectory.file("daemon/started_service.proto")
+    val output = layout.buildDirectory.dir("generated/wire/web")
+    inputs.file(schema).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(output)
+    classpath = wireCompiler
+    mainClass.set("com.squareup.wire.WireCompiler")
+    args(
+        "--proto_path=$projectDir",
+        "--kotlin_out=${output.get().asFile}",
+        "--kotlin_rpc_role=none",
+        "daemon/started_service.proto",
+    )
+    val outputDirectory = output.get().asFile
+    doFirst { outputDirectory.deleteRecursively() }
+}
+
+// Share generated Kotlin sources without placing Wire and protobuf-java's identically
+// named messages on the same classpath. The web source set is only used for generation.
+artifacts {
+    add(webSources.name, layout.buildDirectory.dir("generated/wire/web")) {
+        builtBy(generateWebMessages)
+    }
+    add(webSources.name, layout.buildDirectory.dir("generated/sources/proto/web/kurpc")) {
+        builtBy("generateWebProto")
     }
 }
 

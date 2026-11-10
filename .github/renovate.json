@@ -146,17 +146,6 @@
         "npm"
       ],
       "matchPackageNames": [
-        "@bufbuild/**",
-        "@connectrpc/**"
-      ],
-      "groupName": "Web RPC",
-      "groupSlug": "web-rpc"
-    },
-    {
-      "matchManagers": [
-        "npm"
-      ],
-      "matchPackageNames": [
         "@types/node",
         "esbuild",
         "tsx",

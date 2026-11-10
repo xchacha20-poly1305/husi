@@ -9,6 +9,7 @@ import io.github.xchacha20_poly1305.kurpc.Channel as RpcChannel
 import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
 import io.github.xchacha20_poly1305.kurpc.ChannelConfig
 import io.github.xchacha20_poly1305.kurpc.MethodDescriptor
+import io.github.xchacha20_poly1305.kurpc.NativeCallOptions
 import io.github.xchacha20_poly1305.kurpc.Status as RpcStatus
 import io.github.xchacha20_poly1305.kurpc.StatusException
 import io.github.xchacha20_poly1305.kurpc.TransportException
@@ -831,7 +832,7 @@ class KurpcCoreClient internal constructor(
             channel().unary(
                 HEALTH_CHECK_METHOD,
                 EMPTY_HEALTH_CHECK_REQUEST,
-                CallOptions(timeout = DEFAULT_UNARY_TIMEOUT, waitForReady = false),
+                NativeCallOptions(timeout = DEFAULT_UNARY_TIMEOUT, waitForReady = false),
             )
         }
         val status = healthCheckStatus(response)

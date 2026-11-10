@@ -4,11 +4,13 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.ViewModelStore
 import fr.husi.database.RemoteServerEntity
+import fr.husi.proto.daemon.Version
 import fr.husi.remote.RemoteClient
 import fr.husi.remote.RemoteState
 import fr.husi.repository.Repository
 import fr.husi.repository.WebRepository
 import fr.husi.tailscale.RemoteSshSessions
+import fr.husi.test.FakeRemoteClient
 import fr.husi.test.FakeRemoteServerDao
 import fr.husi.ui.MainScreenScope
 import fr.husi.ui.remote.RemoteServerEditor
@@ -24,12 +26,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.serialization.json.JsonObject
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -92,13 +93,12 @@ class RemoteApplicationModuleTest {
         assertEquals(1, client.closeCount)
     }
 
-    private class FakeClient : RemoteClient {
+    private class FakeClient : FakeRemoteClient() {
         var closeCount = 0
         val connectionTests = mutableListOf<Pair<String, String>>()
-        override suspend fun connect(url: String, secret: String) = JsonObject(emptyMap())
-        override suspend fun call(method: String, request: JsonObject) = JsonObject(emptyMap())
-        override fun stream(method: String, request: JsonObject): Flow<JsonObject> = emptyFlow()
-        override fun bidi(method: String, requests: Flow<JsonObject>): Flow<JsonObject> = emptyFlow()
+        override suspend fun connect(url: String, secret: String) = Version()
+        override suspend fun call(method: String, request: ByteArray) = byteArrayOf()
+        override fun stream(method: String, request: ByteArray): Flow<ByteArray> = emptyFlow()
         override fun close() { closeCount++ }
         override suspend fun testConnection(url: String, secret: String): String {
             connectionTests.add(url to secret)

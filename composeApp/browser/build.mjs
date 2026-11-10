@@ -1,7 +1,9 @@
 import {build} from "esbuild";
-import {copyFile} from "node:fs/promises";
+import {copyFile, rm} from "node:fs/promises";
 
-// Keep the startup indicator independent of the RPC and Compose runtimes.
+await rm("dist", {recursive: true, force: true});
+
+// Keep the startup indicator independent of the Compose runtime.
 await build({
     stdin: {
         contents: `
@@ -22,8 +24,8 @@ await build({
     entryPoints: ["src/index.ts"],
     bundle: true,
     format: "iife",
-    globalName: "husiRpc",
-    outfile: "dist/rpc.js",
+    globalName: "husiBrowser",
+    outfile: "dist/browser.js",
 });
 
 await build({

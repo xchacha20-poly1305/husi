@@ -1,12 +1,14 @@
 package fr.husi.ui.openconnect
 
+import fr.husi.proto.daemon.OpenConnectAuthChallenge
+import fr.husi.proto.daemon.OpenConnectAuthChallengeCancel
+import fr.husi.proto.daemon.OpenConnectAuthFormResponse
+import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
+import fr.husi.proto.daemon.OpenConnectBrowserCookie
+import fr.husi.proto.daemon.OpenConnectBrowserHeader
+import fr.husi.proto.daemon.OpenConnectBrowserResult
+import fr.husi.proto.daemon.OpenConnectStatusUpdate
 import fr.husi.remote.RemoteState
-import fr.husi.remote.items
-import fr.husi.remote.number
-import fr.husi.remote.obj
-import fr.husi.remote.request
-import fr.husi.remote.strings
-import fr.husi.remote.text
 import fr.husi.vpn.OpenConnectAuthChallengeState
 import fr.husi.vpn.OpenConnectAuthChoice
 import fr.husi.vpn.OpenConnectAuthField
@@ -17,42 +19,35 @@ import fr.husi.vpn.OpenConnectEndpointState
 import fr.husi.vpn.OpenConnectTunnelInfoState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 internal class RemoteOpenConnectActions(private val state: RemoteState) : OpenConnectAuthActions {
     override val endpoints: StateFlow<List<OpenConnectEndpointState>>
         field = MutableStateFlow(emptyList())
 
-    fun update(value: JsonObject) {
+    fun update(value: OpenConnectStatusUpdate) {
         endpoints.value =
-            value.items("endpoints").map { endpoint ->
+            value.endpoints.map { endpoint ->
                 OpenConnectEndpointState(
-                    tag = endpoint.text("endpointTag"),
-                    state = endpoint.text("state"),
-                    error = endpoint.text("error"),
+                    tag = endpoint.endpointTag,
+                    state = endpoint.state,
+                    error = endpoint.error,
                     authChallenge =
                         endpoint
-                            .obj("authChallenge")
-                            .takeIf { it.isNotEmpty() }
+                            .authChallenge
                             ?.let(::openConnectChallenge),
                     tunnelInfo =
                         endpoint
-                            .obj("tunnelInfo")
-                            .takeIf { it.isNotEmpty() }
+                            .tunnelInfo
                             ?.let { tunnel ->
                                 OpenConnectTunnelInfoState(
-                                    server = tunnel.text("server"),
-                                    flavor = tunnel.text("flavor"),
-                                    transport = tunnel.text("transport"),
-                                    ipv4 = tunnel.strings("ipv4"),
-                                    ipv6 = tunnel.strings("ipv6"),
-                                    dns = tunnel.strings("dns"),
-                                    mtu = tunnel.number("mtu").toInt(),
-                                    connectedSince = tunnel.number("connectedSince"),
+                                    server = tunnel.server,
+                                    flavor = tunnel.flavor,
+                                    transport = tunnel.transport,
+                                    ipv4 = tunnel.ipv4,
+                                    ipv6 = tunnel.ipv6,
+                                    dns = tunnel.dns,
+                                    mtu = tunnel.mtu,
+                                    connectedSince = tunnel.connectedSince,
                                 )
                             },
                 )
@@ -64,92 +59,54 @@ internal class RemoteOpenConnectActions(private val state: RemoteState) : OpenCo
         challenge: OpenConnectAuthChallengeState,
         formValues: Map<String, String>?,
         browserResult: OpenConnectBrowserResultState?,
-    ): String? =
-        state.perform(
-            "SubmitOpenConnectAuthResponse",
-            buildJsonObject {
-                put("endpointTag", endpointTag)
-                put("challengeID", challenge.id)
-                if (formValues != null)
-                    put(
-                        "form",
-                        buildJsonObject {
-                            put(
-                                "values",
-                                JsonObject(formValues.mapValues { JsonPrimitive(it.value) }),
-                            )
+    ): String? = state.perform {
+        submitOpenConnectAuthResponse(
+            OpenConnectAuthResponseSubmission(
+                endpointTag = endpointTag,
+                challengeID = challenge.id,
+                form = formValues?.let { OpenConnectAuthFormResponse(it) },
+                browser = if (formValues == null) browserResult?.let { result ->
+                    OpenConnectBrowserResult(
+                        finalURL = result.finalUrl,
+                        cookies = result.cookies.map { (name, value) -> OpenConnectBrowserCookie(name, value) },
+                        headers = result.headers.map { (name, values) ->
+                            OpenConnectBrowserHeader(name, values.lineSequence().filter { it.isNotBlank() }.toList())
                         },
                     )
-                else if (browserResult != null)
-                    put(
-                        "browser",
-                        buildJsonObject {
-                            put("finalURL", browserResult.finalUrl)
-                            put(
-                                "cookies",
-                                JsonArray(
-                                    browserResult.cookies.map { (key, value) ->
-                                        request("name" to key, "value" to value)
-                                    },
-                                ),
-                            )
-                            put(
-                                "headers",
-                                JsonArray(
-                                    browserResult.headers.map { (key, value) ->
-                                        buildJsonObject {
-                                            put("name", key)
-                                            put(
-                                                "values",
-                                                JsonArray(
-                                                    value
-                                                        .lineSequence()
-                                                        .filter { it.isNotBlank() }
-                                                        .map(::JsonPrimitive)
-                                                        .toList(),
-                                                ),
-                                            )
-                                        }
-                                    },
-                                ),
-                            )
-                        },
-                    )
-            },
+                } else null,
+            ),
         )
+    }
 
-    override suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String) =
-        state.perform(
-            "CancelOpenConnectAuthChallenge",
-            request("endpointTag" to endpointTag, "challengeID" to challengeId),
-        )
+    override suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String) = state.perform {
+        cancelOpenConnectAuthChallenge(OpenConnectAuthChallengeCancel(endpointTag, challengeId))
+    }
 }
 
-private fun openConnectChallenge(challenge: JsonObject) =
+private fun openConnectChallenge(challenge: OpenConnectAuthChallenge) =
     OpenConnectAuthChallengeState(
-        id = challenge.text("id"),
-        banner = challenge.text("banner"),
-        message = challenge.text("message"),
-        error = challenge.text("error"),
+        id = challenge.id,
+        banner = challenge.banner,
+        message = challenge.message,
+        error = challenge.error,
         form =
             challenge
-                .obj("form")
-                .takeIf { it.isNotEmpty() }
+                .form
                 ?.let { form ->
                     OpenConnectAuthFormState(
                         fields =
-                            form.items("fields").map { field ->
+                            form.fields.map { field ->
                                 OpenConnectAuthField(
-                                    submissionKey = field.text("submissionKey"),
-                                    name = field.text("name"),
-                                    label = field.text("label"),
-                                    kind = field.text("kind"),
-                                    value = field.text("value"),
+                                    submissionKey = field.submissionKey,
+                                    name = field.name,
+                                    label = field.label,
+                                    kind = field.kind,
+                                    value = field.value_,
                                     options =
-                                        field.items("options").map { option ->
+                                        field.options.map { option ->
                                             OpenConnectAuthChoice(
-                                                value = option.text("value"),
-                                                label = option.text("label"),
+                                                value = option.value_,
+                                                label = option.label,
                                             )
                                         },
                                 )
@@ -158,17 +115,16 @@ private fun openConnectChallenge(challenge: JsonObject) =
                 },
         browser =
             challenge
-                .obj("browser")
-                .takeIf { it.isNotEmpty() }
+                .browser
                 ?.let { browser ->
                     OpenConnectBrowserRequestState(
-                        url = browser.text("url"),
-                        finalUrl = browser.text("finalURL"),
-                        cacheId = browser.text("cacheID"),
-                        cookieNames = browser.strings("cookieNames"),
-                        earlyCookieNames = browser.strings("earlyCookieNames"),
-                        headerNames = browser.strings("headerNames"),
-                        callbackUrlPrefixes = browser.strings("callbackURLPrefixes"),
+                        url = browser.url,
+                        finalUrl = browser.finalURL,
+                        cacheId = browser.cacheID,
+                        cookieNames = browser.cookieNames,
+                        earlyCookieNames = browser.earlyCookieNames,
+                        headerNames = browser.headerNames,
+                        callbackUrlPrefixes = browser.callbackURLPrefixes,
                     )
                 },
     )

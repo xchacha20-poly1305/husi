@@ -45,7 +45,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: |
-            composeApp/rpc/package-lock.json
+            composeApp/browser/package-lock.json
             kotlin-js-store/wasm/package-lock.json
       - uses: ./.github/actions/gradle-cache
         with:
@@ -55,7 +55,7 @@ jobs:
       - name: Build and check dashboard
         env:
           BUILD_PLUGIN: none
-        run: ./gradlew :composeApp:webZip :composeApp:testRpc :composeApp:wasmJsBrowserTest --build-cache
+        run: ./gradlew :composeApp:webZip :composeApp:wasmJsBrowserTest --build-cache
       - uses: actions/upload-artifact@v7
         with:
           name: dashboard

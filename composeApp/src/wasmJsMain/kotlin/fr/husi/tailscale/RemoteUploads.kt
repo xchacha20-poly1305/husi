@@ -1,97 +1,97 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package fr.husi.tailscale
 
 import androidx.compose.runtime.mutableStateListOf
-import fr.husi.ktx.emptyAsNull
+import fr.husi.proto.daemon.TaildropFileChunk
+import fr.husi.proto.daemon.TaildropFileDone
+import fr.husi.proto.daemon.TaildropOutgoingFile
+import fr.husi.proto.daemon.TaildropSendClientMessage
+import fr.husi.proto.daemon.TaildropSendStart
 import fr.husi.remote.RemoteState
-import fr.husi.remote.flag
-import fr.husi.remote.items
-import fr.husi.remote.number
-import fr.husi.remote.obj
-import fr.husi.remote.parseObject
-import fr.husi.remote.text
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import okio.ByteString.Companion.toByteString
 
-internal class RemoteUploads(private val remote: RemoteState) {
+internal class RemoteUploads(private val remote: RemoteState, private val scope: CoroutineScope) {
     val sessions = mutableStateListOf<TaildropSendSession>()
+    private val jobs = mutableMapOf<Long, Job>()
+    private var nextId = 0L
 
     fun send(tag: String, peer: TailscalePeerState) {
-        var uploadId: Long? = null
-        uploadFiles(
-            tag,
-            peer.stableId,
-            data = { data ->
-                val update = parseObject(data)
-                if ("files" in update) {
-                    val id = update.number("uploadId")
-                    uploadId = id
-                    sessions.add(
-                        TaildropSendSession(
-                            id,
-                            tag,
-                            peer.displayName,
-                            update.items("files").map {
-                                TaildropSendFileState(it.text("name"), it.number("size"))
-                            },
-                        ),
-                    )
-                } else {
-                    val id = uploadId ?: return@uploadFiles
-                    val progress = update.obj("progress")
-                    val index = sessions.indexOfFirst { it.id == id }
-                    if (index >= 0 && progress.isNotEmpty()) {
-                        val session = sessions[index]
-                        sessions[index] =
-                            session.copy(
-                                files =
-                                    session.files.mapIndexed { fileIndex, file ->
-                                        if (fileIndex == progress.number("fileIndex").toInt()) {
-                                            file.copy(
-                                                sentBytes = progress.number("sentBytes"),
-                                                completed = progress.flag("fileCompleted"),
-                                            )
-                                        } else {
-                                            file
-                                        }
-                                    },
-                            )
+        if (!remote.connected) return
+        // Capture this session before opening the picker: switching servers closes its channel.
+        val service = remote.client.service
+        val id = ++nextId
+        val job = scope.launch(start = CoroutineStart.LAZY) {
+            var failureMessage: String? = null
+            try {
+                val files = pickFiles()
+                if (files.isEmpty()) return@launch
+                currentCoroutineContext().ensureActive()
+                sessions.add(TaildropSendSession(
+                    id, tag, peer.displayName,
+                    files.map { TaildropSendFileState(it.name, it.size.toLong()) },
+                ))
+                val requests = flow {
+                    emit(TaildropSendClientMessage(start = TaildropSendStart(
+                        endpointTag = tag,
+                        peerStableID = peer.stableId,
+                        files = files.map { TaildropOutgoingFile(it.name, it.size.toLong()) },
+                    )))
+                    for (file in files) {
+                        var offset = 0L
+                        while (offset < file.size.toLong()) {
+                            val bytes = file.read(offset, UPLOAD_CHUNK_BYTES)
+                            check(bytes.isNotEmpty()) { "File ended before its declared size" }
+                            emit(TaildropSendClientMessage(chunk = TaildropFileChunk(bytes.toByteString())))
+                            offset += bytes.size
+                        }
+                        emit(TaildropSendClientMessage(fileDone = TaildropFileDone()))
                     }
                 }
-            },
-            end = { error ->
-                val index = sessions.indexOfFirst { it.id == uploadId }
-                if (index >= 0) {
-                    sessions[index] = sessions[index].copy(
-                        finished = true,
-                        errorMessage = error.emptyAsNull(),
-                    )
-                } else if (error.isNotEmpty()) {
-                    remote.error = error
+                service.sendTaildropFiles(requests).collect { update ->
+                    val progress = update.progress ?: return@collect
+                    updateSession(id) { session ->
+                        session.copy(files = session.files.mapIndexed { index, file ->
+                            if (index == progress.fileIndex) file.copy(
+                                sentBytes = progress.sentBytes,
+                                completed = progress.fileCompleted,
+                            ) else file
+                        })
+                    }
                 }
-            },
-        )
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                failureMessage = failure.message ?: failure.toString()
+                if (sessions.none { it.id == id }) remote.error = failureMessage
+            } finally {
+                jobs.remove(id)
+                updateSession(id) { it.copy(finished = true, errorMessage = failureMessage) }
+            }
+        }
+        jobs[id] = job
+        job.start()
+    }
+
+    private fun updateSession(id: Long, update: (TaildropSendSession) -> TaildropSendSession) {
+        val index = sessions.indexOfFirst { it.id == id }
+        if (index >= 0) sessions[index] = update(sessions[index])
     }
 
     fun cancel(id: Long) {
-        cancelUpload(id.toInt())
+        jobs[id]?.cancel()
     }
 
     fun dismiss(id: Long) {
         sessions.removeAll { it.id == id }
     }
+
+    private companion object {
+        const val UPLOAD_CHUNK_BYTES = 64 * 1024
+    }
 }
-
-/**
- * Lets the user pick files and sends them to [peer]. [data] receives the protobuf JSON of each
- * update; [end] receives the error, or an empty string when sending finished or was cancelled.
- */
-@JsFun("(endpoint,peer,data,end) => husiRpc.upload(endpoint,peer,data,end)")
-private external fun uploadFiles(
-    endpoint: String,
-    peer: String,
-    data: (String) -> Unit,
-    end: (String) -> Unit,
-)
-
-@JsFun("(id) => husiRpc.cancelUpload(id)")
-private external fun cancelUpload(id: Int)

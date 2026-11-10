@@ -6,7 +6,8 @@ composeMultiplatform = "1.12.2"
 composeMaterial3 = "1.12.0-alpha03"
 koin = "4.2.2"
 kotlinCoroutines = "1.11.0"
-kurpc = "0.2.1"
+kurpc = "0.3.0"
+wire = "7.1.2"
 libghostty = "0.5.0"
 kotlinxSerialization = "1.12.0"
 kotlinxDatetime = "0.8.0"
@@ -53,6 +54,8 @@ kurpc = { module = "io.github.xchacha20-poly1305:kurpc", version.ref = "kurpc" }
 kurpc-natives-jvm = { module = "io.github.xchacha20-poly1305:kurpc-natives-jvm", version.ref = "kurpc" }
 # protoc plugin; proto/ runs its self-contained `all` jar.
 protoc-gen-kurpc = { module = "io.github.xchacha20-poly1305:protoc-gen-kurpc", version.ref = "kurpc" }
+wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wire" }
+wire-compiler = { module = "com.squareup.wire:wire-compiler", version.ref = "wire" }
 libghostty-compose = { module = "io.github.xchacha20-poly1305:libghostty-compose", version.ref = "libghostty" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinCoroutines" }

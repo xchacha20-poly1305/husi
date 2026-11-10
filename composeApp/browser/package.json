@@ -1,0 +1,24 @@
+{
+  "name": "husi-browser-assets",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "npm run check && node build.mjs",
+    "collect-licenses": "license-checker-rseidelsohn --production --excludePrivatePackages --json --limitAttributes licenses,repository --out generated/npm-licenses.json"
+  },
+  "dependencies": {
+    "@kyralabs/m3e-css": "1.8.0",
+    "@kyralabs/m3e-elements": "1.8.0",
+    "@sqlite.org/sqlite-wasm": "3.54.1-build1",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "@types/qrcode": "1.5.6",
+    "esbuild": "0.28.2",
+    "license-checker-rseidelsohn": "5.0.1",
+    "spdx-expression-parse": "4.0.0",
+    "typescript": "7.0.2"
+  }
+}

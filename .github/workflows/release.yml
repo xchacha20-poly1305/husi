@@ -247,7 +247,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: |
-            composeApp/rpc/package-lock.json
+            composeApp/browser/package-lock.json
             kotlin-js-store/wasm/package-lock.json
       - uses: ./.github/actions/gradle-cache
         with:

@@ -9,14 +9,12 @@ import androidx.compose.runtime.snapshotFlow
 import fr.husi.TrafficSortMode
 import fr.husi.core.formatConnectionTime
 import fr.husi.database.DataStore
+import fr.husi.proto.daemon.ClashMode
+import fr.husi.proto.daemon.CloseConnectionRequest
+import fr.husi.proto.daemon.Connection
+import fr.husi.proto.daemon.SelectOutboundRequest
+import fr.husi.proto.daemon.URLTestRequest
 import fr.husi.remote.RemoteState
-import fr.husi.remote.flag
-import fr.husi.remote.items
-import fr.husi.remote.number
-import fr.husi.remote.obj
-import fr.husi.remote.request
-import fr.husi.remote.strings
-import fr.husi.remote.text
 import fr.husi.resources.Res
 import fr.husi.resources.web_remote_ip_unavailable
 import fr.husi.resources.web_system_proxy_unavailable
@@ -24,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
 
 internal class RemoteDashboardPresenter(
     private val state: RemoteState,
@@ -208,19 +205,19 @@ internal class RemoteDashboardPresenter(
     }
 
     override fun closeConnection(uuid: String) {
-        state.call("CloseConnection", request("id" to uuid))
+        state.call { closeConnection(CloseConnectionRequest(uuid)) }
     }
 
     override fun selectOutbound(groupName: String, tag: String) {
-        state.call("SelectOutbound", request("groupTag" to groupName, "outboundTag" to tag))
+        state.call { selectOutbound(SelectOutboundRequest(groupName, tag)) }
     }
 
     override fun urlTestForSingle(tag: String) {
-        state.call("URLTest", request("outboundTag" to tag))
+        state.call { urlTest(URLTestRequest(tag)) }
     }
 
     override fun urlTestForGroup(id: String) {
-        state.call("URLTest", request("outboundTag" to id))
+        state.call { urlTest(URLTestRequest(id)) }
     }
 
     override fun detectIP() {
@@ -228,11 +225,11 @@ internal class RemoteDashboardPresenter(
     }
 
     override fun resetNetwork() {
-        state.call("CloseAllConnections")
+        state.call { closeAllConnections() }
     }
 
     override fun setClashMode(mode: String) {
-        state.call("SetClashMode", request("mode" to mode))
+        state.call { setClashMode(ClashMode(mode)) }
     }
 
     override fun setSystemProxyEnabled(enabled: Boolean) {
@@ -250,52 +247,51 @@ private fun RemoteState.dashboardState() =
         txRateProxy = traffic.upload,
         rxRateProxy = traffic.download,
         proxySpeedHistory = history.toList(),
-        selectedClashMode = clashMode.text("currentMode"),
-        clashModes = clashMode.strings("modeList"),
+        selectedClashMode = clashMode.currentMode,
+        clashModes = clashMode.modeList,
         connections = connections.values.map { it.toConnectionState() },
-        activeConnectionCount = connections.values.count { it.number("closedAt") <= 0 },
+        activeConnectionCount = connections.values.count { it.closedAt <= 0 },
         proxySets =
             groups.map { group ->
                 ProxySet(
-                    tag = group.text("tag"),
-                    displayType = group.text("type"),
-                    selectable = group.flag("selectable"),
-                    selected = group.text("selected"),
+                    tag = group.tag,
+                    displayType = group.type,
+                    selectable = group.selectable,
+                    selected = group.selected,
                     items =
-                        group.items("items").map {
+                        group.items.map {
                             ProxyItem(
-                                it.text("tag"),
-                                it.text("type"),
-                                it.number("urlTestDelay").toInt(),
+                                it.tag,
+                                it.type,
+                                it.urlTestDelay,
                             )
                         },
                 )
             },
     )
 
-private fun JsonObject.toConnectionState() =
+private fun Connection.toConnectionState() =
     ConnectionDetailState(
-        uuid = text("id"),
-        inbound = text("inbound"),
-        network = text("network"),
-        uploadTotal = number("uplinkTotal"),
-        downloadTotal = number("downlinkTotal"),
-        uploadSpeed = number("uplink"),
-        downloadSpeed = number("downlink"),
-        startedAt = formatConnectionTime(number("createdAt")),
-        closedAt = formatConnectionTime(number("closedAt")),
-        src = text("source"),
-        dst = text("destination"),
-        host = text("domain"),
-        matchedRule = text("rule"),
-        outbound = text("outbound"),
-        chain = strings("chainList").joinToString(" => "),
-        protocol = text("protocol").ifBlank { null },
-        processes =
-            obj("processInfo").let { process ->
-                process.strings("packageNames").ifEmpty {
-                    listOfNotNull(process.text("processPath").ifBlank { null })
-                }
-            },
-        uid = obj("processInfo").number("userId").toInt(),
+        uuid = id,
+        inbound = inbound,
+        network = network,
+        uploadTotal = uplinkTotal,
+        downloadTotal = downlinkTotal,
+        uploadSpeed = uplink,
+        downloadSpeed = downlink,
+        startedAt = formatConnectionTime(createdAt),
+        closedAt = formatConnectionTime(closedAt),
+        src = source,
+        dst = destination,
+        host = domain,
+        matchedRule = rule,
+        outbound = outbound,
+        chain = chainList.joinToString(" => "),
+        protocol = protocol.ifBlank { null },
+        processes = processInfo?.let { process ->
+            process.packageNames.ifEmpty {
+                listOfNotNull(process.processPath.ifBlank { null })
+            }
+        }.orEmpty(),
+        uid = processInfo?.userId ?: 0,
     )

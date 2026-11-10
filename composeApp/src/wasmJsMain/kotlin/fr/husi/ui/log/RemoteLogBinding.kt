@@ -46,5 +46,5 @@ internal fun RemoteLogBinding() {
     )
 }
 
-@JsFun("(name,data) => husiRpc.saveFile(name,data)")
+@JsFun("(name,data) => husiBrowser.saveFile(name,data)")
 private external fun saveFile(name: String, base64: String)

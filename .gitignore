@@ -33,5 +33,5 @@ go.work*
 __pycache__/
 
 node_modules/
-/composeApp/rpc/generated/
-/composeApp/rpc/dist/
+/composeApp/browser/generated/
+/composeApp/browser/dist/

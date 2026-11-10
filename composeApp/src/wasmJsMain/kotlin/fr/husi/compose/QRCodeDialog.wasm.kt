@@ -60,7 +60,7 @@ actual fun QRCodeDialog(
     )
 }
 
-@JsFun("(value) => husiRpc.qrPng(value)")
+@JsFun("(value) => husiBrowser.qrPng(value)")
 private external fun qrPng(value: String): Promise<JsString>
 
 @JsFun("(value) => value") private external fun toStringValue(value: JsString): String

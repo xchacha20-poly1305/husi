@@ -321,40 +321,33 @@ val generateDesktopPlatformInfo = tasks.register<GeneratePlatformInfoTask>("gene
     )
 }
 
-val installRpc = tasks.register<Exec>("installRpc") {
+val installBrowserAssets = tasks.register<Exec>("installBrowserAssets") {
     group = "web"
-    description = "Install the pinned browser RPC dependencies."
-    workingDir("rpc")
+    description = "Install the pinned browser asset dependencies."
+    workingDir("browser")
     commandLine("npm", "ci")
-    inputs.files("rpc/package.json", "rpc/package-lock.json")
-    outputs.dir("rpc/node_modules")
+    inputs.files("browser/package.json", "browser/package-lock.json")
+    outputs.dir("browser/node_modules")
 }
 
-val buildRpc = tasks.register<Exec>("buildRpc") {
+val buildBrowserAssets = tasks.register<Exec>("buildBrowserAssets") {
     group = "web"
-    description = "Generate protobuf bindings and bundle the browser RPC client and startup indicator."
-    dependsOn(installRpc)
-    workingDir("rpc")
+    description = "Bundle browser file helpers, SQLite and the startup indicator."
+    dependsOn(installBrowserAssets)
+    workingDir("browser")
     commandLine("npm", "run", "build")
-    inputs.dir(rootProject.file("proto"))
-    inputs.dir("rpc/src")
+    inputs.dir("browser/src")
     inputs.files(
-        "rpc/generate.mjs",
-        "rpc/build.mjs",
-        "rpc/tsconfig.json",
-        "rpc/package.json",
-        "rpc/package-lock.json",
+        "browser/build.mjs",
+        "browser/tsconfig.json",
+        "browser/package.json",
+        "browser/package-lock.json",
     )
-    outputs.dir("rpc/dist")
-    outputs.dir("rpc/generated")
+    outputs.dir("browser/dist")
 }
 
-val testRpc = tasks.register<Exec>("testRpc") {
-    group = "web"
-    description = "Run browser RPC unit tests with fake transports."
-    dependsOn(buildRpc)
-    workingDir("rpc")
-    commandLine("npm", "test")
+val webProtoSources = configurations.create("webProtoSources") {
+    isCanBeConsumed = false
 }
 
 val ghosttyWasm = configurations.create("ghosttyWasm") {
@@ -362,6 +355,7 @@ val ghosttyWasm = configurations.create("ghosttyWasm") {
 }
 
 dependencies {
+    add(webProtoSources.name, project(path = ":proto", configuration = "webSources"))
     add(
         ghosttyWasm.name,
         "io.github.xchacha20-poly1305:libghostty-wasm-js:${libs.versions.libghostty.get()}:ghostty-vt@wasm",
@@ -370,9 +364,9 @@ dependencies {
 
 val prepareWebResources = tasks.register<Sync>("prepareWebResources") {
     group = "web"
-    description = "Collect the RPC bundle and Ghostty Wasm runtime."
-    dependsOn(buildRpc)
-    from("rpc/dist")
+    description = "Collect browser assets and the Ghostty Wasm runtime."
+    dependsOn(buildBrowserAssets)
+    from("browser/dist")
     from(ghosttyWasm) { rename { "ghostty-vt.wasm" } }
     into(layout.buildDirectory.dir("generated/webResources"))
 }
@@ -432,8 +426,11 @@ kotlin {
 
     sourceSets {
         getByName("wasmJsMain") {
+            kotlin.srcDirs(webProtoSources)
             resources.srcDir(prepareWebResources)
             dependencies {
+                implementation(libs.kurpc)
+                implementation(libs.wire.runtime)
                 implementation(libs.androidx.sqlite.web)
             }
         }
@@ -600,7 +597,7 @@ val commonAboutLibrariesDir = layout.projectDirectory.dir("src/commonMain/aboutl
 val desktopAboutLibrariesDir = layout.projectDirectory.dir("src/desktopMain/aboutlibraries")
 val desktopAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-desktop-config")
 val webAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-web-config")
-val webRpcAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-web-rpc")
+val browserAboutLibrariesConfig = layout.buildDirectory.dir("aboutlibraries-browser")
 val exportDesktopAboutLibraries = gradle.startParameter.taskNames.any { taskName ->
     taskName.substringAfterLast(':').equals("exportLibraryDefinitionsDesktop", ignoreCase = true)
 }
@@ -608,29 +605,29 @@ val exportWebAboutLibraries = gradle.startParameter.taskNames.any { taskName ->
     taskName.substringAfterLast(':').equals("exportLibraryDefinitionsWasmJs", ignoreCase = true)
 }
 
-val collectWebRpcAboutLibraries = tasks.register<Exec>("collectWebRpcAboutLibraries") {
-    description = "Collect SPDX license identifiers for browser RPC production dependencies."
-    dependsOn(installRpc)
-    workingDir("rpc")
+val collectBrowserAboutLibraries = tasks.register<Exec>("collectBrowserAboutLibraries") {
+    description = "Collect SPDX license identifiers for browser production dependencies."
+    dependsOn(installBrowserAssets)
+    workingDir("browser")
     commandLine("npm", "run", "collect-licenses")
-    inputs.files("rpc/package.json", "rpc/package-lock.json")
-    outputs.file("rpc/generated/npm-licenses.json")
+    inputs.files("browser/package.json", "browser/package-lock.json")
+    outputs.file("browser/generated/npm-licenses.json")
 }
 
-val convertWebRpcAboutLibraries = tasks.register<Exec>("convertWebRpcAboutLibraries") {
+val convertBrowserAboutLibraries = tasks.register<Exec>("convertBrowserAboutLibraries") {
     description = "Convert the npm license-checker report to AboutLibraries metadata."
-    dependsOn(collectWebRpcAboutLibraries)
-    workingDir("rpc")
-    commandLine("node", "convert-licenses.mjs", webRpcAboutLibrariesConfig.get().asFile.absolutePath)
-    inputs.file("rpc/convert-licenses.mjs")
-    inputs.file("rpc/generated/npm-licenses.json")
-    outputs.dir(webRpcAboutLibrariesConfig)
+    dependsOn(collectBrowserAboutLibraries)
+    workingDir("browser")
+    commandLine("node", "convert-licenses.mjs", browserAboutLibrariesConfig.get().asFile.absolutePath)
+    inputs.file("browser/convert-licenses.mjs")
+    inputs.file("browser/generated/npm-licenses.json")
+    outputs.dir(browserAboutLibrariesConfig)
 }
 
 val mergeWebAboutLibraries = tasks.register<Sync>("mergeWebAboutLibraries") {
     description = "Merge shared license presets with npm dependencies for the web dashboard."
     from(commonAboutLibrariesDir) { exclude("libraries/go_*.json") }
-    from(convertWebRpcAboutLibraries)
+    from(convertBrowserAboutLibraries)
     into(webAboutLibrariesConfig)
 }
 

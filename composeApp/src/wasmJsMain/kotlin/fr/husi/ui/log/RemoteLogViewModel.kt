@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import fr.husi.remote.RemoteState
-import fr.husi.remote.text
 
 internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel() {
     val searchTextFieldState = TextFieldState()
@@ -17,7 +16,7 @@ internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel()
 
     private fun liveEntries() =
         remote.logs.map { message ->
-            TerminalLogEntry(message.text("level").ifEmpty { "PANIC" }, message.text("message"))
+            TerminalLogEntry(message.level.name, message.message)
         }
 
     val presentation: LogcatPresentation<String>
@@ -45,7 +44,7 @@ internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel()
     }
 
     fun clear() {
-        remote.call("ClearLogs")
+        remote.call { clearLogs() }
         remote.logs.clear()
         paused = paused?.let { emptyList() }
     }

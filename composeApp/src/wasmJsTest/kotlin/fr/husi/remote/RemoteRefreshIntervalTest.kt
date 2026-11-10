@@ -1,22 +1,26 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package fr.husi.remote
 
 import fr.husi.Key
 import fr.husi.database.RemoteServer
 import fr.husi.database.preference.long
+import fr.husi.proto.daemon.SubscribeStatusRequest
+import fr.husi.proto.daemon.Version
 import fr.husi.test.FakePreferencesDataStore
+import fr.husi.test.FakeRemoteClient
 import fr.husi.test.FakeRemoteServerDao
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.JsonObject
 
 class RemoteRefreshIntervalTest {
     @Test
@@ -34,7 +38,7 @@ class RemoteRefreshIntervalTest {
         val timedMethods = setOf("SubscribeStatus", "SubscribeConnections")
         val initialStreams = client.subscriptions.filter { it.method in timedMethods }
         assertEquals(2, initialStreams.size)
-        assertTrue(initialStreams.all { it.active && it.request.text("interval") == "1000000000" })
+        assertTrue(initialStreams.all { it.active && it.request.interval == 1000000000L })
         val logs = client.subscriptions.single { it.method == "SubscribeLog" }
 
         intervals.value = 500
@@ -42,7 +46,7 @@ class RemoteRefreshIntervalTest {
         assertTrue(initialStreams.none { it.active })
         val refreshedStreams = client.subscriptions.filter { it.method in timedMethods && it.active }
         assertEquals(2, refreshedStreams.size)
-        assertTrue(refreshedStreams.all { it.request.text("interval") == "500000000" })
+        assertTrue(refreshedStreams.all { it.request.interval == 500000000L })
         assertTrue(logs.active)
         assertEquals(1, client.connectCount)
 
@@ -55,7 +59,7 @@ class RemoteRefreshIntervalTest {
         intervals.value = 3000
         runCurrent()
         assertEquals(2, client.subscriptions.count {
-            it.method in timedMethods && it.active && it.request.text("interval") == "3000000000"
+            it.method in timedMethods && it.active && it.request.interval == 3000000000L
         })
         state.disconnect()
         runCurrent()
@@ -63,18 +67,18 @@ class RemoteRefreshIntervalTest {
         assertTrue(client.subscriptions.none { it.active })
     }
 
-    private class Subscription(val method: String, val request: JsonObject, var active: Boolean = true)
+    private class Subscription(val method: String, val request: SubscribeStatusRequest, var active: Boolean = true)
 
-    private class RecordingClient : RemoteClient {
+    private class RecordingClient : FakeRemoteClient() {
         val subscriptions = mutableListOf<Subscription>()
         var connectCount = 0
-        override suspend fun connect(url: String, secret: String): JsonObject {
+        override suspend fun connect(url: String, secret: String): Version {
             connectCount++
-            return JsonObject(emptyMap())
+            return Version()
         }
-        override suspend fun call(method: String, request: JsonObject) = JsonObject(emptyMap())
-        override fun stream(method: String, request: JsonObject): Flow<JsonObject> = flow {
-            val subscription = Subscription(method, request)
+        override suspend fun call(method: String, request: ByteArray) = byteArrayOf()
+        override fun stream(method: String, request: ByteArray): Flow<ByteArray> = flow {
+            val subscription = Subscription(method, SubscribeStatusRequest.ADAPTER.decode(request))
             subscriptions += subscription
             try {
                 awaitCancellation()
@@ -82,7 +86,6 @@ class RemoteRefreshIntervalTest {
                 subscription.active = false
             }
         }
-        override fun bidi(method: String, requests: Flow<JsonObject>): Flow<JsonObject> = emptyFlow()
         override fun close() = Unit
         override suspend fun testConnection(url: String, secret: String) = "test"
         override fun normalizeUrl(value: String) = value

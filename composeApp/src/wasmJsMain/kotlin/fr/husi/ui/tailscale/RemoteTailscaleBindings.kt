@@ -7,8 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import fr.husi.compose.preferenceGroup
+import fr.husi.proto.daemon.SetTailscaleExitNodeRequest
+import fr.husi.proto.daemon.TailscaleLogoutRequest
 import fr.husi.remote.RemoteState
-import fr.husi.remote.request
 import fr.husi.tailscale.RemoteInboxModel
 import fr.husi.tailscale.RemotePeerModel
 import fr.husi.tailscale.RemoteSshSessions
@@ -55,7 +56,7 @@ internal fun RemotePeerBinding(tag: String, id: String) {
         onStopPing = model::stopPing,
         onSsh = { if (remote.terminalReady) showLogin = true },
         onSendFiles = { peer?.let { uploads.send(tag, it) } },
-        onLogout = { remote.call("TailscaleLogout", request("endpointTag" to tag)) },
+        onLogout = { remote.call { tailscaleLogout(TailscaleLogoutRequest(tag)) } },
         sendSessions = {
             val sessions =
                 uploads.sessions.filter {
@@ -104,7 +105,7 @@ internal fun RemoteExitNodeBinding(tag: String) {
         endpoint = remote.tailscale.toTailscaleEndpoints().firstOrNull { it.endpointTag == tag },
         onBackPress = { navigator.popBackStack() },
         onSetExitNode = {
-            remote.call("SetTailscaleExitNode", request("endpointTag" to tag, "stableID" to it))
+            remote.call { setTailscaleExitNode(SetTailscaleExitNodeRequest(tag, it)) }
         },
     )
 }

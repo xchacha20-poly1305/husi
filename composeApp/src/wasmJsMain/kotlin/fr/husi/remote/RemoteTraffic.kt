@@ -1,6 +1,6 @@
 package fr.husi.remote
 
-import kotlinx.serialization.json.JsonObject
+import fr.husi.proto.daemon.Status
 
 internal data class RemoteTraffic(
     val upload: Long = 0,
@@ -12,15 +12,15 @@ internal data class RemoteTraffic(
     val goroutines: Int = 0,
 ) {
     companion object {
-        fun fromJson(value: JsonObject) =
+        fun fromStatus(value: Status) =
             RemoteTraffic(
-                upload = value.number("uplink"),
-                download = value.number("downlink"),
-                uploadTotal = value.number("uplinkTotal"),
-                downloadTotal = value.number("downlinkTotal"),
-                memory = value.number("memory"),
-                goroutines = value.number("goroutines").toInt(),
-                connections = value.number("connectionsIn") + value.number("connectionsOut"),
+                upload = value.uplink,
+                download = value.downlink,
+                uploadTotal = value.uplinkTotal,
+                downloadTotal = value.downlinkTotal,
+                memory = value.memory,
+                goroutines = value.goroutines,
+                connections = value.connectionsIn.toLong() + value.connectionsOut,
             )
     }
 }

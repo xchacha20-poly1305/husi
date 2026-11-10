@@ -2,105 +2,105 @@
 
 package fr.husi.remote
 
-import fr.husi.resources.Res
-import fr.husi.resources.remote_stream_overflow
-import kotlin.js.JsString
-import kotlin.js.Promise
-import kotlinx.coroutines.await
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
-import org.jetbrains.compose.resources.getString
+import fr.husi.proto.daemon.StartedServiceClient
+import fr.husi.proto.daemon.Version
+import io.github.xchacha20_poly1305.kurpc.CallInvoker
+import io.github.xchacha20_poly1305.kurpc.CallOptions
+import io.github.xchacha20_poly1305.kurpc.Channel
+import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
+import io.github.xchacha20_poly1305.kurpc.Metadata
+import io.github.xchacha20_poly1305.kurpc.WebCallOptions
+import io.github.xchacha20_poly1305.kurpc.WebChannelConfig
+import io.github.xchacha20_poly1305.kurpc.WebStreamTransport
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
-/** [RemoteClient] over the `husiRpc` bundle that `index.html` loads. */
-internal class BrowserClient : RemoteClient {
-    override suspend fun connect(url: String, secret: String): JsonObject =
-        parseObject(jsString(connectRpc(url, secret).await()))
+internal class BrowserClient(
+    private val openChannel: (WebChannelConfig) -> Channel = { Channel(it) },
+) : RemoteClient {
+    private var channel: Channel? = null
 
-    override suspend fun call(method: String, request: JsonObject): JsonObject =
-        parseObject(jsString(callRpc(method, request.toString()).await()))
-
-    override fun stream(method: String, request: JsonObject): Flow<JsonObject> = callbackFlow {
-        val overflowMessage = getString(Res.string.remote_stream_overflow)
-        val id =
-            subscribeRpc(
-                method,
-                request.toString(),
-                { value ->
-                    if (trySend(parseObject(value)).isFailure)
-                        close(IllegalStateException(overflowMessage))
-                },
-                { error -> close(if (error.isEmpty()) null else IllegalStateException(error)) },
-            )
-        awaitClose { cancelRpc(id) }
+    init {
+        onPageHide {
+            close()
+        }
     }
+    override val service get() = StartedServiceClient(SessionCalls(currentChannel()))
 
-    override fun bidi(method: String, requests: Flow<JsonObject>): Flow<JsonObject> = callbackFlow {
-        val overflowMessage = getString(Res.string.remote_stream_overflow)
-        var id: Int? = null
-        val sender = launch {
-            requests.collect { request ->
-                val current = id
-                if (current == null) {
-                    id =
-                        subscribeRpc(
-                            method,
-                            request.toString(),
-                            { value ->
-                                if (trySend(parseObject(value)).isFailure)
-                                    close(IllegalStateException(overflowMessage))
-                            },
-                            { error ->
-                                close(if (error.isEmpty()) null else IllegalStateException(error))
-                            },
-                        )
-                } else sendRpc(current, method, request.toString())
+    override suspend fun connect(url: String, secret: String): Version {
+        close()
+        val opened = openChannel(configuration(url, secret))
+        channel = opened
+        try {
+            val version = StartedServiceClient(opened).getVersion(options = CallOptions(timeout = 10.seconds))
+            currentCoroutineContext().ensureActive()
+            if (channel !== opened) {
+                throw ChannelClosedException()
             }
-            id?.let(::halfCloseRpc)
-        }
-        awaitClose {
-            sender.cancel()
-            id?.let(::cancelRpc)
+            return version
+        } catch (failure: Throwable) {
+            if (channel === opened) {
+                channel = null
+            }
+            opened.close()
+            throw failure
         }
     }
 
-    override fun close() = disconnectRpc()
+    override fun close() {
+        val previous = channel
+        channel = null
+        previous?.close()
+    }
 
     override suspend fun testConnection(url: String, secret: String): String =
-        parseObject(jsString(testConnectionRpc(url, secret).await())).text("version")
+        openChannel(configuration(url, secret)).use {
+            StartedServiceClient(it).getVersion(options = CallOptions(timeout = 10.seconds)).version
+        }
 
-    override fun normalizeUrl(value: String): String = normalizeUrlRpc(value)
+    private fun configuration(url: String, secret: String) = WebChannelConfig(
+        baseUrl = normalizeUrl(url),
+        metadata = if (secret.isEmpty()) {
+            Metadata.Empty
+        } else {
+            Metadata.of("authorization" to "Bearer $secret")
+        },
+        // Persistent subscriptions must not occupy the HTTP/1.1 fetch connection pool.
+        serverStreamingTransport = WebStreamTransport.WebSocket,
+        maxMessageBytes = 16 * 1024 * 1024,
+    )
+
+    private fun currentChannel() = channel ?: throw ChannelClosedException("Connect to a server first")
+
+    override fun normalizeUrl(value: String): String = normalizeApiUrl(value)
 }
 
-@JsFun("(url,secret) => husiRpc.connect(url,secret)")
-private external fun connectRpc(url: String, secret: String): Promise<JsString>
+private class SessionCalls(private val channel: Channel) : CallInvoker by channel {
+    override suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray =
+        unaryCall(method, request, options).message
 
-@JsFun("(method,json) => husiRpc.unary(method,json)")
-private external fun callRpc(method: String, json: String): Promise<JsString>
+    override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions) =
+        channel.unaryCall(method, request, options.withUnaryTimeout())
+}
 
-@JsFun("(method,json,data,end) => husiRpc.subscribe(method,json,data,end)")
-private external fun subscribeRpc(
-    method: String,
-    json: String,
-    data: (String) -> Unit,
-    end: (String) -> Unit,
-): Int
+private fun CallOptions.withUnaryTimeout(): CallOptions = when {
+    timeout != null -> this
+    this is WebCallOptions -> WebCallOptions(30.seconds, metadata, serverStreamingTransport)
+    else -> CallOptions(30.seconds, metadata)
+}
 
-@JsFun("(id,method,json) => husiRpc.send(id,method,json)")
-private external fun sendRpc(id: Int, method: String, json: String)
+@JsFun("""(value) => {
+    const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        throw new Error('Use an HTTP or HTTPS API URL');
+    }
+    if (url.username || url.password || url.search || url.hash) {
+        throw new Error('API URL must not contain credentials, a query or a fragment');
+    }
+    return url.href.endsWith('/') ? url.href.slice(0, -1) : url.href;
+}""")
+private external fun normalizeApiUrl(value: String): String
 
-@JsFun("(id) => husiRpc.halfClose(id)") private external fun halfCloseRpc(id: Int)
-
-@JsFun("(id) => husiRpc.cancel(id)") private external fun cancelRpc(id: Int)
-
-@JsFun("() => husiRpc.disconnect()") private external fun disconnectRpc()
-
-@JsFun("(url,secret) => husiRpc.testConnection(url,secret)")
-private external fun testConnectionRpc(url: String, secret: String): Promise<JsString>
-
-@JsFun("(value) => husiRpc.normalizeUrl(value)")
-private external fun normalizeUrlRpc(value: String): String
-
-@JsFun("(value) => value") private external fun jsString(value: JsString): String
+@JsFun("(close) => window.addEventListener('pagehide', close)")
+private external fun onPageHide(close: () -> Unit)

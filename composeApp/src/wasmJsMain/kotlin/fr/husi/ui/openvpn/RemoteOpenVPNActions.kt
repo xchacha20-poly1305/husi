@@ -1,63 +1,56 @@
 package fr.husi.ui.openvpn
 
+import fr.husi.proto.daemon.OpenVPNChallengeCancel
+import fr.husi.proto.daemon.OpenVPNChallengeSubmission
+import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.remote.RemoteState
-import fr.husi.remote.flag
-import fr.husi.remote.items
-import fr.husi.remote.number
-import fr.husi.remote.obj
-import fr.husi.remote.request
-import fr.husi.remote.strings
-import fr.husi.remote.text
 import fr.husi.vpn.OpenVPNChallengeState
 import fr.husi.vpn.OpenVPNEndpointState
 import fr.husi.vpn.OpenVPNTunnelInfoState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.serialization.json.JsonObject
 
 internal class RemoteOpenVPNActions(private val state: RemoteState) : OpenVPNAuthActions {
     override val endpoints: StateFlow<List<OpenVPNEndpointState>>
         field = MutableStateFlow(emptyList())
 
-    fun update(value: JsonObject) {
+    fun update(value: OpenVPNStatusUpdate) {
         endpoints.value =
-            value.items("endpoints").map { endpoint ->
+            value.endpoints.map { endpoint ->
                 OpenVPNEndpointState(
-                    tag = endpoint.text("endpointTag"),
-                    state = endpoint.text("state"),
-                    stateText = endpoint.text("stateText"),
-                    error = endpoint.text("error"),
+                    tag = endpoint.endpointTag,
+                    state = endpoint.state,
+                    stateText = endpoint.stateText,
+                    error = endpoint.error,
                     challenge =
                         endpoint
-                            .obj("challenge")
-                            .takeIf { it.isNotEmpty() }
+                            .challenge
                             ?.let { challenge ->
                                 OpenVPNChallengeState(
-                                    id = challenge.text("id"),
-                                    kind = challenge.text("kind"),
-                                    username = challenge.text("username"),
-                                    message = challenge.text("message"),
-                                    url = challenge.text("url"),
-                                    secretMessage = challenge.text("secretMessage"),
-                                    echo = challenge.flag("echo"),
-                                    previousError = challenge.text("previousError"),
-                                    deadline = challenge.number("deadline"),
+                                    id = challenge.id,
+                                    kind = challenge.kind,
+                                    username = challenge.username,
+                                    message = challenge.message,
+                                    url = challenge.url,
+                                    secretMessage = challenge.secretMessage,
+                                    echo = challenge.echo,
+                                    previousError = challenge.previousError,
+                                    deadline = challenge.deadline,
                                 )
                             },
                     tunnelInfo =
                         endpoint
-                            .obj("tunnelInfo")
-                            .takeIf { it.isNotEmpty() }
+                            .tunnelInfo
                             ?.let { tunnel ->
                                 OpenVPNTunnelInfoState(
-                                    server = tunnel.text("server"),
-                                    network = tunnel.text("network"),
-                                    cipher = tunnel.text("cipher"),
-                                    ipv4 = tunnel.strings("ipv4"),
-                                    ipv6 = tunnel.strings("ipv6"),
-                                    dns = tunnel.strings("dns"),
-                                    mtu = tunnel.number("mtu").toInt(),
-                                    connectedSince = tunnel.number("connectedSince"),
+                                    server = tunnel.server,
+                                    network = tunnel.network,
+                                    cipher = tunnel.cipher,
+                                    ipv4 = tunnel.ipv4,
+                                    ipv6 = tunnel.ipv6,
+                                    dns = tunnel.dns,
+                                    mtu = tunnel.mtu,
+                                    connectedSince = tunnel.connectedSince,
                                 )
                             },
                 )
@@ -70,21 +63,13 @@ internal class RemoteOpenVPNActions(private val state: RemoteState) : OpenVPNAut
         username: String,
         password: String,
         secret: String,
-    ) =
-        state.perform(
-            "SubmitOpenVPNChallengeResponse",
-            request(
-                "endpointTag" to endpointTag,
-                "challengeID" to challenge.id,
-                "username" to username,
-                "password" to password,
-                "secret" to secret,
-            ),
+    ) = state.perform {
+        submitOpenVPNChallengeResponse(
+            OpenVPNChallengeSubmission(endpointTag, challenge.id, username, password, secret),
         )
+    }
 
-    override suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String) =
-        state.perform(
-            "CancelOpenVPNChallenge",
-            request("endpointTag" to endpointTag, "challengeID" to challengeId),
-        )
+    override suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String) = state.perform {
+        cancelOpenVPNChallenge(OpenVPNChallengeCancel(endpointTag, challengeId))
+    }
 }

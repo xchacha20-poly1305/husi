@@ -3,19 +3,23 @@ package fr.husi.remote
 import fr.husi.Key
 import fr.husi.database.RemoteServer
 import fr.husi.database.preference.long
+import fr.husi.proto.daemon.Log
+import fr.husi.proto.daemon.StartedAt
+import fr.husi.proto.daemon.Version
 import fr.husi.test.FakePreferencesDataStore
+import fr.husi.test.FakeRemoteClient
 import fr.husi.test.FakeRemoteServerDao
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
@@ -23,10 +27,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RemoteStateTest {
@@ -35,7 +35,7 @@ class RemoteStateTest {
     @Test
     fun `uptime uses the peer start time across reconnects`() = runTest {
         val client = RecordingClient { testScheduler.currentTime }
-        client.startedAtResponse = request("startedAt" to "1700000000123")
+        client.startedAtResponse = StartedAt(1700000000123L)
         val state = state(client)
         state.save(server)
         state.connect(server)
@@ -56,13 +56,13 @@ class RemoteStateTest {
     @Test
     fun `heartbeat refreshes the peer start time without reconnecting`() = runTest {
         val client = RecordingClient { testScheduler.currentTime }
-        client.startedAtResponse = request("startedAt" to "1700000000123")
+        client.startedAtResponse = StartedAt(1700000000123L)
         val state = state(client)
         state.save(server)
         state.connect(server)
         runCurrent()
 
-        client.startedAtResponse = request("startedAt" to "1700000060123")
+        client.startedAtResponse = StartedAt(1700000060123L)
         advanceTimeBy(5000.milliseconds)
         runCurrent()
         assertEquals(1700000060123L, state.startedAt)
@@ -80,7 +80,7 @@ class RemoteStateTest {
         assertNull(state.startedAt)
 
         for (value in listOf("0", "-1")) {
-            client.startedAtResponse = request("startedAt" to value)
+            client.startedAtResponse = StartedAt(value.toLong())
             advanceTimeBy(5000.milliseconds)
             runCurrent()
             assertNull(state.startedAt)
@@ -102,7 +102,7 @@ class RemoteStateTest {
         assertTrue(client.activeStreams > 0)
 
         client.startedAtFailure = false
-        client.startedAtResponse = request("startedAt" to "1700000000123")
+        client.startedAtResponse = StartedAt(1700000000123L)
         advanceTimeBy(5000.milliseconds)
         runCurrent()
         assertEquals(1700000000123L, state.startedAt)
@@ -114,7 +114,7 @@ class RemoteStateTest {
         val client = RecordingClient { testScheduler.currentTime }
         val gate = CompletableDeferred<Unit>()
         client.startedAtGate = gate
-        client.startedAtResponse = request("startedAt" to "1700000000123")
+        client.startedAtResponse = StartedAt(1700000000123L)
         val state = state(client)
         state.save(server)
         state.connect(server)
@@ -168,12 +168,8 @@ class RemoteStateTest {
         advanceTimeBy(1000.milliseconds)
         runCurrent()
         client.connectFailure = false
-        client.version = buildJsonObject {
-            put("version", "0.1.0")
-            put("singBoxVersion", "1.14.0")
-            put("buildEnvironment", "go1.26 linux/amd64")
-        }
-        client.startedAtResponse = request("startedAt" to "1700000000123")
+        client.version = Version(version = "0.1.0")
+        client.startedAtResponse = StartedAt(1700000000123L)
         advanceTimeBy(2000.milliseconds)
         runCurrent()
         assertTrue(state.connected)
@@ -182,7 +178,7 @@ class RemoteStateTest {
         assertEquals(1700000000123L, state.startedAt)
         val activeStreams = client.activeStreams
         assertTrue(activeStreams > 0)
-        state.logs.add(JsonObject(emptyMap()))
+        state.logs.add(Log.Message())
 
         client.heartbeatFailure = true
         advanceTimeBy(5000.milliseconds)
@@ -197,8 +193,8 @@ class RemoteStateTest {
         assertEquals(0, client.activeStreams)
 
         client.heartbeatFailure = false
-        client.version = buildJsonObject { put("version", "0.2.0") }
-        client.startedAtResponse = request("startedAt" to "1700000060123")
+        client.version = Version(version = "0.2.0")
+        client.startedAtResponse = StartedAt(1700000060123L)
         advanceTimeBy(1000.milliseconds)
         runCurrent()
         assertTrue(state.connected)
@@ -295,7 +291,7 @@ class RemoteStateTest {
         FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
     )
 
-    private class RecordingClient(private val now: () -> Long) : RemoteClient {
+    private class RecordingClient(private val now: () -> Long) : FakeRemoteClient() {
         val attempts = mutableListOf<Pair<String, Long>>()
         val logAttempts = mutableListOf<Long>()
         var connectFailure = false
@@ -304,28 +300,28 @@ class RemoteStateTest {
         var connectGate: CompletableDeferred<Unit>? = null
         var startedAtGate: CompletableDeferred<Unit>? = null
         var startedAtFailure = false
-        var startedAtResponse = JsonObject(emptyMap())
+        var startedAtResponse = StartedAt()
         var activeStreams = 0
-        var version = JsonObject(emptyMap())
+        var version = Version()
 
-        override suspend fun connect(url: String, secret: String): JsonObject {
+        override suspend fun connect(url: String, secret: String): Version {
             attempts.add(url to now())
             connectGate?.let { withContext(NonCancellable) { it.await() } }
             check(!connectFailure) { "Offline" }
             return version
         }
 
-        override suspend fun call(method: String, request: JsonObject): JsonObject {
+        override suspend fun call(method: String, request: ByteArray): ByteArray {
             check(method != "GetVersion" || !heartbeatFailure) { "Disconnected" }
             if (method == "GetStartedAt") {
                 startedAtGate?.let { withContext(NonCancellable) { it.await() } }
                 check(!startedAtFailure) { "GetStartedAt unavailable" }
-                return startedAtResponse
+                return startedAtResponse.encode()
             }
-            return JsonObject(emptyMap())
+            return byteArrayOf()
         }
 
-        override fun stream(method: String, request: JsonObject): Flow<JsonObject> = flow {
+        override fun stream(method: String, request: ByteArray): Flow<ByteArray> = flow {
             if (method == "SubscribeLog") {
                 logAttempts.add(now())
                 check(!logFailure) { "Stream lost" }
@@ -338,7 +334,6 @@ class RemoteStateTest {
             }
         }
 
-        override fun bidi(method: String, requests: Flow<JsonObject>): Flow<JsonObject> = emptyFlow()
         override fun close() = Unit
         override suspend fun testConnection(url: String, secret: String) = "test"
         override fun normalizeUrl(value: String) = value
