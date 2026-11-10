@@ -46,6 +46,11 @@ ANDROID_MIPMAP_SIZES = {
 STORE_SIZE = 512
 LINUX_SIZE = 512
 WINDOWS_SIZES = [16, 24, 32, 48, 64, 128, 256]
+FAVICON_SIZES = [16, 32, 48]
+PWA_ICON_SIZES = [192, 512]
+PWA_MASKABLE_SIZE = 512
+PWA_MASKABLE_MARK_FRACTION = 0.53
+APPLE_TOUCH_SIZE = 180
 MACOS_ELEMENTS = {
     "icp4": 16,
     "icp5": 32,
@@ -353,6 +358,39 @@ def emit_linux(artworks: ArtworkSet) -> None:
     print(f"icon: wrote {destination.relative_to(ROOT)}")
 
 
+def emit_web(artworks: ArtworkSet, workspace: Path) -> None:
+    magick = require_tool("magick")
+    resources = ROOT / "composeApp" / "src" / "wasmJsMain" / "resources"
+    write(resources / "favicon.svg", compose(artworks.small, DESKTOP_PLATE, SMALL_MARK_FRACTION))
+
+    rendered = []
+    for size in FAVICON_SIZES:
+        target = workspace / f"favicon-{size}.png"
+        rasterize_plated(artworks, DESKTOP_PLATE, size, target)
+        rendered.append(target)
+    destination = resources / "favicon.ico"
+    run(magick, *(str(png) for png in rendered), str(destination))
+    print(f"icon: wrote {destination.relative_to(ROOT)}")
+
+    for size in PWA_ICON_SIZES:
+        destination = resources / "icons" / f"icon-{size}.png"
+        rasterize_plated(artworks, DESKTOP_PLATE, size, destination)
+        print(f"icon: wrote {destination.relative_to(ROOT)}")
+
+    # Keep the entire mark inside the maskable icon's central 80% safe circle.
+    destination = resources / "icons" / f"icon-maskable-{PWA_MASKABLE_SIZE}.png"
+    rasterize(
+        compose(artworks.large, STORE_PLATE, PWA_MASKABLE_MARK_FRACTION),
+        PWA_MASKABLE_SIZE,
+        destination,
+    )
+    print(f"icon: wrote {destination.relative_to(ROOT)}")
+
+    destination = resources / "apple-touch-icon.png"
+    rasterize_plated(artworks, STORE_PLATE, APPLE_TOUCH_SIZE, destination)
+    print(f"icon: wrote {destination.relative_to(ROOT)}")
+
+
 def main() -> None:
     artworks = ArtworkSet(load_artwork(SOURCE_LARGE), load_artwork(SOURCE_SMALL))
     with tempfile.TemporaryDirectory() as directory:
@@ -361,6 +399,7 @@ def main() -> None:
         emit_windows(artworks, workspace)
         emit_macos(artworks, workspace)
         emit_linux(artworks)
+        emit_web(artworks, workspace)
 
 
 if __name__ == "__main__":
