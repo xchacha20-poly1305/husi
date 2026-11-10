@@ -94,17 +94,23 @@ func TestSetupRootCA(t *testing.T) {
 	}
 
 	// normal
-	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306")
+	if testInternet {
+		testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306")
+	}
 	testConnect(husi, listen, true, "normal local")
 
 	// Load local cert and Mozilla CA
 	SetupRootCA(CertMozilla)
-	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
+	if testInternet {
+		testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
+	}
 	testConnect(husi, listen, !C.IsAndroid, "loaded custom")
 
 	// Set back but load local
 	SetupRootCA(CertSystem)
-	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
+	if testInternet {
+		testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
+	}
 	testConnect(husi, listen, !C.IsAndroid, "loaded custom 2")
 }
 
