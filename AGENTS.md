@@ -88,6 +88,21 @@ Windows payloads (launcher, `husi-core.exe`, installer) are Authenticode signed 
 
 `gradlew run` looks for `husi-core` under `libcore/build/<os>_<arch>/` (relative to the launch directory), then next to a packaged launcher, then on `PATH`. Build it with `make core_desktop`.
 
+### Demo API
+
+`husi-core demo` runs a simulated API. It provides live traffic, connections, proxy groups and logs
+without starting a proxy, loading user configuration or requiring administrator access.
+
+```sh
+make core_desktop
+# Linux amd64 example; use the matching libcore/build/<os>_<arch>/ directory.
+./libcore/build/linux_amd64/husi-core demo
+# Optional LAN access and Bearer authentication:
+./libcore/build/linux_amd64/husi-core demo --listen 0.0.0.0:9090 --secret demo-secret
+```
+
+The default address is `http://127.0.0.1:9090`, with no secret
+
 ### Android two-process model
 
 The app runs in two processes: UI and `:bg`. Only `:bg` loads libcore (`Seq.setContext`, `Libcore.initCore`, `boxService.start()`); the UI process must not touch any `fr.husi.libcore` class, and reaches Go the way the desktop does, through `CoreClient`. The binder (`SagerConnection`) is lifecycle-only — `BIND_AUTO_CREATE` starts/keeps `:bg` alive; the data plane is gRPC over `<filesDir>/api.sock`. Main-process work that no activity covers (WorkManager updates) wraps its core calls in `withBackgroundProcess`, as `BackgroundProcessHttpFetcher` does.
