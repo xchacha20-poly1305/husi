@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
@@ -39,8 +40,9 @@ func (s *sessionDaemonService) GetDaemonInfo(context.Context, *husiv1.GetDaemonI
 		// Session is single-user by nature; ownership fields stay empty.
 		Ownership: &husiv1.Ownership{},
 		Capabilities: &husiv1.Capabilities{
-			Tun:         false,
-			StartAtBoot: false,
+			Tun:               false,
+			NetworkManagerTun: supportsNetworkManagerTun,
+			StartAtBoot:       false,
 		},
 		StartAtBoot: false,
 	}, nil
@@ -55,19 +57,26 @@ func (s *sessionDaemonService) StartService(ctx context.Context, req *husiv1.Sta
 		return nil, status.Error(codes.InvalidArgument, "missing config")
 	}
 
+	err := validateServiceOptions(req.GetOptions())
+	if err != nil {
+		return nil, err
+	}
 	s.access.Lock()
 	defer s.access.Unlock()
 
-	if err := s.stopLocked(); err != nil {
+	err = s.stopLocked()
+	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	applyRootCertificates(req.GetOptions())
 
-	if err := s.plugins.StartAll(req.GetPlugins()); err != nil {
+	applyRootCertificates(req.GetOptions())
+	err = s.plugins.StartAll(req.GetPlugins())
+	if err != nil {
 		return nil, status.Error(codes.Internal, E.Cause(err, "start plugins").Error())
 	}
 
-	if err := s.host.StartOrReload(ctx, config); err != nil {
+	err = startServiceWithOptions(ctx, s.host, config, req.GetOptions(), s.handleTunnelLost)
+	if err != nil {
 		_ = s.plugins.Close()
 		return nil, status.Error(codes.Internal, E.Cause(err, "start service").Error())
 	}
@@ -153,5 +162,17 @@ func cloneClientMetadata(src *husiv1.ClientMetadata) *husiv1.ClientMetadata {
 	return &husiv1.ClientMetadata{
 		ProfileId:   src.GetProfileId(),
 		ProfileName: src.GetProfileName(),
+	}
+}
+
+func (s *sessionDaemonService) handleTunnelLost(platform adapter.PlatformInterface) {
+	s.access.Lock()
+	defer s.access.Unlock()
+	if s.host.UsesPlatform(platform) {
+		log.Warn("NetworkManager connection lost, stopping service")
+		err := s.stopLocked()
+		if err != nil {
+			log.Warn("stop after interface loss: ", err)
+		}
 	}
 }

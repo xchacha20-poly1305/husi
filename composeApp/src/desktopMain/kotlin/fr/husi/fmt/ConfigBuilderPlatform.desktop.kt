@@ -5,12 +5,13 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.platform.PlatformInfo
 
 internal actual suspend fun SingBoxOptions.Inbound_TunOptions.applyPlatformConfig() {
-    auto_route = true
+    val networkManager = DataStore.networkManagerTun.get()
+    auto_route = !networkManager
     interface_name = DataStore.tunInterfaceName.get().blankAsNull()
-    if (DataStore.tunStrictRoute.get()) {
+    if (!networkManager && DataStore.tunStrictRoute.get()) {
         strict_route = true
     }
-    if (PlatformInfo.isLinux && DataStore.tunAutoRedirect.get()) {
+    if (PlatformInfo.isLinux && !networkManager && DataStore.tunAutoRedirect.get()) {
         auto_redirect = true
     }
 }

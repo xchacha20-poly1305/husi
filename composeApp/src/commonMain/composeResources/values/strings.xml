@@ -972,4 +972,7 @@
     <string name="ip_test_no_servers">Configure an IP detection server in miscellaneous settings.</string>
     <string name="dashboard_traffic_usage">Traffic usage</string>
     <string name="dashboard_traffic_total">Total</string>
+    <string name="network_manager_tun">Use NetworkManager TUN</string>
+    <string name="network_manager_tun_summary">Let NetworkManager manage TUN, routes and DNS without the system daemon. Requires NetworkManager permission. Single queue; strict route and auto redirect are unavailable.</string>
+    <string name="tun_backend_required">TUN mode requires the system daemon or NetworkManager. Choose a backend in Settings.</string>
 </resources>

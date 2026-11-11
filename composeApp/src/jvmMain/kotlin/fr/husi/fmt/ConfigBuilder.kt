@@ -524,6 +524,7 @@ suspend fun buildConfig(
     val userDNSRuleList = mutableListOf<JSONMap>()
     val serverDomainProfiles = mutableListOf<ProxyEntity>()
     val isVPN = DataStore.serviceMode.get() == Key.MODE_VPN
+    val networkManagerTun = DataStore.networkManagerTun.get()
     val allowAccess = DataStore.allowAccess.get()
     val bind = if (!forTest && allowAccess) {
         "0.0.0.0"
@@ -706,7 +707,7 @@ suspend fun buildConfig(
                 Inbound_TunOptions().apply {
                     type = SingBoxOptions.TYPE_TUN
                     tag = TAG_TUN
-                    if (PlatformInfo.isLinux) {
+                    if (PlatformInfo.isLinux && !networkManagerTun) {
                         multi_queue = true
                     }
                     mtu = DataStore.mtu.get()
@@ -1008,7 +1009,7 @@ suspend fun buildConfig(
                     val canProtect = !forTest && bean.canSelfProtect
                     val canBypassPluginProcesses = PlatformInfo.isLinux
                         && !forTest
-                        && isVPN && DataStore.tunAutoRedirect.get()
+                        && isVPN && DataStore.tunAutoRedirect.get() && !networkManagerTun
                     val canBypass = canBypassPluginProcesses && !bean.canSelfProtect
                     val canDialDirect = !bean.canMapping || ((canProtect || canBypass) && needDirectRoute)
                     if (canDialDirect && canBypass) {

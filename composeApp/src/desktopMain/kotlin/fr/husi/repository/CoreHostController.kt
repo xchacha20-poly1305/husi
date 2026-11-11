@@ -2,20 +2,20 @@ package fr.husi.repository
 
 import fr.husi.CORE_SOCKET_NAME
 import fr.husi.CertProvider
-import fr.husi.PLUGIN_CA_FILE
 import fr.husi.Key
+import fr.husi.PLUGIN_CA_FILE
 import fr.husi.bg.BackendState
 import fr.husi.bg.OpenConnectAuthWatcher
 import fr.husi.bg.OpenVPNAuthWatcher
-import fr.husi.bg.TailscaleNotificationWatcher
 import fr.husi.bg.ServiceAlert
 import fr.husi.bg.ServiceState
+import fr.husi.bg.TailscaleNotificationWatcher
 import fr.husi.bg.buildPluginSpecs
 import fr.husi.bg.initPlugins
 import fr.husi.bg.proto.TrafficLooper
-import fr.husi.core.KurpcCoreClient
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreStateReconciliation
+import fr.husi.core.KurpcCoreClient
 import fr.husi.core.reconciliationFor
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -27,10 +27,10 @@ import fr.husi.ktx.readableMessage
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginNotFoundException
-import fr.husi.proto.daemon.ServiceStatus as DaemonServiceStatus
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.Hosting
 import fr.husi.proto.v1.RootCertificateStore
+import fr.husi.proto.v1.TunBackend
 import fr.husi.proto.v1.clientMetadata
 import fr.husi.proto.v1.serviceOptions
 import fr.husi.proto.v1.startServiceRequest
@@ -38,6 +38,7 @@ import fr.husi.resources.Res
 import fr.husi.resources.invalid_server
 import fr.husi.resources.profile_empty
 import fr.husi.resources.service_failed
+import fr.husi.resources.tun_backend_required
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -62,6 +63,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import fr.husi.proto.daemon.ServiceStatus as DaemonServiceStatus
 
 data class CoreHostState(
     val isDaemon: Boolean = false,
@@ -279,6 +281,9 @@ internal class CoreHostController(
     private fun runExclusive(block: suspend () -> Unit): Job = scope.launch {
         access.withLock { block() }
     }
+
+    private suspend fun useNetworkManagerTun() = PlatformInfo.isLinux
+        && DataStore.serviceMode.get() == Key.MODE_VPN && DataStore.networkManagerTun.get()
 
     private suspend fun ensureHostLocked() {
         // Already on a live daemon — just re-probe.
@@ -537,9 +542,17 @@ internal class CoreHostController(
             }
 
             val isVPN = DataStore.serviceMode.get() == Key.MODE_VPN
-            if (isVPN && !connectedToDaemon) {
+            val networkManager = useNetworkManagerTun()
+            if (networkManager && !coreClient.getDaemonInfo().capabilities.networkManagerTun) {
+                throw IOException("This core host does not support NetworkManager TUN. Update husi-core.")
+            }
+            if (isVPN && !connectedToDaemon && !networkManager) {
                 stopLocked(
-                    "TUN mode requires the system daemon. Install it via Settings or switch to proxy mode.",
+                    if (PlatformInfo.isLinux) {
+                        repository.getString(Res.string.tun_backend_required)
+                    } else {
+                        "TUN mode requires the system daemon. Install it via Settings or switch to proxy mode."
+                    },
                 )
                 return
             }
@@ -560,6 +573,11 @@ internal class CoreHostController(
                 plugins.addAll(pluginSpecs)
                 options = serviceOptions {
                     rootCertificates = rootCertificateStore(DataStore.certProvider.get())
+                    tunBackend = if (networkManager) {
+                        TunBackend.TUN_BACKEND_NETWORK_MANAGER
+                    } else {
+                        TunBackend.TUN_BACKEND_NATIVE
+                    }
                 }
                 clientMetadata = clientMetadata {
                     profileId = profile.id

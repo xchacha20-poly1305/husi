@@ -175,6 +175,8 @@ object DataStore : ApplicationPreferences(
     val tunInterfaceName = configurationStore.string(Key.TUN_INTERFACE_NAME) { "" }
     val tunStrictRoute = configurationStore.boolean(Key.TUN_STRICT_ROUTE) { true }
     val tunAutoRedirect = configurationStore.boolean(Key.TUN_AUTO_REDIRECT) { true }
+    val networkManagerTun = configurationStore.boolean(Key.NETWORK_MANAGER_TUN) { false }
+
     val allowAppsBypassVpn = configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }
 
     val bypassLan = configurationStore.boolean(Key.BYPASS_LAN) { true }

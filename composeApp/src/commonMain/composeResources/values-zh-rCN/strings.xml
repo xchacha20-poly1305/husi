@@ -896,4 +896,7 @@
     <string name="ip_test_no_servers">请先在杂项设置中填写 IP 检测服务器。</string>
     <string name="dashboard_traffic_usage">流量统计</string>
     <string name="dashboard_traffic_total">合计</string>
+    <string name="network_manager_tun">使用 NetworkManager TUN</string>
+    <string name="network_manager_tun_summary">由 NetworkManager 管理 TUN、路由和 DNS，无需系统守护进程。需要 NetworkManager 授权。使用单队列，不支持严格路由和自动重定向。</string>
+    <string name="tun_backend_required">TUN 模式需要系统守护进程或 NetworkManager，请在设置中选择后端。</string>
 </resources>

@@ -10,10 +10,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/service"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"google.golang.org/grpc"
@@ -23,6 +26,10 @@ import (
 )
 
 type Host struct {
+	platformInterfaceAccess  sync.Mutex
+	platformInterface        adapter.PlatformInterface
+	defaultPlatformInterface adapter.PlatformInterface
+
 	access sync.Mutex
 
 	ctx         context.Context
@@ -75,6 +82,7 @@ func NewHost(options HostOptions) (*Host, error) {
 	if options.Context == nil {
 		return nil, E.New("missing context")
 	}
+	options.Context = service.ExtendContext(service.ContextWithDefaultRegistry(options.Context))
 	logMaxLines := max(options.LogMaxLines, 50)
 	started := daemon.NewStartedService(daemon.ServiceOptions{
 		Context:          options.Context,
@@ -83,17 +91,18 @@ func NewHost(options HostOptions) (*Host, error) {
 		OOMKillerEnabled: true,
 	})
 	h := &Host{
-		ctx:                     options.Context,
-		version:                 options.Version,
-		logMaxLines:             logMaxLines,
-		appHandler:              options.AppHandler,
-		started:                 started,
-		events:                  newEventBroadcaster(),
-		services:                options.Services,
-		fileLogSink:             options.FileLogSink,
-		serverOptions:           options.ServerOptions,
-		skipDefaultInterceptors: options.SkipDefaultInterceptors,
-		onStuck:                 options.OnStuck,
+		ctx:                      options.Context,
+		defaultPlatformInterface: service.FromContext[adapter.PlatformInterface](options.Context),
+		version:                  options.Version,
+		logMaxLines:              logMaxLines,
+		appHandler:               options.AppHandler,
+		started:                  started,
+		events:                   newEventBroadcaster(),
+		services:                 options.Services,
+		fileLogSink:              options.FileLogSink,
+		serverOptions:            options.ServerOptions,
+		skipDefaultInterceptors:  options.SkipDefaultInterceptors,
+		onStuck:                  options.OnStuck,
 	}
 	return h, nil
 }
@@ -223,18 +232,61 @@ func (h *Host) StartOn(listener net.Listener) error {
 }
 
 func (h *Host) StartOrReload(ctx context.Context, config string) error {
+	return h.StartOrReloadWithPlatform(ctx, config, nil)
+}
+
+// StartOrReloadWithPlatform owns platform for this service's lifetime.
+// A nil platform uses the host's default. Changing it never requires restarting the host.
+func (h *Host) StartOrReloadWithPlatform(ctx context.Context, config string, platformInterface adapter.PlatformInterface) error {
+	h.platformInterfaceAccess.Lock()
+	defer h.platformInterfaceAccess.Unlock()
 	if h.Stuck() {
+		_ = common.Close(platformInterface)
 		return ErrHostStuck
 	}
+	if h.platformInterface != nil || platformInterface != nil {
+		if err := h.closePlatformServiceLocked(C.FatalStopTimeout); err != nil {
+			_ = common.Close(platformInterface)
+			return err
+		}
+	}
+	h.platformInterface = platformInterface
+	selected := platformInterface
+	if selected == nil {
+		selected = h.defaultPlatformInterface
+	}
+	service.MustRegister[adapter.PlatformInterface](h.ctx, selected)
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	err := h.started.StartOrReloadService(ctx, config, nil)
 	if err != nil {
+		_ = common.Close(h.platformInterface)
+		h.platformInterface = nil
+		service.MustRegister[adapter.PlatformInterface](h.ctx, h.defaultPlatformInterface)
 		return err
 	}
 	h.attachFileLogSink()
 	return nil
+}
+
+func (h *Host) closePlatformServiceLocked(timeout time.Duration) error {
+	err := h.closeServiceWithWatchdog(func() error {
+		coreErr := h.started.CloseService()
+		return E.Errors(coreErr, common.Close(h.platformInterface))
+	}, timeout)
+	if !h.Stuck() {
+		h.platformInterface = nil
+		service.MustRegister[adapter.PlatformInterface](h.ctx, h.defaultPlatformInterface)
+	}
+	return err
+}
+
+// UsesPlatform lets an asynchronous failure from a retired interface be ignored.
+func (h *Host) UsesPlatform(platform adapter.PlatformInterface) bool {
+	h.platformInterfaceAccess.Lock()
+	defer h.platformInterfaceAccess.Unlock()
+	return h.platformInterface == platform
 }
 
 func (h *Host) attachFileLogSink() {
@@ -246,16 +298,18 @@ func (h *Host) attachFileLogSink() {
 		log.Warn("file log sink: no instance after start")
 		return
 	}
-	factory, ok := instance.Box().LogFactory().(log.ObservableFactory)
-	if !ok {
+	observableFactory, isObservableFactory := instance.Box().LogFactory().(log.ObservableFactory)
+	if !isObservableFactory {
 		log.Warn("file log sink: log factory is not observable")
 		return
 	}
-	factory.AttachPlatformWriter(h.fileLogSink)
+	observableFactory.AttachPlatformWriter(h.fileLogSink)
 }
 
 func (h *Host) CloseService(timeout time.Duration) error {
-	return h.closeServiceWithWatchdog(h.started.CloseService, timeout)
+	h.platformInterfaceAccess.Lock()
+	defer h.platformInterfaceAccess.Unlock()
+	return h.closePlatformServiceLocked(timeout)
 }
 
 func (h *Host) Stuck() bool {
@@ -315,7 +369,7 @@ func (h *Host) Close() error {
 	}
 	if h.started != nil {
 		// Close box may hang.
-		err := h.closeServiceWithWatchdog(h.started.CloseService, C.FatalStopTimeout)
+		err := h.CloseService(C.FatalStopTimeout)
 		if errors.Is(err, ErrHostStuck) {
 			log.Warn("closing a stuck host: the running instance goes down with this process")
 		}

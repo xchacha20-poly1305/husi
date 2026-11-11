@@ -1,5 +1,6 @@
 package fr.husi.repository
 
+import fr.husi.platform.PlatformInfo
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
@@ -11,6 +12,8 @@ import fr.husi.database.preference.reset
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
+import fr.husi.proto.v1.capabilities
+import fr.husi.proto.v1.TunBackend
 import fr.husi.proto.v1.getDaemonInfoResponse
 import fr.husi.proto.v1.ownership
 import fr.husi.test.FakeCoreClient
@@ -344,6 +347,76 @@ class CoreHostControllerTest : HusiKoinTest() {
             assertEquals(0, backend.disableCalls)
             assertFalse(DataStore.systemProxy.get())
         }
+
+    @Test
+    fun `NetworkManager session can start VPN without the system daemon`() = runTest(dispatcher.scheduler) {
+        if (!PlatformInfo.isLinux) return@runTest
+        val (sessionController, _) = newSystemProxyController()
+        DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.networkManagerTun.set(true)
+        fakeClient.nextDaemonInfo = getDaemonInfoResponse {
+            capabilities = capabilities { networkManagerTun = true }
+        }
+        DataStore.selectedProxy.set(createSocksProfile())
+        sessionController.attachHostForTest(daemon = false)
+        sessionController.attachSessionProcessForTest(ControllableProcess())
+
+        sessionController.startLockedForTest()
+
+        assertEquals(1, fakeClient.startServiceCalls)
+        assertEquals(ServiceState.Connected, DataStore.serviceState)
+        assertFalse(sessionController.hostState.value.isDaemon)
+        assertEquals(TunBackend.TUN_BACKEND_NETWORK_MANAGER, fakeClient.lastStartServiceRequest?.options?.tunBackend)
+        sessionController.stop()
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `NetworkManager is sent to the attached daemon without changing hosts`() = runTest(dispatcher.scheduler) {
+        if (!PlatformInfo.isLinux) return@runTest
+        val (daemonController, _) = newSystemProxyController()
+        DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.networkManagerTun.set(true)
+        DataStore.selectedProxy.set(createSocksProfile())
+        fakeClient.nextDaemonInfo = getDaemonInfoResponse {
+            capabilities = capabilities { networkManagerTun = true }
+        }
+        daemonController.attachHostForTest(daemon = true)
+
+        daemonController.startLockedForTest()
+
+        assertTrue(daemonController.hostState.value.isDaemon)
+        assertEquals(ServiceState.Connected, DataStore.serviceState)
+        assertEquals(TunBackend.TUN_BACKEND_NETWORK_MANAGER, fakeClient.lastStartServiceRequest?.options?.tunBackend)
+
+        daemonController.stop()
+        advanceUntilIdle()
+        DataStore.networkManagerTun.set(false)
+        daemonController.startLockedForTest()
+
+        assertTrue(daemonController.hostState.value.isDaemon)
+        assertEquals(2, fakeClient.startServiceCalls)
+        assertEquals(TunBackend.TUN_BACKEND_NATIVE, fakeClient.lastStartServiceRequest?.options?.tunBackend)
+        daemonController.stop()
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `NetworkManager rejects a host that predates backend selection`() = runTest(dispatcher.scheduler) {
+        if (!PlatformInfo.isLinux) return@runTest
+        val (daemonController, _) = newSystemProxyController()
+        DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.networkManagerTun.set(true)
+        DataStore.selectedProxy.set(createSocksProfile())
+        daemonController.attachHostForTest(daemon = true)
+
+        daemonController.startLockedForTest()
+
+        assertEquals(0, fakeClient.startServiceCalls)
+        assertTrue(daemonController.hostState.value.isDaemon)
+        daemonController.stop()
+        advanceUntilIdle()
+    }
 
     @Test
     fun `retries until the host serves requests`() = runTest {

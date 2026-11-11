@@ -66,6 +66,8 @@ import fr.husi.resources.remember_window_size_summary
 import fr.husi.resources.security
 import fr.husi.resources.start_at_boot_daemon
 import fr.husi.resources.start_at_boot_daemon_summary
+import fr.husi.resources.network_manager_tun
+import fr.husi.resources.network_manager_tun_summary
 import fr.husi.resources.tun_auto_redirect
 import fr.husi.resources.tun_interface_name
 import fr.husi.resources.tun_interface_name_summary
@@ -373,6 +375,22 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
 
 @Composable
 internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Boolean) {
+    val networkManagerValue by DataStore.networkManagerTun.collectAsStateWithLifecycle()
+    val networkManager = PlatformInfo.isLinux && networkManagerValue
+    if (PlatformInfo.isLinux) {
+        SwitchPreference(
+            value = networkManagerValue,
+            onValueChange = {
+                DataStore.networkManagerTun.setBlocking(it)
+                needReload()
+            },
+            title = { Text(stringResource(Res.string.network_manager_tun)) },
+            summary = { Text(stringResource(Res.string.network_manager_tun_summary)) },
+            icon = { MaskedIcon(Res.drawable.arrow_and_edge, color = IconMaskColors.IconCyan) },
+            enabled = isVpnMode,
+        )
+    }
+
     val tunInterfaceNameValue by DataStore.tunInterfaceName.collectAsStateWithLifecycle()
     TextFieldPreference(
         value = tunInterfaceNameValue,
@@ -418,7 +436,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
                 color = IconMaskColors.IconCyan,
             )
         },
-        enabled = isVpnMode,
+        enabled = isVpnMode && !networkManager,
     )
     if (PlatformInfo.isLinux) {
         val autoRedirectValue by DataStore.tunAutoRedirect.collectAsStateWithLifecycle()
@@ -435,7 +453,7 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
                     color = IconMaskColors.IconLightGreen,
                 )
             },
-            enabled = isVpnMode,
+            enabled = isVpnMode && !networkManager,
         )
     }
 

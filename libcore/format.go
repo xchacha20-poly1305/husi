@@ -15,6 +15,7 @@ import (
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/distro"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/platformstubs"
 	"github.com/xchacha20-poly1305/protect-go"
 )
 
@@ -121,7 +122,7 @@ func checkConfig(configContent string) error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	service.MustRegister[adapter.PlatformInterface](ctx, platformInterfaceStub{})
+	service.MustRegister[adapter.PlatformInterface](ctx, platformstubs.PlatformInterface{})
 	service.MustRegister[protect.Protector](ctx, protect.ProtectorFunc(func(_ int) error {
 		return nil
 	}))

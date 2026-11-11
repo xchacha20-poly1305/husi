@@ -441,6 +441,7 @@ open class FakeCoreClient : CoreClient {
         takeOverServiceThrowable?.let { throw it }
         takeOverServiceCalls += 1
     }
+    var lastStartServiceRequest: StartServiceRequest? = null
     var startServiceCalls: Int = 0
     var stopServiceCalls: Int = 0
 
@@ -451,6 +452,7 @@ open class FakeCoreClient : CoreClient {
     var stopServiceDelay: Duration = Duration.ZERO
 
     override suspend fun startService(request: StartServiceRequest) {
+        lastStartServiceRequest = request
         startServiceCalls += 1
     }
 

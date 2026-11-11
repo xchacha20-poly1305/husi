@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	SC "github.com/sagernet/sing-box/constant"
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
@@ -101,7 +101,7 @@ func newVersionCommand() *cobra.Command {
 		Run: func(command *cobra.Command, _ []string) {
 			output := command.OutOrStdout()
 			fmt.Fprintf(output, "husi-core version %s\n", version)
-			fmt.Fprintf(output, "sing-box version %s\n", SC.Version)
+			fmt.Fprintf(output, "sing-box version %s\n", C.Version)
 			fmt.Fprintf(output, "core api version %d\n", daemon.APIVersion)
 			fmt.Fprintf(output, "%s\n", coresvc.BuildEnvironment())
 		},

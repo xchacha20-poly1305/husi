@@ -124,6 +124,7 @@ object Key {
     const val TUN_INTERFACE_NAME = "tunInterfaceName"
     const val TUN_STRICT_ROUTE = "tunStrictRoute"
     const val TUN_AUTO_REDIRECT = "tunAutoRedirect"
+    const val NETWORK_MANAGER_TUN = "networkManagerTun"
     const val ALLOW_APPS_BYPASS_VPN = "allowAppsBypassVpn"
     const val ALWAYS_SHOW_ADDRESS = "alwaysShowAddress"
     const val BLURRED_ADDRESS = "blurredAddress"

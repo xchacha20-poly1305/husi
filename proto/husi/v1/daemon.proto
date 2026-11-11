@@ -73,9 +73,11 @@ message Ownership {
 }
 
 message Capabilities {
-  // False in session mode, where opening a tun device is out of reach.
+  // Whether the host can configure a native TUN interface.
   bool tun = 1;
   bool start_at_boot = 2;
+  // Supports selecting NetworkManager through ServiceOptions.
+  bool network_manager_tun = 3;
 }
 
 message ClaimServiceRequest {}
@@ -151,6 +153,13 @@ message ServiceOptions {
   // Roots the host trusts while the service runs. Saved with the snapshot, so
   // a service the daemon restores on boot trusts the same roots.
   RootCertificateStore root_certificates = 2;
+  TunBackend tun_backend = 3;
+}
+
+// Interface configuration backend, independent of daemon/session hosting.
+enum TunBackend {
+  TUN_BACKEND_NATIVE = 0;
+  TUN_BACKEND_NETWORK_MANAGER = 1;
 }
 
 // Where a host takes the TLS roots it trusts from.

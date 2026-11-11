@@ -1806,6 +1806,29 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
+    fun `NetworkManager TUN delegates routing and disables multiple queues`() = runBlocking {
+        if (!PlatformInfo.isLinux) return@runBlocking
+        DataStore.serviceMode.set(Key.MODE_VPN)
+        DataStore.networkManagerTun.set(true)
+        DataStore.tunStrictRoute.set(true)
+        DataStore.tunAutoRedirect.set(true)
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(groupId = group.id, order = 1, name = "main", host = "1.1.1.1", port = 1080)
+        val inbound = parseTunInbound(buildConfig(proxy))
+        assertEquals("false", inbound["auto_route"]?.jsonPrimitive?.content)
+        assertEquals(null, inbound["auto_redirect"])
+        assertEquals(null, inbound["multi_queue"])
+        assertEquals(null, inbound["strict_route"])
+
+        DataStore.networkManagerTun.set(false)
+        val native = parseTunInbound(buildConfig(proxy))
+        assertEquals("true", native["auto_route"]?.jsonPrimitive?.content)
+        assertEquals("true", native["auto_redirect"]?.jsonPrimitive?.content)
+        assertEquals("true", native["multi_queue"]?.jsonPrimitive?.content)
+    }
+
+    @Test
     fun `buildConfig should forward tun interface name on desktop`() = runBlocking {
         DataStore.serviceMode.set(Key.MODE_VPN)
 

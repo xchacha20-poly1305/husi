@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
@@ -84,8 +85,9 @@ func (s *daemonDaemonService) GetDaemonInfo(ctx context.Context, _ *husiv1.GetDa
 		Hosting:    husiv1.Hosting_HOSTING_DAEMON,
 		Ownership:  s.owner.OwnershipInfo(caller),
 		Capabilities: &husiv1.Capabilities{
-			Tun:         hasNetworkAdminCapability(),
-			StartAtBoot: true,
+			Tun:               hasNetworkAdminCapability(),
+			NetworkManagerTun: supportsNetworkManagerTun,
+			StartAtBoot:       true,
 		},
 		StartAtBoot: StartAtBoot(s.workingDir),
 	}, nil
@@ -200,6 +202,9 @@ func (s *daemonDaemonService) StartService(ctx context.Context, req *husiv1.Star
 		}
 	}
 
+	if err := validateServiceOptions(req.GetOptions()); err != nil {
+		return nil, err
+	}
 	s.access.Lock()
 	defer s.access.Unlock()
 
@@ -220,14 +225,14 @@ func (s *daemonDaemonService) StartService(ctx context.Context, req *husiv1.Star
 	if err := SetWasRunning(s.workingDir, true); err != nil {
 		return nil, status.Error(codes.Internal, E.Cause(err, "set was_running").Error())
 	}
-	applyRootCertificates(req.GetOptions())
 
+	applyRootCertificates(req.GetOptions())
 	if err := s.plugins.StartAll(req.GetPlugins()); err != nil {
 		_ = SetWasRunning(s.workingDir, false)
 		return nil, status.Error(codes.Internal, E.Cause(err, "start plugins").Error())
 	}
 
-	if err := s.host.StartOrReload(ctx, config); err != nil {
+	if err := startServiceWithOptions(ctx, s.host, config, req.GetOptions(), s.handleTunnelLost); err != nil {
 		_ = s.plugins.Close()
 		s.plugins = s.newPluginPool()
 		_ = SetWasRunning(s.workingDir, false)
@@ -277,12 +282,12 @@ func (s *daemonDaemonService) restore(ctx context.Context, snapshot *Snapshot) e
 		return err
 	}
 	s.refreshPluginCredentialLocked()
-	applyRootCertificates(snapshot.Options)
 
+	applyRootCertificates(snapshot.Options)
 	if err := s.plugins.StartAll(snapshot.Plugins); err != nil {
 		return E.Cause(err, "restore plugins")
 	}
-	if err := s.host.StartOrReload(ctx, snapshot.Config); err != nil {
+	if err := startServiceWithOptions(ctx, s.host, snapshot.Config, snapshot.Options, s.handleTunnelLost); err != nil {
 		_ = s.plugins.Close()
 		s.plugins = s.newPluginPool()
 		return E.Cause(err, "restore service")
@@ -370,4 +375,15 @@ func clonePluginSpecs(src []*husiv1.PluginProcessSpec) []*husiv1.PluginProcessSp
 		out = append(out, cloned)
 	}
 	return out
+}
+
+func (s *daemonDaemonService) handleTunnelLost(platform adapter.PlatformInterface) {
+	s.access.Lock()
+	defer s.access.Unlock()
+	if s.host.UsesPlatform(platform) {
+		log.Warn("NetworkManager connection lost, stopping service")
+		if err := s.stopLocked(true); err != nil {
+			log.Warn("stop after interface loss: ", err)
+		}
+	}
 }
