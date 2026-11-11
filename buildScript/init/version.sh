@@ -6,7 +6,7 @@
 # renovate: datasource=golang-version depName=go
 GO_VERSION="1.27.3"
 # renovate: datasource=node-version depName=node
-NODE_VERSION="26.13.0"
+NODE_VERSION="26.13.1"
 # renovate: datasource=github-releases depName=rust-lang/rust
 RUST_VERSION="1.99.1"
 # The only JDK in use: CI builds with it (.github/actions/setup-jbr), and its
