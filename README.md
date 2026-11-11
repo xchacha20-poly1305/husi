@@ -507,14 +507,6 @@ Configure the [sing-box API service](https://sing-box.sagernet.org/configuration
 }
 ```
 
-The dashboard stores its local database in OPFS (Origin Private File System), which requires a [secure context](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts). Serve the dashboard over HTTPS with a certificate trusted by your browser. Browsers also treat `http://localhost` and `http://127.0.0.1` as trustworthy, but ordinary HTTP LAN addresses do not qualify automatically.
-
-To use HTTP for your own LAN server in Chrome or Edge, explicitly trust its origin:
-
-1. Open `chrome://flags/#unsafely-treat-insecure-origin-as-secure` in Chrome, or `edge://flags/#unsafely-treat-insecure-origin-as-secure` in Edge.
-2. Add the dashboard's exact origin, for example `http://192.168.1.1:9090`, to **Insecure origins treated as secure** and set it to **Enabled**. Include the scheme and port, without path.
-3. Relaunch the browser using the button on that page, then reopen the dashboard.
-
 #### 🌈 Plugins
 
 ```shell

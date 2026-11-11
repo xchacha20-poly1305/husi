@@ -10,7 +10,6 @@
   "dependencies": {
     "@kyralabs/m3e-css": "1.8.0",
     "@kyralabs/m3e-elements": "1.8.0",
-    "@sqlite.org/sqlite-wasm": "3.54.1-build1",
     "qrcode": "1.5.4"
   },
   "devDependencies": {

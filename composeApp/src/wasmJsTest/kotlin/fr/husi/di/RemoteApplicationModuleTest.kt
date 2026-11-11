@@ -3,7 +3,7 @@ package fr.husi.di
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.ViewModelStore
-import fr.husi.database.RemoteServerEntity
+import fr.husi.database.RemoteServerStore
 import fr.husi.proto.daemon.Version
 import fr.husi.remote.RemoteClient
 import fr.husi.remote.RemoteState
@@ -11,12 +11,13 @@ import fr.husi.repository.Repository
 import fr.husi.repository.WebRepository
 import fr.husi.tailscale.RemoteSshSessions
 import fr.husi.test.FakeRemoteClient
-import fr.husi.test.FakeRemoteServerDao
+import fr.husi.test.FakeRemoteServerStore
 import fr.husi.ui.MainScreenScope
 import fr.husi.ui.remote.RemoteServerEditor
 import fr.husi.ui.remote.RemoteServerTestState
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -40,11 +41,11 @@ class RemoteApplicationModuleTest {
     @Test
     fun `scoped editor saves and tests current text field state with the shared remote client`() = runTest {
         val client = FakeClient()
-        val serverDao = FakeRemoteServerDao()
+        val serverStore = FakeRemoteServerStore()
         val application = koinApplication {
             modules(browserPlatformModule, remoteApplicationModule, module {
                 single<RemoteClient> { client }
-                single<RemoteServerEntity.Dao> { serverDao }
+                single<RemoteServerStore> { serverStore }
             })
         }
         val scope = application.koin.createScope<MainScreenScope>()
@@ -65,7 +66,7 @@ class RemoteApplicationModuleTest {
             val saved = CompletableDeferred<Unit>()
             editor.save { saved.complete(Unit) }
             saved.await()
-            val server = serverDao.list().first().single()
+            val server = serverStore.observe().first().single()
             assertEquals("Remote server", server.name)
             assertEquals("https://example.com", server.url)
             assertEquals("test-secret", server.secret)
@@ -84,6 +85,24 @@ class RemoteApplicationModuleTest {
             )
             assertSame(client, remote.client)
             assertTrue(scope.get<RemoteSshSessions>().sessions.isEmpty())
+
+            val existingEditor = scope.get<RemoteServerEditor> { parametersOf(server.id) }
+            store.put("existingEditor", existingEditor)
+            existingEditor.secretState.setTextAndPlaceCursorAtEnd("changed-secret")
+            serverStore.writeFailure = IllegalStateException("Storage unavailable")
+            var savedAfterFailure = false
+            existingEditor.save { savedAfterFailure = true }
+            advanceUntilIdle()
+            assertFalse(savedAfterFailure)
+            assertEquals("Storage unavailable", remote.error)
+            assertEquals("changed-secret", existingEditor.secretState.text.toString())
+            assertEquals("test-secret", serverStore.observe().first().single().secret)
+
+            serverStore.writeFailure = null
+            val retried = CompletableDeferred<Unit>()
+            existingEditor.save { retried.complete(Unit) }
+            retried.await()
+            assertEquals("changed-secret", serverStore.observe().first().single().secret)
         } finally {
             store.clear()
             scope.close()

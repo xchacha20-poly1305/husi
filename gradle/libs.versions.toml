@@ -86,7 +86,6 @@ zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 kpuri = { module = "io.github.xchacha20-poly1305:kpuri", version.ref = "kpuri" }
 androidx-room-runtime = { module = "androidx.room3:room3-runtime", version.ref = "androidxRoom" }
 androidx-room-compiler = { module = "androidx.room3:room3-compiler", version.ref = "androidxRoom" }
-androidx-sqlite-web = { module = "androidx.sqlite:sqlite-web", version.ref = "androidxSqlite" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite" }
 # Imported by implementation(libs.smali.dexlib2.get().toString()) on Android
 #noinspection UnusedVersionCatalogEntry

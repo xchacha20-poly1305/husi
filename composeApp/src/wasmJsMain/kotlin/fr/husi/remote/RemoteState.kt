@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastCoerceAtLeast
 import fr.husi.database.DataStore
 import fr.husi.database.RemoteServer
-import fr.husi.database.RemoteServerEntity
+import fr.husi.database.RemoteServerStore
 import fr.husi.database.preference.PreferenceProxy
 import fr.husi.proto.daemon.ClashModeStatus
 import fr.husi.proto.daemon.Connection
@@ -46,7 +46,7 @@ import org.jetbrains.compose.resources.getString
 internal class RemoteState(
     private val scope: CoroutineScope,
     val client: RemoteClient,
-    private val serverDao: RemoteServerEntity.Dao,
+    private val serverStore: RemoteServerStore,
     private val speedInterval: Flow<Int> = DataStore.speedInterval.flow(),
     private val activeServerId: PreferenceProxy<Long> = DataStore.activeRemoteServerId,
 ) {
@@ -90,8 +90,7 @@ internal class RemoteState(
 
     init {
         scope.launch {
-            combine(serverDao.list(), activeServerId.flow()) { entities, activeId ->
-                val servers = entities.map { it.toModel() }
+            combine(serverStore.observe(), activeServerId.flow()) { servers, activeId ->
                 servers to servers.firstOrNull { it.id == activeId }
             }.catch { failure ->
                 if (failure is CancellationException) throw failure
@@ -117,15 +116,11 @@ internal class RemoteState(
         scope.launch { error = getString(resource) }
     }
 
-    suspend fun save(server: RemoteServer): RemoteServer {
-        val entity = server.toEntity()
-        val id = serverDao.upsert(entity)
-        return entity.toModel().copy(id = id)
-    }
+    suspend fun save(server: RemoteServer): RemoteServer = serverStore.save(server)
 
     suspend fun delete(server: RemoteServer) {
-        if (selected?.id == server.id) activeServerId.set(0L)
-        serverDao.delete(server.id)
+        serverStore.delete(server.id)
+        if (activeServerId.get() == server.id) activeServerId.set(0L)
     }
 
     fun connect(server: RemoteServer) {

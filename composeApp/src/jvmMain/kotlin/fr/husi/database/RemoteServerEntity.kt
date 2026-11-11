@@ -62,18 +62,10 @@ class RemoteServerEntity(
     }
 }
 
-data class RemoteServer(
-    val id: Long = 0L,
-    val userOrder: Long = 0L,
-    val name: String = "",
-    val url: String = "",
-    val secret: String = "",
-) {
-    fun toEntity(): RemoteServerEntity = RemoteServerEntity(
-        id = id,
-        userOrder = userOrder,
-        name = name,
-        url = url,
-        secret = secret,
-    )
-}
+fun RemoteServer.toEntity(): RemoteServerEntity = RemoteServerEntity(
+    id = id,
+    userOrder = userOrder,
+    name = name,
+    url = url,
+    secret = secret,
+)

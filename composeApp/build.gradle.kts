@@ -332,7 +332,7 @@ val installBrowserAssets = tasks.register<Exec>("installBrowserAssets") {
 
 val buildBrowserAssets = tasks.register<Exec>("buildBrowserAssets") {
     group = "web"
-    description = "Bundle browser file helpers, SQLite and the startup indicator."
+    description = "Bundle browser storage, file helpers and the startup indicator."
     dependsOn(installBrowserAssets)
     workingDir("browser")
     commandLine("npm", "run", "build")
@@ -431,13 +431,11 @@ kotlin {
             dependencies {
                 implementation(libs.kurpc)
                 implementation(libs.wire.runtime)
-                implementation(libs.androidx.sqlite.web)
             }
         }
 
         getByName("commonMain") {
             dependencies {
-                implementation(libs.androidx.room.runtime)
                 implementation(libs.androidx.datastore.preferences.core)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material3)
@@ -466,6 +464,7 @@ kotlin {
                 implementation(libs.jetbrains.compose.animation.graphics)
                 implementation(libs.androidx.datastore.preferences)
                 implementation(libs.androidx.sqlite.bundled)
+                implementation(libs.androidx.room.runtime)
                 implementation(libs.kotlinx.serialization.protobuf)
 
                 implementation(libs.ini4j)
@@ -678,7 +677,6 @@ ksp {
 dependencies {
     kspAndroid(libs.androidx.room.compiler)
     add("kspDesktop", libs.androidx.room.compiler)
-    add("kspWasmJs", libs.androidx.room.compiler)
 }
 
 tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach {

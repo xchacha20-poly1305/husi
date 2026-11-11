@@ -1,3 +1,5 @@
+export {createRemoteServerStorage} from "./remote-server-storage";
+
 export function saveFile(name: string, base64: string) {
     const bytes = Uint8Array.from(atob(base64), (value) => value.charCodeAt(0));
     const url = URL.createObjectURL(new Blob([bytes]));

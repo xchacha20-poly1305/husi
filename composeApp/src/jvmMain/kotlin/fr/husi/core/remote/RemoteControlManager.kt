@@ -5,6 +5,7 @@ import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
 import fr.husi.database.RemoteServer
 import fr.husi.database.RemoteServerEntity
+import fr.husi.database.toEntity
 import fr.husi.ktx.Logs
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher

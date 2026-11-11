@@ -8,10 +8,11 @@ import fr.husi.proto.daemon.StartedAt
 import fr.husi.proto.daemon.Version
 import fr.husi.test.FakePreferencesDataStore
 import fr.husi.test.FakeRemoteClient
-import fr.husi.test.FakeRemoteServerDao
+import fr.husi.test.FakeRemoteServerStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertFails
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
@@ -248,6 +249,23 @@ class RemoteStateTest {
     }
 
     @Test
+    fun `failed deletion keeps the selected server connected`() = runTest {
+        val client = RecordingClient { testScheduler.currentTime }
+        val store = FakeRemoteServerStore()
+        val state = state(client, store)
+        val saved = state.save(server)
+        state.connect(saved)
+        runCurrent()
+        store.writeFailure = IllegalStateException("Storage unavailable")
+
+        assertFails { state.delete(saved) }
+        runCurrent()
+        assertEquals(saved, state.selected)
+        assertEquals(listOf(saved), state.servers.toList())
+        assertTrue(state.connected)
+    }
+
+    @Test
     fun `late connection completion cannot restore a disconnected session`() = runTest {
         val client = RecordingClient { testScheduler.currentTime }
         val gate = CompletableDeferred<Unit>()
@@ -283,10 +301,10 @@ class RemoteStateTest {
         assertEquals(7000L, client.logAttempts.last())
     }
 
-    private fun TestScope.state(client: RemoteClient) = RemoteState(
+    private fun TestScope.state(client: RemoteClient, store: FakeRemoteServerStore = FakeRemoteServerStore()) = RemoteState(
         backgroundScope,
         client,
-        FakeRemoteServerDao(),
+        store,
         flowOf(1000),
         FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
     )

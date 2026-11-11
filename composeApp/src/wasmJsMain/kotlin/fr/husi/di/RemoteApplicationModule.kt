@@ -6,7 +6,8 @@ import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.material3.standardPlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.compose.theme.standardPlatformThemeApi
-import fr.husi.database.RemoteDatabase
+import fr.husi.database.IndexedDbRemoteServerStore
+import fr.husi.database.RemoteServerStore
 import fr.husi.remote.BrowserClient
 import fr.husi.remote.RemoteClient
 import fr.husi.remote.RemoteState
@@ -58,7 +59,7 @@ import org.koin.dsl.onClose
 internal val browserPlatformModule = module {
     single<Repository> { WebRepository() }
     single<RemoteClient> { BrowserClient() }
-    single { RemoteDatabase.instance.remoteServerDao() }
+    single<RemoteServerStore> { IndexedDbRemoteServerStore() } onClose { it?.close() }
 }
 
 internal val remoteApplicationModule = module {

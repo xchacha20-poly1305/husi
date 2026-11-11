@@ -27,12 +27,3 @@ await build({
     globalName: "husiBrowser",
     outfile: "dist/browser.js",
 });
-
-await build({
-    entryPoints: ["src/sqlite-worker.ts"],
-    bundle: true,
-    format: "esm",
-    outfile: "dist/sqlite-worker.js",
-});
-
-await copyFile("node_modules/@sqlite.org/sqlite-wasm/dist/sqlite3.wasm", "dist/sqlite3.wasm");

@@ -6,6 +6,7 @@ import fr.husi.core.CoreRpcException
 import fr.husi.database.DataStore
 import fr.husi.database.RemoteServer
 import fr.husi.database.RemoteServerEntity
+import fr.husi.database.toEntity
 import fr.husi.database.preference.reset
 import fr.husi.proto.daemon.Version
 import fr.husi.test.FakeCoreClient

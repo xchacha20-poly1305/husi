@@ -9,7 +9,7 @@ import fr.husi.proto.daemon.SubscribeStatusRequest
 import fr.husi.proto.daemon.Version
 import fr.husi.test.FakePreferencesDataStore
 import fr.husi.test.FakeRemoteClient
-import fr.husi.test.FakeRemoteServerDao
+import fr.husi.test.FakeRemoteServerStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -27,7 +27,7 @@ class RemoteRefreshIntervalTest {
     fun `changing refresh interval replaces traffic streams without restarting logs or connection`() = runTest {
         val intervals = MutableStateFlow(1000)
         val client = RecordingClient()
-        val servers = FakeRemoteServerDao()
+        val servers = FakeRemoteServerStore()
         val state = RemoteState(
             backgroundScope, client, servers, intervals,
             FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
