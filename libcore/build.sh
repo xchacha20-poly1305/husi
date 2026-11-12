@@ -327,6 +327,8 @@ if [ -z "$box_version" ]; then
 fi
 husi_version="$(read_husi_version)"
 export CGO_ENABLED=1
+# https://github.com/golang/go/commit/c28cd57a63edcae3661849c9bfd331376b38f0c8 disabled this usage
+export CGO_LDFLAGS_ALLOW="-l:libcronet.a"
 export GO386=softfloat
 
 # `badlinkname` and `tfogo_checklinkname0` pull unexported symbols, which the linker rejects

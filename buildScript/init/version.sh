@@ -4,7 +4,7 @@
 # the matching custom manager lives in .github/renovate.json.
 
 # renovate: datasource=golang-version depName=go
-GO_VERSION="1.27.3"
+GO_VERSION="1.27.4"
 # renovate: datasource=node-version depName=node
 NODE_VERSION="26.13.0"
 # renovate: datasource=github-releases depName=rust-lang/rust
