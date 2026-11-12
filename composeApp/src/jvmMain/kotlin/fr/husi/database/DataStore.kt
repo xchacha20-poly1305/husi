@@ -7,11 +7,9 @@ import fr.husi.DEFAULT_HTTP_BYPASS
 import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.GroupType
 import fr.husi.Key
-import fr.husi.NETWORK_QUALITY_CONFIG_URL
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.ProtocolProvider
 import fr.husi.STUN_SERVERS
-import fr.husi.TrafficSortMode
 import fr.husi.bg.ServiceState
 import fr.husi.compose.theme.DEFAULT
 import fr.husi.database.preference.DataStorePreferenceDataStore
@@ -287,17 +285,6 @@ object DataStore : ApplicationPreferences(
     val disableProcessText = configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
     val hideLauncherIcon = configurationStore.boolean(Key.HIDE_LAUNCHER_ICON)
     val enableTasker = configurationStore.boolean(Key.ENABLE_TASKER) { false }
-
-    val trafficDescending = configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
-    val trafficSortMode = configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }
-    val trafficConnectionQuery = configurationStore.int(Key.TRAFFIC_CONNECTION_QUERY) { 1 shl 0 }
-    val proxySetOrder = configurationStore.int(Key.PROXY_SET_ORDER)
-
-    val networkQualityConfigUrl =
-        configurationStore.string(Key.NETWORK_QUALITY_CONFIG_URL) { NETWORK_QUALITY_CONFIG_URL }
-    val networkQualitySerial = configurationStore.boolean(Key.NETWORK_QUALITY_SERIAL) { false }
-    val networkQualityMaxRuntime = configurationStore.int(Key.NETWORK_QUALITY_MAX_RUNTIME) { 30 }
-    val networkQualityHttp3 = configurationStore.boolean(Key.NETWORK_QUALITY_HTTP3) { false }
 
     // ntp
     val ntpEnable = configurationStore.boolean(Key.ENABLE_NTP) { false }

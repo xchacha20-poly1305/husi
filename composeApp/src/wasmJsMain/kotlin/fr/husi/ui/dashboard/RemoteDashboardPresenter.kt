@@ -19,7 +19,10 @@ import fr.husi.resources.Res
 import fr.husi.resources.web_remote_ip_unavailable
 import fr.husi.resources.web_system_proxy_unavailable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -32,48 +35,53 @@ internal class RemoteDashboardPresenter(
     override val proxyGroupSearchTextFieldState = TextFieldState()
     private var paused by mutableStateOf<DashboardState?>(null)
     private var selected by mutableStateOf<String?>(null)
-    private var descending by mutableStateOf(false)
-    private var selectedSortMode by mutableStateOf(TrafficSortMode.START)
-    private var showActive by mutableStateOf(true)
-    private var showClosed by mutableStateOf(false)
-    private var groupOrder by mutableStateOf(ProxySetOrder.ORIGIN)
     private var searchMode by mutableStateOf(ProxySetSearchMode.Outbound)
     private var groupSearch by mutableStateOf<String?>(null)
-    private var widgets by
-        mutableStateOf(defaultDashboardWidgets())
     private var active by mutableStateOf(false)
     private var lastPresentation = state.dashboardState()
 
-    init {
-        scope.launch {
-            DataStore.dashboardWidgets.flow().collect { widgets = decodeDashboardWidgets(it) }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val uiState = combine(
+        DataStore.trafficSortMode.flow(),
+        DataStore.trafficDescending.flow(),
+        DataStore.trafficConnectionQuery.flow(),
+        DataStore.proxySetOrder.flow(),
+        DataStore.dashboardWidgets.flow(),
+    ) { sortMode, descending, queryOptions, groupOrder, widgets ->
+        val dashboardWidgets = decodeDashboardWidgets(widgets)
+        snapshotFlow {
+            presentation(sortMode, descending, queryOptions.toByte(), groupOrder, dashboardWidgets)
         }
     }
+        .flatMapLatest { it }
+        .stateIn(scope, SharingStarted.Eagerly, lastPresentation)
 
-    override val uiState = snapshotFlow {
-        presentation()
-    }
-        .stateIn(scope, SharingStarted.Eagerly, presentation())
-
-    private fun presentation(): DashboardState {
+    private fun presentation(
+        sortMode: Int,
+        descending: Boolean,
+        queryOptions: Byte,
+        groupOrder: Int,
+        widgets: List<DashboardWidgetEntry>,
+    ): DashboardState {
         if (!active) return lastPresentation
         val data = paused ?: state.dashboardState()
         val search = searchTextFieldState.text.toString()
+        val showActive = queryOptions.showsActiveConnections()
+        val showClosed = queryOptions.showsClosedConnections()
         val connections =
             data.connections.filter { connection ->
-                (if (connection.isClosed) showClosed else showActive) &&
-                    listOf(
-                            connection.host,
-                            connection.src,
-                            connection.dst,
-                            connection.inbound,
-                            connection.outbound,
-                            connection.matchedRule,
-                        )
-                        .any { it.contains(search, ignoreCase = true) }
+                (if (connection.isClosed) showClosed else showActive)
+                    && listOf(
+                    connection.host,
+                    connection.src,
+                    connection.dst,
+                    connection.inbound,
+                    connection.outbound,
+                    connection.matchedRule,
+                ).any { it.contains(search, ignoreCase = true) }
             }
         val sorted =
-            when (selectedSortMode) {
+            when (sortMode) {
                 TrafficSortMode.INBOUND -> connections.sortedBy { it.inbound }
                 TrafficSortMode.SRC -> connections.sortedBy { it.src }
                 TrafficSortMode.DST -> connections.sortedBy { it.dst }
@@ -99,8 +107,13 @@ internal class RemoteDashboardPresenter(
                             ProxySetOrder.BY_NAME -> set.items.sortedBy { it.tag }
                             ProxySetOrder.BY_DELAY ->
                                 set.items.sortedBy {
-                                    if (it.urlTestDelay > 0) it.urlTestDelay else Int.MAX_VALUE
+                                    if (it.urlTestDelay > 0) {
+                                        it.urlTestDelay
+                                    } else {
+                                        Int.MAX_VALUE
+                                    }
                                 }
+
                             else -> set.items
                         }
                     set.copy(items = items)
@@ -109,22 +122,26 @@ internal class RemoteDashboardPresenter(
         return data
             .copy(
                 isPause = paused != null,
-                sortMode = selectedSortMode,
+                sortMode = sortMode,
                 isDescending = descending,
-                queryOptions = ((if (showActive) 1 else 0) or (if (showClosed) 2 else 0)).toByte(),
+                queryOptions = queryOptions,
                 isSearchingConnections = search.isNotEmpty(),
-                connections = if (descending) sorted.reversed() else sorted,
+                connections = if (descending) {
+                    sorted.reversed()
+                } else {
+                    sorted
+                },
                 selectedConnection = data.connections.firstOrNull { it.uuid == selected },
                 proxySets = sets,
                 proxySetOrder = groupOrder,
                 proxySetQuery = query,
                 dashboardWidgets =
                     widgets.filter { entry ->
-                        entry.widget != DashboardWidget.DirectSpeed &&
-                            entry.widget != DashboardWidget.ExitIP &&
-                            entry.widget != DashboardWidget.SourceAddress &&
-                            entry.widget != DashboardWidget.SystemProxy &&
-                            entry.widget != DashboardWidget.NetworkInterfaces
+                        entry.widget != DashboardWidget.DirectSpeed
+                            && entry.widget != DashboardWidget.ExitIP
+                            && entry.widget != DashboardWidget.SourceAddress
+                            && entry.widget != DashboardWidget.SystemProxy
+                            && entry.widget != DashboardWidget.NetworkInterfaces
                     },
             )
             .also { lastPresentation = it }
@@ -172,19 +189,18 @@ internal class RemoteDashboardPresenter(
     }
 
     override fun setSortDescending(descending: Boolean) {
-        this.descending = descending
+        scope.launch { DataStore.trafficDescending.set(descending) }
     }
 
     override fun setSortMode(mode: Int) {
-        selectedSortMode = mode
+        scope.launch { DataStore.trafficSortMode.set(mode) }
     }
 
     override fun setProxySetOrder(order: Int) {
-        groupOrder = order
+        scope.launch { DataStore.proxySetOrder.set(order) }
     }
 
     override fun setDashboardWidgets(entries: List<DashboardWidgetEntry>) {
-        widgets = entries
         scope.launch { DataStore.dashboardWidgets.set(encodeDashboardWidgets(entries)) }
     }
 
@@ -193,11 +209,23 @@ internal class RemoteDashboardPresenter(
     }
 
     override fun setQueryActivate(queryActivate: Boolean) {
-        showActive = queryActivate
+        setConnectionQueryOption(DashboardState.SHOW_TRACKER_ACTIVELY, queryActivate)
     }
 
     override fun setQueryClosed(queryClosed: Boolean) {
-        showClosed = queryClosed
+        setConnectionQueryOption(DashboardState.SHOW_TRACKER_CLOSED, queryClosed)
+    }
+
+    private fun setConnectionQueryOption(option: Byte, enabled: Boolean) {
+        scope.launch {
+            DataStore.trafficConnectionQuery.update { current ->
+                if (enabled) {
+                    current or option.toInt()
+                } else {
+                    current and option.toInt().inv()
+                }
+            }
+        }
     }
 
     override fun selectConnection(uuid: String?) {

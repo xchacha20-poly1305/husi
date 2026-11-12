@@ -2,9 +2,11 @@ package fr.husi.ui.tools
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.NETWORK_QUALITY_CONFIG_URL
 import fr.husi.core.NatBehaviour
 import fr.husi.core.NetworkQualityPhase
 import fr.husi.core.StunPhase
+import fr.husi.database.DataStore
 import fr.husi.ktx.emptyAsNull
 import fr.husi.proto.daemon.NetworkQualityTestRequest
 import fr.husi.proto.daemon.STUNTestRequest
@@ -18,7 +20,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -81,60 +86,78 @@ internal class RemoteStunPresenter(private val remote: RemoteState) : ViewModel(
 
 internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
     ViewModel(), NetworkQualityPresenter {
-    override val uiState: StateFlow<NetworkQualityScreenUiState>
-        field = MutableStateFlow(NetworkQualityScreenUiState())
+    private val testState = MutableStateFlow(NetworkQualityScreenUiState())
+    override val uiState = combine(
+        testState,
+        DataStore.networkQualityConfigUrl.flow(),
+        DataStore.networkQualitySerial.flow(),
+        DataStore.networkQualityHttp3.flow(),
+        DataStore.networkQualityMaxRuntime.flow(),
+    ) { state, configUrl, serial, http3, maxRuntimeSeconds ->
+        state.copy(
+            configUrl = configUrl.ifBlank { NETWORK_QUALITY_CONFIG_URL },
+            serial = serial,
+            http3 = http3,
+            maxRuntimeSeconds = maxRuntimeSeconds,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, NetworkQualityScreenUiState())
     override val uiEvent: SharedFlow<NetworkQualityScreenUiEvent>
         field = MutableSharedFlow()
     private var job: Job? = null
 
     override fun setConfigUrl(value: String?) {
-        uiState.update {
-            if (value.isNullOrBlank())
-                it.copy(urlError = StringOrRes.Res(Res.string.can_not_be_empty))
-            else it.copy(configUrl = value, urlError = null)
+        if (value.isNullOrBlank()) {
+            testState.update { it.copy(urlError = StringOrRes.Res(Res.string.can_not_be_empty)) }
+            return
         }
+        testState.update { it.copy(urlError = null) }
+        viewModelScope.launch { DataStore.networkQualityConfigUrl.set(value) }
     }
 
     override fun setSerial(value: Boolean) {
-        uiState.update { it.copy(serial = value) }
+        viewModelScope.launch { DataStore.networkQualitySerial.set(value) }
     }
 
     override fun setHttp3(value: Boolean) {
-        uiState.update { it.copy(http3 = value) }
+        viewModelScope.launch { DataStore.networkQualityHttp3.set(value) }
     }
 
     override fun setMaxRuntimeSeconds(value: String?) {
         val seconds = value?.toIntOrNull()
-        uiState.update {
-            if (seconds == null)
-                it.copy(maxRuntimeError = StringOrRes.Res(Res.string.can_not_be_empty))
-            else it.copy(maxRuntimeSeconds = seconds, maxRuntimeError = null)
+        if (seconds == null) {
+            testState.update { it.copy(maxRuntimeError = StringOrRes.Res(Res.string.can_not_be_empty)) }
+            return
         }
+        testState.update { it.copy(maxRuntimeError = null) }
+        viewModelScope.launch { DataStore.networkQualityMaxRuntime.set(seconds) }
     }
 
     override fun setOutboundTag(value: String) {
-        uiState.update { it.copy(outboundTag = value) }
+        testState.update { it.copy(outboundTag = value) }
     }
 
     override fun cancel() {
         job?.cancel()
-        uiState.update { it.copy(canTest = true) }
+        testState.update { it.copy(canTest = true) }
     }
 
     override fun doTest(value: Boolean) {
         cancel()
-        val input = uiState.value
         job = viewModelScope.launch {
-            uiState.update { it.copy(canTest = false, report = NetworkQualityReport()) }
+            val input = testState.value
+            testState.update { it.copy(canTest = false, report = NetworkQualityReport()) }
             try {
                 remote.client.service
                     .startNetworkQualityTest(
                         NetworkQualityTestRequest(
-                            configURL = input.configUrl,
+                            configURL =
+                                DataStore.networkQualityConfigUrl.get().ifBlank {
+                                    NETWORK_QUALITY_CONFIG_URL
+                                },
                             outboundTag = input.outboundTag,
-                            serial = input.serial,
-                            http3 = input.http3,
-                            maxRuntimeSeconds = input.maxRuntimeSeconds,
+                            serial = DataStore.networkQualitySerial.get(),
+                            http3 = DataStore.networkQualityHttp3.get(),
+                            maxRuntimeSeconds = DataStore.networkQualityMaxRuntime.get(),
                         ),
                     )
                     .collect { progress ->
@@ -145,7 +168,7 @@ internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
                                 ),
                             )
                         }
-                        uiState.update {
+                        testState.update {
                             it.copy(
                                 report =
                                     NetworkQualityReport(
@@ -169,7 +192,7 @@ internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
                     ),
                 )
             } finally {
-                uiState.update { it.copy(canTest = true) }
+                testState.update { it.copy(canTest = true) }
             }
         }
     }
