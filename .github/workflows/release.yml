@@ -269,7 +269,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: dashboard
-          path: composeApp/build/distributions/*.zip
+          path: composeApp/build/distributions/dashboard.zip
           if-no-files-found: error
 
   publish:

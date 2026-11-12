@@ -59,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: dashboard
-          path: composeApp/build/distributions/*.zip
+          path: composeApp/build/distributions/dashboard.zip
           if-no-files-found: error
       - name: Publish single-commit gh-pages branch
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/dev'

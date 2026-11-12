@@ -778,7 +778,7 @@ val webZip = tasks.register<Zip>("webZip") {
     description = "Package the browser dashboard for release."
     dependsOn("wasmJsBrowserDistribution")
     from(layout.buildDirectory.dir("dist/wasmJs/productionExecutable"))
-    archiveFileName.set(requireMetadata("VERSION_NAME").map { "husi-dashboard-$it.zip" })
+    archiveFileName.set("dashboard.zip")
     destinationDirectory.set(layout.buildDirectory.dir("distributions"))
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
