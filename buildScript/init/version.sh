@@ -8,7 +8,7 @@ GO_VERSION="1.27.4"
 # renovate: datasource=node-version depName=node
 NODE_VERSION="26.13.1"
 # renovate: datasource=github-releases depName=rust-lang/rust
-RUST_VERSION="1.99.1"
+RUST_VERSION="1.100.0"
 # The only JDK in use: CI builds with it (.github/actions/setup-jbr), and its
 # modules are bundled into the Windows JBR packages and the Linux AppImage.
 # JAVA_VERSION is the JBR feature version: the host jlink links these jmods,
