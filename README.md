@@ -251,7 +251,7 @@ make desktop_package_linux LINUX_PACKAGE_FORMATS=deb,pacman
 
 ### Installing without root
 
-`deb`, `rpm` and `pacman` all need a package manager and therefore root. Two other
+`deb`, `rpm` and `pacman` all need a package manager and therefore root. Three other
 formats do not, which is what makes husi usable on a managed machine — a lab, a
 work laptop, a school computer:
 
@@ -270,9 +270,9 @@ registers a desktop entry and icon under `$XDG_DATA_HOME` with absolute paths, s
 the application menu and the URL schemes work whether or not `<prefix>/bin` is on
 `PATH`. It leaves a matching `uninstall.sh` next to the installed tree. Without
 `--with-daemon` nothing ever asks for privileges; husi still runs as a local
-proxy, and only TUN needs the daemon, which Settings can install later.
+proxy, and TUN can use either NetworkManager or the daemon, which Settings can install later.
 
-`appimage` is a single self-contained file. Unlike every other Linux format it
+`appimage` is a single self-contained file. Like Flatpak, it
 bundles its own Java runtime — linked with `jlink` from the JDK modules the app
 actually uses (the module list is shared with the Windows JBR packages, in
 [`release/desktop/jre-modules.sh`](release/desktop/jre-modules.sh)) — so it does not require a system Java 21 at all. Its glibc floor
@@ -289,7 +289,11 @@ make desktop_package_linux DESKTOP_TARGET=linux/arm64 \
 # or with modules you already have: JBR_JMODS=/path/to/jbrsdk/jmods
 ```
 
-Neither format is built by default, but releases ship both.
+`flatpak` bundles the same Java runtime, launcher, jar, core and Cronet library.
+Install the Flatpak tooling (`flatpak` and `jlink`) and the target architecture's
+runtimes before building; cross-compiling also needs the target's `objcopy`, as
+for AppImage. Runtime versions are shared with CI in
+[`release/linux/flatpak/config.sh`](release/linux/flatpak/config.sh):
 
 The daemon is the one privileged piece in all of this. The native packages install
 and enable it themselves; everywhere else it is an explicit, optional step, either

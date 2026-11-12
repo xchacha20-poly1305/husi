@@ -2,6 +2,7 @@ package fr.husi.repository
 
 import fr.husi.ktx.Logs
 import fr.husi.platform.Platform
+import fr.husi.platform.DesktopPackageEnvironment
 import fr.husi.platform.PlatformInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
@@ -39,6 +40,11 @@ sealed interface DaemonInstallResult {
  * (pkexec / osascript / UAC). Shared by Settings install and update actions.
  */
 suspend fun installDaemon(): DaemonInstallResult = runInterruptible(Dispatchers.IO) {
+    if (!DesktopPackageEnvironment.current.canInstallSystemDaemon) {
+        return@runInterruptible DaemonInstallResult.Failed(
+            "Install or update the daemon on the host using the native package or husi-core service install.",
+        )
+    }
     val binary = resolveHusiCoreBinary()
         ?: return@runInterruptible DaemonInstallResult.Failed("husi-core binary not found")
 

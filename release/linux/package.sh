@@ -29,6 +29,8 @@ CORE_PATH_PLACEHOLDER="__HUSI_CORE_PATH__"
 CORE_PATH_REGEX_PLACEHOLDER="__HUSI_CORE_PATH_REGEX__"
 # husi-core loads Cronet from its own directory, so the library travels with it.
 CORE_LIBRARY_NAME="libcronet.so"
+# shellcheck source=flatpak/config.sh
+source "$SCRIPT_DIR/flatpak/config.sh"
 TAG_NAME=""
 TAG_EPOCH=""
 
@@ -43,13 +45,13 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>] [--pkgrel <n>] [--jbr-jmods <dir>] [--appimage-runtime <file>] [--appimage-update-info <string>] [--strip-objcopy <file>]
-  $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball,appimage]
+  $(basename "$0") [--formats deb,rpm,pacman,tarball,appimage,flatpak] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>] [--pkgrel <n>] [--jbr-jmods <dir>] [--appimage-runtime <file>] [--appimage-update-info <string>] [--strip-objcopy <file>]
+  $(basename "$0") --check-tools [--formats deb,rpm,pacman,tarball,appimage,flatpak]
 
 Description:
   Build Linux native packages for system Java runtime from desktop uber jar via nfpm,
   plus a relocatable tarball of the app subtree carrying its own user-level installer,
-  plus an AppImage that bundles a jlink runtime and so needs no system Java at all.
+  plus AppImage and Flatpak bundles with their own jlink Java runtime.
 
 Defaults:
   --formats    deb,rpm,pacman
@@ -60,7 +62,7 @@ Defaults:
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
   --jbr-jmods  JetBrains Runtime modules for the target architecture
-               (env: JBR_JMODS). Only read for the AppImage; left out, they
+               (env: JBR_JMODS). Used by AppImage and Flatpak; left out, they
                are fetched with ./run lib jbr linux/<arch>.
   --appimage-runtime
                AppImage runtime binary for the target architecture
@@ -273,7 +275,7 @@ resolve_arch() {
             DEB_ARCH="amd64"
             RPM_ARCH="x86_64"
             PACMAN_ARCH="x86_64"
-            APPIMAGE_ARCH="x86_64"
+            FREEDESKTOP_ARCH="x86_64"
             LAUNCHER_MACHINE="x86_64"
             ;;
         arm64)
@@ -281,7 +283,7 @@ resolve_arch() {
             DEB_ARCH="arm64"
             RPM_ARCH="aarch64"
             PACMAN_ARCH="aarch64"
-            APPIMAGE_ARCH="aarch64"
+            FREEDESKTOP_ARCH="aarch64"
             LAUNCHER_MACHINE="aarch64"
             ;;
         *)
@@ -299,13 +301,13 @@ resolve_formats() {
     for item in "${items[@]}"; do
         item="$(echo "$item" | tr '[:upper:]' '[:lower:]' | xargs)"
         case "$item" in
-            deb|rpm|pacman|tarball|appimage)
+            deb|rpm|pacman|tarball|appimage|flatpak)
                 ENABLED_FORMATS["$item"]=1
                 ;;
             "")
                 ;;
             *)
-                error "Unknown format '$item'. Use deb,rpm,pacman,tarball,appimage."
+                error "Unknown format '$item'. Use deb,rpm,pacman,tarball,appimage,flatpak."
                 exit 1
                 ;;
         esac
@@ -329,7 +331,14 @@ require_tools_for_formats() {
         tools+=(tar zstd)
     fi
     if [[ -n "${ENABLED_FORMATS[appimage]:-}" ]]; then
-        tools+=(jlink appimagetool)
+        tools+=(appimagetool)
+    fi
+
+    if [[ -n "${ENABLED_FORMATS[flatpak]:-}" ]]; then
+        tools+=(flatpak)
+    fi
+    if [[ -n "${ENABLED_FORMATS[appimage]:-}" || -n "${ENABLED_FORMATS[flatpak]:-}" ]]; then
+        tools+=(jlink)
     fi
 
     for tool in "${tools[@]}"; do
@@ -741,8 +750,11 @@ output_filename() {
         tarball)
             echo "${PACKAGE_NAME}-${package_version}-linux-${TARGET_ARCH}.tar.zst"
             ;;
+        flatpak)
+            echo "${PACKAGE_NAME}-${package_version}-linux-${FREEDESKTOP_ARCH}.flatpak"
+            ;;
         appimage)
-            echo "${PACKAGE_NAME}-${package_version}-linux-${APPIMAGE_ARCH}.AppImage"
+            echo "${PACKAGE_NAME}-${package_version}-linux-${FREEDESKTOP_ARCH}.AppImage"
             ;;
         *)
             error "Unknown output format '$format'."
@@ -1008,11 +1020,9 @@ build_appimage() {
     local -a appimagetool_args=()
     output_name="$(output_filename "appimage" "$VERSION_NAME")"
 
-    resolve_jbr_jmods "$JBR_JMODS_ARG"
-    resolve_strip_objcopy "$STRIP_OBJCOPY_ARG"
     resolve_appimage_update_info
     prepare_appdir "$rootfs" "$appdir"
-    build_jre "$appdir/usr/lib/jvm"
+    cp -a "$BUNDLED_JRE" "$appdir/usr/lib/jvm"
 
     if [[ -n "$APPIMAGE_RUNTIME_ARG" ]]; then
         if [[ ! -f "$APPIMAGE_RUNTIME_ARG" ]]; then
@@ -1035,7 +1045,7 @@ build_appimage() {
     # --appimage-extract-and-run keeps the build host free of any FUSE requirement.
     (
         cd "$OUTPUT_DIR" &&
-            ARCH="$APPIMAGE_ARCH" SOURCE_DATE_EPOCH="$TAG_EPOCH" \
+            ARCH="$FREEDESKTOP_ARCH" SOURCE_DATE_EPOCH="$TAG_EPOCH" \
                 appimagetool --appimage-extract-and-run "${appimagetool_args[@]}" "$appdir" "$output_name"
     )
     log "Built AppImage: $OUTPUT_DIR/$output_name"
@@ -1048,6 +1058,66 @@ build_appimage() {
         fi
         log "Built zsync file: $OUTPUT_DIR/$output_name.zsync"
     fi
+}
+
+check_flatpak_runtimes() {
+    local runtime
+    for runtime in "$FLATPAK_RUNTIME" "$FLATPAK_SDK"; do
+        if ! flatpak info --arch="$FREEDESKTOP_ARCH" "$runtime//$FLATPAK_RUNTIME_VERSION" >/dev/null 2>&1; then
+            error "Flatpak runtime missing for $FREEDESKTOP_ARCH: $runtime//$FLATPAK_RUNTIME_VERSION"
+            error "Install the remote: flatpak remote-add --user --if-not-exists flathub $FLATPAK_RUNTIME_REPO"
+            error "Install runtimes: flatpak install --user --arch=$FREEDESKTOP_ARCH flathub $FLATPAK_RUNTIME//$FLATPAK_RUNTIME_VERSION $FLATPAK_SDK//$FLATPAK_RUNTIME_VERSION"
+            exit 2
+        fi
+    done
+}
+
+build_flatpak() {
+    local rootfs="$1"
+    local work_dir="$2"
+    local staging="$work_dir/flatpak"
+    local repository="$work_dir/flatpak-repo"
+    local output_path
+    output_path="$OUTPUT_DIR/$(output_filename flatpak "$VERSION_NAME")"
+
+    flatpak build-init --arch="$FREEDESKTOP_ARCH" "$staging" "$FLATPAK_APP_ID" \
+        "$FLATPAK_SDK" "$FLATPAK_RUNTIME" "$FLATPAK_RUNTIME_VERSION"
+    local files="$staging/files"
+    mkdir -p "$files/bin" "$files/lib" "$files/share/applications" \
+        "$files/share/metainfo" "$files/share/icons/hicolor/512x512/apps"
+    cp -a "$rootfs/usr/lib/$PACKAGE_NAME" "$files/lib/"
+    cp -a "$BUNDLED_JRE" "$files/lib/jvm"
+    render_template "$SCRIPT_DIR/flatpak/husi.sh" "$files/bin/$PACKAGE_NAME" \
+        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME"
+    chmod 755 "$files/bin/$PACKAGE_NAME"
+    sed -e "s#^Exec=.*#Exec=$PACKAGE_NAME open %u#" \
+        -e "s#^Icon=.*#Icon=$FLATPAK_APP_ID#" \
+        "$rootfs/usr/share/applications/$PACKAGE_NAME.desktop" \
+        >"$files/share/applications/$FLATPAK_APP_ID.desktop"
+    sed -e "s#<id>$PACKAGE_NAME</id>#<id>$FLATPAK_APP_ID</id>#" \
+        -e "s#>$PACKAGE_NAME.desktop<#>$FLATPAK_APP_ID.desktop<#" \
+        "$rootfs/$METAINFO_RELATIVE_PATH" \
+        >"$files/share/metainfo/$FLATPAK_APP_ID.metainfo.xml"
+    cp "$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png" \
+        "$files/share/icons/hicolor/512x512/apps/$FLATPAK_APP_ID.png"
+
+    # AWT uses X11 (including XWayland); NetworkManager creates an owned TUN
+    # through D-Bus and the core attaches to /dev/net/tun without privilege.
+    flatpak build-finish --command="$PACKAGE_NAME" \
+        --share=network --share=ipc --socket=x11 --device=all \
+        --filesystem=/run/husi:ro \
+        --system-talk-name=org.freedesktop.NetworkManager \
+        --talk-name=org.kde.StatusNotifierWatcher \
+        --own-name=org.kde.StatusNotifierItem.* "$staging"
+    find "$staging/files" -exec touch -d "@$TAG_EPOCH" {} +
+    local timestamp
+    timestamp="$(date -u -d "@$TAG_EPOCH" +%Y-%m-%dT%H:%M:%SZ)"
+    flatpak build-export --arch="$FREEDESKTOP_ARCH" --timestamp="$timestamp" \
+        "$repository" "$staging" "$FLATPAK_BRANCH"
+    rm -f "$output_path"
+    flatpak build-bundle --arch="$FREEDESKTOP_ARCH" --runtime-repo="$FLATPAK_RUNTIME_REPO" \
+        "$repository" "$output_path" "$FLATPAK_APP_ID" "$FLATPAK_BRANCH"
+    log "Built Flatpak: $output_path"
 }
 
 FORMATS="deb,rpm,pacman"
@@ -1068,6 +1138,7 @@ APPIMAGE_UPDATE_INFO_ARG="${APPIMAGE_UPDATE_INFO:-}"
 APPIMAGE_UPDATE_INFO=""
 STRIP_OBJCOPY_ARG=""
 STRIP_OBJCOPY=""
+BUNDLED_JRE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1149,6 +1220,9 @@ resolve_target
 resolve_arch
 resolve_formats "$FORMATS"
 require_tools_for_formats
+if [[ -n "${ENABLED_FORMATS[flatpak]:-}" ]]; then
+    check_flatpak_runtimes
+fi
 
 if [[ "$CHECK_TOOLS" -eq 1 ]]; then
     log "All required tools are available for formats: $FORMATS"
@@ -1187,6 +1261,17 @@ fi
 
 if [[ -n "${ENABLED_FORMATS[tarball]:-}" ]]; then
     build_tarball "$rootfs" "$work_dir"
+fi
+
+if [[ -n "${ENABLED_FORMATS[appimage]:-}" || -n "${ENABLED_FORMATS[flatpak]:-}" ]]; then
+    resolve_jbr_jmods "$JBR_JMODS_ARG"
+    resolve_strip_objcopy "$STRIP_OBJCOPY_ARG"
+    BUNDLED_JRE="$work_dir/jvm"
+    build_jre "$BUNDLED_JRE"
+fi
+
+if [[ -n "${ENABLED_FORMATS[flatpak]:-}" ]]; then
+    build_flatpak "$rootfs" "$work_dir"
 fi
 
 if [[ -n "${ENABLED_FORMATS[appimage]:-}" ]]; then

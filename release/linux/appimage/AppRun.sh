@@ -1,10 +1,8 @@
 #!/bin/sh
 # AppImage entry point. Rendered and installed as AppRun at the AppDir root.
 #
-# The bundled runtime is the whole point of the AppImage: it is the one Linux
-# artifact that does not ask the machine for a Java 21. The launcher reads
-# JAVA_HOME before anything else (see selectJavaCommand in launcher/src/main.zig),
-# so pointing that at the bundled image is all the redirection needed.
+# Use the bundled runtime without requiring a system Java installation.
+# The launcher reads JAVA_HOME first (see selectJavaCommand in launcher/src/main.zig).
 set -eu
 
 PACKAGE_NAME="__HUSI_PACKAGE_NAME__"

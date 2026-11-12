@@ -88,6 +88,8 @@ internal class CoreHostController(
     private val resolveCoreBinary: () -> File? = ::resolveHusiCoreBinary,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val systemProxyBackend: SystemProxyBackend = platformSystemProxyBackend(),
+    private val daemonBasePath: String = daemonSocketBasePath(),
+    private val createDaemonClient: (String) -> CoreClient = { path -> KurpcCoreClient.local { path } },
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val access = Mutex()
@@ -408,13 +410,13 @@ internal class CoreHostController(
      * point the shared [CoreClient] at the daemon, and mark ready.
      */
     private suspend fun tryAttachDaemonLocked(): Boolean {
-        val daemonPath = daemonSocketBasePath()
+        val daemonPath = daemonBasePath
         if (!daemonSocketPresent(daemonPath)) {
             Logs.d("no daemon socket at $daemonPath")
             return false
         }
 
-        val probeClient = KurpcCoreClient.local { daemonPath }
+        val probeClient = createDaemonClient(daemonPath)
         try {
             probeClient.probe()
             val info = probeClient.getDaemonInfo()
@@ -924,10 +926,11 @@ internal class CoreHostController(
 
         /**
          * Parent directory of the Unix daemon UDS
-         * (`libcore/daemonhost.DefaultDaemonSocketPath` = `/var/run/husi/api.sock`).
+         * (`/var/run` aliases `/run` on Linux, including inside Flatpak).
          * [KurpcCoreClient] dials `basePath/api.sock`.
          */
         private const val DAEMON_SOCKET_DIR_UNIX = "/var/run/husi"
+        private const val DAEMON_SOCKET_DIR_LINUX = "/run/husi"
 
         /**
          * Windows protected named pipe
@@ -946,7 +949,8 @@ internal class CoreHostController(
          */
         internal fun daemonSocketBasePath(): String {
             return when (PlatformInfo.platform) {
-                Platform.Linux, Platform.MacOs -> DAEMON_SOCKET_DIR_UNIX
+                Platform.Linux -> DAEMON_SOCKET_DIR_LINUX
+                Platform.MacOs -> DAEMON_SOCKET_DIR_UNIX
                 Platform.Windows -> DAEMON_PIPE_PATH_WINDOWS
                 Platform.Android, Platform.Web -> error("impossible")
             }

@@ -91,16 +91,16 @@ jobs:
             runner: ubuntu-latest
             target: linux/amd64
             package: linux
-            formats: "deb,rpm,pacman,tarball,appimage"
+            formats: "deb,rpm,pacman,tarball,appimage,flatpak"
             appimage_runtime: x86_64
-            apt_packages: zstd
+            apt_packages: flatpak zstd
           - id: linux-arm64
             runner: ubuntu-latest
             target: linux/arm64
             package: linux
-            formats: "deb,rpm,pacman,tarball,appimage"
+            formats: "deb,rpm,pacman,tarball,appimage,flatpak"
             appimage_runtime: aarch64
-            apt_packages: zstd binutils-aarch64-linux-gnu
+            apt_packages: flatpak zstd binutils-aarch64-linux-gnu
           # windows/arm64 is temporarily out: androidx sqlite-bundled ships no windows_arm64
           # libsqliteJni, so the app cannot open its database there.
           # See https://issuetracker.google.com/issues/426464784
@@ -139,6 +139,13 @@ jobs:
         # linux-arm64: binutils-aarch64-linux-gnu so jlink can strip the
         # AppImage runtime's native libraries with that architecture's objcopy.
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.apt_packages }}
+      - name: Install Flatpak runtimes
+        if: ${{ matrix.package == 'linux' }}
+        run: |
+          source release/linux/flatpak/config.sh
+          flatpak remote-add --user --if-not-exists flathub "$FLATPAK_RUNTIME_REPO"
+          flatpak install --user --noninteractive --arch="${{ matrix.appimage_runtime }}" flathub \
+            "$FLATPAK_RUNTIME//$FLATPAK_RUNTIME_VERSION" "$FLATPAK_SDK//$FLATPAK_RUNTIME_VERSION"
       - name: Cache nfpm
         if: ${{ matrix.package == 'linux' || matrix.package == 'windows' }}
         id: cache-nfpm

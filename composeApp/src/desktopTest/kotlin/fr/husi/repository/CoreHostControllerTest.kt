@@ -13,6 +13,7 @@ import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.proto.v1.capabilities
+import fr.husi.proto.v1.Hosting
 import fr.husi.proto.v1.TunBackend
 import fr.husi.proto.v1.getDaemonInfoResponse
 import fr.husi.proto.v1.ownership
@@ -89,6 +90,56 @@ class CoreHostControllerTest : HusiKoinTest() {
             systemProxyBackend = backend,
         )
         return systemProxyController to backend
+    }
+
+    @Test
+    fun `host discovery prefers an accessible daemon over spawning a session`() {
+        tempDir.resolve("api.sock").createNewFile()
+        val daemon = FakeCoreClient().also {
+            it.nextDaemonInfo = getDaemonInfoResponse {
+                hosting = Hosting.HOSTING_DAEMON
+                apiVersion = CoreHostController.API_VERSION
+            }
+        }
+        val discovery = CoreHostController(
+            repository,
+            resolveCoreClient = { fakeClient },
+            resolveCoreBinary = { error("Must use the available daemon") },
+            dispatcher = dispatcher,
+            daemonBasePath = tempDir.path,
+            createDaemonClient = { daemon },
+        )
+        try {
+            discovery.ensureHost()
+            assertTrue(discovery.hostState.value.isDaemon)
+            assertEquals(tempDir.path, repository.coreSocketBasePath)
+            assertEquals(1, daemon.probeCalls)
+        } finally {
+            discovery.shutdownHost()
+        }
+    }
+
+    @Test
+    fun `missing inaccessible and broken daemon connections attempt the session core`() {
+        for (failure in listOf(null, IOException("Permission denied"), IOException("Connection refused"))) {
+            val socket = tempDir.resolve("api.sock")
+            socket.delete()
+            if (failure != null) socket.createNewFile()
+            val daemon = FakeCoreClient().also { it.probeThrowable = failure }
+            var sessionAttempted = false
+            val discovery = CoreHostController(
+                repository,
+                resolveCoreClient = { fakeClient },
+                resolveCoreBinary = { sessionAttempted = true; null },
+                dispatcher = dispatcher,
+                daemonBasePath = tempDir.path,
+                createDaemonClient = { daemon },
+            )
+            assertFailsWith<IOException> { discovery.ensureHost() }
+            assertTrue(sessionAttempted)
+            assertFalse(discovery.hostState.value.isDaemon)
+            assertEquals(if (failure == null && !PlatformInfo.isWindows) 0 else 1, daemon.probeCalls)
+        }
     }
 
     @Test

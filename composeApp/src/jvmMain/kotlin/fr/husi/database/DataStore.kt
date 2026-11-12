@@ -28,6 +28,7 @@ import fr.husi.database.preference.putStringSet
 import fr.husi.database.preference.remove
 import fr.husi.database.preference.string
 import fr.husi.database.preference.stringSet
+import fr.husi.platform.defaultNetworkManagerTun
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.utils.AppVersion
@@ -175,7 +176,7 @@ object DataStore : ApplicationPreferences(
     val tunInterfaceName = configurationStore.string(Key.TUN_INTERFACE_NAME) { "" }
     val tunStrictRoute = configurationStore.boolean(Key.TUN_STRICT_ROUTE) { true }
     val tunAutoRedirect = configurationStore.boolean(Key.TUN_AUTO_REDIRECT) { true }
-    val networkManagerTun = configurationStore.boolean(Key.NETWORK_MANAGER_TUN) { false }
+    val networkManagerTun = configurationStore.boolean(Key.NETWORK_MANAGER_TUN, ::defaultNetworkManagerTun)
 
     val allowAppsBypassVpn = configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }
 

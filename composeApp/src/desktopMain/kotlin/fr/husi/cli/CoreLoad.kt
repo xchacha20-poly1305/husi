@@ -37,16 +37,20 @@ fun connectClient(socketBasePath: String): CoreClient? {
  *
  * @return null when neither host answers.
  */
-fun connectExistingHost(sessionBasePath: String): CoreClient? {
-    val daemonBasePath = CoreHostController.daemonSocketBasePath()
+internal fun connectExistingHost(
+    sessionBasePath: String,
+    daemonBasePath: String = CoreHostController.daemonSocketBasePath(),
+    connect: (String) -> CoreClient? = ::connectClient,
+): CoreClient? {
     if (CoreHostController.daemonSocketPresent(daemonBasePath)) {
-        connectClient(daemonBasePath)?.let { return it }
+        connect(daemonBasePath)?.let { return it }
     }
-    return connectClient(sessionBasePath)
+    return connect(sessionBasePath)
 }
 
 /** Both socket paths [connectExistingHost] tries, for user-facing diagnostics. */
 fun hostSocketPaths(sessionBasePath: String): List<String> {
+    val sessionSocket = File(sessionBasePath, CORE_SOCKET_NAME).path
     val daemonBasePath = CoreHostController.daemonSocketBasePath()
     val daemonSocket = if (PlatformInfo.isWindows) {
         // The Windows daemon endpoint is the named pipe itself, not a directory.
@@ -54,7 +58,7 @@ fun hostSocketPaths(sessionBasePath: String): List<String> {
     } else {
         File(daemonBasePath, CORE_SOCKET_NAME).path
     }
-    return listOf(daemonSocket, File(sessionBasePath, CORE_SOCKET_NAME).path)
+    return listOf(daemonSocket, sessionSocket)
 }
 
 fun connectRemoteClient(serverURL: String, secret: String): CoreClient {

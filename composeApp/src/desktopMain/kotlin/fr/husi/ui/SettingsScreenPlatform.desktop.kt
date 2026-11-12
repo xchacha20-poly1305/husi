@@ -30,6 +30,7 @@ import fr.husi.database.DataStore
 import fr.husi.database.preference.setBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
+import fr.husi.platform.DesktopPackageEnvironment
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DaemonInstallResult
 import fr.husi.repository.DaemonOwner
@@ -159,87 +160,89 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
     }
 
     val needsUpdate = hostState.apiVersionMismatch
-    Preference(
-        title = {
-            Text(
-                stringResource(
+    if (DesktopPackageEnvironment.current.canInstallSystemDaemon) {
+        Preference(
+            title = {
+                Text(
+                    stringResource(
+                        if (needsUpdate) {
+                            Res.string.update_daemon
+                        } else {
+                            Res.string.install_daemon
+                        },
+                    ),
+                )
+            },
+            icon = {
+                MaskedIcon(
                     if (needsUpdate) {
-                        Res.string.update_daemon
+                        Res.drawable.update
                     } else {
-                        Res.string.install_daemon
+                        Res.drawable.security
                     },
-                ),
-            )
-        },
-        icon = {
-            MaskedIcon(
-                if (needsUpdate) {
-                    Res.drawable.update
-                } else {
-                    Res.drawable.security
-                },
-                color = if (needsUpdate) {
-                    IconMaskColors.IconCoral
-                } else {
-                    IconMaskColors.IconCyan
-                },
-            )
-        },
-        summary = {
-            Text(
-                stringResource(
-                    when {
-                        needsUpdate -> Res.string.update_daemon_summary
-                        hostState.isDaemon -> Res.string.daemon_installed_summary
-                        else -> Res.string.install_daemon_summary
+                    color = if (needsUpdate) {
+                        IconMaskColors.IconCoral
+                    } else {
+                        IconMaskColors.IconCyan
                     },
-                ),
-            )
-        },
-        enabled = !installing && !takingOver,
-        onClick = {
-            if (installing) return@Preference
-            installing = true
-            scope.launch {
-                try {
-                    val result = withContext(Dispatchers.IO) { installDaemon() }
-                    when (result) {
-                        DaemonInstallResult.Success -> {
-                            runCatching {
-                                repository.reattachDaemon()
-                            }.onFailure {
-                                Logs.w("reattach after daemon install failed", it)
-                                showMessage(it.readableMessage)
-                                return@launch
+                )
+            },
+            summary = {
+                Text(
+                    stringResource(
+                        when {
+                            needsUpdate -> Res.string.update_daemon_summary
+                            hostState.isDaemon -> Res.string.daemon_installed_summary
+                            else -> Res.string.install_daemon_summary
+                        },
+                    ),
+                )
+            },
+            enabled = !installing && !takingOver,
+            onClick = {
+                if (installing) return@Preference
+                installing = true
+                scope.launch {
+                    try {
+                        val result = withContext(Dispatchers.IO) { installDaemon() }
+                        when (result) {
+                            DaemonInstallResult.Success -> {
+                                runCatching {
+                                    repository.reattachDaemon()
+                                }.onFailure {
+                                    Logs.w("reattach after daemon install failed", it)
+                                    showMessage(it.readableMessage)
+                                    return@launch
+                                }
+                                showMessage(getString(Res.string.daemon_install_success))
                             }
-                            showMessage(getString(Res.string.daemon_install_success))
-                        }
 
-                        DaemonInstallResult.Cancelled -> {
-                            showMessage(getString(Res.string.daemon_install_cancelled))
-                        }
+                            DaemonInstallResult.Cancelled -> {
+                                showMessage(getString(Res.string.daemon_install_cancelled))
+                            }
 
-                        is DaemonInstallResult.ElevationUnavailable -> {
-                            showMessage(
-                                getString(
-                                    Res.string.daemon_install_no_elevation,
-                                    result.program,
-                                ),
-                            )
-                        }
+                            is DaemonInstallResult.ElevationUnavailable -> {
+                                showMessage(
+                                    getString(
+                                        Res.string.daemon_install_no_elevation,
+                                        result.program,
+                                    ),
+                                )
+                            }
 
-                        is DaemonInstallResult.Failed -> {
-                            showMessage(
-                                getString(Res.string.daemon_install_failed, result.message),
-                            )
+                            is DaemonInstallResult.Failed -> {
+                                showMessage(
+                                    getString(Res.string.daemon_install_failed, result.message),
+                                )
+                            }
                         }
+                    } finally {
+                        installing = false
                     }
-                } finally {
-                    installing = false
                 }
-            }
-        },
-    )
+            },
+        )
+    }
 
     if (foreignOwner != null) {
         Preference(
