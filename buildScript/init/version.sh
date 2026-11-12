@@ -6,7 +6,7 @@
 # renovate: datasource=golang-version depName=go
 GO_VERSION="1.27.4"
 # renovate: datasource=node-version depName=node
-NODE_VERSION="26.13.0"
+NODE_VERSION="26.13.1"
 # renovate: datasource=github-releases depName=rust-lang/rust
 RUST_VERSION="1.99.1"
 # The only JDK in use: CI builds with it (.github/actions/setup-jbr), and its
@@ -31,7 +31,7 @@ APPIMAGE_RUNTIME_VERSION="20251108"
 PROTOC_VERSION="36.1"
 
 # renovate: datasource=github-releases depName=Dreamacro/maxmind-geoip
-GEOIP_VERSION="20261012"
+GEOIP_VERSION="20261112"
 
 # renovate: datasource=github-releases depName=v2fly/domain-list-community
-GEOSITE_VERSION="20261019074502"
+GEOSITE_VERSION="20261110034535"
