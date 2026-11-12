@@ -3,6 +3,7 @@ package fr.husi.ui.dashboard
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -18,8 +19,10 @@ import fr.husi.remote.RemoteState
 import fr.husi.resources.Res
 import fr.husi.resources.web_remote_ip_unavailable
 import fr.husi.resources.web_system_proxy_unavailable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -39,6 +42,16 @@ internal class RemoteDashboardPresenter(
     private var groupSearch by mutableStateOf<String?>(null)
     private var active by mutableStateOf(false)
     private var lastPresentation = state.dashboardState()
+    private val urlTestingTags = mutableStateMapOf<String, Int>()
+    private val groupTestProgress = mutableStateMapOf<String, GroupUrlTestProgress>()
+    private val remoteUrlTest = RemoteUrlTestRunner { tag ->
+        val outbound = state.groups.asSequence()
+            .flatMap { it.items.asSequence() }
+            .firstOrNull { it.tag == tag }
+        outbound?.let {
+            RemoteUrlTestResult(it.urlTestTime, it.urlTestDelay)
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val uiState = combine(
@@ -116,7 +129,7 @@ internal class RemoteDashboardPresenter(
 
                             else -> set.items
                         }
-                    set.copy(items = items)
+                    set.copy(items = items, urlTestProgress = groupTestProgress[set.id])
                 }
                 .filterBy(query)
         return data
@@ -133,6 +146,7 @@ internal class RemoteDashboardPresenter(
                 },
                 selectedConnection = data.connections.firstOrNull { it.uuid == selected },
                 proxySets = sets,
+                urlTestingTags = urlTestingTags.toMap(),
                 proxySetOrder = groupOrder,
                 proxySetQuery = query,
                 dashboardWidgets =
@@ -241,11 +255,59 @@ internal class RemoteDashboardPresenter(
     }
 
     override fun urlTestForSingle(tag: String) {
-        state.call { urlTest(URLTestRequest(tag)) }
+        scope.launch { testRemoteOutbound(tag) }
+    }
+
+    private suspend fun testRemoteOutbound(tag: String) {
+        urlTestingTags[tag] = (urlTestingTags[tag] ?: 0) + 1
+        try {
+            remoteUrlTest.test(tag) {
+                state.perform {
+                    urlTest(URLTestRequest(tag))
+                }?.let {
+                    error(it)
+                }
+            }
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            state.error = failure.message.orEmpty()
+        } finally {
+            val remaining = (urlTestingTags[tag] ?: 1) - 1
+            if (remaining > 0) {
+                urlTestingTags[tag] = remaining
+            } else {
+                urlTestingTags.remove(tag)
+            }
+        }
     }
 
     override fun urlTestForGroup(id: String) {
-        state.call { urlTest(URLTestRequest(id)) }
+        if (id in groupTestProgress) return
+        val sets = state.dashboardState().proxySets
+        val set = sets.firstOrNull { it.id == id } ?: return
+        val items = expandUrlTestTargets(set.items, sets.associate { it.tag to it.items })
+        if (items.isEmpty()) return
+        groupTestProgress[id] = GroupUrlTestProgress(0, items.size)
+        scope.launch {
+            try {
+                var nextIndex = 0
+                var finished = 0
+                coroutineScope {
+                    repeat(minOf(items.size, GROUP_URL_TEST_CONCURRENCY)) {
+                        launch {
+                            while (nextIndex < items.size) {
+                                val item = items[nextIndex++]
+                                testRemoteOutbound(item.tag)
+                                groupTestProgress[id] = GroupUrlTestProgress(++finished, items.size)
+                            }
+                        }
+                    }
+                }
+            } finally {
+                groupTestProgress.remove(id)
+            }
+        }
     }
 
     override fun detectIP() {

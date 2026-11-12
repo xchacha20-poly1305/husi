@@ -20,7 +20,6 @@ import fr.husi.core.formatConnectionTime
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.core.urlTestOptions
 import fr.husi.database.DataStore
-import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.proxyDisplayName
 import fr.husi.ktx.Logs
 import fr.husi.ktx.listByLineIgnoringComments
@@ -117,7 +116,6 @@ class DashboardViewModel(
         private val LOOP_INTERVAL = 1000L.milliseconds
         private val LOOP_INTERVAL_SECONDS = LOOP_INTERVAL.toDouble(DurationUnit.SECONDS)
 
-        private const val GROUP_URL_TEST_CONCURRENCY = 10
 
         internal const val MAX_CLOSED_CONNECTIONS = 1000
 
@@ -809,11 +807,22 @@ class DashboardViewModel(
         DataStore.connectionTestIgnoreHandshakeTime.get(),
     )
 
+    private val remoteUrlTest = RemoteUrlTestRunner { tag ->
+        val outbound = latestGroups.asSequence()
+            .flatMap { it.itemsList.asSequence() }
+            .firstOrNull { it.tag == tag } ?: latestOutbounds.firstOrNull { it.tag == tag }
+        outbound?.let {
+            RemoteUrlTestResult(it.urlTestTime, it.urlTestDelay)
+        }
+    }
+
     private suspend fun urlTestOne(tag: String, link: String, timeoutMs: Int, options: URLTestOptions) {
         withUrlTesting(tag) {
             // Remote may be a vanilla sing-box daemon (StartedService only).
             if (isRemote) {
-                coreClient.daemonUrlTest(tag)
+                remoteUrlTest.test(tag) {
+                    coreClient.daemonUrlTest(tag)
+                }
             } else {
                 coreClient.urlTest(tag, link, timeoutMs, options)
             }
@@ -858,6 +867,8 @@ class DashboardViewModel(
                             val tag = items[index].tag
                             try {
                                 urlTestOne(tag, testURL, testTimeout, options)
+                            } catch (e: CancellationException) {
+                                throw e
                             } catch (e: Exception) {
                                 Logs.w(e)
                             }
@@ -931,33 +942,6 @@ class DashboardViewModel(
         DataStore.systemProxy.set(enabled)
     }
 }
-
-internal fun skipGroupUrlTest(item: ProxyItem): Boolean {
-    return item.type == SingBoxOptions.TYPE_DIRECT || item.type == SingBoxOptions.TYPE_BLOCK
-}
-
-internal fun expandUrlTestTargets(
-    items: List<ProxyItem>,
-    members: Map<String, List<ProxyItem>>,
-): List<ProxyItem> {
-    val visited = mutableSetOf<String>()
-    val leaves = mutableListOf<ProxyItem>()
-
-    fun walk(item: ProxyItem) {
-        if (!visited.add(item.tag)) return
-        val nested = members[item.tag]
-        if (nested == null) {
-            if (!skipGroupUrlTest(item)) leaves += item
-            return
-        }
-        for (member in nested) walk(member)
-    }
-
-    for (item in items) walk(item)
-    return leaves
-}
-
-
 
 private fun nextSpeedHistory(history: List<Float>, sample: Float): List<Float> {
     val sized = if (history.size == SPEED_HISTORY_SIZE) {
