@@ -23,7 +23,7 @@ JAVA_VERSION="${JBR_VERSION%%.*}"
 ANDROID_NDK_VERSION="30.0.16248370"
 ZIG_VERSION="0.17.1"
 # renovate: datasource=github-releases depName=goreleaser/nfpm
-NFPM_VERSION="2.48.0"
+NFPM_VERSION="2.49.0"
 # renovate: datasource=github-releases depName=AppImage/appimagetool
 APPIMAGETOOL_VERSION="1.9.1"
 # renovate: datasource=github-releases depName=AppImage/type2-runtime

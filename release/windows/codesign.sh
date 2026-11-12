@@ -100,7 +100,7 @@ sign_pe() {
 
 # sign_payloads stages the launcher, husi-core and its Cronet library into
 # work_dir, signs the copies and repoints the INPUT_* variables at them. Both the
-# zip rootfs and the NSIS template read those variables, so signing them once
+# zip rootfs and the MSI package read those variables, so signing them once
 # covers both formats. The originals under libcore/build and launcher/zig-out are left
 # alone: signing build outputs in place would re-sign them on the next run.
 sign_payloads() {

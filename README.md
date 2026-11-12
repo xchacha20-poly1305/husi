@@ -371,7 +371,7 @@ User config files are created under:
 * `~/Library/Application Support/husi/desktop-java-opts.conf` for JVM options
 * `~/Library/Application Support/husi/desktop-app-args.conf` for application startup arguments
 
-Build Windows portable zip and NSIS installer packages:
+Build Windows portable zip and MSI installer packages:
 
 ```shell
 make desktop_package_windows DESKTOP_TARGET=windows/amd64
@@ -383,7 +383,7 @@ Required host tools:
 * `zig`
 * `git`
 * `python3`
-* `makensis` (NSIS)
+* `nfpm` v2.49.0 or newer
 * `osslsigncode` (unless building with `WINDOWS_NO_SIGN=1`, see below)
 
 Default output directory:
@@ -395,25 +395,28 @@ composeApp/build/compose/packages/windows/
 Outputs:
 
 * `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>.zip`
-* `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>-installer.exe`
+* `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>.msi`
 
-The installer is a per-user NSIS installer that installs into `%LOCALAPPDATA%\Programs\Husi`, creates a Start Menu
-shortcut, and registers the configured URL schemes for the current user. The Windows launcher is unprivileged.
-Privileges live in the `husi-core` daemon installed as a Windows service (`husi-core service install`); TUN requires the
-daemon. Without it the UI falls back to an unprivileged session host.
+The MSI installs into `%LOCALAPPDATA%\Programs\Husi` for the current user without elevation, creates Start Menu
+and desktop shortcuts, and registers the configured URL schemes. To choose another directory, run
+`msiexec /i <package>.msi INSTALLFOLDER="C:\path\to\Husi"`; add `/qn` for a silent install.
 
-The UI and the daemon therefore install to **two different places**, and both hold a copy of `husi-core.exe`:
+**Migrating from NSIS:** uninstall the old NSIS installation before installing the MSI. The MSI does not migrate
+its uninstall entry or take ownership of its files. User configuration remains in the application data directory.
 
-| What                                           | Where                          | Installed by                               |
-|------------------------------------------------|--------------------------------|--------------------------------------------|
-| UI (launcher, jar, and the core it ships)      | `%LOCALAPPDATA%\Programs\Husi` | the NSIS installer, per user, no elevation |
-| Daemon (the core the service runs)             | `%ProgramFiles%\husi`          | `husi-core service install`, elevated      |
-| Daemon state (snapshots, ownership)            | `%ProgramData%\husi`           | the daemon itself                          |
+The Windows launcher is unprivileged. TUN requires the `husi-core` daemon installed as a Windows service.
+Install or update it from the application's service settings, which request administrator rights separately.
+The MSI does not install or remove that service; without it the UI falls back to an unprivileged session host.
 
-The installer runs `husi-core.exe service install` from its own directory at the end, so the per-user copy is what seeds
-the Program Files copy — that is why the same file exists twice. The uninstaller reverses both, calling
-`husi-core.exe service uninstall` before removing its own directory. It does not pass `--purge`, so `%ProgramData%\husi`
-survives an uninstall; remove it by hand, or run `husi-core service uninstall --purge` yourself beforehand.
+| What                                      | Where                          | Installed by                          |
+|-------------------------------------------|--------------------------------|---------------------------------------|
+| UI (launcher, jar, and the core it ships)   | `%LOCALAPPDATA%\Programs\Husi` | the MSI, per user, no elevation        |
+| Daemon (the core the service runs)          | `%ProgramFiles%\husi`          | `husi-core service install`, elevated  |
+| Daemon state (snapshots, ownership)         | `%ProgramData%\husi`           | the daemon itself                     |
+
+If the service is no longer needed, run `husi-core service uninstall` from an elevated terminal before uninstalling
+the application. This preserves `%ProgramData%\husi`; add `--purge`
+to remove daemon state too. After an MSI upgrade, update an existing service from settings to deploy the new core.
 
 ##### ☕ Packages with a bundled runtime
 
@@ -426,7 +429,7 @@ make desktop_package_windows_jbr DESKTOP_TARGET=windows/amd64
 ```
 
 * `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>-jbr.zip`
-* `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>-jbr-installer.exe`
+* `<PACKAGE_NAME>-<VERSION_NAME>-windows-<arch>-jbr.msi`
 
 These carry a `runtime\` directory next to the launcher, linked with `jlink` from the modules of the
 [JetBrains Runtime](https://github.com/JetBrains/JetBrainsRuntime) — the JDK IntelliJ ships, whose Skia, HiDPI and font

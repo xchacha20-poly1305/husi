@@ -7,7 +7,6 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 METADATA_FILE="$ROOT_DIR/husi.properties"
 DESKTOP_METADATA_FILE="$ROOT_DIR/release/desktop/package-metadata.sh"
 DESKTOP_JRE_MODULES_FILE="$ROOT_DIR/release/desktop/jre-modules.sh"
-NSIS_TEMPLATE_FILE="$ROOT_DIR/release/windows/desktop/installer.nsi"
 WINDOWS_JAVA_OPTS_FILE="$ROOT_DIR/release/windows/desktop/desktop-java-opts.conf"
 # husi-core loads Cronet from its own directory, so the library travels with it.
 CORE_LIBRARY_NAME="libcronet.dll"
@@ -17,7 +16,6 @@ TAG_NAME=""
 TAG_EPOCH=""
 HOST_OS=""
 PYTHON_BIN=""
-NSIS_BIN=""
 JBR_JMODS_DIR=""
 RUNTIME_DIR=""
 VARIANT_SUFFIX=""
@@ -36,11 +34,11 @@ source "$SCRIPT_DIR/codesign.sh"
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats zip,nsis] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>] [--jbr-jmods <dir>] [--no-sign]
-  $(basename "$0") --check-tools [--formats zip,nsis] [--target <platform/arch>] [--jbr-jmods <dir>] [--no-sign]
+  $(basename "$0") [--formats zip,msi] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--core-bin <file>] [--output-dir <dir>] [--jbr-jmods <dir>] [--no-sign]
+  $(basename "$0") --check-tools [--formats zip,msi] [--target <platform/arch>] [--jbr-jmods <dir>] [--no-sign]
 
 Description:
-  Build Windows portable zip and NSIS installer packages from desktop uber jar.
+  Build Windows portable zip and MSI installer packages from desktop uber jar.
 
   Thin packages (no bundled runtime) are always written. With --jbr-jmods the
   run also writes a second pair whose names carry a -jbr suffix and which
@@ -49,7 +47,7 @@ Description:
   launcher, husi-core and $CORE_LIBRARY_NAME.
 
 Defaults:
-  --formats      zip,nsis
+  --formats      zip,msi
   --input-jar    newest matching jar under $JAR_DIR_DEFAULT
   --launcher-bin $ROOT_DIR/launcher/zig-out/bin/launcher-windows-<x86_64|aarch64>.exe
   --core-bin     $ROOT_DIR/libcore/build/windows_<amd64|arm64>/husi-core.exe
@@ -72,40 +70,6 @@ require_arg() {
         usage
         exit 1
     fi
-}
-
-render_template() {
-    local template_file="$1"
-    local output_file="$2"
-    shift 2
-
-    if [[ ! -f "$template_file" ]]; then
-        error "Template file not found: $template_file"
-        exit 1
-    fi
-
-    if [[ $(( $# % 2 )) -ne 0 ]]; then
-        error "render_template requires placeholder/value pairs."
-        exit 1
-    fi
-
-    "$PYTHON_BIN" - "$template_file" "$output_file" "$@" <<'PY'
-import pathlib
-import sys
-
-template_path = pathlib.Path(sys.argv[1])
-output_path = pathlib.Path(sys.argv[2])
-pairs = sys.argv[3:]
-
-if len(pairs) % 2 != 0:
-    raise SystemExit("render_template requires placeholder/value pairs")
-
-content = template_path.read_text(encoding="utf-8")
-for index in range(0, len(pairs), 2):
-    content = content.replace(pairs[index], pairs[index + 1])
-
-output_path.write_text(content, encoding="utf-8")
-PY
 }
 
 source_desktop_metadata() {
@@ -152,9 +116,10 @@ load_metadata() {
 
     PACKAGE_NAME="$(awk -F= '$1=="PACKAGE_NAME"{print $2; exit}' "$METADATA_FILE")"
     VERSION_NAME="$(awk -F= '$1=="VERSION_NAME"{print $2; exit}' "$METADATA_FILE")"
+    VERSION_CODE="$(awk -F= '$1=="VERSION_CODE"{print $2; exit}' "$METADATA_FILE")"
 
-    if [[ -z "$PACKAGE_NAME" || -z "$VERSION_NAME" ]]; then
-        error "Failed to parse PACKAGE_NAME or VERSION_NAME from $METADATA_FILE"
+    if [[ -z "$PACKAGE_NAME" || -z "$VERSION_NAME" || -z "$VERSION_CODE" ]]; then
+        error "Failed to parse PACKAGE_NAME, VERSION_NAME or VERSION_CODE from $METADATA_FILE"
         exit 1
     fi
 
@@ -276,13 +241,13 @@ resolve_formats() {
             zip)
                 ENABLED_FORMATS["zip"]=1
                 ;;
-            nsis|installer)
-                ENABLED_FORMATS["nsis"]=1
+            msi|installer)
+                ENABLED_FORMATS["msi"]=1
                 ;;
             "")
                 ;;
             *)
-                error "Unknown format '$item'. Use zip,nsis."
+                error "Unknown format '$item'. Use zip,msi."
                 exit 1
                 ;;
         esac
@@ -294,17 +259,16 @@ resolve_formats() {
     fi
 }
 
-resolve_nsis() {
-    if [[ -z "${ENABLED_FORMATS[nsis]:-}" ]]; then
+resolve_nfpm() {
+    if [[ -z "${ENABLED_FORMATS[msi]:-}" ]]; then
         return
     fi
 
-    if command -v makensis >/dev/null 2>&1; then
-        NSIS_BIN="makensis"
+    if command -v nfpm >/dev/null 2>&1; then
         return
     fi
 
-    error "Missing required tool: makensis (NSIS). Install nsis package."
+    error "Missing required tool: nfpm (v2.49.0 or newer)."
     exit 2
 }
 
@@ -389,21 +353,6 @@ for current, dir_names, file_names in os.walk(root):
     file_names.sort()
     for file_name in file_names:
         os.utime(os.path.join(current, file_name), (epoch, epoch))
-PY
-}
-
-normalize_vi_version() {
-    "$PYTHON_BIN" - "$VERSION_NAME" <<'PY'
-import re
-import sys
-
-parts = [int(part) for part in re.findall(r"\d+", sys.argv[1])]
-if not parts:
-    raise SystemExit("invalid")
-while len(parts) < 4:
-    parts.append(0)
-
-print(".".join(str(p) for p in parts[:4]))
 PY
 }
 
@@ -501,26 +450,6 @@ resolve_core_library() {
     fi
 }
 
-
-nsis_url_scheme_install_entries() {
-    local scheme
-    for scheme in "${DESKTOP_URL_SCHEMES[@]}"; do
-        cat <<EOF
-    WriteRegStr HKCU "Software\\Classes\\$scheme" "" "URL:$scheme Protocol"
-    WriteRegStr HKCU "Software\\Classes\\$scheme" "URL Protocol" ""
-    WriteRegStr HKCU "Software\\Classes\\$scheme\\DefaultIcon" "" "\$INSTDIR\\\${APP_NAME}.exe,0"
-    WriteRegStr HKCU "Software\\Classes\\$scheme\\shell\\open\\command" "" '"\$INSTDIR\\\${APP_NAME}.exe" open "%1"'
-EOF
-    done
-}
-
-nsis_url_scheme_uninstall_entries() {
-    local scheme
-    for scheme in "${DESKTOP_URL_SCHEMES[@]}"; do
-        echo "    DeleteRegKey HKCU \"Software\\Classes\\$scheme\""
-    done
-}
-
 # jlink links an image for the platform its modules belong to, not for the host,
 # so this runs on Linux just as well as on Windows. Two flags the Linux AppImage
 # passes are deliberately absent: --strip-native-debug-symbols shells out to
@@ -545,23 +474,6 @@ build_runtime() {
 output_filename() {
     local extension="$1"
     echo "${PACKAGE_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}${VARIANT_SUFFIX}${extension}"
-}
-
-# jlink emits hundreds of files, so the installer takes the tree wholesale and
-# the uninstaller drops it the same way. RMDir /r stays scoped to this one
-# subdirectory of $INSTDIR.
-nsis_runtime_install_entries() {
-    cat <<EOF
-    SetOutPath "\$INSTDIR\\runtime"
-    File /r "$RUNTIME_DIR/*"
-    SetOutPath "\$INSTDIR"
-EOF
-}
-
-nsis_runtime_uninstall_entries() {
-    cat <<'EOF'
-    RMDir /r "$INSTDIR\runtime"
-EOF
 }
 
 prepare_rootfs() {
@@ -618,77 +530,53 @@ PY
     log "Built zip: $output_path"
 }
 
-build_nsis() {
+build_msi() {
     local work_dir="$1"
-    local nsis_source="$work_dir/installer${VARIANT_SUFFIX}.nsi"
+    local rootfs="$2"
+    local config_file="$work_dir/msi${VARIANT_SUFFIX}.json"
+    local variant="${VARIANT_SUFFIX#-}"
     local output_path
-    output_path="$OUTPUT_DIR/$(output_filename "-installer.exe")"
-    local vi_version
-    local url_scheme_registry
-    local url_scheme_unregistry
-    local runtime_install=""
-    local runtime_uninstall=""
+    output_path="$OUTPUT_DIR/$(output_filename ".msi")"
+    local -a signing_arguments=()
 
-    vi_version="$(normalize_vi_version)" || {
-        error "VERSION_NAME=$VERSION_NAME cannot be converted to a VIProductVersion."
-        exit 1
-    }
-
-    url_scheme_registry="$(nsis_url_scheme_install_entries)"
-    url_scheme_unregistry="$(nsis_url_scheme_uninstall_entries)"
-    if [[ -n "$RUNTIME_DIR" ]]; then
-        runtime_install="$(nsis_runtime_install_entries)"
-        runtime_uninstall="$(nsis_runtime_uninstall_entries)"
+    if [[ "$SIGNING_ENABLED" -eq 1 ]]; then
+        signing_arguments=(--certificate "$SIGNING_P12" --timestamp-url "$SIGNING_TIMESTAMP_URL")
     fi
-
-    render_template \
-        "$NSIS_TEMPLATE_FILE" \
-        "$nsis_source" \
-        "__HUSI_PACKAGE_NAME__" "$PACKAGE_NAME" \
-        "__HUSI_APP_NAME__" "$APP_NAME" \
-        "__HUSI_APP_NAME_ZH_CN__" "$APP_NAME_ZH_CN" \
-        "__HUSI_APP_VERSION__" "$VERSION_NAME" \
-        "__HUSI_APP_DESCRIPTION__" "$APP_DESCRIPTION" \
-        "__HUSI_APP_URL__" "$APP_URL" \
-        "__HUSI_MAINTAINER__" "$MAINTAINER" \
-        "__HUSI_VI_VERSION__" "$vi_version" \
-        "__HUSI_OUTPUT_FILE__" "$output_path" \
-        "__HUSI_LICENSE_FILE__" "$ROOT_DIR/LICENSE" \
-        "__HUSI_LAUNCHER_FILE__" "$INPUT_LAUNCHER_BIN" \
-        "__HUSI_CORE_FILE__" "$INPUT_CORE_BIN" \
-        "__HUSI_CORE_LIBRARY_NAME__" "$CORE_LIBRARY_NAME" \
-        "__HUSI_CORE_LIBRARY_FILE__" "$INPUT_CORE_LIBRARY" \
-        "__HUSI_JAR_FILE__" "$INPUT_JAR" \
-        "__HUSI_JAVA_OPTS_FILE__" "$WINDOWS_JAVA_OPTS_FILE" \
-        "__HUSI_APP_ARGS_FILE__" "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" \
-        "__HUSI_URL_SCHEME_REGISTRY__" "$url_scheme_registry" \
-        "__HUSI_URL_SCHEME_UNREGISTRY__" "$url_scheme_unregistry" \
-        "__HUSI_RUNTIME_INSTALL__" "$runtime_install" \
-        "__HUSI_RUNTIME_UNINSTALL__" "$runtime_uninstall"
+    "$PYTHON_BIN" "$SCRIPT_DIR/msi_config.py" \
+        --rootfs "$rootfs" \
+        --output "$config_file" \
+        --package-name "$PACKAGE_NAME" \
+        --version-name "$VERSION_NAME" \
+        --version-code "$VERSION_CODE" \
+        --arch "$TARGET_ARCH" \
+        --app-name "$APP_NAME" \
+        --description "$APP_DESCRIPTION" \
+        --homepage "$APP_URL" \
+        --maintainer "$MAINTAINER" \
+        --variant "${variant:-thin}" \
+        --epoch "$TAG_EPOCH" \
+        "${signing_arguments[@]}" \
+        --url-schemes "${DESKTOP_URL_SCHEMES[@]}"
 
     rm -f "$output_path"
-    "$NSIS_BIN" "$nsis_source"
-    # Sign before the timestamp is forced: signing rewrites the file.
-    if [[ "$SIGNING_ENABLED" -eq 1 ]]; then
-        sign_pe "$output_path"
-    fi
+    NFPM_MSI_PASSPHRASE="$SIGNING_P12_PASSWORD" \
+        nfpm package --config "$config_file" --packager msi --target "$output_path"
     touch_path "$output_path"
-    log "Built NSIS installer: $output_path"
+    log "Built MSI installer: $output_path"
 }
 
 # VARIANT_SUFFIX and RUNTIME_DIR select the pair: empty / empty for thin,
 # -jbr / the jlink tree for the bundled-runtime packages.
 emit_packages() {
     local work_dir="$1"
-    local portable_root
+    local portable_root="$work_dir/${APP_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}${VARIANT_SUFFIX}"
 
+    prepare_rootfs "$portable_root"
     if [[ -n "${ENABLED_FORMATS[zip]:-}" ]]; then
-        portable_root="$work_dir/${APP_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}${VARIANT_SUFFIX}"
-        prepare_rootfs "$portable_root"
         build_zip "$portable_root"
     fi
-    if [[ -n "${ENABLED_FORMATS[nsis]:-}" ]]; then
-        build_nsis "$work_dir"
+    if [[ -n "${ENABLED_FORMATS[msi]:-}" ]]; then
+        build_msi "$work_dir" "$portable_root"
     fi
 }
 
@@ -700,10 +588,11 @@ INPUT_LAUNCHER_BIN=""
 INPUT_CORE_BIN=""
 INPUT_CORE_LIBRARY=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
-FORMATS="zip,nsis"
+FORMATS="zip,msi"
 CHECK_TOOLS=0
 PACKAGE_NAME=""
 VERSION_NAME=""
+VERSION_CODE=""
 APP_NAME=""
 APP_NAME_ZH_CN=""
 APP_DESCRIPTION=""
@@ -774,7 +663,7 @@ resolve_host_os
 resolve_target
 resolve_arch
 resolve_formats "$FORMATS"
-resolve_nsis
+resolve_nfpm
 resolve_jbr_jmods "$JBR_JMODS_ARG"
 resolve_jlink
 require_signing_tool

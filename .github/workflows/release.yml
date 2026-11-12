@@ -108,7 +108,7 @@ jobs:
             runner: ubuntu-latest
             target: windows/amd64
             package: windows
-            apt_packages: nsis osslsigncode
+            apt_packages: osslsigncode
           - id: darwin-arm64
             runner: macos-26
             target: darwin/arm64
@@ -140,14 +140,14 @@ jobs:
         # AppImage runtime's native libraries with that architecture's objcopy.
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.apt_packages }}
       - name: Cache nfpm
-        if: ${{ matrix.package == 'linux' }}
+        if: ${{ matrix.package == 'linux' || matrix.package == 'windows' }}
         id: cache-nfpm
         uses: actions/cache@v6
         with:
           path: ~/go/bin/nfpm
           key: nfpm-${{ runner.os }}-${{ runner.arch }}-${{ env.NFPM_VERSION }}
       - name: Install nfpm
-        if: ${{ matrix.package == 'linux' && steps.cache-nfpm.outputs.cache-hit != 'true' }}
+        if: ${{ (matrix.package == 'linux' || matrix.package == 'windows') && steps.cache-nfpm.outputs.cache-hit != 'true' }}
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v${NFPM_VERSION}
       - name: Install AppImage tooling
         if: ${{ matrix.package == 'linux' }}

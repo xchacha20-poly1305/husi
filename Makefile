@@ -92,7 +92,7 @@ desktop_package_windows:
 
 # Same inputs as desktop_package_windows. Also links a JetBrains Runtime into a
 # second pair of packages (names carry -jbr) so they need no system Java. Thin
-# zip/NSIS are still emitted from the same signed payloads. JBR_JMODS points at
+# zip/MSI are still emitted from the same signed payloads. JBR_JMODS points at
 # the modules; without it they are fetched into build/jbr/ first. The fetch
 # script prints the resolved path last, after the banner ./run puts in front of
 # it.

@@ -23,7 +23,7 @@ Common targets:
 | `make desktop` / `make desktop_release` | Run Compose desktop app |
 | `make desktop_uberjar` | Release jar (needs `husi-core` beside it or on `PATH`) |
 | `make desktop_package[_linux/_macos/_windows]` | Native packages |
-| `make desktop_package_windows_jbr DESKTOP_TARGET=...` | Windows zip/NSIS plus a -jbr pair with jlink JetBrains Runtime |
+| `make desktop_package_windows_jbr DESKTOP_TARGET=...` | Windows zip/MSI plus a -jbr pair with jlink JetBrains Runtime |
 | `make launcher` | Zig native UI launcher from `launcher/` |
 | `make plugin PLUGIN=<name>` | Plugin APK; valid: `hysteria2 juicity naive mieru shadowquic` |
 | `make icon` | Regenerate all icons from `art/` (needs `rsvg-convert` + ImageMagick) |
