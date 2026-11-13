@@ -1,16 +1,14 @@
 package fr.husi.tailscale
 
-import com.google.protobuf.ByteString
 import fr.husi.core.remote.CoreNotRunningException
 import fr.husi.core.remote.CoreTarget
 import fr.husi.ktx.readableMessage
-import fr.husi.repository.resolveRepository
 import fr.husi.proto.daemon.TailscaleSSHClientMessage
+import fr.husi.proto.daemon.TailscaleSSHInput
+import fr.husi.proto.daemon.TailscaleSSHResize
 import fr.husi.proto.daemon.TailscaleSSHServerMessage
-import fr.husi.proto.daemon.tailscaleSSHClientMessage
-import fr.husi.proto.daemon.tailscaleSSHInput
-import fr.husi.proto.daemon.tailscaleSSHResize
-import fr.husi.proto.daemon.tailscaleSSHStart
+import fr.husi.proto.daemon.TailscaleSSHStart
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.terminal_press_any_key
 import fr.husi.resources.terminal_session_ended
@@ -28,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okio.ByteString.Companion.toByteString
 
 class TailscaleSSHSession internal constructor(
     override val id: Long,
@@ -45,19 +44,12 @@ class TailscaleSSHSession internal constructor(
     internal var job: Job? = null
 
     internal suspend fun handle(message: TailscaleSSHServerMessage) {
-        when (message.messageCase) {
-            TailscaleSSHServerMessage.MessageCase.AUTHBANNER -> banner.value = message.authBanner.message
-            TailscaleSSHServerMessage.MessageCase.READY -> phase.value = TailscaleSSHPhase.RUNNING
-            TailscaleSSHServerMessage.MessageCase.OUTPUT -> terminal.feedOutput(message.output.data.toByteArray())
-            TailscaleSSHServerMessage.MessageCase.EXIT -> {
-                val exit = message.exit
-                finish(exit.exitCode, exit.signal, exit.errorMessage)
-            }
-
-            TailscaleSSHServerMessage.MessageCase.ERROR ->
-                finish(exitCode = SESSION_FAILED, signal = "", errorMessage = message.error.message)
-
-            TailscaleSSHServerMessage.MessageCase.MESSAGE_NOT_SET, null -> {}
+        message.authBanner?.let { banner.value = it.message }
+        message.ready?.let { phase.value = TailscaleSSHPhase.RUNNING }
+        message.output?.let { terminal.feedOutput(it.data_.toByteArray()) }
+        message.exit?.let { finish(it.exitCode, it.signal, it.errorMessage) }
+        message.error?.let {
+            finish(exitCode = SESSION_FAILED, signal = "", errorMessage = it.message)
         }
     }
 
@@ -187,7 +179,11 @@ class TailscaleSSHSessionManager(
                 session.handle(message)
             }
             // A stream that ends without an exit status lost the connection to the core.
-            session.finish(exitCode = TailscaleSSHSession.SESSION_FAILED, signal = "", errorMessage = "")
+            session.finish(
+                exitCode = TailscaleSSHSession.SESSION_FAILED,
+                signal = "",
+                errorMessage = "",
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -199,19 +195,17 @@ class TailscaleSSHSessionManager(
         }
     }
 
-    private fun startMessage(target: TailscaleSSHTarget, terminal: GhosttyTerminalSession) =
-        tailscaleSSHClientMessage {
-            start = tailscaleSSHStart {
-                endpointTag = target.endpointTag
-                peerAddress = target.peerAddress
-                username = target.login.username
-                terminalType = target.login.terminalType
-                // The view sends the real size once it is laid out.
-                columns = terminal.columns.takeIf { it > 0 } ?: DEFAULT_COLUMNS
-                rows = terminal.rows.takeIf { it > 0 } ?: DEFAULT_ROWS
-                hostKeys.addAll(target.hostKeys)
-            }
-        }
+    private fun startMessage(target: TailscaleSSHTarget, terminal: GhosttyTerminalSession) = TailscaleSSHClientMessage(
+        start = TailscaleSSHStart(
+            endpointTag = target.endpointTag,
+            peerAddress = target.peerAddress,
+            username = target.login.username,
+            terminalType = target.login.terminalType,
+            columns = terminal.columns.takeIf { it > 0 } ?: DEFAULT_COLUMNS,
+            rows = terminal.rows.takeIf { it > 0 } ?: DEFAULT_ROWS,
+            hostKeys = target.hostKeys,
+        ),
+    )
 
     private companion object {
         const val TERMINAL_REPORTED_VERSION = "husi"
@@ -226,22 +220,20 @@ private class TailscaleSSHTransport(
 ) : GhosttyTerminalSession.Transport {
     override fun sendInput(data: ByteArray) {
         requests.trySend(
-            tailscaleSSHClientMessage {
-                input = tailscaleSSHInput { this.data = ByteString.copyFrom(data) }
-            },
+            TailscaleSSHClientMessage(input = TailscaleSSHInput(data_ = data.toByteString())),
         )
     }
 
     override fun sendResize(columns: Int, rows: Int, widthPixels: Int, heightPixels: Int) {
         requests.trySend(
-            tailscaleSSHClientMessage {
-                resize = tailscaleSSHResize {
-                    this.columns = columns
-                    this.rows = rows
-                    this.widthPixels = widthPixels
-                    this.heightPixels = heightPixels
-                }
-            },
+            TailscaleSSHClientMessage(
+                resize = TailscaleSSHResize(
+                    columns = columns,
+                    rows = rows,
+                    widthPixels = widthPixels,
+                    heightPixels = heightPixels,
+                ),
+            ),
         )
     }
 

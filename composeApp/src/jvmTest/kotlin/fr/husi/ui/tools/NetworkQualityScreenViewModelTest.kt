@@ -69,16 +69,16 @@ class NetworkQualityScreenViewModelTest : HusiKoinMainDispatcherTest() {
     @Test
     fun `a final progress builds the report`() = runTest(dispatcher.scheduler) {
         fakeCore.networkQualityTestProgresses = listOf(
-            NetworkQualityTestProgress.newBuilder()
-                .setPhase(NetworkQualityPhase.Done.ordinal)
-                .setDownloadCapacity(12_000_000)
-                .setUploadCapacity(3_000_000)
-                .setDownloadRPM(900)
-                .setUploadRPM(700)
-                .setIdleLatencyMs(18)
-                .setElapsedMs(9_000)
-                .setIsFinal(true)
-                .build(),
+            NetworkQualityTestProgress(
+                phase = NetworkQualityPhase.Done.ordinal,
+                downloadCapacity = 12_000_000,
+                uploadCapacity = 3_000_000,
+                downloadRPM = 900,
+                uploadRPM = 700,
+                idleLatencyMs = 18,
+                elapsedMs = 9_000,
+                isFinal = true,
+            ),
         )
         val viewModel = newViewModel()
 
@@ -101,11 +101,11 @@ class NetworkQualityScreenViewModelTest : HusiKoinMainDispatcherTest() {
     @Test
     fun `an in-stream error alerts instead of reporting success`() =
         runTest(dispatcher.scheduler) {
-                fakeCore.networkQualityTestProgresses = listOf(
-                NetworkQualityTestProgress.newBuilder()
-                    .setIsFinal(true)
-                    .setError("fetch config: timeout")
-                    .build(),
+            fakeCore.networkQualityTestProgresses = listOf(
+                NetworkQualityTestProgress(
+                    isFinal = true,
+                    error = "fetch config: timeout",
+                ),
             )
             val viewModel = newViewModel()
 

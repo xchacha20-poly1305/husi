@@ -18,7 +18,7 @@ fun Connection.outboundLabel(): String = formatBound(outbound, outboundType)
  * Hops in traffic order, matched outbound first, the hop that dials last.
  * `chainList` runs from the dialing hop up to the matched outbound.
  */
-fun Connection.chainHops(): List<String> = chainListList.asReversed()
+fun Connection.chainHops(): List<String> = chainList.asReversed()
 
 /** Matched outbound is the first chain hop, else the direct outbound tag. */
 fun Connection.matchedOutbound(): String =
@@ -36,22 +36,21 @@ fun Connection.chainLabel(): String =
  * Go's `time.DateTime` used by the old TrackerInfo getters. Zero → empty string.
  */
 
-
 /** Process paths / package names used by the dashboard connection detail UI. */
 fun Connection.processNames(): List<String>? {
-    if (!hasProcessInfo()) return null
-    val packages = processInfo.packageNamesList
+    val processInfo = processInfo ?: return null
+    val packages = processInfo.packageNames
     if (packages.isNotEmpty()) return packages
     return processInfo.processPath.emptyAsNull()?.let { listOf(it) }
 }
 
 /**
- * UID for package-based process info, otherwise process id (desktop path).
- * Matches the old TrackerInfo mapping.
+ * UID for package-based process info, otherwise process id (desktop path). Matches the old
+ * TrackerInfo mapping.
  */
 fun Connection.processUid(): Int {
-    if (!hasProcessInfo()) return -1
-    return if (processInfo.packageNamesList.isNotEmpty()) {
+    val processInfo = processInfo ?: return -1
+    return if (processInfo.packageNames.isNotEmpty()) {
         processInfo.userId
     } else {
         processInfo.processId

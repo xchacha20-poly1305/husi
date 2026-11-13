@@ -1,10 +1,10 @@
 package fr.husi.net
 
-import com.google.protobuf.ByteString
-import fr.husi.proto.v1.WebDAVUploadRequest
-import fr.husi.proto.v1.webDAVDownloadResponse
+import fr.husi.proto.v1.WebDAVDownloadResponse
 import fr.husi.test.FakeCoreClient
 import kotlinx.coroutines.test.runTest
+import okio.Buffer
+import okio.ByteString.Companion.encodeUtf8
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -28,19 +28,23 @@ class GrpcWebDAVClientTest {
         client.upload(server, "backup.json", content)
 
         val messages = coreClient.lastWebDAVUpload
-        val head = messages.first().head
-        assertEquals(server.url, head.server.url)
-        assertEquals(server.username, head.server.username)
-        assertEquals(server.password, head.server.password)
-        assertEquals(1080, head.server.socks5.port)
+        val head = checkNotNull(messages.first().head)
+        val protoServer = checkNotNull(head.server)
+        assertEquals(server.url, protoServer.url)
+        assertEquals(server.username, protoServer.username)
+        assertEquals(server.password, protoServer.password)
+        assertEquals(1080, checkNotNull(protoServer.socks5).port)
         assertEquals("backup.json", head.name)
         assertEquals(content.size.toLong(), head.size)
 
         val chunks = messages.drop(1)
         assertTrue(chunks.size > 1, "content should span several chunks")
-        assertTrue(chunks.all { it.payloadCase == WebDAVUploadRequest.PayloadCase.CHUNK })
-        val uploaded = chunks.fold(ByteString.EMPTY) { joined, message -> joined.concat(message.chunk) }
-        assertContentEquals(content, uploaded.toByteArray())
+        assertTrue(chunks.all { it.chunk != null })
+        val uploaded =
+            Buffer()
+                .also { buffer -> chunks.forEach { buffer.write(checkNotNull(it.chunk)) } }
+                .readByteArray()
+        assertContentEquals(content, uploaded)
     }
 
     @Test
@@ -53,7 +57,7 @@ class GrpcWebDAVClientTest {
     @Test
     fun `download joins the chunks`() = runTest {
         coreClient.webdavDownloadResponses = listOf("{\"ver", "sion\":3}").map { part ->
-            webDAVDownloadResponse { chunk = ByteString.copyFromUtf8(part) }
+            WebDAVDownloadResponse(chunk = part.encodeUtf8())
         }
 
         val content = client.download(server, "backup.json")

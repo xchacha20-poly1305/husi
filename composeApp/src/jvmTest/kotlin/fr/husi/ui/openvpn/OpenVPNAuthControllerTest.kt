@@ -1,9 +1,9 @@
 package fr.husi.ui.openvpn
 
 import fr.husi.core.remote.CoreTarget
-import fr.husi.proto.daemon.openVPNChallenge
-import fr.husi.proto.daemon.openVPNEndpointStatus
-import fr.husi.proto.daemon.openVPNStatusUpdate
+import fr.husi.proto.daemon.OpenVPNChallenge
+import fr.husi.proto.daemon.OpenVPNEndpointStatus
+import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.MainDispatcherTest
 import fr.husi.vpn.OPENVPN_CHALLENGE_CREDENTIALS
@@ -155,17 +155,19 @@ class OpenVPNAuthControllerTest : MainDispatcherTest() {
     private fun statusUpdate(
         state: String = OPENVPN_STATE_AUTH_PENDING,
         challengeId: String? = "c1",
-    ) = openVPNStatusUpdate {
-        endpoints += openVPNEndpointStatus {
-            endpointTag = "home"
-            this.state = state
-            if (challengeId != null) {
-                challenge = openVPNChallenge {
-                    id = challengeId
-                    kind = OPENVPN_CHALLENGE_CREDENTIALS
-                    username = "alice"
-                }
-            }
-        }
-    }
+    ) = OpenVPNStatusUpdate(
+        endpoints = listOf(
+            OpenVPNEndpointStatus(
+                endpointTag = "home",
+                state = state,
+                challenge = challengeId?.let {
+                    OpenVPNChallenge(
+                        id = challengeId,
+                        kind = OPENVPN_CHALLENGE_CREDENTIALS,
+                        username = "alice",
+                    )
+                },
+            ),
+        ),
+    )
 }

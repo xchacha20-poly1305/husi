@@ -10,8 +10,8 @@ fun OpenConnectEndpointStatus.toState() = OpenConnectEndpointState(
     tag = endpointTag,
     state = state,
     error = error,
-    authChallenge = if (hasAuthChallenge()) authChallenge.toState() else null,
-    tunnelInfo = if (hasTunnelInfo()) tunnelInfo.toState() else null,
+    authChallenge = authChallenge?.toState(),
+    tunnelInfo = tunnelInfo?.toState(),
 )
 
 fun OpenConnectAuthChallenge.toState() = OpenConnectAuthChallengeState(
@@ -19,20 +19,20 @@ fun OpenConnectAuthChallenge.toState() = OpenConnectAuthChallengeState(
     banner = banner,
     message = message,
     error = error,
-    form = if (hasForm()) form.toState() else null,
-    browser = if (hasBrowser()) browser.toState() else null,
+    form = form?.toState(),
+    browser = browser?.toState(),
 )
 
 fun OpenConnectAuthForm.toState(): OpenConnectAuthFormState {
-    val fields = fieldsList.map { field ->
+    val fields = fields.map { field ->
         OpenConnectAuthField(
             submissionKey = field.submissionKey,
             name = field.name,
             label = field.label,
             kind = field.kind,
-            value = field.value,
-            options = field.optionsList.map { option ->
-                OpenConnectAuthChoice(value = option.value, label = option.label)
+            value = field.value_,
+            options = field.options.map { option ->
+                OpenConnectAuthChoice(value = option.value_, label = option.label)
             },
         )
     }
@@ -43,19 +43,19 @@ fun OpenConnectBrowserRequest.toState() = OpenConnectBrowserRequestState(
     url = url,
     finalUrl = finalURL,
     cacheId = cacheID,
-    cookieNames = cookieNamesList,
-    earlyCookieNames = earlyCookieNamesList,
-    headerNames = headerNamesList,
-    callbackUrlPrefixes = callbackURLPrefixesList,
+    cookieNames = cookieNames,
+    earlyCookieNames = earlyCookieNames,
+    headerNames = headerNames,
+    callbackUrlPrefixes = callbackURLPrefixes,
 )
 
 fun OpenConnectTunnelInfo.toState() = OpenConnectTunnelInfoState(
     server = server,
     flavor = flavor,
     transport = transport,
-    ipv4 = ipv4List,
-    ipv6 = ipv6List,
-    dns = dnsList,
+    ipv4 = ipv4,
+    ipv6 = ipv6,
+    dns = dns,
     mtu = mtu,
     connectedSince = connectedSince,
 )

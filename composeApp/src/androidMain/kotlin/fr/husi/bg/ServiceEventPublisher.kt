@@ -13,15 +13,15 @@ import fr.husi.repository.resolveAndroidRepository
 object ServiceEventPublisher {
 
     fun publishState(state: ServiceState, profileName: String?) {
-        publish(ServiceEvent.State(state, profileName).toProto().toByteArray())
+        publish(ServiceEvent.State(state, profileName).toProto().encode())
     }
 
     fun publishSpeed(stats: SpeedStats) {
-        publish(ServiceEvent.Speed(stats).toProto().toByteArray())
+        publish(ServiceEvent.Speed(stats).toProto().encode())
     }
 
     fun publishAlert(alert: ServiceAlert) {
-        publish(ServiceEvent.Alert(alert).toProto().toByteArray())
+        publish(ServiceEvent.Alert(alert).toProto().encode())
     }
 
     private fun publish(bytes: ByteArray) {

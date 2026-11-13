@@ -6,15 +6,18 @@ import fr.husi.proto.daemon.ClashMode
 import fr.husi.proto.daemon.ClashModeStatus
 import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.proto.daemon.DefaultLogLevel
+import fr.husi.proto.daemon.DownloadTaildropFileChunk
 import fr.husi.proto.daemon.Groups
 import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.NetworkQualityTestProgress
 import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
-import fr.husi.proto.daemon.DownloadTaildropFileChunk
 import fr.husi.proto.daemon.OpenVPNChallengeSubmission
 import fr.husi.proto.daemon.OpenVPNStatusUpdate
 import fr.husi.proto.daemon.OutboundList
+import fr.husi.proto.daemon.STUNTestProgress
+import fr.husi.proto.daemon.ServiceStatus
+import fr.husi.proto.daemon.Status
 import fr.husi.proto.daemon.TaildropInbox
 import fr.husi.proto.daemon.TaildropSendClientMessage
 import fr.husi.proto.daemon.TaildropSendServerMessage
@@ -23,19 +26,17 @@ import fr.husi.proto.daemon.TailscalePingResponse
 import fr.husi.proto.daemon.TailscaleSSHClientMessage
 import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.proto.daemon.TailscaleStatusUpdate
-import fr.husi.proto.daemon.STUNTestProgress
-import fr.husi.proto.daemon.ServiceStatus
-import fr.husi.proto.daemon.Status
 import fr.husi.proto.daemon.Version
+import fr.husi.proto.v1.AndroidVPNType
 import fr.husi.proto.v1.GetCertMode
 import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetVersionResponse
 import fr.husi.proto.v1.HTTPFetchRequest
 import fr.husi.proto.v1.HTTPFetchResponse
+import fr.husi.proto.v1.Ownership
 import fr.husi.proto.v1.PingProtocol
 import fr.husi.proto.v1.PluginProcessSpec
-import fr.husi.proto.v1.AndroidVPNType
 import fr.husi.proto.v1.RootCertificateStore
 import fr.husi.proto.v1.SchemaKind
 import fr.husi.proto.v1.StartServiceRequest
@@ -46,16 +47,16 @@ import fr.husi.proto.v1.WebDAVDownloadResponse
 import fr.husi.proto.v1.WebDAVListRequest
 import fr.husi.proto.v1.WebDAVListResponse
 import fr.husi.proto.v1.WebDAVUploadRequest
-import java.io.File
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import java.io.File
 import kotlin.time.Duration
 
 /**
@@ -83,8 +84,7 @@ open class FakeCoreClient : CoreClient {
     override fun subscribeStatus(interval: Duration): Flow<Status> = statusFlow
     override fun subscribeLog(): Flow<Log> = logFlow
     override suspend fun clearLogs() = Unit
-    override suspend fun getDefaultLogLevel(): DefaultLogLevel =
-        DefaultLogLevel.getDefaultInstance()
+    override suspend fun getDefaultLogLevel(): DefaultLogLevel = DefaultLogLevel()
 
     override fun subscribeConnections(interval: Duration): Flow<ConnectionEvents> = connectionsFlow
     override suspend fun closeConnection(id: String) = Unit
@@ -93,14 +93,12 @@ open class FakeCoreClient : CoreClient {
     override fun subscribeOutbounds(): Flow<OutboundList> = emptyFlow()
     override suspend fun selectOutbound(groupTag: String, outboundTag: String) = Unit
     override suspend fun setGroupExpand(groupTag: String, expand: Boolean) = Unit
-    override suspend fun getClashModeStatus(): ClashModeStatus =
-        ClashModeStatus.getDefaultInstance()
+    override suspend fun getClashModeStatus(): ClashModeStatus = ClashModeStatus()
 
     override fun subscribeClashMode(): Flow<ClashMode> = emptyFlow()
     override suspend fun setClashMode(mode: String) = Unit
     override fun subscribeOpenConnectStatus(): Flow<OpenConnectStatusUpdate> = openConnectFlow
-    override suspend fun submitOpenConnectAuthResponse(submission: OpenConnectAuthResponseSubmission) =
-        Unit
+    override suspend fun submitOpenConnectAuthResponse(submission: OpenConnectAuthResponseSubmission) = Unit
 
     override suspend fun cancelOpenConnectAuthChallenge(endpointTag: String, challengeId: String) =
         Unit
@@ -142,7 +140,7 @@ open class FakeCoreClient : CoreClient {
     }
 
     var lastTailscaleCertificate: Triple<String, String, Long>? = null
-    var nextTailscaleCertificate: TailscaleCertificate = TailscaleCertificate.getDefaultInstance()
+    var nextTailscaleCertificate: TailscaleCertificate = TailscaleCertificate()
 
     override suspend fun getTailscaleCertificate(
         tag: String,
@@ -228,10 +226,10 @@ open class FakeCoreClient : CoreClient {
         daemonUrlTestCalls += 1
     }
 
-    var nextVersion: GetVersionResponse = GetVersionResponse.getDefaultInstance()
+    var nextVersion: GetVersionResponse = GetVersionResponse()
     var getVersionCalls: Int = 0
     var getVersionThrowable: Throwable? = null
-    var nextDaemonVersion: Version = Version.getDefaultInstance()
+    var nextDaemonVersion: Version = Version()
     var nextStartedAt: Long = 0L
     var lastDaemonUrlTestTag: String? = null
     var daemonUrlTestCalls: Int = 0
@@ -366,8 +364,7 @@ open class FakeCoreClient : CoreClient {
         return replay(httpFetchResponses, httpFetchThrowable)
     }
 
-    override suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse =
-        WebDAVListResponse.getDefaultInstance()
+    override suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse = WebDAVListResponse()
 
     /** Every message of the last [webdavUpload], in order. */
     var lastWebDAVUpload: List<WebDAVUploadRequest> = emptyList()
@@ -402,6 +399,7 @@ open class FakeCoreClient : CoreClient {
         lastIPServer = server
         return detectedIP
     }
+
     override suspend fun lookupIPCountry(dir: File, ip: String): String = detectedCountry
 
     override suspend fun matchRuleSets(dir: File, keyword: String): List<String> = emptyList()
@@ -412,7 +410,7 @@ open class FakeCoreClient : CoreClient {
 
     override suspend fun resetNetwork() = Unit
     override suspend fun runTask(taskId: String) = Unit
-    var nextDaemonInfo: GetDaemonInfoResponse = GetDaemonInfoResponse.getDefaultInstance()
+    var nextDaemonInfo: GetDaemonInfoResponse = GetDaemonInfoResponse(ownership = Ownership())
     var claimServiceCalls: Int = 0
     var takeOverServiceCalls: Int = 0
     var takeOverServiceThrowable: Throwable? = null
@@ -441,6 +439,7 @@ open class FakeCoreClient : CoreClient {
         takeOverServiceThrowable?.let { throw it }
         takeOverServiceCalls += 1
     }
+
     var lastStartServiceRequest: StartServiceRequest? = null
     var startServiceCalls: Int = 0
     var stopServiceCalls: Int = 0
@@ -461,8 +460,8 @@ open class FakeCoreClient : CoreClient {
         delay(stopServiceDelay)
         stopServiceThrowable?.let { throw it }
     }
-    var nextClientMetadata: GetClientMetadataResponse =
-        GetClientMetadataResponse.getDefaultInstance()
+
+    var nextClientMetadata: GetClientMetadataResponse = GetClientMetadataResponse()
 
     override suspend fun getClientMetadata(): GetClientMetadataResponse = nextClientMetadata
 

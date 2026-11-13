@@ -61,8 +61,8 @@ class TaildropInboxViewModel(
                 val target = repository.snapshot.mapNotNull { it.target }.first()
                 uiState.update { it.copy(filesDirectory = filesDirectoryOf(target)) }
                 target.client.subscribeTaildropInbox(endpointTag).collect { inbox ->
-                    val files = inbox.filesList.map { it.toState() }
-                    val receiving = inbox.receivingList.map { it.toState() }
+                    val files = inbox.files.map { it.toState() }
+                    val receiving = inbox.receiving.map { it.toState() }
                     uiState.update { it.copy(files = files, receiving = receiving) }
                     if (files.isNotEmpty()) {
                         try {

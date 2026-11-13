@@ -21,16 +21,15 @@ fun reconciliationFor(
     coreStatus: ServiceStatus.Type,
     localState: ServiceState,
 ): CoreStateReconciliation? = when (coreStatus) {
-    ServiceStatus.Type.STARTED ->
-        CoreStateReconciliation.Adopt.takeIf { !localState.connected }
+    ServiceStatus.Type.STARTED -> CoreStateReconciliation.Adopt.takeIf { !localState.connected }
 
-    ServiceStatus.Type.STARTING ->
-        CoreStateReconciliation.MarkStarting.takeIf { !localState.started }
+    ServiceStatus.Type.STARTING -> CoreStateReconciliation.MarkStarting.takeIf { !localState.started }
 
     ServiceStatus.Type.STOPPING -> null
 
-    ServiceStatus.Type.IDLE, ServiceStatus.Type.FATAL ->
-        CoreStateReconciliation.Abandon.takeIf { localState.canStop }
+    is ServiceStatus.Type.Unrecognized -> null
 
-    ServiceStatus.Type.UNRECOGNIZED -> null
+    ServiceStatus.Type.IDLE,
+    ServiceStatus.Type.FATAL,
+        -> CoreStateReconciliation.Abandon.takeIf { localState.canStop }
 }

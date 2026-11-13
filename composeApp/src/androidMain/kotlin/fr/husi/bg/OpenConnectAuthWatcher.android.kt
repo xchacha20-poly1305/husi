@@ -16,10 +16,10 @@ object OpenConnectAuthWatcher {
         pending = {
             subscribeOpenConnectStatus().map { update ->
                 firstVpnAuthPending(
-                    endpoints = update.endpointsList,
+                    endpoints = update.endpoints,
                     state = { it.state },
                     challengeId = { status ->
-                        status.authChallenge.takeIf { status.hasAuthChallenge() }?.id
+                        status.authChallenge?.id
                     },
                     tag = { it.endpointTag },
                 )

@@ -1,10 +1,10 @@
 package fr.husi.tailscale
 
 import fr.husi.core.remote.CoreTarget
-import fr.husi.proto.daemon.tailscaleEndpointStatus
-import fr.husi.proto.daemon.tailscalePeer
-import fr.husi.proto.daemon.tailscaleStatusUpdate
-import fr.husi.proto.daemon.tailscaleUserGroup
+import fr.husi.proto.daemon.TailscaleEndpointStatus
+import fr.husi.proto.daemon.TailscalePeer
+import fr.husi.proto.daemon.TailscaleStatusUpdate
+import fr.husi.proto.daemon.TailscaleUserGroup
 import fr.husi.test.FakeCoreClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelChildren
@@ -23,10 +23,7 @@ class TailscaleStatusTest {
 
     @Test
     fun `peer id prefers the dns name and the display name is its first label`() {
-        val peer = tailscalePeer {
-            hostName = "other"
-            dnsName = "laptop.tailnet.ts.net"
-        }.toState()
+        val peer = TailscalePeer(hostName = "other", dnsName = "laptop.tailnet.ts.net").toState()
 
         assertEquals("laptop.tailnet.ts.net", peer.id)
         assertEquals("laptop", peer.displayName)
@@ -34,10 +31,7 @@ class TailscaleStatusTest {
 
     @Test
     fun `the dns name drops the trailing root dot`() {
-        val peer = tailscalePeer {
-            hostName = "other"
-            dnsName = "laptop.tailnet.ts.net."
-        }.toState()
+        val peer = TailscalePeer(hostName = "other", dnsName = "laptop.tailnet.ts.net.").toState()
 
         assertEquals("laptop.tailnet.ts.net", peer.dnsName)
         assertEquals("laptop.tailnet.ts.net", peer.id)
@@ -45,9 +39,7 @@ class TailscaleStatusTest {
 
     @Test
     fun `peer id and display name fall back to the host name`() {
-        val peer = tailscalePeer {
-            hostName = "laptop"
-        }.toState()
+        val peer = TailscalePeer(hostName = "laptop").toState()
 
         assertEquals("laptop", peer.id)
         assertEquals("laptop", peer.displayName)
@@ -55,10 +47,7 @@ class TailscaleStatusTest {
 
     @Test
     fun `a dns name without a dot is the display name`() {
-        val peer = tailscalePeer {
-            hostName = "other"
-            dnsName = "laptop"
-        }.toState()
+        val peer = TailscalePeer(hostName = "other", dnsName = "laptop").toState()
 
         assertEquals("laptop", peer.id)
         assertEquals("laptop", peer.displayName)
@@ -66,54 +55,51 @@ class TailscaleStatusTest {
 
     @Test
     fun `endpoint status maps self, the exit node, and grouped peers`() {
-        val endpoint = tailscaleEndpointStatus {
-            endpointTag = "ts"
-            backendState = "Running"
-            stateText = "Running"
-            authURL = "https://login.tailscale.com/a/x"
-            networkName = "tailnet"
-            magicDNSSuffix = "tailnet.ts.net"
-            self = tailscalePeer {
-                hostName = "phone"
-                dnsName = "phone.tailnet.ts.net"
-                stableID = "self"
-            }
-            exitNode = tailscalePeer {
-                hostName = "exit-host"
-                stableID = "exit"
-            }
-            userGroups.add(
-                tailscaleUserGroup {
-                    userID = 7L
-                    loginName = "ada@example.com"
-                    displayName = "Ada"
-                    profilePicURL = "https://example.com/ada.png"
-                    peers.add(
-                        tailscalePeer {
-                            hostName = "laptop"
-                            dnsName = "laptop.tailnet.ts.net"
-                            os = "linux"
-                            tailscaleIPs.add("100.64.0.2")
-                            online = true
-                            exitNodeOption = true
-                            active = true
-                            rxBytes = 1L
-                            txBytes = 2L
-                            keyExpiry = 3L
-                            stableID = "peer"
-                            sshHostKeys.add("ssh-ed25519 AAAA")
-                            lastSeen = 4L
-                            canReceiveFiles = true
-                        },
-                    )
-                },
-            )
-            keyAuth = true
-            canShareFiles = true
-            waitingFileCount = 1
-            receivingFileCount = 2
-            unreadFileCount = 3
-        }.toState()
+        val endpoint = TailscaleEndpointStatus(
+            endpointTag = "ts",
+            backendState = "Running",
+            stateText = "Running",
+            authURL = "https://login.tailscale.com/a/x",
+            networkName = "tailnet",
+            magicDNSSuffix = "tailnet.ts.net",
+            self = TailscalePeer(
+                hostName = "phone",
+                dnsName = "phone.tailnet.ts.net",
+                stableID = "self",
+            ),
+            exitNode = TailscalePeer(hostName = "exit-host", stableID = "exit"),
+            userGroups = listOf(
+                TailscaleUserGroup(
+                    userID = 7L,
+                    loginName = "ada@example.com",
+                    displayName = "Ada",
+                    profilePicURL = "https://example.com/ada.png",
+                    peers = listOf(
+                        TailscalePeer(
+                            hostName = "laptop",
+                            dnsName = "laptop.tailnet.ts.net",
+                            os = "linux",
+                            tailscaleIPs = listOf("100.64.0.2"),
+                            online = true,
+                            exitNodeOption = true,
+                            active = true,
+                            rxBytes = 1L,
+                            txBytes = 2L,
+                            keyExpiry = 3L,
+                            stableID = "peer",
+                            sshHostKeys = listOf("ssh-ed25519 AAAA"),
+                            lastSeen = 4L,
+                            canReceiveFiles = true,
+                        ),
+                    ),
+                ),
+            ),
+            keyAuth = true,
+            canShareFiles = true,
+            waitingFileCount = 1,
+            receivingFileCount = 2,
+            unreadFileCount = 3,
+        ).toState()
 
         assertEquals("ts", endpoint.endpointTag)
         assertEquals("Running", endpoint.backendState)
@@ -145,7 +131,7 @@ class TailscaleStatusTest {
 
     @Test
     fun `absent self and exit node stay null`() {
-        val endpoint = tailscaleEndpointStatus { endpointTag = "ts" }.toState()
+        val endpoint = TailscaleEndpointStatus(endpointTag = "ts").toState()
 
         assertNull(endpoint.selfPeer)
         assertNull(endpoint.exitNode)
@@ -155,25 +141,21 @@ class TailscaleStatusTest {
 
     @Test
     fun `this device alone is not an exit node candidate`() {
-        val endpoint = tailscaleEndpointStatus {
-            endpointTag = "ts"
-            self = tailscalePeer {
-                hostName = "phone"
-                stableID = "self"
-                exitNodeOption = true
-            }
-            userGroups.add(
-                tailscaleUserGroup {
-                    peers.add(
-                        tailscalePeer {
-                            hostName = "phone"
-                            stableID = "self"
-                            exitNodeOption = true
-                        },
-                    )
-                },
-            )
-        }.toState()
+        val endpoint = TailscaleEndpointStatus(
+            endpointTag = "ts",
+            self = TailscalePeer(hostName = "phone", stableID = "self", exitNodeOption = true),
+            userGroups = listOf(
+                TailscaleUserGroup(
+                    peers = listOf(
+                        TailscalePeer(
+                            hostName = "phone",
+                            stableID = "self",
+                            exitNodeOption = true,
+                        ),
+                    ),
+                ),
+            ),
+        ).toState()
 
         assertFalse(endpoint.hasExitNodeCandidates)
     }
@@ -187,17 +169,14 @@ class TailscaleStatusTest {
         val collecting = launch { repository.snapshot.collect { } }
         advanceUntilIdle()
         coreClient.tailscaleStatusFlow.emit(
-            tailscaleStatusUpdate {
-                endpoints.add(
-                    tailscaleEndpointStatus {
-                        endpointTag = "ts"
-                        self = tailscalePeer {
-                            hostName = "phone"
-                            dnsName = "phone.tailnet.ts.net"
-                        }
-                    },
-                )
-            },
+            TailscaleStatusUpdate(
+                endpoints = listOf(
+                    TailscaleEndpointStatus(
+                        endpointTag = "ts",
+                        self = TailscalePeer(hostName = "phone", dnsName = "phone.tailnet.ts.net"),
+                    ),
+                ),
+            ),
         )
         advanceUntilIdle()
 
@@ -206,7 +185,7 @@ class TailscaleStatusTest {
         assertEquals("phone.tailnet.ts.net", peer?.id)
         assertEquals("phone", peer?.displayName)
 
-        coreClient.tailscaleStatusFlow.emit(tailscaleStatusUpdate { })
+        coreClient.tailscaleStatusFlow.emit(TailscaleStatusUpdate())
         advanceUntilIdle()
         assertEquals(emptyList(), repository.snapshot.value.endpoints)
         collecting.cancel()
@@ -222,9 +201,7 @@ class TailscaleStatusTest {
         val collecting = launch { repository.snapshot.collect { } }
         advanceUntilIdle()
         coreClient.tailscaleStatusFlow.emit(
-            tailscaleStatusUpdate {
-                endpoints.add(tailscaleEndpointStatus { endpointTag = "ts" })
-            },
+            TailscaleStatusUpdate(endpoints = listOf(TailscaleEndpointStatus(endpointTag = "ts"))),
         )
         advanceUntilIdle()
         assertEquals("ts", repository.snapshot.value.endpoints.single().endpointTag)
@@ -246,14 +223,14 @@ class TailscaleStatusTest {
         val collecting = launch { repository.snapshot.collect { } }
         advanceUntilIdle()
         localClient.tailscaleStatusFlow.emit(
-            tailscaleStatusUpdate {
-                endpoints.add(tailscaleEndpointStatus { endpointTag = "local" })
-            },
+            TailscaleStatusUpdate(
+                endpoints = listOf(TailscaleEndpointStatus(endpointTag = "local")),
+            ),
         )
         remoteClient.tailscaleStatusFlow.emit(
-            tailscaleStatusUpdate {
-                endpoints.add(tailscaleEndpointStatus { endpointTag = "remote" })
-            },
+            TailscaleStatusUpdate(
+                endpoints = listOf(TailscaleEndpointStatus(endpointTag = "remote")),
+            ),
         )
         advanceUntilIdle()
         assertEquals("local", repository.snapshot.value.endpoints.single().endpointTag)

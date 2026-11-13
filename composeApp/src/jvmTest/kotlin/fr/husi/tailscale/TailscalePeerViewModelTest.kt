@@ -1,10 +1,9 @@
 package fr.husi.tailscale
 
 import fr.husi.core.remote.CoreTarget
+import fr.husi.proto.daemon.TailscaleEndpointStatus
 import fr.husi.proto.daemon.TailscalePingResponse
-import fr.husi.proto.daemon.tailscaleEndpointStatus
-import fr.husi.proto.daemon.tailscalePingResponse
-import fr.husi.proto.daemon.tailscaleStatusUpdate
+import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.MainDispatcherTest
 import kotlinx.coroutines.CoroutineScope
@@ -26,14 +25,14 @@ class TailscalePeerViewModelTest : MainDispatcherTest() {
         val client = object : FakeCoreClient() {
             override fun tailscalePing(tag: String, ip: String): Flow<TailscalePingResponse> = flow {
                 repeat(TAILSCALE_PING_HISTORY_SIZE + 1) { index ->
-                    emit(tailscalePingResponse { latencyMs = (index + 1).toDouble() })
+                    emit(TailscalePingResponse(latencyMs = (index + 1).toDouble()))
                 }
             }
         }
         client.tailscaleStatusFlow.tryEmit(
-            tailscaleStatusUpdate {
-                endpoints.add(tailscaleEndpointStatus { endpointTag = "ts" })
-            },
+            TailscaleStatusUpdate(
+                endpoints = listOf(TailscaleEndpointStatus(endpointTag = "ts")),
+            ),
         )
         val viewModel = TailscalePeerViewModel(
             endpointTag = "ts",

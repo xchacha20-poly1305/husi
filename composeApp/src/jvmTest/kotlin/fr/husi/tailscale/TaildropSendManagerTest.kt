@@ -5,9 +5,8 @@ import fr.husi.core.KurpcCoreClient
 import fr.husi.core.TAILDROP_CHUNK_SIZE
 import fr.husi.core.remote.CoreTarget
 import fr.husi.proto.daemon.TaildropSendClientMessage
+import fr.husi.proto.daemon.TaildropSendProgress
 import fr.husi.proto.daemon.TaildropSendServerMessage
-import fr.husi.proto.daemon.taildropSendProgress
-import fr.husi.proto.daemon.taildropSendServerMessage
 import io.github.xchacha20_poly1305.kurpc.CallOptions
 import io.github.xchacha20_poly1305.kurpc.UnaryResponse
 import kotlinx.coroutines.CompletableDeferred
@@ -89,19 +88,25 @@ class TaildropSendManagerTest {
             ),
             messages.map { it.kind() },
         )
-        val start = messages.first().start
+        val start = checkNotNull(messages.first().start)
         assertEquals("ts", start.endpointTag)
         assertEquals("peer-stable", start.peerStableID)
         assertEquals(
             listOf("big.bin" to payload.size.toLong(), "note.txt" to 4L),
-            start.filesList.map { it.name to it.size },
+            start.files.map { it.name to it.size },
         )
-        assertContentEquals(payload.copyOfRange(0, TAILDROP_CHUNK_SIZE), messages[1].chunk.data.toByteArray())
+        assertContentEquals(
+            payload.copyOfRange(0, TAILDROP_CHUNK_SIZE),
+            checkNotNull(messages[1].chunk).data_.toByteArray(),
+        )
         assertContentEquals(
             payload.copyOfRange(TAILDROP_CHUNK_SIZE, payload.size),
-            messages[2].chunk.data.toByteArray(),
+            checkNotNull(messages[2].chunk).data_.toByteArray(),
         )
-        assertContentEquals("abcd".encodeToByteArray(), messages[4].chunk.data.toByteArray())
+        assertContentEquals(
+            "abcd".encodeToByteArray(),
+            checkNotNull(messages[4].chunk).data_.toByteArray(),
+        )
 
         channel.finish()
         advanceUntilIdle()
@@ -128,23 +133,20 @@ class TaildropSendManagerTest {
         advanceUntilIdle()
 
         val start = channel.clientMessages().first()
-        assertTrue(start.hasStart())
-        assertEquals(TAILDROP_UNKNOWN_SIZE, start.start.filesList.single().size)
+        assertTrue(start.start != null)
+        assertEquals(TAILDROP_UNKNOWN_SIZE, checkNotNull(start.start).files.single().size)
         assertEquals(TAILDROP_UNKNOWN_SIZE, file(manager).size)
         assertEquals(0, file(manager).sentBytes)
 
-        channel.respond(taildropSendServerMessage { receivedBytes = 50L })
+        channel.respond(TaildropSendServerMessage(receivedBytes = 50L))
         advanceUntilIdle()
         assertEquals(0L, file(manager).sentBytes)
         assertFalse(file(manager).completed)
 
         channel.respond(
-            taildropSendServerMessage {
-                progress = taildropSendProgress {
-                    fileIndex = 0
-                    sentBytes = 2L
-                }
-            },
+            TaildropSendServerMessage(
+                progress = TaildropSendProgress(fileIndex = 0, sentBytes = 2L),
+            ),
         )
         advanceUntilIdle()
         assertEquals(2L, file(manager).sentBytes)
@@ -152,13 +154,9 @@ class TaildropSendManagerTest {
         assertFalse(file(manager).completed)
 
         channel.respond(
-            taildropSendServerMessage {
-                progress = taildropSendProgress {
-                    fileIndex = 0
-                    sentBytes = 5L
-                    fileCompleted = true
-                }
-            },
+            TaildropSendServerMessage(
+                progress = TaildropSendProgress(fileIndex = 0, sentBytes = 5L, fileCompleted = true),
+            ),
         )
         advanceUntilIdle()
         assertEquals(5L, file(manager).sentBytes)
@@ -167,13 +165,9 @@ class TaildropSendManagerTest {
         assertFalse(manager.sessions.value.single().finished)
 
         channel.respond(
-            taildropSendServerMessage {
-                progress = taildropSendProgress {
-                    fileIndex = 4
-                    sentBytes = 99L
-                    fileCompleted = true
-                }
-            },
+            TaildropSendServerMessage(
+                progress = TaildropSendProgress(fileIndex = 4, sentBytes = 99L, fileCompleted = true),
+            ),
         )
         advanceUntilIdle()
         assertEquals(5L, file(manager).sentBytes)
@@ -222,9 +216,9 @@ class TaildropSendManagerTest {
 private fun file(manager: TaildropSendManager) = manager.sessions.value.single().files.single()
 
 private fun TaildropSendClientMessage.kind(): String = when {
-    hasStart() -> "start"
-    hasChunk() -> "chunk:${chunk.data.size()}"
-    hasFileDone() -> "fileDone"
+    start != null -> "start"
+    chunk != null -> "chunk:${checkNotNull(chunk).data_.size}"
+    fileDone != null -> "fileDone"
     else -> "empty"
 }
 
@@ -255,25 +249,31 @@ private class ScriptedCoreChannel : CoreChannel {
     private val requests = mutableListOf<ByteArray>()
     private val responses = Channel<ByteArray>(Channel.UNLIMITED)
 
-    fun clientMessages(): List<TaildropSendClientMessage> =
-        synchronized(requests) { requests.toList() }.map { TaildropSendClientMessage.parseFrom(it) }
+    fun clientMessages(): List<TaildropSendClientMessage> = synchronized(requests) {
+        requests.toList()
+    }.map {
+        TaildropSendClientMessage.ADAPTER.decode(it)
+    }
 
     fun respond(message: TaildropSendServerMessage) {
-        check(responses.trySend(message.toByteArray()).isSuccess)
+        check(responses.trySend(message.encode()).isSuccess)
     }
 
     fun finish() {
         responses.close()
     }
 
-    override suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray =
-        error("unexpected unary $method")
+    override suspend fun unary(
+        method: String, request: ByteArray, options: CallOptions,
+    ): ByteArray = error("unexpected unary $method")
 
-    override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions): UnaryResponse =
-        error("unexpected unaryCall $method")
+    override suspend fun unaryCall(
+        method: String, request: ByteArray, options: CallOptions,
+    ): UnaryResponse = error("unexpected unaryCall $method")
 
-    override fun serverStreaming(method: String, request: ByteArray, options: CallOptions): Flow<ByteArray> =
-        error("unexpected server stream $method")
+    override fun serverStreaming(
+        method: String, request: ByteArray, options: CallOptions,
+    ): Flow<ByteArray> = error("unexpected server stream $method")
 
     override suspend fun clientStreaming(
         method: String,
@@ -281,24 +281,29 @@ private class ScriptedCoreChannel : CoreChannel {
         options: CallOptions,
     ): ByteArray = error("unexpected client stream $method")
 
-    override fun bidiStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): Flow<ByteArray> = flow {
-        methods += method
-        coroutineScope {
-            val incoming = launch {
-                requests.collect { message ->
-                    synchronized(this@ScriptedCoreChannel.requests) {
-                        this@ScriptedCoreChannel.requests += message
+    override fun bidiStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): Flow<ByteArray> =
+        flow {
+            methods += method
+            coroutineScope {
+                val incoming = launch {
+                    requests.collect { message ->
+                        synchronized(this@ScriptedCoreChannel.requests) {
+                            this@ScriptedCoreChannel.requests += message
+                        }
+                        if (pauseAfterEachRequest) {
+                            continueRequests.await()
+                        }
                     }
-                    if (pauseAfterEachRequest) continueRequests.await()
+                }
+                try {
+                    for (response in responses) {
+                        emit(response)
+                    }
+                } finally {
+                    incoming.cancel()
                 }
             }
-            try {
-                for (response in responses) emit(response)
-            } finally {
-                incoming.cancel()
-            }
         }
-    }
 
     override fun close() = Unit
 }

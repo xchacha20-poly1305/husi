@@ -17,8 +17,8 @@ internal class LogFile(private val file: File, private val level: LogLevel, trun
     }
 
     fun write(level: LogLevel, tag: String, message: String) {
-        if (level.number > this.level.number) return
-        val line = "${level.name} [$tag] $message\n"
+        if (level.value > this.level.value) return
+        val line = "$level [$tag] $message\n"
         synchronized(lock) {
             try {
                 output?.write(line.encodeToByteArray())

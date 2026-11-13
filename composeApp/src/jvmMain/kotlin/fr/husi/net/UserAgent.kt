@@ -17,6 +17,6 @@ suspend fun buildUserAgent(
     if (BOX_VERSION_ESCAPE !in userAgent) {
         return userAgent
     }
-    val boxVersion = coreVersionCache.get()?.singBoxVersion ?: "unknown"
+    val boxVersion = coreVersionCache.get()?.sing_box_version ?: "unknown"
     return userAgent.replace(BOX_VERSION_ESCAPE, boxVersion)
 }

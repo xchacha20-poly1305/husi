@@ -1,7 +1,7 @@
 package fr.husi.ui.openvpn
 
 import fr.husi.core.remote.CoreTarget
-import fr.husi.proto.daemon.openVPNChallengeSubmission
+import fr.husi.proto.daemon.OpenVPNChallengeSubmission
 import fr.husi.vpn.OPENVPN_STATE_AUTH_PENDING
 import fr.husi.vpn.OpenVPNChallengeState
 import fr.husi.vpn.OpenVPNEndpointState
@@ -23,7 +23,7 @@ class OpenVPNAuthController(
         targets = targets,
         subscribe = { client ->
             client.subscribeOpenVPNStatus().map { update ->
-                update.endpointsList.map { it.toState() }
+                update.endpoints.map { it.toState() }
             }
         },
         pendingOf = { endpoint ->
@@ -58,13 +58,13 @@ class OpenVPNAuthController(
         secret: String,
     ): String? = session.perform("submit openvpn auth challenge") { target ->
         target.client.submitOpenVPNChallengeResponse(
-            openVPNChallengeSubmission {
-                this.endpointTag = endpointTag
-                challengeID = challenge.id
-                this.username = username
-                this.password = password
-                this.secret = secret
-            },
+            OpenVPNChallengeSubmission(
+                endpointTag = endpointTag,
+                challengeID = challenge.id,
+                username = username,
+                password = password,
+                secret = secret,
+            ),
         )
     }
 

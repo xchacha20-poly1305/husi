@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import fr.husi.proto.daemon.LogLevel
 import fr.husi.remote.RemoteState
 
 internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel() {
@@ -16,7 +17,12 @@ internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel()
 
     private fun liveEntries() =
         remote.logs.map { message ->
-            TerminalLogEntry(message.level.name, message.message)
+            val level = if (message.level is LogLevel.Unrecognized) {
+                "UNKNOWN"
+            } else {
+                message.level.toString()
+            }
+            TerminalLogEntry(level, message.message)
         }
 
     val presentation: LogcatPresentation<String>

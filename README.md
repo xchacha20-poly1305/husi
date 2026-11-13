@@ -488,7 +488,7 @@ Nothing in husi checks the signature at runtime.
 
 #### 🌐 Web dashboard (Wasm)
 
-Build with Node.js 26+, `protoc` (the version in [version.sh](./buildScript/init/version.sh)) and the project's JDK:
+Build with Node.js 26+ and the project's JDK:
 
 ```shell
 make web
@@ -496,7 +496,7 @@ make web_run
 make web_zip
 ```
 
-No libcore binary, route assets or native plugin builds are needed. Output is under `composeApp/build/dist/wasmJs/productionExecutable/`; the ZIP is under `composeApp/build/distributions/`. Serve the files through HTTP(S), including all relative paths. Opening `index.html` through `file://` is not supported.
+No libcore binary, route assets, protoc or native plugin builds are needed. Output is under `composeApp/build/dist/wasmJs/productionExecutable/`; the ZIP is under `composeApp/build/distributions/`. Serve the files through HTTP(S), including all relative paths. Opening `index.html` through `file://` is not supported.
 
 Configure the [sing-box API service](https://sing-box.sagernet.org/configuration/service/api/) under the root `services` array (sing-box 1.14.0 or later). Add this entry to your existing configuration:
 

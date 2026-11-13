@@ -5,9 +5,8 @@ import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
 import fr.husi.database.preference.reset
 import fr.husi.proto.daemon.ServiceStatus
-import fr.husi.proto.daemon.serviceStatus
-import fr.husi.proto.v1.clientMetadata
-import fr.husi.proto.v1.getClientMetadataResponse
+import fr.husi.proto.v1.ClientMetadata
+import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
 import kotlinx.coroutines.Dispatchers
@@ -83,22 +82,19 @@ class CoreHostControllerMirrorTest : HusiKoinTest() {
 
     private suspend fun report(type: ServiceStatus.Type, errorMessage: String = "") {
         fakeClient.serviceStatusFlow.emit(
-            serviceStatus {
-                status = type
-                this.errorMessage = errorMessage
-            },
+            ServiceStatus(
+                status = type,
+                errorMessage = errorMessage,
+            ),
         )
     }
 
     @Test
     fun `attaching to a host that is already running adopts its service`() =
         runTest(dispatcher.scheduler) {
-            fakeClient.nextClientMetadata = getClientMetadataResponse {
-                clientMetadata = clientMetadata {
-                    profileId = 7L
-                    profileName = "office"
-                }
-            }
+            fakeClient.nextClientMetadata = GetClientMetadataResponse(
+                client_metadata = ClientMetadata(profile_id = 7L, profile_name = "office"),
+            )
             controller.attachHostForTest(daemon = true)
 
             report(ServiceStatus.Type.STARTED)

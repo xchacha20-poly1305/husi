@@ -247,7 +247,6 @@ jobs:
           ref: ${{ inputs.tag || github.ref }}
           submodules: recursive
       - uses: ./.github/actions/load-build-versions
-      - uses: ./.github/actions/setup-protoc
       - uses: ./.github/actions/setup-jbr
       - uses: actions/setup-node@v7
         with:

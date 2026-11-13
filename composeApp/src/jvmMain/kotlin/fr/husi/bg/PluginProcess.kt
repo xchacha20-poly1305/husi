@@ -1,6 +1,5 @@
 package fr.husi.bg
 
-import com.google.protobuf.ByteString
 import fr.husi.PLUGIN_CA_FILE
 import fr.husi.database.DataStore
 import fr.husi.database.preference.getBlocking
@@ -19,10 +18,10 @@ import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
+import fr.husi.proto.v1.PluginFile
 import fr.husi.proto.v1.PluginProcessSpec
-import fr.husi.proto.v1.pluginFile
-import fr.husi.proto.v1.pluginProcessSpec
 import fr.husi.repository.resolveRepository
+import okio.ByteString.Companion.encodeUtf8
 import java.io.File
 
 fun initPlugins(
@@ -47,13 +46,12 @@ fun initPlugins(
                 }
 
                 is HysteriaBean -> {
-                    pluginConfigs[port] =
-                        profile.type to bean.buildHysteriaConfig(port, shouldProtect) { type ->
-                            File(repository.cacheDir, "hysteria_${System.currentTimeMillis()}.$type").also {
-                                it.parentFile?.mkdirs()
-                                cacheFiles.add(it)
-                            }
+                    pluginConfigs[port] = profile.type to bean.buildHysteriaConfig(port, shouldProtect) { type ->
+                        File(repository.cacheDir, "hysteria_${System.currentTimeMillis()}.$type").also {
+                            it.parentFile?.mkdirs()
+                            cacheFiles.add(it)
                         }
+                    }
                 }
 
                 is JuicityBean -> {
@@ -61,8 +59,8 @@ fun initPlugins(
                 }
 
                 is ShadowQUICBean -> {
-                    pluginConfigs[port] =
-                        profile.type to bean.buildShadowQUICConfig(port, shouldProtect, logLevel) { type ->
+                    pluginConfigs[port] = profile.type to
+                        bean.buildShadowQUICConfig(port, shouldProtect, logLevel) { type ->
                             File(repository.cacheDir, "shadowquic_${System.currentTimeMillis()}.$type").also {
                                 it.parentFile?.mkdirs()
                                 cacheFiles.add(it)
@@ -104,24 +102,22 @@ fun buildPluginSpecs(
                         env["MIERU_PROTECT_PATH"] = protectPath
                     }
                     env["MIERU_CONFIG_JSON_FILE"] = pluginFileToken(configName)
-                    pluginProcessSpec {
-                        name = pluginId
-                        command.add(executable)
-                        command.add("run")
-                        environment.putAll(env)
-                        files.add(pluginConfigFile(configName, cfg))
-                    }
+                    PluginProcessSpec(
+                        name = pluginId,
+                        command = listOf(executable, "run"),
+                        environment = env,
+                        files = listOf(pluginConfigFile(configName, cfg)),
+                    )
                 }
 
                 is NaiveBean -> {
                     val configName = "naive_$port.json"
-                    pluginProcessSpec {
-                        name = pluginId
-                        command.add(executable)
-                        command.add(pluginFileToken(configName))
-                        environment.putAll(env)
-                        files.add(pluginConfigFile(configName, cfg))
-                    }
+                    PluginProcessSpec(
+                        name = pluginId,
+                        command = listOf(executable, pluginFileToken(configName)),
+                        environment = env,
+                        files = listOf(pluginConfigFile(configName, cfg)),
+                    )
                 }
 
                 is HysteriaBean -> {
@@ -153,38 +149,33 @@ fun buildPluginSpecs(
                     ) {
                         commands.addAll(0, listOf("su", "-c"))
                     }
-                    pluginProcessSpec {
-                        name = pluginId
-                        command.addAll(commands)
-                        environment.putAll(env)
-                        files.add(pluginConfigFile(configName, cfg))
-                    }
+                    PluginProcessSpec(
+                        name = pluginId,
+                        command = commands,
+                        environment = env,
+                        files = listOf(pluginConfigFile(configName, cfg)),
+                    )
                 }
 
                 is JuicityBean -> {
                     val configName = "juicity_$port.json"
                     env["QUIC_GO_DISABLE_GSO"] = "1"
-                    pluginProcessSpec {
-                        name = pluginId
-                        command.add(executable)
-                        command.add("run")
-                        command.add("-c")
-                        command.add(pluginFileToken(configName))
-                        environment.putAll(env)
-                        files.add(pluginConfigFile(configName, cfg))
-                    }
+                    PluginProcessSpec(
+                        name = pluginId,
+                        command = listOf(executable, "run", "-c", pluginFileToken(configName)),
+                        environment = env,
+                        files = listOf(pluginConfigFile(configName, cfg)),
+                    )
                 }
 
                 is ShadowQUICBean -> {
                     val configName = "shadowquic_$port.yaml"
-                    pluginProcessSpec {
-                        name = pluginId
-                        command.add(executable)
-                        command.add("-c")
-                        command.add(pluginFileToken(configName))
-                        environment.putAll(env)
-                        files.add(pluginConfigFile(configName, cfg))
-                    }
+                    PluginProcessSpec(
+                        name = pluginId,
+                        command = listOf(executable, "-c", pluginFileToken(configName)),
+                        environment = env,
+                        files = listOf(pluginConfigFile(configName, cfg)),
+                    )
                 }
 
                 else -> null
@@ -199,7 +190,4 @@ fun buildPluginSpecs(
 
 private fun pluginFileToken(name: String): String = $$"${file:$$name}"
 
-private fun pluginConfigFile(name: String, content: String) = pluginFile {
-    this.name = name
-    this.content = ByteString.copyFromUtf8(content)
-}
+private fun pluginConfigFile(name: String, content: String) = PluginFile(name = name, content = content.encodeUtf8())

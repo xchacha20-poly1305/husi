@@ -1,19 +1,19 @@
 package fr.husi.tailscale
 
 import fr.husi.core.remote.CoreTarget
-import fr.husi.proto.daemon.taildropFile
-import fr.husi.proto.daemon.taildropInbox
-import fr.husi.proto.daemon.tailscaleEndpointStatus
-import fr.husi.proto.daemon.tailscaleStatusUpdate
+import fr.husi.proto.daemon.TaildropFile
+import fr.husi.proto.daemon.TaildropInbox
+import fr.husi.proto.daemon.TailscaleEndpointStatus
+import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.MainDispatcherTest
-import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -28,16 +28,10 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
         val viewModel = newViewModel(client)
 
         client.taildropInboxFlow.emit(
-            taildropInbox {
-                endpointTag = "ts"
-                files.add(
-                    taildropFile {
-                        name = "a.txt"
-                        size = 3L
-                        senderName = "laptop"
-                    },
-                )
-            },
+            TaildropInbox(
+                endpointTag = "ts",
+                files = listOf(TaildropFile(name = "a.txt", size = 3L, senderName = "laptop")),
+            ),
         )
         advanceUntilIdle()
 
@@ -50,7 +44,7 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
         val client = FakeCoreClient()
         newViewModel(client)
 
-        client.taildropInboxFlow.emit(taildropInbox { endpointTag = "ts" })
+        client.taildropInboxFlow.emit(TaildropInbox(endpointTag = "ts"))
         advanceUntilIdle()
 
         assertNull(client.lastTaildropInboxRead)
@@ -74,10 +68,7 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
         advanceUntilIdle()
 
         client.taildropInboxFlow.emit(
-            taildropInbox {
-                endpointTag = "ts"
-                files.add(taildropFile { name = "a.txt" })
-            },
+            TaildropInbox(endpointTag = "ts", files = listOf(TaildropFile(name = "a.txt"))),
         )
         advanceUntilIdle()
 
@@ -85,10 +76,7 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
         assertIs<TailscaleUiEvent.Message>(messages.single())
 
         client.taildropInboxFlow.emit(
-            taildropInbox {
-                endpointTag = "ts"
-                files.add(taildropFile { name = "b.txt" })
-            },
+            TaildropInbox(endpointTag = "ts", files = listOf(TaildropFile(name = "b.txt"))),
         )
         advanceUntilIdle()
         collecting.cancel()
@@ -131,9 +119,7 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
         target: CoreTarget = CoreTarget(client),
     ): TaildropInboxViewModel {
         client.tailscaleStatusFlow.tryEmit(
-            tailscaleStatusUpdate {
-                endpoints.add(tailscaleEndpointStatus { endpointTag = "ts" })
-            },
+            TailscaleStatusUpdate(endpoints = listOf(TailscaleEndpointStatus(endpointTag = "ts"))),
         )
         return TaildropInboxViewModel(
             endpointTag = "ts",

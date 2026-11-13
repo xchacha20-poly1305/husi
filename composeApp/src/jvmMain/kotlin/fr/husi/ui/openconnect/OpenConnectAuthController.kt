@@ -8,11 +8,11 @@ import fr.husi.database.SagerDatabase
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openconnect.OpenConnectFormEntry
 import fr.husi.ktx.Logs
-import fr.husi.proto.daemon.openConnectAuthFormResponse
-import fr.husi.proto.daemon.openConnectAuthResponseSubmission
-import fr.husi.proto.daemon.openConnectBrowserCookie
-import fr.husi.proto.daemon.openConnectBrowserHeader
-import fr.husi.proto.daemon.openConnectBrowserResult
+import fr.husi.proto.daemon.OpenConnectAuthFormResponse
+import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
+import fr.husi.proto.daemon.OpenConnectBrowserCookie
+import fr.husi.proto.daemon.OpenConnectBrowserHeader
+import fr.husi.proto.daemon.OpenConnectBrowserResult
 import fr.husi.vpn.OPENCONNECT_FIELD_PASSWORD
 import fr.husi.vpn.OPENCONNECT_STATE_AUTH_PENDING
 import fr.husi.vpn.OpenConnectAuthChallengeState
@@ -42,7 +42,7 @@ class OpenConnectAuthController(
         targets = targets,
         subscribe = { client ->
             client.subscribeOpenConnectStatus().map { update ->
-                update.endpointsList.map { it.toState() }
+                update.endpoints.map { it.toState() }
             }
         },
         pendingOf = { endpoint ->
@@ -76,39 +76,37 @@ class OpenConnectAuthController(
         browserResult: OpenConnectBrowserResultState?,
     ): String? {
         val error = session.perform("submit openconnect auth challenge") { target ->
-            val submission = openConnectAuthResponseSubmission {
-                this.endpointTag = endpointTag
-                challengeID = challenge.id
-                if (formValues != null) {
-                    form = openConnectAuthFormResponse {
-                        values.putAll(formValues)
-                    }
-                } else if (browserResult != null) {
-                    browser = openConnectBrowserResult {
-                        finalURL = browserResult.finalUrl
-                        for ((name, value) in browserResult.cookies) {
-                            if (value.isNotEmpty()) {
-                                cookies += openConnectBrowserCookie {
-                                    this.name = name
-                                    this.value = value
-                                }
-                            }
-                        }
-                        for ((name, value) in browserResult.headers) {
-                            val headerValues = value.lineSequence()
+            val submission = OpenConnectAuthResponseSubmission(
+                endpointTag = endpointTag,
+                challengeID = challenge.id,
+                form = formValues?.let { OpenConnectAuthFormResponse(values = it) },
+                browser = if (formValues == null && browserResult != null)
+                    OpenConnectBrowserResult(
+                        finalURL = browserResult.finalUrl,
+                        cookies = browserResult.cookies
+                            .filterValues { it.isNotEmpty() }
+                            .map { (name, value) ->
+                                OpenConnectBrowserCookie(
+                                    name = name,
+                                    value_ = value,
+                                )
+                            },
+                        headers = browserResult.headers.mapNotNull { (name, value) ->
+                            value.lineSequence()
                                 .map { it.trim() }
                                 .filter { it.isNotEmpty() }
                                 .toList()
-                            if (headerValues.isNotEmpty()) {
-                                headers += openConnectBrowserHeader {
-                                    this.name = name
-                                    values.addAll(headerValues)
+                                .takeIf { it.isNotEmpty() }
+                                ?.let {
+                                    OpenConnectBrowserHeader(
+                                        name = name,
+                                        values = it,
+                                    )
                                 }
-                            }
-                        }
-                    }
-                }
-            }
+                        },
+                    )
+                else null,
+            )
             target.client.submitOpenConnectAuthResponse(submission)
             if (!target.isRemote && challenge.form != null && formValues != null) {
                 persistFormEntries(endpointTag, challenge, formValues)
@@ -143,10 +141,9 @@ class OpenConnectAuthController(
             val profile = findProfile(endpointTag) ?: return
             val bean = profile.requireBean() as OpenConnectBean
             val replacedKeys = newEntries.mapTo(HashSet()) { it.formId to it.submissionKey }
-            bean.formEntries = (
-                bean.formEntries.filterNot { (it.formId to it.submissionKey) in replacedKeys } +
-                    newEntries
-                ).toList()
+            bean.formEntries = (bean.formEntries.filterNot {
+                (it.formId to it.submissionKey) in replacedKeys
+            } + newEntries).toList()
             profile.putBean(bean)
             ProfileManager.updateProfile(profile)
         } catch (e: CancellationException) {

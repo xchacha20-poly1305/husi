@@ -27,13 +27,14 @@ import fr.husi.ktx.readableMessage
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginNotFoundException
+import fr.husi.proto.v1.ClientMetadata
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.Hosting
+import fr.husi.proto.v1.Ownership
 import fr.husi.proto.v1.RootCertificateStore
+import fr.husi.proto.v1.ServiceOptions
+import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.TunBackend
-import fr.husi.proto.v1.clientMetadata
-import fr.husi.proto.v1.serviceOptions
-import fr.husi.proto.v1.startServiceRequest
 import fr.husi.resources.Res
 import fr.husi.resources.invalid_server
 import fr.husi.resources.profile_empty
@@ -262,7 +263,7 @@ internal class CoreHostController(
     suspend fun takeOverDaemon() {
         access.withLock {
             coreClient.takeOverService()
-            val ownership = coreClient.getDaemonInfo().ownership
+            val ownership = coreClient.getDaemonInfo().requireOwnership()
             if (!ownership.claimed) {
                 coreClient.claimService()
             }
@@ -383,16 +384,20 @@ internal class CoreHostController(
     }
 
     private suspend fun adoptRunningServiceLocked() {
-        val metadata = runCatching { coreClient.getClientMetadata().clientMetadata }
-            .onFailure { Logs.w("read the client metadata of the adopted service", it) }
-            .getOrNull()
-        runningProfileName = metadata?.profileName?.blankAsNull()
+        val metadata = runCatching {
+            coreClient.getClientMetadata().client_metadata
+        }.onFailure {
+            Logs.w("read the client metadata of the adopted service", it)
+        }.getOrNull()
+        runningProfileName = metadata?.profile_name?.blankAsNull()
         changeState(ServiceState.Connected, runningProfileName)
         BackendState.setConnected(true)
         syncSystemProxyLocked()
 
         // Last: this one goes to disk, and the UI should not wait for it.
-        metadata?.profileId?.takeIf { it > 0L }?.let { DataStore.currentProfile.set(it) }
+        metadata?.profile_id?.takeIf { it > 0L }?.let {
+            DataStore.currentProfile.set(it)
+        }
     }
 
     /**
@@ -468,7 +473,7 @@ internal class CoreHostController(
     }
 
     private fun checkApiVersion(info: GetDaemonInfoResponse) {
-        val daemonVersion = info.apiVersion
+        val daemonVersion = info.api_version
         apiVersionMismatch = daemonVersion != API_VERSION
         if (apiVersionMismatch) {
             val message =
@@ -479,15 +484,17 @@ internal class CoreHostController(
         publishHostState()
     }
 
+    private fun GetDaemonInfoResponse.requireOwnership(): Ownership {
+        return ownership ?: throw IOException("Daemon response omitted ownership information")
+    }
+
     internal suspend fun tryClaimDaemon(client: CoreClient, info: GetDaemonInfoResponse) {
-        val ownership = info.ownership
-        if (ownership.claimed && !ownership.ownedByCaller) {
-            Logs.w(
-                "Daemon owned by ${ownership.ownerName} (${ownership.ownerId}); attaching read-only",
-            )
+        val ownership = info.requireOwnership()
+        if (ownership.claimed && !ownership.owned_by_caller) {
+            Logs.w("Daemon owned by ${ownership.owner_name} (${ownership.owner_id}); attaching read-only")
             foreignOwner = DaemonOwner(
-                name = ownership.ownerName,
-                id = ownership.ownerId,
+                name = ownership.owner_name,
+                id = ownership.owner_id,
             )
             publishHostState()
             return
@@ -545,7 +552,7 @@ internal class CoreHostController(
 
             val isVPN = DataStore.serviceMode.get() == Key.MODE_VPN
             val networkManager = useNetworkManagerTun()
-            if (networkManager && !coreClient.getDaemonInfo().capabilities.networkManagerTun) {
+            if (networkManager && coreClient.getDaemonInfo().capabilities?.network_manager_tun != true) {
                 throw IOException("This core host does not support NetworkManager TUN. Update husi-core.")
             }
             if (isVPN && !connectedToDaemon && !networkManager) {
@@ -570,22 +577,22 @@ internal class CoreHostController(
                 pluginConfigs = pluginConfigs,
             )
 
-            val request = startServiceRequest {
-                this.config = config.configJson
-                plugins.addAll(pluginSpecs)
-                options = serviceOptions {
-                    rootCertificates = rootCertificateStore(DataStore.certProvider.get())
-                    tunBackend = if (networkManager) {
+            val request = StartServiceRequest(
+                config = config.configJson,
+                plugins = pluginSpecs,
+                options = ServiceOptions(
+                    root_certificates = rootCertificateStore(DataStore.certProvider.get()),
+                    tun_backend = if (networkManager) {
                         TunBackend.TUN_BACKEND_NETWORK_MANAGER
                     } else {
                         TunBackend.TUN_BACKEND_NATIVE
-                    }
-                }
-                clientMetadata = clientMetadata {
-                    profileId = profile.id
-                    profileName = profile.displayNameForService()
-                }
-            }
+                    },
+                ),
+                client_metadata = ClientMetadata(
+                    profile_id = profile.id,
+                    profile_name = profile.displayNameForService(),
+                ),
+            )
             coreClient.startService(request)
             OpenConnectAuthWatcher.start()
             OpenVPNAuthWatcher.start()

@@ -1,17 +1,15 @@
 package fr.husi.tailscale
 
-import com.google.protobuf.ByteString
 import fr.husi.core.TAILDROP_CHUNK_SIZE
 import fr.husi.core.remote.CoreNotRunningException
 import fr.husi.core.remote.CoreTarget
 import fr.husi.ktx.readableMessage
+import fr.husi.proto.daemon.TaildropFileChunk
+import fr.husi.proto.daemon.TaildropFileDone
+import fr.husi.proto.daemon.TaildropOutgoingFile
 import fr.husi.proto.daemon.TaildropSendClientMessage
 import fr.husi.proto.daemon.TaildropSendServerMessage
-import fr.husi.proto.daemon.taildropFileChunk
-import fr.husi.proto.daemon.taildropFileDone
-import fr.husi.proto.daemon.taildropOutgoingFile
-import fr.husi.proto.daemon.taildropSendClientMessage
-import fr.husi.proto.daemon.taildropSendStart
+import fr.husi.proto.daemon.TaildropSendStart
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -26,6 +24,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.BufferedSource
+import okio.ByteString.Companion.toByteString
 import okio.buffer
 
 class TaildropSendManager(
@@ -128,8 +127,7 @@ class TaildropSendManager(
     }
 
     private fun TaildropSendServerMessage.applyProgress(sessionId: Long) {
-        if (!hasProgress()) return
-        val update = progress
+        val update = progress ?: return
         updateFile(sessionId, update.fileIndex) {
             if (update.fileCompleted) {
                 copy(size = update.sentBytes, sentBytes = update.sentBytes, completed = true)
@@ -141,7 +139,13 @@ class TaildropSendManager(
 
     private fun updateSession(sessionId: Long, reducer: TaildropSendSession.() -> TaildropSendSession) {
         sessions.update { current ->
-            current.map { session -> if (session.id == sessionId) session.reducer() else session }
+            current.map { session ->
+                if (session.id == sessionId) {
+                    session.reducer()
+                } else {
+                    session
+                }
+            }
         }
     }
 
@@ -154,7 +158,15 @@ class TaildropSendManager(
             if (fileIndex !in files.indices) {
                 this
             } else {
-                copy(files = files.mapIndexed { index, file -> if (index == fileIndex) file.reducer() else file })
+                copy(
+                    files = files.mapIndexed { index, file ->
+                        if (index == fileIndex) {
+                            file.reducer()
+                        } else {
+                            file
+                        }
+                    },
+                )
             }
         }
     }
@@ -162,9 +174,7 @@ class TaildropSendManager(
     companion object {
         const val NO_SESSION_ID = -1L
 
-        private val FILE_DONE: TaildropSendClientMessage = taildropSendClientMessage {
-            fileDone = taildropFileDone { }
-        }
+        private val FILE_DONE: TaildropSendClientMessage = TaildropSendClientMessage(fileDone = TaildropFileDone())
     }
 }
 
@@ -172,23 +182,16 @@ private fun startMessage(
     tag: String,
     peerStableId: String,
     files: List<TaildropSource>,
-): TaildropSendClientMessage = taildropSendClientMessage {
-    start = taildropSendStart {
-        endpointTag = tag
-        peerStableID = peerStableId
-        for (file in files) {
-            this.files.add(
-                taildropOutgoingFile {
-                    name = file.name
-                    size = file.size
-                },
-            )
-        }
-    }
-}
+): TaildropSendClientMessage = TaildropSendClientMessage(
+    start = TaildropSendStart(
+        endpointTag = tag,
+        peerStableID = peerStableId,
+        files = files.map { file ->
+            TaildropOutgoingFile(name = file.name, size = file.size)
+        },
+    ),
+)
 
-private fun chunkMessage(chunk: ByteArray, length: Int): TaildropSendClientMessage = taildropSendClientMessage {
-    this.chunk = taildropFileChunk {
-        data = ByteString.copyFrom(chunk, 0, length)
-    }
-}
+private fun chunkMessage(chunk: ByteArray, length: Int): TaildropSendClientMessage = TaildropSendClientMessage(
+    chunk = TaildropFileChunk(data_ = chunk.toByteString(0, length)),
+)

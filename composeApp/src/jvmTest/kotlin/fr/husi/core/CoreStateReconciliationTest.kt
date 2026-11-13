@@ -84,7 +84,9 @@ class CoreStateReconciliationTest {
     fun `an unrecognized status from a newer core changes nothing`() {
         for (local in ServiceState.entries) {
             assertNull(
-                reconciliationFor(ServiceStatus.Type.UNRECOGNIZED, local),
+                reconciliationFor(ServiceStatus.ADAPTER.decode(byteArrayOf(8, 99)).status,
+                    local,
+                ),
                 "local state $local",
             )
         }

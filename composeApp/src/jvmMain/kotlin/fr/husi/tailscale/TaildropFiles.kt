@@ -1,14 +1,12 @@
 package fr.husi.tailscale
 
-import com.google.protobuf.ByteString
 import fr.husi.core.CoreClient
 import fr.husi.proto.daemon.TaildropFile
 import fr.husi.proto.daemon.TaildropReceivingFile
-import java.io.File
-import java.net.URLConnection
-import okio.BufferedSink
 import okio.buffer
 import okio.sink
+import java.io.File
+import java.net.URLConnection
 
 const val TAILDROP_DIRECTORY_NAME = "Taildrop"
 
@@ -58,7 +56,7 @@ suspend fun materializeTaildropFile(
     try {
         partial.sink().buffer().use { sink ->
             coreClient.downloadTaildropFile(endpointTag, name).collect { chunk ->
-                sink.writeChunk(chunk.data)
+                sink.write(chunk.data_)
             }
         }
     } catch (e: Throwable) {
@@ -74,9 +72,4 @@ suspend fun materializeTaildropFile(
         partial.delete()
     }
     return destination
-}
-
-private fun BufferedSink.writeChunk(data: ByteString) {
-    if (data.isEmpty) return
-    write(data.toByteArray())
 }

@@ -6,8 +6,8 @@ import fr.husi.core.CoreRpcException
 import fr.husi.database.DataStore
 import fr.husi.database.RemoteServer
 import fr.husi.database.RemoteServerEntity
-import fr.husi.database.toEntity
 import fr.husi.database.preference.reset
+import fr.husi.database.toEntity
 import fr.husi.proto.daemon.Version
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
@@ -251,7 +251,7 @@ class RemoteControlManagerTest : HusiKoinMainDispatcherTest() {
     @Test
     fun `testConnection returns daemon version`() = runTest(dispatcher.scheduler) {
         val probeClient = FakeCoreClient().also {
-            it.nextDaemonVersion = Version.newBuilder().setVersion("1.14.0").build()
+            it.nextDaemonVersion = Version(version = "1.14.0")
         }
         val manager = newManager({ _, _ -> probeClient })
         try {

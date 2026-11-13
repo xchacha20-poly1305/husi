@@ -6,8 +6,8 @@ composeMultiplatform = "1.12.2"
 composeMaterial3 = "1.12.0-alpha03"
 koin = "4.2.2"
 kotlinCoroutines = "1.11.0"
-kurpc = "0.3.0"
-wire = "7.2.0"
+kurpc = "0.3.1"
+wire = "7.2.1"
 libghostty = "0.5.0"
 kotlinxSerialization = "1.13.0"
 kotlinxDatetime = "0.8.0"
@@ -31,8 +31,6 @@ processPhoenix = "3.0.0"
 fileKit = "0.17.0"
 ini4j = "0.5.4"
 okio = "3.18.2"
-protobuf = "4.36.1"
-protobufPlugin = "0.10.1"
 junitBom = "6.1.3"
 jna = "5.19.1"
 mockk = "1.14.12"
@@ -52,17 +50,14 @@ haze = "2.1.0"
 kurpc = { module = "io.github.xchacha20-poly1305:kurpc", version.ref = "kurpc" }
 # One jar per desktop classifier; composeApp picks the one matching desktopTarget.
 kurpc-natives-jvm = { module = "io.github.xchacha20-poly1305:kurpc-natives-jvm", version.ref = "kurpc" }
-# protoc plugin; proto/ runs its self-contained `all` jar.
-protoc-gen-kurpc = { module = "io.github.xchacha20-poly1305:protoc-gen-kurpc", version.ref = "kurpc" }
+kurpc-wire = { module = "io.github.xchacha20-poly1305:kurpc-wire", version.ref = "kurpc" }
 wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wire" }
-wire-compiler = { module = "com.squareup.wire:wire-compiler", version.ref = "wire" }
 libghostty-compose = { module = "io.github.xchacha20-poly1305:libghostty-compose", version.ref = "libghostty" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxImmutable" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "kotlinxSerialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
@@ -94,8 +89,6 @@ process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "p
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "fileKit" }
 ini4j = { module = "org.ini4j:ini4j", version.ref = "ini4j" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
-protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
@@ -134,4 +127,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinGradlePlugin" }
-protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
+wire = { id = "com.squareup.wire", version.ref = "wire" }

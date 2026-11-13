@@ -9,25 +9,22 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.arguments.optional
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.google.protobuf.ByteString
 import fr.husi.CLI_STREAM_TIMEOUT
 import fr.husi.core.CoreClient
 import fr.husi.core.TAILDROP_CHUNK_SIZE
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.parseGoDuration
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.resolveOnPath
+import fr.husi.proto.daemon.TaildropFileChunk
+import fr.husi.proto.daemon.TaildropFileDone
 import fr.husi.proto.daemon.TaildropOutgoingFile
 import fr.husi.proto.daemon.TaildropSendClientMessage
+import fr.husi.proto.daemon.TaildropSendStart
 import fr.husi.proto.daemon.TailscaleEndpointStatus
 import fr.husi.proto.daemon.TailscalePeer
 import fr.husi.proto.daemon.TailscalePingResponse
 import fr.husi.proto.daemon.TailscaleUserGroup
-import fr.husi.proto.daemon.taildropFileChunk
-import fr.husi.proto.daemon.taildropFileDone
-import fr.husi.proto.daemon.taildropOutgoingFile
-import fr.husi.proto.daemon.taildropSendClientMessage
-import fr.husi.proto.daemon.taildropSendStart
+import fr.husi.repository.resolveOnPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -36,18 +33,19 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import okio.ByteString.Companion.toByteString
 import java.io.File
 import java.io.OutputStream
-import java.nio.file.attribute.PosixFilePermissions
 import java.net.InetAddress
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.PosixFilePermissions
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
@@ -220,7 +218,7 @@ private class ApiTailscalePeerShowCommand : ApiTailscaleCommandBase("show") {
         block.addLine("Stable ID", peer.stableID)
         block.addLine("User", formatTailscaleUser(entry.group))
         block.addLine("OS", peer.os)
-        block.addLine("IPs", peer.tailscaleIPsList.joinToString(", "))
+        block.addLine("IPs", peer.tailscaleIPs.joinToString(", "))
         block.addLine("Online", formatYesNo(peer.online))
         block.addLine("Active", formatYesNo(peer.active))
         block.addLine("Expired", formatYesNo(peer.expired))
@@ -230,7 +228,7 @@ private class ApiTailscalePeerShowCommand : ApiTailscaleCommandBase("show") {
         block.addLine("Tx", peer.txBytes.toString())
         block.addLine("Key expiry", formatTailscaleTime(peer.keyExpiry))
         block.addLine("Last seen", formatTailscaleTime(peer.lastSeen))
-        block.addLine("SSH host keys", formatTailscaleSSHHostKeys(peer.sshHostKeysList))
+        block.addLine("SSH host keys", formatTailscaleSSHHostKeys(peer.sshHostKeys))
         block.flush()
     }
 }
@@ -252,11 +250,11 @@ internal class ApiTailscaleExitNodeCommand : ApiTailscaleCommandBase("exit-node"
         if (currentContext.invokedSubcommand != null) return
         withClient { client ->
             val endpoint = fetchTailscaleEndpoint(client)
-            if (!endpoint.hasExitNode()) {
+            val exitNode = endpoint.exitNode
+            if (exitNode == null) {
                 println("none")
                 return@withClient
             }
-            val exitNode = endpoint.exitNode
             val name = tailscalePeerName(exitNode)
             val address = tailscalePeerAddress(exitNode)
             if (address.isEmpty()) {
@@ -273,7 +271,7 @@ private class ApiTailscaleExitNodeListCommand : ApiTailscaleCommandBase("list") 
 
     override fun run() = withClient { client ->
         val endpoint = fetchTailscaleEndpoint(client)
-        val selectedStableId = if (endpoint.hasExitNode()) endpoint.exitNode.stableID else ""
+        val selectedStableId = endpoint.exitNode?.stableID.orEmpty()
         val candidates = tailscalePeerEntries(endpoint)
             .filter { !it.self && it.peer.exitNodeOption }
             .sortedBy { tailscalePeerName(it.peer).lowercase() }
@@ -422,7 +420,7 @@ private class ApiTailscaleCertificateListCommand : ApiTailscaleCommandBase("list
             header = listOf("DOMAIN"),
             emptyMessage = "no certificate domains, enable HTTPS in the Tailscale admin console",
         )
-        for (domain in endpoint.certDomainsList) {
+        for (domain in endpoint.certDomains) {
             table.addRow(domain)
         }
         table.flush()
@@ -457,7 +455,7 @@ private class ApiTailscaleCertificateExportCommand : ApiTailscaleCommandBase("ex
 
     override fun run() = withClient { client ->
         val endpoint = fetchTailscaleEndpoint(client)
-        val certDomains = endpoint.certDomainsList
+        val certDomains = endpoint.certDomains
         if (certDomains.isEmpty()) {
             echo("no certificate domains, enable HTTPS in the Tailscale admin console", err = true)
             throw ProgramResult(1)
@@ -582,14 +580,16 @@ private class ApiTailscaleTaildropListCommand : ApiTailscaleCommandBase("list") 
         val inbox = withTimeout(CLI_STREAM_TIMEOUT) {
             client.subscribeTaildropInbox(endpointTag).first()
         }
-        for (file in inbox.receivingList) {
-            writeStderrLine("receiving ${file.name}: ${formatTaildropSize(file.receivedBytes)} / ${formatTaildropSize(file.size)}")
+        for (file in inbox.receiving) {
+            writeStderrLine(
+                "receiving ${file.name}: ${formatTaildropSize(file.receivedBytes)} / ${formatTaildropSize(file.size)}",
+            )
         }
         val table = TableWriter(
             header = listOf("NAME", "SIZE", "FROM", "RECEIVED"),
             emptyMessage = "no received files",
         )
-        for (file in inbox.filesList) {
+        for (file in inbox.files) {
             val sender = file.senderName.ifEmpty { "-" }
             table.addRow(
                 file.name,
@@ -625,14 +625,15 @@ private class ApiTailscaleTaildropGetCommand : ApiTailscaleCommandBase("get") {
         var totalSize = 0L
         var downloaded = 0L
 
-        // The output file is created on the first chunk, so a download the core rejects leaves nothing behind.
+        // The output file is created on the first chunk, so a download the core rejects leaves
+        // nothing behind.
         try {
             client.downloadTaildropFile(endpointTag, name).collect { chunk ->
                 val stream = outputStream ?: run {
                     totalSize = chunk.size
                     openTaildropOutput(outputPath, isStdout).also { outputStream = it }
                 }
-                val data = chunk.data.toByteArray()
+                val data = chunk.data_.toByteArray()
                 if (data.isNotEmpty()) {
                     stream.write(data)
                     downloaded += data.size
@@ -690,6 +691,7 @@ private class ApiTailscaleTaildropSendCommand : ApiTailscaleCommandBase("send") 
             throw ProgramResult(1)
         }
         data class OutgoingFile(val file: File, val name: String, val size: Long)
+
         val outgoingFiles = mutableListOf<OutgoingFile>()
         val manifest = mutableListOf<TaildropOutgoingFile>()
         for (path in filePaths) {
@@ -705,10 +707,7 @@ private class ApiTailscaleTaildropSendCommand : ApiTailscaleCommandBase("send") 
             val size = file.length()
             val name = file.name
             outgoingFiles += OutgoingFile(file, name, size)
-            manifest += taildropOutgoingFile {
-                this.name = name
-                this.size = size
-            }
+            manifest += TaildropOutgoingFile(name = name, size = size)
         }
 
         val requestChannel = Channel<TaildropSendClientMessage>(Channel.BUFFERED)
@@ -716,13 +715,13 @@ private class ApiTailscaleTaildropSendCommand : ApiTailscaleCommandBase("send") 
             val uploadJob = launch(Dispatchers.IO) {
                 try {
                     requestChannel.send(
-                        taildropSendClientMessage {
-                            start = taildropSendStart {
-                                endpointTag = endpoint.endpointTag
-                                peerStableID = entry.peer.stableID
-                                files.addAll(manifest)
-                            }
-                        },
+                        TaildropSendClientMessage(
+                            start = TaildropSendStart(
+                                endpointTag = endpoint.endpointTag,
+                                peerStableID = entry.peer.stableID,
+                                files = manifest,
+                            ),
+                        ),
                     )
                     val buffer = ByteArray(TAILDROP_CHUNK_SIZE)
                     for (item in outgoingFiles) {
@@ -731,20 +730,18 @@ private class ApiTailscaleTaildropSendCommand : ApiTailscaleCommandBase("send") 
                                 val n = stream.read(buffer)
                                 if (n > 0) {
                                     requestChannel.send(
-                                        taildropSendClientMessage {
-                                            chunk = taildropFileChunk {
-                                                data = ByteString.copyFrom(buffer, 0, n)
-                                            }
-                                        },
+                                        TaildropSendClientMessage(
+                                            chunk = TaildropFileChunk(
+                                                data_ = buffer.toByteString(0, n),
+                                            ),
+                                        ),
                                     )
                                 }
                                 if (n == -1) break
                             }
                         }
                         requestChannel.send(
-                            taildropSendClientMessage {
-                                fileDone = taildropFileDone { }
-                            },
+                            TaildropSendClientMessage(fileDone = TaildropFileDone()),
                         )
                     }
                 } finally {
@@ -755,8 +752,7 @@ private class ApiTailscaleTaildropSendCommand : ApiTailscaleCommandBase("send") 
             val peerName = tailscalePeerName(entry.peer)
             try {
                 client.sendTaildropFiles(requestChannel.consumeAsFlow()).collect { serverMessage ->
-                    if (!serverMessage.hasProgress()) return@collect
-                    val progress = serverMessage.progress
+                    val progress = serverMessage.progress ?: return@collect
                     val fileIndex = progress.fileIndex
                     if (fileIndex < 0 || fileIndex >= outgoingFiles.size) {
                         echo("invalid file index: $fileIndex", err = true)
@@ -767,7 +763,9 @@ private class ApiTailscaleTaildropSendCommand : ApiTailscaleCommandBase("send") 
                         writeProgress("")
                         writeStderrLine("${file.name}: done")
                     } else {
-                        writeProgress("${file.name}: ${formatTaildropSize(progress.sentBytes)} / ${formatTaildropSize(file.size)}    ")
+                        writeProgress(
+                            "${file.name}: ${formatTaildropSize(progress.sentBytes)} / ${formatTaildropSize(file.size)}    ",
+                        )
                     }
                 }
                 uploadJob.join()
@@ -859,7 +857,7 @@ internal suspend fun fetchTailscaleStatus(client: CoreClient): List<TailscaleEnd
     val update = withTimeout(CLI_STREAM_TIMEOUT) {
         client.subscribeTailscaleStatus().first()
     }
-    return update.endpointsList.sortedBy { it.endpointTag }
+    return update.endpoints.sortedBy { it.endpointTag }
 }
 
 internal fun resolveTailscaleEndpointStatus(
@@ -873,13 +871,17 @@ internal fun resolveTailscaleEndpointStatus(
     if (endpointFlag.isNotEmpty()) {
         val endpoint = endpoints.firstOrNull { it.endpointTag == endpointFlag }
         if (endpoint == null) {
-            System.err.println("unknown tailscale endpoint: $endpointFlag\nknown endpoints:\n${formatTailscaleEndpointTags(endpoints)}")
+            System.err.println(
+                "unknown tailscale endpoint: $endpointFlag\nknown endpoints:\n${formatTailscaleEndpointTags(endpoints)}",
+            )
             throw ProgramResult(1)
         }
         return endpoint
     }
     if (endpoints.size > 1) {
-        System.err.println("multiple tailscale endpoints, use --endpoint to select one:\n${formatTailscaleEndpointTags(endpoints)}")
+        System.err.println(
+            "multiple tailscale endpoints, use --endpoint to select one:\n${formatTailscaleEndpointTags(endpoints)}",
+        )
         throw ProgramResult(1)
     }
     return endpoints[0]
@@ -890,11 +892,11 @@ private fun formatTailscaleEndpointTags(endpoints: List<TailscaleEndpointStatus>
 
 internal fun tailscalePeerEntries(endpoint: TailscaleEndpointStatus): List<TailscalePeerEntry> {
     val entries = mutableListOf<TailscalePeerEntry>()
-    if (endpoint.hasSelf()) {
-        entries += TailscalePeerEntry(peer = endpoint.self, self = true)
+    endpoint.self?.let {
+        entries += TailscalePeerEntry(peer = it, self = true)
     }
-    for (group in endpoint.userGroupsList) {
-        for (peer in group.peersList) {
+    for (group in endpoint.userGroups) {
+        for (peer in group.peers) {
             entries += TailscalePeerEntry(peer = peer, group = group)
         }
     }
@@ -913,7 +915,7 @@ internal fun tailscalePeerName(peer: TailscalePeer): String {
 }
 
 internal fun tailscalePeerAddress(peer: TailscalePeer): String =
-    peer.tailscaleIPsList.firstOrNull().orEmpty()
+    peer.tailscaleIPs.firstOrNull().orEmpty()
 
 internal fun resolveTailscalePeer(
     entries: List<TailscalePeerEntry>,
@@ -928,7 +930,7 @@ internal fun resolveTailscalePeer(
             if (selectorIp == null) {
                 false
             } else {
-                peer.tailscaleIPsList.any { ip -> parseIp(ip) == selectorIp }
+                peer.tailscaleIPs.any { ip -> parseIp(ip) == selectorIp }
             }
         },
         // Matcher 3: full DNS name or FQDN
@@ -969,7 +971,9 @@ private fun parseIp(text: String): InetAddress? {
     return InetAddress.getByName(text)
 }
 
-private fun newTailscaleAmbiguousPeerError(selector: String, matches: List<TailscalePeerEntry>): String {
+private fun newTailscaleAmbiguousPeerError(
+    selector: String, matches: List<TailscalePeerEntry>,
+): String {
     val sortedMatches = matches.sortedBy { tailscalePeerName(it.peer).lowercase() }
     val names = sortedMatches.map { tailscalePeerName(it.peer) }
     val addresses = sortedMatches.map { tailscalePeerAddress(it.peer).ifEmpty { "-" } }

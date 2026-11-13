@@ -46,7 +46,7 @@ fun LogcatScreen(
             ),
         searchTextFieldState = viewModel.searchTextFieldState,
         levels = logLevels,
-        levelLabel = { it.name },
+        levelLabel = { it.toString() },
         onClearSearch = viewModel::clearSearchQuery,
         onTogglePause = viewModel::togglePause,
         onClearLog = { viewModel.clearLog() },

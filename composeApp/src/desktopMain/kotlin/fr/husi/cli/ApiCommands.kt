@@ -34,6 +34,10 @@ import fr.husi.proto.daemon.STUNTestProgress
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.Status
 import fr.husi.ui.log.logLevels
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -48,11 +52,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.format.format
 import kotlinx.datetime.offsetAt
-import java.util.*
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
+import java.util.Locale
 
 internal abstract class ApiClientCommand(name: String) : CliktCommand(name) {
     protected val root by requireObject<DesktopMain>()
@@ -218,7 +218,11 @@ private class ApiStatusCommand : ApiClientCommand("status") {
             serviceStatusDeferred.await() to startedAtDeferred.await()
         }
 
-        val state = serviceStatus?.status?.name?.lowercase().orEmpty()
+        val state = when (val status = serviceStatus?.status) {
+            null -> ""
+            is ServiceStatus.Type.Unrecognized -> "unknown"
+            else -> status.toString().lowercase()
+        }
         val uptime = if (startedAt != null && startedAt > 0L) {
             formatGoDuration((System.currentTimeMillis() - startedAt).milliseconds)
         } else {
@@ -266,7 +270,7 @@ private class ApiVersionCommand : ApiClientCommand("version") {
         val husiVersion = runCatching { client.getVersion() }.getOrNull()
         if (husiVersion != null) {
             writeStderrLine(
-                "husi ${husiVersion.version}, sing-box daemon API ${husiVersion.apiVersion}",
+                "husi ${husiVersion.version}, sing-box daemon API ${husiVersion.api_version}",
             )
         }
     }
@@ -294,7 +298,7 @@ private class ApiLogsCommand : ApiClientCommand("logs") {
     override fun run() {
         val explicitLevel = levelOption?.let { parseApiLogLevel(it) }
         withClient { client ->
-            val threshold = explicitLevel ?: client.getDefaultLogLevel().levelValue
+            val threshold = explicitLevel ?: client.getDefaultLogLevel().level.value
             val searchQuery = search.trim().lowercase()
             if (follow) {
                 // No SIGINT handler: Ctrl-C just kills the process. sing-box installs one only
@@ -316,14 +320,14 @@ private class ApiLogsCommand : ApiClientCommand("logs") {
     private fun parseApiLogLevel(value: String): Int {
         val normalized = value.trim()
         if (normalized.equals("warning", ignoreCase = true)) {
-            return LogLevel.WARN.number
+            return LogLevel.WARN.value
         }
-        val match = logLevels.firstOrNull { it.name.equals(normalized, ignoreCase = true) }
+        val match = logLevels.firstOrNull { it.toString().equals(normalized, ignoreCase = true) }
         if (match == null) {
             echo("unknown log level: $value", err = true)
             throw ProgramResult(1)
         }
-        return match.number
+        return match.value
     }
 }
 
@@ -349,7 +353,7 @@ private class ApiModeListCommand : ApiClientCommand("list") {
     override fun help(context: Context) = "List clash modes"
 
     override fun run() = withClient { client ->
-        val modes = client.getClashModeStatus().modeListList
+        val modes = client.getClashModeStatus().modeList
         if (modes.isEmpty()) {
             writeStderrLine("no clash modes")
             return@withClient
@@ -374,7 +378,7 @@ private class ApiOutboundsCommand : ApiClientCommand("outbounds") {
 
     override fun run() = withClient { client ->
         val outbounds = withTimeout(CLI_STREAM_TIMEOUT) {
-            client.subscribeOutbounds().first().outboundsList
+            client.subscribeOutbounds().first().outbounds
         }
         val table = TableWriter(
             header = listOf("TAG", "TYPE", "DELAY"),
@@ -435,7 +439,7 @@ private class ApiGroupShowCommand : ApiClientCommand("show") {
         block.addLine("Selected", group.selected)
         block.flush()
         val table = TableWriter(header = listOf("TAG", "TYPE", "DELAY"))
-        for (item in group.itemsList) {
+        for (item in group.items) {
             table.addRow(item.tag, item.type, formatDelay(item.urlTestDelay))
         }
         table.flush()
@@ -555,7 +559,7 @@ private class ApiConnectionShowCommand : ApiClientCommand("show") {
         block.addLine("Process", formatProcessInfo(connection))
         block.addLine("Rule", connection.rule)
         block.addLine("Outbound", outbound)
-        block.addLine("Chain", connection.chainListList.joinToString(" <- "))
+        block.addLine("Chain", connection.chainList.joinToString(" <- "))
         block.addLine("From outbound", connection.fromOutbound)
         block.addLine("Uplink", connection.uplinkTotal.formatBytes())
         block.addLine("Downlink", connection.downlinkTotal.formatBytes())
@@ -822,79 +826,69 @@ private data class ConnectionRate(val uplink: Long, val downlink: Long)
 
 private enum class ConnectionColumn(val flagName: String, val header: String) {
     ID("id", "ID") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.id
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.id
     },
     NETWORK("network", "NETWORK") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.network
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.network
     },
     SOURCE("source", "SOURCE") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.source
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.source
     },
     DESTINATION("destination", "DESTINATION") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connectionDestination(connection)
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connectionDestination(connection)
     },
     INBOUND("inbound", "INBOUND") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            apiInboundLabel(connection)
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = apiInboundLabel(connection)
     },
     OUTBOUND("outbound", "OUTBOUND") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.outbound
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.outbound
     },
     CHAIN("chain", "CHAIN") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.chainHops().joinToString("/")
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.chainHops().joinToString("/")
     },
     RULE("rule", "RULE") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.rule
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.rule
     },
     PROTOCOL("protocol", "PROTOCOL") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.protocol
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.protocol
     },
     USER("user", "USER") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            connection.user
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = connection.user
     },
     PROCESS("process", "PROCESS") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            processColumn(connection)
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = processColumn(connection)
     },
     CREATED("created", "CREATED") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            formatApiTime(connection.createdAt)
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) = formatApiTime(connection.createdAt)
     },
     RATE("rate", "RATE") {
         override fun value(connection: Connection, rates: Map<String, ConnectionRate>): String {
             val rate = rates[connection.id]
-            if (rate == null || (rate.uplink == 0L && rate.downlink == 0L)) return ""
+            if (rate == null || (rate.uplink == 0L && rate.downlink == 0L)) {
+                return ""
+            }
             return "↑${rate.uplink.formatBytes()}/s ↓${rate.downlink.formatBytes()}/s"
         }
     },
     TOTAL("total", "TOTAL") {
-        override fun value(connection: Connection, rates: Map<String, ConnectionRate>) =
-            "↑${connection.uplinkTotal.formatBytes()} ↓${connection.downlinkTotal.formatBytes()}"
-    },
-    ;
+        override fun value(connection: Connection, rates: Map<String, ConnectionRate>): String {
+            return "↑${connection.uplinkTotal.formatBytes()} ↓${connection.downlinkTotal.formatBytes()}"
+        }
+    };
 
     abstract fun value(connection: Connection, rates: Map<String, ConnectionRate>): String
 
     companion object {
-        fun fromFlag(name: String): ConnectionColumn? =
-            entries.firstOrNull { it.flagName == name }
+        fun fromFlag(name: String): ConnectionColumn? = entries.firstOrNull {
+            it.flagName == name
+        }
     }
 }
 
 private fun processColumn(connection: Connection): String {
-    if (!connection.hasProcessInfo()) return ""
-    val processInfo = connection.processInfo
+    val processInfo = connection.processInfo ?: return ""
     if (processInfo.processPath.isNotEmpty()) return processInfo.processPath
-    if (processInfo.packageNamesCount > 0) return processInfo.getPackageNames(0)
+    if (processInfo.packageNames.isNotEmpty()) return processInfo.packageNames[0]
     return ""
 }
 
@@ -904,13 +898,13 @@ private fun printLogBatch(
     searchQuery: String,
     backlog: Boolean,
 ) {
-    if (batch.reset && batch.messagesList.isEmpty() && !backlog) {
+    if (batch.reset && batch.messages.isEmpty() && !backlog) {
         writeStderrLine("log buffer cleared")
         return
     }
     val output = buildString {
-        for (entry in batch.messagesList) {
-            if (entry.levelValue > threshold) continue
+        for (entry in batch.messages) {
+            if (entry.level.value > threshold) continue
             val plainMessage = stripColors(entry.message)
             if (searchQuery.isNotEmpty() && !plainMessage.lowercase().contains(searchQuery)) {
                 continue
@@ -999,11 +993,10 @@ private fun connectionDestination(connection: Connection): String {
 }
 
 private fun formatProcessInfo(connection: Connection): String {
-    if (!connection.hasProcessInfo()) return ""
-    val processInfo = connection.processInfo
+    val processInfo = connection.processInfo ?: return ""
     var process = when {
         processInfo.processPath.isNotEmpty() -> processInfo.processPath
-        processInfo.packageNamesCount > 0 -> processInfo.getPackageNames(0)
+        processInfo.packageNames.isNotEmpty() -> processInfo.packageNames[0]
         else -> ""
     }
     process = when {
@@ -1018,9 +1011,10 @@ private fun formatProcessInfo(connection: Connection): String {
 private suspend fun fetchConnections(client: CoreClient): List<Connection> {
     return withTimeout(CLI_STREAM_TIMEOUT) {
         client.subscribeConnections(1.seconds).first { it.reset }
-    }.eventsList.mapNotNull { event ->
-        if (event.hasConnection()) event.connection else null
-    }.sortedBy { it.createdAt }
+    }.events
+        .mapNotNull { event ->
+            event.connection
+        }.sortedBy { it.createdAt }
 }
 
 private suspend fun fetchConnectionsAndRates(
@@ -1030,10 +1024,11 @@ private suspend fun fetchConnectionsAndRates(
         client.subscribeConnections(1.seconds).dropWhile { !it.reset }.take(2).toList()
     }
     val snapshot = batches.firstOrNull() ?: return emptyList<Connection>() to emptyMap()
-    val connections = snapshot.eventsList.mapNotNull { event ->
-        if (event.hasConnection()) event.connection else null
-    }.sortedBy { it.createdAt }
-    val rates = batches.getOrNull(1)?.eventsList.orEmpty().associate { event ->
+    val connections = snapshot.events
+            .mapNotNull { event ->
+                event.connection
+            }.sortedBy { it.createdAt }
+    val rates = batches.getOrNull(1)?.events.orEmpty().associate { event ->
         event.id to ConnectionRate(event.uplinkDelta, event.downlinkDelta)
     }
     return connections to rates
@@ -1041,6 +1036,6 @@ private suspend fun fetchConnectionsAndRates(
 
 private suspend fun fetchGroups(client: CoreClient): List<Group> {
     return withTimeout(CLI_STREAM_TIMEOUT) {
-        client.subscribeGroups().first().groupList
+        client.subscribeGroups().first().group
     }
 }

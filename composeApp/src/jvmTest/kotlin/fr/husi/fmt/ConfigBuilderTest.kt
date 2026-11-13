@@ -2,8 +2,8 @@ package fr.husi.fmt
 
 import fr.husi.Key
 import fr.husi.ProtocolProvider
-import fr.husi.bg.buildPluginSpecs
 import fr.husi.RuleProvider
+import fr.husi.bg.buildPluginSpecs
 import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.database.PluginEntity
@@ -2193,49 +2193,50 @@ class ConfigBuilderTest : HusiKoinTest() {
     }
 
     @Test
-    fun `buildConfig should preserve request dns rule set when ip dns rule set needs response matching`() = runBlocking {
-        disableFakeDns()
+    fun `buildConfig should preserve request dns rule set when ip dns rule set needs response matching`() =
+        runBlocking {
+            disableFakeDns()
 
-        val group = ProxyGroup(name = "group").applyDefaultValues()
-        group.id = SagerDatabase.groupDao.createGroup(group)
-        val proxy = createSocksProxy(
-            groupId = group.id,
-            order = 1,
-            name = "main",
-            host = "1.1.1.1",
-            port = 1080,
-        )
-        ProfileManager.createRule(
-            RuleEntity(
-                enabled = true,
-                name = "dns-mixed-set",
-                domains = "set+dns:custom-domain-set",
-                ip = "set+dns:custom-ip-set",
-                outbound = RuleEntity.OUTBOUND_DIRECT,
-            ),
-        )
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = createSocksProxy(
+                groupId = group.id,
+                order = 1,
+                name = "main",
+                host = "1.1.1.1",
+                port = 1080,
+            )
+            ProfileManager.createRule(
+                RuleEntity(
+                    enabled = true,
+                    name = "dns-mixed-set",
+                    domains = "set+dns:custom-domain-set",
+                    ip = "set+dns:custom-ip-set",
+                    outbound = RuleEntity.OUTBOUND_DIRECT,
+                ),
+            )
 
-        val dnsRules = parseDnsRules(buildConfig(proxy))
-        val evaluateIndex = dnsRules.indexOfFirst {
-            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+            val dnsRules = parseDnsRules(buildConfig(proxy))
+            val evaluateIndex = dnsRules.indexOfFirst {
+                it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+            }
+
+            assertTrue(evaluateIndex >= 0)
+
+            val evaluateRule = dnsRules[evaluateIndex]
+            assertEquals(
+                listOf("custom-domain-set"),
+                evaluateRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+            )
+            assertEquals(null, evaluateRule["match_response"])
+
+            val responseRule = dnsRules[evaluateIndex + 1]
+            assertEquals("true", responseRule["match_response"]?.jsonPrimitive?.content)
+            assertEquals(
+                listOf("custom-domain-set", "custom-ip-set"),
+                responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+            )
         }
-
-        assertTrue(evaluateIndex >= 0)
-
-        val evaluateRule = dnsRules[evaluateIndex]
-        assertEquals(
-            listOf("custom-domain-set"),
-            evaluateRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
-        )
-        assertEquals(null, evaluateRule["match_response"])
-
-        val responseRule = dnsRules[evaluateIndex + 1]
-        assertEquals("true", responseRule["match_response"]?.jsonPrimitive?.content)
-        assertEquals(
-            listOf("custom-domain-set", "custom-ip-set"),
-            responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
-        )
-    }
 
     @Test
     fun `buildConfig with one remote and one direct DNS keeps single server tags`() = runBlocking {
@@ -2923,16 +2924,22 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         val result = buildConfig(proxy)
         val pluginPort = result.metadata.externalIndex.single().chain.keys.single()
-        assertTrue(parseRouteRules(result).none {
-            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
-        })
+        assertTrue(
+            parseRouteRules(result).none {
+                it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
+            },
+        )
 
         if (PlatformInfo.isAndroid || PlatformInfo.isLinux) {
             assertEquals(setOf(pluginPort), result.metadata.protectedPluginPorts)
-            assertTrue(parseInbounds(result).none { it["tag"]?.jsonPrimitive?.content == "c-0-mapping-${proxy.id}" })
+            assertTrue(
+                parseInbounds(result).none { it["tag"]?.jsonPrimitive?.content == "c-0-mapping-${proxy.id}" },
+            )
         } else {
             assertTrue(result.metadata.protectedPluginPorts.isEmpty())
-            assertTrue(parseInbounds(result).any { it["tag"]?.jsonPrimitive?.content == "c-0-mapping-${proxy.id}" })
+            assertTrue(
+                parseInbounds(result).any { it["tag"]?.jsonPrimitive?.content == "c-0-mapping-${proxy.id}" },
+            )
         }
     }
 
@@ -3074,7 +3081,7 @@ class ConfigBuilderTest : HusiKoinTest() {
             assertTrue(parseInbounds(result).none { it["type"]?.jsonPrimitive?.content == SingBoxOptions.TYPE_DIRECT })
             val pluginPort = result.metadata.externalIndex.single().chain.keys.single()
             val spec = buildPluginSpecs(result.metadata, mapOf(pluginPort to (proxy.type to "{}"))).single()
-            assertEquals(link.absolutePath, spec.commandList.first())
+            assertEquals(link.absolutePath, spec.command.first())
             val bypass = parseRouteRules(result).first()
             assertEquals(SingBoxOptions.ACTION_BYPASS, bypass["action"]?.jsonPrimitive?.content)
             assertEquals(TAG_DIRECT, bypass["outbound"]?.jsonPrimitive?.content)
@@ -3086,9 +3093,11 @@ class ConfigBuilderTest : HusiKoinTest() {
             fun assertMapped(result: ConfigBuildResult) {
                 val mappedBean = result.metadata.externalIndex.single().chain.values.single().requireBean()
                 assertEquals(LOCALHOST4, mappedBean.finalAddress)
-                assertTrue(parseRouteRules(result).none {
-                    it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
-                })
+                assertTrue(
+                    parseRouteRules(result).none {
+                        it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_BYPASS
+                    },
+                )
             }
 
             assertMapped(buildConfig(proxy, forTest = true))
@@ -3238,6 +3247,7 @@ class ConfigBuilderTest : HusiKoinTest() {
 
         val ruleSets = parseRouteOptions(buildConfig(proxy, forExport = true))["rule_set"]!!.jsonArray
             .map { it.jsonObject }
+
         fun urlOf(tag: String) = ruleSets.first { ruleSet ->
             ruleSet["tag"]!!.jsonArray.any { it.jsonPrimitive.content == tag }
         }["url"]!!.jsonPrimitive.content

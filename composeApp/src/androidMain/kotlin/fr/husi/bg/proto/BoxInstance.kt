@@ -8,8 +8,8 @@ import fr.husi.fmt.ConfigBuildResult
 import fr.husi.fmt.ConfigMetadata
 import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
-import fr.husi.proto.v1.clientMetadata
-import fr.husi.proto.v1.startServiceRequest
+import fr.husi.proto.v1.ClientMetadata
+import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.repository.resolveAndroidRepository
 import java.io.File
 
@@ -57,19 +57,19 @@ abstract class BoxInstance(
         val specs = buildPluginSpecs(metadata, pluginConfigs)
         val configJson = checkNotNull(pendingConfigJson) { "instance already launched" }
         pendingConfigJson = null
-        val request = startServiceRequest {
-            this.config = configJson
-            plugins.addAll(specs)
-            clientMetadata = clientMetadata {
-                profileId = profile.id
-                profileName = profile.displayNameForService()
-            }
-        }
+        val request = StartServiceRequest(
+            config = configJson,
+            plugins = specs,
+            client_metadata = ClientMetadata(
+                profile_id = profile.id,
+                profile_name = profile.displayNameForService(),
+            ),
+        )
         // Match the Kotlin pool's working dir: keep plugin files out of backup.
         val pluginDir = resolveAndroidRepository().noBackupFilesDir.resolve("plugin")
         pluginDir.mkdirs()
         resolveAndroidRepository().boxService!!.startService(
-            request.toByteArray(),
+            request.encode(),
             pluginDir.absolutePath,
         )
     }
@@ -81,7 +81,10 @@ abstract class BoxInstance(
             }
         }
 
-        cacheFiles.removeAll { it.delete(); true }
+        cacheFiles.removeAll {
+            it.delete()
+            true
+        }
 
         // Unconditional: stopService also tears down the Go plugin pool, and the
         // plugin processes must not outlive an instance that already went away.

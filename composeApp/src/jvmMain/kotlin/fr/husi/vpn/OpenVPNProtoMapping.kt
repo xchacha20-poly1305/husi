@@ -9,8 +9,8 @@ fun OpenVPNEndpointStatus.toState() = OpenVPNEndpointState(
     state = state,
     stateText = stateText,
     error = error,
-    challenge = if (hasChallenge()) challenge.toState() else null,
-    tunnelInfo = if (hasTunnelInfo()) tunnelInfo.toState() else null,
+    challenge = challenge?.toState(),
+    tunnelInfo = tunnelInfo?.toState(),
 )
 
 fun OpenVPNChallenge.toState() = OpenVPNChallengeState(
@@ -29,9 +29,9 @@ fun OpenVPNTunnelInfo.toState() = OpenVPNTunnelInfoState(
     server = server,
     network = network,
     cipher = cipher,
-    ipv4 = ipv4List,
-    ipv6 = ipv6List,
-    dns = dnsList,
+    ipv4 = ipv4,
+    ipv6 = ipv6,
+    dns = dns,
     mtu = mtu,
     connectedSince = connectedSince,
 )

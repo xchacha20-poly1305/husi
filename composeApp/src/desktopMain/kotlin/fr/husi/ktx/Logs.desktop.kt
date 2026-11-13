@@ -15,7 +15,10 @@ actual object Logs {
     /** Starts [logFile] afresh and writes messages at or above [level] to it from now on. */
     fun openFile(logFile: File, level: Int) {
         file?.close()
-        file = LogFile(logFile, LogLevel.forNumber(level) ?: LogLevel.WARN, truncate = true)
+        val threshold = LogLevel.fromValue(level)
+            .takeUnless { it is LogLevel.Unrecognized }
+            ?: LogLevel.WARN
+        file = LogFile(logFile, threshold, truncate = true)
     }
 
     actual fun clearFile() {
@@ -28,7 +31,7 @@ actual object Logs {
     }
 
     private fun log(level: LogLevel, tag: String, message: String) {
-        System.err.print("${level.name} [$tag] $message\n")
+        System.err.print("$level [$tag] $message\n")
         file?.write(level, tag, message)
     }
 

@@ -55,12 +55,20 @@ data class LogcatUiState(
     val isRemote: Boolean = false,
 )
 
-val logLevels: List<LogLevel> = LogLevel.entries - LogLevel.UNRECOGNIZED
+val logLevels: List<LogLevel> = listOf(
+    LogLevel.PANIC,
+    LogLevel.FATAL,
+    LogLevel.ERROR,
+    LogLevel.WARN,
+    LogLevel.INFO,
+    LogLevel.DEBUG,
+    LogLevel.TRACE,
+)
 
 typealias LogEntry = TerminalLogEntry<LogLevel>
 
 fun Log.Message.toLogEntry(): LogEntry {
-    val level = LogLevel.forNumber(levelValue) ?: LogLevel.INFO
+    val level = level.takeUnless { it is LogLevel.Unrecognized } ?: LogLevel.INFO
     return LogEntry(
         level = level,
         message = message,
@@ -73,7 +81,7 @@ private data class LogcatFilter(
     val searchQuery: String? = null,
 ) {
     fun accepts(entry: LogEntry): Boolean {
-        if (entry.level.number > logLevel.number) return false
+        if (entry.level.value > logLevel.value) return false
         return searchQuery == null || entry.message.contains(searchQuery, ignoreCase = true)
     }
 }
@@ -143,7 +151,9 @@ class LogcatScreenViewModel(
         get() = remoteControl?.isRemote == true
 
     private val localLogLevel: LogLevel
-        get() = LogLevel.forNumber(DataStore.logLevel.getBlocking()) ?: LogLevel.WARN
+        get() = LogLevel.fromValue(DataStore.logLevel.getBlocking())
+            .takeUnless { it is LogLevel.Unrecognized }
+            ?: LogLevel.WARN
 
     private var maxEntries = maxLogEntries(DataStore.logTerminalMode.getBlocking())
 
@@ -202,7 +212,7 @@ class LogcatScreenViewModel(
                 name = session.server.name,
                 url = session.server.url,
                 version = fetchRemoteVersion(),
-                logLevel = fetchRemoteLogLevel().name,
+                logLevel = fetchRemoteLogLevel().toString(),
             ),
             logLines = logLines,
         )
@@ -211,7 +221,7 @@ class LogcatScreenViewModel(
     private suspend fun fetchRemoteVersion(): String {
         return try {
             val version = coreClient.getVersion()
-            "husi ${version.version}, sing-box ${version.singBoxVersion}, ${version.buildEnvironment}"
+            "husi ${version.version}, sing-box ${version.sing_box_version}, ${version.build_environment}"
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -222,7 +232,9 @@ class LogcatScreenViewModel(
 
     private suspend fun fetchRemoteLogLevel(): LogLevel {
         return try {
-            LogLevel.forNumber(coreClient.getDefaultLogLevel().levelValue) ?: LogLevel.WARN
+            coreClient.getDefaultLogLevel().level
+                .takeUnless { it is LogLevel.Unrecognized }
+                ?: LogLevel.WARN
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -251,7 +263,7 @@ class LogcatScreenViewModel(
             try {
                 coreClient.subscribeLog().collect { batch ->
                     if (batch.reset) clearLogBuffers()
-                    val entries = batch.messagesList.map { it.toLogEntry() }
+                    val entries = batch.messages.map { it.toLogEntry() }
                     liveLogs.update { it.appendBounded(entries, maxEntries) }
                 }
             } catch (e: Exception) {

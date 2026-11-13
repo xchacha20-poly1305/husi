@@ -1,8 +1,8 @@
 package fr.husi.vpn
 
-import fr.husi.proto.daemon.openVPNChallenge
-import fr.husi.proto.daemon.openVPNEndpointStatus
-import fr.husi.proto.daemon.openVPNTunnelInfo
+import fr.husi.proto.daemon.OpenVPNChallenge
+import fr.husi.proto.daemon.OpenVPNEndpointStatus
+import fr.husi.proto.daemon.OpenVPNTunnelInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -32,33 +32,33 @@ class OpenVPNStatusTest {
 
     @Test
     fun `toState maps endpoint challenge and tunnel info`() {
-        val status = openVPNEndpointStatus {
-            endpointTag = "home"
-            state = OPENVPN_STATE_AUTH_PENDING
-            stateText = "Waiting"
-            error = "retry"
-            challenge = openVPNChallenge {
-                id = "c1"
-                kind = OPENVPN_CHALLENGE_CREDENTIALS
-                username = "alice"
-                message = "Sign in"
-                url = "https://vpn.example/auth"
-                secretMessage = "OTP"
-                echo = true
-                previousError = "bad password"
-                deadline = 42
-            }
-            tunnelInfo = openVPNTunnelInfo {
-                server = "vpn.example"
-                network = "udp"
-                cipher = "AES-256-GCM"
-                ipv4 += "10.0.0.2"
-                ipv6 += "fd00::2"
-                dns += "1.1.1.1"
-                mtu = 1400
-                connectedSince = 99
-            }
-        }
+        val status = OpenVPNEndpointStatus(
+            endpointTag = "home",
+            state = OPENVPN_STATE_AUTH_PENDING,
+            stateText = "Waiting",
+            error = "retry",
+            challenge = OpenVPNChallenge(
+                id = "c1",
+                kind = OPENVPN_CHALLENGE_CREDENTIALS,
+                username = "alice",
+                message = "Sign in",
+                url = "https://vpn.example/auth",
+                secretMessage = "OTP",
+                echo = true,
+                previousError = "bad password",
+                deadline = 42,
+            ),
+            tunnelInfo = OpenVPNTunnelInfo(
+                server = "vpn.example",
+                network = "udp",
+                cipher = "AES-256-GCM",
+                ipv4 = listOf("10.0.0.2"),
+                ipv6 = listOf("fd00::2"),
+                dns = listOf("1.1.1.1"),
+                mtu = 1400,
+                connectedSince = 99,
+            ),
+        )
 
         val state = status.toState()
         assertEquals("home", state.tag)

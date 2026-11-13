@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
 import fr.husi.core.CoreClient
 import fr.husi.ktx.openUri
-import fr.husi.proto.daemon.openVPNChallengeSubmission
+import fr.husi.proto.daemon.OpenVPNChallengeSubmission
 import fr.husi.vpn.OPENVPN_CHALLENGE_CREDENTIALS
 import fr.husi.vpn.OPENVPN_CHALLENGE_MESSAGE
 import fr.husi.vpn.OPENVPN_CHALLENGE_OPEN_URL
@@ -51,7 +51,7 @@ internal object OpenVPNAuthProtocol : VpnAuthProtocol<OpenVPNEndpointState> {
 
     override fun subscribe(client: CoreClient): Flow<List<VpnEndpointView<OpenVPNEndpointState>>> =
         client.subscribeOpenVPNStatus().map { update ->
-            update.endpointsList.map { status ->
+            update.endpoints.map { status ->
                 val endpointState = status.toState()
                 VpnEndpointView(
                     tag = endpointState.tag,
@@ -146,13 +146,13 @@ internal object OpenVPNAuthProtocol : VpnAuthProtocol<OpenVPNEndpointState> {
             val secret = prompter.read("$secretLabel: ", hidden = !challenge.echo)
             val accepted = submitVpnResponse(name) {
                 client.submitOpenVPNChallengeResponse(
-                    openVPNChallengeSubmission {
-                        this.endpointTag = endpointTag
-                        challengeID = challenge.id
-                        this.username = username
-                        this.password = password
-                        this.secret = secret
-                    },
+                    OpenVPNChallengeSubmission(
+                        endpointTag = endpointTag,
+                        challengeID = challenge.id,
+                        username = username,
+                        password = password,
+                        secret = secret,
+                    ),
                 )
             }
             if (accepted) return
@@ -191,11 +191,11 @@ internal object OpenVPNAuthProtocol : VpnAuthProtocol<OpenVPNEndpointState> {
             val secret = prompter.read("$label: ", hidden = !challenge.echo)
             val accepted = submitVpnResponse(name) {
                 client.submitOpenVPNChallengeResponse(
-                    openVPNChallengeSubmission {
-                        this.endpointTag = endpointTag
-                        challengeID = challenge.id
-                        this.secret = secret
-                    },
+                    OpenVPNChallengeSubmission(
+                        endpointTag = endpointTag,
+                        challengeID = challenge.id,
+                        secret = secret,
+                    ),
                 )
             }
             if (accepted) return
@@ -228,7 +228,11 @@ internal object OpenVPNAuthProtocol : VpnAuthProtocol<OpenVPNEndpointState> {
     }
 
     private fun challengeSummary(challenge: OpenVPNChallengeState): String =
-        if (challenge.answerable) challenge.kind else "${challenge.kind} (not answerable)"
+        if (challenge.answerable) {
+            challenge.kind
+        } else {
+            "${challenge.kind} (not answerable)"
+        }
 }
 
 private fun openVPNPhase(state: String) = when (state) {

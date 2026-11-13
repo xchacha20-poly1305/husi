@@ -1,9 +1,9 @@
 package fr.husi.cli
 
 import com.github.ajalt.clikt.core.ProgramResult
-import fr.husi.proto.daemon.tailscaleEndpointStatus
-import fr.husi.proto.daemon.tailscalePeer
-import fr.husi.proto.daemon.tailscaleUserGroup
+import fr.husi.proto.daemon.TailscaleEndpointStatus
+import fr.husi.proto.daemon.TailscalePeer
+import fr.husi.proto.daemon.TailscaleUserGroup
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -16,23 +16,23 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `resolveTailscaleEndpointStatus succeeds with single endpoint`() {
-        val endpoint = tailscaleEndpointStatus { endpointTag = "ts-main" }
+        val endpoint = TailscaleEndpointStatus(endpointTag = "ts-main")
         val resolved = resolveTailscaleEndpointStatus(listOf(endpoint), "")
         assertEquals("ts-main", resolved.endpointTag)
     }
 
     @Test
     fun `resolveTailscaleEndpointStatus succeeds with matching endpoint flag`() {
-        val ep1 = tailscaleEndpointStatus { endpointTag = "ts-1" }
-        val ep2 = tailscaleEndpointStatus { endpointTag = "ts-2" }
+        val ep1 = TailscaleEndpointStatus(endpointTag = "ts-1")
+        val ep2 = TailscaleEndpointStatus(endpointTag = "ts-2")
         val resolved = resolveTailscaleEndpointStatus(listOf(ep1, ep2), "ts-2")
         assertEquals("ts-2", resolved.endpointTag)
     }
 
     @Test
     fun `resolveTailscaleEndpointStatus throws on multiple endpoints when no flag given`() {
-        val ep1 = tailscaleEndpointStatus { endpointTag = "ts-1" }
-        val ep2 = tailscaleEndpointStatus { endpointTag = "ts-2" }
+        val ep1 = TailscaleEndpointStatus(endpointTag = "ts-1")
+        val ep2 = TailscaleEndpointStatus(endpointTag = "ts-2")
         assertFailsWith<ProgramResult> {
             resolveTailscaleEndpointStatus(listOf(ep1, ep2), "")
         }
@@ -40,7 +40,7 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `resolveTailscaleEndpointStatus throws on unknown endpoint tag`() {
-        val ep1 = tailscaleEndpointStatus { endpointTag = "ts-1" }
+        val ep1 = TailscaleEndpointStatus(endpointTag = "ts-1")
         assertFailsWith<ProgramResult> {
             resolveTailscaleEndpointStatus(listOf(ep1), "unknown")
         }
@@ -55,22 +55,10 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `tailscalePeerEntries puts self first followed by user group peers`() {
-        val self = tailscalePeer {
-            stableID = "self-id"
-            hostName = "my-box"
-        }
-        val peer1 = tailscalePeer {
-            stableID = "peer-1"
-            hostName = "server"
-        }
-        val group = tailscaleUserGroup {
-            peers.add(peer1)
-        }
-        val endpoint = tailscaleEndpointStatus {
-            endpointTag = "ts"
-            this.self = self
-            userGroups.add(group)
-        }
+        val self = TailscalePeer(stableID = "self-id", hostName = "my-box")
+        val peer1 = TailscalePeer(stableID = "peer-1", hostName = "server")
+        val group = TailscaleUserGroup(peers = listOf(peer1))
+        val endpoint = TailscaleEndpointStatus(endpointTag = "ts", self = self, userGroups = listOf(group))
 
         val entries = tailscalePeerEntries(endpoint)
         assertEquals(2, entries.size)
@@ -81,46 +69,29 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `tailscalePeerName falls back across dnsName hostName stableID`() {
-        val withDns = tailscalePeer {
-            dnsName = "node1.example.ts.net."
-            hostName = "node1"
-            stableID = "id1"
-        }
+        val withDns = TailscalePeer(dnsName = "node1.example.ts.net.", hostName = "node1", stableID = "id1")
         assertEquals("node1.example.ts.net", tailscalePeerName(withDns))
 
-        val withHost = tailscalePeer {
-            hostName = "node2"
-            stableID = "id2"
-        }
+        val withHost = TailscalePeer(hostName = "node2", stableID = "id2")
         assertEquals("node2", tailscalePeerName(withHost))
 
-        val withIdOnly = tailscalePeer {
-            stableID = "id3"
-        }
+        val withIdOnly = TailscalePeer(stableID = "id3")
         assertEquals("id3", tailscalePeerName(withIdOnly))
     }
 
     @Test
     fun `tailscalePeerAddress returns first IP or empty`() {
-        val withIps = tailscalePeer {
-            tailscaleIPs.addAll(listOf("100.64.0.1", "fd7a:115c:a1e0::1"))
-        }
+        val withIps = TailscalePeer(tailscaleIPs = listOf("100.64.0.1", "fd7a:115c:a1e0::1"))
         assertEquals("100.64.0.1", tailscalePeerAddress(withIps))
 
-        val withoutIps = tailscalePeer {}
+        val withoutIps = TailscalePeer()
         assertEquals("", tailscalePeerAddress(withoutIps))
     }
 
     @Test
     fun `resolveTailscalePeer matches by stableID`() {
-        val p1 = TailscalePeerEntry(tailscalePeer {
-            stableID = "stable-xyz"
-            hostName = "host1"
-        })
-        val p2 = TailscalePeerEntry(tailscalePeer {
-            stableID = "stable-abc"
-            hostName = "host2"
-        })
+        val p1 = TailscalePeerEntry(TailscalePeer(stableID = "stable-xyz", hostName = "host1"))
+        val p2 = TailscalePeerEntry(TailscalePeer(stableID = "stable-abc", hostName = "host2"))
         val res = resolveTailscalePeer(listOf(p1, p2), "stable-xyz")
         assertNotNull(res.entry)
         assertNull(res.error)
@@ -129,14 +100,8 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `resolveTailscalePeer matches by IP address`() {
-        val p1 = TailscalePeerEntry(tailscalePeer {
-            stableID = "stable-1"
-            tailscaleIPs.add("100.64.0.42")
-        })
-        val p2 = TailscalePeerEntry(tailscalePeer {
-            stableID = "stable-2"
-            tailscaleIPs.add("100.64.0.99")
-        })
+        val p1 = TailscalePeerEntry(TailscalePeer(stableID = "stable-1", tailscaleIPs = listOf("100.64.0.42")))
+        val p2 = TailscalePeerEntry(TailscalePeer(stableID = "stable-2", tailscaleIPs = listOf("100.64.0.99")))
         val res = resolveTailscalePeer(listOf(p1, p2), "100.64.0.42")
         assertNotNull(res.entry)
         assertEquals("stable-1", res.entry.peer.stableID)
@@ -144,10 +109,7 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `resolveTailscalePeer matches by DNS name or FQDN`() {
-        val p1 = TailscalePeerEntry(tailscalePeer {
-            stableID = "p1"
-            dnsName = "my-nas.net.ts.net."
-        })
+        val p1 = TailscalePeerEntry(TailscalePeer(stableID = "p1", dnsName = "my-nas.net.ts.net."))
         val res1 = resolveTailscalePeer(listOf(p1), "my-nas.net.ts.net")
         assertEquals("p1", res1.entry?.peer?.stableID)
 
@@ -157,36 +119,34 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `resolveTailscalePeer matches by first DNS label`() {
-        val p1 = TailscalePeerEntry(tailscalePeer {
-            stableID = "p1"
-            dnsName = "workstation.example.ts.net"
-        })
+        val p1 = TailscalePeerEntry(TailscalePeer(stableID = "p1", dnsName = "workstation.example.ts.net"))
         val res = resolveTailscalePeer(listOf(p1), "workstation")
         assertEquals("p1", res.entry?.peer?.stableID)
     }
 
     @Test
     fun `resolveTailscalePeer matches by hostname`() {
-        val p1 = TailscalePeerEntry(tailscalePeer {
-            stableID = "p1"
-            hostName = "raspberrypi"
-        })
+        val p1 = TailscalePeerEntry(TailscalePeer(stableID = "p1", hostName = "raspberrypi"))
         val res = resolveTailscalePeer(listOf(p1), "raspberrypi")
         assertEquals("p1", res.entry?.peer?.stableID)
     }
 
     @Test
     fun `resolveTailscalePeer reports ambiguous error on multiple matches`() {
-        val p1 = TailscalePeerEntry(tailscalePeer {
-            stableID = "p1"
-            hostName = "server"
-            tailscaleIPs.add("100.64.0.1")
-        })
-        val p2 = TailscalePeerEntry(tailscalePeer {
-            stableID = "p2"
-            hostName = "server"
-            tailscaleIPs.add("100.64.0.2")
-        })
+        val p1 = TailscalePeerEntry(
+            TailscalePeer(
+                stableID = "p1",
+                hostName = "server",
+                tailscaleIPs = listOf("100.64.0.1"),
+            ),
+        )
+        val p2 = TailscalePeerEntry(
+            TailscalePeer(
+                stableID = "p2",
+                hostName = "server",
+                tailscaleIPs = listOf("100.64.0.2"),
+            ),
+        )
         val res = resolveTailscalePeer(listOf(p1, p2), "server")
         assertNull(res.entry)
         assertNotNull(res.error)
@@ -197,10 +157,7 @@ class ApiTailscaleCommandsTest {
 
     @Test
     fun `resolveTailscalePeer returns error when not found`() {
-        val p1 = TailscalePeerEntry(tailscalePeer {
-            stableID = "p1"
-            hostName = "server"
-        })
+        val p1 = TailscalePeerEntry(TailscalePeer(stableID = "p1", hostName = "server"))
         val res = resolveTailscalePeer(listOf(p1), "nonexistent")
         assertNull(res.entry)
         assertEquals("peer not found: nonexistent", res.error)

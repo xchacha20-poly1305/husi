@@ -1,6 +1,6 @@
 package fr.husi.core
 
-import fr.husi.proto.v1.getVersionResponse
+import fr.husi.proto.v1.GetVersionResponse
 import fr.husi.test.FakeCoreClient
 import kotlinx.coroutines.test.runTest
 import java.io.IOException
@@ -11,17 +11,17 @@ import kotlin.test.assertNull
 class CoreVersionCacheTest {
 
     private val coreClient = FakeCoreClient().also {
-        it.nextVersion = getVersionResponse { singBoxVersion = "1.13.0" }
+        it.nextVersion = GetVersionResponse(sing_box_version = "1.13.0")
     }
     private val cache = CoreVersionCache(coreClient)
 
     @Test
     fun `get keeps the first successful version`() = runTest {
-        assertEquals("1.13.0", cache.get()?.singBoxVersion)
+        assertEquals("1.13.0", cache.get()?.sing_box_version)
 
-        coreClient.nextVersion = getVersionResponse { singBoxVersion = "1.14.0" }
+        coreClient.nextVersion = GetVersionResponse(sing_box_version = "1.14.0")
 
-        assertEquals("1.13.0", cache.get()?.singBoxVersion)
+        assertEquals("1.13.0", cache.get()?.sing_box_version)
         assertEquals(1, coreClient.getVersionCalls)
     }
 
@@ -33,7 +33,7 @@ class CoreVersionCacheTest {
 
         coreClient.getVersionThrowable = null
 
-        assertEquals("1.13.0", cache.get()?.singBoxVersion)
+        assertEquals("1.13.0", cache.get()?.sing_box_version)
         assertEquals(2, coreClient.getVersionCalls)
     }
 }

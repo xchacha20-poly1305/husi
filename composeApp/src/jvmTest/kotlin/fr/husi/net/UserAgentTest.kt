@@ -2,7 +2,7 @@ package fr.husi.net
 
 import fr.husi.BuildConfig
 import fr.husi.core.CoreVersionCache
-import fr.husi.proto.v1.getVersionResponse
+import fr.husi.proto.v1.GetVersionResponse
 import fr.husi.test.FakeCoreClient
 import kotlinx.coroutines.test.runTest
 import java.io.IOException
@@ -12,8 +12,9 @@ import kotlin.test.assertEquals
 class UserAgentTest {
 
     private val coreClient = FakeCoreClient().also {
-        it.nextVersion = getVersionResponse { singBoxVersion = "1.13.0" }
+        it.nextVersion = GetVersionResponse(sing_box_version = "1.13.0")
     }
+
     private val coreVersionCache = CoreVersionCache(coreClient)
 
     @Test

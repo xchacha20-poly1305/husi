@@ -15,7 +15,10 @@ actual object Logs {
 
     fun openFile(logFile: File, level: Int) {
         file?.close()
-        file = LogFile(logFile, LogLevel.forNumber(level) ?: LogLevel.WARN, truncate = true)
+        val threshold = LogLevel.fromValue(level)
+            .takeUnless { it is LogLevel.Unrecognized }
+            ?: LogLevel.WARN
+        file = LogFile(logFile, threshold, truncate = true)
     }
 
     fun attachCore() {

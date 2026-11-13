@@ -340,7 +340,7 @@ class DashboardViewModel(
         groupsJob = viewModelScope.launch {
             try {
                 coreClient.subscribeGroups().collect { groups ->
-                    latestGroups = groups.groupList
+                    latestGroups = groups.group
                     publishProxySets()
                 }
             } catch (e: Exception) {
@@ -351,7 +351,7 @@ class DashboardViewModel(
         outboundsJob = viewModelScope.launch {
             try {
                 coreClient.subscribeOutbounds().collect { list ->
-                    latestOutbounds = list.outboundsList
+                    latestOutbounds = list.outbounds
                     publishProxySets()
                 }
             } catch (e: Exception) {
@@ -374,7 +374,7 @@ class DashboardViewModel(
                 val status = coreClient.getClashModeStatus()
                 uiState.update { state ->
                     state.copy(
-                        clashModes = status.modeListList,
+                        clashModes = status.modeList,
                         selectedClashMode = status.currentMode,
                     )
                 }
@@ -633,7 +633,7 @@ class DashboardViewModel(
         if (events.reset) {
             connections.clear()
             closedConnectionOrder.clear()
-            for (event in events.eventsList) {
+            for (event in events.events) {
                 if (event.type != ConnectionEventType.CONNECTION_EVENT_NEW) {
                     continue
                 }
@@ -642,8 +642,10 @@ class DashboardViewModel(
             }
         } else {
             var changed = false
-            for (event in events.eventsList) {
-                if (handleConnectionEvent(event)) changed = true
+            for (event in events.events) {
+                if (handleConnectionEvent(event)) {
+                    changed = true
+                }
             }
             if (!changed) return
         }
@@ -665,6 +667,8 @@ class DashboardViewModel(
 
     private fun handleConnectionEvent(event: ConnectionEvent): Boolean {
         when (event.type) {
+            is ConnectionEventType.Unrecognized -> return false
+
             ConnectionEventType.CONNECTION_EVENT_NEW -> {
                 val connection = event.connection ?: return false
                 putConnection(event.id, connection.toDetailState())
@@ -704,8 +708,6 @@ class DashboardViewModel(
                 )
                 return true
             }
-
-            ConnectionEventType.UNRECOGNIZED -> return false
         }
     }
 
@@ -744,7 +746,7 @@ class DashboardViewModel(
                     displayType = proxyDisplayName(group.type),
                     selectable = group.selectable,
                     selected = group.selected,
-                    items = group.itemsList.map { item ->
+                    items = group.items.map { item ->
                         ProxyItem(
                             tag = item.tag,
                             type = item.type,
@@ -809,7 +811,7 @@ class DashboardViewModel(
 
     private val remoteUrlTest = RemoteUrlTestRunner { tag ->
         val outbound = latestGroups.asSequence()
-            .flatMap { it.itemsList.asSequence() }
+            .flatMap { it.items.asSequence() }
             .firstOrNull { it.tag == tag } ?: latestOutbounds.firstOrNull { it.tag == tag }
         outbound?.let {
             RemoteUrlTestResult(it.urlTestTime, it.urlTestDelay)
@@ -900,7 +902,9 @@ class DashboardViewModel(
                 val server = DataStore.ipTestServers.get().listByLineIgnoringComments().randomOrNull()
                 if (server == null) {
                     uiState.update {
-                        it.copy(ipProbe = IPProbeState(error = StringOrRes.Res(Res.string.ip_test_no_servers)))
+                        it.copy(
+                            ipProbe = IPProbeState(error = StringOrRes.Res(Res.string.ip_test_no_servers)),
+                        )
                     }
                     return@launch
                 }
@@ -914,7 +918,11 @@ class DashboardViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                uiState.update { it.copy(ipProbe = it.ipProbe.copy(error = StringOrRes.Direct(e.readableMessage))) }
+                uiState.update {
+                    it.copy(
+                        ipProbe = it.ipProbe.copy(error = StringOrRes.Direct(e.readableMessage)),
+                    )
+                }
             } finally {
                 uiState.update { it.copy(ipProbe = it.ipProbe.copy(isDoing = false)) }
             }

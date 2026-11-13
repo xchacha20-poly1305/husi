@@ -36,4 +36,19 @@ class ConnectionEventsTest {
         assertEquals(12L, connections.getValue("a").uplinkTotal)
         assertEquals(0L, connections.getValue("a").uplink)
     }
+
+    @Test
+    fun `unknown event types do not replace a live connection with their payload`() {
+        val existing = Connection(id = "a", uplinkTotal = 12)
+        val connections = mutableMapOf("a" to existing)
+        val event = ConnectionEvent.ADAPTER.decode(
+            ConnectionEvent(id = "a", connection = Connection(id = "a", uplinkTotal = 99)).encode()
+                + byteArrayOf(8, 99),
+        )
+
+        applyConnectionEvents(connections, ConnectionEvents(events = listOf(event)))
+
+        assertEquals(existing, connections["a"])
+    }
+
 }

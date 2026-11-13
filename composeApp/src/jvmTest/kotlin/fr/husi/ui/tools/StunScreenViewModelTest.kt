@@ -61,15 +61,15 @@ class StunScreenViewModelTest : HusiKoinMainDispatcherTest() {
     @Test
     fun `a final progress builds the report`() = runTest(dispatcher.scheduler) {
         fakeCore.stunTestProgresses = listOf(
-            STUNTestProgress.newBuilder()
-                .setPhase(StunPhase.Done.ordinal)
-                .setExternalAddr("203.0.113.7:14000")
-                .setLatencyMs(42)
-                .setNatMapping(2)
-                .setNatFiltering(1)
-                .setNatTypeSupported(true)
-                .setIsFinal(true)
-                .build(),
+            STUNTestProgress(
+                phase = StunPhase.Done.ordinal,
+                externalAddr = "203.0.113.7:14000",
+                latencyMs = 42,
+                natMapping = 2,
+                natFiltering = 1,
+                natTypeSupported = true,
+                isFinal = true,
+            ),
         )
         val viewModel = newViewModel()
 
@@ -92,10 +92,7 @@ class StunScreenViewModelTest : HusiKoinMainDispatcherTest() {
     @Test
     fun `an in-stream error alerts and stops the test`() = runTest(dispatcher.scheduler) {
         fakeCore.stunTestProgresses = listOf(
-            STUNTestProgress.newBuilder()
-                .setIsFinal(true)
-                .setError("binding request: timeout")
-                .build(),
+            STUNTestProgress(isFinal = true, error = "binding request: timeout"),
         )
         val viewModel = newViewModel()
 

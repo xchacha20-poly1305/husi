@@ -13,10 +13,10 @@ internal object OpenVPNAuthWatcher {
         pending = {
             subscribeOpenVPNStatus().map { update ->
                 firstVpnAuthPending(
-                    endpoints = update.endpointsList,
+                    endpoints = update.endpoints,
                     state = { it.state },
                     challengeId = { status ->
-                        status.challenge.takeIf { status.hasChallenge() }?.id
+                        status.challenge?.id
                     },
                     tag = { it.endpointTag },
                 )

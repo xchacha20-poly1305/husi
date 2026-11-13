@@ -16,6 +16,7 @@ import fr.husi.proto.daemon.Group
 import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
 import fr.husi.proto.daemon.OpenVPNStatusUpdate
+import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.StartedServiceClient
 import fr.husi.proto.daemon.SubscribeConnectionsRequest
 import fr.husi.proto.daemon.SubscribeStatusRequest
@@ -23,8 +24,6 @@ import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.Version
 import fr.husi.ui.openconnect.RemoteOpenConnectActions
 import fr.husi.ui.openvpn.RemoteOpenVPNActions
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -42,6 +41,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class RemoteState(
     private val scope: CoroutineScope,
@@ -202,14 +203,22 @@ internal class RemoteState(
                     coroutineScope {
                         if (interval <= 0) return@coroutineScope
                         val nanoseconds = interval.milliseconds.inWholeNanoseconds
-                        subscribe(this, "SubscribeStatus", { service.subscribeStatus(SubscribeStatusRequest(nanoseconds)) }) {
+                        subscribe(
+                            this,
+                            "SubscribeStatus",
+                            { service.subscribeStatus(SubscribeStatusRequest(nanoseconds)) },
+                        ) {
                             traffic = RemoteTraffic.fromStatus(it)
                             history.add((traffic.upload + traffic.download).toFloat())
                             if (history.size > 60) {
                                 history.removeAt(0)
                             }
                         }
-                        subscribe(this, "SubscribeConnections", { service.subscribeConnections(SubscribeConnectionsRequest(nanoseconds)) }) { event ->
+                        subscribe(
+                            this,
+                            "SubscribeConnections",
+                            { service.subscribeConnections(SubscribeConnectionsRequest(nanoseconds)) },
+                        ) { event ->
                             applyConnectionEvents(connections, event, keepClosed = true)
                             val closed = connections.entries.filter { it.value.closedAt > 0 }
                             for (entry in closed.take((closed.size - 1000).fastCoerceAtLeast(0))) {
@@ -237,7 +246,12 @@ internal class RemoteState(
                 clashMode =
                     clashMode.copy(currentMode = it.mode)
             }
-            subscribe(this, "SubscribeServiceStatus", { service.subscribeServiceStatus() }) { serviceStatus = it.status.name }
+            subscribe(this, "SubscribeServiceStatus", { service.subscribeServiceStatus() }) {
+                val status = it.status
+                if (status !is ServiceStatus.Type.Unrecognized) {
+                    serviceStatus = status.toString()
+                }
+            }
             launch {
                 runCatching { service.getClashModeStatus() }.onSuccess { clashMode = it }
             }

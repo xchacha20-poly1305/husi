@@ -75,20 +75,22 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
 
     fun onEvents(events: ConnectionEvents) {
         if (events.reset) {
-            val liveIds = events.eventsList.mapTo(HashSet()) { it.id }
+            val liveIds = events.events.mapTo(HashSet()) { it.id }
             attributionById.clear()
             // Drop watermarks for connections absent from the replay batch.
             idTotals.keys.retainAll(liveIds)
             // Do not clear the counters — those may already have been drained into
             // profile totals and persisted.
         }
-        for (event in events.eventsList) {
+        for (event in events.events) {
             onEvent(event)
         }
     }
 
     fun onEvent(event: ConnectionEvent) {
         when (event.type) {
+            is ConnectionEventType.Unrecognized -> return
+
             ConnectionEventType.CONNECTION_EVENT_NEW -> {
                 val connection = event.connection ?: return
                 val attribution = connection.attribution() ?: return
@@ -115,8 +117,6 @@ class OutboundTrafficAggregator(private val graph: Map<String, TrafficNode> = em
                 attributionById.remove(event.id)
                 idTotals.remove(event.id)
             }
-
-            ConnectionEventType.UNRECOGNIZED -> {}
         }
     }
 

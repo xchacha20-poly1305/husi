@@ -130,4 +130,37 @@ class MieruTrafficPatternTest {
             encodeMieruTrafficPattern("""{"nonce": {"type": "NONCE_TYPE_SHOUTING"}}""")
         }
     }
+
+    @Test
+    fun `explicit zero false and zero enum values remain present`() {
+        assertRoundTrip(
+            "CAAQABoECAAQACICCAAyBAgAEAA=",
+            """{"seed":0,"unlockAll":false,"tcpFragment":{"enable":false,"maxSleepMs":0},"nonce":{"type":"NONCE_TYPE_RANDOM"},"lowEntropy":{"mode":"LOW_ENTROPY_MODE_OFF","maskRotation":"LOW_ENTROPY_MASK_NO_ROTATION"}}""",
+        )
+    }
+
+    @Test
+    fun `unknown JSON fields are rejected`() {
+        assertFailsWith<IllegalArgumentException> {
+            encodeMieruTrafficPattern("""{"newSetting":true}""")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            encodeMieruTrafficPattern("""{"nonce":{"newSetting":true}}""")
+        }
+    }
+
+    @Test
+    fun `explicit null fields are omitted and empty nested messages remain present`() {
+        assertRoundTrip("GgA=", """{"tcpFragment":{}}""")
+        assertEquals("", encodeMieruTrafficPattern("""{"seed":null,"unlockAll":null}"""))
+    }
+
+    @Test
+    fun `null repeated fields are unset like an absent or empty list`() {
+        val nullList = encodeMieruTrafficPattern("""{"nonce":{"customHexStrings":null}}""")
+        assertEquals(encodeMieruTrafficPattern("""{"nonce":{}}"""), nullList)
+        assertEquals(encodeMieruTrafficPattern("""{"nonce":{"customHexStrings":[]}}"""), nullList)
+        assertEquals(Json.parseToJsonElement("""{"nonce":{}}"""), decodeMieruTrafficPattern(nullList))
+    }
+
 }

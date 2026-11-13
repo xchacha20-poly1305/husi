@@ -78,6 +78,8 @@ vendor_sing_box_proto() {
 vendor_sing_box_proto daemon/started_service.proto StartedServiceProto \
   "${KEEP_STARTED_SERVICE_RPCS[@]}"
 
+python3 buildScript/mieru_proto.py
+
 export PATH="$PLUGIN_DIR:$PATH"
 
 GO_OUT="$PWD/libcore/pb"

@@ -1,10 +1,9 @@
 package fr.husi.tailscale
 
 import fr.husi.core.remote.CoreTarget
-import fr.husi.proto.daemon.TailscaleSSHClientMessage
-import fr.husi.proto.daemon.tailscaleSSHError
-import fr.husi.proto.daemon.tailscaleSSHReady
-import fr.husi.proto.daemon.tailscaleSSHServerMessage
+import fr.husi.proto.daemon.TailscaleSSHError
+import fr.husi.proto.daemon.TailscaleSSHReady
+import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,21 +42,21 @@ class TailscaleSSHSessionManagerTest : HusiKoinMainDispatcherTest() {
         advanceUntilIdle()
 
         val start = client.tailscaleSSHRequests.first()
-        assertEquals(TailscaleSSHClientMessage.MessageCase.START, start.messageCase)
-        assertEquals("ts", start.start.endpointTag)
-        assertEquals("100.64.0.2", start.start.peerAddress)
-        assertEquals("alice", start.start.username)
-        assertEquals("xterm-ghostty", start.start.terminalType)
-        assertEquals(listOf("ssh-ed25519 AAAA"), start.start.hostKeysList)
-        assertEquals(80, start.start.columns)
-        assertEquals(24, start.start.rows)
+        val startMessage = checkNotNull(start.start)
+        assertEquals("ts", startMessage.endpointTag)
+        assertEquals("100.64.0.2", startMessage.peerAddress)
+        assertEquals("alice", startMessage.username)
+        assertEquals("xterm-ghostty", startMessage.terminalType)
+        assertEquals(listOf("ssh-ed25519 AAAA"), startMessage.hostKeys)
+        assertEquals(80, startMessage.columns)
+        assertEquals(24, startMessage.rows)
         manager.closeAll()
     }
 
     @Test
     fun `ready marks the session running`() = runTest(dispatcher.scheduler) {
         val client = FakeCoreClient().also {
-            it.tailscaleSSHResponses = listOf(tailscaleSSHServerMessage { ready = tailscaleSSHReady { } })
+            it.tailscaleSSHResponses = listOf(TailscaleSSHServerMessage(ready = TailscaleSSHReady()))
         }
         val manager = newManager(client)
 
@@ -72,7 +71,9 @@ class TailscaleSSHSessionManagerTest : HusiKoinMainDispatcherTest() {
     fun `an error from the core finishes the session as failed`() = runTest(dispatcher.scheduler) {
         val client = FakeCoreClient().also {
             it.tailscaleSSHResponses = listOf(
-                tailscaleSSHServerMessage { error = tailscaleSSHError { message = "untrusted host key" } },
+                TailscaleSSHServerMessage(
+                    error = TailscaleSSHError(message = "untrusted host key"),
+                ),
             )
         }
         val manager = newManager(client)

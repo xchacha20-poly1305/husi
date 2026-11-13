@@ -4,9 +4,9 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.joinAddress
+import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.splitAddress
 import fr.husi.ktx.toPortOrNull
-import fr.husi.ktx.listByLineOrComma
 import okio.ByteString
 
 fun parseTrustTunnel(link: String): TrustTunnelBean {

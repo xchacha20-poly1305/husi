@@ -1,19 +1,20 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package fr.husi.compose
 
 import androidx.compose.material3.AppBarMenuState
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MenuDefaults
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
+import fr.husi.resources.Res
+import fr.husi.resources.expand
+import fr.husi.resources.more
+import fr.husi.resources.more_vert
+import fr.husi.resources.navigate_next
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import fr.husi.resources.*
 
 @Composable
 fun ExpandableDropdownMenuItem(

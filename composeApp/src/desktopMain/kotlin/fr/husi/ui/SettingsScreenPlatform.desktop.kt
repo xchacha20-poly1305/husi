@@ -16,12 +16,12 @@ import fr.husi.DesktopAutoStart
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
-import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.Preference
 import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
 import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.ValidatedTextField
+import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import fr.husi.compose.validateTunInterfaceName
@@ -61,14 +61,14 @@ import fr.husi.resources.forced_search_process_summary
 import fr.husi.resources.install_daemon
 import fr.husi.resources.install_daemon_summary
 import fr.husi.resources.manage_search
+import fr.husi.resources.network_manager_tun
+import fr.husi.resources.network_manager_tun_summary
 import fr.husi.resources.phonelink_ring
 import fr.husi.resources.remember_window_size
 import fr.husi.resources.remember_window_size_summary
 import fr.husi.resources.security
 import fr.husi.resources.start_at_boot_daemon
 import fr.husi.resources.start_at_boot_daemon_summary
-import fr.husi.resources.network_manager_tun
-import fr.husi.resources.network_manager_tun_summary
 import fr.husi.resources.tun_auto_redirect
 import fr.husi.resources.tun_interface_name
 import fr.husi.resources.tun_interface_name_summary
@@ -149,7 +149,7 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
         }
         startAtBootLoaded = false
         runCatching {
-            coreClient.getDaemonInfo().startAtBoot
+            coreClient.getDaemonInfo().start_at_boot
         }.onSuccess { enabled ->
             startAtBoot = enabled
             startAtBootLoaded = true

@@ -346,16 +346,11 @@ val buildBrowserAssets = tasks.register<Exec>("buildBrowserAssets") {
     outputs.dir("browser/dist")
 }
 
-val webProtoSources = configurations.create("webProtoSources") {
-    isCanBeConsumed = false
-}
-
 val ghosttyWasm = configurations.create("ghosttyWasm") {
     isCanBeConsumed = false
 }
 
 dependencies {
-    add(webProtoSources.name, project(path = ":proto", configuration = "webSources"))
     add(
         ghosttyWasm.name,
         "io.github.xchacha20-poly1305:libghostty-wasm-js:${libs.versions.libghostty.get()}:ghostty-vt@wasm",
@@ -426,16 +421,15 @@ kotlin {
 
     sourceSets {
         getByName("wasmJsMain") {
-            kotlin.srcDirs(webProtoSources)
             resources.srcDir(prepareWebResources)
             dependencies {
                 implementation(libs.kurpc)
-                implementation(libs.wire.runtime)
             }
         }
 
         getByName("commonMain") {
             dependencies {
+                implementation(project(":proto"))
                 implementation(libs.androidx.datastore.preferences.core)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material3)
@@ -465,14 +459,12 @@ kotlin {
                 implementation(libs.androidx.datastore.preferences)
                 implementation(libs.androidx.sqlite.bundled)
                 implementation(libs.androidx.room.runtime)
-                implementation(libs.kotlinx.serialization.protobuf)
 
                 implementation(libs.ini4j)
                 implementation(libs.okio)
                 implementation(libs.filekit.dialogs.compose)
                 implementation(libs.zxing.core)
                 implementation(libs.kpuri)
-                implementation(project(":proto"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
 
             }

@@ -5,11 +5,9 @@ import fr.husi.bg.ServiceState
 import fr.husi.bg.SpeedStats
 import fr.husi.proto.v1.AlertKind
 import fr.husi.proto.v1.ServiceRunState
+import fr.husi.proto.v1.ServiceStateUpdate
+import fr.husi.proto.v1.SpeedUpdate
 import fr.husi.proto.v1.SubscribeServiceEventsResponse
-import fr.husi.proto.v1.serviceAlert
-import fr.husi.proto.v1.serviceStateUpdate
-import fr.husi.proto.v1.speedUpdate
-import fr.husi.proto.v1.subscribeServiceEventsResponse
 import fr.husi.proto.v1.ServiceAlert as ProtoServiceAlert
 
 fun ServiceState.toProto(): ServiceRunState = when (this) {
@@ -26,81 +24,60 @@ fun ServiceRunState.toServiceState(): ServiceState = when (this) {
     ServiceRunState.SERVICE_RUN_STATE_CONNECTED -> ServiceState.Connected
     ServiceRunState.SERVICE_RUN_STATE_STOPPING -> ServiceState.Stopping
     ServiceRunState.SERVICE_RUN_STATE_STOPPED -> ServiceState.Stopped
-    ServiceRunState.SERVICE_RUN_STATE_UNSPECIFIED,
-    ServiceRunState.UNRECOGNIZED,
-    -> ServiceState.Idle
+    ServiceRunState.SERVICE_RUN_STATE_UNSPECIFIED -> ServiceState.Idle
 }
 
-fun ServiceAlert.toProto(): ProtoServiceAlert {
-    val alert = this
-    return serviceAlert {
-        when (alert) {
-            is ServiceAlert.Common -> {
-                kind = AlertKind.ALERT_KIND_COMMON
-                message = alert.message
-            }
-            is ServiceAlert.MissingPlugin -> {
-                kind = AlertKind.ALERT_KIND_MISSING_PLUGIN
-                message = alert.pluginName
-            }
-            is ServiceAlert.NeedWifiPermission -> {
-                kind = AlertKind.ALERT_KIND_NEED_WIFI_PERMISSION
-            }
-        }
-    }
+fun ServiceAlert.toProto(): ProtoServiceAlert = when (this) {
+    is ServiceAlert.Common -> ProtoServiceAlert(kind = AlertKind.ALERT_KIND_COMMON, message = message)
+    is ServiceAlert.MissingPlugin -> ProtoServiceAlert(kind = AlertKind.ALERT_KIND_MISSING_PLUGIN, message = pluginName)
+    is ServiceAlert.NeedWifiPermission -> ProtoServiceAlert(kind = AlertKind.ALERT_KIND_NEED_WIFI_PERMISSION)
 }
 
 fun ProtoServiceAlert.toServiceAlert(): ServiceAlert = when (kind) {
-    AlertKind.ALERT_KIND_COMMON -> ServiceAlert.Common(message)
     AlertKind.ALERT_KIND_MISSING_PLUGIN -> ServiceAlert.MissingPlugin(message)
     AlertKind.ALERT_KIND_NEED_WIFI_PERMISSION -> ServiceAlert.NeedWifiPermission
-    AlertKind.ALERT_KIND_UNSPECIFIED,
-    AlertKind.UNRECOGNIZED,
-    -> ServiceAlert.Common(message)
+    else -> ServiceAlert.Common(message)
 }
 
-fun SubscribeServiceEventsResponse.toServiceEvent(): ServiceEvent? = when (eventCase) {
-    SubscribeServiceEventsResponse.EventCase.STATE -> ServiceEvent.State(
-        state = state.state.toServiceState(),
-        profileName = state.profileName.ifEmpty { null },
-    )
-    SubscribeServiceEventsResponse.EventCase.SPEED -> ServiceEvent.Speed(
-        SpeedStats(
-            txRateProxy = speed.txRateProxy,
-            rxRateProxy = speed.rxRateProxy,
-            txRateDirect = speed.txRateDirect,
-            rxRateDirect = speed.rxRateDirect,
-            txTotal = speed.txTotal,
-            rxTotal = speed.rxTotal,
-        ),
-    )
-    SubscribeServiceEventsResponse.EventCase.ALERT -> ServiceEvent.Alert(alert.toServiceAlert())
-    SubscribeServiceEventsResponse.EventCase.EVENT_NOT_SET -> null
-}
-
-fun ServiceEvent.toProto(): SubscribeServiceEventsResponse {
-    val event = this
-    return subscribeServiceEventsResponse {
-        when (event) {
-            is ServiceEvent.State -> {
-                state = serviceStateUpdate {
-                    this.state = event.state.toProto()
-                    profileName = event.profileName.orEmpty()
-                }
-            }
-            is ServiceEvent.Speed -> {
-                speed = speedUpdate {
-                    txRateProxy = event.stats.txRateProxy
-                    rxRateProxy = event.stats.rxRateProxy
-                    txRateDirect = event.stats.txRateDirect
-                    rxRateDirect = event.stats.rxRateDirect
-                    txTotal = event.stats.txTotal
-                    rxTotal = event.stats.rxTotal
-                }
-            }
-            is ServiceEvent.Alert -> {
-                alert = event.alert.toProto()
-            }
-        }
+fun SubscribeServiceEventsResponse.toServiceEvent(): ServiceEvent? {
+    state?.let {
+        return ServiceEvent.State(it.state.toServiceState(), it.profile_name.ifEmpty { null })
     }
+    speed?.let {
+        return ServiceEvent.Speed(
+            SpeedStats(
+                txRateProxy = it.tx_rate_proxy,
+                rxRateProxy = it.rx_rate_proxy,
+                txRateDirect = it.tx_rate_direct,
+                rxRateDirect = it.rx_rate_direct,
+                txTotal = it.tx_total,
+                rxTotal = it.rx_total,
+            ),
+        )
+    }
+    return alert?.let { ServiceEvent.Alert(it.toServiceAlert()) }
+}
+
+fun ServiceEvent.toProto(): SubscribeServiceEventsResponse = when (this) {
+    is ServiceEvent.State ->
+        SubscribeServiceEventsResponse(
+            state = ServiceStateUpdate(
+                state = state.toProto(),
+                profile_name = profileName.orEmpty(),
+            ),
+        )
+
+    is ServiceEvent.Speed ->
+        SubscribeServiceEventsResponse(
+            speed = SpeedUpdate(
+                tx_rate_proxy = stats.txRateProxy,
+                rx_rate_proxy = stats.rxRateProxy,
+                tx_rate_direct = stats.txRateDirect,
+                rx_rate_direct = stats.rxRateDirect,
+                tx_total = stats.txTotal,
+                rx_total = stats.rxTotal,
+            ),
+        )
+
+    is ServiceEvent.Alert -> SubscribeServiceEventsResponse(alert = alert.toProto())
 }

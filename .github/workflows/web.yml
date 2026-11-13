@@ -18,7 +18,6 @@ on:
       - buildSrc/**
       - buildScript/publish_web.sh
       - .github/workflows/web.yml
-      - .github/actions/setup-protoc/**
   workflow_dispatch:
 
 permissions:
@@ -38,7 +37,6 @@ jobs:
         with:
           submodules: recursive
       - uses: ./.github/actions/load-build-versions
-      - uses: ./.github/actions/setup-protoc
       - uses: ./.github/actions/setup-jbr
       - uses: actions/setup-node@v7
         with:

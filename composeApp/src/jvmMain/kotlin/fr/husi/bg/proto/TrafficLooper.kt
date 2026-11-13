@@ -64,7 +64,7 @@ class TrafficLooper(
 
         launch {
             coreClient.subscribeGroups().collect { groups ->
-                for (group in groups.groupList) {
+                for (group in groups.group) {
                     aggregator.updateSelection(group.tag, group.selected)
                 }
             }

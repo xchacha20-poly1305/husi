@@ -5,8 +5,7 @@ import fr.husi.proto.daemon.TailscalePeer
 import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.TailscaleUserGroup
 
-fun TailscaleStatusUpdate.toEndpointStates(): List<TailscaleEndpointState> =
-    endpointsList.map { it.toState() }
+fun TailscaleStatusUpdate.toEndpointStates(): List<TailscaleEndpointState> = endpoints.map { it.toState() }
 
 fun TailscaleEndpointStatus.toState(): TailscaleEndpointState = TailscaleEndpointState(
     endpointTag = endpointTag,
@@ -15,17 +14,9 @@ fun TailscaleEndpointStatus.toState(): TailscaleEndpointState = TailscaleEndpoin
     authUrl = authURL,
     networkName = networkName,
     magicDnsSuffix = magicDNSSuffix,
-    selfPeer = if (hasSelf()) {
-        self.toState()
-    } else {
-        null
-    },
-    exitNode = if (hasExitNode()) {
-        exitNode.toState()
-    } else {
-        null
-    },
-    userGroups = userGroupsList.map { it.toState() },
+    selfPeer = self?.toState(),
+    exitNode = exitNode?.toState(),
+    userGroups = userGroups.map { it.toState() },
     keyAuth = keyAuth,
     canShareFiles = canShareFiles,
     waitingFileCount = waitingFileCount,
@@ -38,7 +29,7 @@ fun TailscaleUserGroup.toState(): TailscaleUserGroupState = TailscaleUserGroupSt
     loginName = loginName,
     displayName = displayName,
     profilePictureUrl = profilePicURL,
-    peers = peersList.map { it.toState() },
+    peers = peers.map { it.toState() },
 )
 
 fun TailscalePeer.toState(): TailscalePeerState {
@@ -49,8 +40,8 @@ fun TailscalePeer.toState(): TailscalePeerState {
         hostName = hostName,
         dnsName = magicDNS,
         operatingSystem = os,
-        tailscaleIps = tailscaleIPsList,
-        sshHostKeys = sshHostKeysList,
+        tailscaleIps = tailscaleIPs,
+        sshHostKeys = sshHostKeys,
         online = online,
         exitNode = exitNode,
         exitNodeOption = exitNodeOption,

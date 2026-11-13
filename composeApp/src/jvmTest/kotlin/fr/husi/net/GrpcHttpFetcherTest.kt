@@ -1,11 +1,10 @@
 package fr.husi.net
 
-import com.google.protobuf.ByteString
+import fr.husi.proto.v1.HTTPFetchHead
 import fr.husi.proto.v1.HTTPFetchResponse
-import fr.husi.proto.v1.hTTPFetchHead
-import fr.husi.proto.v1.hTTPFetchResponse
 import fr.husi.test.FakeCoreClient
 import kotlinx.coroutines.test.runTest
+import okio.ByteString.Companion.toByteString
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -28,15 +27,10 @@ class GrpcHttpFetcherTest {
     }
 
     private fun head(contentLength: Long, headers: Map<String, String> = emptyMap()) =
-        hTTPFetchResponse {
-            head = hTTPFetchHead {
-                this.headers.putAll(headers)
-                this.contentLength = contentLength
-            }
-        }
+        HTTPFetchResponse(head = HTTPFetchHead(headers = headers, content_length = contentLength))
 
     private fun chunk(bytes: ByteArray): HTTPFetchResponse =
-        hTTPFetchResponse { chunk = ByteString.copyFrom(bytes) }
+        HTTPFetchResponse(chunk = bytes.toByteString())
 
     @Test
     fun `request carries every option to the host`() = runTest {
@@ -57,24 +51,26 @@ class GrpcHttpFetcherTest {
 
         val sent = checkNotNull(coreClient.lastHttpFetch)
         assertEquals("https://example.invalid/sub", sent.url)
-        assertEquals("husi-test", sent.headersMap["User-Agent"])
-        assertEquals("Bearer token", sent.headersMap["Authorization"])
-        assertEquals(true, sent.noOverallDeadline)
-        assertEquals(true, sent.restrictedTls)
-        assertEquals("ab", sent.pinnedSha256)
-        assertEquals(2080, sent.socks5.port)
-        assertEquals("user", sent.socks5.username)
-        assertEquals("pass", sent.socks5.password)
-        assertEquals("AGE-SECRET-KEY-1", sent.ageIdentities)
+        assertEquals("husi-test", sent.headers["User-Agent"])
+        assertEquals("Bearer token", sent.headers["Authorization"])
+        assertEquals(true, sent.no_overall_deadline)
+        assertEquals(true, sent.restricted_tls)
+        assertEquals("ab", sent.pinned_sha256)
+        assertEquals(2080, checkNotNull(sent.socks5).port)
+        assertEquals("user", checkNotNull(sent.socks5).username)
+        assertEquals("pass", checkNotNull(sent.socks5).password)
+        assertEquals("AGE-SECRET-KEY-1", sent.age_identities)
     }
 
     @Test
     fun `request without a proxy leaves socks5 unset`() = runTest {
         coreClient.httpFetchResponses = listOf(head(0))
 
-        fetcher.fetchText(HttpFetchRequest(url = "https://example.invalid", userAgent = "husi-test"))
+        fetcher.fetchText(
+            HttpFetchRequest(url = "https://example.invalid", userAgent = "husi-test"),
+        )
 
-        assertEquals(false, coreClient.lastHttpFetch?.hasSocks5())
+        assertEquals(false, (coreClient.lastHttpFetch?.socks5 != null))
     }
 
     @Test
@@ -117,7 +113,9 @@ class GrpcHttpFetcherTest {
         coreClient.httpFetchThrowable = IOException("HTTP 404 Not Found")
 
         assertFailsWith<IOException> {
-            fetcher.fetchText(HttpFetchRequest(url = "https://example.invalid", userAgent = "husi-test"))
+            fetcher.fetchText(
+                HttpFetchRequest(url = "https://example.invalid", userAgent = "husi-test"),
+            )
         }
     }
 
@@ -126,7 +124,9 @@ class GrpcHttpFetcherTest {
         coreClient.httpFetchResponses = emptyList()
 
         assertFailsWith<IllegalStateException> {
-            fetcher.fetchText(HttpFetchRequest(url = "https://example.invalid", userAgent = "husi-test"))
+            fetcher.fetchText(
+                HttpFetchRequest(url = "https://example.invalid", userAgent = "husi-test"),
+            )
         }
     }
 }

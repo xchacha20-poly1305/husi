@@ -1,139 +1,200 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package fr.husi.fmt.mieru
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
+import com.squareup.wire.WireEnum
+import fr.husi.proto.mieru.LowEntropyMaskRotation
+import fr.husi.proto.mieru.LowEntropyMode
+import fr.husi.proto.mieru.LowEntropyPattern
+import fr.husi.proto.mieru.NoncePattern
+import fr.husi.proto.mieru.NonceType
+import fr.husi.proto.mieru.PaddingPattern
+import fr.husi.proto.mieru.TCPFragment
+import fr.husi.proto.mieru.TrafficPattern
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.protobuf.ProtoBuf
-import kotlinx.serialization.protobuf.ProtoNumber
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 import okio.ByteString.Companion.decodeBase64
-import okio.ByteString.Companion.toByteString
 
-/** Key under which mieru's client config, and some share links, nest the pattern. */
 private const val WRAPPER_KEY = "trafficPattern"
+private val trafficPatternJson = Json { explicitNulls = false }
 
-/** Unlike the shared `kxs`, rejects what mieru would reject instead of dropping it. */
-private val trafficPatternJson = Json {
-    explicitNulls = false
-}
-
-/**
- * Decodes the base64 protobuf form a `mierus://` link carries into the JSON form mieru's
- * client config takes.
- */
 fun decodeMieruTrafficPattern(encoded: String): JsonElement {
-    val protobuf = encoded.decodeBase64()
+    val bytes = encoded.decodeBase64()
         ?: throw IllegalArgumentException("traffic pattern is not base64")
-    val pattern = ProtoBuf.decodeFromByteArray(TrafficPattern.serializer(), protobuf.toByteArray())
-    return trafficPatternJson.encodeToJsonElement(TrafficPattern.serializer(), pattern)
+    return TrafficPattern.ADAPTER.decode(bytes).toJson()
 }
 
-/**
- * Encodes a traffic pattern in JSON, bare or nested under `trafficPattern`, into the base64
- * protobuf form of a `mierus://` link.
- */
 fun encodeMieruTrafficPattern(json: String): String {
     val root = trafficPatternJson.parseToJsonElement(json) as? JsonObject
         ?: throw SerializationException("traffic pattern is not a JSON object")
-    val payload = root[WRAPPER_KEY] ?: root
-    val pattern = trafficPatternJson.decodeFromJsonElement(TrafficPattern.serializer(), payload)
-    return ProtoBuf.encodeToByteArray(TrafficPattern.serializer(), pattern).toByteString().base64()
+    return trafficPattern(root[WRAPPER_KEY] ?: root).encodeByteString().base64()
 }
 
-// Mirrors mieru's pkg/appctl/appctlpb/traffic_pattern.proto. Every field is proto3 `optional`,
-// so null means absent and a zero value is still sent. Property and enum entry names are the
-// proto names, which mieru's JSON uses as is.
-
-@Serializable
-private data class TrafficPattern(
-    @ProtoNumber(1) val seed: Int? = null,
-    @ProtoNumber(2) val unlockAll: Boolean? = null,
-    @ProtoNumber(3) val tcpFragment: TcpFragment? = null,
-    @ProtoNumber(4) val nonce: NoncePattern? = null,
-    @ProtoNumber(5) val padding: PaddingPattern? = null,
-    @ProtoNumber(6) val lowEntropy: LowEntropyPattern? = null,
-)
-
-@Serializable
-private data class TcpFragment(
-    @ProtoNumber(1) val enable: Boolean? = null,
-    @ProtoNumber(2) val maxSleepMs: Int? = null,
-)
-
-@Serializable
-private data class NoncePattern(
-    @ProtoNumber(1) val type: NonceType? = null,
-    @ProtoNumber(2) val applyToAllUDPPacket: Boolean? = null,
-    @ProtoNumber(3) val minLen: Int? = null,
-    @ProtoNumber(4) val maxLen: Int? = null,
-    @ProtoNumber(5) val customHexStrings: List<String> = emptyList(),
-)
-
-@Serializable
-private enum class NonceType {
-    @ProtoNumber(0) NONCE_TYPE_RANDOM,
-    @ProtoNumber(1) NONCE_TYPE_PRINTABLE,
-    @ProtoNumber(2) NONCE_TYPE_PRINTABLE_SUBSET,
-    @ProtoNumber(3) NONCE_TYPE_FIXED,
+private fun JsonElement.checkedObject(vararg fields: String): JsonObject {
+    val result = this as? JsonObject
+        ?: throw SerializationException("traffic pattern field is not an object")
+    val unknown = result.keys - fields.toSet()
+    if (unknown.isNotEmpty()) {
+        throw SerializationException("unknown traffic pattern fields: $unknown")
+    }
+    return result
 }
 
-@Serializable
-private data class PaddingPattern(
-    @ProtoNumber(1) val maxMiddlePaddingLen: Int? = null,
-    @ProtoNumber(2) val maxEndPaddingLen: Int? = null,
-)
+private fun <T> JsonObject.optional(name: String, decode: (JsonElement) -> T): T? =
+    get(name)?.takeUnless { it == JsonNull }?.let(decode)
 
-@Serializable
-private data class LowEntropyPattern(
-    @ProtoNumber(1) val mode: LowEntropyMode? = null,
-    @ProtoNumber(2) val maskRotation: LowEntropyMaskRotation? = null,
-)
+private inline fun <reified T> primitive(element: JsonElement): T =
+    trafficPatternJson.decodeFromJsonElement<T>(element)
 
-@Serializable
-private enum class LowEntropyMode {
-    @ProtoNumber(0) LOW_ENTROPY_MODE_OFF,
-    @ProtoNumber(1) LOW_ENTROPY_MODE_32,
-    @ProtoNumber(2) LOW_ENTROPY_MODE_40,
-    @ProtoNumber(3) LOW_ENTROPY_MODE_48,
-    @ProtoNumber(4) LOW_ENTROPY_MODE_56,
+private fun <T : WireEnum> enumValue(element: JsonElement, values: Map<String, T>): T =
+    values[primitive<String>(element)]
+        ?: throw SerializationException("unknown traffic pattern enum: $element")
+
+private fun <T : WireEnum> enumJson(value: T, values: Map<String, T>): JsonPrimitive {
+    val name = values.entries.firstOrNull { it.value == value }?.key
+        ?: throw IllegalArgumentException("undefined traffic pattern enum number: ${value.value}")
+    return JsonPrimitive(name)
 }
 
-/** Right rotations count up from 1; left rotations are the same counts shifted into the high nibble. */
-@Serializable
-private enum class LowEntropyMaskRotation {
-    @ProtoNumber(0) LOW_ENTROPY_MASK_NO_ROTATION,
-    @ProtoNumber(1) LOW_ENTROPY_MASK_ROTATE_RIGHT_1,
-    @ProtoNumber(2) LOW_ENTROPY_MASK_ROTATE_RIGHT_2,
-    @ProtoNumber(3) LOW_ENTROPY_MASK_ROTATE_RIGHT_3,
-    @ProtoNumber(4) LOW_ENTROPY_MASK_ROTATE_RIGHT_4,
-    @ProtoNumber(5) LOW_ENTROPY_MASK_ROTATE_RIGHT_5,
-    @ProtoNumber(6) LOW_ENTROPY_MASK_ROTATE_RIGHT_6,
-    @ProtoNumber(7) LOW_ENTROPY_MASK_ROTATE_RIGHT_7,
-    @ProtoNumber(8) LOW_ENTROPY_MASK_ROTATE_RIGHT_8,
-    @ProtoNumber(9) LOW_ENTROPY_MASK_ROTATE_RIGHT_9,
-    @ProtoNumber(10) LOW_ENTROPY_MASK_ROTATE_RIGHT_10,
-    @ProtoNumber(11) LOW_ENTROPY_MASK_ROTATE_RIGHT_11,
-    @ProtoNumber(12) LOW_ENTROPY_MASK_ROTATE_RIGHT_12,
-    @ProtoNumber(13) LOW_ENTROPY_MASK_ROTATE_RIGHT_13,
-    @ProtoNumber(14) LOW_ENTROPY_MASK_ROTATE_RIGHT_14,
-    @ProtoNumber(15) LOW_ENTROPY_MASK_ROTATE_RIGHT_15,
-    @ProtoNumber(16) LOW_ENTROPY_MASK_ROTATE_LEFT_1,
-    @ProtoNumber(32) LOW_ENTROPY_MASK_ROTATE_LEFT_2,
-    @ProtoNumber(48) LOW_ENTROPY_MASK_ROTATE_LEFT_3,
-    @ProtoNumber(64) LOW_ENTROPY_MASK_ROTATE_LEFT_4,
-    @ProtoNumber(80) LOW_ENTROPY_MASK_ROTATE_LEFT_5,
-    @ProtoNumber(96) LOW_ENTROPY_MASK_ROTATE_LEFT_6,
-    @ProtoNumber(112) LOW_ENTROPY_MASK_ROTATE_LEFT_7,
-    @ProtoNumber(128) LOW_ENTROPY_MASK_ROTATE_LEFT_8,
-    @ProtoNumber(144) LOW_ENTROPY_MASK_ROTATE_LEFT_9,
-    @ProtoNumber(160) LOW_ENTROPY_MASK_ROTATE_LEFT_10,
-    @ProtoNumber(176) LOW_ENTROPY_MASK_ROTATE_LEFT_11,
-    @ProtoNumber(192) LOW_ENTROPY_MASK_ROTATE_LEFT_12,
-    @ProtoNumber(208) LOW_ENTROPY_MASK_ROTATE_LEFT_13,
-    @ProtoNumber(224) LOW_ENTROPY_MASK_ROTATE_LEFT_14,
-    @ProtoNumber(240) LOW_ENTROPY_MASK_ROTATE_LEFT_15,
+private val nonceTypeValues =
+    listOf(
+        NonceType.NONCE_TYPE_RANDOM,
+        NonceType.NONCE_TYPE_PRINTABLE,
+        NonceType.NONCE_TYPE_PRINTABLE_SUBSET,
+        NonceType.NONCE_TYPE_FIXED,
+    ).associateBy { it.toString() }
+
+private val lowEntropyModeValues =
+    listOf(
+        LowEntropyMode.LOW_ENTROPY_MODE_OFF,
+        LowEntropyMode.LOW_ENTROPY_MODE_32,
+        LowEntropyMode.LOW_ENTROPY_MODE_40,
+        LowEntropyMode.LOW_ENTROPY_MODE_48,
+        LowEntropyMode.LOW_ENTROPY_MODE_56,
+    ).associateBy { it.toString() }
+
+private val lowEntropyMaskRotationValues =
+    listOf(
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_NO_ROTATION,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_1,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_2,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_3,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_4,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_5,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_6,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_7,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_8,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_9,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_10,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_11,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_12,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_13,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_14,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_RIGHT_15,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_1,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_2,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_3,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_4,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_5,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_6,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_7,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_8,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_9,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_10,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_11,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_12,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_13,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_14,
+        LowEntropyMaskRotation.LOW_ENTROPY_MASK_ROTATE_LEFT_15,
+    ).associateBy { it.toString() }
+
+private fun trafficPattern(element: JsonElement): TrafficPattern {
+    val fields = element.checkedObject("seed", "unlockAll", "tcpFragment", "nonce", "padding", "lowEntropy")
+    return TrafficPattern(
+        seed = fields.optional("seed") { primitive<Int>(it) },
+        unlockAll = fields.optional("unlockAll") { primitive<Boolean>(it) },
+        tcpFragment = fields.optional("tcpFragment", ::tcpFragment),
+        nonce = fields.optional("nonce", ::noncePattern),
+        padding = fields.optional("padding", ::paddingPattern),
+        lowEntropy = fields.optional("lowEntropy", ::lowEntropyPattern),
+    )
+}
+
+private fun TrafficPattern.toJson(): JsonObject = buildJsonObject {
+    seed?.let { put("seed", JsonPrimitive(it)) }
+    unlockAll?.let { put("unlockAll", JsonPrimitive(it)) }
+    tcpFragment?.let { put("tcpFragment", it.toJson()) }
+    nonce?.let { put("nonce", it.toJson()) }
+    padding?.let { put("padding", it.toJson()) }
+    lowEntropy?.let { put("lowEntropy", it.toJson()) }
+}
+
+private fun tcpFragment(element: JsonElement): TCPFragment {
+    val fields = element.checkedObject("enable", "maxSleepMs")
+    return TCPFragment(
+        enable = fields.optional("enable") { primitive<Boolean>(it) },
+        maxSleepMs = fields.optional("maxSleepMs") { primitive<Int>(it) },
+    )
+}
+
+private fun TCPFragment.toJson(): JsonObject = buildJsonObject {
+    enable?.let { put("enable", JsonPrimitive(it)) }
+    maxSleepMs?.let { put("maxSleepMs", JsonPrimitive(it)) }
+}
+
+private fun noncePattern(element: JsonElement): NoncePattern {
+    val fields =
+        element.checkedObject("type", "applyToAllUDPPacket", "minLen", "maxLen", "customHexStrings")
+    return NoncePattern(
+        type = fields.optional("type") { enumValue(it, nonceTypeValues) },
+        applyToAllUDPPacket = fields.optional("applyToAllUDPPacket") { primitive<Boolean>(it) },
+        minLen = fields.optional("minLen") { primitive<Int>(it) },
+        maxLen = fields.optional("maxLen") { primitive<Int>(it) },
+        customHexStrings = fields.optional("customHexStrings") {
+            primitive<List<String>>(it)
+        }.orEmpty(),
+    )
+}
+
+private fun NoncePattern.toJson(): JsonObject = buildJsonObject {
+    type?.let { put("type", enumJson(it, nonceTypeValues)) }
+    applyToAllUDPPacket?.let { put("applyToAllUDPPacket", JsonPrimitive(it)) }
+    minLen?.let { put("minLen", JsonPrimitive(it)) }
+    maxLen?.let { put("maxLen", JsonPrimitive(it)) }
+    if (customHexStrings.isNotEmpty()) {
+        put("customHexStrings", JsonArray(customHexStrings.map { JsonPrimitive(it) }))
+    }
+}
+
+private fun paddingPattern(element: JsonElement): PaddingPattern {
+    val fields = element.checkedObject("maxMiddlePaddingLen", "maxEndPaddingLen")
+    return PaddingPattern(
+        maxMiddlePaddingLen = fields.optional("maxMiddlePaddingLen") { primitive<Int>(it) },
+        maxEndPaddingLen = fields.optional("maxEndPaddingLen") { primitive<Int>(it) },
+    )
+}
+
+private fun PaddingPattern.toJson(): JsonObject = buildJsonObject {
+    maxMiddlePaddingLen?.let { put("maxMiddlePaddingLen", JsonPrimitive(it)) }
+    maxEndPaddingLen?.let { put("maxEndPaddingLen", JsonPrimitive(it)) }
+}
+
+private fun lowEntropyPattern(element: JsonElement): LowEntropyPattern {
+    val fields = element.checkedObject("mode", "maskRotation")
+    return LowEntropyPattern(
+        mode = fields.optional("mode") { enumValue(it, lowEntropyModeValues) },
+        maskRotation = fields.optional("maskRotation") {
+            enumValue(it, lowEntropyMaskRotationValues)
+        },
+    )
+}
+
+private fun LowEntropyPattern.toJson(): JsonObject = buildJsonObject {
+    mode?.let { put("mode", enumJson(it, lowEntropyModeValues)) }
+    maskRotation?.let { put("maskRotation", enumJson(it, lowEntropyMaskRotationValues)) }
 }

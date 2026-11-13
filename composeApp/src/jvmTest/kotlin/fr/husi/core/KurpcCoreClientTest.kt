@@ -123,10 +123,10 @@ class KurpcCoreClientTest {
         val calls = first.streams()
         val statusCall = calls.single { it.method == "/daemon.StartedService/SubscribeStatus" }
         val connectionsCall = calls.single { it.method == "/daemon.StartedService/SubscribeConnections" }
-        assertEquals(1.seconds.inWholeNanoseconds, SubscribeStatusRequest.parseFrom(statusCall.request).interval)
+        assertEquals(1.seconds.inWholeNanoseconds, SubscribeStatusRequest.ADAPTER.decode(statusCall.request).interval)
         assertEquals(
             1.seconds.inWholeNanoseconds,
-            SubscribeConnectionsRequest.parseFrom(connectionsCall.request).interval,
+            SubscribeConnectionsRequest.ADAPTER.decode(connectionsCall.request).interval,
         )
         client.close()
     }
@@ -138,7 +138,11 @@ class KurpcCoreClientTest {
         val failure = CompletableDeferred<Throwable>()
 
         backgroundScope.launch(Dispatchers.Default) {
-            failure.complete(runCatching { client.stunTest("stun.example", "").collect() }.exceptionOrNull()!!)
+            failure.complete(
+                runCatching {
+                    client.stunTest("stun.example", "").collect()
+                }.exceptionOrNull()!!,
+            )
         }
         val first = factory.awaitFirst()
         awaitCondition("one-shot stream opened") { first.streamCount() == 1 }
@@ -157,7 +161,11 @@ class KurpcCoreClientTest {
         val failure = CompletableDeferred<Throwable>()
 
         backgroundScope.launch(Dispatchers.Default) {
-            failure.complete(runCatching { client.standaloneStunTest("stun.example").collect() }.exceptionOrNull()!!)
+            failure.complete(
+                runCatching {
+                    client.standaloneStunTest("stun.example").collect()
+                }.exceptionOrNull()!!,
+            )
         }
         val first = factory.awaitFirst()
         awaitCondition("one-shot stream opened") { first.streamCount() == 1 }
@@ -176,7 +184,9 @@ class KurpcCoreClientTest {
         val groups = CompletableDeferred<Int>()
 
         backgroundScope.launch(Dispatchers.Default) {
-            client.subscribeGroups().collect { groups.complete(it.groupCount) }
+            client.subscribeGroups().collect {
+                groups.complete(it.group.size)
+            }
         }
         val first = factory.awaitFirst()
         awaitCondition("groups stream opened") { first.streamCount() == 1 }

@@ -7,10 +7,10 @@ import androidx.compose.runtime.snapshots.Snapshot
 import fr.husi.TrafficSortMode
 import fr.husi.database.DataStore
 import fr.husi.database.preference.reset
+import fr.husi.proto.daemon.Connection
+import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEventType
-import fr.husi.proto.daemon.connection
-import fr.husi.proto.daemon.connectionEvent
-import fr.husi.proto.daemon.connectionEvents
+import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,33 +46,29 @@ class DashboardViewModelConnectionListTest : HusiKoinMainDispatcherTest() {
 
     private suspend fun emitNew(ids: List<String>, destination: (String) -> String = { "" }) {
         coreClient.connectionsFlow.emit(
-            connectionEvents {
-                for (id in ids) {
-                    events += connectionEvent {
-                        type = ConnectionEventType.CONNECTION_EVENT_NEW
-                        this.id = id
-                        connection = connection {
-                            this.id = id
-                            network = "tcp"
-                            this.destination = destination(id)
-                        }
-                    }
-                }
-            },
+            ConnectionEvents(
+                events = ids.map { id ->
+                    ConnectionEvent(
+                        type = ConnectionEventType.CONNECTION_EVENT_NEW,
+                        id = id,
+                        connection = Connection(id = id, network = "tcp", destination = destination(id)),
+                    )
+                },
+            ),
         )
     }
 
     private suspend fun emitClosed(ids: List<String>) {
         coreClient.connectionsFlow.emit(
-            connectionEvents {
-                for (id in ids) {
-                    events += connectionEvent {
-                        type = ConnectionEventType.CONNECTION_EVENT_CLOSED
-                        this.id = id
-                        closedAt = CLOSED_AT_MILLIS
-                    }
-                }
-            },
+            ConnectionEvents(
+                events = ids.map { id ->
+                    ConnectionEvent(
+                        type = ConnectionEventType.CONNECTION_EVENT_CLOSED,
+                        id = id,
+                        closedAt = CLOSED_AT_MILLIS,
+                    )
+                },
+            ),
         )
     }
 

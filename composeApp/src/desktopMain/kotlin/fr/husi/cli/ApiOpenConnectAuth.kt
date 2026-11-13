@@ -15,11 +15,10 @@ import fr.husi.ktx.joinAddress
 import fr.husi.ktx.openUri
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.unwrapIPV6Host
+import fr.husi.proto.daemon.OpenConnectAuthFormResponse
+import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
+import fr.husi.proto.daemon.OpenConnectBrowserCookie
 import fr.husi.proto.daemon.OpenConnectBrowserResult
-import fr.husi.proto.daemon.openConnectAuthFormResponse
-import fr.husi.proto.daemon.openConnectAuthResponseSubmission
-import fr.husi.proto.daemon.openConnectBrowserCookie
-import fr.husi.proto.daemon.openConnectBrowserResult
 import fr.husi.vpn.OPENCONNECT_FIELD_PASSWORD
 import fr.husi.vpn.OPENCONNECT_FIELD_SELECT
 import fr.husi.vpn.OPENCONNECT_FIELD_TEXT
@@ -33,13 +32,13 @@ import fr.husi.vpn.OpenConnectBrowserCompletionMode
 import fr.husi.vpn.OpenConnectBrowserRequestState
 import fr.husi.vpn.OpenConnectEndpointState
 import fr.husi.vpn.toState
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.URI
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.selects.select
-import java.io.IOException
-import java.net.InetSocketAddress
-import java.net.URI
 
 private const val OPENCONNECT_NAME = "openconnect"
 private const val DEFAULT_CALLBACK_PORT = 8020
@@ -91,9 +90,10 @@ internal class OpenConnectAuthProtocol(
     override val canceledMessage =
         "authentication challenge canceled; the client will restart authentication"
 
-    override fun subscribe(client: CoreClient): Flow<List<VpnEndpointView<OpenConnectEndpointState>>> =
+    override fun subscribe(client: CoreClient,
+    ): Flow<List<VpnEndpointView<OpenConnectEndpointState>>> =
         client.subscribeOpenConnectStatus().map { update ->
-            update.endpointsList.map { status ->
+            update.endpoints.map { status ->
                 val endpointState = status.toState()
                 VpnEndpointView(
                     tag = endpointState.tag,
@@ -183,11 +183,11 @@ internal class OpenConnectAuthProtocol(
             }
             val accepted = submitVpnResponse(name) {
                 client.submitOpenConnectAuthResponse(
-                    openConnectAuthResponseSubmission {
-                        this.endpointTag = endpointTag
-                        challengeID = challenge.id
-                        form = openConnectAuthFormResponse { this.values.putAll(values) }
-                    },
+                        OpenConnectAuthResponseSubmission(
+                            endpointTag = endpointTag,
+                            challengeID = challenge.id,
+                            form = OpenConnectAuthFormResponse(values = values),
+                        ),
                 )
             }
             if (accepted) return
@@ -246,11 +246,11 @@ internal class OpenConnectAuthProtocol(
             val answer = collectBrowserAnswer(prompter, request)
             val accepted = submitVpnResponse(name, "browser authentication rejected") {
                 client.submitOpenConnectAuthResponse(
-                    openConnectAuthResponseSubmission {
-                        this.endpointTag = endpointTag
-                        challengeID = challenge.id
-                        browser = answer.result
-                    },
+                        OpenConnectAuthResponseSubmission(
+                            endpointTag = endpointTag,
+                            challengeID = challenge.id,
+                            browser = answer.result,
+                        ),
                 )
             }
             if (accepted) {
@@ -263,7 +263,8 @@ internal class OpenConnectAuthProtocol(
     }
 
     /**
-     * @property reportsFailure whether the answer carries the server's error cookie rather than a successful sign-on.
+     * @property reportsFailure whether the answer carries the server's error cookie rather than a
+     *   successful sign-on.
      */
     private class BrowserAnswer(
         val result: OpenConnectBrowserResult,
@@ -278,7 +279,10 @@ internal class OpenConnectAuthProtocol(
             requireAuthTerminal(name)
             val target = parseCallbackTarget(request.callbackUrlPrefixes, callbackPort)
             val capturedUrl = runCallbackListener(prompter, target, request.url)
-            BrowserAnswer(openConnectBrowserResult { finalURL = capturedUrl }, reportsFailure = false)
+            BrowserAnswer(
+                    OpenConnectBrowserResult(finalURL = capturedUrl),
+                    reportsFailure = false,
+                )
         }
 
         OpenConnectBrowserCompletionMode.Cookie -> {
@@ -327,12 +331,15 @@ internal class OpenConnectAuthProtocol(
                 if (offersError && value == "!") {
                     val errorValue = promptRequiredCookie(prompter, "Error cookie \"$errorCookieName\": ")
                     return BrowserAnswer(
-                        openConnectBrowserResult {
-                            this.cookies += openConnectBrowserCookie {
-                                this.name = errorCookieName
-                                this.value = errorValue
-                            }
-                        },
+                        OpenConnectBrowserResult(
+                            cookies =
+                                listOf(
+                                    OpenConnectBrowserCookie(
+                                        name = errorCookieName,
+                                        value_ = errorValue,
+                                    ),
+                                ),
+                        ),
                         reportsFailure = true,
                     )
                 }
@@ -344,17 +351,16 @@ internal class OpenConnectAuthProtocol(
                 break
             }
         }
-        printErrorLine(if (cookies.size == 1) "submitting 1 cookie" else "submitting ${cookies.size} cookies")
+        printErrorLine(if (cookies.size == 1) "submitting 1 cookie" else "submitting ${cookies.size} cookies",
+        )
         return BrowserAnswer(
-            openConnectBrowserResult {
-                finalURL = request.finalUrl
-                for ((name, value) in cookies) {
-                    this.cookies += openConnectBrowserCookie {
-                        this.name = name
-                        this.value = value
-                    }
-                }
-            },
+            OpenConnectBrowserResult(
+                finalURL = request.finalUrl,
+                cookies =
+                    cookies.map { (name, value) ->
+                        OpenConnectBrowserCookie(name = name, value_ = value)
+                    },
+            ),
             reportsFailure = false,
         )
     }

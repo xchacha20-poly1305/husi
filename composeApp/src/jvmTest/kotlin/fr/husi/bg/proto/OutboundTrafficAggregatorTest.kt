@@ -4,18 +4,28 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.TAG_BRIDGE
 import fr.husi.fmt.TAG_DIRECT
 import fr.husi.fmt.TrafficNode
+import fr.husi.proto.daemon.Connection
+import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEventType
-import fr.husi.proto.daemon.connection
-import fr.husi.proto.daemon.connectionEvent
-import fr.husi.proto.daemon.connectionEvents
+import fr.husi.proto.daemon.ConnectionEvents
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class OutboundTrafficAggregatorTest {
 
     private val proxyGraph = mapOf(
         "proxy" to TrafficNode(profileIDs = setOf(PROXY_ID)),
     )
+
+    @Test
+    fun `unknown event types from a newer core do not credit traffic`() {
+        val aggregator = OutboundTrafficAggregator(proxyGraph)
+        val event = newConnection(uplink = 100, downlink = 200).events.single()
+        val unknown = ConnectionEvent.ADAPTER.decode(event.encode() + byteArrayOf(8, 99))
+        aggregator.onEvent(unknown)
+        assertTrue(aggregator.drain().byProfile.isEmpty())
+    }
 
     @Test
     fun `new seeds totals and update adds deltas`() {
@@ -25,14 +35,16 @@ class OutboundTrafficAggregatorTest {
         assertEquals(TrafficDelta(100, 200), aggregator.drain().byProfile[PROXY_ID])
 
         aggregator.onEvents(
-            connectionEvents {
-                events += connectionEvent {
-                    type = ConnectionEventType.CONNECTION_EVENT_UPDATE
-                    id = "c1"
-                    uplinkDelta = 10
-                    downlinkDelta = 20
-                }
-            },
+            ConnectionEvents(
+                events = listOf(
+                    ConnectionEvent(
+                        type = ConnectionEventType.CONNECTION_EVENT_UPDATE,
+                        id = "c1",
+                        uplinkDelta = 10,
+                        downlinkDelta = 20,
+                    ),
+                ),
+            ),
         )
 
         assertEquals(TrafficDelta(10, 20), aggregator.drain().byProfile[PROXY_ID])
@@ -143,7 +155,10 @@ class OutboundTrafficAggregatorTest {
         val aggregator = OutboundTrafficAggregator(proxyGraph)
 
         aggregator.onEvents(
-            newConnection(uplink = 6, downlink = 1, chain = listOf(TAG_DIRECT),
+            newConnection(
+                uplink = 6,
+                downlink = 1,
+                chain = listOf(TAG_DIRECT),
                 outboundType = SingBoxOptions.TYPE_DIRECT,
                 id = "direct",
             ),
@@ -161,13 +176,19 @@ class OutboundTrafficAggregatorTest {
         val aggregator = OutboundTrafficAggregator(proxyGraph)
 
         aggregator.onEvents(
-            newConnection(uplink = 3, downlink = 4, chain = listOf(TAG_BRIDGE),
+            newConnection(
+                uplink = 3,
+                downlink = 4,
+                chain = listOf(TAG_BRIDGE),
                 outboundType = SingBoxOptions.TYPE_BRIDGE,
                 id = "bridge",
             ),
         )
         aggregator.onEvents(
-            newConnection(uplink = 6, downlink = 1, chain = listOf(TAG_DIRECT),
+            newConnection(
+                uplink = 6,
+                downlink = 1,
+                chain = listOf(TAG_DIRECT),
                 outboundType = SingBoxOptions.TYPE_DIRECT,
                 id = "direct",
             ),
@@ -245,20 +266,22 @@ class OutboundTrafficAggregatorTest {
         outboundType: String = SingBoxOptions.TYPE_SHADOWSOCKS,
         id: String = "c1",
         reset: Boolean = false,
-    ) = connectionEvents {
-        this.reset = reset
-        events += connectionEvent {
-            type = ConnectionEventType.CONNECTION_EVENT_NEW
-            this.id = id
-            connection = connection {
-                outbound = chain.last()
-                this.outboundType = outboundType
-                chainList += chain
-                uplinkTotal = uplink
-                downlinkTotal = downlink
-            }
-        }
-    }
+    ) = ConnectionEvents(
+        reset = reset,
+        events = listOf(
+            ConnectionEvent(
+                type = ConnectionEventType.CONNECTION_EVENT_NEW,
+                id = id,
+                connection = Connection(
+                    outbound = chain.last(),
+                    outboundType = outboundType,
+                    chainList = chain,
+                    uplinkTotal = uplink,
+                    downlinkTotal = downlink,
+                ),
+            ),
+        ),
+    )
 
     private companion object {
         const val PROXY_ID = 1L

@@ -27,7 +27,7 @@ internal fun OutboundSelector(
         tags = listOf(DEFAULT_OUTBOUND_TAG)
         try {
             coreClient.subscribeOutbounds().collect { list ->
-                tags = listOf(DEFAULT_OUTBOUND_TAG) + list.outboundsList.map { it.tag }
+                tags = listOf(DEFAULT_OUTBOUND_TAG) + list.outbounds.map { it.tag }
             }
         } catch (e: Exception) {
             Logs.w("subscribe outbounds", e)

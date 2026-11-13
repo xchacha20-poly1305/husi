@@ -25,8 +25,8 @@ fun AboutScreen(
         modifier = modifier,
         onBackPress = onBackPress,
         onNavigateToLibraries = onNavigateToLibraries,
-        boxVersion = coreVersion?.singBoxVersion,
-        buildEnvironment = coreVersion?.buildEnvironment,
+        boxVersion = coreVersion?.sing_box_version,
+        buildEnvironment = coreVersion?.build_environment,
         requestIgnoreBatteryOptimizations = requestIgnoreBatteryOptimizations.takeIf { shouldRequestBattery },
     )
 }

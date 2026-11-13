@@ -10,17 +10,17 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
-import fr.husi.ktx.Logs
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreRpcException
+import fr.husi.ktx.Logs
 import fr.husi.utils.PackageCache
-import java.io.File
-import java.util.zip.ZipFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
+import java.io.File
+import java.util.zip.ZipFile
 
 @Immutable
 internal data class VPNScannerUiState(
@@ -112,7 +112,9 @@ internal class VPNScannerScreenViewModel(
                 PackageManager.GET_UNINSTALLED_PACKAGES
             }
         val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(flag.toLong()))
+            packageManager.getInstalledPackages(
+                PackageManager.PackageInfoFlags.of(flag.toLong()),
+            )
         } else {
             packageManager.getInstalledPackages(flag)
         }
@@ -152,8 +154,8 @@ internal class VPNScannerScreenViewModel(
             var type: String? = null
             for (packageEntry in packageFile.entries()) {
                 if (
-                    !(packageEntry.name.startsWith("classes") &&
-                            packageEntry.name.endsWith(".dex"))
+                    !(packageEntry.name.startsWith("classes")
+                        && packageEntry.name.endsWith(".dex"))
                 ) {
                     continue
                 }
@@ -214,6 +216,6 @@ internal class VPNScannerScreenViewModel(
             Logs.d("read VPN core of ${packageInfo.packageName}", e)
             null
         } ?: return null
-        return VPNCoreType(vpnType.coreType, vpnType.corePath, vpnType.goVersion)
+        return VPNCoreType(vpnType.core_type, vpnType.core_path, vpnType.go_version)
     }
 }

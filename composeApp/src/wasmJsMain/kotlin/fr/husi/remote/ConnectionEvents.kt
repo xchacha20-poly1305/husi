@@ -12,6 +12,7 @@ internal fun applyConnectionEvents(
 ) {
     if (update.reset) connections.clear()
     for (event in update.events) {
+        if (event.type is ConnectionEventType.Unrecognized) continue
         val id = event.id
         if (event.type == ConnectionEventType.CONNECTION_EVENT_CLOSED) {
             if (keepClosed) {

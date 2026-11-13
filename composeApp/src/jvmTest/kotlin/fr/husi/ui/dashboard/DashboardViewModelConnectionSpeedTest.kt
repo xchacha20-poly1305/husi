@@ -5,10 +5,10 @@ package fr.husi.ui.dashboard
 import fr.husi.TrafficSortMode
 import fr.husi.database.DataStore
 import fr.husi.database.preference.reset
+import fr.husi.proto.daemon.Connection
+import fr.husi.proto.daemon.ConnectionEvent
 import fr.husi.proto.daemon.ConnectionEventType
-import fr.husi.proto.daemon.connection
-import fr.husi.proto.daemon.connectionEvent
-import fr.husi.proto.daemon.connectionEvents
+import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,31 +37,30 @@ class DashboardViewModelConnectionSpeedTest : HusiKoinMainDispatcherTest() {
 
     private suspend fun emitNew(vararg ids: String) {
         coreClient.connectionsFlow.emit(
-            connectionEvents {
-                for (id in ids) {
-                    events += connectionEvent {
-                        type = ConnectionEventType.CONNECTION_EVENT_NEW
-                        this.id = id
-                        connection = connection {
-                            this.id = id
-                            network = "tcp"
-                        }
-                    }
-                }
-            },
+            ConnectionEvents(
+                events = ids.map { id ->
+                    ConnectionEvent(
+                        type = ConnectionEventType.CONNECTION_EVENT_NEW,
+                        id = id,
+                        connection = Connection(id = id, network = "tcp"),
+                    )
+                },
+            ),
         )
     }
 
     private suspend fun emitUpdate(id: String, uplink: Long, downlink: Long) {
         coreClient.connectionsFlow.emit(
-            connectionEvents {
-                events += connectionEvent {
-                    type = ConnectionEventType.CONNECTION_EVENT_UPDATE
-                    this.id = id
-                    uplinkDelta = uplink
-                    downlinkDelta = downlink
-                }
-            },
+            ConnectionEvents(
+                events = listOf(
+                    ConnectionEvent(
+                        type = ConnectionEventType.CONNECTION_EVENT_UPDATE,
+                        id = id,
+                        uplinkDelta = uplink,
+                        downlinkDelta = downlink,
+                    ),
+                ),
+            ),
         )
     }
 
@@ -110,13 +109,15 @@ class DashboardViewModelConnectionSpeedTest : HusiKoinMainDispatcherTest() {
         emitNew("c1")
         emitUpdate("c1", uplink = 100, downlink = 200)
         coreClient.connectionsFlow.emit(
-            connectionEvents {
-                events += connectionEvent {
-                    type = ConnectionEventType.CONNECTION_EVENT_CLOSED
-                    id = "c1"
-                    closedAt = 1_000_000
-                }
-            },
+            ConnectionEvents(
+                events = listOf(
+                    ConnectionEvent(
+                        type = ConnectionEventType.CONNECTION_EVENT_CLOSED,
+                        id = "c1",
+                        closedAt = 1_000_000,
+                    ),
+                ),
+            ),
         )
         advanceUntilIdle()
 
