@@ -2,6 +2,7 @@ package fr.husi.ui.remote
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import fr.husi.core.remote.RemoteSessionState
 import fr.husi.remote.RemoteState
 import fr.husi.ui.LocalNavigator
@@ -78,6 +79,14 @@ internal fun RemoteServersBinding() {
 internal fun RemoteSetupBinding() {
     val editor = koinViewModel<RemoteServerEditor>(parameters = { parametersOf(null) })
     val remote = koinInject<RemoteState>()
+    val setupLink = LocalRemoteSetupLink.current
+    LaunchedEffect(Unit) {
+        setupLink?.takeUnless { it.addImmediately }?.server?.let { server ->
+            editor.setUrl(server.url)
+            editor.setSecret(server.secret)
+            editor.setBackend(server.backend)
+        }
+    }
     RemoteSetupScreen(
         uiState = editor.state,
         nameState = editor.nameState,

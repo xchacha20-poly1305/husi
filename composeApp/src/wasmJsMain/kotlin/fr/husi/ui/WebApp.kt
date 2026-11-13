@@ -41,6 +41,8 @@ import fr.husi.resources.settings
 import fr.husi.resources.speed
 import fr.husi.resources.traffic_connections
 import fr.husi.resources.traffic_status
+import fr.husi.ui.remote.LocalRemoteSetupLink
+import fr.husi.ui.remote.readRemoteSetupLink
 import io.github.xchacha20_poly1305.libghostty.GhosttyWebAssembly
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
@@ -75,11 +77,26 @@ internal fun WebApp() {
 @Composable
 private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
     val koin = getKoin()
+    val setupLink = remember { readRemoteSetupLink() }
     CompositionLocalProvider(LocalViewModelStoreOwner provides rememberViewModelStoreOwner()) {
         val scope = viewModel { MainScreenScopeHolder(koin) }.scope
         UnboundKoinScope(scope) {
             val state = koinInject<RemoteState>()
             if (!state.initialized) return@UnboundKoinScope
+            LaunchedEffect(Unit) {
+                val link = setupLink?.takeIf { it.addImmediately } ?: return@LaunchedEffect
+                try {
+                    val server = state.servers.firstOrNull {
+                        it.url == link.server.url
+                            && it.secret == link.server.secret
+                            && it.backend == link.server.backend
+                    } ?: state.save(link.server)
+                    state.connect(server)
+                } catch (failure: Exception) {
+                    if (failure is CancellationException) throw failure
+                    state.reportCriticalError("Saving setup link server failed", failure)
+                }
+            }
             val snackbar = koinInject<SnackbarEmitter>()
             val snackbarHost = remember { SnackbarHostState() }
             val backStack =
@@ -123,6 +140,7 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                 }
             }
             CompositionLocalProvider(
+                LocalRemoteSetupLink provides setupLink,
                 LocalNavigator provides navigator,
                 LocalSnackbarEmitter provides snackbar,
             ) {
