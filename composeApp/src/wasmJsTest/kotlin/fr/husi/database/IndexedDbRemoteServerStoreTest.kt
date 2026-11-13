@@ -24,7 +24,7 @@ class IndexedDbRemoteServerStoreTest {
         val first = IndexedDbRemoteServerStore(name)
         val second = IndexedDbRemoteServerStore(name)
         try {
-            val original = first.save(RemoteServer(name = "Office", url = "http://192.0.2.1", secret = "密钥 🔑"))
+            val original = first.save(RemoteServer(name = "Office", url = "http://192.0.2.1", secret = "密钥 🔑", backend = RemoteBackend.CLASH))
             val other = first.save(RemoteServer(name = "Other"))
             assertTrue(original.id > 0)
             assertEquals(1L, original.userOrder)
@@ -32,7 +32,7 @@ class IndexedDbRemoteServerStoreTest {
             first.close()
 
             assertEquals(listOf(original, other), second.observe().first())
-            val updated = second.save(original.copy(name = "Updated", secret = "new-secret"))
+            val updated = second.save(original.copy(name = "Updated", secret = "new-secret", backend = RemoteBackend.AUTO))
             assertEquals(original.id, updated.id)
             assertEquals(original.userOrder, updated.userOrder)
             second.delete(other.id)

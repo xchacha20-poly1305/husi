@@ -12,6 +12,9 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.database.DataStore
 import fr.husi.resources.Res
+import fr.husi.remote.RemoteState
+import org.koin.compose.koinInject
+import fr.husi.resources.clash_providers
 import fr.husi.resources.general_settings
 import fr.husi.resources.info
 import fr.husi.resources.menu_about
@@ -28,6 +31,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SettingsScreen() {
+    val remote = koinInject<RemoteState>()
     val navigator = LocalNavigator.current
     SettingsPage(title = Res.string.settings) {
         preferenceGroup {
@@ -36,6 +40,12 @@ internal fun SettingsScreen() {
                 icon = { MaskedIcon(Res.drawable.settings, color = IconMaskColors.IconLightBlue) },
                 onClick = { navigator.navigateTo(RemoteRoute.GeneralSettings) },
             )
+        }
+        if (remote.isClash) preferenceGroup {
+            Preference(title = { Text(stringResource(Res.string.clash_providers)) },
+                icon = { MaskedIcon(Res.drawable.settings, IconMaskColors.IconCyan) },
+                onClick = { navigator.navigateTo(RemoteRoute.Providers) })
+
         }
         item { PreferenceCategory(text = { Text(stringResource(Res.string.more)) }) }
         preferenceGroup {

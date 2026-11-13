@@ -899,4 +899,30 @@
     <string name="network_manager_tun">使用 NetworkManager TUN</string>
     <string name="network_manager_tun_summary">由 NetworkManager 管理 TUN、路由和 DNS，无需系统守护进程。需要 NetworkManager 授权。使用单队列，不支持严格路由和自动重定向。</string>
     <string name="tun_backend_required">TUN 模式需要系统守护进程或 NetworkManager，请在设置中选择后端。</string>
+
+    <string name="remote_backend">后端类型</string>
+    <string name="remote_backend_auto">自动识别</string>
+    <string name="clash_rules">规则</string>
+    <string name="clash_providers">提供者</string>
+    <string name="clash_dns">DNS 查询</string>
+    <string name="clash_unsupported">服务端不支持此操作</string>
+    <string name="clash_state_unknown">状态待确认，请刷新后再操作此规则。</string>
+    <string name="clash_rule_unavailable">此规则不支持切换</string>
+    <string name="clash_empty">暂无项目</string>
+    <string name="clash_health_check">健康检查</string>
+    <string name="clash_test_delay">测试延迟</string>
+    <string name="clash_query_name">域名</string>
+    <string name="clash_query_type">记录类型</string>
+    <string name="clash_query">查询</string>
+    <string name="clash_enabled">已启用</string>
+    <string name="clash_rule_count">规则数量：%1$d</string>
+    <string name="clash_proxy_providers">代理提供者</string>
+    <string name="clash_rule_providers">规则提供者</string>
+    <string name="clash_usage">已用 %1$s / 总量 %2$s</string>
+    <string name="clash_dns_status">响应状态：%1$s</string>
+    <string name="clash_dns_questions">查询问题</string>
+    <string name="clash_dns_answers">应答记录</string>
+    <string name="clash_dns_authority">权威记录</string>
+    <string name="clash_dns_additional">附加记录</string>
+    <string name="clash_dns_ttl">TTL：%1$s 秒</string>
 </resources>

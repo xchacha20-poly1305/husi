@@ -3,7 +3,7 @@ package fr.husi.remote
 import fr.husi.proto.daemon.StartedServiceClient
 import fr.husi.proto.daemon.Version
 
-/** Owns the browser's current API session. Generated clients and their streams belong to that session. */
+/** Owns a sing-box RPC channel. Only SingBoxSession and native remote tools use this interface. */
 internal interface RemoteClient {
     val service: StartedServiceClient
 

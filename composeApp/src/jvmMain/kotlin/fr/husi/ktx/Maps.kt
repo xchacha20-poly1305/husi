@@ -15,8 +15,6 @@ operator fun <K, V> MutableMap<K, V>.setValue(thisRef: K, property: KProperty<*>
     }
 }
 
-typealias JSONMap = MutableMap<String, Any?>
-
 fun toJSONMap(from: Map<*, *>): JSONMap {
     val jsonMap = mutableMapOf<String, Any?>()
     for (field in from) {

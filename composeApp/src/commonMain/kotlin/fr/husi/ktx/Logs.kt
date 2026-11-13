@@ -1,8 +1,5 @@
 package fr.husi.ktx
 
-import java.io.InputStream
-import java.io.OutputStream
-
 expect object Logs {
 
     fun d(message: String)
@@ -28,12 +25,4 @@ expect object Logs {
     /** Empties the log file that bug reports attach. */
     fun clearFile()
 
-}
-
-fun InputStream.use(out: OutputStream) {
-    use { input ->
-        out.use { output ->
-            input.copyTo(output)
-        }
-    }
 }

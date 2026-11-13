@@ -332,7 +332,7 @@ val installBrowserAssets = tasks.register<Exec>("installBrowserAssets") {
 
 val buildBrowserAssets = tasks.register<Exec>("buildBrowserAssets") {
     group = "web"
-    description = "Bundle browser storage, file helpers and the startup indicator."
+    description = "Bundle browser API, storage, file helpers and the startup indicator."
     dependsOn(installBrowserAssets)
     workingDir("browser")
     commandLine("npm", "run", "build")

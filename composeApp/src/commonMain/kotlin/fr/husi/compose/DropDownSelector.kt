@@ -1,39 +1,39 @@
 package fr.husi.compose
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
-import fr.husi.compose.material3.Text
-import androidx.compose.material3.TextFieldLabelScope
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
+import fr.husi.compose.material3.Text
 
+/**
+ * @param textToValue Supplying it enables typing and converts each edit into a value for [onValueChange].
+ */
 @Composable
 fun <T> DropDownSelector(
     modifier: Modifier = Modifier,
-    label: @Composable TextFieldLabelScope.() -> Unit,
+    label: @Composable () -> Unit,
     value: T,
     values: List<T>,
     onValueChange: (T) -> Unit,
     displayValue: (T) -> String = { it.toString() },
+    shape: Shape = OutlinedTextFieldDefaults.shape,
+    textToValue: ((String) -> T)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val textFieldState = rememberTextFieldState()
-    LaunchedEffect(value) {
-        textFieldState.setTextAndPlaceCursorAtEnd(displayValue(value))
-    }
+    val editable = textToValue != null
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -41,14 +41,32 @@ fun <T> DropDownSelector(
         modifier = modifier.fillMaxWidth(),
     ) {
         OutlinedTextField(
-            state = textFieldState,
+            value = displayValue(value),
+            onValueChange = { text ->
+                textToValue?.let { parse -> onValueChange(parse(text)) }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-            readOnly = true,
+                .menuAnchor(
+                    if (editable) {
+                        ExposedDropdownMenuAnchorType.PrimaryEditable
+                    } else {
+                        ExposedDropdownMenuAnchorType.PrimaryNotEditable
+                    },
+                ),
+            readOnly = !editable,
+            singleLine = true,
+            shape = shape,
             label = label,
             trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = expanded,
+                    modifier = if (editable) {
+                        Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable)
+                    } else {
+                        Modifier
+                    },
+                )
             },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
         )

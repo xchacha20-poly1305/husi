@@ -1,0 +1,98 @@
+package fr.husi.ktx
+
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.longOrNull
+
+typealias JSONMap = MutableMap<String, Any?>
+
+val kxs: Json = Json {
+    allowComments = true // Widely supported since V2Ray.
+    prettyPrint = true
+    ignoreUnknownKeys = true
+    explicitNulls = false
+    coerceInputValues = true
+}
+
+fun String.toJsonMapKxs(): JSONMap {
+    val element = kxs.parseToJsonElement(this)
+    return element.toJsonMapKxs()
+}
+
+fun JsonElement.toJsonMapKxs(): JSONMap {
+    val obj = this as? JsonObject ?: error("JSON root is not an object")
+    val map = LinkedHashMap<String, Any?>(obj.size)
+    for ((key, value) in obj) {
+        map[key] = value.toAnyKxs()
+    }
+    return map
+}
+
+fun Map<String, Any?>.toJsonElementKxs(): JsonElement = anyToJsonElementKxs(this)
+
+fun Map<String, Any?>.toJsonObjectKxs(): JsonObject = toJsonElementKxs() as JsonObject
+
+private fun JsonElement.toAnyKxs(): Any? = when (this) {
+    JsonNull -> null
+    is JsonPrimitive -> toPrimitiveKxs()
+    is JsonArray -> map { it.toAnyKxs() }
+    is JsonObject -> toJsonMapKxs()
+}
+
+private fun JsonPrimitive.toPrimitiveKxs(): Any {
+    if (isString) return content
+    booleanOrNull?.let { return it }
+    longOrNull?.let { return it }
+    doubleOrNull?.let { return it }
+    return content
+}
+
+fun JSONMap.getStr(name: String): String? = (this[name] as? String)?.blankAsNull()
+fun JSONMap.getBool(name: String): Boolean? = this[name] as? Boolean
+fun JSONMap.getIntOrNull(name: String): Int? = (this[name] as? Number)?.toInt()
+fun JSONMap.getLongOrNull(name: String): Long? = (this[name] as? Number)?.toLong()
+fun JSONMap.getDoubleOrNull(name: String): Double? = (this[name] as? Number)?.toDouble()
+fun JSONMap.getObject(name: String): JSONMap? {
+    val v = this[name] ?: return null
+    if (v is Map<*, *>) {
+        @Suppress("UNCHECKED_CAST")
+        return v as JSONMap
+    }
+    return null
+}
+fun JSONMap.getArray(name: String): List<*>? = this[name] as? List<*>
+
+fun JsonElement.toJsonStringKxs(): String = kxs.encodeToString(JsonElement.serializer(), this)
+
+private fun anyToJsonElementKxs(value: Any?): JsonElement = when (value) {
+    null -> JsonNull
+    is JsonElement -> value
+    is String -> JsonPrimitive(value)
+    is Number -> JsonPrimitive(value)
+    is Boolean -> JsonPrimitive(value)
+    is Map<*, *> -> {
+        val builder = LinkedHashMap<String, JsonElement>(value.size)
+        for ((key, mapValue) in value) {
+            val stringKey = key?.toString() ?: continue
+            builder[stringKey] = anyToJsonElementKxs(mapValue)
+        }
+        JsonObject(builder)
+    }
+
+    is List<*> -> JsonArray(value.map { anyToJsonElementKxs(it) })
+    is Set<*> -> JsonArray(value.map { anyToJsonElementKxs(it) })
+    else -> JsonPrimitive(value.toString())
+}
+
+fun JsonObject.getStr(name: String): String? =
+    (this[name] as? JsonPrimitive)?.contentOrNull
+
+fun JsonObject.getLongOrNull(name: String): Long? =
+    (this[name] as? JsonPrimitive)?.let { it.longOrNull ?: it.doubleOrNull?.toLong() }

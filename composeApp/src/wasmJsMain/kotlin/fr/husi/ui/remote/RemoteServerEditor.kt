@@ -10,15 +10,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.database.RemoteBackend
 import fr.husi.database.RemoteServer
+import fr.husi.ktx.Logs
 import fr.husi.remote.RemoteState
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 internal class RemoteServerEditor(private val id: Long?, private val remote: RemoteState) :
     ViewModel() {
@@ -26,11 +28,15 @@ internal class RemoteServerEditor(private val id: Long?, private val remote: Rem
     val nameState = TextFieldState(original?.name.orEmpty())
     val urlState = TextFieldState(original?.url ?: sameOrigin())
     val secretState = TextFieldState(original?.secret.orEmpty())
+    var backend by mutableStateOf(original?.backend ?: RemoteBackend.AUTO)
+        private set
+    private var testGeneration = 0
     private var invalidUrl by mutableStateOf<String?>(null)
     private var test by mutableStateOf<RemoteServerTestState>(RemoteServerTestState.Idle)
 
     val state: RemoteServerEditUiState
         get() = RemoteServerEditUiState(
+            backend = backend,
             name = nameState.text.toString(),
             url = urlState.text.toString(),
             secret = secretState.text.toString(),
@@ -50,6 +56,11 @@ internal class RemoteServerEditor(private val id: Long?, private val remote: Rem
                     testConnection(debounce = true)
                 }
         }
+    }
+
+    fun setBackend(value: RemoteBackend) {
+        backend = value
+        testConnection(debounce = true)
     }
 
     fun setName(value: String) {
@@ -78,19 +89,21 @@ internal class RemoteServerEditor(private val id: Long?, private val remote: Rem
             name = input.name.ifBlank { url },
             url = url,
             secret = input.secret,
+            backend = backend,
         )
         saveJob = viewModelScope.launch {
             try {
                 onSaved(remote.save(server))
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
-                remote.error = failure.message.orEmpty()
+                remote.reportCriticalError("Saving remote server failed", failure)
             }
         }
     }
 
     fun testConnection(debounce: Boolean = false) {
         testJob?.cancel()
+        val generation = ++testGeneration
         val input = state
         val url = runCatching { remote.client.normalizeUrl(input.url) }.getOrNull()
         if (url == null) {
@@ -104,15 +117,25 @@ internal class RemoteServerEditor(private val id: Long?, private val remote: Rem
             }
             val result =
                 try {
-                    RemoteServerTestState.Success(remote.client.testConnection(url, input.secret))
+                    val detected = remote.detector.test(url, input.secret, input.backend ?: RemoteBackend.AUTO)
+                    val backendName = if (detected.backend == RemoteBackend.CLASH) {
+                        "Clash"
+                    } else {
+                        "sing-box"
+                    }
+                    RemoteServerTestState.Success("$backendName ${detected.version}")
                 } catch (failure: Exception) {
                     if (failure is CancellationException) throw failure
+                    Logs.w("Remote connection test failed", failure)
                     RemoteServerTestState.Failure(failure.message.orEmpty())
                 }
-            test = result
+            if (generation == testGeneration && input.url == state.url && input.secret == state.secret && input.backend == backend) {
+                test = result
+            }
         }
     }
 }
 
 /** The page's own origin: the API address when sing-box serves the dashboard itself. */
-@JsFun("() => location.origin") private external fun sameOrigin(): String
+@JsFun("() => location.origin")
+private external fun sameOrigin(): String

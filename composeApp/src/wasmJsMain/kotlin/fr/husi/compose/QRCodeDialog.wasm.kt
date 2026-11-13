@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import fr.husi.ktx.Logs
 import fr.husi.resources.Res
 import fr.husi.resources.close
 import kotlin.io.encoding.Base64
@@ -42,7 +43,7 @@ actual fun QRCodeDialog(
             if (failure is CancellationException) {
                 throw failure
             }
-            showSnackbar(failure.message ?: failure.toString())
+            Logs.w("Generating QR code failed", failure)
         }
     }
     AlertDialog(

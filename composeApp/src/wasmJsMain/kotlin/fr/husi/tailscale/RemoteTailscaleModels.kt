@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.ktx.Logs
 import fr.husi.proto.daemon.CancelTaildropReceivingRequest
 import fr.husi.proto.daemon.DeleteTaildropFileRequest
 import fr.husi.proto.daemon.DownloadTaildropFileRequest
@@ -53,6 +54,7 @@ internal class RemotePeerModel(private val tag: String, private val remote: Remo
                     }
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
+                Logs.w("Tailscale ping failed", failure)
                 ping = ping.copy(error = failure.message.orEmpty())
             } finally {
                 ping = ping.copy(running = false)
@@ -100,7 +102,7 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
                     }
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
-                remote.error = failure.message.orEmpty()
+                Logs.w("RemoteTailscaleModels operation failed", failure)
             }
         }
     }
@@ -138,7 +140,7 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
                 download.save(name)
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
-                remote.error = failure.message.orEmpty()
+                Logs.w("RemoteTailscaleModels operation failed", failure)
             }
         }
     }

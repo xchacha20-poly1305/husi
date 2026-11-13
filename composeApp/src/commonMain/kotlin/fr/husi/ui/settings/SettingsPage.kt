@@ -19,6 +19,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.CapsuleActionsScope
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
@@ -39,6 +40,7 @@ internal fun SettingsPage(
     title: StringResource,
     modifier: Modifier = Modifier,
     onBackPress: (() -> Unit)? = null,
+    actions: @Composable CapsuleActionsScope.() -> Unit = {},
     content: LazyListScope.() -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -54,6 +56,7 @@ internal fun SettingsPage(
             CapsuleTopBar(
                 hazeState = hazeState,
                 title = { Text(stringResource(title)) },
+                actions = actions,
                 navigationIcon = onBackPress?.let { back ->
                     {
                         SimpleIconButton(

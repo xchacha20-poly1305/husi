@@ -41,6 +41,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.husi.database.RemoteBackend
+import fr.husi.compose.DropDownSelector
 import fr.husi.BuildConfig
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.material3.Button
@@ -54,6 +56,7 @@ import fr.husi.resources.connection_test
 import fr.husi.resources.connection_test_error
 import fr.husi.resources.hide
 import fr.husi.resources.profile_name
+import fr.husi.resources.remote_backend
 import fr.husi.resources.remote_server_secret
 import fr.husi.resources.remote_server_url_invalid
 import fr.husi.resources.remote_test_success
@@ -74,6 +77,7 @@ internal fun RemoteSetupScreen(
     onSave: () -> Unit,
     onTestConnection: () -> Unit,
     modifier: Modifier = Modifier,
+    onSetBackend: (RemoteBackend) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     var secretVisible by rememberSaveable { mutableStateOf(false) }
@@ -172,6 +176,17 @@ internal fun RemoteSetupScreen(
                         ),
                         onKeyboardAction = { confirm() },
                     )
+                    uiState.backend?.let { backend ->
+                        val backendLabels = RemoteBackend.entries.associateWith { remoteBackendLabel(it) }
+                        DropDownSelector(
+                            label = { Text(stringResource(Res.string.remote_backend)) },
+                            value = backend,
+                            values = RemoteBackend.entries,
+                            onValueChange = onSetBackend,
+                            displayValue = { backendLabels.getValue(it) },
+                            shape = RoundedCornerShape(16.dp),
+                        )
+                    }
                     SetupConnectionTest(
                         state = uiState.test,
                         onTest = onTestConnection,

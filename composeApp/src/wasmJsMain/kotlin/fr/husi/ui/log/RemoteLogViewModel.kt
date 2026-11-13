@@ -6,7 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import fr.husi.proto.daemon.LogLevel
+import fr.husi.ktx.emptyAsNull
+import fr.husi.remote.RemoteSession
 import fr.husi.remote.RemoteState
 
 internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel() {
@@ -14,35 +15,34 @@ internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel()
     val levels = listOf("PANIC", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE")
     var level by mutableStateOf("WARN")
     private var paused by mutableStateOf<List<TerminalLogEntry<String>>?>(null)
+    private var pausedSession: RemoteSession? = null
+
+    private val currentPause
+        get() = paused.takeIf { pausedSession === remote.currentSession }
 
     private fun liveEntries() =
         remote.logs.map { message ->
-            val level = if (message.level is LogLevel.Unrecognized) {
-                "UNKNOWN"
-            } else {
-                message.level.toString()
-            }
-            TerminalLogEntry(level, message.message)
+            TerminalLogEntry(message.level, message.message)
         }
 
     val presentation: LogcatPresentation<String>
         get() {
             val query = searchTextFieldState.text.toString()
             return LogcatPresentation(
-                pause = paused != null,
-                searchQuery = query.ifEmpty { null },
+                pause = currentPause != null,
+                searchQuery = query.emptyAsNull(),
                 logLevel = level,
-                logs =
-                    (paused ?: liveEntries()).filter {
-                        levels.indexOf(it.level) <= levels.indexOf(level) &&
-                            it.message.contains(query, ignoreCase = true)
-                    },
+                logs = (currentPause ?: liveEntries()).filter {
+                    levels.indexOf(it.level) <= levels.indexOf(level)
+                        && it.message.contains(query, ignoreCase = true)
+                },
                 connecting = remote.connecting,
             )
         }
 
     fun togglePause() {
-        paused = if (paused == null) liveEntries() else null
+        paused = if (currentPause == null) liveEntries() else null
+        pausedSession = remote.currentSession
     }
 
     fun clearSearch() {
@@ -50,7 +50,7 @@ internal class RemoteLogViewModel(private val remote: RemoteState) : ViewModel()
     }
 
     fun clear() {
-        remote.call { clearLogs() }
+        remote.action { clearLogs() }
         remote.logs.clear()
         paused = paused?.let { emptyList() }
     }

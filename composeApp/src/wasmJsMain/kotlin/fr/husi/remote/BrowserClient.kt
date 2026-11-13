@@ -2,6 +2,7 @@
 
 package fr.husi.remote
 
+import fr.husi.ktx.Logs
 import fr.husi.proto.daemon.StartedServiceClient
 import fr.husi.proto.daemon.Version
 import io.github.xchacha20_poly1305.kurpc.CallInvoker
@@ -9,10 +10,13 @@ import io.github.xchacha20_poly1305.kurpc.CallOptions
 import io.github.xchacha20_poly1305.kurpc.Channel
 import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
 import io.github.xchacha20_poly1305.kurpc.Metadata
+import io.github.xchacha20_poly1305.kurpc.UnaryResponse
 import io.github.xchacha20_poly1305.kurpc.WebCallOptions
 import io.github.xchacha20_poly1305.kurpc.WebChannelConfig
 import io.github.xchacha20_poly1305.kurpc.WebStreamTransport
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
@@ -80,8 +84,19 @@ private class SessionCalls(private val channel: Channel) : CallInvoker by channe
     override suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray =
         unaryCall(method, request, options).message
 
-    override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions) =
-        channel.unaryCall(method, request, options.withUnaryTimeout())
+    override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions): UnaryResponse {
+        val started = TimeSource.Monotonic.markNow()
+        Logs.d("RPC $method started")
+        try {
+            val response = channel.unaryCall(method, request, options.withUnaryTimeout())
+            Logs.d("RPC $method completed in ${started.elapsedNow()}")
+            return response
+        } catch (failure: Exception) {
+            if (failure is CancellationException) throw failure
+            Logs.w("RPC $method failed after ${started.elapsedNow()}", failure)
+            throw failure
+        }
+    }
 }
 
 private fun CallOptions.withUnaryTimeout(): CallOptions = when {

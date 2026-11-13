@@ -10,6 +10,16 @@ import kotlinx.serialization.json.Json
 
 class RemoteRouteTest {
     @Test
+    fun `destinations follow the active controller protocol`() {
+        assertTrue(remoteRouteAvailable(RemoteRoute.Rules, true))
+        assertFalse(remoteRouteAvailable(RemoteRoute.Rules, false))
+        assertTrue(remoteRouteAvailable(RemoteRoute.Stun, false))
+        assertFalse(remoteRouteAvailable(RemoteRoute.Stun, true))
+        assertFalse(remoteRouteAvailable(RemoteRoute.Peer("tag", "peer"), true))
+        assertTrue(remoteRouteAvailable(RemoteRoute.Settings, true))
+    }
+
+    @Test
     fun `remote routes round trip with the serializers used by the saved back stack`() {
         val json = Json {
             serializersModule = RemoteRoute.savedStateConfiguration.serializersModule
@@ -19,6 +29,7 @@ class RemoteRouteTest {
             RemoteRoute.Setup,
             RemoteRoute.Stats, RemoteRoute.ProxySet, RemoteRoute.Connections, RemoteRoute.Logs,
             RemoteRoute.Tools, RemoteRoute.Servers, RemoteRoute.GeneralSettings,
+            RemoteRoute.Rules, RemoteRoute.Providers, RemoteRoute.Dns,
             RemoteRoute.Settings, RemoteRoute.About, RemoteRoute.Libraries,
             RemoteRoute.ServerEdit(1L), RemoteRoute.Stun, RemoteRoute.NetworkQuality,
             RemoteRoute.Endpoint("tailscale"), RemoteRoute.Peer("tailscale", "peer"),

@@ -26,9 +26,12 @@ import fr.husi.compose.material3.NavigationSuite
 import fr.husi.compose.material3.NavigationSuiteItem
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
+import fr.husi.database.RemoteBackend
 import fr.husi.installAppLanguageEnvironment
+import fr.husi.ktx.Logs
 import fr.husi.remote.RemoteState
 import fr.husi.resources.Res
+import fr.husi.resources.clash_rules
 import fr.husi.resources.description
 import fr.husi.resources.layers
 import fr.husi.resources.link
@@ -38,12 +41,10 @@ import fr.husi.resources.settings
 import fr.husi.resources.speed
 import fr.husi.resources.traffic_connections
 import fr.husi.resources.traffic_status
-import fr.husi.resources.web_terminal_load_failed
 import io.github.xchacha20_poly1305.libghostty.GhosttyWebAssembly
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
-import org.jetbrains.compose.resources.getString
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 import org.koin.compose.navigation3.koinEntryProvider
@@ -83,7 +84,18 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
             val snackbarHost = remember { SnackbarHostState() }
             val backStack =
                 rememberNavBackStack(RemoteRoute.savedStateConfiguration, RemoteRoute.Setup)
-            val routes = remoteBackStack(backStack, state.selected != null)
+            val restored = remoteBackStack(backStack, state.selected != null)
+            val routes = if (state.selected != null && restored.any { route ->
+                    when (state.backend) {
+                        RemoteBackend.CLASH -> !remoteRouteAvailable(route, true)
+                        RemoteBackend.SING_BOX -> !remoteRouteAvailable(route, false)
+                        else -> !remoteRouteAvailable(route, true) || !remoteRouteAvailable(route, false)
+                    }
+                }) {
+                listOf(RemoteRoute.Stats)
+            } else {
+                restored
+            }
             SideEffect {
                 if (backStack != routes) {
                     backStack.clear()
@@ -102,20 +114,12 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                     if (e is CancellationException) {
                         ensureActive()
                     }
-                    snackbar.show(
-                        StringOrRes.Direct(
-                            getString(
-                                Res.string.web_terminal_load_failed,
-                                e.message.orEmpty(),
-                            ),
-                        ),
-                    )
+                    Logs.w("Terminal WebAssembly failed to load", e)
                 }
             }
             LaunchedEffect(state.error) {
                 if (state.error.isNotEmpty()) {
                     snackbar.show(StringOrRes.Direct(state.error))
-                    state.error = ""
                 }
             }
             CompositionLocalProvider(
@@ -129,32 +133,36 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                     NavigationSuite(
                         items =
                             listOf(
-                                    Triple(
-                                        RemoteRoute.Stats,
-                                        Res.string.traffic_status,
-                                        Res.drawable.speed,
-                                    ),
-                                    Triple(
-                                        RemoteRoute.ProxySet,
-                                        Res.string.proxy_set,
-                                        Res.drawable.layers,
-                                    ),
-                                    Triple(
-                                        RemoteRoute.Connections,
-                                        Res.string.traffic_connections,
-                                        Res.drawable.link,
-                                    ),
-                                    Triple(
-                                        RemoteRoute.Logs,
-                                        Res.string.menu_log,
-                                        Res.drawable.description,
-                                    ),
-                                    Triple(
-                                        RemoteRoute.Settings,
-                                        Res.string.settings,
-                                        Res.drawable.settings,
-                                    ),
-                                )
+                                Triple(
+                                    RemoteRoute.Stats,
+                                    Res.string.traffic_status,
+                                    Res.drawable.speed,
+                                ),
+                                Triple(
+                                    RemoteRoute.ProxySet,
+                                    Res.string.proxy_set,
+                                    Res.drawable.layers,
+                                ),
+                                Triple(
+                                    RemoteRoute.Connections,
+                                    Res.string.traffic_connections,
+                                    Res.drawable.link,
+                                ),
+                                Triple(
+                                    RemoteRoute.Logs,
+                                    Res.string.menu_log,
+                                    Res.drawable.description,
+                                ),
+                                Triple(RemoteRoute.Rules, Res.string.clash_rules, Res.drawable.description),
+                                Triple(
+                                    RemoteRoute.Settings,
+                                    Res.string.settings,
+                                    Res.drawable.settings,
+                                ),
+                            )
+                                .filter { (route, _, _) ->
+                                    remoteRouteAvailable(route, state.isClash)
+                                }
                                 .map { (route, label, icon) ->
                                     NavigationSuiteItem(
                                         label,
@@ -171,7 +179,11 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                     ) {
                         NavDisplay(
                             backStack = routes,
-                            onBack = { if (state.selected != null) navigator.popBackStack() },
+                            onBack = {
+                                if (state.selected != null) {
+                                    navigator.popBackStack()
+                                }
+                            },
                             entryDecorators =
                                 listOf(
                                     rememberSaveableStateHolderNavEntryDecorator(),

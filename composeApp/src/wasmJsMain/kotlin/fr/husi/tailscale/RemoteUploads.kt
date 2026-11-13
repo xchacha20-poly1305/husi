@@ -1,6 +1,7 @@
 package fr.husi.tailscale
 
 import androidx.compose.runtime.mutableStateListOf
+import fr.husi.ktx.Logs
 import fr.husi.proto.daemon.TaildropFileChunk
 import fr.husi.proto.daemon.TaildropFileDone
 import fr.husi.proto.daemon.TaildropOutgoingFile
@@ -68,7 +69,7 @@ internal class RemoteUploads(private val remote: RemoteState, private val scope:
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
                 failureMessage = failure.message ?: failure.toString()
-                if (sessions.none { it.id == id }) remote.error = failureMessage
+                Logs.w("Upload failed", failure)
             } finally {
                 jobs.remove(id)
                 updateSession(id) { it.copy(finished = true, errorMessage = failureMessage) }

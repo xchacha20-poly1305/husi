@@ -975,4 +975,30 @@
     <string name="network_manager_tun">Use NetworkManager TUN</string>
     <string name="network_manager_tun_summary">Let NetworkManager manage TUN, routes and DNS without the system daemon. Requires NetworkManager permission. Single queue; strict route and auto redirect are unavailable.</string>
     <string name="tun_backend_required">TUN mode requires the system daemon or NetworkManager. Choose a backend in Settings.</string>
+
+    <string name="remote_backend">Backend</string>
+    <string name="remote_backend_auto">Automatic detection</string>
+    <string name="clash_rules">Rules</string>
+    <string name="clash_providers">Providers</string>
+    <string name="clash_dns">DNS query</string>
+    <string name="clash_unsupported">This operation is not supported by the server</string>
+    <string name="clash_state_unknown">State unconfirmed. Refresh before changing this rule.</string>
+    <string name="clash_rule_unavailable">Rule switching is unavailable</string>
+    <string name="clash_empty">No items</string>
+    <string name="clash_health_check">Health check</string>
+    <string name="clash_test_delay">Test delay</string>
+    <string name="clash_query_name">Domain name</string>
+    <string name="clash_query_type">Record type</string>
+    <string name="clash_query">Query</string>
+    <string name="clash_enabled">Enabled</string>
+    <string name="clash_rule_count">Rule count: %1$d</string>
+    <string name="clash_proxy_providers">Proxy providers</string>
+    <string name="clash_rule_providers">Rule providers</string>
+    <string name="clash_usage">%1$s Used / %2$s Total</string>
+    <string name="clash_dns_status">Response status: %1$s</string>
+    <string name="clash_dns_questions">Questions</string>
+    <string name="clash_dns_answers">Answers</string>
+    <string name="clash_dns_authority">Authority records</string>
+    <string name="clash_dns_additional">Additional records</string>
+    <string name="clash_dns_ttl">TTL: %1$s s</string>
 </resources>

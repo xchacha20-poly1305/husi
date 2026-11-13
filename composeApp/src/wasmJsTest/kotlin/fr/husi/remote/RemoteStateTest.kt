@@ -1,21 +1,15 @@
 package fr.husi.remote
 
 import fr.husi.Key
+import fr.husi.database.RemoteBackend
 import fr.husi.database.RemoteServer
 import fr.husi.database.preference.long
-import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.StartedAt
 import fr.husi.proto.daemon.Version
+import fr.husi.test.FakeClashApi
 import fr.husi.test.FakePreferencesDataStore
 import fr.husi.test.FakeRemoteClient
 import fr.husi.test.FakeRemoteServerStore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertFails
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -28,6 +22,14 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RemoteStateTest {
@@ -154,6 +156,7 @@ class RemoteStateTest {
             assertEquals(index + 2, client.attempts.size)
             assertEquals(server.copy(userOrder = 1L), state.selected)
             assertTrue(state.connecting)
+            assertTrue(state.error.isNotEmpty())
             assertFalse(state.connected)
         }
     }
@@ -179,7 +182,7 @@ class RemoteStateTest {
         assertEquals(1700000000123L, state.startedAt)
         val activeStreams = client.activeStreams
         assertTrue(activeStreams > 0)
-        state.logs.add(Log.Message())
+        state.logs.add(RemoteLogEntry("INFO", "test"))
 
         client.heartbeatFailure = true
         advanceTimeBy(5000.milliseconds)
@@ -293,6 +296,7 @@ class RemoteStateTest {
         advanceTimeBy(3000.milliseconds)
         runCurrent()
         assertEquals(listOf(0L, 1000L, 3000L), client.logAttempts)
+        assertEquals("", state.error)
         client.logFailure = false
         advanceTimeBy(4000.milliseconds)
         runCurrent()
@@ -301,13 +305,93 @@ class RemoteStateTest {
         assertEquals(7000L, client.logAttempts.last())
     }
 
-    private fun TestScope.state(client: RemoteClient, store: FakeRemoteServerStore = FakeRemoteServerStore()) = RemoteState(
-        backgroundScope,
-        client,
-        store,
-        flowOf(1000),
-        FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
-    )
+    @Test
+    fun `Clash selection owns its streams and never issues native RPCs`() = runTest {
+        val native = object : FakeRemoteClient() {
+            override suspend fun connect(url: String, secret: String): Version = error("Native connection attempted")
+            override suspend fun call(method: String, request: ByteArray): ByteArray {
+                error("Native RPC attempted: $method")
+            }
+        }
+        val api = FakeClashApi()
+        var activeStreams = 0
+        api.handler = { operation, _ ->
+            Json.parseToJsonElement(
+                when (operation) {
+                    "version" -> """{"version":"fixture"}"""
+                    "proxies" -> "{}"
+                    "config" -> """{"mode":"rule"}"""
+                    else -> error(operation)
+                },
+            )
+        }
+        api.streams = { _, _ ->
+            flow {
+                activeStreams++
+                try {
+                    awaitCancellation()
+                } finally {
+                    activeStreams--
+                }
+            }
+        }
+        val state = RemoteState(
+            backgroundScope, native, FakeRemoteServerStore(), flowOf(1000),
+            FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
+            openClash = { _, _ -> api },
+        )
+        val saved = state.save(server.copy(backend = RemoteBackend.CLASH))
+        state.connect(saved)
+        runCurrent()
+        assertTrue(state.connected)
+        assertTrue(state.isClash)
+        assertNull(state.coreVersion)
+        assertEquals("fixture", state.version)
+        assertEquals(4, activeStreams)
+        state.disconnect()
+        runCurrent()
+        assertFalse(state.connected)
+        assertTrue(api.closed)
+        assertEquals(0, activeStreams)
+    }
+
+    @Test
+    fun `Clash polling failures stay diagnostic and do not become global errors`() = runTest {
+        val api = FakeClashApi()
+        api.handler = { operation, _ ->
+            when (operation) {
+                "version" -> Json.parseToJsonElement("""{"version":"fixture"}""")
+                "config" -> error("Invalid config")
+                "proxies" -> Json.parseToJsonElement("{}")
+                else -> error(operation)
+            }
+        }
+        val state = RemoteState(
+            backgroundScope, FakeRemoteClient(), FakeRemoteServerStore(), flowOf(1000),
+            FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
+            openClash = { _, _ -> api },
+        )
+        val saved = state.save(server.copy(backend = RemoteBackend.CLASH))
+        state.connect(saved)
+        runCurrent()
+        advanceTimeBy(3000.milliseconds)
+        runCurrent()
+        assertTrue(state.connected)
+        assertEquals("", state.error)
+        assertTrue(api.requests.count { it.first == "config" } > 1)
+        state.action { setMode("global") }
+        runCurrent()
+        assertEquals("", state.error)
+    }
+
+    private fun TestScope.state(client: RemoteClient, store: FakeRemoteServerStore = FakeRemoteServerStore()) =
+        RemoteState(
+            backgroundScope,
+            client,
+            store,
+            flowOf(1000),
+            FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
+        )
 
     private class RecordingClient(private val now: () -> Long) : FakeRemoteClient() {
         val attempts = mutableListOf<Pair<String, Long>>()

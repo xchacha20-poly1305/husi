@@ -85,6 +85,7 @@ internal fun RemoteSetupBinding() {
         secretState = editor.secretState,
         onSave = { editor.save(remote::connect) },
         onTestConnection = { editor.testConnection() },
+        onSetBackend = editor::setBackend,
     )
 }
 
@@ -100,5 +101,6 @@ internal fun RemoteServerEditorBinding(id: Long?) {
         onSetUrl = editor::setUrl,
         onSetSecret = editor::setSecret,
         onTestConnection = { editor.testConnection() },
+        onSetBackend = editor::setBackend,
     )
 }

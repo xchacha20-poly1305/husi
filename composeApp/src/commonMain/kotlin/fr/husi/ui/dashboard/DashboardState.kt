@@ -24,6 +24,8 @@ data class DashboardState(
     val rxTotal: Long = 0,
     val memory: Long = 0,
     val goroutines: Int = 0,
+    val supportsGoroutines: Boolean = true,
+    val memoryAvailable: Boolean = true,
     val txRateProxy: Long = 0,
     val rxRateProxy: Long = 0,
     val txRateDirect: Long = 0,

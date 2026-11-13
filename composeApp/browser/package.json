@@ -10,7 +10,8 @@
   "dependencies": {
     "@kyralabs/m3e-css": "1.8.0",
     "@kyralabs/m3e-elements": "1.8.0",
-    "qrcode": "1.5.4"
+    "qrcode": "1.5.4",
+    "tshomo": "0.0.3"
   },
   "devDependencies": {
     "@types/node": "26.6.6",
@@ -18,6 +19,7 @@
     "esbuild": "0.28.2",
     "license-checker-rseidelsohn": "5.0.1",
     "spdx-expression-parse": "4.0.0",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "ws": "8.23.0"
   }
 }

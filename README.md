@@ -488,6 +488,12 @@ Nothing in husi checks the signature at runtime.
 
 #### 🌐 Web dashboard (Wasm)
 
+Our webdashboard support both sing-box API and Clash API. The Clash API also supports [reF1nd/sing-box](https://github.com/reF1nd/sing-box) extension
+
+Application diagnostics are written to the browser console. Filter for `[husi` and enable Verbose
+to see request timing and subscription state changes. Background polling, subscription and routine
+operation failures are logged; connection and storage failures can also show a Snackbar.
+
 Build with Node.js 26+ and the project's JDK:
 
 ```shell
@@ -498,7 +504,37 @@ make web_zip
 
 No libcore binary, route assets, protoc or native plugin builds are needed. Output is under `composeApp/build/dist/wasmJs/productionExecutable/`; the ZIP is under `composeApp/build/distributions/`. Serve the files through HTTP(S), including all relative paths. Opening `index.html` through `file://` is not supported.
 
-Configure the [sing-box API service](https://sing-box.sagernet.org/configuration/service/api/) under the root `services` array (sing-box 1.14.0 or later). Add this entry to your existing configuration:
+##### Configure in core
+
+It is suggested to use online version instead of download, because we are developing rapidly.
+
+However, limited by the [Firefox LAN access bug of WebSocket](https://bugzilla.mozilla.org/show_bug.cgi?id=2081728), Firefox user would better use download version.
+
+###### sing-box
+
+[sing-box API service](https://sing-box.sagernet.org/configuration/service/api/):
+
+**Online**
+
+```json
+{
+  "services": [
+    {
+      "type": "api",
+      "access_control_allow_origin": [
+        "http://127.0.0.1",
+        "https://xchacha20-poly1305.github.io/husi"
+      ],
+      "access_control_allow_private_network": true,
+      "dashboard": {
+        "enabled": false
+      }
+    }
+  ]
+}
+```
+
+**Download**
 
 ```json
 {
@@ -512,6 +548,46 @@ Configure the [sing-box API service](https://sing-box.sagernet.org/configuration
     }
   ]
 }
+```
+
+[sing-box experimental Clash API](https://sing-box.sagernet.org/configuration/experimental/clash-api/)
+
+**Online**
+
+```json
+{
+  "experimental": {
+      "clash_api": {
+        "access_control_allow_origin": [
+          "http://127.0.0.1",
+          "https://xchacha20-poly1305.github.io/husi"
+        ],
+        "access_control_allow_private_network": true,
+      }
+  }
+}
+```
+
+**External**
+
+```json
+{
+  "experimental": {
+    "clash_api": {
+      "external_ui": "ui",
+      "external_ui_download_url": "https://github.com/xchacha20-poly1305/husi/archive/refs/heads/gh-pages.zip"
+    }
+  }
+}
+```
+
+###### mihomo
+
+**Download**
+
+```yaml
+external-ui: ui
+external-ui-url: "https://github.com/xchacha20-poly1305/husi/archive/refs/heads/gh-pages.zip"
 ```
 
 #### 🌈 Plugins

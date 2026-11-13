@@ -25,6 +25,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import fr.husi.database.RemoteBackend
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.CapsuleTopBar
 import fr.husi.compose.IconMaskColors
@@ -78,6 +79,7 @@ fun RemoteServerEditContent(
     onSetSecret: (String) -> Unit,
     onTestConnection: () -> Unit,
     modifier: Modifier = Modifier,
+    onSetBackend: ((RemoteBackend) -> Unit)? = null,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
@@ -174,6 +176,11 @@ fun RemoteServerEditContent(
                             },
                             valueToText = { it },
                         )
+                        uiState.backend?.let { backend ->
+                            if (onSetBackend != null) {
+                                RemoteBackendPreference(backend, onSetBackend)
+                            }
+                        }
                         PasswordPreference(
                             value = uiState.secret,
                             onValueChange = onSetSecret,

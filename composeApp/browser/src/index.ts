@@ -1,3 +1,4 @@
+export {createClashSession} from "./clash";
 export {createRemoteServerStorage} from "./remote-server-storage";
 
 export function saveFile(name: string, base64: string) {

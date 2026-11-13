@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import fr.husi.ktx.Logs
 import fr.husi.proto.daemon.TailscaleSSHClientMessage
 import fr.husi.proto.daemon.TailscaleSSHInput
 import fr.husi.proto.daemon.TailscaleSSHResize
@@ -132,6 +133,7 @@ internal class RemoteSshSession(override val id: Long, override val target: Tail
                 }
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
+                Logs.w("Remote SSH session failed", failure)
                 finish(-1, failure.message.orEmpty())
             }
         }

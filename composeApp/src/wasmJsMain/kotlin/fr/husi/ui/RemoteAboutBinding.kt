@@ -1,6 +1,7 @@
 package fr.husi.ui
 
 import androidx.compose.runtime.Composable
+import fr.husi.ktx.blankAsNull
 import fr.husi.remote.RemoteState
 import org.koin.compose.koinInject
 
@@ -11,6 +12,6 @@ internal fun RemoteAboutBinding() {
     AboutScreenContent(
         onBackPress = { navigator.popBackStack() },
         onNavigateToLibraries = { navigator.navigateTo(RemoteRoute.Libraries) },
-        boxVersion = remote.coreVersion?.version,
+        boxVersion = remote.version.blankAsNull(),
     )
 }

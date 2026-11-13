@@ -1,6 +1,7 @@
 package fr.husi.ui.remote
 
 import androidx.compose.runtime.Immutable
+import fr.husi.database.RemoteBackend
 
 /** Outcome of the connection test that runs against the edited server. */
 @Immutable
@@ -20,6 +21,7 @@ sealed interface RemoteServerTestState {
 
 @Immutable
 data class RemoteServerEditUiState(
+    val backend: RemoteBackend? = null,
     val name: String = "",
     val url: String = "",
     val secret: String = "",

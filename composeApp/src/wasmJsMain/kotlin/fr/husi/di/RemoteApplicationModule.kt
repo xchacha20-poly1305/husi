@@ -17,6 +17,9 @@ import fr.husi.tailscale.RemoteInboxModel
 import fr.husi.tailscale.RemotePeerModel
 import fr.husi.tailscale.RemoteSshSessions
 import fr.husi.tailscale.RemoteUploads
+import fr.husi.ui.clash.ClashRulesBinding
+import fr.husi.ui.clash.ClashProvidersBinding
+import fr.husi.ui.clash.ClashDnsBinding
 import fr.husi.ui.LibrariesScreen
 import fr.husi.ui.LocalNavigator
 import fr.husi.ui.MainScreenScope
@@ -84,6 +87,9 @@ internal val remoteApplicationModule = module {
         navigation<RemoteRoute.ProxySet> { RemoteDashboardBinding(DashboardPage.ProxySet) }
         navigation<RemoteRoute.Connections> { RemoteDashboardBinding(DashboardPage.Connections) }
         navigation<RemoteRoute.Logs> { RemoteLogBinding() }
+        navigation<RemoteRoute.Rules> { ClashRulesBinding() }
+        navigation<RemoteRoute.Providers> { ClashProvidersBinding() }
+        navigation<RemoteRoute.Dns> { ClashDnsBinding() }
         navigation<RemoteRoute.Tools> { RemoteNetworkBinding() }
         navigation<RemoteRoute.Settings> { SettingsScreen() }
         navigation<RemoteRoute.GeneralSettings> { GeneralSettingsScreen() }

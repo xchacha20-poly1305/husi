@@ -7,6 +7,7 @@ import fr.husi.core.NatBehaviour
 import fr.husi.core.NetworkQualityPhase
 import fr.husi.core.StunPhase
 import fr.husi.database.DataStore
+import fr.husi.ktx.Logs
 import fr.husi.ktx.emptyAsNull
 import fr.husi.proto.daemon.NetworkQualityTestRequest
 import fr.husi.proto.daemon.STUNTestRequest
@@ -57,7 +58,7 @@ internal class RemoteStunPresenter(private val remote: RemoteState) : ViewModel(
                     .startSTUNTest(STUNTestRequest(server = input.server, outboundTag = input.outboundTag))
                     .collect { progress ->
                         if (progress.error.isNotEmpty()) {
-                            uiEvent.emit(StunScreenUiEvent.Alert(progress.error))
+                            Logs.w("STUN test: ${progress.error}")
                         }
                         uiState.update {
                             it.copy(
@@ -76,7 +77,7 @@ internal class RemoteStunPresenter(private val remote: RemoteState) : ViewModel(
                     }
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
-                uiEvent.emit(StunScreenUiEvent.Alert(failure.message.orEmpty()))
+                Logs.w("STUN test failed", failure)
             } finally {
                 uiState.update { it.copy(isDoing = false) }
             }
@@ -162,11 +163,7 @@ internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
                     )
                     .collect { progress ->
                         if (progress.error.isNotEmpty()) {
-                            uiEvent.emit(
-                                NetworkQualityScreenUiEvent.ErrorAlert(
-                                    StringOrRes.Direct(progress.error),
-                                ),
-                            )
+                            Logs.w("Network quality test: ${progress.error}")
                         }
                         testState.update {
                             it.copy(
@@ -186,11 +183,7 @@ internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
                 uiEvent.emit(NetworkQualityScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.done)))
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
-                uiEvent.emit(
-                    NetworkQualityScreenUiEvent.ErrorAlert(
-                        StringOrRes.Direct(failure.message.orEmpty()),
-                    ),
-                )
+                Logs.w("Network quality test failed", failure)
             } finally {
                 testState.update { it.copy(canTest = true) }
             }

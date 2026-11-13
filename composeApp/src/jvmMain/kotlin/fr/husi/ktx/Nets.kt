@@ -95,28 +95,6 @@ fun String.isIPv6(): Boolean {
     return regV6.matches(addr)
 }
 
-// [2001:4860:4860::8888] -> 2001:4860:4860::8888
-fun String.unwrapIPV6Host(): String {
-    if (startsWith("[") && endsWith("]")) {
-        return substring(1, length - 1).unwrapIPV6Host()
-    }
-    return this
-}
-
-// [2001:4860:4860::8888] or 2001:4860:4860::8888 -> [2001:4860:4860::8888]
-fun String.wrapIPV6Host(): String {
-    val unwrapped = this.unwrapIPV6Host()
-    return if (unwrapped.isIPv6()) {
-        "[$unwrapped]"
-    } else {
-        this
-    }
-}
-
-fun joinAddress(host: String, port: Int): String = joinAddress(host, port.toString())
-
-fun joinAddress(host: String, port: String): String = "${host.wrapIPV6Host()}:$port"
-
 fun splitAddress(address: String): Pair<String, String>? {
     val separator = address.lastIndexOf(':')
     if (separator <= 0 || separator == address.lastIndex) return null

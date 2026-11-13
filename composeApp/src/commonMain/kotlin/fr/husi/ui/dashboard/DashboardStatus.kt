@@ -373,14 +373,14 @@ private fun StatusCard(uiState: DashboardState) {
                 text = stringResource(Res.string.status_status),
                 style = MaterialTheme.typography.titleMedium,
             )
-            Row(
+            if (uiState.memoryAvailable) Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(stringResource(Res.string.status_memory))
                 Text(uiState.memory.formatMemoryBytes())
             }
-            Row(
+            if (uiState.supportsGoroutines) Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {

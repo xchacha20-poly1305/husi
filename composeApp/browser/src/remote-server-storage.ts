@@ -4,6 +4,7 @@ type RemoteServer = {
     name: string;
     url: string;
     secret: string;
+    backend?: "AUTO" | "SING_BOX" | "CLASH";
 };
 
 const SERVER_STORE = "servers";
