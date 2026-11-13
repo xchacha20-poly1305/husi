@@ -1,0 +1,71 @@
+m3exp-web
+Copyright 2026 Kyra Labs
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes software from the projects listed below, each licensed
+under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+Portions have been modified and ported to TypeScript by Kyra Labs. Every ported
+file keeps its original copyright and license header and names its source path
+and commit.
+
+--------------------------------------------------------------------------------
+AndroidX Compose Material3 (design tokens, component logic, MaterialShapes)
+https://android.googlesource.com/platform/frameworks/support/+/19991f2c0858aadfcb442ce02b2c8e4743c96898/compose/material3/
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+AndroidX Compose Animation (animation-core: spring simulation and duration estimate, exponential decay)
+https://android.googlesource.com/platform/frameworks/support/+/19991f2c0858aadfcb442ce02b2c8e4743c96898/compose/animation/animation-core/
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+AndroidX Compose Foundation (anchoredDraggable: the settle target and decay / tween choice; snapping: the minimum fling velocity)
+https://android.googlesource.com/platform/frameworks/support/+/19991f2c0858aadfcb442ce02b2c8e4743c96898/compose/foundation/foundation/
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+AndroidX Compose UI Graphics (Matrix: the subset MaterialShapes uses)
+https://android.googlesource.com/platform/frameworks/support/+/19991f2c0858aadfcb442ce02b2c8e4743c96898/compose/ui/ui-graphics/
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+AndroidX Compose Material3 Adaptive (window size class sets, pane scaffold directive, navigation suite type)
+https://android.googlesource.com/platform/frameworks/support/+/19991f2c0858aadfcb442ce02b2c8e4743c96898/compose/material3/adaptive/
+https://android.googlesource.com/platform/frameworks/support/+/19991f2c0858aadfcb442ce02b2c8e4743c96898/compose/material3/material3-adaptive-navigation-suite/
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+AndroidX WindowManager (window-core 1.5.0: WindowSizeClass breakpoints)
+https://android.googlesource.com/platform/frameworks/support/+/19991f2c0858aadfcb442ce02b2c8e4743c96898/window/window-core/
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+AndroidX graphics-shapes (androidx.graphics:graphics-shapes 1.0.1, sources jar)
+https://dl.google.com/android/maven2/androidx/graphics/graphics-shapes/1.0.1/graphics-shapes-1.0.1-sources.jar
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+Material Web (@material/web 2.5.0: elevation shadow values and the dialog motion / window margin
+values in @kyralabs/m3e-tokens)
+https://github.com/material-components/material-web
+Copyright 2022 Google LLC
+Copyright 2023 Google LLC
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+material-color-utilities (@material/material-color-utilities 0.4.0, bundled in @kyralabs/m3e-tokens)
+https://github.com/material-foundation/material-color-utilities
+Copyright 2021 Google LLC
+Licensed under the Apache License, Version 2.0
+
+--------------------------------------------------------------------------------
+Bundled fonts are distributed under their own licenses, included beside each
+font file in packages/m3e-tokens/fonts/.
