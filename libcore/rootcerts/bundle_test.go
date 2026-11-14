@@ -138,7 +138,7 @@ func TestLoadEmbeddedStoresLeaveOutDistrustedRoots(t *testing.T) {
 
 		distrustedCount := 0
 		for _, der := range embedded {
-			if _, isDistrusted := distrustedRoots[sha256.Sum256(der)]; isDistrusted {
+			if distrustedRoots.Contains(sha256.Sum256(der)) {
 				distrustedCount++
 			}
 		}

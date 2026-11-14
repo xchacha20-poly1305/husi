@@ -2,10 +2,11 @@ package demoapi
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/sagernet/sing-box/daemon"
-
+	"golang.org/x/exp/collection/set"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -119,12 +120,11 @@ func (s *service) SubscribeConnections(request *daemon.SubscribeConnectionsReque
 // the retained state still provides the full delta, including a final close.
 func connectionUpdates(previous *map[string]*daemon.Connection, current []*daemon.Connection, includeTraffic bool) *daemon.ConnectionEvents {
 	update := &daemon.ConnectionEvents{Reset_: *previous == nil}
-	retained := make(map[string]bool, len(current))
-	for _, connection := range current {
-		retained[connection.Id] = true
-	}
+	retained := set.Collect(itersequence.Map(slices.Values(current), func(it *daemon.Connection) string {
+		return it.Id
+	}))
 	for id := range *previous {
-		if !retained[id] {
+		if !retained.Contains(id) {
 			update.Reset_ = true
 			break
 		}

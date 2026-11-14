@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"golang.org/x/exp/collection/set"
 )
 
 const (
@@ -102,8 +104,8 @@ option java_package = %q;`
 	return result
 }
 
-func trimService(service *protoBlock, wantedRPCs map[string]bool) (keptLines []string, seenRPCs map[string]bool) {
-	seenRPCs = make(map[string]bool)
+func trimService(service *protoBlock, wantedRPCs set.Set[string]) (keptLines []string, seenRPCs set.Set[string]) {
+	seenRPCs = make(set.Set[string])
 	pendingBlank := false
 
 	for _, line := range service.lines {
@@ -113,8 +115,8 @@ func trimService(service *protoBlock, wantedRPCs map[string]bool) (keptLines []s
 		}
 
 		if match := rpcStartPattern.FindStringSubmatch(line); match != nil {
-			seenRPCs[match[1]] = true
-			if !wantedRPCs[match[1]] {
+			seenRPCs.Insert(match[1])
+			if !wantedRPCs.Contains(match[1]) {
 				continue
 			}
 			if pendingBlank && len(keptLines) > 0 {
@@ -142,10 +144,7 @@ func collectReferencedTypes(text string, blockNames map[string]bool, kept map[st
 }
 
 func trim(source, className string, wantedRPCs []string) (string, error) {
-	wanted := make(map[string]bool, len(wantedRPCs))
-	for _, name := range wantedRPCs {
-		wanted[name] = true
-	}
+	wanted := set.Of(wantedRPCs...)
 
 	preamble, blocks := parseSource(strings.Split(source, lineSeparator))
 	blockNames := make(map[string]bool, len(blocks))
@@ -162,7 +161,7 @@ func trim(source, className string, wantedRPCs []string) (string, error) {
 		keptLines, seenRPCs := trimService(block, wanted)
 		var missing []string
 		for _, name := range wantedRPCs {
-			if !seenRPCs[name] {
+			if !seenRPCs.Contains(name) {
 				missing = append(missing, name)
 			}
 		}

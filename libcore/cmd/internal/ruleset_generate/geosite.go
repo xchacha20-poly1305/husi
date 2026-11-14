@@ -14,6 +14,8 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"golang.org/x/exp/collection/set"
 )
 
 const (
@@ -46,7 +48,7 @@ type geositeParsedList struct {
 type geositeProcessor struct {
 	parsedLists map[string]*geositeParsedList
 	finalLists  map[string][]*geositeEntry
-	circular    map[string]bool
+	circular    set.Set[string]
 }
 
 func generateGeosite(reader io.Reader) (sortedStringMap[[]geosite.Item], error) {
@@ -305,7 +307,7 @@ func validateGeositeListName(name string) bool {
 func (p *geositeProcessor) generateDomainMap() (sortedStringMap[[]geosite.Item], error) {
 	listCount := len(p.parsedLists)
 	p.finalLists = make(map[string][]*geositeEntry, listCount)
-	p.circular = make(map[string]bool)
+	p.circular = make(set.Set[string])
 	for listName := range p.parsedLists {
 		if err := p.resolveList(listName); err != nil {
 			return nil, E.Cause(err, "resolve list: ", listName)
@@ -384,10 +386,9 @@ func (p *geositeProcessor) resolveList(listName string) error {
 	if !loaded {
 		return E.New("list not found")
 	}
-	if p.circular[listName] {
+	if !p.circular.Insert(listName) {
 		return E.New("circular inclusion")
 	}
-	p.circular[listName] = true
 	defer delete(p.circular, listName)
 
 	roughMap := make(map[string]*geositeEntry)
@@ -432,13 +433,13 @@ func isMatchGeositeAttrFilters(entry *geositeEntry, inclusion *geositeInclusion)
 func polishGeositeList(roughMap map[string]*geositeEntry) []*geositeEntry {
 	finalList := make([]*geositeEntry, 0, len(roughMap))
 	queuedList := make([]*geositeEntry, 0, len(roughMap))
-	domains := make(map[string]bool)
+	domains := make(set.Set[string])
 	for _, entry := range roughMap {
 		switch entry.Type {
 		case geositeRuleTypeRegexp, geositeRuleTypeKeyword:
 			finalList = append(finalList, entry)
 		case geositeRuleTypeDomain:
-			domains[entry.Value] = true
+			domains.Insert(entry.Value)
 			if len(entry.Attrs) != 0 {
 				finalList = append(finalList, entry)
 			} else {
@@ -464,7 +465,7 @@ func polishGeositeList(roughMap map[string]*geositeEntry) []*geositeEntry {
 			if !hasParent {
 				break
 			}
-			if domains[parentDomain] {
+			if domains.Contains(parentDomain) {
 				redundant = true
 				break
 			}

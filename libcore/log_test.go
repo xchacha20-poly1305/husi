@@ -11,9 +11,11 @@ import (
 
 	"github.com/sagernet/sing-box/log"
 	F "github.com/sagernet/sing/common/format"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/itersequence"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/collection/set"
 )
 
 func TestLogWriterConcurrentWritesStayWholeLines(t *testing.T) {
@@ -43,17 +45,14 @@ func TestLogWriterConcurrentWritesStayWholeLines(t *testing.T) {
 	require.NoError(t, err)
 	defer written.Close()
 
-	seen := make(map[string]bool, writerCount*linesPerWriter)
 	scanner := bufio.NewScanner(written)
-	for scanner.Scan() {
-		seen[scanner.Text()] = true
-	}
+	seen := set.Collect(itersequence.FromScanner(scanner))
 	err = scanner.Err()
 	require.NoError(t, err)
 	for id := range writerCount {
 		for line := range linesPerWriter {
 			expected := F.ToString("writer ", id, " line ", id, line)
-			assert.True(t, seen[expected], "missing or torn line: %q", expected)
+			assert.True(t, seen.Contains(expected), "missing or torn line: %q", expected)
 		}
 	}
 	assert.Equal(t, len(seen), writerCount*linesPerWriter)

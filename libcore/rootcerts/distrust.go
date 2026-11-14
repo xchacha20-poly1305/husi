@@ -3,20 +3,22 @@ package rootcerts
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"slices"
 
 	"github.com/sagernet/sing/common"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/itersequence"
+
+	"golang.org/x/exp/collection/set"
 )
 
 // fingerprintSet holds SHA-256 fingerprints of DER certificates.
-type fingerprintSet map[[sha256.Size]byte]struct{}
+type fingerprintSet = set.Set[[sha256.Size]byte]
 
 func newFingerprintSet(hexFingerprints ...string) fingerprintSet {
-	set := make(fingerprintSet, len(hexFingerprints))
-	for _, hexFingerprint := range hexFingerprints {
+	return set.Collect(itersequence.Map(slices.Values(hexFingerprints), func(hexFingerprint string) [sha256.Size]byte {
 		decoded := common.Must1(hex.AppendDecode(nil, []byte(hexFingerprint)))
-		set[[sha256.Size]byte(decoded)] = struct{}{}
-	}
-	return set
+		return [sha256.Size]byte(decoded)
+	}))
 }
 
 // distrustedRoots are roots left out of every bundle, embedded or system.
@@ -47,7 +49,7 @@ func (b *Bundle) distrust(raw []byte) error {
 		b.distrusted = make(fingerprintSet)
 	}
 	for _, der := range certificates {
-		b.distrusted[sha256.Sum256(der)] = struct{}{}
+		b.distrusted.Insert(sha256.Sum256(der))
 	}
 	return err
 }

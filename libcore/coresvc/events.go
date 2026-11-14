@@ -4,6 +4,8 @@ import (
 	"sync"
 
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+
+	"golang.org/x/exp/collection/set"
 )
 
 const eventSubscriberBuffer = 16
@@ -13,7 +15,7 @@ const eventSubscriberBuffer = 16
 // alerts are one-shot and not retained.
 type eventBroadcaster struct {
 	access      sync.Mutex
-	subscribers map[chan *husiv1.SubscribeServiceEventsResponse]struct{}
+	subscribers set.Set[chan *husiv1.SubscribeServiceEventsResponse]
 	lastState   *husiv1.SubscribeServiceEventsResponse
 	lastSpeed   *husiv1.SubscribeServiceEventsResponse
 	closed      bool
@@ -21,7 +23,7 @@ type eventBroadcaster struct {
 
 func newEventBroadcaster() *eventBroadcaster {
 	return &eventBroadcaster{
-		subscribers: make(map[chan *husiv1.SubscribeServiceEventsResponse]struct{}),
+		subscribers: make(set.Set[chan *husiv1.SubscribeServiceEventsResponse]),
 	}
 }
 
@@ -40,7 +42,7 @@ func (b *eventBroadcaster) Publish(event *husiv1.SubscribeServiceEventsResponse)
 	case *husiv1.SubscribeServiceEventsResponse_Speed:
 		b.lastSpeed = event
 	}
-	for ch := range b.subscribers {
+	for ch := range b.subscribers.All() {
 		select {
 		case ch <- event:
 		default:
@@ -63,15 +65,14 @@ func (b *eventBroadcaster) Subscribe() (<-chan *husiv1.SubscribeServiceEventsRes
 	if b.lastSpeed != nil {
 		ch <- b.lastSpeed
 	}
-	b.subscribers[ch] = struct{}{}
+	b.subscribers.Insert(ch)
 	b.access.Unlock()
 
 	var once sync.Once
 	unsubscribe := func() {
 		once.Do(func() {
 			b.access.Lock()
-			if _, ok := b.subscribers[ch]; ok {
-				delete(b.subscribers, ch)
+			if b.subscribers.Delete(ch) {
 				close(ch)
 			}
 			b.access.Unlock()
@@ -87,7 +88,7 @@ func (b *eventBroadcaster) Close() {
 		return
 	}
 	b.closed = true
-	for ch := range b.subscribers {
+	for ch := range b.subscribers.All() {
 		close(ch)
 	}
 	b.subscribers = nil

@@ -12,6 +12,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"github.com/google/licensecheck"
+	"golang.org/x/exp/collection/set"
 )
 
 const (
@@ -22,20 +23,16 @@ const (
 
 var licenseFileNames = buildLicenseFileNames()
 
-func buildLicenseFileNames() map[string]bool {
+func buildLicenseFileNames() set.Set[string] {
 	stems := []string{"LICENSE", "LICENCE", "COPYING", "NOTICE"}
 	extensions := []string{"", ".MD", ".MARKDOWN", ".TXT"}
-	names := make(map[string]bool, len(stems)*len(extensions))
-	for _, stem := range stems {
-		for _, extension := range extensions {
-			names[stem+extension] = true
-		}
-	}
-	return names
+	return set.Collect(itersequence.DotProduct(stems, extensions, func(_, _ int, stem string, extension string) string {
+		return stem + extension
+	}))
 }
 
 func isLicenseFileName(name string) bool {
-	return licenseFileNames[strings.ToUpper(name)]
+	return licenseFileNames.Contains(strings.ToUpper(name))
 }
 
 func scanModuleLicenses(ctx context.Context, dir string) ([]string, error) {

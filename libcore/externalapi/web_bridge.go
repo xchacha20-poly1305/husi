@@ -7,12 +7,13 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"io"
+	"maps"
 	"net/http"
 	"strings"
 
 	"github.com/sagernet/cors"
 	"github.com/sagernet/sing-box/log"
-
+	"golang.org/x/exp/collection/set"
 	"google.golang.org/grpc"
 )
 
@@ -175,14 +176,11 @@ func (w *webResponseWriter) finish() {
 }
 
 func (w *webResponseWriter) writeTrailerFrame() {
-	flushedKeys := make(map[string]bool)
-	for key := range w.rawWriter.Header() {
-		flushedKeys[strings.ToLower(key)] = true
-	}
+	flushedKeys := set.Collect(itersequence.Map(maps.Keys(w.rawWriter.Header()), strings.ToLower))
 	trailerHeader := make(http.Header)
 	for key, values := range w.header {
 		lowerKey := strings.ToLower(strings.TrimPrefix(key, http.TrailerPrefix))
-		if lowerKey == "trailer" || flushedKeys[lowerKey] {
+		if lowerKey == "trailer" || flushedKeys.Contains(lowerKey) {
 			continue
 		}
 		trailerHeader[lowerKey] = values

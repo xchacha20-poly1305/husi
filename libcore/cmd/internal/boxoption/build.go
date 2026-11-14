@@ -9,6 +9,7 @@ import (
 	"github.com/sagernet/sing-box/option"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/x/collections"
+	"golang.org/x/exp/collection/set"
 )
 
 // TODO ignore deprecated
@@ -53,7 +54,7 @@ func buildClass(opt any, belongs string) []byte {
 	// var xxx: String? = null
 	// var xxx: Boolean? = null
 	// var xxx: Int? = null
-	seen := map[string]struct{}{}
+	seen := make(set.Set[string])
 	mainBuilder.Write(buildContentWithSeen(valueType, seen))
 
 	// Inline extension types whose JSON fields are flattened into this class via custom
@@ -83,7 +84,7 @@ func generatedClassName(valueType reflect.Type, belongs string) string {
 	return valueType.Name()
 }
 
-func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []byte {
+func buildContentWithSeen(valueType reflect.Type, seen set.Set[string]) []byte {
 	builder := bytes.NewBuffer(nil)
 
 	for field := range valueType.Fields() {
@@ -117,10 +118,9 @@ func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []by
 			tag += "_"
 		}
 
-		if _, exists := seen[tag]; exists {
+		if !seen.Insert(tag) {
 			continue
 		}
-		seen[tag] = struct{}{}
 
 		typeName := className(field.Type)
 		// Example:
@@ -131,7 +131,7 @@ func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []by
 	return builder.Bytes()
 }
 
-func writeActionFields(builder *bytes.Buffer, seen map[string]struct{}, actionType reflect.Type, actionTypes []reflect.Type) {
+func writeActionFields(builder *bytes.Buffer, seen set.Set[string], actionType reflect.Type, actionTypes []reflect.Type) {
 	_, _ = builder.WriteString(F.ToString(fieldSpace, "// Generate Note: Action\n"))
 	_, _ = builder.Write(buildContentWithSeen(actionType, seen))
 	for _, actionType := range actionTypes {

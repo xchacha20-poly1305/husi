@@ -129,13 +129,13 @@ func (b *Bundle) Append(raw []byte) error {
 		fingerprint := sha256.Sum256(der)
 		// Stores often list the same root more than once
 		// (Linux bundle file and its hashed directory).
-		if _, loaded := b.fingerprints[fingerprint]; loaded {
+		if b.fingerprints.Contains(fingerprint) {
 			continue
 		}
-		if _, isDistrusted := distrustedRoots[fingerprint]; isDistrusted {
+		if distrustedRoots.Contains(fingerprint) {
 			continue
 		}
-		if _, isDistrusted := b.distrusted[fingerprint]; isDistrusted {
+		if b.distrusted.Contains(fingerprint) {
 			continue
 		}
 		certificate, err := x509.ParseCertificate(der)
@@ -143,7 +143,7 @@ func (b *Bundle) Append(raw []byte) error {
 			errors = append(errors, E.Cause(err, "parse certificate #", i))
 			continue
 		}
-		b.fingerprints[fingerprint] = struct{}{}
+		b.fingerprints.Insert(fingerprint)
 		b.pool.AddCert(certificate)
 		_ = pem.Encode(&b.pem, &pem.Block{Type: typeCert, Bytes: der})
 	}

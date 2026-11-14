@@ -7,12 +7,14 @@ import (
 	"bytes"
 	"debug/buildinfo"
 	"io"
+	"iter"
 	"runtime/debug"
+	"slices"
 	"strings"
 
 	"github.com/sagernet/sing/common"
-
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"golang.org/x/exp/collection/set"
 )
 
 const (
@@ -72,6 +74,17 @@ func readAndroidVPNType(publicSourceDir string) (*husiv1.AndroidVPNType, error) 
 	return nil, lastError
 }
 
+func pathsOfModule(module *debug.Module) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		if !yield(module.Path) {
+			return
+		}
+		if replace := module.Replace; replace != nil {
+			yield(replace.Path)
+		}
+	}
+}
+
 func readAndroidVPNTypeEntry(zipFile *zip.File) (*husiv1.AndroidVPNType, error) {
 	readCloser, err := zipFile.Open()
 	if err != nil {
@@ -101,22 +114,18 @@ func readAndroidVPNTypeEntry(zipFile *zip.File) (*husiv1.AndroidVPNType, error) 
 		return vpnType, nil
 	}
 
-	dependencies := make(map[string]bool)
-	dependencies[buildInfo.Path] = true
-	for _, module := range buildInfo.Deps {
-		dependencies[module.Path] = true
-		if module.Replace != nil {
-			dependencies[module.Replace.Path] = true
-		}
-	}
-	for dependency := range dependencies {
+	dependencies := set.Collect(itersequence.Merge(
+		itersequence.Single(buildInfo.Path),
+		itersequence.FlatMap(slices.Values(buildInfo.Deps), pathsOfModule),
+	))
+	for dependency := range dependencies.All() {
 		pkgType, loaded := determinePkgType(dependency)
 		if loaded {
 			vpnType.CoreType = pkgType
 		}
 	}
 	if vpnType.CoreType == androidVPNCoreTypeUnknown {
-		for dependency := range dependencies {
+		for dependency := range dependencies.All() {
 			pkgType, loaded := determinePkgTypeSecondary(dependency)
 			if loaded {
 				vpnType.CoreType = pkgType
@@ -128,7 +137,7 @@ func readAndroidVPNTypeEntry(zipFile *zip.File) (*husiv1.AndroidVPNType, error) 
 		vpnType.CorePath, _ = determineCorePath(buildInfo, vpnType.CoreType)
 		return vpnType, nil
 	}
-	if dependencies["github.com/golang/protobuf"] && dependencies["github.com/v2fly/ss-bloomring"] {
+	if dependencies.Contains("github.com/golang/protobuf") && dependencies.Contains("github.com/v2fly/ss-bloomring") {
 		vpnType.CoreType = androidVPNCoreTypeV2Ray
 		return vpnType, nil
 	}

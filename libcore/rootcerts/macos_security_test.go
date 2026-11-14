@@ -13,6 +13,7 @@ import (
 	"time"
 
 	aTLS "github.com/sagernet/sing-box/common/tls"
+	"golang.org/x/exp/collection/set"
 
 	"github.com/stretchr/testify/require"
 	"howett.net/plist"
@@ -43,7 +44,7 @@ func TestMacOSDeniedFingerprints(t *testing.T) {
 	for _, format := range []int{plist.XMLFormat, plist.BinaryFormat} {
 		denied, err := macOSDeniedFingerprints(macOSTrustSettingsFixture(t, hex.EncodeToString(fingerprint[:]), format))
 		require.NoError(t, err)
-		require.Equal(t, map[[sha1.Size]byte]struct{}{fingerprint: {}}, denied)
+		require.Equal(t, set.Set[[sha1.Size]byte]{fingerprint: {}}, denied)
 	}
 	for _, content := range [][]byte{
 		[]byte("not a plist"),
