@@ -1,4 +1,4 @@
-@file:OptIn(KoinExperimentalAPI::class, ExperimentalWasmJsInterop::class)
+@file:OptIn(KoinExperimentalAPI::class)
 
 package fr.husi.ui
 
@@ -44,6 +44,7 @@ import fr.husi.resources.traffic_status
 import fr.husi.ui.remote.LocalRemoteSetupLink
 import fr.husi.ui.remote.readRemoteSetupLink
 import io.github.xchacha20_poly1305.libghostty.GhosttyWebAssembly
+import kotlinx.browser.document
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
@@ -123,7 +124,7 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
             val entryProvider = koinEntryProvider<NavKey>(scope = scope)
             SnackbarEmitterEffect(snackbar, snackbarHost)
             LaunchedEffect(Unit) {
-                removeLoadingIndicator()
+                document.getElementById("loading")?.remove()
                 try {
                     GhosttyWebAssembly.load()
                     state.terminalReady = true
@@ -216,7 +217,3 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
         }
     }
 }
-
-/** Removes the spinner `index.html` shows until the first composition. */
-@JsFun("() => { document.getElementById('loading')?.remove(); }")
-private external fun removeLoadingIndicator()

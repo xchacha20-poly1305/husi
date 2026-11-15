@@ -2,15 +2,23 @@
 
 package fr.husi.tailscale
 
+import kotlin.coroutines.resume
 import kotlin.js.JsAny
-import kotlin.js.JsArray
 import kotlin.js.Promise
-import kotlin.js.toList
+import kotlin.js.toJsArray
+import kotlin.js.unsafeCast
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.WebAssembly
 import kotlin.wasm.unsafe.wasmMemory
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
+import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.coroutines.suspendCancellableCoroutine
+import org.w3c.dom.HTMLAnchorElement
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.url.URL
+import org.w3c.files.Blob
 
 internal external interface BrowserFile : JsAny {
     val name: String
@@ -21,7 +29,29 @@ internal external interface BrowserBytes : JsAny {
     val length: Int
 }
 
-internal suspend fun pickFiles(): List<BrowserFile> = selectFiles().await().toList()
+internal suspend fun pickFiles(): List<BrowserFile> = suspendCancellableCoroutine { continuation ->
+    val picker = document.createElement("input") as HTMLInputElement
+    picker.type = "file"
+    picker.multiple = true
+    fun clearListeners() {
+        picker.onchange = null
+        picker.oncancel = null
+    }
+    picker.onchange = {
+        val files = picker.files
+        val selected = (0 until (files?.length ?: 0)).mapNotNull {
+            files?.item(it)?.unsafeCast<BrowserFile>()
+        }
+        clearListeners()
+        continuation.resume(selected)
+    }
+    picker.oncancel = {
+        clearListeners()
+        continuation.resume(emptyList())
+    }
+    continuation.invokeOnCancellation { clearListeners() }
+    picker.click()
+}
 
 internal suspend fun BrowserFile.read(offset: Long, length: Int): ByteArray {
     val bytes = readFile(this, offset.toDouble(), length).await()
@@ -40,20 +70,28 @@ internal fun ByteArray.toBrowserBytes(): BrowserBytes = withScopedMemoryAllocato
     copyFromMemory(wasmMemory, start.address.toInt(), size)
 }
 
-internal external interface BrowserDownload : JsAny {
-    fun append(bytes: BrowserBytes)
-    fun save(name: String)
-}
+internal class BrowserDownload {
+    private val parts = mutableListOf<BrowserBytes>()
 
-@JsFun("""() => new Promise(resolve => {
-    const picker = document.createElement('input');
-    picker.type = 'file';
-    picker.multiple = true;
-    picker.onchange = () => resolve(Array.from(picker.files || []));
-    picker.oncancel = () => resolve([]);
-    picker.click();
-})""")
-private external fun selectFiles(): Promise<JsArray<BrowserFile>>
+    fun append(bytes: BrowserBytes) {
+        parts.add(bytes)
+    }
+
+    fun save(name: String) {
+        val url = URL.createObjectURL(Blob(parts.toJsArray()))
+        try {
+            val anchor = document.createElement("a") as HTMLAnchorElement
+            anchor.href = url
+            anchor.download = name
+            anchor.click()
+        } finally {
+            window.setTimeout({
+                URL.revokeObjectURL(url)
+                null
+            }, 1000)
+        }
+    }
+}
 
 @JsFun("(file, offset, length) => file.slice(offset, offset + length).arrayBuffer().then(buffer => new Uint8Array(buffer))")
 private external fun readFile(file: BrowserFile, offset: Double, length: Int): Promise<BrowserBytes>
@@ -63,19 +101,3 @@ private external fun copyToMemory(memory: WebAssembly.Memory, bytes: BrowserByte
 
 @JsFun("(memory, address, length) => new Uint8Array(memory.buffer, address, length).slice()")
 private external fun copyFromMemory(memory: WebAssembly.Memory, address: Int, length: Int): BrowserBytes
-
-@JsFun("""() => {
-    const parts = [];
-    return {
-        append(bytes) { parts.push(bytes); },
-        save(name) {
-            const url = URL.createObjectURL(new Blob(parts));
-            const anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = name;
-            anchor.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }
-    };
-}""")
-internal external fun browserDownload(): BrowserDownload

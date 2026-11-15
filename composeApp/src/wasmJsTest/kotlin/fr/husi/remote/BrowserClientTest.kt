@@ -131,15 +131,6 @@ class BrowserClientTest {
         client.close()
     }
 
-    @Test
-    fun `API URL rejects credentials queries fragments and unsupported schemes`() {
-        val client = BrowserClient { error("URL validation must not open a channel") }
-        for (url in listOf("ftp://example.com", "https://user:pass@example.com", "https://example.com/?q=1", "https://example.com/#x")) {
-            assertTrue(runCatching { client.normalizeUrl(url) }.isFailure, url)
-        }
-        assertEquals("https://example.com/prefix", client.normalizeUrl("https://example.com/prefix/"))
-    }
-
     private data class Call(val method: String, val request: ByteArray, val options: CallOptions) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

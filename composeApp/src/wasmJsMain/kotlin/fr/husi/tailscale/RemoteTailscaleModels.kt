@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package fr.husi.tailscale
 
 import androidx.compose.runtime.getValue
@@ -122,7 +120,7 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
     fun download(name: String) {
         viewModelScope.launch {
             try {
-                val download = browserDownload()
+                val download = BrowserDownload()
                 var size = 0L
                 var expected = 0L
                 remote.client.service.downloadTaildropFile(

@@ -1,26 +1,22 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package fr.husi.ui.remote
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import fr.husi.database.RemoteBackend
 import fr.husi.database.RemoteServer
 import fr.husi.ktx.emptyAsNull
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-
-private val setupLinkJson = Json {
-    ignoreUnknownKeys = true
-}
+import fr.husi.ktx.wrapIPV6Host
+import kotlinx.browser.window
+import org.w3c.dom.url.URL
+import org.w3c.dom.url.URLSearchParams
 
 val LocalRemoteSetupLink = staticCompositionLocalOf<RemoteSetupLink?> { null }
 
 data class RemoteSetupLink(val server: RemoteServer, val addImmediately: Boolean)
 
-fun readRemoteSetupLink(): RemoteSetupLink? = parseRemoteSetupLink(pageUrl())
+fun readRemoteSetupLink(): RemoteSetupLink? = parseRemoteSetupLink(window.location.href)
 
 fun parseRemoteSetupLink(value: String): RemoteSetupLink? {
-    val location = setupLinkJson.decodeFromString<SetupLocation>(readSetupLocation(value))
+    val location = readSetupLocation(value)
     if (location.route !in listOf("", "/", "/setup", "/setup/")) {
         return null
     }
@@ -54,14 +50,12 @@ fun parseRemoteSetupLink(value: String): RemoteSetupLink? {
     )
 }
 
-@Serializable
 data class SetupLocation(
     val protocol: String,
     val route: String,
     val parameters: SetupParameters,
 )
 
-@Serializable
 data class SetupParameters(
     val protocol: String? = null,
     val hostname: String? = null,
@@ -73,37 +67,46 @@ data class SetupParameters(
     val https: String? = null,
 )
 
-@JsFun("() => location.href")
-private external fun pageUrl(): String
-
-@JsFun("""(value) => {
-    const url = new URL(value);
-    const fragment = url.hash.slice(1);
-    const separator = fragment.indexOf('?');
-    const route = separator < 0 ? fragment : fragment.slice(0, separator);
-    const parameters = new URLSearchParams(url.search);
-    if (separator >= 0) {
-        for (const [key, value] of new URLSearchParams(fragment.slice(separator + 1))) {
-            parameters.set(key, value);
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun readSetupLocation(value: String): SetupLocation {
+    val url = URL(value)
+    val fragment = url.hash.removePrefix("#")
+    val route = fragment.substringBefore('?')
+    val query = url.searchParams
+    val fragmentQuery = URLSearchParams(fragment.substringAfter('?', "").toJsString())
+    fun parameter(name: String): String? {
+        val array = if (fragmentQuery.has(name)) {
+            fragmentQuery
+        } else {
+            query
         }
+        return array.getAll(name).toList().lastOrNull()?.toString()
     }
-    return JSON.stringify({
-        protocol: url.protocol.slice(0, -1), route,
-        parameters: Object.fromEntries(parameters)
-    });
-}""")
-private external fun readSetupLocation(value: String): String
+    return SetupLocation(
+        protocol = url.protocol.removeSuffix(":"),
+        route = route,
+        parameters = SetupParameters(
+            protocol = parameter("protocol"),
+            hostname = parameter("hostname"),
+            port = parameter("port").orEmpty(),
+            secondaryPath = parameter("secondaryPath").orEmpty(),
+            secret = parameter("secret").orEmpty(),
+            type = parameter("type"),
+            http = parameter("http"),
+            https = parameter("https"),
+        ),
+    )
+}
 
-@JsFun("""(protocol, hostname, port, path) => {
-    try {
-        const host = hostname.includes(':') && !hostname.startsWith('[') ? '[' + hostname + ']' : hostname;
-        const url = new URL(protocol + '://' + host);
-        if (url.username || url.password || url.pathname !== '/' || url.search || url.hash) return null;
-        url.port = port;
-        url.pathname = path ? '/' + path : '/';
-        return url.href.endsWith('/') ? url.href.slice(0, -1) : url.href;
-    } catch (_) {
-        return null;
-    }
-}""")
-private external fun buildSetupServerUrl(protocol: String, hostname: String, port: String, path: String): String?
+private fun buildSetupServerUrl(protocol: String, hostname: String, port: String, path: String): String? {
+    return runCatching {
+        val url = URL("$protocol://${hostname.wrapIPV6Host()}")
+        url.port = port
+        url.pathname = if (path.isEmpty()) {
+            "/"
+        } else {
+            "/$path"
+        }
+        url.href.removeSuffix("/")
+    }.getOrNull()
+}

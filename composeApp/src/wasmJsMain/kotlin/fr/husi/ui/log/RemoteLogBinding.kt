@@ -1,19 +1,21 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package fr.husi.ui.log
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.collectAsStateWithLifecycle
+import fr.husi.compose.material3.Icon
 import fr.husi.database.DataStore
 import fr.husi.remote.RemoteState
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
+import fr.husi.resources.download
+import fr.husi.tailscale.BrowserDownload
+import fr.husi.tailscale.toBrowserBytes
 import fr.husi.ui.remote.RemoteBanner
 import fr.husi.ui.remote.RemoteMenu
-import kotlin.io.encoding.Base64
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -36,15 +38,16 @@ internal fun RemoteLogBinding() {
         remoteBanner = { RemoteBanner() },
         shareAction = {
             SheetActionRow(
-                stringResource(Res.string.action_export),
+                text = stringResource(Res.string.action_export),
+                leadingIcon = { Icon(vectorResource(Res.drawable.download), null) },
                 onClick = {
-                    saveFile("husi.log", Base64.encode(model.export().encodeToByteArray()))
+                    BrowserDownload().apply {
+                        append(model.export().encodeToByteArray().toBrowserBytes())
+                        save("husi.log")
+                    }
                 },
             )
         },
         terminalMode = terminalMode && remote.terminalReady,
     )
 }
-
-@JsFun("(name,data) => husiBrowser.saveFile(name,data)")
-private external fun saveFile(name: String, base64: String)

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package fr.husi.remote
 
 import fr.husi.ktx.Logs
@@ -16,9 +14,11 @@ import io.github.xchacha20_poly1305.kurpc.WebChannelConfig
 import io.github.xchacha20_poly1305.kurpc.WebStreamTransport
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
+import kotlinx.browser.window
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import org.w3c.dom.url.URL
 
 internal class BrowserClient(
     private val openChannel: (WebChannelConfig) -> Channel = { Channel(it) },
@@ -105,17 +105,14 @@ private fun CallOptions.withUnaryTimeout(): CallOptions = when {
     else -> CallOptions(30.seconds, metadata)
 }
 
-@JsFun("""(value) => {
-    const url = new URL(value);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        throw new Error('Use an HTTP or HTTPS API URL');
+private fun normalizeApiUrl(value: String): String {
+    val url = URL(value)
+    require(url.protocol == "http:" || url.protocol == "https:") {
+        "Use an HTTP or HTTPS API URL"
     }
-    if (url.username || url.password || url.search || url.hash) {
-        throw new Error('API URL must not contain credentials, a query or a fragment');
-    }
-    return url.href.endsWith('/') ? url.href.slice(0, -1) : url.href;
-}""")
-private external fun normalizeApiUrl(value: String): String
+    return url.href.removeSuffix("/")
+}
 
-@JsFun("(close) => window.addEventListener('pagehide', close)")
-private external fun onPageHide(close: () -> Unit)
+private fun onPageHide(close: () -> Unit) {
+    window.addEventListener("pagehide", { close() })
+}

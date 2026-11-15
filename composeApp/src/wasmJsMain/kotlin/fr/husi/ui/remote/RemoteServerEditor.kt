@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package fr.husi.ui.remote
 
 import androidx.compose.foundation.text.input.TextFieldState
@@ -15,6 +13,7 @@ import fr.husi.database.RemoteServer
 import fr.husi.ktx.Logs
 import fr.husi.remote.RemoteState
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.browser.window
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -26,7 +25,7 @@ internal class RemoteServerEditor(private val id: Long?, private val remote: Rem
     ViewModel() {
     private val original = remote.servers.firstOrNull { it.id == id }
     val nameState = TextFieldState(original?.name.orEmpty())
-    val urlState = TextFieldState(original?.url ?: sameOrigin())
+    val urlState = TextFieldState(original?.url ?: window.location.origin)
     val secretState = TextFieldState(original?.secret.orEmpty())
     var backend by mutableStateOf(original?.backend ?: RemoteBackend.AUTO)
         private set
@@ -135,7 +134,3 @@ internal class RemoteServerEditor(private val id: Long?, private val remote: Rem
         }
     }
 }
-
-/** The page's own origin: the API address when sing-box serves the dashboard itself. */
-@JsFun("() => location.origin")
-private external fun sameOrigin(): String
