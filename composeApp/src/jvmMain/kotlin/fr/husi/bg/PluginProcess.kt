@@ -85,7 +85,11 @@ fun buildPluginSpecs(
     repository.externalAssetsDir.resolve(PLUGIN_CA_FILE)
         .takeIf { it.isFile }
         ?.absolutePath
-        ?.let { sharedEnv["SSL_CERT_FILE"] = it }
+        ?.let {
+            sharedEnv["SSL_CERT_FILE"] = it
+            // Disable system directories.
+            sharedEnv["SSL_CERT_DIR"] = "/not_exists"
+        }
 
     for ((chain) in metadata.externalIndex) {
         chain.entries.forEach { (port, profile) ->
