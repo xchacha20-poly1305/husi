@@ -59,7 +59,7 @@ import fr.husi.tailscale.TailscaleSSHPhase
 import fr.husi.tailscale.TailscaleSSHSessionView
 import fr.husi.ui.terminal.TerminalPane
 import io.github.xchacha20_poly1305.libghostty.compose.GhosttyDialogs
-import io.github.xchacha20_poly1305.libghostty.compose.rememberGhosttyTerminalState
+import io.github.xchacha20_poly1305.libghostty.compose.GhosttyTerminalState
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -74,7 +74,11 @@ fun TailscaleSSHTerminalContent(
     modifier: Modifier = Modifier,
 ) {
     val activeSession = sessions.firstOrNull { it.id == activeSessionId }
-    val terminalState = rememberGhosttyTerminalState()
+    val terminalState = remember {
+        GhosttyTerminalState().apply {
+            linkHoverUnderlineEnabled = true
+        }
+    }
     var isOverflowMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(sessions.isEmpty()) {

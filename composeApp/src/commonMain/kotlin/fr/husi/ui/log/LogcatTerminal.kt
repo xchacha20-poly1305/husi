@@ -37,6 +37,7 @@ internal fun rememberLogcatTerminalSession(): GhosttyTerminalSession {
 internal fun rememberLogcatTerminalState(): GhosttyTerminalState = remember {
     GhosttyTerminalState().apply {
         showImeOnTap = false
+        linkHoverUnderlineEnabled = true
     }
 }
 
