@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="remote_backend">Бэкенд</string>
+    <string name="remote_backend_auto">Автоматическое определение</string>
+    <string name="clash_rules">Правила</string>
+    <string name="clash_providers">Поставщики</string>
+    <string name="clash_dns">DNS-запрос</string>
+    <string name="clash_unsupported">Сервер не поддерживает эту операцию</string>
+    <string name="clash_state_unknown">Состояние не подтверждено. Обновите перед изменением этого правила.</string>
+    <string name="clash_rule_unavailable">Переключение правил недоступно</string>
+    <string name="clash_empty">Нет элементов</string>
+    <string name="clash_health_check">Проверка работоспособности</string>
+    <string name="clash_test_delay">Проверить задержку</string>
+    <string name="clash_query_name">Доменное имя</string>
+    <string name="clash_query_type">Тип записи</string>
+    <string name="clash_query">Запросить</string>
+    <string name="clash_enabled">Включено</string>
+    <string name="clash_rule_count">Правил: %1$d</string>
+    <string name="clash_proxy_providers">Поставщики прокси</string>
+    <string name="clash_rule_providers">Поставщики правил</string>
+    <string name="clash_usage">%1$s Использовано / %2$s Всего</string>
+    <string name="clash_dns_status">Статус ответа: %1$s</string>
+    <string name="clash_dns_questions">Вопросы</string>
+    <string name="clash_dns_answers">Ответы</string>
+    <string name="clash_dns_authority">Авторитетные записи</string>
+    <string name="clash_dns_additional">Дополнительные записи</string>
+    <string name="clash_dns_ttl">TTL: %1$s сек.</string>
+</resources>

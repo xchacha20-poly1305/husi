@@ -15,7 +15,7 @@ import fr.husi.resources.settings
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun RemoteBackendPreference(
+internal fun RemoteBackendPreference(
     value: RemoteBackend,
     onValueChange: (RemoteBackend) -> Unit,
     modifier: Modifier = Modifier,

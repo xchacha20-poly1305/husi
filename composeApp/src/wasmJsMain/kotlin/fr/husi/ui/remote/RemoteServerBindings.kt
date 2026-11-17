@@ -110,6 +110,10 @@ internal fun RemoteServerEditorBinding(id: Long?) {
         onSetUrl = editor::setUrl,
         onSetSecret = editor::setSecret,
         onTestConnection = { editor.testConnection() },
-        onSetBackend = editor::setBackend,
+        backendPreference = {
+            editor.state.backend?.let { backend ->
+                RemoteBackendPreference(backend, editor::setBackend)
+            }
+        },
     )
 }
