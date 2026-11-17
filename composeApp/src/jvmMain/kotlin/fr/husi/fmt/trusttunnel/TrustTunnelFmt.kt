@@ -21,6 +21,7 @@ fun parseTrustTunnel(link: String): TrustTunnelBean {
         allowInsecure = url.skipVerification
         certificates = if (url.certificate.size > 0) certificateChainToPem(url.certificate) else ""
         quic = url.http3
+        utlsFingerprint = url.tlsProfile.toUtlsFingerprint()
         name = url.name
     }
 }
@@ -35,6 +36,7 @@ fun TrustTunnelBean.toUri(): String {
         skipVerification = allowInsecure,
         certificate = certificates.blankAsNull()?.let(::pemToCertificateChain) ?: ByteString.EMPTY,
         http3 = quic,
+        tlsProfile = utlsFingerprint.toTlsProfile(),
         name = name,
     ).build()
 }
@@ -95,4 +97,28 @@ fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.O
             }
         }
     }
+}
+
+private const val TLS_PROFILE_CHROME_CANARY = "chrome_canary"
+private const val TLS_PROFILE_OKHTTP = "okhttp"
+
+private fun String.toUtlsFingerprint(): String = when (this) {
+    SingBoxOptions.FINGERPRINT_CHROME,
+    SingBoxOptions.FINGERPRINT_SAFARI,
+    SingBoxOptions.FINGERPRINT_FIREFOX,
+        -> this
+
+    TLS_PROFILE_CHROME_CANARY -> SingBoxOptions.FINGERPRINT_CHROME
+    TLS_PROFILE_OKHTTP -> SingBoxOptions.FINGERPRINT_ANDROID
+    else -> ""
+}
+
+private fun String.toTlsProfile(): String = when (this) {
+    SingBoxOptions.FINGERPRINT_CHROME,
+    SingBoxOptions.FINGERPRINT_SAFARI,
+    SingBoxOptions.FINGERPRINT_FIREFOX,
+        -> this
+
+    SingBoxOptions.FINGERPRINT_ANDROID -> TLS_PROFILE_OKHTTP
+    else -> ""
 }
