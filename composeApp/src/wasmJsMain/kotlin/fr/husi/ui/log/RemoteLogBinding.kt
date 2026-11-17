@@ -2,6 +2,7 @@ package fr.husi.ui.log
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Icon
@@ -10,10 +11,11 @@ import fr.husi.remote.RemoteState
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
 import fr.husi.resources.download
-import fr.husi.tailscale.BrowserDownload
-import fr.husi.tailscale.toBrowserBytes
 import fr.husi.ui.remote.RemoteBanner
 import fr.husi.ui.remote.RemoteMenu
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.download
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
@@ -21,6 +23,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 internal fun RemoteLogBinding() {
+    val scope = rememberCoroutineScope()
     val remote = koinInject<RemoteState>()
     val model = koinViewModel<RemoteLogViewModel>()
     val terminalMode by DataStore.logTerminalMode.collectAsStateWithLifecycle()
@@ -41,9 +44,9 @@ internal fun RemoteLogBinding() {
                 text = stringResource(Res.string.action_export),
                 leadingIcon = { Icon(vectorResource(Res.drawable.download), null) },
                 onClick = {
-                    BrowserDownload().apply {
-                        append(model.export().encodeToByteArray().toBrowserBytes())
-                        save("husi.log")
+                    val bytes = model.export().encodeToByteArray()
+                    scope.launch {
+                        FileKit.download(bytes, "husi.log")
                     }
                 },
             )

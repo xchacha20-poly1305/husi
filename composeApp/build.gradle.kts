@@ -424,6 +424,7 @@ kotlin {
             resources.srcDir(prepareWebResources)
             dependencies {
                 implementation(libs.kurpc)
+                implementation(libs.filekit.dialogs.compose)
             }
         }
 
