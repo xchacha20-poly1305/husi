@@ -14,6 +14,7 @@ import fr.husi.database.ProxyEntity.Companion.TYPE_CONFIG
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.ConfigMetadata.IndexEntity
+import fr.husi.fmt.SingBoxOptions.APIDashboardOptions
 import fr.husi.fmt.SingBoxOptions.CacheFileOptions
 import fr.husi.fmt.SingBoxOptions.DNSRule_Default
 import fr.husi.fmt.SingBoxOptions.DomainResolveOptions
@@ -35,6 +36,7 @@ import fr.husi.fmt.SingBoxOptions.Outbound
 import fr.husi.fmt.SingBoxOptions.Outbound_DirectOptions
 import fr.husi.fmt.SingBoxOptions.Outbound_SOCKSOptions
 import fr.husi.fmt.SingBoxOptions.Rule_Default
+import fr.husi.fmt.SingBoxOptions.Service_APIOptions
 import fr.husi.fmt.SingBoxOptions.User
 import fr.husi.fmt.anytls.AnyTLSBean
 import fr.husi.fmt.anytls.buildSingBoxOutboundAnyTLSBean
@@ -132,6 +134,9 @@ const val TAG_HTTP_CLIENT_DEFAULT = "http-default"
 
 const val LOCALHOST_NAME = "localhost"
 private const val ANCHOR_PORT = 45947
+private const val EXPORT_API_PORT = 9090
+private const val DASHBOARD_DOWNLOAD_URL =
+    "https://github.com/xchacha20-poly1305/husi/releases/latest/download/dashboard.zip"
 
 // For a certain version schema, maybe we should use [typebox](https://github.com/jiang-zhexin/typebox) ?
 const val CONFIG_SCHEMA_URL = "https://sing-box.sagernet.org/schema.json"
@@ -700,6 +705,18 @@ suspend fun buildConfig(
             }
 
             if (platformServices.isNotEmpty()) services = platformServices
+        } else if (forExport) {
+            services = mutableListOf(
+                Service_APIOptions().apply {
+                    type = SingBoxOptions.TYPE_API
+                    listen = LOCALHOST4
+                    listen_port = EXPORT_API_PORT
+                    dashboard = APIDashboardOptions().apply {
+                        enabled = true
+                        download_url = DASHBOARD_DOWNLOAD_URL
+                    }
+                },
+            )
         }
 
         if (!forTest) {
@@ -1075,6 +1092,7 @@ suspend fun buildConfig(
             for (outbound in outboundsByTag.values) {
                 if (outbound["type"] != SingBoxOptions.TYPE_TAILCAT) continue
                 val detour = outbound["detour"] ?: continue
+
                 @Suppress("UNCHECKED_CAST")
                 val httpClient = outbound["http_client"] as? JSONMap ?: mutableMapOf()
                 httpClient.putIfAbsent("detour", detour)

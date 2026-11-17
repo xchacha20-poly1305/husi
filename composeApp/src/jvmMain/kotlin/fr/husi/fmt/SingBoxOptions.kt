@@ -54,6 +54,8 @@ object SingBoxOptions {
     const val TYPE_TAILSCALE = "tailscale"
     const val TYPE_TAILCAT = "tailcat"
 
+    const val TYPE_API = "api"
+
     const val TYPE_PROTECT = "protect"
     const val TYPE_ANCHOR = "anchor"
 
@@ -718,6 +720,26 @@ object SingBoxOptions {
 
         @JvmField
         var timeout: String? = null
+
+    }
+
+    @KxsSerializable
+    open class APIDashboardOptions : SingBoxOption() {
+
+        @JvmField
+        var enabled: Boolean? = null
+
+        @JvmField
+        var path: String? = null
+
+        @JvmField
+        var download_url: String? = null
+
+        @JvmField
+        var http_client: HTTPClientOptions? = null
+
+        @JvmField
+        var update_interval: String? = null
 
     }
 
@@ -5902,6 +5924,92 @@ object SingBoxOptions {
 
         @JvmField
         var on_demand: Boolean? = null
+
+    }
+
+    @KxsSerializable
+    open class Service_APIOptions : Service() {
+
+        // Generate note: nested type ListenOptions
+        @JvmField
+        var listen: String? = null
+
+        @JvmField
+        var listen_port: Int? = null
+
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var udp_timeout: Long? = null
+
+        @JvmField
+        var detour: String? = null
+
+        @JvmField
+        var proxy_protocol: Boolean? = null
+
+        @JvmField
+        var proxy_protocol_accept_no_header: Boolean? = null
+
+        // Generate note: nested type InboundOptions
+        @JvmField
+        var sniff: Boolean? = null
+
+        @JvmField
+        var sniff_override_destination: Boolean? = null
+
+        @JvmField
+        var sniff_timeout: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
+
+        @JvmField
+        var udp_disable_domain_unmapping: Boolean? = null
+
+        @JvmField
+        var secret: String? = null
+
+        @JvmField
+        var access_control_allow_origin: MutableList<String>? = null
+
+        @JvmField
+        var access_control_allow_private_network: Boolean? = null
+
+        @JvmField
+        var dashboard: APIDashboardOptions? = null
+
+        // Generate note: nested type InboundTLSOptionsContainer
+        @JvmField
+        var tls: InboundTLSOptions? = null
 
     }
 

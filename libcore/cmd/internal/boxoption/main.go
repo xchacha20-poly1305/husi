@@ -61,6 +61,7 @@ var boxList = []any{
 	option.LogOptions{},
 	option.NTPOptions{},
 	option.CertificateOptions{},
+	option.APIDashboardOptions{},
 
 	// DNS
 	option.DNSOptions{},
@@ -196,6 +197,7 @@ var endpointList = []any{
 }
 
 var serviceList = []any{
+	option.APIServiceOptions{},
 	pluginoption.ProtectServiceOptions{},
 	pluginoption.AnchorServiceOptions{},
 }
