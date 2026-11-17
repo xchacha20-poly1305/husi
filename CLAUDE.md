@@ -4,7 +4,7 @@ All guidance is in these files:
 
 @AGENTS.md
 
-@CONTRIBUTING.md
+@docs/code-style.md
 
 ## Build and test through the Makefile
 

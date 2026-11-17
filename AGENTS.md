@@ -1,8 +1,30 @@
 # AGENTS.md
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before writing code.
+Read [docs/code-style.md](./docs/code-style.md) before writing code. For full release packaging and cross-compilation details, see [docs/build.md](./docs/build.md).
 
 ## Tools & commands
+
+### Build and test through the Makefile
+
+Never hand-roll a `./gradlew` / `go` / `golangci-lint` invocation when a `make` target already
+covers it. The Makefile is the orchestration layer: it encodes the GOOS matrix, the zig cross
+compiler, the plugin exclusions and the right task names. Improvised command lines get those
+wrong.
+
+| Instead of                                     | Run                     |
+|------------------------------------------------|-------------------------|
+| `./gradlew :composeApp:allTests` / `:desktopTest` | `make test_gradle`      |
+| `:composeApp:wasmJsBrowserTest` (web dashboard tests) | `make test_web`    |
+| `:composeApp:compileKotlinDesktop` (compile check) | `make test_gradle`      |
+| `:composeApp:compileAndroidMain` (compile check)   | `make apk_debug`        |
+| `cd libcore && go test ./...`                  | `make test_go`          |
+| `golangci-lint run` (per GOOS)                 | `make lint_go`          |
+| `golangci-lint fmt`                            | `make fmt_go`           |
+| `:composeApp:lintAndroidMain` (NewApi check)   | `make lint_android`     |
+| everything at once                             | `make test`             |
+
+Reach for `./gradlew` only for something no target expresses, and only in the forms below,
+such as running one test class: `./gradlew :composeApp:desktopTest --tests fr.husi.SomeTest`.
 
 First-time setup — run once after a fresh clone or when submodules/assets are missing:
 
@@ -83,6 +105,10 @@ The desktop UI loads no Go code: there is no libcore jar. Anything that needs Go
 ### Windows signing
 
 Windows payloads (launcher, `husi-core.exe`, installer) are Authenticode signed with the self-signed certificate in `release/windows/`. Nothing checks it at runtime. Building without a certificate requires explicit `WINDOWS_NO_SIGN=1`.
+
+### String resources & localization
+
+When adding new string resources, only add English (`composeApp/src/commonMain/composeResources/values/strings.xml`) and the user's own language — never add translations for other languages.
 
 ## Project-specific context
 

@@ -186,7 +186,7 @@ fun Project.setupAppCommon() {
             if (!keystoreFile.isFile) {
                 error(
                     "Signing keystore not found at ${keystoreFile.absolutePath}. " +
-                            "Replace it with your own release.keystore, see AGENTS.md."
+                            "Replace it with your own release.keystore, see docs/build.md."
                 )
             }
             signingConfigs {

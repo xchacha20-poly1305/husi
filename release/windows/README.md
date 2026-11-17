@@ -46,5 +46,5 @@ what ties a build to this project, and that comparison is yours to make.
 
 ## Signing a build
 
-See the Windows signing entry in [AGENTS.md](../../AGENTS.md). The private key lives outside this
+See the Windows code signing section in [docs/build.md](../../docs/build.md). The private key lives outside this
 repository; `release/windows/codesign.sh` reads it from `WINDOWS_SIGNING_P12`.
