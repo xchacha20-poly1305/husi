@@ -673,6 +673,13 @@ dependencies {
 
 tasks.matching { it.name == "packageReleaseUberJarForCurrentOS" }.configureEach {
     if (this is Jar) {
+        exclude(
+            "META-INF/maven/**",
+            "META-INF/native-image/**",
+            "META-INF/proguard/**",
+            "META-INF/com.android.tools/**",
+        )
+
         // Exclude non-target native binaries from dependency family buckets.
 
         val nativeKeepPrefixes = desktopTarget.nativeKeepPrefixes
