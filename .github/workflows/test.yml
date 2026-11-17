@@ -10,6 +10,7 @@ on:
       - androidApp/**
       - buildScript/**
       - buildSrc/**
+      - build.gradle.kts
       - composeApp/**
       - gradle/**
       - gradle.properties
@@ -19,7 +20,9 @@ on:
       - Makefile
       - proto/**
       - release/**
+      - repositories.gradle.kts
       - run
+      - settings.gradle.kts
   pull_request:
     paths:
       - .github/actions/**
@@ -27,6 +30,7 @@ on:
       - androidApp/**
       - buildScript/**
       - buildSrc/**
+      - build.gradle.kts
       - composeApp/**
       - gradle/**
       - gradle.properties
@@ -36,7 +40,9 @@ on:
       - Makefile
       - proto/**
       - release/**
+      - repositories.gradle.kts
       - run
+      - settings.gradle.kts
 
 permissions:
   contents: read
