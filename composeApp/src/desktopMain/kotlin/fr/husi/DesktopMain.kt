@@ -1,10 +1,12 @@
 package fr.husi
 
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.window.application
@@ -62,11 +64,13 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.isRegularFile
 import io.github.vinceglb.filekit.resolve
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
+import java.awt.event.HierarchyListener
 import java.io.RandomAccessFile
 import java.nio.file.Path
 import javax.swing.JOptionPane
@@ -222,13 +226,11 @@ class DesktopMain(
             )
             RecordWindowSizeEffect(windowState)
 
+            val openWindowRequests = remember { Channel<Unit>(Channel.CONFLATED) }
             // The tray library keys its native rebuild on this reference, so a fresh lambda
             // every recomposition would re-render the icon and rebuild the menu each time.
-            val openWindow: () -> Unit = remember(windowState) {
-                {
-                    windowVisible = true
-                    windowState.requestMinimized(false)
-                }
+            val openWindow: () -> Unit = remember(openWindowRequests) {
+                { openWindowRequests.trySend(Unit) }
             }
 
             LaunchedEffect(Unit) {
@@ -285,6 +287,32 @@ class DesktopMain(
                     title = appName,
                     icon = iconServiceActive,
                 ) {
+                    val mainWindow = window
+                    var windowShowing by remember(mainWindow) { mutableStateOf(mainWindow.isShowing) }
+                    DisposableEffect(mainWindow) {
+                        val listener = HierarchyListener { windowShowing = mainWindow.isShowing }
+                        mainWindow.addHierarchyListener(listener)
+                        windowShowing = mainWindow.isShowing
+                        onDispose { mainWindow.removeHierarchyListener(listener) }
+                    }
+                    LaunchedEffect(mainWindow, windowState, openWindowRequests) {
+                        for (request in openWindowRequests) {
+                            windowVisible = true
+                            windowState.requestMinimized(false)
+                            if (!PlatformInfo.isMacOs) continue
+
+                            // Compose shows the AWT window and applies the minimize request asynchronously.
+                            snapshotFlow {
+                                !windowVisible || (
+                                    windowShowing && windowState.isInitialized && !windowState.isMinimized
+                                )
+                            }.first { it }
+                            if (windowVisible) {
+                                requestMacOsForeground()
+                                mainWindow.toFront()
+                            }
+                        }
+                    }
                     AppTheme {
                         MainScreen()
                     }
@@ -575,6 +603,18 @@ private fun registerMacOSOpenUriHandler() {
         }
     } catch (e: Exception) {
         Logs.w("register macOS open-uri handler", e)
+    }
+}
+
+private fun requestMacOsForeground() {
+    try {
+        if (!Desktop.isDesktopSupported()) return
+        val desktop = Desktop.getDesktop()
+        if (desktop.isSupported(Desktop.Action.APP_REQUEST_FOREGROUND)) {
+            desktop.requestForeground(false)
+        }
+    } catch (e: Exception) {
+        Logs.w("request macOS foreground activation", e)
     }
 }
 
