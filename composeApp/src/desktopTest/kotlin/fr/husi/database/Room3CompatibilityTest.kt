@@ -1,6 +1,8 @@
 package fr.husi.database
 
 import androidx.room3.Room
+import androidx.room3.useReaderConnection
+import androidx.room3.withWriteTransaction
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
 import fr.husi.fmt.BeanConverters
@@ -36,12 +38,12 @@ class Room3CompatibilityTest {
                     assertEquals(proxy.socksBean?.serverAddress, storedProxy.socksBean?.serverAddress)
                     assertEquals(group.subscription?.link, storedGroup.subscription?.link)
 
-                    BundledSQLiteDriver().open(file.absolutePath).use { connection ->
-                        connection.prepare(
+                    database.useReaderConnection { connection ->
+                        connection.usePrepared(
                             "SELECT socksBean, subscription FROM proxy_entities " +
                                 "JOIN proxy_groups ON proxy_entities.groupId = proxy_groups.id " +
                                 "WHERE proxy_entities.id = ?",
-                        ).use { statement ->
+                        ) { statement ->
                             statement.bindLong(1, proxy.id)
                             assertTrue(statement.step())
                             assertEquals(proxy.socksBean == null, statement.isNull(0))
@@ -79,17 +81,16 @@ class Room3CompatibilityTest {
                 legacyGroup.id = database.groupDao().createGroup(legacyGroup)
                 val legacyProxy = ProxyEntity(groupId = legacyGroup.id)
                 legacyProxy.id = database.proxyDao().addProxy(legacyProxy)
-                BundledSQLiteDriver().open(file.absolutePath).use { connection ->
-                    connection.prepare("UPDATE proxy_entities SET socksBean = X'' WHERE id = ?")
-                        .use { statement ->
-                            statement.bindLong(1, legacyProxy.id)
-                            statement.step()
-                        }
-                    connection.prepare("UPDATE proxy_groups SET subscription = X'' WHERE id = ?")
-                        .use { statement ->
-                            statement.bindLong(1, legacyGroup.id)
-                            statement.step()
-                        }
+                // Share Room's writer with its asynchronous invalidation refresh.
+                database.withWriteTransaction {
+                    usePrepared("UPDATE proxy_entities SET socksBean = X'' WHERE id = ?") { statement ->
+                        statement.bindLong(1, legacyProxy.id)
+                        statement.step()
+                    }
+                    usePrepared("UPDATE proxy_groups SET subscription = X'' WHERE id = ?") { statement ->
+                        statement.bindLong(1, legacyGroup.id)
+                        statement.step()
+                    }
                 }
                 val storedProxy = assertNotNull(database.proxyDao().getById(legacyProxy.id))
                 val storedGroup = assertNotNull(database.groupDao().getById(legacyGroup.id).first())
