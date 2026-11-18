@@ -449,7 +449,7 @@ prepare_app_bundle() {
     chmod 755 "$macos_dir/$executable_name"
     cp "$INPUT_CORE_BIN" "$macos_dir/husi-core"
     chmod 755 "$macos_dir/husi-core"
-    cp "$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf" "$macos_dir/desktop-java-opts.conf.template"
+    cp "$ROOT_DIR/release/macos/desktop/desktop-java-opts.conf" "$macos_dir/desktop-java-opts.conf.template"
     cp "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" "$macos_dir/desktop-app-args.conf.template"
     cp "$ICON_ICNS" "$resources_dir/$icon_name"
 
