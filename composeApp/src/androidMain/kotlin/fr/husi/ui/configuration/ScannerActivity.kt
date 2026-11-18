@@ -3,16 +3,24 @@ package fr.husi.ui.configuration
 import android.content.Intent
 import android.content.pm.ShortcutManager
 import android.graphics.RectF
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CaptureRequest
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.camera.camera2.interop.cameraCharacteristics
 import androidx.camera.compose.CameraXViewfinder
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.lifecycle.awaitInstance
+import androidx.camera.viewfinder.core.FocusState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -38,26 +46,25 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import fr.husi.compose.SwipeableSnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import fr.husi.compose.material3.Surface
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -65,14 +72,24 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.concurrent.futures.await
 import androidx.core.content.getSystemService
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.SwipeableSnackbarHost
 import fr.husi.compose.TextButton
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Surface
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.theme.AppTheme
+import fr.husi.ktx.Logs
 import fr.husi.ktx.forEachTry
+import fr.husi.ktx.readableMessage
 import fr.husi.ktx.toAndroidUri
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
@@ -96,12 +113,17 @@ import fr.husi.ui.getStringOrRes
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.koinInject
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
-import org.koin.compose.koinInject
+import kotlin.time.Duration.Companion.milliseconds
 
 class ScannerActivity : ComposeActivity() {
 
@@ -159,54 +181,75 @@ private fun ScannerScreen(
     val scope = rememberCoroutineScope()
     val permission = LocalPermissionPlatform.current
 
-    LaunchedEffect(Unit) {
-        if (!permission.hasPermission(AppPermission.Camera)) {
-            permission.requestPermission(AppPermission.Camera)
+    var hasCameraPermission by remember(permission) {
+        mutableStateOf(permission.hasPermission(AppPermission.Camera))
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        hasCameraPermission = permission.hasPermission(AppPermission.Camera)
+    }
+    LaunchedEffect(permission) {
+        if (!hasCameraPermission) {
+            permission.requestPermission(AppPermission.Camera) { granted ->
+                hasCameraPermission = granted
+            }
         }
     }
 
     var surfaceRequest by remember { mutableStateOf<SurfaceRequest?>(null) }
+    var supportsTapToFocus by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showAskDialog by remember { mutableStateOf<String?>(null) }
 
-    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
-    DisposableEffect(Unit) {
-        onDispose {
-            analysisExecutor.shutdown()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        val provider = ProcessCameraProvider.getInstance(context).get()
-        provider.unbindAll()
-
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
+    LaunchedEffect(context, lifecycleOwner, hasCameraPermission) {
+        if (!hasCameraPermission) return@LaunchedEffect
+        val analysisExecutor = Executors.newSingleThreadExecutor()
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequest = req }
         }
-
-        val imageAnalysis = ImageAnalysis.Builder().build().apply {
-            setAnalyzer(
-                analysisExecutor,
-                ZxingQRCodeAnalyzer(viewModel::onSuccess, viewModel::onFailure),
-            )
-        }
-
-        val camera = provider.bindToLifecycle(
-            lifecycleOwner,
-            cameraSelector,
-            preview,
-            imageAnalysis,
+        val imageAnalysis = ImageAnalysis.Builder()
+            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
+            .build()
+        imageAnalysis.setAnalyzer(
+            analysisExecutor,
+            ZxingQRCodeAnalyzer(viewModel::onSuccess, viewModel::onFailure),
         )
 
-        val hasFlash = camera.cameraInfo.hasFlashUnit()
-        viewModel.setHasFlashUnit(hasFlash)
+        try {
+            val provider = ProcessCameraProvider.awaitInstance(context.applicationContext)
+            try {
+                val camera = provider.bindToLifecycle(
+                    lifecycleOwner,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
+                    imageAnalysis,
+                )
+                val autofocusModes = camera.cameraInfo.cameraCharacteristics
+                    .get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES)
+                supportsTapToFocus = autofocusModes?.contains(CaptureRequest.CONTROL_AF_MODE_AUTO) == true
+                viewModel.setHasFlashUnit(camera.cameraInfo.hasFlashUnit())
 
-        launch {
-            viewModel.uiState.collect { state ->
-                camera.cameraControl.enableTorch(state.isFlashlightOn)
+                lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.uiState
+                        .map { it.isFlashlightOn }
+                        .distinctUntilChanged()
+                        .collect { flashlightOn ->
+                            camera.updateScannerLighting(flashlightOn)
+                        }
+                }
+            } finally {
+                imageAnalysis.clearAnalyzer()
+                preview.surfaceProvider = null
+                provider.unbind(preview, imageAnalysis)
+                surfaceRequest = null
+                supportsTapToFocus = false
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logs.w("Failed to start the QR scanner camera", e)
+            snackbarHostState.showSnackbar(e.readableMessage)
+        } finally {
+            analysisExecutor.shutdown()
         }
     }
 
@@ -274,15 +317,41 @@ private fun ScannerScreen(
                 .onSizeChanged { viewSize = it },
         ) {
             surfaceRequest?.let { req ->
+                var streaming by remember(req) { mutableStateOf(false) }
+                var focusPosition by remember(req) { mutableStateOf(Offset.Zero) }
+                var focusState by remember(req) { mutableIntStateOf(FocusState.INACTIVE) }
+                var focusRequest by remember(req) { mutableIntStateOf(0) }
                 CameraXViewfinder(
                     surfaceRequest = req,
                     modifier = Modifier.fillMaxSize(),
+                    onStreamStateChanged = { state ->
+                        streaming = state == Preview.STREAM_STATE_STREAMING
+                        if (!streaming) {
+                            focusState = FocusState.INACTIVE
+                        }
+                    },
+                    isPinchToZoomEnabled = true,
+                    isTapToFocusEnabled = supportsTapToFocus,
+                    onTapToFocus = { position, state ->
+                        if (state == FocusState.STARTED) {
+                            focusRequest++
+                        }
+                        focusPosition = position
+                        focusState = state
+                    },
                 )
+                if (streaming) {
+                    QrFinderOverlay(
+                        box = scanBox,
+                        lineThickness = 2.dp,
+                    )
+                    if (focusState != FocusState.INACTIVE) {
+                        key(focusRequest) {
+                            TapFocusIndicator(focusPosition, focusState)
+                        }
+                    }
+                }
             }
-            QrFinderOverlay(
-                box = scanBox,
-                lineThickness = 2.dp,
-            )
 
             Row(
                 modifier = Modifier
@@ -320,7 +389,7 @@ private fun ScannerScreen(
             }
 
 
-            if (uiState.hasFlashUnit) {
+            if (surfaceRequest != null && uiState.hasFlashUnit) {
                 val density = LocalDensity.current
                 val flashButtonSize = 48.dp
 
@@ -391,6 +460,23 @@ private fun ScannerScreen(
     }
 }
 
+private suspend fun Camera.updateScannerLighting(flashlightOn: Boolean) {
+    try {
+        if (cameraInfo.hasFlashUnit()) {
+            cameraControl.enableTorch(flashlightOn).await()
+        }
+        if (!flashlightOn && cameraInfo.isLowLightBoostSupported) {
+            cameraControl.enableLowLightBoostAsync(true).await()
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: CameraControl.OperationCanceledException) {
+        // The camera can close while a control request is pending.
+    } catch (e: Exception) {
+        Logs.w("Failed to set QR scanner lighting", e)
+    }
+}
+
 private fun defaultScanBox(
     view: IntSize,
     boxWidthRatio: Float = 0.85f,
@@ -402,6 +488,47 @@ private fun defaultScanBox(
     val left = (view.width - boxW) / 2f
     val top = (view.height - boxH) * verticalBias
     return RectF(left, top, left + boxW, top + boxH)
+}
+
+@Composable
+private fun TapFocusIndicator(
+    position: Offset,
+    focusState: Int,
+    modifier: Modifier = Modifier,
+) {
+    val visibleDurationMillis = 1000.milliseconds
+    val fadeDurationMillis = 500
+    val opacity = remember { Animatable(1f) }
+    LaunchedEffect(focusState) {
+        if (focusState != FocusState.STARTED) {
+            delay(visibleDurationMillis)
+            opacity.animateTo(0f, tween(fadeDurationMillis))
+        }
+    }
+    val color = when (focusState) {
+        FocusState.FOCUSED -> MaterialTheme.colorScheme.primary
+        FocusState.FAILED, FocusState.NOT_FOCUSED -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
+    Canvas(modifier.fillMaxSize()) {
+        val alpha = opacity.value
+        if (alpha <= 0f) return@Canvas
+
+        val halfSize = 24.dp.toPx()
+        val cornerLength = 12.dp.toPx()
+        val corners = Path()
+        for (horizontal in -1..1 step 2) {
+            for (vertical in -1..1 step 2) {
+                val x = position.x + horizontal * halfSize
+                val y = position.y + vertical * halfSize
+                corners.moveTo(x - horizontal * cornerLength, y)
+                corners.lineTo(x, y)
+                corners.lineTo(x, y - vertical * cornerLength)
+            }
+        }
+        drawPath(corners, color, alpha = alpha, style = Stroke(width = 2.dp.toPx()))
+    }
 }
 
 @Composable
