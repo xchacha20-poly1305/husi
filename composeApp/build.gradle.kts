@@ -491,6 +491,7 @@ kotlin {
                 implementation(libs.androidx.camera.lifecycle)
                 implementation(libs.androidx.camera.camera2)
                 implementation(libs.androidx.camera.compose)
+                implementation(libs.androidx.concurrent.futures.ktx)
 
                 implementation(libs.smali.dexlib2.get().toString()) {
                     exclude(group = "com.google.guava", module = "guava")

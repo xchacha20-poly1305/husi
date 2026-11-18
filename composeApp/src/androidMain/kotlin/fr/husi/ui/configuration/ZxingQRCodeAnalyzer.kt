@@ -4,49 +4,34 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.NotFoundException
-import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.qrcode.QRCodeReader
 import fr.husi.ktx.Logs
 
-/******************************************************************************
- *                                                                            *
- * Copyright (C) 2021 by nekohasekai <contact-sagernet@sekai.icu>             *
- *                                                                            *
- * This program is free software: you can redistribute it and/or modify       *
- * it under the terms of the GNU General Public License as published by       *
- * the Free Software Foundation, either version 3 of the License, or          *
- *  (at your option) any later version.                                       *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
- *                                                                            *
- ******************************************************************************/
 class ZxingQRCodeAnalyzer(
     private val onSuccess: ((String) -> Unit),
     private val onFailure: ((Exception) -> Unit),
 ) : ImageAnalysis.Analyzer {
 
     private val qrCodeReader = QRCodeReader()
+    private var luminance = ByteArray(0)
+
     override fun analyze(image: ImageProxy) {
         try {
-            val bitmap = image.toBitmap()
-            val intArray = IntArray(bitmap.getWidth() * bitmap.getHeight())
-            bitmap.getPixels(
-                intArray,
+            val width = image.width
+            val height = image.height
+            copyLuminance(image.planes[0], width, height)
+            val source = PlanarYUVLuminanceSource(
+                luminance,
+                width,
+                height,
                 0,
-                bitmap.getWidth(),
                 0,
-                0,
-                bitmap.getWidth(),
-                bitmap.getHeight(),
+                width,
+                height,
+                false,
             )
-            val source = RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(), intArray)
             val result = try {
                 qrCodeReader.decode(BinaryBitmap(GlobalHistogramBinarizer(source)))
             } catch (_: NotFoundException) {
@@ -62,6 +47,34 @@ class ZxingQRCodeAnalyzer(
             onFailure(e)
         } finally {
             image.close()
+        }
+    }
+
+    private fun copyLuminance(plane: ImageProxy.PlaneProxy, width: Int, height: Int) {
+        val pixelCount = width * height
+        if (luminance.size != pixelCount) {
+            luminance = ByteArray(pixelCount)
+        }
+        val pixels = plane.buffer.duplicate()
+        val start = pixels.position()
+        val rowStride = plane.rowStride
+        val pixelStride = plane.pixelStride
+
+        if (pixelStride == 1 && rowStride == width) {
+            pixels.get(luminance)
+            return
+        }
+        for (row in 0 until height) {
+            val rowStart = start + row * rowStride
+            val destination = row * width
+            if (pixelStride == 1) {
+                pixels.position(rowStart)
+                pixels.get(luminance, destination, width)
+            } else {
+                for (column in 0 until width) {
+                    luminance[destination + column] = pixels.get(rowStart + column * pixelStride)
+                }
+            }
         }
     }
 }
