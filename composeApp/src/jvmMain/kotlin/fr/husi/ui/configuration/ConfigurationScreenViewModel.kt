@@ -37,6 +37,7 @@ import fr.husi.plugin.PluginNotFoundException
 import fr.husi.proto.v1.PingProtocol
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.delete
 import org.koin.core.context.GlobalContext
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
@@ -61,7 +62,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
@@ -465,7 +465,7 @@ class ConfigurationScreenViewModel(
             DataStore.connectionTestUnifiedDelay.get(),
             DataStore.connectionTestIgnoreHandshakeTime.get(),
         )
-        val cacheFiles = ArrayList<File>()
+        val cacheFiles = ArrayList<PlatformFile>()
 
         return try {
             val config = buildConfig(profile, forTest = true)
@@ -493,7 +493,9 @@ class ConfigurationScreenViewModel(
         } catch (e: Exception) {
             TestResult.Failure(FailureReason.Generic(e.readableMessage))
         } finally {
-            cacheFiles.forEach { it.delete() }
+            cacheFiles.forEach {
+                it.delete()
+            }
         }
     }
 

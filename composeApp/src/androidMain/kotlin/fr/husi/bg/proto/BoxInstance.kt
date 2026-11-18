@@ -8,10 +8,14 @@ import fr.husi.fmt.ConfigBuildResult
 import fr.husi.fmt.ConfigMetadata
 import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteBlocking
 import fr.husi.proto.v1.ClientMetadata
 import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.repository.resolveAndroidRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.resolve
 
 abstract class BoxInstance(
     val profile: ProxyEntity,
@@ -23,7 +27,7 @@ abstract class BoxInstance(
 
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     private val externalInstances = hashMapOf<Int, AbstractInstance>()
-    private var cacheFiles = ArrayList<File>()
+    private var cacheFiles = ArrayList<PlatformFile>()
 
     /**
      * Config has been built. The box instance itself is only created at
@@ -67,10 +71,10 @@ abstract class BoxInstance(
         )
         // Match the Kotlin pool's working dir: keep plugin files out of backup.
         val pluginDir = resolveAndroidRepository().noBackupFilesDir.resolve("plugin")
-        pluginDir.mkdirs()
+        pluginDir.createDirectories()
         resolveAndroidRepository().boxService!!.startService(
             request.encode(),
-            pluginDir.absolutePath,
+            pluginDir.absolutePath(),
         )
     }
 
@@ -82,7 +86,7 @@ abstract class BoxInstance(
         }
 
         cacheFiles.removeAll {
-            it.delete()
+            it.deleteBlocking()
             true
         }
 

@@ -17,13 +17,15 @@ import androidx.datastore.preferences.core.Preferences
 import fr.husi.libcore.Service
 import fr.husi.repository.AndroidRepository
 import fr.husi.repository.LocalRepository
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import java.io.File
 
 private class PreviewAndroidRepository(
     override val context: Context,
-    private val root: File = createPreviewRoot(),
+    private val root: PlatformFile = createPreviewRoot(),
 ) : AndroidRepository {
     override val isMainProcess = true
     override val isBgProcess = false
@@ -33,12 +35,12 @@ private class PreviewAndroidRepository(
 
     override val preferenceStoreDispatcher = Dispatchers.Unconfined
 
-    override val cacheDir: File = root.resolve("cache").apply { mkdirs() }
-    override val filesDir: File = root.resolve("files").apply { mkdirs() }
-    override val externalAssetsDir: File = root.resolve("external").apply { mkdirs() }
-    override val noBackupFilesDir: File = root.resolve("no_backup").apply { mkdirs() }
+    override val cacheDir: PlatformFile = root.resolve("cache").apply { createDirectories() }
+    override val filesDir: PlatformFile = root.resolve("files").apply { createDirectories() }
+    override val externalAssetsDir: PlatformFile = root.resolve("external").apply { createDirectories() }
+    override val noBackupFilesDir: PlatformFile = root.resolve("no_backup").apply { createDirectories() }
 
-    override fun resolveDatabaseFile(name: String): File = root.resolve(name)
+    override fun resolveDatabaseFile(name: String): PlatformFile = root.resolve(name)
 
     override fun createConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences> =
         previewConfigurationDataStore(root, scope)

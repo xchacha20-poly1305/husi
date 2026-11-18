@@ -1,9 +1,10 @@
 package fr.husi.bg
 
 import fr.husi.database.AssetEntity
+import fr.husi.ktx.deleteRecursivelyBlocking
 import fr.husi.test.HusiHttpKoinTest
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -13,11 +14,11 @@ import kotlin.test.assertTrue
 
 class RouteAssetDownloadTimeoutTest : HusiHttpKoinTest() {
 
-    private val externalAssetsDir: File = createTempDirectory("husi-route-asset-test").toFile()
+    private val externalAssetsDir: PlatformFile = PlatformFile(createTempDirectory("husi-route-asset-test").toString())
 
     @AfterTest
     fun removeExternalAssetsDir() {
-        externalAssetsDir.deleteRecursively()
+        externalAssetsDir.deleteRecursivelyBlocking()
     }
 
     @Test

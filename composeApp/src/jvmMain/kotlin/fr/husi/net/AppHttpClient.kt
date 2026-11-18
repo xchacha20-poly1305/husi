@@ -1,6 +1,10 @@
 package fr.husi.net
 
 import fr.husi.core.rootCertificatesTrustManager
+import fr.husi.ktx.inputStream
+import fr.husi.ktx.readBytesBlocking
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isRegularFile
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -19,7 +23,6 @@ import okhttp3.Response
 import okhttp3.TlsVersion
 import okio.ByteString
 import okio.ByteString.Companion.toByteString
-import java.io.File
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -36,7 +39,7 @@ internal val HTTP_TIMEOUT = 15_000.milliseconds
 internal expect fun appTlsContext(trust: X509TrustManager, restrictedTls: Boolean): SSLContext
 
 internal class AppHttpClient(
-    private val rootsFile: File,
+    private val rootsFile: PlatformFile,
     private val prepareRoots: suspend () -> Unit = {},
 ) {
     private val base = OkHttpClient.Builder()
@@ -56,12 +59,12 @@ internal class AppHttpClient(
     private var cachedRoots: Roots? = null
 
     private suspend fun roots(): Roots {
-        val hasRootsFile = withContext(Dispatchers.IO) { rootsFile.isFile }
+        val hasRootsFile = withContext(Dispatchers.IO) { rootsFile.isRegularFile() }
         if (!hasRootsFile) {
             prepareRoots()
         }
         return withContext(Dispatchers.IO) {
-            val pem = rootsFile.readBytes().toByteString()
+            val pem = rootsFile.readBytesBlocking().toByteString()
             synchronized(this@AppHttpClient) {
                 val existing = cachedRoots
                 if (existing != null && existing.pem == pem) {

@@ -1,16 +1,18 @@
 package fr.husi.ktx
 
 import fr.husi.proto.daemon.LogLevel
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.parent
 import java.io.FileOutputStream
 import java.io.IOException
 
-internal class LogFile(private val file: File, private val level: LogLevel, truncate: Boolean) {
+internal class LogFile(private val file: PlatformFile, private val level: LogLevel, truncate: Boolean) {
 
     private val lock = Any()
     private val output: FileOutputStream? = try {
-        file.parentFile?.mkdirs()
-        FileOutputStream(file, true).also { if (truncate) it.channel.truncate(0) }
+        file.parent()?.createDirectories()
+        FileOutputStream(file.toJavaFile(), true).also { if (truncate) it.channel.truncate(0) }
     } catch (e: IOException) {
         System.err.println("open log file $file: ${e.message}")
         null

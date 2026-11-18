@@ -11,12 +11,13 @@ import androidx.datastore.preferences.core.PreferencesSerializer
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import fr.husi.repository.resolveAndroidRepository
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
 import kotlinx.coroutines.CoroutineScope
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.sink
 import okio.source
-import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -61,10 +62,10 @@ internal actual fun createPlatformConfigurationDataStore(scope: CoroutineScope):
 }
 
 internal actual fun createSimpleConfigurationDataStore(
-    file: File,
+    file: PlatformFile,
     scope: CoroutineScope,
 ): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(
     corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
     scope = scope,
-    produceFile = { file.absolutePath.toPath() },
+    produceFile = { file.absolutePath().toPath() },
 )

@@ -3,14 +3,14 @@ package fr.husi.database.preference
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import java.io.File
 
 internal expect fun createPlatformConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences>
 
 internal expect fun createSimpleConfigurationDataStore(
-    file: File,
+    file: PlatformFile,
     scope: CoroutineScope,
 ): DataStore<Preferences>
 

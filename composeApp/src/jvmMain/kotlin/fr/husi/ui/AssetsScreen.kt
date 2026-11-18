@@ -77,6 +77,8 @@ import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
+import fr.husi.ktx.createPlatformTempFile
+import fr.husi.ktx.deleteBlocking
 import fr.husi.ktx.unpackArchive
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -105,11 +107,15 @@ import fr.husi.resources.timer
 import fr.husi.resources.undo
 import fr.husi.resources.update
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.isRegularFile
 import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.readBytes
-import java.io.File
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.write
+import io.github.vinceglb.filekit.writeString
 import kotlin.random.Random
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -183,32 +189,27 @@ internal fun AssetsScreen(
     val importFile = rememberFilePickerLauncher { file ->
         scope.launch(Dispatchers.IO) {
             if (file == null) return@launch
-            val fileName = file.name
-
-            val tempImportFile = File(cacheDir, fileName).apply {
-                parentFile?.mkdirs()
-            }
             try {
-                tempImportFile.writeBytes(file.readBytes())
+                val archive = createPlatformTempFile("husi-asset-", ".archive", cacheDir)
+                try {
+                    archive.write(file)
+                    unpackArchive(archive, geoDir)
+                } finally {
+                    archive.deleteBlocking()
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.e(e)
                 return@launch
             }
-            try {
-                unpackArchive(tempImportFile, geoDir)
-            } catch (e: Exception) {
-                Logs.e(e)
-                return@launch
-            } finally {
-                tempImportFile.delete()
-            }
 
-            val nameList = listOf("geosite", "geoip")
-            for (name in nameList) {
-                val file = File(assetsDir, "$name.version.txt")
-                if (file.isFile) file.delete()
-                file.createNewFile()
-                file.writeText("Custom")
+            for (name in listOf("geosite", "geoip")) {
+                val versionFile = assetsDir.resolve("$name.version.txt")
+                if (versionFile.isRegularFile()) {
+                    versionFile.deleteBlocking()
+                }
+                versionFile.writeString("Custom")
             }
 
             DataStore.routeAssetsLastUpdated.set(currentEpochSeconds())
@@ -476,7 +477,7 @@ private fun AssetCard(
     globalAutoUpdateDelay: Int,
     enabled: Boolean,
     onEditAsset: (String) -> Unit,
-    onUpdateAsset: (File) -> Unit,
+    onUpdateAsset: (PlatformFile) -> Unit,
 ) {
     val autoUpdateDelay = if (asset.builtIn) {
         globalAutoUpdateDelay

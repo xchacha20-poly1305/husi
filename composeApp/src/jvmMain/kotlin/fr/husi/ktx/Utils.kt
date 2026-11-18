@@ -1,9 +1,6 @@
 
 package fr.husi.ktx
 
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import fr.husi.resources.Res
 import fr.husi.resources.connection_test_mux
@@ -11,14 +8,9 @@ import fr.husi.resources.connection_test_refused
 import fr.husi.resources.connection_test_timeout
 import fr.husi.resources.not_set
 import okio.ByteString.Companion.toByteString
-import okio.HashingSink
-import okio.blackholeSink
-import okio.buffer
-import okio.source
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import java.io.Closeable
-import java.io.File
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -103,10 +95,6 @@ operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<
 
 
 
-fun File.invariantPathString(): String = absolutePath.replace('\\', '/')
-
-fun File.invariantDirectoryPathString(): String = invariantPathString().trimEnd('/') + "/"
-
 /**
  * Returns the first non-default value from the provided getters.
  *
@@ -153,11 +141,6 @@ fun Closeable.closeQuietly() {
 fun String.sha256Hex(): String = toByteArray().sha256Hex()
 
 fun ByteArray.sha256Hex(): String = toByteString().sha256().hex()
-
-fun File.sha256Hex(): String = HashingSink.sha256(blackholeSink()).use { hashing ->
-    source().buffer().use { it.readAll(hashing) }
-    hashing.hash.hex()
-}
 
 inline fun <E> MutableList<E>.removeFirstMatched(match: (E) -> Boolean): E? {
     val index = indexOfFirst(match)

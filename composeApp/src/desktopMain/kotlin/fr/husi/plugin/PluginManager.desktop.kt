@@ -1,9 +1,15 @@
 package fr.husi.plugin
 
 import fr.husi.database.SagerDatabase
+import fr.husi.ktx.canExecute
+import fr.husi.ktx.toAbsoluteFile
 import fr.husi.platform.PlatformInfo
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.lastModified
 import kotlinx.coroutines.runBlocking
-import java.io.File
 
 actual object PluginManager {
 
@@ -39,17 +45,17 @@ actual object PluginManager {
             return null
         }
 
-        val file = File(rawPath).absoluteFile
-        val lastModified = file.lastModified()
+        val file = PlatformFile(rawPath).toAbsoluteFile()
+        val lastModified = file.lastModified().toEpochMilliseconds()
         cache[pluginId]?.let { cached ->
-            if (cached.path == file.absolutePath &&
+            if (cached.path == file.absolutePath() &&
                 cached.lastModified == lastModified
             ) {
                 return cached.path
             }
         }
 
-        if (!file.exists() || !file.isFile) {
+        if (!file.exists() || !file.isRegularFile()) {
             cache.remove(pluginId)
             return null
         }
@@ -58,7 +64,7 @@ actual object PluginManager {
             return null
         }
 
-        val resolved = file.absolutePath
+        val resolved = file.absolutePath()
         cache[pluginId] = CacheEntry(
             path = resolved,
             lastModified = lastModified,
@@ -66,7 +72,7 @@ actual object PluginManager {
         return resolved
     }
 
-    private fun isExecutable(file: File): Boolean {
+    private fun isExecutable(file: PlatformFile): Boolean {
         if (PlatformInfo.isWindows) return true
         return file.canExecute()
     }

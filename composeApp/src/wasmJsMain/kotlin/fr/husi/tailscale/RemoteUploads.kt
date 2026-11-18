@@ -2,6 +2,7 @@ package fr.husi.tailscale
 
 import androidx.compose.runtime.mutableStateListOf
 import fr.husi.ktx.Logs
+import fr.husi.ktx.read
 import fr.husi.proto.daemon.TaildropFileChunk
 import fr.husi.proto.daemon.TaildropFileDone
 import fr.husi.proto.daemon.TaildropOutgoingFile

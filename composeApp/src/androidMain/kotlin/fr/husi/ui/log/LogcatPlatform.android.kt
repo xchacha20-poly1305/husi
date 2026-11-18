@@ -8,11 +8,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import fr.husi.compose.SheetActionRow
 import fr.husi.ktx.Logs
+import fr.husi.ktx.toJavaFile
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.send
 import fr.husi.resources.share
 import fr.husi.utils.LogExport
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -47,9 +51,9 @@ internal actual fun ShareActionRow(
 
 private suspend fun shareLogFile(context: Context, export: LogExport) {
     val repository = resolveRepository()
-    val logDir = repository.cacheDir.resolve(LOG_CACHE_DIR_NAME).also { it.mkdirs() }
+    val logDir = repository.cacheDir.resolve(LOG_CACHE_DIR_NAME).also { it.createDirectories() }
     val logFile = logDir.resolve(export.fileName).apply {
-        writeText(export.content)
+        writeString(export.content)
     }
     context.startActivity(
         Intent.createChooser(
@@ -60,7 +64,7 @@ private suspend fun shareLogFile(context: Context, export: LogExport) {
                     Intent.EXTRA_STREAM,
                     FileProvider.getUriForFile(
                         context, context.packageName + ".cache",
-                        logFile,
+                        logFile.toJavaFile(),
                     ),
                 ),
             repository.getString(Res.string.share),

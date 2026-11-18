@@ -6,8 +6,13 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import fr.husi.ktx.createPlatformTempFile
+import fr.husi.ktx.deleteBlocking
+import fr.husi.ktx.toJavaFile
+import fr.husi.ktx.writeText
 import fr.husi.utils.SendLog
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
 
 class BlankActivity : PrivacyModeActivity() {
 
@@ -16,14 +21,14 @@ class BlankActivity : PrivacyModeActivity() {
     }
 
     private var sharedUri: Uri? = null
-    private var sharedFile: File? = null
+    private var sharedFile: PlatformFile? = null
 
     private val shareLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             sharedUri?.let { uri ->
                 revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            sharedFile?.delete()
+            sharedFile?.deleteBlocking()
             finish()
         }
 
@@ -43,15 +48,15 @@ class BlankActivity : PrivacyModeActivity() {
     }
 
     private fun shareLogFile(title: String) {
-        val logFile = File.createTempFile(
+        val logFile = createPlatformTempFile(
             title,
             ".log",
-            File(cacheDir, "log").also { it.mkdirs() },
+            PlatformFile(PlatformFile(cacheDir), "log").also { it.createDirectories() },
         ).apply {
-            writeText(SendLog.buildLocalLog(getExternalFilesDir(null) ?: filesDir).content)
+            writeText(SendLog.buildLocalLog(PlatformFile(getExternalFilesDir(null) ?: filesDir)).content)
         }
         sharedFile = logFile
-        val uri = FileProvider.getUriForFile(this, packageName + ".cache", logFile)
+        val uri = FileProvider.getUriForFile(this, packageName + ".cache", logFile.toJavaFile())
         sharedUri = uri
         val shareIntent = Intent(Intent.ACTION_SEND)
             .setType("text/plain")

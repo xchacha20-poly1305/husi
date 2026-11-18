@@ -4,7 +4,8 @@ import fr.husi.net.DownloadProgress
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.HttpTextResponse
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.write
 
 /**
  * In-memory replacement for [HttpFetcher] used by tests.
@@ -40,7 +41,7 @@ class FakeHttpFetcher : HttpFetcher {
     var nextChunkCount: Int = 4
 
     /** Where each [download] wrote, in order. */
-    val downloadTargets = mutableListOf<File>()
+    val downloadTargets = mutableListOf<PlatformFile>()
 
     override suspend fun fetchText(request: HttpFetchRequest): HttpTextResponse {
         record(request)
@@ -52,13 +53,13 @@ class FakeHttpFetcher : HttpFetcher {
 
     override suspend fun download(
         request: HttpFetchRequest,
-        target: File,
+        target: PlatformFile,
         onProgress: DownloadProgress,
     ) {
         record(request)
         downloadTargets += target
         val written = nextWrittenBytes ?: nextDownloadBytes
-        target.writeBytes(ByteArray(written.toInt()))
+        target.write(ByteArray(written.toInt()))
 
         val chunks = nextChunkCount.coerceAtLeast(1)
         val perChunk = written / chunks

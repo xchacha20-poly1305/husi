@@ -5,6 +5,7 @@ import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -34,7 +35,7 @@ class CoreHostControllerShutdownTest : HusiKoinTest() {
         fakeClient = FakeCoreClient()
         // No core binary: a session restart is attempted but never spawns.
         controller = CoreHostController(
-            repository = FakeDesktopRepository(tempDir),
+            repository = FakeDesktopRepository(PlatformFile(tempDir)),
             resolveCoreClient = { fakeClient },
             resolveCoreBinary = { null },
         )

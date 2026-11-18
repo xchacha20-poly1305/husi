@@ -5,7 +5,9 @@ import com.github.ajalt.clikt.parameters.options.NullableOption
 import com.github.ajalt.clikt.parameters.options.RawOption
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.types.file
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.exists
 
 /**
  * [com.github.ajalt.clikt.parameters.types.file] fails when enabling `mustBeWritable` but the
@@ -16,13 +18,13 @@ fun RawOption.directory(
     mustBeWritable: Boolean = false,
     mustBeReadable: Boolean = true,
     canBeSymlink: Boolean = true,
-): NullableOption<File, File> = convert(
+): NullableOption<PlatformFile, PlatformFile> = convert(
     metavar = { localization.pathMetavar() },
     completionCandidates = CompletionCandidates.Path,
 ) { path ->
     if (mustExist || mustBeWritable || mustBeReadable) {
-        val directory = File(path)
-        if (!directory.exists() && !directory.mkdirs()) {
+        val directory = PlatformFile(path)
+        if (!directory.exists() && runCatching { directory.createDirectories() }.isFailure) {
             fail("Directory \"$path\" does not exist and could not be created.")
         }
     }
@@ -33,4 +35,4 @@ fun RawOption.directory(
     mustBeWritable = mustBeWritable,
     mustBeReadable = mustBeReadable,
     canBeSymlink = canBeSymlink,
-)
+).convert { PlatformFile(it) }

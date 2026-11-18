@@ -8,7 +8,7 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.os.UserManager
 import fr.husi.libcore.Service
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 import org.koin.core.context.GlobalContext
 
 interface AndroidRepository : LocalRepository {
@@ -20,7 +20,7 @@ interface AndroidRepository : LocalRepository {
     val wifi: WifiManager
     val packageManager: PackageManager
 
-    val noBackupFilesDir: File
+    val noBackupFilesDir: PlatformFile
 
     /** The in-process core; only the `:bg` process has one. */
     val boxService: Service?

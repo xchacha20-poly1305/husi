@@ -27,13 +27,15 @@ import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.sha256Hex
 import fr.husi.ktx.splitAddress
 import fr.husi.ktx.toJsonStringKxs
+import fr.husi.ktx.writeText
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.UrlOptions
 import io.github.xchacha20_poly1305.kpuri.buildUrl
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
-import java.io.File
 
 /** Hysteria links may carry a port hopping list such as `443,5000-6000` in the port position. */
 private val hysteriaUrlOptions = UrlOptions(validatePort = false)
@@ -212,7 +214,7 @@ fun JSONMap.parseHysteria1Json(): HysteriaBean {
 fun HysteriaBean.buildHysteriaConfig(
     port: Int,
     shouldProtect: Boolean,
-    cacheFile: ((type: String) -> File)?,
+    cacheFile: ((type: String) -> PlatformFile)?,
 ): String {
     val address = when (val hopPort = HopPort.from(serverPorts)) {
         is HopPort.Single -> joinAddress(serverAddress, hopPort.port)
@@ -249,7 +251,7 @@ fun HysteriaBean.buildHysteriaConfig(
                     certificates.blankAsNull()?.let {
                         val caFile = cacheFile("ca")
                         caFile.writeText(certificates)
-                        put("ca", caFile.absolutePath)
+                        put("ca", caFile.absolutePath())
                     }
                 }
                 if (allowInsecure) put("insecure", true)
@@ -276,7 +278,7 @@ fun HysteriaBean.buildHysteriaConfig(
                 certificates.blankAsNull()?.let {
                     val caFile = cacheFile("ca")
                     caFile.writeText(certificates)
-                    caPath = caFile.absolutePath
+                    caPath = caFile.absolutePath()
                 }
                 clientCert.blankAsNull()?.let {
                     if (clientKey.isBlank()) error("empty mtls key")
@@ -284,8 +286,8 @@ fun HysteriaBean.buildHysteriaConfig(
                     certFile.writeText(it)
                     val keyFile = cacheFile("mtls_key")
                     keyFile.writeText(clientKey)
-                    certPath = certFile.absolutePath
-                    keyPath = keyFile.absolutePath
+                    certPath = certFile.absolutePath()
+                    keyPath = keyFile.absolutePath()
                 }
             }
             buildJsonObject {

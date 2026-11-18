@@ -12,8 +12,12 @@ import com.github.ajalt.clikt.parameters.options.option
 import fr.husi.CLI_STREAM_TIMEOUT
 import fr.husi.core.CoreClient
 import fr.husi.core.TAILDROP_CHUNK_SIZE
+import fr.husi.ktx.deleteBlocking
+import fr.husi.ktx.inputStream
 import fr.husi.ktx.isIpAddress
+import fr.husi.ktx.outputStream
 import fr.husi.ktx.parseGoDuration
+import fr.husi.ktx.toNioPath
 import fr.husi.platform.PlatformInfo
 import fr.husi.proto.daemon.TaildropFileChunk
 import fr.husi.proto.daemon.TaildropFileDone
@@ -25,6 +29,12 @@ import fr.husi.proto.daemon.TailscalePeer
 import fr.husi.proto.daemon.TailscalePingResponse
 import fr.husi.proto.daemon.TailscaleUserGroup
 import fr.husi.repository.resolveOnPath
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.isDirectory
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -34,7 +44,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import okio.ByteString.Companion.toByteString
-import java.io.File
 import java.io.OutputStream
 import java.net.InetAddress
 import java.nio.file.FileAlreadyExistsException
@@ -45,11 +54,8 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
-import kotlin.io.path.Path
+import java.util.Locale
 import kotlin.io.path.createFile
-import kotlin.io.path.exists
-import kotlin.io.path.writeBytes
 import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.seconds
 
@@ -498,11 +504,11 @@ private class ApiTailscaleCertificateExportCommand : ApiTailscaleCommandBase("ex
             System.out.flush()
             return
         }
-        val target = Path(path)
+        val target = PlatformFile(path)
         if (!target.exists()) {
-            createCertificateFile(target, isKey)
+            createCertificateFile(target.toNioPath(), isKey)
         }
-        target.writeBytes(content)
+        target.outputStream().use { it.write(content) }
         writeStderrLine("wrote $path")
     }
 
@@ -613,9 +619,9 @@ private class ApiTailscaleTaildropGetCommand : ApiTailscaleCommandBase("get") {
         val outputPath = if (output.isNullOrEmpty()) {
             name
         } else {
-            val target = File(output!!)
-            if (target.exists() && target.isDirectory) {
-                File(target, name).path
+            val target = PlatformFile(output!!)
+            if (target.exists() && target.isDirectory()) {
+                PlatformFile(target, name).path
             } else {
                 output!!
             }
@@ -648,7 +654,7 @@ private class ApiTailscaleTaildropGetCommand : ApiTailscaleCommandBase("get") {
         } catch (e: Exception) {
             if (!isStdout && outputStream != null) {
                 runCatching { outputStream.close() }
-                File(outputPath).delete()
+                PlatformFile(outputPath).deleteBlocking()
             }
             throw e
         }
@@ -658,7 +664,7 @@ private class ApiTailscaleTaildropGetCommand : ApiTailscaleCommandBase("get") {
         if (isStdout) return System.out
         try {
             return Files.newOutputStream(
-                File(outputPath).toPath(),
+                PlatformFile(outputPath).toNioPath(),
                 StandardOpenOption.CREATE_NEW,
                 StandardOpenOption.WRITE,
             )
@@ -690,21 +696,21 @@ private class ApiTailscaleTaildropSendCommand : ApiTailscaleCommandBase("send") 
             echo("peer cannot receive files: ${tailscalePeerName(entry.peer)}", err = true)
             throw ProgramResult(1)
         }
-        data class OutgoingFile(val file: File, val name: String, val size: Long)
+        data class OutgoingFile(val file: PlatformFile, val name: String, val size: Long)
 
         val outgoingFiles = mutableListOf<OutgoingFile>()
         val manifest = mutableListOf<TaildropOutgoingFile>()
         for (path in filePaths) {
-            val file = File(path)
+            val file = PlatformFile(path)
             if (!file.exists()) {
                 echo("stat $path: no such file or directory", err = true)
                 throw ProgramResult(1)
             }
-            if (file.isDirectory) {
+            if (file.isDirectory()) {
                 echo("directories are not supported: $path", err = true)
                 throw ProgramResult(1)
             }
-            val size = file.length()
+            val size = file.size()
             val name = file.name
             outgoingFiles += OutgoingFile(file, name, size)
             manifest += TaildropOutgoingFile(name = name, size = size)

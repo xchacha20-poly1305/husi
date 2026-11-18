@@ -6,13 +6,17 @@ import androidx.datastore.preferences.core.PreferencesFileSerializer
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.preferencesOf
+import fr.husi.ktx.deleteRecursivelyBlocking
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -22,13 +26,13 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class ReplaceSafeFileStorageTest {
 
-    private val directory: File = createTempDirectory("replace-safe-storage").toFile()
+    private val directory: PlatformFile = PlatformFile(createTempDirectory("replace-safe-storage").toString())
     private val file = directory.resolve("nested").resolve("configuration.preferences_pb")
     private val groupKey = longPreferencesKey("profileGroup")
 
     @AfterTest
     fun cleanup() {
-        directory.deleteRecursively()
+        directory.deleteRecursivelyBlocking()
     }
 
     private fun newConnection() =
@@ -82,6 +86,6 @@ class ReplaceSafeFileStorageTest {
 
         connection.writeData(preferencesOf(groupKey to 1L))
 
-        assertFalse(file.resolveSibling("${file.name}.tmp").exists())
+        assertFalse(directory.resolve("${file.name}.tmp").exists())
     }
 }

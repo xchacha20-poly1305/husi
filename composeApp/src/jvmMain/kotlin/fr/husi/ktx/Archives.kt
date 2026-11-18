@@ -1,8 +1,10 @@
 package fr.husi.ktx
 
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.resolve
 import java.io.BufferedInputStream
 import java.io.EOFException
-import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -17,17 +19,21 @@ private val ZIP_MAGIC = byteArrayOf('P'.code.toByte(), 'K'.code.toByte())
  * entry: each regular file lands directly in [destination] under its base name, replacing any
  * file of that name.
  */
-fun unpackArchive(archive: File, destination: File) {
-    archive.inputStream().use { unpackArchive(it, destination) }
+fun unpackArchive(archive: PlatformFile, destination: PlatformFile) {
+    archive.inputStream().use {
+        unpackArchive(it, destination)
+    }
 }
 
 /** Stream form of [unpackArchive]; the format is told by its magic bytes. */
-fun unpackArchive(input: InputStream, destination: File) {
+fun unpackArchive(input: InputStream, destination: PlatformFile) {
     val buffered = BufferedInputStream(input)
     buffered.mark(GZIP_MAGIC.size)
-    val magic = ByteArray(GZIP_MAGIC.size).let { it.copyOf(buffered.readUpTo(it)) }
+    val magic = ByteArray(GZIP_MAGIC.size).let {
+        it.copyOf(buffered.readUpTo(it))
+    }
     buffered.reset()
-    destination.mkdirs()
+    destination.createDirectories()
     when {
         magic.contentEquals(GZIP_MAGIC) -> untarFlattened(GZIPInputStream(buffered), destination)
         magic.contentEquals(ZIP_MAGIC) -> unzipFlattened(ZipInputStream(buffered), destination)
@@ -35,7 +41,7 @@ fun unpackArchive(input: InputStream, destination: File) {
     }
 }
 
-private fun unzipFlattened(input: ZipInputStream, destination: File) {
+private fun unzipFlattened(input: ZipInputStream, destination: PlatformFile) {
     while (true) {
         val entry = input.nextEntry ?: break
         if (entry.isDirectory) continue
@@ -44,13 +50,15 @@ private fun unzipFlattened(input: ZipInputStream, destination: File) {
     }
 }
 
-private fun untarFlattened(input: InputStream, destination: File) {
+private fun untarFlattened(input: InputStream, destination: PlatformFile) {
     val reader = TarReader(input)
     while (true) {
         val entry = reader.next() ?: break
         if (!entry.isRegularFile) continue
         val name = flattenedName(entry.name) ?: continue
-        destination.resolve(name).outputStream().use { reader.copyEntryTo(it) }
+        destination.resolve(name).outputStream().use {
+            reader.copyEntryTo(it)
+        }
     }
 }
 

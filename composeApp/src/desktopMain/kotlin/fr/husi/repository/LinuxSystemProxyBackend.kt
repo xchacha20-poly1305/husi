@@ -1,6 +1,7 @@
 package fr.husi.repository
 
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+
 
 private val PROXY_TYPES = listOf("ftp", "http", "https", "socks")
 
@@ -11,7 +12,7 @@ internal data class LinuxProxyTools(
 
 internal class LinuxSystemProxyBackend(
     private val runner: SystemCommandRunner = ProcessCommandRunner,
-    private val findExecutable: (String) -> File? = ::resolveOnPath,
+    private val findExecutable: (String) -> PlatformFile? = ::resolveOnPath,
 ) : SystemProxyBackend {
     override fun enable(host: String, port: Int) {
         linuxProxyEnableCommands(detectTools(), host, port).forEach(runner::run)

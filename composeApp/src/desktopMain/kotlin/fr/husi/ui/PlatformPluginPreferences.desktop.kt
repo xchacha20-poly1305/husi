@@ -53,6 +53,7 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -119,7 +120,7 @@ private fun PluginPathPreference(
     val rowDropTarget = rememberFileDropTarget(
         onDragStateChange = { isRowDragOver = it },
     ) { files ->
-        onValueChange(files.first().absolutePath)
+        onValueChange(files.first().absolutePath())
     }
     val rowHighlightColor by animateColorAsState(
         targetValue = if (isRowDragOver) {
@@ -173,7 +174,7 @@ private fun PluginPathDialog(
     val dropTarget = rememberFileDropTarget(
         onDragStateChange = { isDialogDragOver = it },
     ) { files ->
-        val absolute = files.first().absolutePath
+        val absolute = files.first().absolutePath()
         dialogText = TextFieldValue(absolute, TextRange(absolute.length))
     }
     val containerColor by animateColorAsState(

@@ -3,8 +3,11 @@ package fr.husi.utils.appicon
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.util.fastCoerceAtLeast
+import fr.husi.ktx.inputStream
+import fr.husi.ktx.readBytesBlocking
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.extension
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.Icon
 import org.jetbrains.skia.Data
@@ -15,16 +18,16 @@ import org.jetbrains.skia.Image as SkiaImage
 internal object AppIconDecoding {
     private const val SVG_RENDER_SIZE = 128
 
-    fun decodeFile(file: File): ImageBitmap? {
+    fun decodeFile(file: PlatformFile): ImageBitmap? {
         return try {
             when (file.extension.lowercase()) {
                 "icns" -> {
-                    val png = IcnsDecoder.extractBestPng(file.readBytes()) ?: return null
+                    val png = IcnsDecoder.extractBestPng(file.readBytesBlocking()) ?: return null
                     decodeEncodedBytes(png)
                 }
-                "svg" -> decodeSvgBytes(file.readBytes())
+                "svg" -> decodeSvgBytes(file.readBytesBlocking())
                 "xpm" -> decodeWithImageIO(file)
-                else -> decodeEncodedBytes(file.readBytes())
+                else -> decodeEncodedBytes(file.readBytesBlocking())
             }
         } catch (_: Exception) {
             null
@@ -62,8 +65,8 @@ internal object AppIconDecoding {
         return SkiaImage.makeFromEncoded(bytes).toComposeImageBitmap()
     }
 
-    private fun decodeWithImageIO(file: File): ImageBitmap? {
-        val buffered = ImageIO.read(file) ?: return null
+    private fun decodeWithImageIO(file: PlatformFile): ImageBitmap? {
+        val buffered = file.inputStream().use(ImageIO::read) ?: return null
         return buffered.toComposeImageBitmap()
     }
 }

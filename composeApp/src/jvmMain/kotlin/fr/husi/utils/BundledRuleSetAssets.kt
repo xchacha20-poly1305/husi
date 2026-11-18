@@ -2,9 +2,17 @@ package fr.husi.utils
 
 import fr.husi.bg.routeGeoDir
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteBlocking
+import fr.husi.ktx.deleteRecursivelyBlocking
+import fr.husi.ktx.listFilesOrNull
+import fr.husi.ktx.outputStream
+import fr.husi.ktx.readBytesBlocking
 import fr.husi.ktx.unpackArchive
 import fr.husi.repository.resolveRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
 import java.io.InputStream
 
 private const val BUNDLED_RULE_SET_BASE = "composeResources/fr.husi.resources/files/sing-box"
@@ -31,7 +39,7 @@ internal fun installBundledRuleSets() {
     val repository = resolveRepository()
     val externalAssetsDir = repository.externalAssetsDir
     val geoDir = routeGeoDir(externalAssetsDir)
-    repository.filesDir.resolve(LEGACY_STAGING_DIR_NAME).deleteRecursively()
+    repository.filesDir.resolve(LEGACY_STAGING_DIR_NAME).deleteRecursivelyBlocking()
 
     for (name in RULE_SET_NAMES) {
         try {
@@ -42,12 +50,12 @@ internal fun installBundledRuleSets() {
     }
 }
 
-private fun installBundledRuleSet(name: String, externalAssetsDir: File, geoDir: File) {
+private fun installBundledRuleSet(name: String, externalAssetsDir: PlatformFile, geoDir: PlatformFile) {
     val bundledVersion = openBundledResource("$BUNDLED_RULE_SET_BASE/$name$VERSION_SUFFIX")
         ?.use { it.readBytes() }
         ?: return
     val versionFile = externalAssetsDir.resolve("$name$VERSION_SUFFIX")
-    val installedVersion = versionFile.takeIf { it.isFile }?.readBytes()
+    val installedVersion = versionFile.takeIf { it.isRegularFile() }?.readBytesBlocking()
     if (installedVersion != null && compareUnsigned(bundledVersion, installedVersion) <= 0) return
 
     val archivePath = "$BUNDLED_RULE_SET_BASE/$name$ARCHIVE_SUFFIX"
@@ -55,9 +63,17 @@ private fun installBundledRuleSet(name: String, externalAssetsDir: File, geoDir:
         Logs.w("bundled rule set $name has a version but no archive at $archivePath")
         return
     }
-    geoDir.listFiles { file -> file.name.startsWith("$name-") }?.forEach { it.delete() }
-    archive.use { unpackArchive(it, geoDir) }
-    versionFile.writeBytes(bundledVersion)
+    geoDir.listFilesOrNull { file ->
+        file.name.startsWith("$name-")
+    }?.forEach {
+        it.deleteBlocking()
+    }
+    archive.use {
+        unpackArchive(it, geoDir)
+    }
+    versionFile.outputStream().use {
+        it.write(bundledVersion)
+    }
     Logs.i("installed bundled rule set $name")
 }
 

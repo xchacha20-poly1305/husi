@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
-import java.io.File
 import java.util.zip.ZipFile
 
 @Immutable
@@ -104,13 +103,7 @@ internal class VPNScannerScreenViewModel(
 
     private suspend fun scanVPN0(packageManager: PackageManager) {
         uiState.emit(uiState.value.copy(appInfos = emptyList(), progress = 0f))
-        val flag =
-            PackageManager.GET_SERVICES or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                PackageManager.MATCH_UNINSTALLED_PACKAGES
-            } else {
-                @Suppress("DEPRECATION")
-                PackageManager.GET_UNINSTALLED_PACKAGES
-            }
+        val flag = PackageManager.GET_SERVICES or PackageManager.MATCH_UNINSTALLED_PACKAGES
         val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             packageManager.getInstalledPackages(
                 PackageManager.PackageInfoFlags.of(flag.toLong()),
@@ -150,7 +143,7 @@ internal class VPNScannerScreenViewModel(
     }
 
     private fun getVPNAppType(packageInfo: PackageInfo): String? {
-        ZipFile(File(packageInfo.applicationInfo!!.publicSourceDir)).use { packageFile ->
+        ZipFile(packageInfo.applicationInfo!!.publicSourceDir).use { packageFile ->
             var type: String? = null
             for (packageEntry in packageFile.entries()) {
                 if (

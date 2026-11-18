@@ -1,6 +1,8 @@
 package fr.husi.platform
 
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isRegularFile
+
 
 internal data class DesktopPackageEnvironment(
     val isFlatpak: Boolean,
@@ -15,7 +17,7 @@ internal data class DesktopPackageEnvironment(
         fun detect(
             platform: Platform = PlatformInfo.platform,
             environment: Map<String, String> = System.getenv(),
-            hasFlatpakInfo: () -> Boolean = { File("/.flatpak-info").isFile },
+            hasFlatpakInfo: () -> Boolean = { PlatformFile("/.flatpak-info").isRegularFile() },
         ): DesktopPackageEnvironment {
             if (platform != Platform.Linux) {
                 return DesktopPackageEnvironment(isFlatpak = false, isAppImage = false)

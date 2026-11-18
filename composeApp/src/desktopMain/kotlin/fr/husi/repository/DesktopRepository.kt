@@ -1,13 +1,18 @@
 package fr.husi.repository
 
+import fr.husi.ktx.deleteRecursivelyBlocking
 import fr.husi.ktx.invariantDirectoryPathString
+import fr.husi.ktx.listFilesOrNull
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.StateFlow
-import java.io.File
 
 fun resolveDesktopRepository(): DesktopRepository = resolveRepository() as DesktopRepository
 
 open class DesktopRepository(
-    val dataDir: File,
+    val dataDir: PlatformFile,
     /**
      * Identifies a secondary instance started with `--many`, which owns a
      * private core host instead of the well-known one. Null for the primary
@@ -25,8 +30,8 @@ open class DesktopRepository(
      * Root of everything the out-of-process core host owns, and the working
      * directory of the primary instance's host. See [coreRunDir].
      */
-    val coreDir: File by lazy {
-        dataDir.resolve("core").apply { mkdirs() }
+    val coreDir: PlatformFile by lazy {
+        dataDir.resolve("core").apply { createDirectories() }
     }
 
     /**
@@ -35,9 +40,9 @@ open class DesktopRepository(
      * instances pointed at one directory would steal each other's host and tear
      * it down on exit: a secondary instance gets a private directory instead.
      */
-    val coreRunDir: File by lazy {
+    val coreRunDir: PlatformFile by lazy {
         val dir = instanceId?.let { coreDir.resolve(INSTANCE_DIR_NAME).resolve(it) } ?: coreDir
-        dir.apply { mkdirs() }
+        dir.apply { createDirectories() }
     }
 
     /**
@@ -53,17 +58,17 @@ open class DesktopRepository(
 
     fun releaseCoreRunDir() {
         if (instanceId == null) return
-        coreRunDir.deleteRecursively()
+        coreRunDir.deleteRecursivelyBlocking()
     }
 
     fun pruneStaleCoreRunDirs() {
         val instancesDir = coreDir.resolve(INSTANCE_DIR_NAME)
-        val leftovers = instancesDir.listFiles() ?: return
+        val leftovers = instancesDir.listFilesOrNull() ?: return
         for (dir in leftovers) {
             if (dir == coreRunDir) continue
             val pid = dir.name.toLongOrNull() ?: continue
             if (ProcessHandle.of(pid).map { it.isAlive }.orElse(false)) continue
-            dir.deleteRecursively()
+            dir.deleteRecursivelyBlocking()
         }
     }
 
@@ -101,19 +106,19 @@ open class DesktopRepository(
         coreHostController.takeOverDaemon()
     }
 
-    override val cacheDir: File by lazy {
-        dataDir.resolve("cache").apply { mkdirs() }
+    override val cacheDir: PlatformFile by lazy {
+        dataDir.resolve("cache").apply { createDirectories() }
     }
 
-    override val filesDir: File by lazy {
-        dataDir.resolve("files").apply { mkdirs() }
+    override val filesDir: PlatformFile by lazy {
+        dataDir.resolve("files").apply { createDirectories() }
     }
 
-    override val externalAssetsDir: File by lazy {
-        dataDir.resolve("external").apply { mkdirs() }
+    override val externalAssetsDir: PlatformFile by lazy {
+        dataDir.resolve("external").apply { createDirectories() }
     }
 
-    override fun resolveDatabaseFile(name: String): File {
+    override fun resolveDatabaseFile(name: String): PlatformFile {
         return dataDir.resolve(name)
     }
 

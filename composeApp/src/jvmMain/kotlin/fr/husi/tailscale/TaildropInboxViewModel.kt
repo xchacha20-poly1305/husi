@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.core.remote.CoreTarget
 import fr.husi.ktx.readableMessage
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -25,15 +25,15 @@ data class TaildropInboxUiState(
 )
 
 data class TaildropFilesDirectory(
-    val directory: File,
+    val directory: PlatformFile,
     val isDownloads: Boolean,
 )
 
 class TaildropInboxViewModel(
     private val endpointTag: String,
     repository: TailscaleStatusRepository,
-    private val localReceiveDirectory: File?,
-    private val downloadDirectory: File,
+    private val localReceiveDirectory: PlatformFile?,
+    private val downloadDirectory: PlatformFile,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     val uiState: StateFlow<TaildropInboxUiState>
@@ -98,7 +98,7 @@ class TaildropInboxViewModel(
         presence.requireTarget().client.cancelTaildropReceiving(endpointTag, senderId, name)
     }
 
-    suspend fun materialize(name: String): File = withContext(ioDispatcher) {
+    suspend fun materialize(name: String): PlatformFile = withContext(ioDispatcher) {
         val target = presence.requireTarget()
         materializeTaildropFile(
             coreClient = target.client,
@@ -109,7 +109,7 @@ class TaildropInboxViewModel(
         )
     }
 
-    private fun receiveDirectoryOf(target: CoreTarget): File? =
+    private fun receiveDirectoryOf(target: CoreTarget): PlatformFile? =
         if (target.isRemote) null else localReceiveDirectory
 
     private fun filesDirectoryOf(target: CoreTarget): TaildropFilesDirectory =

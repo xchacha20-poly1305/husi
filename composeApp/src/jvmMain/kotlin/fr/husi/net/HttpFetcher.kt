@@ -1,8 +1,8 @@
 package fr.husi.net
 
 import fr.husi.database.DataStore
+import io.github.vinceglb.filekit.PlatformFile
 import org.koin.core.context.GlobalContext
-import java.io.File
 
 data class LocalHttpProxy(
     val port: Int,
@@ -44,7 +44,7 @@ interface HttpFetcher {
 
     suspend fun download(
         request: HttpFetchRequest,
-        target: File,
+        target: PlatformFile,
         onProgress: DownloadProgress = { _, _ -> },
     )
 }

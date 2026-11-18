@@ -1,16 +1,17 @@
 package fr.husi.utils.appicon
 
+import fr.husi.ktx.readBytesBlocking
+import io.github.vinceglb.filekit.PlatformFile
 import org.w3c.dom.Element
-import java.io.File
 import java.nio.charset.Charset
 import javax.xml.parsers.DocumentBuilderFactory
 
 internal object MacPropertyList {
     private val binaryMagic = "bplist00".toByteArray(Charsets.US_ASCII)
 
-    fun readTopLevelStrings(file: File, keys: Set<String>): Map<String, String> {
+    fun readTopLevelStrings(file: PlatformFile, keys: Set<String>): Map<String, String> {
         val bytes = try {
-            file.readBytes()
+            file.readBytesBlocking()
         } catch (_: Exception) {
             return emptyMap()
         }

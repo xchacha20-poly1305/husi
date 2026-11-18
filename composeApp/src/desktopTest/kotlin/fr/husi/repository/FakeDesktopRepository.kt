@@ -1,11 +1,11 @@
 package fr.husi.repository
 
+import io.github.vinceglb.filekit.PlatformFile
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
-import java.io.File
 
 class FakeDesktopRepository(
-    dataDir: File,
+    dataDir: PlatformFile,
     instanceId: String? = null,
 ) : DesktopRepository(dataDir, instanceId) {
 

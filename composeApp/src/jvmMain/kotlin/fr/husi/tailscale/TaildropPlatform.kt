@@ -2,20 +2,20 @@ package fr.husi.tailscale
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 
 expect object TaildropPlatform {
-    fun receiveDirectory(): File?
+    fun receiveDirectory(): PlatformFile?
 
-    fun downloadDirectory(): File
+    fun downloadDirectory(): PlatformFile
 
     fun canShareReceivedFile(): Boolean
 
-    fun openDirectory(directory: File): Boolean
+    fun openDirectory(directory: PlatformFile): Boolean
 
-    fun openReceivedFile(file: File): Boolean
+    fun openReceivedFile(file: PlatformFile): Boolean
 
-    fun shareReceivedFile(file: File): Boolean
+    fun shareReceivedFile(file: PlatformFile): Boolean
 }
 
 @Composable

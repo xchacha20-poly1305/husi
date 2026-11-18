@@ -6,8 +6,17 @@ import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
+import fr.husi.ktx.deleteBlocking
+import fr.husi.ktx.listFilesOrNull
+import fr.husi.ktx.toJavaFile
+import fr.husi.ktx.usableSpace
 import fr.husi.lib.R
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isDirectory
+import io.github.vinceglb.filekit.lastModified
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.size
 import java.io.FileNotFoundException
 
 class TaildropDocumentsProvider : DocumentsProvider() {
@@ -32,7 +41,7 @@ class TaildropDocumentsProvider : DocumentsProvider() {
                 row.add(DocumentsContract.Root.COLUMN_ICON, R.mipmap.ic_launcher)
                 row.add(DocumentsContract.Root.COLUMN_TITLE, context.getString(R.string.app_name))
                 row.add(DocumentsContract.Root.COLUMN_SUMMARY, root.directoryName)
-                row.add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, directory.usableSpace)
+                row.add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, directory.usableSpace())
             }
         }
         return cursor
@@ -61,7 +70,7 @@ class TaildropDocumentsProvider : DocumentsProvider() {
         if (parent.name != null) return cursor
         val directory = existingDirectory(parent.root) ?: return cursor
         cursor.setNotificationUri(providerContext.contentResolver, childDocumentsUri(parent.root))
-        directory.listFiles()
+        directory.listFilesOrNull()
             ?.filter(::isTaildropReceivedFile)
             ?.sortedBy { file -> file.name }
             ?.forEach { file -> addFileRow(cursor, parent.root, file) }
@@ -76,11 +85,11 @@ class TaildropDocumentsProvider : DocumentsProvider() {
         if (ParcelFileDescriptor.parseMode(mode) != ParcelFileDescriptor.MODE_READ_ONLY) {
             throw FileNotFoundException("$documentId is read-only")
         }
-        return ParcelFileDescriptor.open(requireFile(documentId), ParcelFileDescriptor.MODE_READ_ONLY)
+        return ParcelFileDescriptor.open(requireFile(documentId).toJavaFile(), ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
     override fun deleteDocument(documentId: String) {
-        if (!requireFile(documentId).delete()) {
+        if (!requireFile(documentId).deleteBlocking()) {
             throw FileNotFoundException("failed to delete $documentId")
         }
         val root = parseTaildropDocumentId(documentId)?.root ?: return
@@ -93,43 +102,43 @@ class TaildropDocumentsProvider : DocumentsProvider() {
         return parent.name == null && child.name != null && parent.root == child.root
     }
 
-    private fun existingDirectory(root: TaildropDocumentRoot): File? =
-        root.directory(providerContext).takeIf { directory -> directory.isDirectory }
+    private fun existingDirectory(root: TaildropDocumentRoot): PlatformFile? =
+        root.directory(providerContext).takeIf { directory -> directory.isDirectory() }
 
     private fun childDocumentsUri(root: TaildropDocumentRoot) = DocumentsContract.buildChildDocumentsUri(
         taildropDocumentsAuthority(providerContext),
         root.rootId,
     )
 
-    private fun requireFile(documentId: String): File {
+    private fun requireFile(documentId: String): PlatformFile {
         val document = parseTaildropDocumentId(documentId) ?: throw FileNotFoundException(documentId)
         val name = document.name ?: throw FileNotFoundException(documentId)
         val directory = existingDirectory(document.root) ?: throw FileNotFoundException(documentId)
         return resolveFile(directory, name)
     }
 
-    private fun resolveFile(directory: File, name: String): File =
+    private fun resolveFile(directory: PlatformFile, name: String): PlatformFile =
         directory.resolve(name).takeIf(::isTaildropReceivedFile) ?: throw FileNotFoundException(name)
 
-    private fun addDirectoryRow(cursor: MatrixCursor, root: TaildropDocumentRoot, directory: File) {
+    private fun addDirectoryRow(cursor: MatrixCursor, root: TaildropDocumentRoot, directory: PlatformFile) {
         cursor.newRow().also { row ->
             row.add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, root.rootId)
             row.add(DocumentsContract.Document.COLUMN_MIME_TYPE, DocumentsContract.Document.MIME_TYPE_DIR)
             row.add(DocumentsContract.Document.COLUMN_DISPLAY_NAME, root.directoryName)
-            row.add(DocumentsContract.Document.COLUMN_LAST_MODIFIED, directory.lastModified())
+            row.add(DocumentsContract.Document.COLUMN_LAST_MODIFIED, directory.lastModified().toEpochMilliseconds())
             row.add(DocumentsContract.Document.COLUMN_FLAGS, 0)
             row.add(DocumentsContract.Document.COLUMN_SIZE, null)
         }
     }
 
-    private fun addFileRow(cursor: MatrixCursor, root: TaildropDocumentRoot, file: File) {
+    private fun addFileRow(cursor: MatrixCursor, root: TaildropDocumentRoot, file: PlatformFile) {
         cursor.newRow().also { row ->
             row.add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, root.fileDocumentId(file.name))
             row.add(DocumentsContract.Document.COLUMN_MIME_TYPE, taildropMimeType(file.name))
             row.add(DocumentsContract.Document.COLUMN_DISPLAY_NAME, file.name)
-            row.add(DocumentsContract.Document.COLUMN_LAST_MODIFIED, file.lastModified())
+            row.add(DocumentsContract.Document.COLUMN_LAST_MODIFIED, file.lastModified().toEpochMilliseconds())
             row.add(DocumentsContract.Document.COLUMN_FLAGS, DocumentsContract.Document.FLAG_SUPPORTS_DELETE)
-            row.add(DocumentsContract.Document.COLUMN_SIZE, file.length())
+            row.add(DocumentsContract.Document.COLUMN_SIZE, file.size())
         }
     }
 

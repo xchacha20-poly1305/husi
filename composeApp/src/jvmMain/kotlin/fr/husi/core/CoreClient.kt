@@ -95,6 +95,8 @@ import fr.husi.proto.v1.SubscribeServiceEventsRequest
 import fr.husi.proto.v1.TakeOverServiceRequest
 import fr.husi.proto.v1.URLTestOptions
 import fr.husi.proto.v1.URLTestRequest
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.name
 import io.grpc.health.v1.GrpcHealthClient
 import io.grpc.health.v1.HealthCheckRequest
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus
@@ -113,7 +115,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -242,7 +243,7 @@ interface CoreClient {
     suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int
 
     /** File names of the rule sets under [dir] that have a rule matching [keyword], a domain name or IP address. */
-    suspend fun matchRuleSets(dir: File, keyword: String): List<String>
+    suspend fun matchRuleSets(dir: PlatformFile, keyword: String): List<String>
 
     /** PEM of the roots in [store]. */
     suspend fun getRootCertificates(store: RootCertificateStore): String
@@ -251,7 +252,7 @@ interface CoreClient {
     suspend fun readAndroidVPNType(apkPaths: List<String>): AndroidVPNType?
 
     suspend fun detectIP(server: String): String
-    suspend fun lookupIPCountry(dir: File, ip: String): String
+    suspend fun lookupIPCountry(dir: PlatformFile, ip: String): String
 
     suspend fun resetNetwork()
     suspend fun runTask(taskId: String)
@@ -676,12 +677,12 @@ class WireCoreClient internal constructor(
     override suspend fun detectIP(server: String): String =
         unary({ core.DetectIP() }, DetectIPRequest(server = server), 15.seconds).ip
 
-    override suspend fun lookupIPCountry(dir: File, ip: String): String {
+    override suspend fun lookupIPCountry(dir: PlatformFile, ip: String): String {
         val request = LookupIPCountryRequest(ip = ip, directory = dir.invariantPathString())
         return unary({ application.LookupIPCountry() }, request, 30.seconds).country_code
     }
 
-    override suspend fun matchRuleSets(dir: File, keyword: String): List<String> {
+    override suspend fun matchRuleSets(dir: PlatformFile, keyword: String): List<String> {
         val request = MatchRuleSetsRequest(directory = dir.invariantPathString(), keyword = keyword)
         return unary({ application.MatchRuleSets() }, request, 30.seconds).names
     }
@@ -799,7 +800,7 @@ class WireCoreClient internal constructor(
         fun local(basePath: () -> String): WireCoreClient =
             WireCoreClient(openChannel = { openLocalCoreChannel(basePath()) })
 
-        fun remote(serverUrl: String, secret: String, roots: File? = null): WireCoreClient =
+        fun remote(serverUrl: String, secret: String, roots: PlatformFile? = null): WireCoreClient =
             WireCoreClient(openChannel = { openRemoteCoreChannel(serverUrl, secret, roots) })
     }
 }

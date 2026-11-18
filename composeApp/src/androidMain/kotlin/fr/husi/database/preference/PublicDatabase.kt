@@ -6,6 +6,9 @@ import androidx.room3.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import fr.husi.Key
 import fr.husi.repository.resolveAndroidRepository
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.parent
 import kotlinx.coroutines.Dispatchers
 
 @Database(entities = [KeyValuePair::class], version = 1)
@@ -31,11 +34,11 @@ abstract class PublicDatabase : RoomDatabase() {
 
         private fun buildDatabase(): PublicDatabase {
             val dbFile = resolveAndroidRepository().resolveDatabaseFile(Key.DB_PUBLIC)
-            dbFile.parentFile?.mkdirs()
+            dbFile.parent()?.createDirectories()
             return Room.databaseBuilder(
                 resolveAndroidRepository().context,
                 PublicDatabase::class.java,
-                dbFile.absolutePath,
+                dbFile.absolutePath(),
             )
                 .enableMultiInstanceInvalidation()
                 .fallbackToDestructiveMigration(true)

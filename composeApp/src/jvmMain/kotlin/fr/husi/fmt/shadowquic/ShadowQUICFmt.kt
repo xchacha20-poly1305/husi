@@ -8,7 +8,10 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.toJsonStringKxs
+import fr.husi.ktx.writeText
 import fr.husi.logLevelString
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.buildUrl
 import kotlinx.serialization.json.JsonElement
@@ -18,7 +21,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
-import java.io.File
 
 private const val BITS_PER_MEGABIT = 1_000_000L
 private const val DEFAULT_SHARE_MTU = 1280
@@ -141,7 +143,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(
     port: Int,
     shouldProtect: Boolean,
     logLevel: Int,
-    cacheFile: ((type: String) -> File)?,
+    cacheFile: ((type: String) -> PlatformFile)?,
 ): String {
     val paths = if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
         extraPaths.lines().filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }
@@ -153,7 +155,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(
             certificates.blankAsNull()?.let { certs ->
                 val certFile = cacheFile("cert.pem")
                 certFile.writeText(certs)
-                certFile.absolutePath
+                certFile.absolutePath()
             }
         }
     } else {

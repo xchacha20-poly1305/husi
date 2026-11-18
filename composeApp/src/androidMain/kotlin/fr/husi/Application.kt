@@ -31,11 +31,13 @@ import fr.husi.utils.CrashHandler
 import fr.husi.utils.PackageCache
 import fr.husi.utils.installBundledRuleSets
 import go.Seq
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import java.io.File
 import androidx.work.Configuration as WorkConfiguration
 
 class Application : Application(),
@@ -49,7 +51,7 @@ class Application : Application(),
         repository = SagerRepository(this, isMainProcess, isBgProcess)
     }
 
-    val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
+    val externalAssets: PlatformFile by lazy { PlatformFile(getExternalFilesDir(null) ?: filesDir) }
     private val appId by lazy { packageName }
     private val process by lazy { tryGetProcessName() }
     val isMainProcess get() = process == appId
@@ -63,7 +65,7 @@ class Application : Application(),
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
         if (isMainProcess) runOnIoDispatcher {
-            clearClipboardImageCache(cacheDir)
+            clearClipboardImageCache(PlatformFile(cacheDir))
         }
 
         if (isMainProcess) TaildropSendService.observe(this)
@@ -84,7 +86,7 @@ class Application : Application(),
             repository.updateNotificationChannels()
         }
 
-        externalAssets.mkdirs()
+        externalAssets.createDirectories()
         val isDebug = runBlocking { DataStore.advancedFeature(Key.ADVANCED_DEBUG) } != null
         if (!isDebug) {
             Logs.openFile(externalAssets.resolve(LOG_FILE_NAME), DataStore.logLevel.getBlocking())
@@ -134,8 +136,8 @@ class Application : Application(),
     private fun initCore(isDebug: Boolean) {
         Seq.setContext(this)
         Libcore.initCore(
-            cacheDir.invariantDirectoryPathString(),
-            filesDir.invariantDirectoryPathString(),
+            PlatformFile(cacheDir).invariantDirectoryPathString(),
+            PlatformFile(filesDir).invariantDirectoryPathString(),
             externalAssets.invariantDirectoryPathString(),
             DataStore.logMaxLine.getBlocking(),
             DataStore.logLevel.getBlocking(),

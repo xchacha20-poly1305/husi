@@ -25,6 +25,7 @@ import fr.husi.ui.dashboard.DashboardNoticeTracker
 import fr.husi.ui.dashboard.asNoticeCounts
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openvpn.OpenVPNAuthController
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.Flow
 import org.koin.core.context.GlobalContext

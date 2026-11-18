@@ -1,7 +1,7 @@
 package fr.husi.bg
 
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.StateFlow
-import java.io.File
 
 enum class ShizukuAvailability {
     NotInstalled,
@@ -29,5 +29,5 @@ expect object AppUpdateInstaller {
 
     suspend fun installsWithShizuku(): Boolean
 
-    suspend fun install(apk: File): ApkInstallResult
+    suspend fun install(apk: PlatformFile): ApkInstallResult
 }

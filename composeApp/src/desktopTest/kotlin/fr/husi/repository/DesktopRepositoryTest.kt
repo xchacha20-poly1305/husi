@@ -1,6 +1,12 @@
 package fr.husi.repository
 
-import java.io.File
+import fr.husi.ktx.deleteRecursivelyBlocking
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.isDirectory
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -15,16 +21,16 @@ private const val UNREACHABLE_PID = "4000000000"
 
 class DesktopRepositoryTest {
 
-    private lateinit var dataDir: File
+    private lateinit var dataDir: PlatformFile
 
     @BeforeTest
     fun setUpDataDir() {
-        dataDir = createTempDirectory("husi-desktop-repository").toFile()
+        dataDir = PlatformFile(createTempDirectory("husi-desktop-repository").toString())
     }
 
     @AfterTest
     fun tearDownDataDir() {
-        dataDir.deleteRecursively()
+        dataDir.deleteRecursivelyBlocking()
     }
 
     @Test
@@ -40,8 +46,8 @@ class DesktopRepositoryTest {
         val secondary = FakeDesktopRepository(dataDir, instanceId = UNREACHABLE_PID)
 
         assertNotEquals(primary.coreRunDir, secondary.coreRunDir)
-        assertEquals(primary.coreDir, secondary.coreRunDir.parentFile.parentFile)
-        assertTrue(secondary.coreRunDir.isDirectory)
+        assertEquals(primary.coreDir, secondary.coreRunDir.parent()?.parent())
+        assertTrue(secondary.coreRunDir.isDirectory())
     }
 
     @Test
@@ -52,7 +58,7 @@ class DesktopRepositoryTest {
 
         val primary = FakeDesktopRepository(dataDir)
         primary.releaseCoreRunDir()
-        assertTrue(primary.coreRunDir.isDirectory)
+        assertTrue(primary.coreRunDir.isDirectory())
     }
 
     @Test
@@ -62,12 +68,12 @@ class DesktopRepositoryTest {
             dataDir,
             instanceId = DesktopRepository.currentInstanceId(),
         )
-        val foreign = dead.coreRunDir.parentFile.resolve("not-a-pid").apply { mkdirs() }
+        val foreign = checkNotNull(dead.coreRunDir.parent()).resolve("not-a-pid").apply { createDirectories() }
 
         FakeDesktopRepository(dataDir).pruneStaleCoreRunDirs()
 
         assertFalse(dead.coreRunDir.exists())
-        assertTrue(live.coreRunDir.isDirectory)
-        assertTrue(foreign.isDirectory)
+        assertTrue(live.coreRunDir.isDirectory())
+        assertTrue(foreign.isDirectory())
     }
 }

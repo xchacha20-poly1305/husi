@@ -6,11 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Build
+import fr.husi.ktx.inputStream
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.minutes
 
@@ -46,7 +48,7 @@ internal object PendingApkInstalls {
 internal suspend fun installApk(
     context: Context,
     host: ApkInstallSessionHost,
-    apk: File,
+    apk: PlatformFile,
 ): ApkInstallResult = withContext(Dispatchers.IO) {
     val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
     params.setAppPackageName(context.packageName)
@@ -58,8 +60,10 @@ internal suspend fun installApk(
     val result = PendingApkInstalls.expect(sessionId)
     try {
         host.openSession(sessionId).use { session ->
-            session.openWrite(SESSION_FILE_NAME, 0, apk.length()).use { output ->
-                apk.inputStream().use { it.copyTo(output) }
+            session.openWrite(SESSION_FILE_NAME, 0, apk.size()).use { output ->
+                apk.inputStream().use {
+                    it.copyTo(output)
+                }
                 session.fsync(output)
             }
             @SuppressLint("RequestInstallPackagesPolicy")
@@ -67,7 +71,9 @@ internal suspend fun installApk(
         }
     } catch (e: Throwable) {
         PendingApkInstalls.forget(sessionId)
-        runCatching { host.abandonSession(sessionId) }
+        runCatching {
+            host.abandonSession(sessionId)
+        }
         throw e
     }
 

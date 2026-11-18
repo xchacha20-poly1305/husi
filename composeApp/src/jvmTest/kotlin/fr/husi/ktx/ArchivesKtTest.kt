@@ -1,8 +1,9 @@
 package fr.husi.ktx
 
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.name
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.IOException
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipEntry
@@ -15,17 +16,17 @@ import kotlin.test.assertFailsWith
 
 class ArchivesKtTest {
 
-    private val destination: File = createTempDirectory("husi-archives").toFile()
+    private val destination: PlatformFile = PlatformFile(createTempDirectory("husi-archives").toString())
 
     @AfterTest
     fun tearDown() {
-        destination.deleteRecursively()
+        destination.deleteRecursivelyBlocking()
     }
 
     private fun unpack(archive: ByteArray) = unpackArchive(ByteArrayInputStream(archive), destination)
 
     private fun unpackedFiles(): Map<String, String> =
-        destination.listFiles().orEmpty().associate { it.name to it.readText() }
+        destination.listFilesOrNull().orEmpty().associate { it.name to it.readText() }
 
     @Test
     fun `tar gz entries land flat in the destination`() {

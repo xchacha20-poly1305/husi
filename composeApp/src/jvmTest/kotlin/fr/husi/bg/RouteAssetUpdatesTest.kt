@@ -1,9 +1,16 @@
 package fr.husi.bg
 
 import fr.husi.RuleProvider
+import fr.husi.ktx.deleteOnExit
+import fr.husi.ktx.readText
+import fr.husi.ktx.writeText
 import fr.husi.test.HusiHttpKoinTest
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -15,10 +22,10 @@ import kotlin.test.assertTrue
 
 class RouteAssetUpdatesTest : HusiHttpKoinTest() {
 
-    private val dummyFiles = listOf(File("geoip.version.txt"), File("geosite.version.txt"))
+    private val dummyFiles = listOf(PlatformFile("geoip.version.txt"), PlatformFile("geosite.version.txt"))
 
-    private fun createTempDir(): File =
-        createTempDirectory("route-asset-updates-test-").toFile().also { it.deleteOnExit() }
+    private fun createTempDir(): PlatformFile =
+        PlatformFile(createTempDirectory("route-asset-updates-test-").toString()).also { it.deleteOnExit() }
 
     // region hasUnstableBranch
 
@@ -268,7 +275,10 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
 
         assertEquals(1, updates.size)
         assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
-        assertContains(fakeHttp.requests.map { it.url }, githubApiLatestReleaseUrl("runetfreedom/russia-v2ray-rules-dat"))
+        assertContains(
+            fakeHttp.requests.map { it.url },
+            githubApiLatestReleaseUrl("runetfreedom/russia-v2ray-rules-dat"),
+        )
     }
 
     @Test
@@ -339,7 +349,9 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
     @Test
     fun `migrateCustomRouteAssets moves known files out of geo and leaves unknown files`() {
         val dir = createTempDir()
-        val geoDir = routeGeoDir(dir).also { it.mkdirs() }
+        val geoDir = routeGeoDir(dir).apply {
+            createDirectories()
+        }
         geoDir.resolve("custom.srs").writeText("mine")
         geoDir.resolve("geosite-cn.srs").writeText("managed")
 
@@ -347,23 +359,27 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
 
         val customDir = routeCustomGeoDir(dir)
         assertFalse(geoDir.resolve("custom.srs").exists())
-        assertTrue(customDir.resolve("custom.srs").isFile)
+        assertTrue(customDir.resolve("custom.srs").isRegularFile())
         assertEquals("mine", customDir.resolve("custom.srs").readText())
-        assertTrue(geoDir.resolve("geosite-cn.srs").isFile)
+        assertTrue(geoDir.resolve("geosite-cn.srs").isRegularFile())
         assertEquals("managed", geoDir.resolve("geosite-cn.srs").readText())
     }
 
     @Test
     fun `migrateCustomRouteAssets is a no-op when destination already exists`() {
         val dir = createTempDir()
-        val geoDir = routeGeoDir(dir).also { it.mkdirs() }
-        val customDir = routeCustomGeoDir(dir).also { it.mkdirs() }
+        val geoDir = routeGeoDir(dir).apply {
+            createDirectories()
+        }
+        val customDir = routeCustomGeoDir(dir).apply {
+            createDirectories()
+        }
         geoDir.resolve("custom.srs").writeText("old")
         customDir.resolve("custom.srs").writeText("already")
 
         migrateCustomRouteAssets(dir, listOf("custom.srs"))
 
-        assertTrue(geoDir.resolve("custom.srs").isFile)
+        assertTrue(geoDir.resolve("custom.srs").isRegularFile())
         assertEquals("old", geoDir.resolve("custom.srs").readText())
         assertEquals("already", customDir.resolve("custom.srs").readText())
     }

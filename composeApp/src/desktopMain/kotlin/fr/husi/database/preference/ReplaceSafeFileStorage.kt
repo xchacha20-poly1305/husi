@@ -8,61 +8,66 @@ import androidx.datastore.core.StorageConnection
 import androidx.datastore.core.WriteScope
 import androidx.datastore.core.createSingleProcessCoordinator
 import androidx.datastore.core.use
+import fr.husi.ktx.canonicalFile
+import fr.husi.ktx.deleteIfExists
+import fr.husi.ktx.moveAtomically
+import fr.husi.ktx.openInputStreamIfExists
+import fr.husi.ktx.toJavaFile
+import fr.husi.ktx.writeAndSync
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.NoSuchFileException
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal class ReplaceSafeFileStorage<T>(
     private val serializer: Serializer<T>,
-    private val file: File,
+    private val file: PlatformFile,
 ) : Storage<T> {
 
     override fun createConnection(): StorageConnection<T> {
-        val canonicalFile = file.canonicalFile
+        val canonicalFile = file.canonicalFile()
         return ReplaceSafeFileStorageConnection(
-            path = canonicalFile.toPath(),
+            file = canonicalFile,
             serializer = serializer,
-            coordinator = createSingleProcessCoordinator(canonicalFile),
+            coordinator = createSingleProcessCoordinator(canonicalFile.toJavaFile()),
         )
     }
 }
 
 private class ReplaceSafeFileStorageConnection<T>(
-    private val path: Path,
+    private val file: PlatformFile,
     private val serializer: Serializer<T>,
     override val coordinator: InterProcessCoordinator,
 ) : StorageConnection<T> {
 
-    private val scratchPath = path.resolveSibling("${path.fileName}.tmp")
+    private val directory = checkNotNull(file.parent())
+    private val scratchFile = directory.resolve("${file.name}.tmp")
     private val transactionMutex = Mutex()
     private val closed = AtomicBoolean(false)
 
     override suspend fun <R> readScope(block: suspend ReadScope<T>.(locked: Boolean) -> R): R {
         checkNotClosed()
         return transactionMutex.withLock {
-            PathReadScope(path, serializer).use { block(it, true) }
+            FileReadScope(file, serializer).use { block(it, true) }
         }
     }
 
     override suspend fun writeScope(block: suspend WriteScope<T>.() -> Unit) {
         checkNotClosed()
-        Files.createDirectories(path.parent)
+        directory.createDirectories()
         transactionMutex.withLock {
             try {
-                PathWriteScope(scratchPath, serializer).use { block(it) }
-                if (Files.exists(scratchPath)) {
-                    Files.move(scratchPath, path, StandardCopyOption.ATOMIC_MOVE)
-                }
+                FileWriteScope(scratchFile, serializer).use { block(it) }
+                if (scratchFile.exists()) scratchFile.moveAtomically(file)
             } catch (e: IOException) {
-                Files.deleteIfExists(scratchPath)
+                scratchFile.deleteIfExists()
                 throw e
             }
         }
@@ -77,8 +82,8 @@ private class ReplaceSafeFileStorageConnection<T>(
     }
 }
 
-private open class PathReadScope<T>(
-    protected val path: Path,
+private open class FileReadScope<T>(
+    protected val file: PlatformFile,
     protected val serializer: Serializer<T>,
 ) : ReadScope<T> {
 
@@ -86,10 +91,9 @@ private open class PathReadScope<T>(
 
     override suspend fun readData(): T {
         checkNotClosed()
-        return try {
-            Files.newInputStream(path).use { serializer.readFrom(it) }
-        } catch (_: NoSuchFileException) {
-            serializer.defaultValue
+        val input = file.openInputStreamIfExists() ?: return serializer.defaultValue
+        return input.use {
+            serializer.readFrom(it)
         }
     }
 
@@ -102,17 +106,14 @@ private open class PathReadScope<T>(
     }
 }
 
-private class PathWriteScope<T>(
-    path: Path,
+private class FileWriteScope<T>(
+    file: PlatformFile,
     serializer: Serializer<T>,
-) : PathReadScope<T>(path, serializer), WriteScope<T> {
+) : FileReadScope<T>(file, serializer), WriteScope<T> {
 
     override suspend fun writeData(value: T) {
         checkNotClosed()
         val bytes = ByteArrayOutputStream().also { serializer.writeTo(value, it) }.toByteArray()
-        FileOutputStream(path.toFile()).use { stream ->
-            stream.write(bytes)
-            stream.fd.sync()
-        }
+        file.writeAndSync(bytes)
     }
 }

@@ -7,8 +7,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferencesFileSerializer
 import androidx.datastore.preferences.core.emptyPreferences
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CoroutineScope
-import java.io.File
 
 internal actual fun createPlatformConfigurationDataStore(scope: CoroutineScope): DataStore<Preferences> {
     val file = resolveRepository().resolveDatabaseFile("configuration.preferences_pb")
@@ -16,7 +16,7 @@ internal actual fun createPlatformConfigurationDataStore(scope: CoroutineScope):
 }
 
 internal actual fun createSimpleConfigurationDataStore(
-    file: File,
+    file: PlatformFile,
     scope: CoroutineScope,
 ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
     storage = ReplaceSafeFileStorage(PreferencesFileSerializer, file),

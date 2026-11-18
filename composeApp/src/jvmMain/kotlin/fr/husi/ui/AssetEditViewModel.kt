@@ -10,6 +10,7 @@ import fr.husi.database.AssetEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.canonicalFile
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.platform.PathLimits
 import fr.husi.repository.resolveRepository
@@ -21,6 +22,9 @@ import fr.husi.resources.filename_too_long_characters
 import fr.husi.resources.invalid_filename
 import fr.husi.resources.path_too_long_bytes
 import fr.husi.resources.path_too_long_characters
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -139,15 +143,15 @@ internal class AssetEditViewModel(
             )
         }
         val file = routeCustomGeoDir(resolveRepository().externalAssetsDir).resolve(text)
-        if (file.canonicalFile.name != text) {
+        if (file.canonicalFile().name != text) {
             return StringOrRes.Res(Res.string.invalid_filename)
         }
-        if (!limits.acceptsPath(file.absolutePath)) {
+        if (!limits.acceptsPath(file.absolutePath())) {
             return limits.tooLongMessage(
                 inBytes = Res.string.path_too_long_bytes,
                 inCharacters = Res.string.path_too_long_characters,
                 limit = limits.maxPathLength,
-                text = file.absolutePath,
+                text = file.absolutePath(),
             )
         }
         if (text != editingName && SagerDatabase.assetDao.get(text) != null) {

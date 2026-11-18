@@ -7,13 +7,13 @@ import fr.husi.proto.daemon.TailscaleEndpointStatus
 import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.MainDispatcherTest
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -132,5 +132,5 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
     }
 }
 
-private val RECEIVE_DIRECTORY = File("receive")
-private val DOWNLOAD_DIRECTORY = File("downloads")
+private val RECEIVE_DIRECTORY = PlatformFile("receive")
+private val DOWNLOAD_DIRECTORY = PlatformFile("downloads")

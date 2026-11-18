@@ -1,7 +1,10 @@
 package fr.husi.core
 
+import fr.husi.ktx.deleteRecursivelyBlocking
+import fr.husi.ktx.writeText
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import java.io.IOException
 import java.net.InetAddress
 import java.net.Socket
@@ -24,11 +27,11 @@ import kotlin.test.assertFailsWith
 
 class CoreTrustManagerTest {
 
-    private val directory: File = createTempDirectory("husi-root-certificates-test").toFile()
+    private val directory: PlatformFile = PlatformFile(createTempDirectory("husi-root-certificates-test").toString())
 
     @AfterTest
     fun deleteDirectory() {
-        directory.deleteRecursively()
+        directory.deleteRecursivelyBlocking()
     }
 
     @Test
@@ -51,7 +54,7 @@ class CoreTrustManagerTest {
         assertFailsWith<IOException> { rootCertificatesTrustManager(pemFile("")) }
     }
 
-    private fun pemFile(content: String): File =
+    private fun pemFile(content: String): PlatformFile =
         directory.resolve("roots.pem").apply { writeText(content) }
 
     private suspend fun handshakeWithLocalhostServer(trust: X509TrustManager) {

@@ -41,6 +41,7 @@ import fr.husi.proto.v1.RootCertificateStore
 import fr.husi.proto.v1.SchemaKind
 import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.URLTestOptions
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -50,7 +51,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import java.io.File
 import kotlin.time.Duration
 
 /**
@@ -360,9 +360,9 @@ open class FakeCoreClient : CoreClient {
         return detectedIP
     }
 
-    override suspend fun lookupIPCountry(dir: File, ip: String): String = detectedCountry
+    override suspend fun lookupIPCountry(dir: PlatformFile, ip: String): String = detectedCountry
 
-    override suspend fun matchRuleSets(dir: File, keyword: String): List<String> = emptyList()
+    override suspend fun matchRuleSets(dir: PlatformFile, keyword: String): List<String> = emptyList()
 
     override suspend fun getRootCertificates(store: RootCertificateStore): String = ""
 

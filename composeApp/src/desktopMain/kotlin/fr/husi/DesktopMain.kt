@@ -38,9 +38,15 @@ import fr.husi.database.SagerDatabase
 import fr.husi.database.preference.getBlocking
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
+import fr.husi.ktx.createPlatformTempFile
+import fr.husi.ktx.deleteBlocking
 import fr.husi.ktx.exitApplication
+import fr.husi.ktx.inputStream
 import fr.husi.ktx.invariantDirectoryPathString
+import fr.husi.ktx.moveReplacing
 import fr.husi.ktx.sha256Hex
+import fr.husi.ktx.toJavaFile
+import fr.husi.ktx.writeText
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.resolveDesktopRepository
@@ -52,16 +58,17 @@ import fr.husi.ui.MainScreen
 import fr.husi.ui.tailscale.TailscaleSSHWindow
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.installBundledRuleSets
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Desktop
-import java.io.File
 import java.io.RandomAccessFile
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import javax.swing.UIManager
@@ -101,7 +108,7 @@ class DesktopMain(
         private const val PREFERENCE_NODE_NAME = "/fr/husi/preference"
     }
 
-    val baseDir: File? by option(
+    val baseDir: PlatformFile? by option(
         "-d",
         "--dir",
         help = "Data directory",
@@ -372,7 +379,7 @@ class DesktopMain(
 
     private fun createDesktopRepository(instanceId: String? = null): DesktopRepository {
         val baseDir = baseDir ?: DesktopPaths.dataDir
-        baseDir.mkdirs()
+        baseDir.createDirectories()
         return DesktopRepository(baseDir, instanceId)
     }
 
@@ -473,10 +480,10 @@ private fun forwardTaskToRunningInstance(
 internal fun runningInstanceHoldsLock(
     configuration: SingleInstanceManager.Configuration,
 ): Boolean {
-    val lockFile = configuration.lockFilePath.toFile()
-    if (!lockFile.isFile) return false
+    val lockFile = PlatformFile(configuration.lockFilePath.toString())
+    if (!lockFile.isRegularFile()) return false
     return try {
-        RandomAccessFile(lockFile, "rw").use { file ->
+        RandomAccessFile(lockFile.toJavaFile(), "rw").use { file ->
             val lock = file.channel.tryLock()
             // Acquiring it means nobody was there to hold it.
             lock?.release()
@@ -494,14 +501,14 @@ internal fun sendTaskRequest(
     taskId: String,
 ): Boolean {
     return try {
-        val payload = Files.createTempFile(configuration.lockIdentifier, ".restore_request")
-        Files.write(payload, listOf(RESTORE_PAYLOAD_TASK, taskId))
-        // Nucleus watches for a created file, so the payload has to appear complete.
-        Files.move(
-            payload,
-            configuration.restoreRequestFilePath,
-            StandardCopyOption.REPLACE_EXISTING,
-        )
+        val payload = createPlatformTempFile(configuration.lockIdentifier, ".restore_request")
+        try {
+            payload.writeRestoreLines(listOf(RESTORE_PAYLOAD_TASK, taskId))
+            // Nucleus watches for a created file, so the payload has to appear complete.
+            payload.moveReplacing(PlatformFile(configuration.restoreRequestFilePath.toString()))
+        } finally {
+            payload.deleteBlocking()
+        }
         true
     } catch (e: Exception) {
         Logs.w("forward task $taskId to the running instance", e)
@@ -527,13 +534,17 @@ private fun writeRestorePayload(path: Path, restoreWindow: Boolean, deepLinks: L
         add(if (restoreWindow) RESTORE_PAYLOAD_RESTORE else RESTORE_PAYLOAD_SILENT)
         addAll(deepLinks)
     }
-    Files.write(path, lines)
+    PlatformFile(path.toString()).writeRestoreLines(lines)
+}
+
+private fun PlatformFile.writeRestoreLines(lines: List<String>) {
+    writeText(lines.joinToString(System.lineSeparator(), postfix = System.lineSeparator()))
 }
 
 /** Runs on the Nucleus watcher thread of the primary instance. */
 private fun handleRestoreRequest(path: Path) {
     val lines = try {
-        Files.readAllLines(path)
+        PlatformFile(path.toString()).inputStream().bufferedReader().use { it.readLines() }
     } catch (e: Exception) {
         Logs.w("read single-instance restore request", e)
         return

@@ -85,6 +85,7 @@ import fr.husi.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.asKxsMap
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.canonicalFile
 import fr.husi.ktx.defaultOr
 import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.isIpAddress
@@ -101,10 +102,10 @@ import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.PlatformFile
 import io.github.xchacha20_poly1305.kpuri.Url
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.JsonPrimitive
-import java.io.File
 
 // Inbound
 const val TAG_MIXED = "mixed-in"
@@ -1031,7 +1032,7 @@ suspend fun buildConfig(
                     val canDialDirect = !bean.canMapping || ((canProtect || canBypass) && needDirectRoute)
                     if (canDialDirect && canBypass) {
                         val executable = PluginManager.init(bean.pluginEntry().pluginId)!!.path
-                        bypassPluginPaths.add(File(executable).canonicalFile.invariantPathString())
+                        bypassPluginPaths.add(PlatformFile(executable).canonicalFile().invariantPathString())
                     }
                     if (canDialDirect && canProtect && isVPN) { // Only VPN needs protect.
                         protectedPluginPorts.add(pluginPort)

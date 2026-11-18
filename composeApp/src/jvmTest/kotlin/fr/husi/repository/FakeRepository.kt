@@ -1,9 +1,11 @@
 package fr.husi.repository
 
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
-import java.io.File
 import kotlin.io.path.createTempDirectory
 
 internal fun stubResourceString(key: String, formatArgs: Array<out Any>): String {
@@ -19,11 +21,11 @@ class FakeRepository : LocalRepository {
     override val preferenceStoreDispatcher = Dispatchers.Unconfined
 
     @Suppress("NewApi")
-    private val tempRoot = createTempDirectory("husi-fake-repo").toFile()
-    override val cacheDir = tempRoot.resolve("cache").apply { mkdirs() }
-    override val filesDir = tempRoot.resolve("files").apply { mkdirs() }
-    override val externalAssetsDir = tempRoot.resolve("external").apply { mkdirs() }
-    override fun resolveDatabaseFile(name: String): File {
+    private val tempRoot = PlatformFile(createTempDirectory("husi-fake-repo").toString())
+    override val cacheDir = tempRoot.resolve("cache").apply { createDirectories() }
+    override val filesDir = tempRoot.resolve("files").apply { createDirectories() }
+    override val externalAssetsDir = tempRoot.resolve("external").apply { createDirectories() }
+    override fun resolveDatabaseFile(name: String): PlatformFile {
         return tempRoot.resolve(name)
     }
 

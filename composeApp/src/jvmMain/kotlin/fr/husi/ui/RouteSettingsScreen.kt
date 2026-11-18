@@ -79,6 +79,7 @@ import fr.husi.fmt.RuleItem
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
+import fr.husi.ktx.listFilesOrNull
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -163,7 +164,10 @@ import fr.husi.ui.jsoneditor.ConfigSchema
 import fr.husi.ui.profile.tlsSpoofMethod
 import fr.husi.ui.tools.RuleSetMatchDialog
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.extension
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.nameWithoutExtension
 import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -1202,15 +1206,15 @@ internal fun selectedLine(text: String, selection: TextRange): SelectedLine? {
 private fun RuleSetAutoCompleteTextField(
     state: TextFieldState,
     onOk: () -> Unit,
-    geoDirs: List<File>,
+    geoDirs: List<PlatformFile>,
     modifier: Modifier = Modifier,
 ) {
     var ruleSets by remember { mutableStateOf(emptyList<String>()) }
     LaunchedEffect(geoDirs) {
         ruleSets = withContext(Dispatchers.IO) {
             geoDirs.flatMap { dir ->
-                dir.listFiles()
-                    ?.filter { it.isFile && it.extension == "srs" }
+                dir.listFilesOrNull()
+                    ?.filter { it.isRegularFile() && it.extension == "srs" }
                     ?.map { it.nameWithoutExtension }
                     .orEmpty()
             }.distinct().sorted()

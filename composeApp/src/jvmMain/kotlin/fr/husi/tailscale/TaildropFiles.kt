@@ -1,11 +1,19 @@
 package fr.husi.tailscale
 
 import fr.husi.core.CoreClient
+import fr.husi.ktx.asOkioSink
+import fr.husi.ktx.atomicReplace
+import fr.husi.ktx.createPlatformTempFile
+import fr.husi.ktx.deleteBlocking
 import fr.husi.proto.daemon.TaildropFile
 import fr.husi.proto.daemon.TaildropReceivingFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.resolve
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import okio.buffer
-import okio.sink
-import java.io.File
 import java.net.URLConnection
 
 const val TAILDROP_DIRECTORY_NAME = "Taildrop"
@@ -43,33 +51,26 @@ fun taildropMimeType(name: String): String {
 
 suspend fun materializeTaildropFile(
     coreClient: CoreClient,
-    receiveDirectory: File?,
-    downloadDirectory: File,
+    receiveDirectory: PlatformFile?,
+    downloadDirectory: PlatformFile,
     endpointTag: String,
     name: String,
-): File {
+): PlatformFile {
     if (!isTaildropPathSegment(name)) error("invalid taildrop file name")
-    receiveDirectory?.resolve(name)?.takeIf { it.isFile }?.let { return it }
-    downloadDirectory.mkdirs()
+    receiveDirectory?.resolve(name)?.takeIf { it.isRegularFile() }?.let { return it }
+    downloadDirectory.createDirectories()
     val destination = downloadDirectory.resolve(name)
-    val partial = downloadDirectory.resolve(name + TAILDROP_PARTIAL_SUFFIX)
+    val partial = createPlatformTempFile("taildrop-", TAILDROP_PARTIAL_SUFFIX, downloadDirectory)
     try {
-        partial.sink().buffer().use { sink ->
+        partial.asOkioSink().buffer().use { sink ->
             coreClient.downloadTaildropFile(endpointTag, name).collect { chunk ->
                 sink.write(chunk.data_)
             }
         }
-    } catch (e: Throwable) {
-        partial.delete()
-        throw e
-    }
-    if (destination.exists() && !destination.delete()) {
-        partial.delete()
-        error("failed to replace $name")
-    }
-    if (!partial.renameTo(destination)) {
-        partial.copyTo(destination, overwrite = true)
-        partial.delete()
+        currentCoroutineContext().ensureActive()
+        partial.atomicReplace(destination)
+    } finally {
+        partial.deleteBlocking()
     }
     return destination
 }

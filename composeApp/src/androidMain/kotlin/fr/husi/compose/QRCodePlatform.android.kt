@@ -13,6 +13,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
+import fr.husi.ktx.toJavaFile
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
@@ -22,7 +23,6 @@ import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.nio.charset.StandardCharsets
 
 actual fun generateQRCodeBitmap(content: String, size: Int): ImageBitmap? {
@@ -70,13 +70,12 @@ actual suspend fun shareQRCodeImage(
 ) = withContext(Dispatchers.IO) {
     try {
         val context = resolveAndroidRepository().context
-        val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
+        val cacheDir = PlatformFile(resolveRepository().cacheDir, "qrcodes")
         cacheDir.createDirectories()
         val platformFile = PlatformFile(cacheDir, "$name.png")
         platformFile.write(pngBytes)
 
-        val javaFile = File(resolveRepository().cacheDir, "qrcodes/$name.png")
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", javaFile)
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", platformFile.toJavaFile())
 
         val shareIntent = Intent(Intent.ACTION_SEND)
             .setType("image/png")

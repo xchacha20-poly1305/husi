@@ -3,8 +3,9 @@ package fr.husi.utils
 import fr.husi.LOG_FILE_NAME
 import fr.husi.ktx.Logs
 import fr.husi.ktx.fileNameTimestamp
-import java.io.File
-import java.io.FileInputStream
+import fr.husi.ktx.readText
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.resolve
 import java.io.IOException
 
 internal expect fun dumpPlatformLogcat(): String
@@ -32,7 +33,7 @@ object SendLog {
                 "the target's startup, and the target only streams what its own log level allows."
     private val unsafeFileNameCharacters = Regex("[^A-Za-z0-9._-]")
 
-    fun buildLocalLog(externalAssetsDir: File): LogExport = LogExport(
+    fun buildLocalLog(externalAssetsDir: PlatformFile): LogExport = LogExport(
         fileName = buildFileName(LOCAL_TARGET_NAME),
         content = buildString {
             append(CrashReport.buildReportHeader())
@@ -76,11 +77,10 @@ object SendLog {
         return "$FILE_NAME_PREFIX-$safeName-${fileNameTimestamp()}$FILE_NAME_EXTENSION"
     }
 
-    private fun getCoreLog(externalAssetsDir: File): String {
+    private fun getCoreLog(externalAssetsDir: PlatformFile): String {
         return try {
             val logFile = externalAssetsDir.resolve(LOG_FILE_NAME)
-            val stream = FileInputStream(logFile)
-            stream.use { it.readBytes() }.toString(Charsets.UTF_8)
+            logFile.readText()
         } catch (e: Exception) {
             e.stackTraceToString()
         }

@@ -9,6 +9,7 @@ import fr.husi.proto.v1.ClientMetadata
 import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -51,7 +52,7 @@ class CoreHostControllerMirrorTest : HusiKoinTest() {
         tempDir = createTempDirectory("husi-core-host-mirror").toFile()
         fakeClient = FakeCoreClient()
         controller = CoreHostController(
-            repository = FakeDesktopRepository(tempDir),
+            repository = FakeDesktopRepository(PlatformFile(tempDir)),
             resolveCoreClient = { fakeClient },
             // No core binary: a session restart is attempted but never spawns.
             resolveCoreBinary = { null },

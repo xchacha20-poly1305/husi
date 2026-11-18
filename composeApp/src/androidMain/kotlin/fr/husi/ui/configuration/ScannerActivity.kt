@@ -73,6 +73,7 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.theme.AppTheme
 import fr.husi.ktx.forEachTry
+import fr.husi.ktx.toAndroidUri
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
@@ -92,7 +93,6 @@ import fr.husi.resources.subscription_import
 import fr.husi.ui.ComposeActivity
 import fr.husi.ui.MainActivity
 import fr.husi.ui.getStringOrRes
-import io.github.vinceglb.filekit.AndroidFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -248,7 +248,7 @@ private fun ScannerScreen(
         scope.launch {
             try {
                 files.forEachTry { file ->
-                    val uri = (file.androidFile as AndroidFile.UriWrapper).uri
+                    val uri = file.toAndroidUri()
                     viewModel.importFromUri(uri, context.contentResolver)
                 }
             } catch (e: Exception) {

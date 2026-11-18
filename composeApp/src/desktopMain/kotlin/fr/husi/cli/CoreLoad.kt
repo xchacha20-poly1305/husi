@@ -6,8 +6,10 @@ import fr.husi.core.WireCoreClient
 import fr.husi.ktx.Logs
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.CoreHostController
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.runBlocking
-import java.io.File
 
 fun connectClient(socketBasePath: String): CoreClient? {
     val client = WireCoreClient.local { socketBasePath }
@@ -49,13 +51,13 @@ internal fun connectExistingHost(
 
 /** Both socket paths [connectExistingHost] tries, for user-facing diagnostics. */
 fun hostSocketPaths(sessionBasePath: String): List<String> {
-    val sessionSocket = File(sessionBasePath, CORE_SOCKET_NAME).path
+    val sessionSocket = PlatformFile(sessionBasePath).resolve(CORE_SOCKET_NAME).path
     val daemonBasePath = CoreHostController.daemonSocketBasePath()
     val daemonSocket = if (PlatformInfo.isWindows) {
         // The Windows daemon endpoint is the named pipe itself, not a directory.
         daemonBasePath
     } else {
-        File(daemonBasePath, CORE_SOCKET_NAME).path
+        PlatformFile(daemonBasePath).resolve(CORE_SOCKET_NAME).path
     }
     return listOf(daemonSocket, sessionSocket)
 }

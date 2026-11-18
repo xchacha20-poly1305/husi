@@ -22,8 +22,15 @@ import fr.husi.database.ProfileManager
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
+import fr.husi.ktx.atomicReplace
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.canExecute
+import fr.husi.ktx.createPlatformTempFile
+import fr.husi.ktx.deleteBlocking
 import fr.husi.ktx.readableMessage
+import fr.husi.ktx.toAbsoluteFile
+import fr.husi.ktx.toJavaFile
+import fr.husi.ktx.writeText
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginNotFoundException
@@ -35,11 +42,20 @@ import fr.husi.proto.v1.RootCertificateStore
 import fr.husi.proto.v1.ServiceOptions
 import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.TunBackend
+import fr.husi.resolvePackagedLauncherExecutable
 import fr.husi.resources.Res
 import fr.husi.resources.invalid_server
 import fr.husi.resources.profile_empty
 import fr.husi.resources.service_failed
 import fr.husi.resources.tun_backend_required
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -58,11 +74,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.context.GlobalContext
-import okio.FileSystem
-import okio.Path.Companion.toOkioPath
 import java.io.File
 import java.io.IOException
 import java.net.UnknownHostException
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -88,7 +103,7 @@ private enum class SessionTeardown {
 internal class CoreHostController(
     private val repository: DesktopRepository,
     private val resolveCoreClient: () -> CoreClient = { GlobalContext.get().get() },
-    private val resolveCoreBinary: () -> File? = ::resolveHusiCoreBinary,
+    private val resolveCoreBinary: () -> PlatformFile? = ::resolveHusiCoreBinary,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val systemProxyBackend: SystemProxyBackend = platformSystemProxyBackend(),
     private val daemonBasePath: String = daemonSocketBasePath(),
@@ -102,7 +117,7 @@ internal class CoreHostController(
     private var runningProfileName: String? = null
     var trafficLooper: TrafficLooper? = null
         private set
-    private val cacheFiles = ArrayList<File>()
+    private val cacheFiles = ArrayList<PlatformFile>()
 
     private var sessionProcess: Process? = null
     private var sessionStdin: java.io.OutputStream? = null
@@ -166,7 +181,7 @@ internal class CoreHostController(
 
     private var systemProxyApplied = false
 
-    private val coreRunDir: File
+    private val coreRunDir: PlatformFile
         get() = repository.coreRunDir
 
     private val socketBasePath: String
@@ -331,15 +346,12 @@ internal class CoreHostController(
         try {
             val pem = coreClient.getRootCertificates(rootCertificateStore(DataStore.certProvider.get()))
             val directory = repository.externalAssetsDir
-            val pending = File.createTempFile("husi-roots-", ".pem", directory)
+            val pending = createPlatformTempFile("husi-roots-", ".pem", directory)
             try {
                 pending.writeText(pem)
-                FileSystem.SYSTEM.atomicMove(
-                    pending.toOkioPath(),
-                    directory.resolve(PLUGIN_CA_FILE).toOkioPath(),
-                )
+                pending.atomicReplace(directory.resolve(PLUGIN_CA_FILE))
             } finally {
-                pending.delete()
+                pending.deleteBlocking()
             }
         } catch (e: CancellationException) {
             throw e
@@ -682,7 +694,7 @@ internal class CoreHostController(
         }
 
         cacheFiles.forEach { file ->
-            runCatching { file.delete() }
+            runCatching { file.deleteBlocking() }
         }
         cacheFiles.clear()
     }
@@ -739,7 +751,7 @@ internal class CoreHostController(
         foreignOwner = null
         publishHostState()
 
-        coreRunDir.mkdirs()
+        coreRunDir.createDirectories()
         val binary = resolveCoreBinary()
             ?: throw IOException("husi-core binary not found (looked in: ${describeHusiCoreSearchLocations()})")
 
@@ -748,17 +760,17 @@ internal class CoreHostController(
         val socketPath = coreRunDir.resolve(CORE_SOCKET_NAME)
 
         val command = listOf(
-            binary.absolutePath,
+            binary.absolutePath(),
             "session",
             "--dir",
-            coreRunDir.absolutePath,
+            coreRunDir.absolutePath(),
             "--socket",
-            socketPath.absolutePath,
+            socketPath.absolutePath(),
         )
         Logs.i("starting core host: ${command.joinToString(" ")}")
 
         val process = ProcessBuilder(command)
-            .directory(coreRunDir)
+            .directory(coreRunDir.toJavaFile())
             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
             .redirectError(ProcessBuilder.Redirect.INHERIT)
             .start()
@@ -984,7 +996,7 @@ internal class CoreHostController(
          * Windows named pipes are not, so we always attempt dial there.
          */
         internal fun daemonSocketPresent(basePath: String): Boolean {
-            return PlatformInfo.isWindows || File(basePath).resolve("api.sock").exists()
+            return PlatformInfo.isWindows || PlatformFile(basePath).resolve("api.sock").exists()
         }
     }
 }
@@ -1002,14 +1014,18 @@ internal fun rootCertificateStore(certProvider: Int): RootCertificateStore = whe
  * 2. `libcore/build/<os>_<arch>/husi-core` relative to the working directory (dev)
  * 3. `PATH`
  */
-internal fun resolveHusiCoreBinary(): File? {
+internal fun resolveHusiCoreBinary(): PlatformFile? {
     val binaryName = husiCoreBinaryName()
 
-    resolvePackagedCoreSibling(binaryName)?.takeIf { it.canExecuteOrWindows() }?.let { return it }
+    resolvePackagedCoreSibling(binaryName)
+        ?.takeIf { it.canExecuteOrWindows() }
+        ?.let { return it }
 
-    devHusiCoreCandidates(binaryName)
-        .firstOrNull { it.isFile && it.canExecuteOrWindows() }
-        ?.let { return it.absoluteFile }
+    devHusiCoreCandidates(binaryName).firstOrNull {
+        it.isRegularFile() && it.canExecuteOrWindows()
+    }?.let {
+        return it.toAbsoluteFile()
+    }
 
     return resolveOnPath(binaryName)
 }
@@ -1018,14 +1034,14 @@ internal fun husiCoreBinaryName(): String {
     return if (PlatformInfo.isWindows) "husi-core.exe" else "husi-core"
 }
 
-private fun devHusiCoreCandidates(binaryName: String): List<File> {
+private fun devHusiCoreCandidates(binaryName: String): List<PlatformFile> {
     val relativePath = "libcore/build/${hostCoreBuildDirName()}/$binaryName"
     // Anchored on the JVM launch directory, so a `gradlew run` from the repository finds
     // the binary `make core_desktop` built.
-    val launchDir = File(System.getProperty("user.dir").orEmpty()).absoluteFile
+    val launchDir = PlatformFile(System.getProperty("user.dir").orEmpty()).toAbsoluteFile()
     return listOfNotNull(
         launchDir.resolve(relativePath),
-        launchDir.parentFile?.resolve(relativePath),
+        launchDir.parent()?.resolve(relativePath),
     )
 }
 
@@ -1036,7 +1052,7 @@ internal fun describeHusiCoreSearchLocations(): String {
     val locations = buildList {
         add("packaged sibling of the launcher/app")
         devHusiCoreCandidates(husiCoreBinaryName()).forEach {
-            add("${it.absolutePath} [isFile=${it.isFile} canExecute=${it.canExecute()}]")
+            add("${it.absolutePath()} [isFile=${it.isRegularFile()} canExecute=${it.canExecute()}]")
         }
         add("PATH")
     }
@@ -1046,26 +1062,26 @@ internal fun describeHusiCoreSearchLocations(): String {
 /**
  * Packaged-install sibling of the launcher / app tree (not the dev build dir).
  */
-private fun resolvePackagedCoreSibling(fileName: String): File? {
-    val launcher = fr.husi.resolvePackagedLauncherExecutable()
+private fun resolvePackagedCoreSibling(fileName: String): PlatformFile? {
+    val launcher = resolvePackagedLauncherExecutable()
     if (launcher != null) {
-        val sibling = launcher.parentFile?.resolve(fileName)
-        if (sibling != null && sibling.isFile) {
-            return sibling.absoluteFile
+        val sibling = launcher.parent()?.resolve(fileName)
+        if (sibling != null && sibling.isRegularFile()) {
+            return sibling.toAbsoluteFile()
         }
     }
 
     val codeSource = CoreHostController::class.java.protectionDomain?.codeSource?.location
         ?: return null
     val runtimePath = runCatching {
-        File(codeSource.toURI())
+        PlatformFile(Path.of(codeSource.toURI()).toString())
     }.getOrElse {
-        File(codeSource.path)
+        PlatformFile(codeSource.path)
     }
-    val appDir = runtimePath.parentFile
-        ?.takeIf { runtimePath.isFile && it.name == "app" }
+    val appDir = runtimePath.parent()
+        ?.takeIf { runtimePath.isRegularFile() && it.name == "app" }
         ?: return null
-    val appRoot = appDir.parentFile ?: return null
+    val appRoot = appDir.parent() ?: return null
 
     val searchDirs = when (PlatformInfo.platform) {
         Platform.Linux -> listOf(appRoot.resolve("bin"), appRoot)
@@ -1075,8 +1091,8 @@ private fun resolvePackagedCoreSibling(fileName: String): File? {
     }
     for (dir in searchDirs) {
         val candidate = dir.resolve(fileName)
-        if (candidate.isFile) {
-            return candidate.absoluteFile
+        if (candidate.isRegularFile()) {
+            return candidate.toAbsoluteFile()
         }
     }
     return null
@@ -1097,19 +1113,19 @@ private fun hostCoreBuildDirName(): String {
     return "${os}_$arch"
 }
 
-internal fun resolveOnPath(binaryName: String): File? {
+internal fun resolveOnPath(binaryName: String): PlatformFile? {
     val path = System.getenv("PATH") ?: return null
-    val separator = File.pathSeparatorChar
+    val separator = File.pathSeparator.single()
     for (entry in path.split(separator)) {
         if (entry.isBlank()) continue
-        val candidate = File(entry, binaryName)
-        if (candidate.isFile && candidate.canExecuteOrWindows()) {
-            return candidate.absoluteFile
+        val candidate = PlatformFile(entry).resolve(binaryName)
+        if (candidate.isRegularFile() && candidate.canExecuteOrWindows()) {
+            return candidate.toAbsoluteFile()
         }
     }
     return null
 }
 
-private fun File.canExecuteOrWindows(): Boolean {
+private fun PlatformFile.canExecuteOrWindows(): Boolean {
     return PlatformInfo.isWindows || canExecute()
 }

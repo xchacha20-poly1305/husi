@@ -4,9 +4,13 @@ import dev.nucleusframework.autolaunch.AutoLaunch
 import dev.nucleusframework.autolaunch.AutoLaunchConfig
 import dev.nucleusframework.autolaunch.AutoLaunchResult
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteBlocking
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.resolve
 
 /** Outcome of a [DesktopAutoStart.setEnabled] call, for the settings row to report. */
 internal enum class AutoStartResult {
@@ -27,7 +31,7 @@ internal object DesktopAutoStart {
     private const val EXECUTABLE_TYPE_PROPERTY = "nucleus.executable.type"
 
     /** Null in dev runs, where the app is only reachable through a multi-part java command. */
-    private var packagedLauncher: File? = null
+    private var packagedLauncher: PlatformFile? = null
     private var initialized = false
 
     private fun ensureInitialized() {
@@ -41,7 +45,7 @@ internal object DesktopAutoStart {
             return
         }
 
-        AutoLaunchConfig.executablePath = launcher.absolutePath
+        AutoLaunchConfig.executablePath = launcher.absolutePath()
         // Consumed on Windows only, appended verbatim to the Run registry command line so
         // both flags arrive as separate arguments. The Linux systemd unit and the macOS
         // SMAppService registration cannot carry arguments; wasStartedAtLogin covers them.
@@ -113,7 +117,7 @@ internal object DesktopAutoStart {
             else -> return
         }
         if (!removeLegacyAutoStartEntry(legacyEntry)) return
-        Logs.i("removed legacy auto-start entry ${legacyEntry.absolutePath}")
+        Logs.i("removed legacy auto-start entry ${legacyEntry.absolutePath()}")
         // The legacy entry only existed while auto-start was enabled; carry that over.
         runCatching {
             AutoLaunch.enable()
@@ -124,7 +128,7 @@ internal object DesktopAutoStart {
 }
 
 /** @return whether a legacy auto-start entry existed and was removed. */
-internal fun removeLegacyAutoStartEntry(entry: File): Boolean {
-    if (!entry.isFile) return false
-    return entry.delete()
+internal fun removeLegacyAutoStartEntry(entry: PlatformFile): Boolean {
+    if (!entry.isRegularFile()) return false
+    return entry.deleteBlocking()
 }

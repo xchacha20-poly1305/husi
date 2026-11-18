@@ -1,18 +1,24 @@
 package fr.husi.bg
 
+import androidx.compose.ui.util.fastCoerceAtLeast
+import fr.husi.ktx.deleteBlocking
+import fr.husi.ktx.listFilesOrNull
 import fr.husi.ktx.sha256Hex
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.buildUserAgent
 import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveHttpFetcher
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 
 private const val UPDATE_CACHE_DIR_NAME = "update"
 
-internal fun appUpdateCacheDir(cacheDir: File): File = cacheDir.resolve(UPDATE_CACHE_DIR_NAME)
+internal fun appUpdateCacheDir(cacheDir: PlatformFile): PlatformFile = cacheDir.resolve(UPDATE_CACHE_DIR_NAME)
 
 class AppUpdateSizeMismatch(expected: Long, actual: Long) :
     IllegalStateException("the downloaded package is $actual bytes, expected $expected")
@@ -22,15 +28,19 @@ class AppUpdateChecksumMismatch(expected: String, actual: String) :
 
 suspend fun downloadAppUpdate(
     info: AppUpdateInfo,
-    cacheDir: File,
+    cacheDir: PlatformFile,
     httpFetcher: HttpFetcher = resolveHttpFetcher(),
     updateProgress: UpdateProgress = {},
-): File = withContext(Dispatchers.IO) {
+): PlatformFile = withContext(Dispatchers.IO) {
     val downloadUrl = requireNotNull(info.downloadUrl) { "no installable asset for this release" }
     val assetName = requireNotNull(info.assetName) { "no installable asset for this release" }
 
-    val targetDir = appUpdateCacheDir(cacheDir).also { it.mkdirs() }
-    targetDir.listFiles()?.forEach { it.delete() }
+    val targetDir = appUpdateCacheDir(cacheDir).also {
+        it.createDirectories()
+    }
+    targetDir.listFilesOrNull()?.forEach {
+        it.deleteBlocking()
+    }
     val targetFile = targetDir.resolve(assetName)
 
     val request = HttpFetchRequest(
@@ -47,17 +57,17 @@ suspend fun downloadAppUpdate(
         }
     }
 
-    val downloadedSize = targetFile.length()
+    val downloadedSize = targetFile.size().fastCoerceAtLeast(0)
     val expectedSize = info.sizeBytes
     if (downloadedSize == 0L || (expectedSize > 0L && downloadedSize != expectedSize)) {
-        targetFile.delete()
+        targetFile.deleteBlocking()
         throw AppUpdateSizeMismatch(expectedSize, downloadedSize)
     }
 
     info.sha256?.let { expectedHash ->
         val downloadedHash = targetFile.sha256Hex()
         if (!downloadedHash.equals(expectedHash, ignoreCase = true)) {
-            targetFile.delete()
+            targetFile.deleteBlocking()
             throw AppUpdateChecksumMismatch(expectedHash, downloadedHash)
         }
     }

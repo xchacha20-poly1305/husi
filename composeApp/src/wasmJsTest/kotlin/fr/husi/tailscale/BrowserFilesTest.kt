@@ -3,6 +3,7 @@
 package fr.husi.tailscale
 
 import fr.husi.ktx.BrowserBytes
+import fr.husi.ktx.read
 import fr.husi.ktx.toBrowserBytes
 import io.github.vinceglb.filekit.BrowserFile
 import io.github.vinceglb.filekit.PlatformFile

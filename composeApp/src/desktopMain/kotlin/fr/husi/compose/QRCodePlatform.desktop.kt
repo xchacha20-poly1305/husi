@@ -7,6 +7,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
+import fr.husi.ktx.toJavaFile
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
@@ -17,7 +18,6 @@ import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
 import java.awt.Desktop
-import java.io.File
 import java.nio.charset.StandardCharsets
 
 actual fun generateQRCodeBitmap(content: String, size: Int): ImageBitmap? {
@@ -77,13 +77,13 @@ actual suspend fun shareQRCodeImage(
     name: String,
 ) = withContext(Dispatchers.IO) {
     try {
-        val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
+        val cacheDir = PlatformFile(resolveRepository().cacheDir, "qrcodes")
         cacheDir.createDirectories()
         val platformFile = PlatformFile(cacheDir, "$name.png")
         platformFile.write(pngBytes)
 
         if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().open(File(resolveRepository().cacheDir, "qrcodes/$name.png"))
+            Desktop.getDesktop().open(platformFile.toJavaFile())
         }
     } catch (e: Exception) {
         Logs.e(e)

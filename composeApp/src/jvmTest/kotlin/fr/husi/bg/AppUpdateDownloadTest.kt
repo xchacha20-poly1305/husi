@@ -1,9 +1,16 @@
 package fr.husi.bg
 
+import fr.husi.ktx.deleteRecursivelyBlocking
+import fr.husi.ktx.outputStream
 import fr.husi.ktx.sha256Hex
 import fr.husi.test.HusiHttpKoinTest
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -21,11 +28,11 @@ private const val ASSET_SHA256 =
 
 class AppUpdateDownloadTest : HusiHttpKoinTest() {
 
-    private val cacheDir: File = createTempDirectory("husi-update-test").toFile()
+    private val cacheDir: PlatformFile = PlatformFile(createTempDirectory("husi-update-test").toString())
 
     @AfterTest
     fun removeCacheDir() {
-        cacheDir.deleteRecursively()
+        cacheDir.deleteRecursivelyBlocking()
     }
 
     private fun info(sizeBytes: Long = ASSET_SIZE, sha256: String? = null) = AppUpdateInfo(
@@ -45,7 +52,7 @@ class AppUpdateDownloadTest : HusiHttpKoinTest() {
         val apk = downloadAppUpdate(info(), cacheDir, fakeHttp)
 
         assertEquals(ASSET_NAME, apk.name)
-        assertEquals(ASSET_SIZE, apk.length())
+        assertEquals(ASSET_SIZE, apk.size())
     }
 
     @Test
@@ -84,22 +91,26 @@ class AppUpdateDownloadTest : HusiHttpKoinTest() {
 
         val apk = downloadAppUpdate(info(sizeBytes = 0L), cacheDir, fakeHttp)
 
-        assertEquals(ASSET_SIZE, apk.length())
+        assertEquals(ASSET_SIZE, apk.size())
     }
 
     @Test
     fun `download clears the cache directory before writing`() = runTest {
-        val stale = appUpdateCacheDir(cacheDir).also { it.mkdirs() }.resolve("husi-1.0.0-x86.apk")
-        stale.writeBytes(ByteArray(8))
+        val stale = appUpdateCacheDir(cacheDir).also { it.createDirectories() }.resolve("husi-1.0.0-x86.apk")
+        stale.outputStream().use {
+            it.write(ByteArray(8))
+        }
         val partial = appUpdateCacheDir(cacheDir).resolve(ASSET_NAME)
-        partial.writeBytes(ByteArray(8))
+        partial.outputStream().use {
+            it.write(ByteArray(8))
+        }
         fakeHttp.nextDownloadBytes = ASSET_SIZE
 
         val apk = downloadAppUpdate(info(), cacheDir, fakeHttp)
 
         assertFalse(stale.exists())
         assertTrue(apk.exists())
-        assertEquals(ASSET_SIZE, apk.length())
+        assertEquals(ASSET_SIZE, apk.size())
     }
 
     @Test

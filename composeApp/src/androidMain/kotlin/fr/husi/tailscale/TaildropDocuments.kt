@@ -3,7 +3,11 @@ package fr.husi.tailscale
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
 
 private const val TAILDROP_DOCUMENTS_AUTHORITY_SUFFIX = ".taildrop"
 
@@ -14,12 +18,12 @@ internal enum class TaildropDocumentRoot(val rootId: String, val directoryName: 
     Downloads("taildrop-downloads", TAILDROP_DOWNLOAD_DIRECTORY_NAME),
     ;
 
-    fun directory(context: Context): File = context.noBackupFilesDir.resolve(directoryName)
+    fun directory(context: Context): PlatformFile = PlatformFile(context.noBackupFilesDir).resolve(directoryName)
 
     fun fileDocumentId(name: String): String = "$rootId/$name"
 
     companion object {
-        fun ofDirectory(context: Context, directory: File): TaildropDocumentRoot? =
+        fun ofDirectory(context: Context, directory: PlatformFile): TaildropDocumentRoot? =
             entries.firstOrNull { root -> root.directory(context) == directory }
     }
 }
@@ -38,12 +42,12 @@ internal fun parseTaildropDocumentId(documentId: String): TaildropDocument? {
 internal fun taildropDocumentsAuthority(context: Context): String =
     context.packageName + TAILDROP_DOCUMENTS_AUTHORITY_SUFFIX
 
-internal fun isTaildropReceivedFile(file: File): Boolean =
-    file.isFile && TAILDROP_INTERNAL_SUFFIXES.none { suffix -> file.name.endsWith(suffix) }
+internal fun isTaildropReceivedFile(file: PlatformFile): Boolean =
+    file.isRegularFile() && TAILDROP_INTERNAL_SUFFIXES.none { suffix -> file.name.endsWith(suffix) }
 
 /** The document URI of [file], or null when it is not a received file directly under a root. */
-internal fun taildropDocumentUri(context: Context, file: File): Uri? {
-    val parent = file.parentFile ?: return null
+internal fun taildropDocumentUri(context: Context, file: PlatformFile): Uri? {
+    val parent = file.parent() ?: return null
     val root = TaildropDocumentRoot.ofDirectory(context, parent) ?: return null
     if (!isTaildropReceivedFile(file)) return null
     return DocumentsContract.buildDocumentUri(

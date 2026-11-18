@@ -3,7 +3,7 @@ package fr.husi.ktx
 import android.util.Log
 import fr.husi.libcore.Libcore
 import fr.husi.proto.daemon.LogLevel
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 
 actual object Logs {
 
@@ -13,7 +13,7 @@ actual object Logs {
     @Volatile
     private var coreAttached = false
 
-    fun openFile(logFile: File, level: Int) {
+    fun openFile(logFile: PlatformFile, level: Int) {
         file?.close()
         val threshold = LogLevel.fromValue(level)
             .takeUnless { it is LogLevel.Unrecognized }

@@ -8,18 +8,19 @@ import fr.husi.compose.theme.AppTheme
 import fr.husi.database.preference.createSimpleConfigurationDataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.repository.LocalRepository
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.CoroutineScope
 import org.koin.core.Koin
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.stopKoin
-import java.io.File
 import kotlin.io.path.createTempDirectory
 
 @Suppress("NewApi")
-internal fun createPreviewRoot(): File = createTempDirectory("husi-preview").toFile()
+internal fun createPreviewRoot(): PlatformFile = PlatformFile(createTempDirectory("husi-preview").toString())
 
 internal fun previewConfigurationDataStore(
-    root: File,
+    root: PlatformFile,
     scope: CoroutineScope,
 ): DataStore<Preferences> = createSimpleConfigurationDataStore(
     root.resolve("configuration.preferences_pb"),

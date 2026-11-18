@@ -3,12 +3,15 @@ package fr.husi.core
 import com.squareup.wire.GrpcClient
 import com.squareup.wire.GrpcStatus
 import fr.husi.CORE_SOCKET_NAME
+import fr.husi.ktx.inputStream
 import fr.husi.ktx.wrapIPV6Host
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.resolve
 import okhttp3.Dispatcher
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
-import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.InetAddress
@@ -33,7 +36,7 @@ internal fun localCoreSocketPath(basePath: String): String {
     return if (isCorePipePath(basePath)) {
         basePath
     } else {
-        File(basePath, CORE_SOCKET_NAME).path
+        PlatformFile(basePath).resolve(CORE_SOCKET_NAME).path
     }
 }
 
@@ -92,7 +95,7 @@ internal fun openLocalCoreChannel(basePath: String): CoreChannel =
             .dns { listOf(InetAddress.getByAddress(byteArrayOf(127, 0, 0, 1))) },
     )
 
-internal fun openRemoteCoreChannel(serverUrl: String, secret: String, roots: File?): CoreChannel {
+internal fun openRemoteCoreChannel(serverUrl: String, secret: String, roots: PlatformFile?): CoreChannel {
     val address = remoteCoreAddress(serverUrl)
     val builder = coreHttpClient()
     if (!address.tls) {
@@ -176,7 +179,7 @@ private class CoreTlsSocketFactory(private val trust: X509TrustManager) : SSLSoc
 
 /** Loads the selected roots on every new TLS handshake, including after a reconnect. */
 @Suppress("CustomX509TrustManager")
-internal class CoreTrustManager(private val pemFile: File) : X509TrustManager {
+internal class CoreTrustManager(private val pemFile: PlatformFile) : X509TrustManager {
     override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) =
         load().checkServerTrusted(chain, authType)
 
@@ -200,7 +203,7 @@ internal class CoreTrustManager(private val pemFile: File) : X509TrustManager {
 }
 
 /** The roots selected by the app, as exported by the core. */
-internal fun rootCertificatesTrustManager(pemFile: File): X509TrustManager {
+internal fun rootCertificatesTrustManager(pemFile: PlatformFile): X509TrustManager {
     return pemFile.inputStream().use(::rootCertificatesTrustManager)
 }
 

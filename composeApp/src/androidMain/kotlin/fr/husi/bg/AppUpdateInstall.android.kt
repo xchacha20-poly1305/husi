@@ -3,11 +3,11 @@ package fr.husi.bg
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.repository.resolveAndroidRepository
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.File
 import kotlin.time.Duration.Companion.seconds
 
 private val SERVICE_STOP_TIMEOUT = 10.seconds
@@ -27,7 +27,7 @@ actual object AppUpdateInstaller {
         DataStore.appUpdateUseShizuku.get() &&
             ShizukuState.availability.value == ShizukuAvailability.Granted
 
-    actual suspend fun install(apk: File): ApkInstallResult {
+    actual suspend fun install(apk: PlatformFile): ApkInstallResult {
         stopRunningService()
 
         val context = resolveAndroidRepository().context

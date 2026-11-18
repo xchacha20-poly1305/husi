@@ -1,16 +1,21 @@
 package fr.husi.tailscale
 
+import fr.husi.ktx.deleteRecursivelyBlocking
+import fr.husi.ktx.readText
+import fr.husi.ktx.writeText
 import fr.husi.proto.daemon.DownloadTaildropFileChunk
 import fr.husi.test.FakeCoreClient
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.list
+import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import okio.ByteString.Companion.encodeUtf8
-import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class TaildropFilesTest {
@@ -20,7 +25,7 @@ class TaildropFilesTest {
         val root = tempRoot()
         try {
             val receive = root.resolve("receive")
-            receive.mkdirs()
+            receive.createDirectories()
             receive.resolve("note.txt").writeText("local")
             val client = FakeCoreClient()
 
@@ -36,7 +41,7 @@ class TaildropFilesTest {
             assertEquals("local", file.readText())
             assertNull(client.lastTaildropDownload)
         } finally {
-            root.deleteRecursively()
+            root.deleteRecursivelyBlocking()
         }
     }
 
@@ -56,7 +61,7 @@ class TaildropFilesTest {
             }
             assertNull(client.lastTaildropDownload)
         } finally {
-            root.deleteRecursively()
+            root.deleteRecursivelyBlocking()
         }
     }
 
@@ -89,10 +94,10 @@ class TaildropFilesTest {
 
             assertEquals("abcd", file.readText())
             assertEquals(downloads.resolve("note.txt"), file)
-            assertFalse(downloads.resolve("note.txt$TAILDROP_PARTIAL_SUFFIX").exists())
+            assertEquals(listOf(file), downloads.list())
             assertEquals("ts" to "note.txt", client.lastTaildropDownload)
         } finally {
-            root.deleteRecursively()
+            root.deleteRecursivelyBlocking()
         }
     }
 
@@ -101,7 +106,7 @@ class TaildropFilesTest {
         val root = tempRoot()
         try {
             val downloads = root.resolve("downloads")
-            downloads.mkdirs()
+            downloads.createDirectories()
             downloads.resolve("note.txt").writeText("old")
             val client = object : FakeCoreClient() {
                 override fun downloadTaildropFile(
@@ -123,13 +128,13 @@ class TaildropFilesTest {
 
             assertEquals("new", file.readText())
         } finally {
-            root.deleteRecursively()
+            root.deleteRecursivelyBlocking()
         }
     }
 }
 
-private fun tempRoot(): File {
-    val root = File(System.getProperty("java.io.tmpdir"), "husi-taildrop-${System.nanoTime()}")
-    root.mkdirs()
+private fun tempRoot(): PlatformFile {
+    val root = PlatformFile(PlatformFile(System.getProperty("java.io.tmpdir")), "husi-taildrop-${System.nanoTime()}")
+    root.createDirectories()
     return root
 }

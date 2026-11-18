@@ -2,9 +2,18 @@ package fr.husi.utils.appicon
 
 import fr.husi.DesktopPaths
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.canonicalFile
 import fr.husi.ktx.invariantPathString
+import fr.husi.ktx.readText
+import fr.husi.ktx.toAbsoluteFile
+import fr.husi.ktx.walkFollowingDirectoryLinks
 import fr.husi.platform.Platform
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isAbsolute
+import io.github.vinceglb.filekit.isDirectory
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.resolve
 
 internal data class LinuxDesktopEntry(
     val name: String,
@@ -16,7 +25,7 @@ internal class DesktopEntryIndex(
     private val byBasename: Map<String, LinuxDesktopEntry>,
 ) {
     fun find(executablePath: String): LinuxDesktopEntry? {
-        val file = File(executablePath)
+        val file = PlatformFile(executablePath)
         val canonical = canonicalFileOrSelf(file)
         byCanonicalPath[canonical.invariantPathString()]?.let { return it }
         return byBasename[canonical.name]
@@ -46,9 +55,9 @@ internal object LinuxDesktopEntries {
         val byCanonicalPath = linkedMapOf<String, LinuxDesktopEntry>()
         val byBasename = linkedMapOf<String, LinuxDesktopEntry>()
         for (applicationsDir in applicationSearchDirs(env, userHomeProperty)) {
-            if (!applicationsDir.isDirectory) continue
-            applicationsDir.walkTopDown()
-                .filter { it.isFile && it.name.endsWith(".desktop", ignoreCase = true) }
+            if (!applicationsDir.isDirectory()) continue
+            applicationsDir.walkFollowingDirectoryLinks()
+                .filter { it.isRegularFile() && it.name.endsWith(".desktop", ignoreCase = true) }
                 .forEach { file ->
                     val parsed = parseDesktopEntryFile(file) ?: return@forEach
                     val entry = LinuxDesktopEntry(name = parsed.name, iconName = parsed.iconName)
@@ -59,7 +68,7 @@ internal object LinuxDesktopEntries {
         return DesktopEntryIndex(byCanonicalPath, byBasename)
     }
 
-    internal fun parseDesktopEntryFile(file: File): ParsedDesktopEntry? {
+    internal fun parseDesktopEntryFile(file: PlatformFile): ParsedDesktopEntry? {
         val text = try {
             file.readText()
         } catch (_: Exception) {
@@ -142,15 +151,15 @@ internal object LinuxDesktopEntries {
     private fun applicationSearchDirs(
         env: Map<String, String>,
         userHomeProperty: String?,
-    ): List<File> {
+    ): List<PlatformFile> {
         val paths = DesktopPaths.resolve(Platform.Linux, env, userHomeProperty)
-        val dataHome = env["XDG_DATA_HOME"]?.blankAsNull()?.let(::File)
+        val dataHome = env["XDG_DATA_HOME"]?.blankAsNull()?.let(::PlatformFile)
             ?: paths.userHomeDir.resolve(".local").resolve("share")
         val dataDirs = env["XDG_DATA_DIRS"]?.blankAsNull() ?: DEFAULT_XDG_DATA_DIRS
-        val dirs = ArrayList<File>()
+        val dirs = ArrayList<PlatformFile>()
         dirs.add(dataHome.resolve("applications"))
         for (part in dataDirs.split(':')) {
-            val directory = part.blankAsNull()?.let(::File) ?: continue
+            val directory = part.blankAsNull()?.let(::PlatformFile) ?: continue
             dirs.add(directory.resolve("applications"))
         }
         return dirs
@@ -183,8 +192,8 @@ internal object LinuxDesktopEntries {
         byBasename: MutableMap<String, LinuxDesktopEntry>,
         overwrite: Boolean,
     ) {
-        val file = File(raw)
-        if (file.isAbsolute) {
+        val file = PlatformFile(raw)
+        if (file.isAbsolute()) {
             val canonical = canonicalFileOrSelf(file)
             putKey(byCanonicalPath, canonical.invariantPathString(), entry, overwrite)
             putKey(byBasename, canonical.name, entry, overwrite)
@@ -250,6 +259,6 @@ private data class DesktopEntryIndexKey(
     val home: String?,
 )
 
-private fun canonicalFileOrSelf(file: File): File {
-    return runCatching { file.canonicalFile }.getOrElse { file.absoluteFile }
+private fun canonicalFileOrSelf(file: PlatformFile): PlatformFile {
+    return runCatching { file.canonicalFile() }.getOrElse { file.toAbsoluteFile() }
 }

@@ -6,20 +6,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import fr.husi.ktx.runOnMainDispatcher
+import fr.husi.ktx.toJavaFile
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.share
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 
 @Composable
-internal actual fun rememberShareBackupFile(): (File) -> Unit {
+internal actual fun rememberShareBackupFile(): (PlatformFile) -> Unit {
     val context = LocalContext.current
     return remember(context) {
         { file ->
             val fileUri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.cache",
-                file,
+                file.toJavaFile(),
             )
             val intent = Intent(Intent.ACTION_SEND)
                 .setType("application/json")

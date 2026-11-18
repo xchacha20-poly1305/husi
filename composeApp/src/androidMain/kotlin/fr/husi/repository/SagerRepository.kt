@@ -31,9 +31,10 @@ import fr.husi.resources.service_vpn_request
 import fr.husi.resources.taildrop_sending
 import fr.husi.tailscale.TaildropSendService
 import fr.husi.ui.MainActivity
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.setResourceReaderAndroidContext
-import java.io.File
 
 @OptIn(ExperimentalResourceApi::class)
 open class SagerRepository(
@@ -91,24 +92,24 @@ open class SagerRepository(
         serviceContext.getSystemService<NotificationManager>()!!
     }
 
-    override val cacheDir: File by lazy {
-        serviceContext.cacheDir.apply { mkdirs() }
+    override val cacheDir: PlatformFile by lazy {
+        PlatformFile(serviceContext.cacheDir).apply { createDirectories() }
     }
 
-    override val filesDir: File by lazy {
-        serviceContext.filesDir.apply { mkdirs() }
+    override val filesDir: PlatformFile by lazy {
+        PlatformFile(serviceContext.filesDir).apply { createDirectories() }
     }
 
-    override val externalAssetsDir: File by lazy {
-        (serviceContext.getExternalFilesDir(null) ?: filesDir).apply { mkdirs() }
+    override val externalAssetsDir: PlatformFile by lazy {
+        (serviceContext.getExternalFilesDir(null)?.let(::PlatformFile) ?: filesDir).apply { createDirectories() }
     }
 
-    override fun resolveDatabaseFile(name: String): File {
-        return serviceContext.getDatabasePath(name)
+    override fun resolveDatabaseFile(name: String): PlatformFile {
+        return PlatformFile(serviceContext.getDatabasePath(name))
     }
 
-    override val noBackupFilesDir: File by lazy {
-        serviceContext.noBackupFilesDir
+    override val noBackupFilesDir: PlatformFile by lazy {
+        PlatformFile(serviceContext.noBackupFilesDir)
     }
 
     override val isTv: Boolean

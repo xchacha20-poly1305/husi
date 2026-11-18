@@ -1,7 +1,7 @@
 package fr.husi.ktx
 
 import fr.husi.proto.daemon.LogLevel
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 
 /**
  * Prints every message to stderr. Once [openFile] has run, messages at or above the configured
@@ -13,7 +13,7 @@ actual object Logs {
     private var file: LogFile? = null
 
     /** Starts [logFile] afresh and writes messages at or above [level] to it from now on. */
-    fun openFile(logFile: File, level: Int) {
+    fun openFile(logFile: PlatformFile, level: Int) {
         file?.close()
         val threshold = LogLevel.fromValue(level)
             .takeUnless { it is LogLevel.Unrecognized }

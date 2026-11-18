@@ -1,7 +1,14 @@
 package fr.husi.net
 
+import fr.husi.ktx.asOkioSink
+import fr.husi.ktx.atomicReplace
+import fr.husi.ktx.createPlatformTempFile
+import fr.husi.ktx.deleteBlocking
+import fr.husi.ktx.toAbsoluteFile
 import fr.husi.proto.v1.DecryptAgeRequest
 import fr.husi.proto.v1.DecryptAgeResponse
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.parent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -16,12 +23,8 @@ import okhttp3.Request
 import okhttp3.Response
 import okio.Buffer
 import okio.BufferedSource
-import okio.FileSystem
-import okio.Path.Companion.toOkioPath
 import okio.Sink
 import okio.buffer
-import okio.sink
-import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 
 internal class OkHttpFetcher(
@@ -47,14 +50,14 @@ internal class OkHttpFetcher(
 
     override suspend fun download(
         request: HttpFetchRequest,
-        target: File,
+        target: PlatformFile,
         onProgress: DownloadProgress,
     ) = withContext(Dispatchers.IO) {
-        val destination = target.absoluteFile
-        val partial = File.createTempFile("husi-http-", ".part", destination.parentFile)
+        val destination = target.toAbsoluteFile()
+        val partial = createPlatformTempFile("husi-http-", ".part", destination.parent())
         try {
             fetch(request) { response, cancel ->
-                partial.sink().buffer().use { output ->
+                partial.asOkioSink().buffer().use { output ->
                     val source = response.body.source()
                     if (request.ageIdentities.isNullOrEmpty()) {
                         copy(source, output, response.body.contentLength(), onProgress)
@@ -69,9 +72,9 @@ internal class OkHttpFetcher(
                 }
             }
             ensureActive()
-            FileSystem.SYSTEM.atomicMove(partial.toOkioPath(), destination.toOkioPath())
+            partial.atomicReplace(destination)
         } finally {
-            partial.delete()
+            partial.deleteBlocking()
         }
     }
 

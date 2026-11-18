@@ -66,7 +66,7 @@ fun TaildropInboxScreen(
         if (file == null || name == null) return@rememberFileSaverLauncher
         scope.launch {
             try {
-                file.write(viewModel.materialize(name).readBytes())
+                file.write(viewModel.materialize(name))
                 snackbar.show(StringOrRes.Res(Res.string.taildrop_saved))
             } catch (e: CancellationException) {
                 throw e

@@ -19,6 +19,7 @@ import fr.husi.proto.v1.Ownership
 import fr.husi.proto.v1.TunBackend
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -63,7 +64,7 @@ class CoreHostControllerTest : HusiKoinTest() {
     @BeforeTest
     fun setUp() {
         tempDir = createTempDirectory("husi-core-host").toFile()
-        repository = FakeDesktopRepository(tempDir)
+        repository = FakeDesktopRepository(PlatformFile(tempDir))
         fakeClient = FakeCoreClient()
         controller = CoreHostController(
             repository,

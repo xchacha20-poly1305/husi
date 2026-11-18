@@ -5,11 +5,11 @@ import fr.husi.database.preference.reset
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
 import fr.husi.ui.StringOrRes
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -217,7 +217,7 @@ class IPProbeTest : HusiKoinMainDispatcherTest() {
     fun `lookup failure preserves detected IP`() = runTest(dispatcher.scheduler) {
         DataStore.ipTestServers.set("stun:one.example")
         val client = object : FakeCoreClient() {
-            override suspend fun lookupIPCountry(dir: File, ip: String): String = error("GeoIP unavailable")
+            override suspend fun lookupIPCountry(dir: PlatformFile, ip: String): String = error("GeoIP unavailable")
         }
         val model = newViewModel(client)
         model.initialize(true)

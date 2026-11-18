@@ -10,7 +10,13 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import fr.husi.Key
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteBlocking
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.delete
+import io.github.vinceglb.filekit.exists
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 class RoomToDataStoreMigration(
     private val context: Context,
@@ -156,11 +162,7 @@ class RoomToDataStoreMigration(
                 }
             }
             if (dbFile.exists()) {
-                if (dbFile.delete()) {
-                    Logs.i("Cleaned up old Room database")
-                } else {
-                    Logs.w("Failed to delete old Room database file")
-                }
+                dbFile.delete()
             }
         } catch (e: Exception) {
             Logs.e("Failed to clean up old database", e)

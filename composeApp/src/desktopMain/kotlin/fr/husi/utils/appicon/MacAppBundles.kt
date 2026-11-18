@@ -1,8 +1,13 @@
 package fr.husi.utils.appicon
 
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.listFilesOrNull
 import fr.husi.ui.dashboard.ProcessInfo
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isDirectory
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.parent
 
 internal object MacAppBundles {
     private const val DISPLAY_NAME_KEY = "CFBundleDisplayName"
@@ -10,12 +15,16 @@ internal object MacAppBundles {
     private const val ICON_FILE_KEY = "CFBundleIconFile"
 
     fun resolve(executablePath: String): ProcessInfo? {
-        val appDir = findAppBundle(File(executablePath)) ?: return null
-        val contentsDir = File(appDir, "Contents")
-        val resourcesDir = File(contentsDir, "Resources")
-        val infoPlist = File(contentsDir, "Info.plist")
+        val appDir = findAppBundle(PlatformFile(executablePath)) ?: return null
+        val contentsDir = PlatformFile(appDir, "Contents")
+        val resourcesDir = PlatformFile(contentsDir, "Resources")
+        val infoPlist = PlatformFile(contentsDir, "Info.plist")
 
-        val parsed = if (infoPlist.isFile) readBundleInfo(infoPlist) else null
+        val parsed = if (infoPlist.isRegularFile()) {
+            readBundleInfo(infoPlist)
+        } else {
+            null
+        }
 
         val label = parsed?.displayName.blankAsNull()
             ?: parsed?.bundleName.blankAsNull()
@@ -33,18 +42,22 @@ internal object MacAppBundles {
         )
     }
 
-    internal fun findAppBundle(start: File): File? {
-        var current: File? = if (start.isDirectory) start else start.parentFile
+    internal fun findAppBundle(start: PlatformFile): PlatformFile? {
+        var current: PlatformFile? = if (start.isDirectory()) {
+            start
+        } else {
+            start.parent()
+        }
         while (current != null) {
-            if (current.name.endsWith(".app", ignoreCase = true) && current.isDirectory) {
+            if (current.name.endsWith(".app", ignoreCase = true) && current.isDirectory()) {
                 return current
             }
-            current = current.parentFile
+            current = current.parent()
         }
         return null
     }
 
-    internal fun readBundleInfo(infoPlist: File): MacBundleInfo {
+    internal fun readBundleInfo(infoPlist: PlatformFile): MacBundleInfo {
         val values = MacPropertyList.readTopLevelStrings(
             file = infoPlist,
             keys = setOf(DISPLAY_NAME_KEY, BUNDLE_NAME_KEY, ICON_FILE_KEY),
@@ -56,8 +69,8 @@ internal object MacAppBundles {
         )
     }
 
-    private fun resolveIconFile(resourcesDir: File, iconFileName: String?): File? {
-        if (!resourcesDir.isDirectory) return null
+    private fun resolveIconFile(resourcesDir: PlatformFile, iconFileName: String?): PlatformFile? {
+        if (!resourcesDir.isDirectory()) return null
         val candidates = ArrayList<String>()
         iconFileName?.trim().blankAsNull()?.let { name ->
             candidates.add(name)
@@ -67,11 +80,13 @@ internal object MacAppBundles {
         }
         candidates.add("AppIcon.icns")
         for (name in candidates) {
-            val file = File(resourcesDir, name)
-            if (file.isFile) return file
+            val file = PlatformFile(resourcesDir, name)
+            if (file.isRegularFile()) {
+                return file
+            }
         }
-        val icnsFiles = resourcesDir.listFiles { file ->
-            file.isFile && file.name.endsWith(".icns", ignoreCase = true)
+        val icnsFiles = resourcesDir.listFilesOrNull { file ->
+            file.isRegularFile() && file.name.endsWith(".icns", ignoreCase = true)
         }
         return icnsFiles?.singleOrNull()
     }

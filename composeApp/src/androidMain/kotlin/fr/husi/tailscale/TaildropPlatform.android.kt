@@ -8,21 +8,23 @@ import android.provider.DocumentsContract
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import fr.husi.repository.resolveAndroidRepository
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.name
 
 actual object TaildropPlatform {
-    actual fun receiveDirectory(): File? =
+    actual fun receiveDirectory(): PlatformFile? =
         TaildropDocumentRoot.Receive.directory(resolveAndroidRepository().context)
 
-    actual fun downloadDirectory(): File =
+    actual fun downloadDirectory(): PlatformFile =
         TaildropDocumentRoot.Downloads.directory(resolveAndroidRepository().context)
 
     actual fun canShareReceivedFile(): Boolean = true
 
-    actual fun openDirectory(directory: File): Boolean {
+    actual fun openDirectory(directory: PlatformFile): Boolean {
         val context = resolveAndroidRepository().context
         val root = TaildropDocumentRoot.ofDirectory(context, directory) ?: return false
-        if (!directory.isDirectory && !directory.mkdirs()) return false
+        if (runCatching { directory.createDirectories() }.isFailure) return false
         val authority = taildropDocumentsAuthority(context)
         // The provider omits a root while its directory is missing; DocumentsUI caches roots.
         context.contentResolver.notifyChange(DocumentsContract.buildRootsUri(authority), null)
@@ -37,7 +39,7 @@ actual object TaildropPlatform {
         return context.startViewer(rootIntent) || context.startViewer(directoryIntent)
     }
 
-    actual fun openReceivedFile(file: File): Boolean {
+    actual fun openReceivedFile(file: PlatformFile): Boolean {
         val context = resolveAndroidRepository().context
         val uri = taildropDocumentUri(context, file) ?: return false
         val intent = Intent(Intent.ACTION_VIEW)
@@ -46,7 +48,7 @@ actual object TaildropPlatform {
         return context.startViewer(intent)
     }
 
-    actual fun shareReceivedFile(file: File): Boolean {
+    actual fun shareReceivedFile(file: PlatformFile): Boolean {
         val context = resolveAndroidRepository().context
         val uri = taildropDocumentUri(context, file) ?: return false
         val intent = Intent(Intent.ACTION_SEND)

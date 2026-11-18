@@ -6,9 +6,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import fr.husi.ktx.Logs
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import java.io.File
 import java.util.zip.ZipFile
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -116,7 +118,7 @@ object AppScanner {
                 }
             }
             currentCoroutineContext().ensureActive()
-            ZipFile(File(applicationInfo.publicSourceDir)).use {
+            ZipFile(applicationInfo.publicSourceDir).use {
                 for (packageEntry in it.entries()) {
                     if (packageEntry.name.startsWith("firebase-")) return false
                 }
@@ -186,7 +188,7 @@ object AppScanner {
         val archivePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
             && !applicationInfo.splitPublicSourceDirs.isNullOrEmpty()
         ) {
-            File(applicationInfo.publicSourceDir).parent
+            PlatformFile(applicationInfo.publicSourceDir).parent()?.path ?: return null
         } else {
             applicationInfo.publicSourceDir
         }

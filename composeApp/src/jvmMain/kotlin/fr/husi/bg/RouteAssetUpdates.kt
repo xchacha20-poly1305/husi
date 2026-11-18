@@ -4,17 +4,29 @@ import fr.husi.RuleProvider
 import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.copyNewFileTo
+import fr.husi.ktx.deleteBlocking
+import fr.husi.ktx.deleteOnExit
 import fr.husi.ktx.kxs
+import fr.husi.ktx.readText
+import fr.husi.ktx.renameTo
 import fr.husi.ktx.unpackArchive
+import fr.husi.ktx.writeText
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.buildUserAgent
 import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveHttpFetcher
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.delete
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import java.io.File
 import kotlin.time.Clock
 
 internal typealias UpdateProgress = (Float) -> Unit
@@ -32,61 +44,69 @@ private val assetVersionFormat = LocalDateTime.Format {
 const val ROUTE_GEO_DIR_NAME = "geo"
 
 /** Where the bundled/managed rule-set pack lives. May not exist yet. */
-internal fun routeGeoDir(externalAssetsDir: File): File {
+internal fun routeGeoDir(externalAssetsDir: PlatformFile): PlatformFile {
     return externalAssetsDir.resolve(ROUTE_GEO_DIR_NAME)
 }
 
 /** [routeGeoDir], created on the way out, for callers that are about to write into it. */
-internal fun createRouteGeoDir(externalAssetsDir: File): File {
+internal fun createRouteGeoDir(externalAssetsDir: PlatformFile): PlatformFile {
     return routeGeoDir(externalAssetsDir).apply {
-        mkdirs()
+        createDirectories()
     }
 }
 
 const val ROUTE_CUSTOM_GEO_DIR_NAME = "geo-custom"
 
 /** Where user-supplied rule sets (rows in the assets table) live. May not exist yet. */
-internal fun routeCustomGeoDir(externalAssetsDir: File): File {
+internal fun routeCustomGeoDir(externalAssetsDir: PlatformFile): PlatformFile {
     return externalAssetsDir.resolve(ROUTE_CUSTOM_GEO_DIR_NAME)
 }
 
 /** [routeCustomGeoDir], created on the way out, for callers that are about to write into it. */
-internal fun createRouteCustomGeoDir(externalAssetsDir: File): File {
+internal fun createRouteCustomGeoDir(externalAssetsDir: PlatformFile): PlatformFile {
     return routeCustomGeoDir(externalAssetsDir).apply {
-        mkdirs()
+        createDirectories()
     }
 }
 
-internal fun migrateCustomRouteAssets(externalAssetsDir: File, assetNames: List<String>) {
+internal fun migrateCustomRouteAssets(externalAssetsDir: PlatformFile, assetNames: List<String>) {
     val geoDir = routeGeoDir(externalAssetsDir)
     val customGeoDir = routeCustomGeoDir(externalAssetsDir)
     var customDirCreated = false
     for (name in assetNames) {
         runCatching {
             val source = geoDir.resolve(name)
-            if (!source.isFile) return@runCatching
+            if (!source.isRegularFile()) {
+                return@runCatching
+            }
             val destination = customGeoDir.resolve(name)
-            if (destination.exists()) return@runCatching
+            if (destination.exists()) {
+                return@runCatching
+            }
             if (!customDirCreated) {
-                customGeoDir.mkdirs()
+                customGeoDir.createDirectories()
                 customDirCreated = true
             }
-            if (source.renameTo(destination)) return@runCatching
-            if (destination.exists()) return@runCatching
-            source.copyTo(destination)
-            source.delete()
+            if (source.renameTo(destination)) {
+                return@runCatching
+            }
+            if (destination.exists()) {
+                return@runCatching
+            }
+            source.copyNewFileTo(destination)
+            source.deleteBlocking()
         }
     }
 }
 
-internal fun routeVersionFiles(externalAssetsDir: File): List<File> {
+internal fun routeVersionFiles(externalAssetsDir: PlatformFile): List<PlatformFile> {
     return listOf(
         externalAssetsDir.resolve("geoip.version.txt"),
         externalAssetsDir.resolve("geosite.version.txt"),
     )
 }
 
-internal fun routeAssetVersionFile(externalAssetsDir: File, assetName: String): File {
+internal fun routeAssetVersionFile(externalAssetsDir: PlatformFile, assetName: String): PlatformFile {
     return externalAssetsDir.resolve("$assetName.version.txt")
 }
 
@@ -97,15 +117,14 @@ internal fun currentAssetVersionText(): String {
 }
 
 internal suspend fun updateManagedRouteAssets(
-    externalAssetsDir: File,
-    cacheDir: File,
+    externalAssetsDir: PlatformFile,
+    cacheDir: PlatformFile,
     checkedAtSeconds: Long = currentEpochSeconds(),
     updateProgress: UpdateProgress = {},
 ) {
     val destinationDir = createRouteGeoDir(externalAssetsDir)
     val versionFiles = routeVersionFiles(externalAssetsDir)
-    val provider = DataStore.rulesProvider.get()
-    val updater = when (provider) {
+    val updater = when (val provider = DataStore.rulesProvider.get()) {
         RuleProvider.CUSTOM -> CustomAssetUpdater(
             versionFiles = versionFiles,
             updateProgress = updateProgress,
@@ -148,7 +167,7 @@ internal suspend fun updateManagedRouteAssets(
 
 internal suspend fun updateSingleRouteAsset(
     asset: AssetEntity,
-    externalAssetsDir: File,
+    externalAssetsDir: PlatformFile,
     updateProgress: UpdateProgress = {},
 ): String {
     val targetFile = createRouteCustomGeoDir(externalAssetsDir).resolve(asset.name)
@@ -192,16 +211,16 @@ internal data class GithubRepository(
 
 internal data class GithubAssetSource(
     val repository: GithubRepository,
-    val versionFile: File,
+    val versionFile: PlatformFile,
 )
 
 internal data class GithubReleaseSource(
     val repository: GithubRepository,
     val assetName: String,
-    val versionFile: File,
+    val versionFile: PlatformFile,
 )
 
-internal fun buildGithubAssetSources(provider: Int, versionFiles: List<File>): List<GithubAssetSource> {
+internal fun buildGithubAssetSources(provider: Int, versionFiles: List<PlatformFile>): List<GithubAssetSource> {
     return when (provider) {
         RuleProvider.OFFICIAL -> listOf(
             GithubAssetSource(
@@ -262,10 +281,10 @@ internal sealed class UpdateInfo {
 }
 
 internal abstract class AssetsUpdater(
-    val versionFiles: List<File>,
+    val versionFiles: List<PlatformFile>,
     val updateProgress: UpdateProgress,
-    val cacheDir: File,
-    val destinationDir: File,
+    val cacheDir: PlatformFile,
+    val destinationDir: PlatformFile,
     private val httpFetcher: HttpFetcher = resolveHttpFetcher(),
 ) {
     suspend fun request(url: String): HttpFetchRequest = HttpFetchRequest(
@@ -284,7 +303,7 @@ internal abstract class AssetsUpdater(
     protected suspend fun fetchString(url: String): String =
         httpFetcher.fetchText(request(url)).content
 
-    protected suspend fun download(url: String, target: File) {
+    protected suspend fun download(url: String, target: PlatformFile) {
         httpFetcher.download(downloadRequest(url), target)
     }
 
@@ -304,10 +323,10 @@ internal abstract class AssetsUpdater(
 }
 
 internal class CustomAssetUpdater(
-    versionFiles: List<File>,
+    versionFiles: List<PlatformFile>,
     updateProgress: UpdateProgress,
-    cacheDir: File,
-    destinationDir: File,
+    cacheDir: PlatformFile,
+    destinationDir: PlatformFile,
     val links: List<String>,
     httpFetcher: HttpFetcher = resolveHttpFetcher(),
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, httpFetcher) {
@@ -317,14 +336,14 @@ internal class CustomAssetUpdater(
     }
 
     override suspend fun performUpdate(updates: List<UpdateInfo>) {
-        val cacheFiles = ArrayList<File>(updates.size)
+        val cacheFiles = ArrayList<PlatformFile>(updates.size)
 
         try {
             updateProgress(35f)
             for ((index, update) in updates.withIndex()) {
                 update as UpdateInfo.Custom
                 val cacheFile = cacheDir.resolve("custom_asset_$index.tmp")
-                cacheFile.parentFile?.mkdirs()
+                cacheFile.parent()?.createDirectories()
                 cacheFile.deleteOnExit()
 
                 download(update.link, cacheFile)
@@ -343,17 +362,19 @@ internal class CustomAssetUpdater(
             updateProgress(15f)
         } finally {
             for (file in cacheFiles) {
-                file.runCatching { delete() }
+                file.runCatching {
+                    delete()
+                }
             }
         }
     }
 }
 
 internal class GithubAssetUpdater(
-    versionFiles: List<File>,
+    versionFiles: List<PlatformFile>,
     updateProgress: UpdateProgress,
-    cacheDir: File,
-    destinationDir: File,
+    cacheDir: PlatformFile,
+    destinationDir: PlatformFile,
     val sources: List<GithubAssetSource>,
     val useUnstableBranch: Boolean,
     httpFetcher: HttpFetcher = resolveHttpFetcher(),
@@ -364,7 +385,7 @@ internal class GithubAssetUpdater(
 
         for (source in sources) {
             val latestVersion = fetchVersion(source.repository)
-            val currentVersion = source.versionFile.takeIf(File::isFile)
+            val currentVersion = source.versionFile.takeIf(PlatformFile::isRegularFile)
                 ?.readText()
                 ?.trim()
                 .orEmpty()
@@ -378,7 +399,7 @@ internal class GithubAssetUpdater(
     }
 
     override suspend fun performUpdate(updates: List<UpdateInfo>) {
-        val cacheFiles = ArrayList<File>(updates.size)
+        val cacheFiles = ArrayList<PlatformFile>(updates.size)
         val progressTotalDownload = 60f
         val progressTotalUnpack = 25f
 
@@ -392,7 +413,7 @@ internal class GithubAssetUpdater(
                 val cacheFile = cacheDir.resolve(
                     "${source.repository.fullName.replace('/', '_')}-${update.newVersion}.tmp",
                 )
-                cacheFile.parentFile?.mkdirs()
+                cacheFile.parent()?.createDirectories()
                 cacheFile.deleteOnExit()
 
                 download(url, cacheFile)
@@ -418,7 +439,9 @@ internal class GithubAssetUpdater(
             }
         } finally {
             for (file in cacheFiles) {
-                file.runCatching { delete() }
+                file.runCatching {
+                    delete()
+                }
             }
         }
     }
@@ -430,10 +453,10 @@ internal class GithubAssetUpdater(
 }
 
 internal class GithubReleaseZipUpdater(
-    versionFiles: List<File>,
+    versionFiles: List<PlatformFile>,
     updateProgress: UpdateProgress,
-    cacheDir: File,
-    destinationDir: File,
+    cacheDir: PlatformFile,
+    destinationDir: PlatformFile,
     val source: GithubReleaseSource,
     httpFetcher: HttpFetcher = resolveHttpFetcher(),
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, httpFetcher) {
@@ -442,7 +465,7 @@ internal class GithubReleaseZipUpdater(
         val body = fetchString(githubApiLatestReleaseUrl(source.repository.fullName))
         val latestVersion = kxs.decodeFromString<GithubRelease>(body)
             .tagName.blankAsNull().orEmpty()
-        val currentVersion = source.versionFile.takeIf(File::isFile)
+        val currentVersion = source.versionFile.takeIf(PlatformFile::isRegularFile)
             ?.readText()?.trim().orEmpty()
         return if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
             listOf(UpdateInfo.Github(GithubAssetSource(source.repository, source.versionFile), latestVersion))
@@ -454,7 +477,7 @@ internal class GithubReleaseZipUpdater(
         val tag = update.newVersion
         val url = githubReleaseDownloadUrl(source.repository.fullName, tag, source.assetName)
         val cacheFile = cacheDir.resolve("${source.repository.name}-$tag.tmp")
-        cacheFile.parentFile?.mkdirs()
+        cacheFile.parent()?.createDirectories()
         cacheFile.deleteOnExit()
         try {
             updateProgress(10f)
@@ -465,7 +488,9 @@ internal class GithubReleaseZipUpdater(
             versionFiles.forEach { it.writeText(tag) }
             updateProgress(5f)
         } finally {
-            cacheFile.runCatching { delete() }
+            cacheFile.runCatching {
+                delete()
+            }
         }
     }
 }

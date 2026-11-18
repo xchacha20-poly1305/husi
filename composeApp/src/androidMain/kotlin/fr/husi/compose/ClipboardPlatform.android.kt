@@ -8,11 +8,17 @@ import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.toClipEntry
 import androidx.core.content.FileProvider
 import fr.husi.ktx.Logs
+import fr.husi.ktx.deleteRecursivelyBlocking
+import fr.husi.ktx.toJavaFile
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.parent
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.util.UUID
 
 private const val CLIPBOARD_IMAGE_CACHE_DIRECTORY = "clipboard"
@@ -51,18 +57,18 @@ actual suspend fun Clipboard.getFirstContent(): ClipboardContent? {
 actual suspend fun Clipboard.setImage(bitmap: ImageBitmap) {
     val context = resolveAndroidRepository().context
     val imageFile = withContext(Dispatchers.IO) {
-        File(
+        PlatformFile(
             resolveRepository().cacheDir.resolve(CLIPBOARD_IMAGE_CACHE_DIRECTORY),
             "${UUID.randomUUID()}.png",
-        ).also {
-            it.parentFile?.mkdirs()
-            it.writeBytes(encodeImageBitmapToPng(bitmap))
+        ).apply {
+            parent()?.createDirectories()
+            write(encodeImageBitmapToPng(bitmap))
         }
     }
-    val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", imageFile)
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", imageFile.toJavaFile())
     setClipEntry(ClipData.newUri(context.contentResolver, null, uri).toClipEntry())
 }
 
-internal fun clearClipboardImageCache(cacheDir: File) {
-    cacheDir.resolve(CLIPBOARD_IMAGE_CACHE_DIRECTORY).deleteRecursively()
+internal fun clearClipboardImageCache(cacheDir: PlatformFile) {
+    cacheDir.resolve(CLIPBOARD_IMAGE_CACHE_DIRECTORY).deleteRecursivelyBlocking()
 }

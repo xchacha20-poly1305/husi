@@ -1,6 +1,6 @@
 package fr.husi.repository
 
-import java.io.File
+import io.github.vinceglb.filekit.PlatformFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -77,7 +77,7 @@ class LinuxSystemProxyBackendTest {
         val commands = mutableListOf<List<String>>()
         val backend = LinuxSystemProxyBackend(
             runner = { command -> commands += command; "" },
-            findExecutable = { name -> File(name).takeIf { name.startsWith("kwriteconfig") } },
+            findExecutable = { name -> PlatformFile(name).takeIf { name.startsWith("kwriteconfig") } },
         )
 
         backend.disable()

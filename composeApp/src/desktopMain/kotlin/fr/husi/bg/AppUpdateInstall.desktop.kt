@@ -1,8 +1,8 @@
 package fr.husi.bg
 
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.io.File
 
 actual object AppUpdateInstaller {
 
@@ -18,6 +18,6 @@ actual object AppUpdateInstaller {
 
     actual suspend fun installsWithShizuku(): Boolean = false
 
-    actual suspend fun install(apk: File): ApkInstallResult =
+    actual suspend fun install(apk: PlatformFile): ApkInstallResult =
         throw UnsupportedOperationException("in-app update is Android only")
 }
