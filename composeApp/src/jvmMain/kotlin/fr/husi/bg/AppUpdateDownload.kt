@@ -4,7 +4,7 @@ import fr.husi.ktx.sha256Hex
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.buildUserAgent
-import fr.husi.net.localSocks5Proxy
+import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveHttpFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,7 +37,7 @@ suspend fun downloadAppUpdate(
         url = downloadUrl,
         userAgent = buildUserAgent(),
         noOverallDeadline = true,
-        socks5 = localSocks5Proxy(),
+        proxy = localHttpProxy(),
     )
     httpFetcher.download(request, targetFile) { copiedBytes, contentLength ->
         // The release metadata knows the size even when the server omits it.

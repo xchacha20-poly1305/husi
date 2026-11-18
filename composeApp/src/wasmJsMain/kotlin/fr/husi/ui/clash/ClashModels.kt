@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import fr.husi.net.HttpStatus
 import fr.husi.remote.ClashApi
 import fr.husi.remote.ClashApiException
 import fr.husi.remote.ClashRequest
@@ -115,13 +116,13 @@ internal class ClashRulesModel(private val api: ClashApi) {
                 error = failure.message.orEmpty()
 
                 when ((failure as? ClashApiException)?.status) {
-                    404 -> {
+                    HttpStatus.NOT_FOUND -> {
                         unavailable[uuid] = true
                         return
                     }
 
-                    405,
-                    501,
+                    HttpStatus.METHOD_NOT_ALLOWED,
+                    HttpStatus.NOT_IMPLEMENTED,
                         -> {
                         toggleUnsupported = true
                         return

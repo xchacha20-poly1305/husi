@@ -9,7 +9,7 @@ import fr.husi.ktx.unpackArchive
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.buildUserAgent
-import fr.husi.net.localSocks5Proxy
+import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveHttpFetcher
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -157,7 +157,7 @@ internal suspend fun updateSingleRouteAsset(
         url = asset.url,
         userAgent = buildUserAgent(),
         noOverallDeadline = true,
-        socks5 = localSocks5Proxy(),
+        proxy = localHttpProxy(),
     )
     resolveHttpFetcher().download(request, targetFile) { copiedBytes, contentLength ->
         if (contentLength > 0) {
@@ -271,7 +271,7 @@ internal abstract class AssetsUpdater(
     suspend fun request(url: String): HttpFetchRequest = HttpFetchRequest(
         url = url,
         userAgent = buildUserAgent(),
-        socks5 = localSocks5Proxy(),
+        proxy = localHttpProxy(),
     )
 
     /**

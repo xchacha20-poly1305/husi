@@ -56,7 +56,12 @@ internal fun RemotePeerBinding(tag: String, id: String) {
         onStopPing = model::stopPing,
         onSsh = { if (remote.terminalReady) showLogin = true },
         onSendFiles = { peer?.let { uploads.send(tag, it) } },
-        onLogout = { remote.call { tailscaleLogout(TailscaleLogoutRequest(tag)) } },
+        onLogout = {
+            remote.call {
+                TailscaleLogout()
+                    .execute(TailscaleLogoutRequest(tag))
+            }
+        },
         sendSessions = {
             val sessions =
                 uploads.sessions.filter {
@@ -105,7 +110,7 @@ internal fun RemoteExitNodeBinding(tag: String) {
         endpoint = remote.tailscale.toTailscaleEndpoints().firstOrNull { it.endpointTag == tag },
         onBackPress = { navigator.popBackStack() },
         onSetExitNode = {
-            remote.call { setTailscaleExitNode(SetTailscaleExitNodeRequest(tag, it)) }
+            remote.call { SetTailscaleExitNode().execute(SetTailscaleExitNodeRequest(tag, it)) }
         },
     )
 }

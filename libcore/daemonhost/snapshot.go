@@ -7,7 +7,8 @@ import (
 
 	E "github.com/sagernet/sing/common/exceptions"
 
-	husiv1 "github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/internal/atomicfile"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 )
 
 const (
@@ -45,16 +46,21 @@ func SaveSnapshot(dir string, snapshot *Snapshot) error {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return E.Cause(err, "create snapshot directory")
 	}
-	if err := atomicWriteFile(filepath.Join(dir, snapshotConfigFile), []byte(snapshot.Config), 0o600); err != nil {
+	configPath := filepath.Join(dir, snapshotConfigFile)
+	err := atomicfile.Write(configPath, []byte(snapshot.Config), 0o600)
+	if err != nil {
 		return E.Cause(err, "write config snapshot")
 	}
-	if err := writeJSONAtomic(filepath.Join(dir, snapshotPluginsFile), snapshot.Plugins); err != nil {
+	err = writeJSONAtomic(filepath.Join(dir, snapshotPluginsFile), snapshot.Plugins)
+	if err != nil {
 		return E.Cause(err, "write plugins snapshot")
 	}
-	if err := writeJSONAtomic(filepath.Join(dir, snapshotMetadataFile), snapshot.ClientMetadata); err != nil {
+	err = writeJSONAtomic(filepath.Join(dir, snapshotMetadataFile), snapshot.ClientMetadata)
+	if err != nil {
 		return E.Cause(err, "write client metadata snapshot")
 	}
-	if err := writeJSONAtomic(filepath.Join(dir, snapshotOptionsFile), snapshot.Options); err != nil {
+	err = writeJSONAtomic(filepath.Join(dir, snapshotOptionsFile), snapshot.Options)
+	if err != nil {
 		return E.Cause(err, "write options snapshot")
 	}
 	return nil
@@ -103,7 +109,7 @@ func SetWasRunning(dir string, running bool) error {
 		if err := os.MkdirAll(dir, 0o700); err != nil {
 			return err
 		}
-		return atomicWriteFile(path, []byte("1\n"), 0o600)
+		return atomicfile.Write(path, []byte("1\n"), 0o600)
 	}
 	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 		return err
@@ -122,7 +128,7 @@ func SetStartAtBoot(dir string, enabled bool) error {
 		if err := os.MkdirAll(dir, 0o700); err != nil {
 			return err
 		}
-		return atomicWriteFile(path, []byte("1\n"), 0o600)
+		return atomicfile.Write(path, []byte("1\n"), 0o600)
 	}
 	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 		return err
@@ -185,14 +191,14 @@ func ClearOwnerState(dir string) error {
 func writeJSONAtomic(path string, value any) error {
 	if value == nil {
 		// Write empty JSON null so Load can distinguish missing vs present.
-		return atomicWriteFile(path, []byte("null\n"), 0o600)
+		return atomicfile.Write(path, []byte("null\n"), 0o600)
 	}
 	content, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}
 	content = append(content, '\n')
-	return atomicWriteFile(path, content, 0o600)
+	return atomicfile.Write(path, content, 0o600)
 }
 
 func readJSONIfExists(path string, dest any) error {
@@ -207,35 +213,4 @@ func readJSONIfExists(path string, dest any) error {
 		return nil
 	}
 	return json.Unmarshal(content, dest)
-}
-
-func atomicWriteFile(path string, data []byte, perm os.FileMode) error {
-	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, ".tmp-*")
-	if err != nil {
-		return err
-	}
-	tmpName := tmp.Name()
-	cleanup := true
-	defer func() {
-		if cleanup {
-			_ = os.Remove(tmpName)
-		}
-	}()
-	if _, err := tmp.Write(data); err != nil {
-		_ = tmp.Close()
-		return err
-	}
-	if err := tmp.Chmod(perm); err != nil {
-		_ = tmp.Close()
-		return err
-	}
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	if err := os.Rename(tmpName, path); err != nil {
-		return err
-	}
-	cleanup = false
-	return nil
 }

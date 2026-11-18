@@ -1,3 +1,4 @@
+export {openGrpcWeb} from "./grpc-web";
 export {createClashSession} from "./clash";
 export {createRemoteServerStorage} from "./remote-server-storage";
 

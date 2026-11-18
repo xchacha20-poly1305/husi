@@ -13,7 +13,7 @@
  * GNU General Public License for more details.                               *
  *                                                                            *
  * You should have received a copy of the GNU General Public License          *
- * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.       *
  *                                                                            *
  ******************************************************************************/
 
@@ -30,14 +30,15 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.buildUserAgent
-import fr.husi.net.localSocks5Proxy
+import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveHttpFetcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.ooc_missing_protocol
 import fr.husi.resources.ooc_subscription_token_invalid
-import io.github.xchacha20_poly1305.kpuri.Url
 import kotlinx.serialization.Serializable
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 /** https://github.com/Shadowsocks-NET/OpenOnlineConfig */
 object OpenOnlineConfigUpdater : GroupUpdater() {
@@ -83,7 +84,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
     ): GroupUpdateResult.Success {
         val repository = resolveRepository()
         val token: OOCSubscriptionToken
-        val baseLink: Url
+        val baseLink: HttpUrl
         val certSha256: String?
         try {
             token = kxs.decodeFromString(subscription.token)
@@ -110,7 +111,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
 
             val userId = token.userId
             if (userId.isBlank()) error("Missing field: userId")
-            baseLink = Url.parse(baseUrl).newBuilder()
+            baseLink = baseUrl.toHttpUrl().newBuilder()
                 .addPathSegment(secret)
                 .addPathSegments("ooc/v1")
                 .addPathSegment(userId)
@@ -127,7 +128,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             // Strict !!!
             restrictedTls = true,
             pinnedSha256 = certSha256,
-            socks5 = localSocks5Proxy(),
+            proxy = localHttpProxy(),
         )
         val response = resolveHttpFetcher().fetchText(request)
 

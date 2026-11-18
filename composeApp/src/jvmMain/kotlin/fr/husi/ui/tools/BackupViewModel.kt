@@ -21,7 +21,7 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.net.WebDAVClient
 import fr.husi.net.WebDAVEntry
 import fr.husi.net.WebDAVServer
-import fr.husi.net.localSocks5Proxy
+import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveWebDAVClient
 import fr.husi.repository.resolveRepository
 import java.io.File
@@ -277,7 +277,7 @@ internal class BackupViewModel(
         url = DataStore.webdavURL.get(),
         username = DataStore.webdavUsername.get(),
         password = DataStore.webdavPassword.get(),
-        socks5 = localSocks5Proxy(),
+        proxy = localHttpProxy(),
     )
 
     fun clearInputResult() = viewModelScope.launch {

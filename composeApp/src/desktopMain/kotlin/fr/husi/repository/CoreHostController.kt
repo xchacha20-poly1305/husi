@@ -15,7 +15,7 @@ import fr.husi.bg.initPlugins
 import fr.husi.bg.proto.TrafficLooper
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreStateReconciliation
-import fr.husi.core.KurpcCoreClient
+import fr.husi.core.WireCoreClient
 import fr.husi.core.reconciliationFor
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -58,6 +58,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.context.GlobalContext
+import okio.FileSystem
+import okio.Path.Companion.toOkioPath
 import java.io.File
 import java.io.IOException
 import java.net.UnknownHostException
@@ -90,7 +92,9 @@ internal class CoreHostController(
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val systemProxyBackend: SystemProxyBackend = platformSystemProxyBackend(),
     private val daemonBasePath: String = daemonSocketBasePath(),
-    private val createDaemonClient: (String) -> CoreClient = { path -> KurpcCoreClient.local { path } },
+    private val createDaemonClient: (String) -> CoreClient = { path ->
+        WireCoreClient.local { path }
+    },
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val access = Mutex()
@@ -326,7 +330,19 @@ internal class CoreHostController(
     private suspend fun writeRootCertificatesLocked() {
         try {
             val pem = coreClient.getRootCertificates(rootCertificateStore(DataStore.certProvider.get()))
-            repository.externalAssetsDir.resolve(PLUGIN_CA_FILE).writeText(pem)
+            val directory = repository.externalAssetsDir
+            val pending = File.createTempFile("husi-roots-", ".pem", directory)
+            try {
+                pending.writeText(pem)
+                FileSystem.SYSTEM.atomicMove(
+                    pending.toOkioPath(),
+                    directory.resolve(PLUGIN_CA_FILE).toOkioPath(),
+                )
+            } finally {
+                pending.delete()
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logs.w("write root certificates", e)
         }
@@ -934,7 +950,7 @@ internal class CoreHostController(
         /**
          * Parent directory of the Unix daemon UDS
          * (`/var/run` aliases `/run` on Linux, including inside Flatpak).
-         * [KurpcCoreClient] dials `basePath/api.sock`.
+         * [WireCoreClient] dials `basePath/api.sock`.
          */
         private const val DAEMON_SOCKET_DIR_UNIX = "/var/run/husi"
         private const val DAEMON_SOCKET_DIR_LINUX = "/run/husi"
@@ -943,14 +959,14 @@ internal class CoreHostController(
          * Windows protected named pipe
          * (`libcore/coresvc.DaemonPipePath` /
          * `libcore/daemonhost.DefaultDaemonPipePath`).
-         * Passed to [KurpcCoreClient] as `basePath`; `localCoreTransport` detects
+         * Passed to [WireCoreClient] as `basePath`; `localCoreTransport` detects
          * the pipe prefix and dials it as-is (no `api.sock` join).
          */
         private const val DAEMON_PIPE_PATH_WINDOWS =
             """\\.\pipe\ProtectedPrefix\Administrators\husi"""
 
         /**
-         * Base path for [KurpcCoreClient].
+         * Base path for [WireCoreClient].
          * Unix: directory containing `api.sock`.
          * Windows: the full pipe path (see `localCoreTransport`).
          */

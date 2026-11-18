@@ -2,6 +2,7 @@
 
 package fr.husi.ui.clash
 
+import fr.husi.net.HttpStatus
 import fr.husi.remote.ClashRequests
 import fr.husi.remote.ClashApiException
 import fr.husi.test.FakeClashApi
@@ -86,7 +87,11 @@ class ClashModelsTest {
 
     @Test
     fun `unsupported UUID operations disable only their appropriate scope`() = runTest {
-        for (status in listOf(404, 405, 501)) {
+        for (status in listOf(
+            HttpStatus.NOT_FOUND,
+            HttpStatus.METHOD_NOT_ALLOWED,
+            HttpStatus.NOT_IMPLEMENTED,
+        )) {
             val api = FakeClashApi().apply {
                 handler = { operation, _ ->
                     if (operation == "toggleRule") {
@@ -99,8 +104,8 @@ class ClashModelsTest {
             model.refresh()
             val rule = model.rules.single()
             model.toggle(rule)
-            assertEquals(status != 404, model.toggleUnsupported)
-            assertEquals(status == 404, model.unavailable[rule.uuid] == true)
+            assertEquals(status != HttpStatus.NOT_FOUND, model.toggleUnsupported)
+            assertEquals(status == HttpStatus.NOT_FOUND, model.unavailable[rule.uuid] == true)
             model.refresh()
             model.toggle(rule)
             assertEquals(1, api.requests.count { it.first == "toggleRule" })
@@ -126,12 +131,16 @@ class ClashModelsTest {
     fun `optional resource failures are local and authentication failures remain retryable`() =
         runTest {
             val api = FakeClashApi().apply {
-                handler = { _, _ -> throw ClashApiException("http", 404, "Not found") }
+                handler = { _, _ ->
+                    throw ClashApiException("http", HttpStatus.NOT_FOUND, "Not found")
+                }
             }
             val model = ClashResourceModel(api) { api.request(ClashRequests.proxyProviders) }
             model.refresh()
             assertTrue(model.unsupported)
-            api.handler = { _, _ -> throw ClashApiException("http", 401, "Unauthorized") }
+            api.handler = { _, _ ->
+                throw ClashApiException("http", HttpStatus.UNAUTHORIZED, "Unauthorized")
+            }
             model.refresh()
             assertFalse(model.unsupported)
             api.handler = { _, _ -> Json.parseToJsonElement("[]") }

@@ -28,8 +28,8 @@ enum class DesktopPlatform(
     val composeDependencyId: String,
     val nativeNames: Set<String>,
     val jnaName: String,
-    /** OS part of the `kurpc-natives-jvm` classifier. */
-    val kurpcName: String,
+    /** OS token in libghostty desktop resources. */
+    val ghosttyName: String,
 ) {
     Linux(
         id = "linux",
@@ -37,7 +37,7 @@ enum class DesktopPlatform(
         composeDependencyId = "linux",
         nativeNames = setOf("linux"),
         jnaName = "linux",
-        kurpcName = "linux",
+        ghosttyName = "linux",
     ),
     Darwin(
         id = "darwin",
@@ -45,7 +45,7 @@ enum class DesktopPlatform(
         composeDependencyId = "macos",
         nativeNames = setOf("osx", "darwin"),
         jnaName = "darwin",
-        kurpcName = "macos",
+        ghosttyName = "macos",
     ),
     Windows(
         id = "windows",
@@ -53,7 +53,7 @@ enum class DesktopPlatform(
         composeDependencyId = "windows",
         nativeNames = setOf("windows"),
         jnaName = "win32",
-        kurpcName = "windows",
+        ghosttyName = "windows",
     ),
     ;
 
@@ -84,8 +84,8 @@ enum class DesktopArch(
     val nativeNames: Set<String>,
     val jnaName: String,
     val nucleusName: String,
-    /** Arch part of the `kurpc-natives-jvm` classifier. */
-    val kurpcName: String,
+    /** Architecture token in libghostty desktop resources. */
+    val ghosttyName: String,
 ) {
     Amd64(
         id = "amd64",
@@ -95,7 +95,7 @@ enum class DesktopArch(
         nativeNames = setOf("x64", "amd64"),
         jnaName = "x86-64",
         nucleusName = "x64",
-        kurpcName = "x86_64",
+        ghosttyName = "x86_64",
     ),
     Arm64(
         id = "arm64",
@@ -105,7 +105,7 @@ enum class DesktopArch(
         nativeNames = setOf("arm64", "aarch64"),
         jnaName = "aarch64",
         nucleusName = "aarch64",
-        kurpcName = "aarch64",
+        ghosttyName = "aarch64",
     ),
     ;
 
@@ -123,11 +123,6 @@ data class DesktopTarget(
     val arch: DesktopArch,
 ) {
     val id: String = "${platform.id}/${arch.id}"
-    /**
-     * libkurpc for this target. kurpc extracts it from the jar at its own resource path, outside
-     * the `natives/` tree the release jar filter rewrites, so it needs no sidecar.
-     */
-    val kurpcNativesClassifier: String = "${platform.kurpcName}-${arch.kurpcName}"
     val composeDependencyNotation: String =
         "org.jetbrains.compose.desktop:desktop-jvm-${platform.composeDependencyId}-${arch.composeDependencyId}"
     val nativeKeepPrefixes: Set<String> =
@@ -151,8 +146,7 @@ data class DesktopTarget(
         )
     /** Where libghostty keeps its JNI library for every target, one directory each. */
     val ghosttyNativePrefix: String = "io/github/xchacha20_poly1305/libghostty/native/"
-    /** libghostty names its native directories with the same OS and arch tokens as kurpc. */
-    val ghosttyNativeKeepPrefix: String = "$ghosttyNativePrefix${platform.kurpcName}-${arch.kurpcName}/"
+    val ghosttyNativeKeepPrefix: String = "$ghosttyNativePrefix${platform.ghosttyName}-${arch.ghosttyName}/"
     val skikoNativeKeepEntries: Set<String> =
         buildSet {
             val baseName = "skiko-${platform.composeDependencyId}-${arch.composeDependencyId}"
@@ -423,7 +417,6 @@ kotlin {
         getByName("wasmJsMain") {
             resources.srcDir(prepareWebResources)
             dependencies {
-                implementation(libs.kurpc)
                 implementation(libs.filekit.dialogs.compose)
             }
         }
@@ -455,7 +448,7 @@ kotlin {
         }
         getByName("jvmMain") {
             dependencies {
-                implementation(libs.kurpc)
+                implementation(libs.okhttp)
                 implementation(libs.jetbrains.compose.animation.graphics)
                 implementation(libs.androidx.datastore.preferences)
                 implementation(libs.androidx.sqlite.bundled)
@@ -480,6 +473,7 @@ kotlin {
                 )
 
                 implementation(libs.kotlinx.coroutines.android)
+                implementation(libs.conscrypt.android)
 
                 implementation(libs.androidx.appcompat)
                 implementation(libs.androidx.work.multiprocess)
@@ -538,13 +532,6 @@ kotlin {
                 implementation(libs.nucleus.darkmode.detector)
                 implementation(libs.nucleus.autolaunch)
                 implementation(libs.nucleus.scheduler)
-                // The KMP dependency DSL has no variantOf; the classifier goes in the notation.
-                libs.kurpc.natives.jvm.get().let { natives ->
-                    implementation(
-                        "${natives.module}:${natives.versionConstraint.requiredVersion}:" +
-                            desktopTarget.kurpcNativesClassifier,
-                    )
-                }
             }
         }
         getByName("desktopTest") {

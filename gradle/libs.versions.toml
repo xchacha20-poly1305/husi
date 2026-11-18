@@ -6,8 +6,9 @@ composeMultiplatform = "1.12.2"
 composeMaterial3 = "1.12.0-alpha03"
 koin = "4.2.2"
 kotlinCoroutines = "1.11.0"
-kurpc = "0.3.1"
-wire = "7.2.1"
+wire = "7.2.2"
+okhttp = "5.5.1"
+conscrypt = "2.9.0"
 libghostty = "0.5.1"
 kotlinxSerialization = "1.13.0"
 kotlinxDatetime = "0.8.0"
@@ -47,10 +48,9 @@ kotlinGradlePlugin = "2.4.21"
 haze = "2.1.0"
 
 [libraries]
-kurpc = { module = "io.github.xchacha20-poly1305:kurpc", version.ref = "kurpc" }
-# One jar per desktop classifier; composeApp picks the one matching desktopTarget.
-kurpc-natives-jvm = { module = "io.github.xchacha20-poly1305:kurpc-natives-jvm", version.ref = "kurpc" }
-kurpc-wire = { module = "io.github.xchacha20-poly1305:kurpc-wire", version.ref = "kurpc" }
+wire-grpc-client = { module = "com.squareup.wire:wire-grpc-client", version.ref = "wire" }
+conscrypt-android = { module = "org.conscrypt:conscrypt-android", version.ref = "conscrypt" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wire" }
 libghostty-compose = { module = "io.github.xchacha20-poly1305:libghostty-compose", version.ref = "libghostty" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }

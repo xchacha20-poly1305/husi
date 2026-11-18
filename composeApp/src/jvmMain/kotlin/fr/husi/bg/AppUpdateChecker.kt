@@ -9,7 +9,7 @@ import fr.husi.ktx.kxs
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
 import fr.husi.net.buildUserAgent
-import fr.husi.net.localSocks5Proxy
+import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveHttpFetcher
 import fr.husi.platform.PlatformAbis
 import fr.husi.utils.AppVersion
@@ -161,7 +161,7 @@ class AppUpdateChecker(
             headers = token.blankAsNull()
                 ?.let { mapOf("Authorization" to "Bearer $it") }
                 .orEmpty(),
-            socks5 = localSocks5Proxy(),
+            proxy = localHttpProxy(),
         )
         return httpFetcher.fetchText(request).content
     }

@@ -2,6 +2,8 @@
 
 package fr.husi.remote
 
+import com.squareup.wire.GrpcException
+import com.squareup.wire.GrpcStatus
 import fr.husi.proto.daemon.Status
 import fr.husi.proto.daemon.SubscribeStatusRequest
 import fr.husi.proto.daemon.TailscaleSSHClientMessage
@@ -9,201 +11,219 @@ import fr.husi.proto.daemon.TailscaleSSHInput
 import fr.husi.proto.daemon.TailscaleSSHReady
 import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.proto.daemon.Version
-import io.github.xchacha20_poly1305.kurpc.CallOptions
-import io.github.xchacha20_poly1305.kurpc.Channel
-import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
-import io.github.xchacha20_poly1305.kurpc.Metadata
-import io.github.xchacha20_poly1305.kurpc.UnaryResponse
-import io.github.xchacha20_poly1305.kurpc.WebChannelConfig
-import io.github.xchacha20_poly1305.kurpc.WebStreamTransport
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import okio.ByteString.Companion.toByteString
+import okio.IOException
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class BrowserClientTest {
     @Test
     fun `session uses bearer metadata websocket subscriptions and bounded unary deadlines`() = runTest {
-        val channel = RecordingChannel()
-        lateinit var config: WebChannelConfig
-        val client = BrowserClient { config = it; channel }
+        val server = RecordingServer()
+        val client = BrowserClient(server::open)
         assertEquals("test-version", client.connect("https://example.com/api/", "secret").version)
-        assertEquals("https://example.com/api", config.baseUrl)
-        assertEquals("Bearer secret", config.metadata.text("authorization"))
-        assertEquals(WebStreamTransport.WebSocket, config.serverStreamingTransport)
-        assertEquals("/daemon.StartedService/GetVersion", channel.calls.single().method)
-        assertEquals(10.seconds, channel.calls.single().options.timeout)
+        val probe = server.calls.single()
+        assertEquals("https://example.com/api", probe.url)
+        assertEquals("Bearer secret", probe.metadata["authorization"])
+        assertEquals("/daemon.StartedService/GetVersion", probe.method)
+        assertEquals(10.seconds, probe.timeout)
+        assertNotNull(probe.request)
 
-        client.service.getVersion()
-        assertEquals(30.seconds, channel.calls.last().options.timeout)
-        client.service.getVersion(options = CallOptions(timeout = 2.seconds))
-        assertEquals(2.seconds, channel.calls.last().options.timeout)
+        client.service.GetVersion().execute()
+        assertEquals(30.seconds, server.calls.last().timeout)
+        client.service.GetVersion().apply {
+            (timeout as BrowserCallTimeout).duration = 2.seconds
+        }.execute()
+        assertEquals(2.seconds, server.calls.last().timeout)
 
-        val status = client.service.subscribeStatus(SubscribeStatusRequest(500000000)).first()
+        val status = client.service.SubscribeStatus().responses(SubscribeStatusRequest(500000000)).first()
         assertEquals(9007199254740993L, status.uplinkTotal)
-        val call = channel.calls.last()
-        assertEquals(500000000L, SubscribeStatusRequest.ADAPTER.decode(call.request).interval)
-        assertNull(call.options.timeout)
+        val call = server.calls.last()
+        assertEquals(500000000L, SubscribeStatusRequest.ADAPTER.decode(call.sent.single()).interval)
+        assertNull(call.request)
+        assertNull(call.timeout)
+        assertTrue(call.closed)
         client.close()
-        assertTrue(channel.closed)
     }
 
     @Test
-    fun `connection probe closes its own channel and preserves the active session`() = runTest {
-        val active = RecordingChannel()
-        val probe = RecordingChannel()
-        val channels = ArrayDeque(listOf(active, probe))
-        val client = BrowserClient { channels.removeFirst() }
+    fun `connection probe closes its own exchange and preserves the active session`() = runTest {
+        val active = RecordingServer()
+        val probe = RecordingServer()
+        val client = BrowserClient { url, secret ->
+            if (url == "http://active.example") {
+                active.open(url, secret)
+            } else {
+                probe.open(url, secret)
+            }
+        }
         client.connect("http://active.example", "")
         assertEquals("test-version", client.testConnection("http://probe.example", ""))
-        assertTrue(probe.closed)
-        assertFalse(active.closed)
-        client.service.getVersion()
+        assertTrue(probe.calls.single().closed)
+        client.service.GetVersion().execute()
         assertEquals(2, active.calls.size)
         client.close()
     }
 
     @Test
     fun `replacing a session closes live and not yet collected streams`() = runTest {
-        val old = RecordingChannel()
-        val replacement = RecordingChannel()
-        val channels = ArrayDeque(listOf(old, replacement))
-        val client = BrowserClient { channels.removeFirst() }
+        val old = RecordingServer()
+        val replacement = RecordingServer()
+        val client = BrowserClient { url, secret ->
+            if (url == "http://old.example") {
+                old.open(url, secret)
+            } else {
+                replacement.open(url, secret)
+            }
+        }
         client.connect("http://old.example", "")
         val oldService = client.service
-        val delayedStream = oldService.subscribeStatus(SubscribeStatusRequest())
-        val live = async { runCatching { oldService.subscribeStatus(SubscribeStatusRequest()).collect {} } }
+        val delayedStream = oldService.SubscribeStatus().responses(SubscribeStatusRequest())
+        val live = async {
+            assertFailsWith<GrpcException> {
+                oldService.SubscribeStatus()
+                    .responses(SubscribeStatusRequest())
+                    .collect {}
+            }
+        }
         runCurrent()
-        assertEquals(1, old.activeStreams)
+        assertEquals(2, old.calls.size)
         client.connect("http://new.example", "")
-        runCurrent()
-        assertIs<ChannelClosedException>(live.await().exceptionOrNull())
-        assertEquals(0, old.activeStreams)
-        assertFailsWith<ChannelClosedException> { delayedStream.first() }
-        assertFalse(replacement.closed)
+        assertEquals(GrpcStatus.UNAVAILABLE, live.await().grpcStatus)
+        assertTrue(old.calls.last().closed)
+        val delayedError = assertFailsWith<GrpcException> { delayedStream.first() }
+        assertEquals(GrpcStatus.UNAVAILABLE, delayedError.grpcStatus)
+        assertEquals("test-version", client.service.GetVersion().execute().version)
         client.close()
     }
 
     @Test
     fun `late failure from a replaced connection cannot close its replacement`() = runTest {
         val gate = CompletableDeferred<Unit>()
-        val old = RecordingChannel().also { it.versionGate = gate }
-        val replacement = RecordingChannel()
-        val channels = ArrayDeque(listOf(old, replacement))
-        val client = BrowserClient { channels.removeFirst() }
-        val connecting = async { runCatching { client.connect("http://old.example", "") } }
+        val old = RecordingServer().also { it.versionGate = gate }
+        val replacement = RecordingServer()
+        val client = BrowserClient { url, secret ->
+            if (url == "http://old.example") {
+                old.open(url, secret)
+            } else {
+                replacement.open(url, secret)
+            }
+        }
+        val connecting = async {
+            runCatching {
+                client.connect("http://old.example", "")
+            }
+        }
         runCurrent()
         client.connect("http://new.example", "")
         gate.completeExceptionally(IllegalStateException("old connection failed"))
         assertTrue(connecting.await().isFailure)
-        assertEquals("test-version", client.service.getVersion().version)
-        assertFalse(replacement.closed)
+        assertEquals("test-version", client.service.GetVersion().execute().version)
         client.close()
     }
 
     @Test
     fun `SSH carries binary oneof messages through the generated bidirectional client`() = runTest {
-        val channel = RecordingChannel()
-        val client = BrowserClient { channel }
+        val server = RecordingServer()
+        val client = BrowserClient(server::open)
         client.connect("http://example.com", "")
         val bytes = byteArrayOf(0, 1, -1, 27)
-        val ready = client.service.startTailscaleSSHSession(flowOf(
-            TailscaleSSHClientMessage(input = TailscaleSSHInput(bytes.toByteString())),
-        )).first()
+        val ready = client.service.StartTailscaleSSHSession().responses(
+            flowOf(
+                TailscaleSSHClientMessage(input = TailscaleSSHInput(bytes.toByteString())),
+            ),
+        ).first()
         assertNotNull(ready.ready)
-        assertContentEquals(bytes, channel.sshInputs.single().input!!.data_.toByteArray())
+        val call = server.calls.last()
+        assertEquals("/daemon.StartedService/StartTailscaleSSHSession", call.method)
+        val sent = TailscaleSSHClientMessage.ADAPTER.decode(call.sent.single())
+        assertContentEquals(bytes, sent.input!!.data_.toByteArray())
         client.close()
     }
 
-    private data class Call(val method: String, val request: ByteArray, val options: CallOptions) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
+    private class RecordingServer {
+        val calls = mutableListOf<RecordingExchange>()
+        var versionGate: CompletableDeferred<Unit>? = null
 
-            other as Call
-
-            if (method != other.method) return false
-            if (!request.contentEquals(other.request)) return false
-            if (options != other.options) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = method.hashCode()
-            result = 31 * result + request.contentHashCode()
-            result = 31 * result + options.hashCode()
-            return result
-        }
+        fun open(url: String, secret: String) =
+            BrowserGrpcClient(url, secret) { _, path, metadata, request, timeout ->
+                RecordingExchange(url, path, metadata, request, timeout, versionGate).also {
+                    calls.add(it)
+                }
+            }
     }
 
-    private class RecordingChannel : Channel {
-        val calls = mutableListOf<Call>()
-        val sshInputs = mutableListOf<TailscaleSSHClientMessage>()
-        var versionGate: CompletableDeferred<Unit>? = null
+    private class RecordingExchange(
+        val url: String,
+        val method: String,
+        val metadata: Map<String, String>,
+        val request: ByteArray?,
+        val timeout: Duration?,
+        private val versionGate: CompletableDeferred<Unit>?,
+    ) : BrowserRpcExchange {
+        override val status = 0
+        override val statusMessage = ""
+        override val responseMetadata = null
+        val sent = mutableListOf<ByteArray>()
         var closed = false
-        var activeStreams = 0
+            private set
+        private var received = false
         private val closure = CompletableDeferred<Unit>()
+        private val requestSent = CompletableDeferred<Unit>()
+
+        override suspend fun send(bytes: ByteArray) {
+            sent.add(bytes)
+            requestSent.complete(Unit)
+        }
+
+        override suspend fun finish() = Unit
+
+        override suspend fun receive(): ByteArray? {
+            if (received) {
+                if (method.endsWith("/GetVersion")) {
+                    return null
+                }
+                closure.await()
+                throw IOException("RPC closed")
+            }
+            received = true
+            return when (method.substringAfterLast('/')) {
+                "GetVersion" -> {
+                    versionGate?.await()
+                    Version("test-version").encode()
+                }
+
+                "SubscribeStatus" -> {
+                    requestSent.await()
+                    Status(uplinkTotal = 9007199254740993L).encode()
+                }
+
+                "StartTailscaleSSHSession" -> {
+                    requestSent.await()
+                    TailscaleSSHServerMessage(ready = TailscaleSSHReady()).encode()
+                }
+
+                else -> error("Unexpected RPC $method")
+            }
+        }
 
         override fun close() {
             closed = true
             closure.complete(Unit)
         }
-
-        private fun checkOpen() {
-            if (closed) throw ChannelClosedException()
-        }
-
-        override suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray {
-            checkOpen()
-            calls.add(Call(method, request, options))
-            versionGate?.await()
-            checkOpen()
-            return Version("test-version").encode()
-        }
-
-        override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions) =
-            UnaryResponse(unary(method, request, options), Metadata.Empty, Metadata.Empty)
-
-        override fun serverStreaming(method: String, request: ByteArray, options: CallOptions): Flow<ByteArray> = flow {
-            checkOpen()
-            calls.add(Call(method, request, options))
-            activeStreams++
-            try {
-                emit(Status(uplinkTotal = 9007199254740993L).encode())
-                closure.await()
-                throw ChannelClosedException()
-            } finally {
-                activeStreams--
-            }
-        }
-
-        override fun bidiStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): Flow<ByteArray> = flow {
-            checkOpen()
-            assertEquals("/daemon.StartedService/StartTailscaleSSHSession", method)
-            requests.collect {
-                sshInputs.add(TailscaleSSHClientMessage.ADAPTER.decode(it))
-                emit(TailscaleSSHServerMessage(ready = TailscaleSSHReady()).encode())
-            }
-        }
-
-        override suspend fun clientStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): ByteArray =
-            error("Unexpected client stream")
     }
 }

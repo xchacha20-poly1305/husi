@@ -1,7 +1,5 @@
 package fr.husi.core
 
-import io.github.xchacha20_poly1305.kurpc.Connection
-import io.github.xchacha20_poly1305.kurpc.tls
 import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.io.IOException
@@ -16,7 +14,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
 import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLSocket
-import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.X509TrustManager
 import kotlin.concurrent.thread
 import kotlin.io.encoding.Base64
 import kotlin.io.path.createTempDirectory
@@ -24,7 +22,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
-class RootCertificatesSocketFactoryTest {
+class CoreTrustManagerTest {
 
     private val directory: File = createTempDirectory("husi-root-certificates-test").toFile()
 
@@ -36,28 +34,27 @@ class RootCertificatesSocketFactoryTest {
     @Test
     fun `a server certificate among the roots passes the handshake`() = runTest {
         val roots = pemFile(OTHER_CERTIFICATE + LOCALHOST_CERTIFICATE)
-        handshakeWithLocalhostServer(rootCertificatesSocketFactory(roots))
+        handshakeWithLocalhostServer(rootCertificatesTrustManager(roots))
     }
 
     @Test
     fun `a server certificate outside the roots fails the handshake`() = runTest {
         val roots = pemFile(OTHER_CERTIFICATE)
         assertFailsWith<SSLException> {
-            handshakeWithLocalhostServer(rootCertificatesSocketFactory(roots))
+            handshakeWithLocalhostServer(rootCertificatesTrustManager(roots))
         }
     }
 
     @Test
     fun `a missing or empty roots file fails instead of falling back to the platform store`() {
-        assertFailsWith<IOException> { rootCertificatesSocketFactory(directory.resolve("absent.pem")) }
-        assertFailsWith<IOException> { rootCertificatesSocketFactory(pemFile("")) }
+        assertFailsWith<IOException> { rootCertificatesTrustManager(directory.resolve("absent.pem")) }
+        assertFailsWith<IOException> { rootCertificatesTrustManager(pemFile("")) }
     }
 
     private fun pemFile(content: String): File =
         directory.resolve("roots.pem").apply { writeText(content) }
 
-    /** One TLS handshake through [Connection.tls] against a server presenting [LOCALHOST_CERTIFICATE]. */
-    private suspend fun handshakeWithLocalhostServer(trust: SSLSocketFactory) {
+    private suspend fun handshakeWithLocalhostServer(trust: X509TrustManager) {
         val loopback = InetAddress.getLoopbackAddress()
         val server = localhostServerContext().serverSocketFactory
             .createServerSocket(0, 1, loopback) as SSLServerSocket
@@ -67,14 +64,29 @@ class RootCertificatesSocketFactoryTest {
                     (server.accept() as SSLSocket).use { it.startHandshake() }
                 }
             }
-            Connection.tls(Socket(loopback, server.localPort), "localhost", trust).close()
+            val client = SSLContext.getInstance("TLS").apply { init(null, arrayOf(trust), null) }
+            Socket(loopback, server.localPort).use { raw ->
+                val tlsSocket = client.socketFactory.createSocket(
+                    raw,
+                    "localhost",
+                    server.localPort,
+                    true,
+                ) as SSLSocket
+                tlsSocket.use {
+                    it.sslParameters = it.sslParameters.apply {
+                        endpointIdentificationAlgorithm = "HTTPS"
+                    }
+                    it.startHandshake()
+                }
+            }
             accepted.join()
         }
     }
 
     private fun localhostServerContext(): SSLContext {
+        val decodedKey = Base64.decode(LOCALHOST_PRIVATE_KEY_PKCS8)
         val key = KeyFactory.getInstance("EC")
-            .generatePrivate(PKCS8EncodedKeySpec(Base64.decode(LOCALHOST_PRIVATE_KEY_PKCS8)))
+            .generatePrivate(PKCS8EncodedKeySpec(decodedKey))
         val certificate = CertificateFactory.getInstance("X.509")
             .generateCertificate(LOCALHOST_CERTIFICATE.byteInputStream())
         val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
@@ -82,14 +94,17 @@ class RootCertificatesSocketFactoryTest {
         keyStore.setKeyEntry("localhost", key, CharArray(0), arrayOf(certificate))
         val keyManagers = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
         keyManagers.init(keyStore, CharArray(0))
-        return SSLContext.getInstance("TLS").apply { init(keyManagers.keyManagers, null, null) }
+        return SSLContext.getInstance("TLS").apply {
+            init(keyManagers.keyManagers, null, null)
+        }
     }
 
     private companion object {
         // Self-signed P-256 certificate for DNS:localhost, valid until 2126.
         const val LOCALHOST_PRIVATE_KEY_PKCS8 =
-            "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgbI+dOvhoKH8/ALLilUPjFGQXM9l0a70X4uSaj1bEnJGhRANCAATj" +
-                "SZe7He4aLsD+C+UbGRIefFQXt+bQb//ClwunXWhvZNb01VKjVieFlVajUMladlXBAfoGKM3Vw/HCyQSdULDr"
+            "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgbI+dOvhoKH8/ALLi" +
+                "lUPjFGQXM9l0a70X4uSaj1bEnJGhRANCAATjSZe7He4aLsD+C+UbGRIefFQX" +
+                "t+bQb//ClwunXWhvZNb01VKjVieFlVajUMladlXBAfoGKM3Vw/HCyQSdULDr"
 
         val LOCALHOST_CERTIFICATE = """
             -----BEGIN CERTIFICATE-----

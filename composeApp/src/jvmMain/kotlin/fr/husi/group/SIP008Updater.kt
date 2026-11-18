@@ -29,7 +29,7 @@ import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.kxs
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.buildUserAgent
-import fr.husi.net.localSocks5Proxy
+import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveHttpFetcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -98,7 +98,7 @@ object SIP008Updater : GroupUpdater() {
                 userAgent = buildUserAgent(subscription.customUserAgent),
                 // Strict !!!
                 restrictedTls = true,
-                socks5 = localSocks5Proxy(),
+                proxy = localHttpProxy(),
             )
             val response = resolveHttpFetcher().fetchText(request)
 

@@ -6,10 +6,14 @@ import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.core.CoreClient
 import fr.husi.core.CoreVersionCache
-import fr.husi.core.KurpcCoreClient
-import fr.husi.core.rootCertificatesSocketFactory
+import fr.husi.core.WireCoreClient
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
+import fr.husi.net.AppHttpClient
+import fr.husi.net.HttpFetcher
+import fr.husi.net.OkHttpFetcher
+import fr.husi.net.OkHttpWebDAVClient
+import fr.husi.net.WebDAVClient
 import fr.husi.repository.LocalRepository
 import fr.husi.repository.Repository
 import fr.husi.tailscale.TaildropSendManager
@@ -22,6 +26,7 @@ import fr.husi.ui.dashboard.asNoticeCounts
 import fr.husi.ui.openconnect.OpenConnectAuthController
 import fr.husi.ui.openvpn.OpenVPNAuthController
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.Flow
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -32,12 +37,28 @@ private fun commonUiModule() = module {
     single<Repository> { get<LocalRepository>() }
     single<PlatformMaterialApi> { platformMaterialApi() }
     single<PlatformThemeApi> { platformThemeApi() }
-    // Resolve the socket base path on every dial so CoreHostController can
+    // Resolve the socket base path on channel open so CoreHostController can
     // switch between the session working dir and the system daemon path.
     single<CoreClient> {
         val repository = get<LocalRepository>()
-        KurpcCoreClient.local { coreClientBasePath(repository) }
+        WireCoreClient.local { coreClientBasePath(repository) }
     }
+    single {
+        AppHttpClient(
+            get<LocalRepository>().externalAssetsDir.resolve(PLUGIN_CA_FILE),
+            ::prepareHttpRoots,
+        )
+    }
+    single<HttpFetcher> {
+        val core = get<CoreClient>()
+        // TODO: Decrypt age-encrypted subscriptions directly with a Kotlin age implementation.
+        OkHttpFetcher(get()) { requests ->
+            withAgeCore {
+                core.decryptAge(requests)
+            }
+        }
+    }
+    single<WebDAVClient> { OkHttpWebDAVClient(get()) }
     single { CoreVersionCache(coreClient = get()) }
     single {
         // Written at startup from the user's certificate provider: by loadCA() on Android, by
@@ -47,7 +68,7 @@ private fun commonUiModule() = module {
             localClient = get(),
             dao = SagerDatabase.remoteServerDao,
             remoteClientFactory = { url, secret ->
-                KurpcCoreClient.remote(url, secret) { rootCertificatesSocketFactory(rootCertificates) }
+                WireCoreClient.remote(url, secret, roots = rootCertificates)
             },
         )
     }
@@ -70,11 +91,14 @@ private fun commonUiModule() = module {
 }
 
 /**
- * Directory that holds `api.sock` for [KurpcCoreClient] (or, for the Windows daemon, the pipe
+ * Directory that holds `api.sock` for [WireCoreClient] (or, for the Windows daemon, the pipe
  * path itself). Android: the files dir, which `initCore` makes the core's internal assets path.
  * Desktop: the session host working dir under the data directory, or the daemon's.
  */
 internal expect fun coreClientBasePath(repository: LocalRepository): String
+
+internal expect suspend fun prepareHttpRoots()
+internal expect fun <T> withAgeCore(decrypt: () -> Flow<T>): Flow<T>
 
 internal expect fun platformMaterialApi(): PlatformMaterialApi
 internal expect fun platformThemeApi(): PlatformThemeApi

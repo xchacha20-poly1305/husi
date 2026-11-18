@@ -14,6 +14,7 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.ktx.Logs
 import fr.husi.remote.RemoteState
+import fr.husi.remote.responses
 import fr.husi.resources.Res
 import fr.husi.resources.clash_dns
 import fr.husi.resources.tools_network
@@ -82,7 +83,7 @@ private fun RemoteOutboundBinding(value: String, select: (String) -> Unit, modif
     var tags by remember(remote.selected) { mutableStateOf(listOf("")) }
     LaunchedEffect(remote.selected) {
         try {
-            remote.client.service.subscribeOutbounds().collect { update ->
+            remote.client.service.SubscribeOutbounds().responses().collect { update ->
                 tags = listOf("") + update.outbounds.map { it.tag }
             }
         } catch (failure: Exception) {

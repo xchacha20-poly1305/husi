@@ -16,6 +16,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
+	"github.com/xchacha20-poly1305/husi/libcore/v2/internal/atomicfile"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/pb/husi/v1"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/rootcerts"
 	"github.com/xchacha20-poly1305/husi/libcore/v2/simpleproxyurl"
@@ -56,7 +57,7 @@ func SetupRootCA(certOption int32) {
 		log.Error("create plugin certificate directory: ", err)
 		return
 	}
-	err = os.WriteFile(filepath.Join(externalAssetsPath, PluginCaFile), roots.PEM(), 0o600)
+	err = atomicfile.Write(filepath.Join(externalAssetsPath, PluginCaFile), roots.PEM(), 0o600)
 	if err != nil {
 		log.Error("write plugin root certificates: ", err)
 		return

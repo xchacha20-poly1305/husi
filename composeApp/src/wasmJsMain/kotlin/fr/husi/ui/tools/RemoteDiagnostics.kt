@@ -12,6 +12,7 @@ import fr.husi.ktx.emptyAsNull
 import fr.husi.proto.daemon.NetworkQualityTestRequest
 import fr.husi.proto.daemon.STUNTestRequest
 import fr.husi.remote.RemoteState
+import fr.husi.remote.responses
 import fr.husi.resources.Res
 import fr.husi.resources.can_not_be_empty
 import fr.husi.resources.done
@@ -55,7 +56,8 @@ internal class RemoteStunPresenter(private val remote: RemoteState) : ViewModel(
             uiState.update { it.copy(isDoing = true, report = StunReport()) }
             try {
                 remote.client.service
-                    .startSTUNTest(STUNTestRequest(server = input.server, outboundTag = input.outboundTag))
+                    .StartSTUNTest()
+                    .responses(STUNTestRequest(server = input.server, outboundTag = input.outboundTag))
                     .collect { progress ->
                         if (progress.error.isNotEmpty()) {
                             Logs.w("STUN test: ${progress.error}")
@@ -149,7 +151,7 @@ internal class RemoteNetworkQualityPresenter(private val remote: RemoteState) :
             testState.update { it.copy(canTest = false, report = NetworkQualityReport()) }
             try {
                 remote.client.service
-                    .startNetworkQualityTest(
+                    .StartNetworkQualityTest().responses(
                         NetworkQualityTestRequest(
                             configURL =
                                 DataStore.networkQualityConfigUrl.get().ifBlank {

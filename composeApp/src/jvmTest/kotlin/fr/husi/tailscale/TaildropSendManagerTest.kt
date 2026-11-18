@@ -1,14 +1,11 @@
 package fr.husi.tailscale
 
-import fr.husi.core.CoreChannel
-import fr.husi.core.KurpcCoreClient
 import fr.husi.core.TAILDROP_CHUNK_SIZE
 import fr.husi.core.remote.CoreTarget
 import fr.husi.proto.daemon.TaildropSendClientMessage
 import fr.husi.proto.daemon.TaildropSendProgress
 import fr.husi.proto.daemon.TaildropSendServerMessage
-import io.github.xchacha20_poly1305.kurpc.CallOptions
-import io.github.xchacha20_poly1305.kurpc.UnaryResponse
+import fr.husi.test.FakeCoreClient
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -34,7 +31,7 @@ class TaildropSendManagerTest {
 
     @Test
     fun `send with no files does not open a session`() = runTest {
-        val manager = TaildropSendManager(runningTarget { ScriptedCoreChannel() }, this)
+        val manager = TaildropSendManager(runningTarget(ScriptedCoreClient()), this)
 
         val sessionId = manager.send("ts", "peer", "Peer", emptyList())
 
@@ -57,8 +54,8 @@ class TaildropSendManagerTest {
     @Test
     fun `send streams start, full sized chunks, and file done for each file`() = runTest {
         assertEquals(16 * 1024 - 64, TAILDROP_CHUNK_SIZE)
-        val channel = ScriptedCoreChannel()
-        val manager = TaildropSendManager(runningTarget { channel }, this)
+        val channel = ScriptedCoreClient()
+        val manager = TaildropSendManager(runningTarget(channel), this)
         val payload = ByteArray(TAILDROP_CHUNK_SIZE + 3) { index -> index.toByte() }
         val maximumRead = 100
 
@@ -75,7 +72,7 @@ class TaildropSendManagerTest {
         )
         advanceUntilIdle()
 
-        assertEquals(listOf("/daemon.StartedService/SendTaildropFiles"), channel.methods)
+        assertEquals(1, channel.sendCalls)
         val messages = channel.clientMessages()
         assertEquals(
             listOf(
@@ -118,8 +115,8 @@ class TaildropSendManagerTest {
 
     @Test
     fun `progress maps sent bytes and completion and ignores received bytes`() = runTest {
-        val channel = ScriptedCoreChannel()
-        val manager = TaildropSendManager(runningTarget { channel }, this)
+        val channel = ScriptedCoreClient()
+        val manager = TaildropSendManager(runningTarget(channel), this)
         manager.send(
             tag = "ts",
             peerStableId = "peer-stable",
@@ -181,9 +178,9 @@ class TaildropSendManagerTest {
 
     @Test
     fun `cancel stops the upload and removes the session`() = runTest {
-        val channel = ScriptedCoreChannel()
+        val channel = ScriptedCoreClient()
         channel.pauseAfterEachRequest = true
-        val manager = TaildropSendManager(runningTarget { channel }, this)
+        val manager = TaildropSendManager(runningTarget(channel), this)
         var opened = false
         val sessionId = manager.send(
             tag = "ts",
@@ -242,71 +239,48 @@ private class LimitedReadSource(
     override fun close() = Unit
 }
 
-private class ScriptedCoreChannel : CoreChannel {
-    val methods = mutableListOf<String>()
+private class ScriptedCoreClient : FakeCoreClient() {
+    var sendCalls = 0
+        private set
     var pauseAfterEachRequest = false
     val continueRequests = CompletableDeferred<Unit>()
-    private val requests = mutableListOf<ByteArray>()
-    private val responses = Channel<ByteArray>(Channel.UNLIMITED)
+    private val requests = mutableListOf<TaildropSendClientMessage>()
+    private val responses = Channel<TaildropSendServerMessage>(Channel.UNLIMITED)
 
-    fun clientMessages(): List<TaildropSendClientMessage> = synchronized(requests) {
+    fun clientMessages() = synchronized(requests) {
         requests.toList()
-    }.map {
-        TaildropSendClientMessage.ADAPTER.decode(it)
     }
 
     fun respond(message: TaildropSendServerMessage) {
-        check(responses.trySend(message.encode()).isSuccess)
+        check(responses.trySend(message).isSuccess)
     }
 
     fun finish() {
         responses.close()
     }
 
-    override suspend fun unary(
-        method: String, request: ByteArray, options: CallOptions,
-    ): ByteArray = error("unexpected unary $method")
-
-    override suspend fun unaryCall(
-        method: String, request: ByteArray, options: CallOptions,
-    ): UnaryResponse = error("unexpected unaryCall $method")
-
-    override fun serverStreaming(
-        method: String, request: ByteArray, options: CallOptions,
-    ): Flow<ByteArray> = error("unexpected server stream $method")
-
-    override suspend fun clientStreaming(
-        method: String,
-        requests: Flow<ByteArray>,
-        options: CallOptions,
-    ): ByteArray = error("unexpected client stream $method")
-
-    override fun bidiStreaming(method: String, requests: Flow<ByteArray>, options: CallOptions): Flow<ByteArray> =
-        flow {
-            methods += method
-            coroutineScope {
-                val incoming = launch {
-                    requests.collect { message ->
-                        synchronized(this@ScriptedCoreChannel.requests) {
-                            this@ScriptedCoreChannel.requests += message
-                        }
-                        if (pauseAfterEachRequest) {
-                            continueRequests.await()
-                        }
+    override fun sendTaildropFiles(
+        requests: Flow<TaildropSendClientMessage>,
+    ): Flow<TaildropSendServerMessage> = flow {
+        sendCalls++
+        coroutineScope {
+            val incoming = launch {
+                requests.collect { message ->
+                    synchronized(this@ScriptedCoreClient.requests) {
+                        this@ScriptedCoreClient.requests += message
                     }
-                }
-                try {
-                    for (response in responses) {
-                        emit(response)
+                    if (pauseAfterEachRequest) {
+                        continueRequests.await()
                     }
-                } finally {
-                    incoming.cancel()
                 }
             }
+            try {
+                for (response in responses) emit(response)
+            } finally {
+                incoming.cancel()
+            }
         }
-
-    override fun close() = Unit
+    }
 }
 
-private fun runningTarget(openChannel: () -> CoreChannel) =
-    MutableStateFlow<CoreTarget?>(CoreTarget(KurpcCoreClient(openChannel = openChannel)))
+private fun runningTarget(client: FakeCoreClient) = MutableStateFlow<CoreTarget?>(CoreTarget(client))

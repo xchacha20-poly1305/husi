@@ -77,12 +77,3 @@ func TestOwnerStateRoundTrip(t *testing.T) {
 		}
 	}
 }
-
-func TestAtomicWriteFile(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "data.txt")
-	require.NoError(t, atomicWriteFile(path, []byte("hello"), 0o600))
-	data, err := os.ReadFile(path)
-	require.NoError(t, err)
-	assert.Equal(t, "hello", string(data))
-}

@@ -1,16 +1,6 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath(libs.kurpc.wire)
-    }
-}
-
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
@@ -39,14 +29,14 @@ kotlin {
     }
     sourceSets.commonMain.dependencies {
         api(libs.wire.runtime)
-        api(libs.kurpc)
+        api(libs.wire.grpc.client)
     }
 }
 
 wire {
     sourcePath {
         srcDir(projectDir)
-        include("daemon/*.proto", "husi/v1/*.proto", "mieru/*.proto")
+        include("daemon/*.proto", "husi/v1/*.proto", "mieru/*.proto", "grpc/health/v1/health.proto")
     }
     kotlin {
         // These API enums must expose new values instead of defaulting to IDLE, NEW or PANIC.
@@ -55,9 +45,7 @@ wire {
         rpcRole = "none"
     }
     kotlin {
-        rpcRole = "none"
-    }
-    custom {
-        schemaHandlerFactoryClass.set("io.github.xchacha20_poly1305.kurpc.wire.KurpcSchemaHandlerFactory")
+        rpcRole = "client"
+        explicitStreamingCalls = true
     }
 }

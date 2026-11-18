@@ -3,6 +3,7 @@
 package fr.husi.remote
 
 import fr.husi.ktx.Logs
+import fr.husi.net.HttpStatus
 import kotlin.js.Promise
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
@@ -15,7 +16,11 @@ import kotlinx.serialization.json.JsonNull
 internal class ClashApiException(val kind: String, val status: Int?, message: String) :
     Exception(message) {
     val unsupported
-        get() = status in listOf(404, 405, 501)
+        get() = status in listOf(
+            HttpStatus.NOT_FOUND,
+            HttpStatus.METHOD_NOT_ALLOWED,
+            HttpStatus.NOT_IMPLEMENTED,
+        )
 }
 
 internal interface ClashApi {

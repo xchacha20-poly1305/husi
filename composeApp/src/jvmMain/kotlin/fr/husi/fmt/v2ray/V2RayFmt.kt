@@ -43,6 +43,7 @@ import fr.husi.ktx.kxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.readableMessage
+import fr.husi.net.HttpMethod
 import fr.husi.ktx.toJsonObjectKxs
 import io.github.xchacha20_poly1305.kpuri.Url
 import io.github.xchacha20_poly1305.kpuri.buildUrl
@@ -440,7 +441,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         "http" -> {
             return V2RayTransportOptions_V2RayHTTPOptions().apply {
                 type = TRANSPORT_HTTP
-                if (!bean.isTLS) method = "GET" // v2ray tcp header
+                if (!bean.isTLS) method = HttpMethod.GET // v2ray tcp header
                 if (bean.host.isNotBlank()) {
                     host = bean.host.listByLineOrComma().toMutableList()
                 }

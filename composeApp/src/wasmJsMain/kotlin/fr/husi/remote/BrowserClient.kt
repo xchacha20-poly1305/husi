@@ -1,46 +1,37 @@
 package fr.husi.remote
 
-import fr.husi.ktx.Logs
-import fr.husi.proto.daemon.StartedServiceClient
+import fr.husi.proto.daemon.GrpcStartedServiceClient
 import fr.husi.proto.daemon.Version
-import io.github.xchacha20_poly1305.kurpc.CallInvoker
-import io.github.xchacha20_poly1305.kurpc.CallOptions
-import io.github.xchacha20_poly1305.kurpc.Channel
-import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
-import io.github.xchacha20_poly1305.kurpc.Metadata
-import io.github.xchacha20_poly1305.kurpc.UnaryResponse
-import io.github.xchacha20_poly1305.kurpc.WebCallOptions
-import io.github.xchacha20_poly1305.kurpc.WebChannelConfig
-import io.github.xchacha20_poly1305.kurpc.WebStreamTransport
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.TimeSource
 import kotlinx.browser.window
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import org.w3c.dom.url.URL
+import kotlin.time.Duration.Companion.seconds
 
 internal class BrowserClient(
-    private val openChannel: (WebChannelConfig) -> Channel = { Channel(it) },
+    private val openChannel: (String, String) -> BrowserGrpcClient = { url, secret ->
+        BrowserGrpcClient(url, secret)
+    },
 ) : RemoteClient {
-    private var channel: Channel? = null
+    private var channel: BrowserGrpcClient? = null
 
     init {
-        onPageHide {
+        window.addEventListener("pagehide") {
             close()
         }
     }
-    override val service get() = StartedServiceClient(SessionCalls(currentChannel()))
+
+    override val service get() = GrpcStartedServiceClient(channel ?: throw closedSession())
 
     override suspend fun connect(url: String, secret: String): Version {
         close()
-        val opened = openChannel(configuration(url, secret))
+        val opened = openChannel(normalizeUrl(url), secret)
         channel = opened
         try {
-            val version = StartedServiceClient(opened).getVersion(options = CallOptions(timeout = 10.seconds))
+            val version = probe(opened)
             currentCoroutineContext().ensureActive()
             if (channel !== opened) {
-                throw ChannelClosedException()
+                throw closedSession()
             }
             return version
         } catch (failure: Throwable) {
@@ -58,61 +49,27 @@ internal class BrowserClient(
         previous?.close()
     }
 
-    override suspend fun testConnection(url: String, secret: String): String =
-        openChannel(configuration(url, secret)).use {
-            StartedServiceClient(it).getVersion(options = CallOptions(timeout = 10.seconds)).version
-        }
-
-    private fun configuration(url: String, secret: String) = WebChannelConfig(
-        baseUrl = normalizeUrl(url),
-        metadata = if (secret.isEmpty()) {
-            Metadata.Empty
-        } else {
-            Metadata.of("authorization" to "Bearer $secret")
-        },
-        // Persistent subscriptions must not occupy the HTTP/1.1 fetch connection pool.
-        serverStreamingTransport = WebStreamTransport.WebSocket,
-        maxMessageBytes = 16 * 1024 * 1024,
-    )
-
-    private fun currentChannel() = channel ?: throw ChannelClosedException("Connect to a server first")
-
-    override fun normalizeUrl(value: String): String = normalizeApiUrl(value)
-}
-
-private class SessionCalls(private val channel: Channel) : CallInvoker by channel {
-    override suspend fun unary(method: String, request: ByteArray, options: CallOptions): ByteArray =
-        unaryCall(method, request, options).message
-
-    override suspend fun unaryCall(method: String, request: ByteArray, options: CallOptions): UnaryResponse {
-        val started = TimeSource.Monotonic.markNow()
-        Logs.d("RPC $method started")
-        try {
-            val response = channel.unaryCall(method, request, options.withUnaryTimeout())
-            Logs.d("RPC $method completed in ${started.elapsedNow()}")
-            return response
-        } catch (failure: Exception) {
-            if (failure is CancellationException) throw failure
-            Logs.w("RPC $method failed after ${started.elapsedNow()}", failure)
-            throw failure
+    override suspend fun testConnection(url: String, secret: String): String {
+        return openChannel(normalizeUrl(url), secret).use {
+            probe(it).version
         }
     }
-}
 
-private fun CallOptions.withUnaryTimeout(): CallOptions = when {
-    timeout != null -> this
-    this is WebCallOptions -> WebCallOptions(30.seconds, metadata, serverStreamingTransport)
-    else -> CallOptions(30.seconds, metadata)
-}
-
-private fun normalizeApiUrl(value: String): String {
-    val url = URL(value)
-    require(url.protocol == "http:" || url.protocol == "https:") {
-        "Use an HTTP or HTTPS API URL"
+    private suspend fun probe(opened: BrowserGrpcClient): Version {
+        val call = GrpcStartedServiceClient(opened).GetVersion()
+        (call.timeout as BrowserCallTimeout).duration = PROBE_TIMEOUT
+        return call.execute(Unit)
     }
-    return url.href.removeSuffix("/")
-}
 
-private fun onPageHide(close: () -> Unit) {
-    window.addEventListener("pagehide", { close() })
+    private companion object {
+        val PROBE_TIMEOUT = 10.seconds
+    }
+
+    override fun normalizeUrl(value: String): String {
+        val url = URL(value)
+        require(url.protocol == "http:" || url.protocol == "https:") {
+            "Use an HTTP or HTTPS API URL"
+        }
+        return url.href.removeSuffix("/")
+    }
 }

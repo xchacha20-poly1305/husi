@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/xchacha20-poly1305/husi/libcore/v2/internal/atomicfile"
 )
 
 const (
@@ -32,7 +34,7 @@ func installPolkitAction() error {
 		}
 		return E.Cause(err, "inspect polkit action directory")
 	}
-	err = atomicWriteFile(polkitActionPath(), polkitActionDocument, polkitActionFileMode)
+	err = atomicfile.Write(polkitActionPath(), polkitActionDocument, polkitActionFileMode)
 	if err != nil {
 		return E.Cause(err, "write polkit action")
 	}

@@ -8,6 +8,7 @@ import fr.husi.proto.daemon.TaildropOutgoingFile
 import fr.husi.proto.daemon.TaildropSendClientMessage
 import fr.husi.proto.daemon.TaildropSendStart
 import fr.husi.remote.RemoteState
+import fr.husi.remote.responses
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.openFilePicker
@@ -72,7 +73,7 @@ internal class RemoteUploads(private val remote: RemoteState, private val scope:
                         emit(TaildropSendClientMessage(fileDone = TaildropFileDone()))
                     }
                 }
-                service.sendTaildropFiles(requests).collect { update ->
+                service.SendTaildropFiles().responses(requests).collect { update ->
                     val progress = update.progress ?: return@collect
                     updateSession(id) { session ->
                         session.copy(

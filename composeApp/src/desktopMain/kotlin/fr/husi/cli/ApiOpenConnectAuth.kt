@@ -15,6 +15,7 @@ import fr.husi.ktx.joinAddress
 import fr.husi.ktx.openUri
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.unwrapIPV6Host
+import fr.husi.net.HttpStatus
 import fr.husi.proto.daemon.OpenConnectAuthFormResponse
 import fr.husi.proto.daemon.OpenConnectAuthResponseSubmission
 import fr.husi.proto.daemon.OpenConnectBrowserCookie
@@ -434,7 +435,7 @@ private suspend fun runCallbackListener(
         callbackUri.complete(exchange.requestURI.toString())
         val body = CALLBACK_PAGE.toByteArray()
         exchange.responseHeaders.set("Content-Type", "text/html; charset=utf-8")
-        exchange.sendResponseHeaders(200, body.size.toLong())
+        exchange.sendResponseHeaders(HttpStatus.OK, body.size.toLong())
         exchange.responseBody.use { it.write(body) }
     }
     server.executor = null

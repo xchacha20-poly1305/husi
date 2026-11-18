@@ -25,14 +25,6 @@ option java_package = "fr.husi.proto.v1";
 // they share the host's protocol registry, socks path and cancellation model —
 // same placement as StandaloneURLTest (D6).
 //
-// HTTPFetch is the desktop half of the HTTP client husi uses for its own
-// downloads (subscriptions, rule sets, app updates); Android calls the same Go
-// code in-process through the libcore binding. It runs here so the desktop UI
-// needs no Go runtime of its own.
-//
-// The WebDAV RPCs keep backups in a remote directory. File contents travel in
-// chunks, so a backup of any size stays below gRPC's message limit.
-//
 // Ping, MatchRuleSets and GetRootCertificates answer for the UI what it cannot
 // compute without Go: an ICMP socket (and on Android, a socket protected from
 // the VPN), sing-box's rule-set matcher, and the root bundles embedded in
@@ -52,11 +44,8 @@ service ApplicationService {
   rpc GetCert(GetCertRequest) returns (GetCertResponse);
   rpc StandaloneSTUNTest(StandaloneSTUNTestRequest) returns (stream daemon.STUNTestProgress);
   rpc StandaloneNetworkQualityTest(StandaloneNetworkQualityTestRequest) returns (stream daemon.NetworkQualityTestProgress);
-  rpc HTTPFetch(HTTPFetchRequest) returns (stream HTTPFetchResponse);
-  rpc WebDAVList(WebDAVListRequest) returns (WebDAVListResponse);
-  rpc WebDAVUpload(stream WebDAVUploadRequest) returns (WebDAVUploadResponse);
-  rpc WebDAVDownload(WebDAVDownloadRequest) returns (stream WebDAVDownloadResponse);
-  rpc WebDAVDelete(WebDAVDeleteRequest) returns (WebDAVDeleteResponse);
+  // Available on local IPC only. The caller fetches the encrypted content.
+  rpc DecryptAge(stream DecryptAgeRequest) returns (stream DecryptAgeResponse);
   rpc Ping(PingRequest) returns (PingResponse);
   rpc LookupIPCountry(LookupIPCountryRequest) returns (LookupIPCountryResponse);
   rpc MatchRuleSets(MatchRuleSetsRequest) returns (MatchRuleSetsResponse);
@@ -158,110 +147,17 @@ message StandaloneNetworkQualityTestRequest {
   bool http3 = 4;
 }
 
-// Socks inbound on the host's loopback that HTTPFetch dials through.
-message HTTPFetchSocks5 {
-  int32 port = 1;
-  string username = 2;
-  string password = 3;
-}
-
-// One GET. A status other than 200 fails the call with the start of the body
-// in the error message.
-message HTTPFetchRequest {
-  string url = 1;
-  map<string, string> headers = 2;
-  // Leaves the exchange without an overall deadline, for large downloads on
-  // slow links. Connection setup still times out, and a body that stops making
-  // progress still fails.
-  bool no_overall_deadline = 3;
-  // Forces TLS 1.3.
-  bool restricted_tls = 4;
-  // Hex SHA-256 of a leaf certificate accepted even when it does not chain to
-  // a trusted root (OOCv1).
-  string pinned_sha256 = 5;
-  // Unset dials the server directly.
-  HTTPFetchSocks5 socks5 = 6;
-  // age identities that decrypt an armored response body.
-  string age_identities = 7;
-}
-
-message HTTPFetchHead {
-  // First value of each response header, keyed by canonical header name.
-  map<string, string> headers = 1;
-  // Length of the body that follows, or -1 when unknown.
-  int64 content_length = 2;
-}
-
-// The stream carries one head, then the body in chunks.
-message HTTPFetchResponse {
+// Send identities once, followed by the ASCII-armored ciphertext in chunks.
+message DecryptAgeRequest {
   oneof payload {
-    HTTPFetchHead head = 1;
+    string identities = 1;
     bytes chunk = 2;
   }
 }
 
-message WebDAVServer {
-  // The directory that holds the files.
-  string url = 1;
-  string username = 2;
-  string password = 3;
-  // Unset dials the server directly.
-  HTTPFetchSocks5 socks5 = 4;
-}
-
-message WebDAVListRequest {
-  WebDAVServer server = 1;
-}
-
-// One file of the directory; subdirectories are not listed.
-message WebDAVEntry {
-  string name = 1;
-  int64 size = 2;
-  int64 modified_unix_ms = 3;
-}
-
-message WebDAVListResponse {
-  repeated WebDAVEntry entries = 1;
-}
-
-// Names the file the chunks that follow it are stored as. A file of the same
-// name is replaced. A missing directory is created, but not its parents. A name
-// that is empty or would leave the directory is an INVALID_ARGUMENT error.
-message WebDAVUploadHead {
-  WebDAVServer server = 1;
-  string name = 2;
-  // Total length of the chunks, sent to the server as the Content-Length.
-  int64 size = 3;
-}
-
-// The stream carries one head, then the file in chunks.
-message WebDAVUploadRequest {
-  oneof payload {
-    WebDAVUploadHead head = 1;
-    bytes chunk = 2;
-  }
-}
-
-message WebDAVUploadResponse {}
-
-message WebDAVDownloadRequest {
-  WebDAVServer server = 1;
-  string name = 2;
-}
-
-// The stream carries the file in chunks.
-message WebDAVDownloadResponse {
+message DecryptAgeResponse {
   bytes chunk = 1;
 }
-
-// A name that is empty or would leave the directory is an INVALID_ARGUMENT
-// error.
-message WebDAVDeleteRequest {
-  WebDAVServer server = 1;
-  string name = 2;
-}
-
-message WebDAVDeleteResponse {}
 
 enum PingProtocol {
   PING_PROTOCOL_UNSPECIFIED = 0;

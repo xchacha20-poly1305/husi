@@ -12,6 +12,7 @@ import fr.husi.proto.daemon.TailscaleSSHResize
 import fr.husi.proto.daemon.TailscaleSSHStart
 import fr.husi.remote.RemoteClient
 import fr.husi.remote.RemoteState
+import fr.husi.remote.responses
 import io.github.xchacha20_poly1305.libghostty.GhosttyTerminalSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -124,7 +125,7 @@ internal class RemoteSshSession(override val id: Long, override val target: Tail
             }
         job = scope.launch {
             try {
-                service.startTailscaleSSHSession(requests.receiveAsFlow()).collect { message ->
+                service.StartTailscaleSSHSession().responses(requests.receiveAsFlow()).collect { message ->
                     message.output?.let { terminal.feedOutput(it.data_.toByteArray()) }
                     message.authBanner?.let { banner.value = it.message }
                     message.ready?.let { phase.value = TailscaleSSHPhase.RUNNING }

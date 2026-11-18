@@ -60,7 +60,7 @@ internal class RemoteOpenConnectActions(private val state: RemoteState) : OpenCo
         formValues: Map<String, String>?,
         browserResult: OpenConnectBrowserResultState?,
     ): String? = state.perform {
-        submitOpenConnectAuthResponse(
+        SubmitOpenConnectAuthResponse().execute(
             OpenConnectAuthResponseSubmission(
                 endpointTag = endpointTag,
                 challengeID = challenge.id,
@@ -79,7 +79,7 @@ internal class RemoteOpenConnectActions(private val state: RemoteState) : OpenCo
     }
 
     override suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String) = state.perform {
-        cancelOpenConnectAuthChallenge(OpenConnectAuthChallengeCancel(endpointTag, challengeId))
+        CancelOpenConnectAuthChallenge().execute(OpenConnectAuthChallengeCancel(endpointTag, challengeId))
     }
 }
 

@@ -7,7 +7,7 @@ data class WebDAVServer(
     val url: String,
     val username: String,
     val password: String,
-    val socks5: Socks5Proxy? = null,
+    val proxy: LocalHttpProxy? = null,
 )
 
 data class WebDAVEntry(

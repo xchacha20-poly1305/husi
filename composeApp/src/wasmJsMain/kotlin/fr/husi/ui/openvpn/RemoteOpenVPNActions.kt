@@ -64,12 +64,12 @@ internal class RemoteOpenVPNActions(private val state: RemoteState) : OpenVPNAut
         password: String,
         secret: String,
     ) = state.perform {
-        submitOpenVPNChallengeResponse(
+        SubmitOpenVPNChallengeResponse().execute(
             OpenVPNChallengeSubmission(endpointTag, challenge.id, username, password, secret),
         )
     }
 
     override suspend fun cancelAuthChallenge(endpointTag: String, challengeId: String) = state.perform {
-        cancelOpenVPNChallenge(OpenVPNChallengeCancel(endpointTag, challengeId))
+        CancelOpenVPNChallenge().execute(OpenVPNChallengeCancel(endpointTag, challengeId))
     }
 }

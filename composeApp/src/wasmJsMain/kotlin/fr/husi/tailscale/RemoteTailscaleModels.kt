@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.ktx.Logs
+import fr.husi.ktx.toBrowserBytes
 import fr.husi.proto.daemon.CancelTaildropReceivingRequest
 import fr.husi.proto.daemon.DeleteTaildropFileRequest
 import fr.husi.proto.daemon.DownloadTaildropFileRequest
@@ -13,8 +14,7 @@ import fr.husi.proto.daemon.MarkTaildropInboxReadRequest
 import fr.husi.proto.daemon.SubscribeTaildropInboxRequest
 import fr.husi.proto.daemon.TailscalePingRequest
 import fr.husi.remote.RemoteState
-import io.github.xchacha20_poly1305.kurpc.WebCallOptions
-import io.github.xchacha20_poly1305.kurpc.WebStreamTransport
+import fr.husi.remote.responses
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -36,7 +36,8 @@ internal class RemotePeerModel(private val tag: String, private val remote: Remo
         pingJob = viewModelScope.launch {
             try {
                 remote.client.service
-                    .startTailscalePing(TailscalePingRequest(tag, ip))
+                    .StartTailscalePing()
+                    .responses(TailscalePingRequest(tag, ip))
                     .collect { update ->
                         val latency = update.latencyMs
                         ping = ping.copy(
@@ -73,7 +74,8 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
         viewModelScope.launch {
             try {
                 remote.client.service
-                    .subscribeTaildropInbox(SubscribeTaildropInboxRequest(tag))
+                    .SubscribeTaildropInbox()
+                    .responses(SubscribeTaildropInboxRequest(tag))
                     .collect { inbox ->
                         files =
                             inbox.files.map {
@@ -95,7 +97,10 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
                                 )
                             }
                         if (files.isNotEmpty()) {
-                            remote.call { markTaildropInboxRead(MarkTaildropInboxReadRequest(tag)) }
+                            remote.call {
+                                MarkTaildropInboxRead()
+                                    .execute(MarkTaildropInboxReadRequest(tag))
+                            }
                         }
                     }
             } catch (failure: Exception) {
@@ -106,7 +111,7 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
     }
 
     fun delete(name: String) {
-        remote.call { deleteTaildropFile(DeleteTaildropFileRequest(tag, name)) }
+        remote.call { DeleteTaildropFile().execute(DeleteTaildropFileRequest(tag, name)) }
     }
 
     fun deleteAll() {
@@ -114,7 +119,10 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
     }
 
     fun cancelReceiving(sender: String, name: String) {
-        remote.call { cancelTaildropReceiving(CancelTaildropReceivingRequest(tag, sender, name)) }
+        remote.call {
+            CancelTaildropReceiving()
+                .execute(CancelTaildropReceivingRequest(tag, sender, name))
+        }
     }
 
     fun download(name: String) {
@@ -123,17 +131,16 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
                 val download = BrowserDownload()
                 var size = 0L
                 var expected = 0L
-                remote.client.service.downloadTaildropFile(
-                    DownloadTaildropFileRequest(tag, name),
-                    WebCallOptions(serverStreamingTransport = WebStreamTransport.Fetch),
-                ).collect { chunk ->
-                    if (chunk.size != 0L) {
-                        expected = chunk.size
+                remote.client.service.DownloadTaildropFile()
+                    .responses(DownloadTaildropFileRequest(tag, name))
+                    .collect { chunk ->
+                        if (chunk.size != 0L) {
+                            expected = chunk.size
+                        }
+                        size += chunk.data_.size
+                        check(size <= MAX_DOWNLOAD_BYTES) { "Browser download exceeds 512 MiB" }
+                        download.append(chunk.data_.toByteArray().toBrowserBytes())
                     }
-                    size += chunk.data_.size
-                    check(size <= MAX_DOWNLOAD_BYTES) { "Browser download exceeds 512 MiB" }
-                    download.append(chunk.data_.toByteArray().toBrowserBytes())
-                }
                 check(size == expected) { "Incomplete file download" }
                 download.save(name)
             } catch (failure: Exception) {

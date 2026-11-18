@@ -27,13 +27,13 @@ import fr.husi.proto.daemon.TailscaleSSHClientMessage
 import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.Version
+import fr.husi.proto.v1.DecryptAgeRequest
+import fr.husi.proto.v1.DecryptAgeResponse
 import fr.husi.proto.v1.AndroidVPNType
 import fr.husi.proto.v1.GetCertMode
 import fr.husi.proto.v1.GetClientMetadataResponse
 import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetVersionResponse
-import fr.husi.proto.v1.HTTPFetchRequest
-import fr.husi.proto.v1.HTTPFetchResponse
 import fr.husi.proto.v1.Ownership
 import fr.husi.proto.v1.PingProtocol
 import fr.husi.proto.v1.PluginProcessSpec
@@ -41,12 +41,6 @@ import fr.husi.proto.v1.RootCertificateStore
 import fr.husi.proto.v1.SchemaKind
 import fr.husi.proto.v1.StartServiceRequest
 import fr.husi.proto.v1.URLTestOptions
-import fr.husi.proto.v1.WebDAVDeleteRequest
-import fr.husi.proto.v1.WebDAVDownloadRequest
-import fr.husi.proto.v1.WebDAVDownloadResponse
-import fr.husi.proto.v1.WebDAVListRequest
-import fr.husi.proto.v1.WebDAVListResponse
-import fr.husi.proto.v1.WebDAVUploadRequest
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -354,41 +348,7 @@ open class FakeCoreClient : CoreClient {
         }
     }
 
-    var lastHttpFetch: HTTPFetchRequest? = null
-        private set
-    var httpFetchResponses: List<HTTPFetchResponse> = emptyList()
-    var httpFetchThrowable: Throwable? = null
-
-    override fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse> {
-        lastHttpFetch = request
-        return replay(httpFetchResponses, httpFetchThrowable)
-    }
-
-    override suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse = WebDAVListResponse()
-
-    /** Every message of the last [webdavUpload], in order. */
-    var lastWebDAVUpload: List<WebDAVUploadRequest> = emptyList()
-        private set
-
-    override suspend fun webdavUpload(requests: Flow<WebDAVUploadRequest>) {
-        lastWebDAVUpload = requests.toList()
-    }
-
-    var lastWebDAVDownload: WebDAVDownloadRequest? = null
-        private set
-    var webdavDownloadResponses: List<WebDAVDownloadResponse> = emptyList()
-
-    override fun webdavDownload(request: WebDAVDownloadRequest): Flow<WebDAVDownloadResponse> {
-        lastWebDAVDownload = request
-        return replay(webdavDownloadResponses, throwable = null)
-    }
-
-    var lastWebDAVDelete: WebDAVDeleteRequest? = null
-        private set
-
-    override suspend fun webdavDelete(request: WebDAVDeleteRequest) {
-        lastWebDAVDelete = request
-    }
+    override fun decryptAge(requests: Flow<DecryptAgeRequest>): Flow<DecryptAgeResponse> = emptyFlow()
 
     override suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int = 0
 

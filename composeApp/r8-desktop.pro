@@ -69,6 +69,14 @@
 -dontwarn com.github.ajalt.mordant.terminal.terminalinterface.ffm.**
 -dontwarn com.github.ajalt.mordant.terminal.terminalinterface.nativeimage.**
 
+# Wire's desktop runtime also ships its unused Android Parcelable adapter.
+-dontwarn com.squareup.wire.AndroidMessage**
+
+# OkHttp checks for these optional JSSE providers before using them.
+-dontwarn org.bouncycastle.jsse.**
+-dontwarn org.conscrypt.**
+-dontwarn org.openjsse.**
+
 # ProGuard's type generalization/specialization passes rewrite a call site to a
 # supertype without rewriting the callee's descriptor, and the JVM verifier
 # rejects the result:

@@ -1,8 +1,14 @@
 package fr.husi.core
 
-import fr.husi.core.KurpcCoreClient.Companion.DEFAULT_UNARY_TIMEOUT
+import com.squareup.wire.GrpcCall
+import com.squareup.wire.GrpcClient
+import com.squareup.wire.GrpcException
+import com.squareup.wire.GrpcServerStreamingCall
+import com.squareup.wire.GrpcStatus
+import com.squareup.wire.GrpcStreamingCall
 import fr.husi.ktx.Logs
 import fr.husi.ktx.invariantPathString
+import fr.husi.ktx.unUrlSafe
 import fr.husi.proto.daemon.CancelTaildropReceivingRequest
 import fr.husi.proto.daemon.ClashMode
 import fr.husi.proto.daemon.ClashModeStatus
@@ -13,6 +19,7 @@ import fr.husi.proto.daemon.DeleteTaildropFileRequest
 import fr.husi.proto.daemon.DownloadTaildropFileChunk
 import fr.husi.proto.daemon.DownloadTaildropFileRequest
 import fr.husi.proto.daemon.Groups
+import fr.husi.proto.daemon.GrpcStartedServiceClient
 import fr.husi.proto.daemon.Log
 import fr.husi.proto.daemon.MarkTaildropInboxReadRequest
 import fr.husi.proto.daemon.NetworkQualityTestProgress
@@ -30,7 +37,6 @@ import fr.husi.proto.daemon.SelectOutboundRequest
 import fr.husi.proto.daemon.ServiceStatus
 import fr.husi.proto.daemon.SetGroupExpandRequest
 import fr.husi.proto.daemon.SetTailscaleExitNodeRequest
-import fr.husi.proto.daemon.StartedServiceKurpc
 import fr.husi.proto.daemon.Status
 import fr.husi.proto.daemon.SubscribeConnectionsRequest
 import fr.husi.proto.daemon.SubscribeStatusRequest
@@ -48,13 +54,11 @@ import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.Version
 import fr.husi.proto.v1.AndroidVPNType
-import fr.husi.proto.v1.AppServiceKurpc
-import fr.husi.proto.v1.ApplicationServiceKurpc
 import fr.husi.proto.v1.AttachClientRequest
 import fr.husi.proto.v1.CheckConfigRequest
 import fr.husi.proto.v1.ClaimServiceRequest
-import fr.husi.proto.v1.CoreServiceKurpc
-import fr.husi.proto.v1.DaemonServiceKurpc
+import fr.husi.proto.v1.DecryptAgeRequest
+import fr.husi.proto.v1.DecryptAgeResponse
 import fr.husi.proto.v1.DetectIPRequest
 import fr.husi.proto.v1.FormatConfigRequest
 import fr.husi.proto.v1.GenerateSchemaRequest
@@ -67,8 +71,10 @@ import fr.husi.proto.v1.GetDaemonInfoResponse
 import fr.husi.proto.v1.GetRootCertificatesRequest
 import fr.husi.proto.v1.GetVersionRequest
 import fr.husi.proto.v1.GetVersionResponse
-import fr.husi.proto.v1.HTTPFetchRequest
-import fr.husi.proto.v1.HTTPFetchResponse
+import fr.husi.proto.v1.GrpcAppServiceClient
+import fr.husi.proto.v1.GrpcApplicationServiceClient
+import fr.husi.proto.v1.GrpcCoreServiceClient
+import fr.husi.proto.v1.GrpcDaemonServiceClient
 import fr.husi.proto.v1.LookupIPCountryRequest
 import fr.husi.proto.v1.MatchRuleSetsRequest
 import fr.husi.proto.v1.PingProtocol
@@ -89,26 +95,12 @@ import fr.husi.proto.v1.SubscribeServiceEventsRequest
 import fr.husi.proto.v1.TakeOverServiceRequest
 import fr.husi.proto.v1.URLTestOptions
 import fr.husi.proto.v1.URLTestRequest
-import fr.husi.proto.v1.WebDAVDeleteRequest
-import fr.husi.proto.v1.WebDAVDownloadRequest
-import fr.husi.proto.v1.WebDAVDownloadResponse
-import fr.husi.proto.v1.WebDAVListRequest
-import fr.husi.proto.v1.WebDAVListResponse
-import fr.husi.proto.v1.WebDAVUploadRequest
-import io.github.xchacha20_poly1305.kurpc.CallInvoker
-import io.github.xchacha20_poly1305.kurpc.CallOptions
-import io.github.xchacha20_poly1305.kurpc.ChannelClosedException
-import io.github.xchacha20_poly1305.kurpc.ChannelConfig
-import io.github.xchacha20_poly1305.kurpc.MethodDescriptor
-import io.github.xchacha20_poly1305.kurpc.NativeCallOptions
-import io.github.xchacha20_poly1305.kurpc.StatusException
-import io.github.xchacha20_poly1305.kurpc.TransportException
-import io.github.xchacha20_poly1305.kurpc.bidiStreaming
-import io.github.xchacha20_poly1305.kurpc.clientStreaming
-import io.github.xchacha20_poly1305.kurpc.serverStreaming
-import io.github.xchacha20_poly1305.kurpc.unary
+import io.grpc.health.v1.GrpcHealthClient
+import io.grpc.health.v1.HealthCheckRequest
+import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -117,19 +109,19 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withTimeout
 import java.io.File
-import javax.net.ssl.SSLSocketFactory
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 import fr.husi.proto.daemon.URLTestRequest as DaemonURLTestRequest
-import io.github.xchacha20_poly1305.kurpc.Channel as RpcChannel
-import io.github.xchacha20_poly1305.kurpc.Status as RpcStatus
 
 /**
  * Typed suspend/Flow surface over the core's gRPC services.
@@ -244,18 +236,7 @@ interface CoreClient {
         http3: Boolean,
     ): Flow<NetworkQualityTestProgress>
 
-    /** One head message, then the body in chunks. */
-    fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse>
-
-    suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse
-
-    /** One head message, then the file in chunks. */
-    suspend fun webdavUpload(requests: Flow<WebDAVUploadRequest>)
-
-    /** The file in chunks. */
-    fun webdavDownload(request: WebDAVDownloadRequest): Flow<WebDAVDownloadResponse>
-
-    suspend fun webdavDelete(request: WebDAVDeleteRequest)
+    fun decryptAge(requests: Flow<DecryptAgeRequest>): Flow<DecryptAgeResponse>
 
     /** Latency in milliseconds. [port] is ignored by ICMP. */
     suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int
@@ -291,7 +272,7 @@ interface CoreClient {
 }
 
 class CoreRpcException(
-    val code: RpcStatus.Code,
+    val code: GrpcStatus,
     override val message: String,
     cause: Throwable? = null,
 ) : Exception(message, cause)
@@ -302,21 +283,22 @@ class CoreRpcException(
  */
 const val TAILDROP_CHUNK_SIZE = 16 * 1024 - 64
 
-/** A kurpc channel as [KurpcCoreClient] uses it, so tests can inject a fake instead. */
-internal interface CoreChannel : CallInvoker, AutoCloseable
+internal class CoreChannel(
+    grpc: GrpcClient,
+    private val closeChannel: () -> Unit,
+) : AutoCloseable {
+    val started = GrpcStartedServiceClient(grpc)
+    val core = GrpcCoreServiceClient(grpc)
+    val application = GrpcApplicationServiceClient(grpc)
+    val app = GrpcAppServiceClient(grpc)
+    val daemon = GrpcDaemonServiceClient(grpc)
+    val health = GrpcHealthClient(grpc)
 
-private class KurpcCoreChannel(private val channel: RpcChannel) : CoreChannel, CallInvoker by channel {
-    override fun close() = channel.close()
+    override fun close() = closeChannel()
 }
 
-/**
- * [CoreClient] over one kurpc [RpcChannel], created on first use by [openChannel].
- *
- * The channel reconnects by itself after the host restarts, so a failed call never replaces it.
- * [close] does: the next call opens a new channel, which re-resolves the endpoint (desktop
- * switches between the session working dir and the daemon this way).
- */
-class KurpcCoreClient internal constructor(
+/** Creates a channel on first use and re-resolves the endpoint after [close]. */
+class WireCoreClient internal constructor(
     private val openChannel: () -> CoreChannel,
     private val retryDelay: Duration = 200.milliseconds,
     private val maxRetryDelay: Duration = 5.seconds,
@@ -329,10 +311,6 @@ class KurpcCoreClient internal constructor(
         channel ?: openChannel().also { channel = it }
     }
 
-    /**
-     * In-flight calls on the old channel fail with [ChannelClosedException]; subscriptions
-     * retry on a new one.
-     */
     override suspend fun close() {
         access.withLock {
             channel?.close()
@@ -340,43 +318,29 @@ class KurpcCoreClient internal constructor(
         }
     }
 
-    private suspend fun <Request, Response> unary(
-        method: MethodDescriptor<Request, Response>,
+    private suspend fun <Request : Any, Response : Any> unary(
+        method: CoreChannel.() -> GrpcCall<Request, Response>,
         request: Request,
         timeout: Duration = DEFAULT_UNARY_TIMEOUT,
-    ): Response = rpc { channel().unary(method, request, CallOptions(timeout = timeout)) }
+    ): Response = rpc {
+        channel().method().apply {
+            this.timeout.timeout(timeout.inWholeNanoseconds, TimeUnit.NANOSECONDS)
+        }.execute(request)
+    }
 
-    private suspend fun <Request, Response> clientStream(
-        method: MethodDescriptor<Request, Response>,
-        requests: Flow<Request>,
-        timeout: Duration,
-    ): Response = rpc { channel().clientStreaming(method, requests, CallOptions(timeout = timeout)) }
-
-    /**
-     * Long-lived server stream. Whenever the stream ends, cleanly or not, it is opened again
-     * after a backoff that resets once a stream has stayed up for [stableReset].
-     */
-    private fun <Request, Response> stream(
-        method: MethodDescriptor<Request, Response>,
+    /** Reopens a subscription after it ends, with backoff for short-lived attempts. */
+    private fun <Request : Any, Response : Any> stream(
+        method: CoreChannel.() -> GrpcServerStreamingCall<Request, Response>,
         request: Request,
     ): Flow<Response> = flow {
         var delayDuration = retryDelay
         while (true) {
             val opened = TimeSource.Monotonic.markNow()
-            try {
-                emitAll(
-                    channel().serverStreaming(method, request).catch { error ->
-                        // Retrying in silence turns a broken stream into an empty panel with
-                        // nothing to go on.
-                        Logs.w("core client stream: ${method.path}", error.toCoreRpcException())
-                    },
-                )
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Opening the channel failed (a malformed endpoint); `catch` above takes the rest.
-                Logs.w("core client stream open: ${method.path}", e)
-            }
+            emitAll(
+                oneShotStream(method, request).catch { error ->
+                    Logs.w("core client subscription", error)
+                },
+            )
             delayDuration = if (opened.elapsedNow() >= stableReset) {
                 retryDelay
             } else {
@@ -384,39 +348,66 @@ class KurpcCoreClient internal constructor(
             }
             delay(delayDuration)
         }
-    }.buffer(Channel.UNLIMITED)
+    }
 
-    /**
-     * Server-streaming RPC that ends when the host closes the stream (tool
-     * RPCs, not long-lived subscriptions). Does not auto-retry.
-     */
-    private fun <Request, Response> oneShotStream(
-        method: MethodDescriptor<Request, Response>,
+    private fun <Request : Any, Response : Any> oneShotStream(
+        method: CoreChannel.() -> GrpcServerStreamingCall<Request, Response>,
         request: Request,
+        timeout: Duration? = null,
     ): Flow<Response> = flow {
-        emitAll(
-            channel().serverStreaming(method, request)
-                .catch { error -> throw error.toCoreRpcException() },
-        )
+        val call = rpc { channel().method() }
+        if (timeout != null) {
+            call.timeout.timeout(timeout.inWholeNanoseconds, TimeUnit.NANOSECONDS)
+        }
+        coroutineScope {
+            val responses = call.executeIn(this, request)
+            try {
+                emitAll(
+                    responses.receiveAsFlow().catch {
+                        throw it.toCoreRpcException()
+                    },
+                )
+            } finally {
+                call.cancel()
+                responses.cancel()
+            }
+        }
     }.buffer(Channel.UNLIMITED)
 
-    /** Bidirectional stream that ends when the host closes it. Does not auto-retry. */
-    private fun <Request, Response> bidiStream(
-        method: MethodDescriptor<Request, Response>,
+    private fun <Request : Any, Response : Any> bidiStream(
+        method: CoreChannel.() -> GrpcStreamingCall<Request, Response>,
         requests: Flow<Request>,
+        bufferCapacity: Int = Channel.UNLIMITED,
     ): Flow<Response> = flow {
-        emitAll(
-            channel().bidiStreaming(method, requests)
-                .catch { error -> throw error.toCoreRpcException() },
-        )
-    }.buffer(Channel.UNLIMITED)
+        val call = rpc { channel().method() }
+        coroutineScope {
+            val (outbound, inbound) = call.executeIn(this)
+            val sender = launch {
+                requests.collect {
+                    outbound.send(it)
+                }
+                outbound.close()
+            }
+            try {
+                emitAll(
+                    inbound.receiveAsFlow().catch {
+                        throw it.toCoreRpcException()
+                    },
+                )
+            } finally {
+                call.cancel()
+                inbound.cancel()
+                sender.cancel()
+            }
+        }
+    }.buffer(bufferCapacity)
 
     override fun subscribeServiceStatus(): Flow<ServiceStatus> {
-        return stream(StartedServiceKurpc.subscribeServiceStatus, Unit)
+        return stream({ started.SubscribeServiceStatus() }, Unit)
     }
 
     override fun subscribeServiceEvents(): Flow<ServiceEvent> {
-        return stream(CoreServiceKurpc.subscribeServiceEvents, SubscribeServiceEventsRequest())
+        return stream({ core.SubscribeServiceEvents() }, SubscribeServiceEventsRequest())
             .mapNotNull {
                 it.toServiceEvent()
             }
@@ -424,105 +415,105 @@ class KurpcCoreClient internal constructor(
 
     override fun subscribeStatus(interval: Duration): Flow<Status> {
         val request = SubscribeStatusRequest(interval = interval.inWholeNanoseconds)
-        return stream(StartedServiceKurpc.subscribeStatus, request)
+        return stream({ started.SubscribeStatus() }, request)
     }
 
-    override fun subscribeLog(): Flow<Log> = stream(StartedServiceKurpc.subscribeLog, Unit)
+    override fun subscribeLog(): Flow<Log> = stream({ started.SubscribeLog() }, Unit)
 
     override suspend fun clearLogs() {
-        unary(StartedServiceKurpc.clearLogs, Unit)
+        unary({ started.ClearLogs() }, Unit)
     }
 
     override suspend fun getDefaultLogLevel(): DefaultLogLevel =
-        unary(StartedServiceKurpc.getDefaultLogLevel, Unit)
+        unary({ started.GetDefaultLogLevel() }, Unit)
 
     override fun subscribeConnections(interval: Duration): Flow<ConnectionEvents> {
         val request = SubscribeConnectionsRequest(interval = interval.inWholeNanoseconds)
-        return stream(StartedServiceKurpc.subscribeConnections, request)
+        return stream({ started.SubscribeConnections() }, request)
     }
 
     override suspend fun closeConnection(id: String) {
-        unary(StartedServiceKurpc.closeConnection, CloseConnectionRequest(id = id))
+        unary({ started.CloseConnection() }, CloseConnectionRequest(id = id))
     }
 
     override suspend fun closeAllConnections() {
-        unary(StartedServiceKurpc.closeAllConnections, Unit)
+        unary({ started.CloseAllConnections() }, Unit)
     }
 
-    override fun subscribeGroups(): Flow<Groups> = stream(StartedServiceKurpc.subscribeGroups, Unit)
+    override fun subscribeGroups(): Flow<Groups> = stream({ started.SubscribeGroups() }, Unit)
 
-    override fun subscribeOutbounds(): Flow<OutboundList> = stream(StartedServiceKurpc.subscribeOutbounds, Unit)
+    override fun subscribeOutbounds(): Flow<OutboundList> = stream({ started.SubscribeOutbounds() }, Unit)
 
     override suspend fun selectOutbound(groupTag: String, outboundTag: String) {
         unary(
-            StartedServiceKurpc.selectOutbound,
+            { started.SelectOutbound() },
             SelectOutboundRequest(groupTag = groupTag, outboundTag = outboundTag),
         )
     }
 
     override suspend fun setGroupExpand(groupTag: String, expand: Boolean) {
         unary(
-            StartedServiceKurpc.setGroupExpand,
+            { started.SetGroupExpand() },
             SetGroupExpandRequest(groupTag = groupTag, isExpand = expand),
         )
     }
 
-    override suspend fun getClashModeStatus(): ClashModeStatus = unary(StartedServiceKurpc.getClashModeStatus, Unit)
+    override suspend fun getClashModeStatus(): ClashModeStatus = unary({ started.GetClashModeStatus() }, Unit)
 
-    override fun subscribeClashMode(): Flow<ClashMode> = stream(StartedServiceKurpc.subscribeClashMode, Unit)
+    override fun subscribeClashMode(): Flow<ClashMode> = stream({ started.SubscribeClashMode() }, Unit)
 
     override suspend fun setClashMode(mode: String) {
-        unary(StartedServiceKurpc.setClashMode, ClashMode(mode = mode))
+        unary({ started.SetClashMode() }, ClashMode(mode = mode))
     }
 
     override fun subscribeOpenConnectStatus(): Flow<OpenConnectStatusUpdate> =
-        stream(StartedServiceKurpc.subscribeOpenConnectStatus, Unit)
+        stream({ started.SubscribeOpenConnectStatus() }, Unit)
 
     override suspend fun submitOpenConnectAuthResponse(
         submission: OpenConnectAuthResponseSubmission,
     ) {
-        unary(StartedServiceKurpc.submitOpenConnectAuthResponse, submission)
+        unary({ started.SubmitOpenConnectAuthResponse() }, submission)
     }
 
     override suspend fun cancelOpenConnectAuthChallenge(endpointTag: String, challengeId: String) {
         unary(
-            StartedServiceKurpc.cancelOpenConnectAuthChallenge,
+            { started.CancelOpenConnectAuthChallenge() },
             OpenConnectAuthChallengeCancel(endpointTag = endpointTag, challengeID = challengeId),
         )
     }
 
     override fun subscribeOpenVPNStatus(): Flow<OpenVPNStatusUpdate> =
-        stream(StartedServiceKurpc.subscribeOpenVPNStatus, Unit)
+        stream({ started.SubscribeOpenVPNStatus() }, Unit)
 
     override suspend fun submitOpenVPNChallengeResponse(submission: OpenVPNChallengeSubmission) {
-        unary(StartedServiceKurpc.submitOpenVPNChallengeResponse, submission)
+        unary({ started.SubmitOpenVPNChallengeResponse() }, submission)
     }
 
     override suspend fun cancelOpenVPNChallenge(endpointTag: String, challengeId: String) {
         unary(
-            StartedServiceKurpc.cancelOpenVPNChallenge,
+            { started.CancelOpenVPNChallenge() },
             OpenVPNChallengeCancel(endpointTag = endpointTag, challengeID = challengeId),
         )
     }
 
     override fun subscribeTailscaleStatus(): Flow<TailscaleStatusUpdate> {
-        return stream(StartedServiceKurpc.subscribeTailscaleStatus, Unit)
+        return stream({ started.SubscribeTailscaleStatus() }, Unit)
     }
 
     override fun tailscalePing(tag: String, ip: String): Flow<TailscalePingResponse> {
         val request = TailscalePingRequest(endpointTag = tag, peerIP = ip)
-        return oneShotStream(StartedServiceKurpc.startTailscalePing, request)
+        return oneShotStream({ started.StartTailscalePing() }, request)
     }
 
     override suspend fun setTailscaleExitNode(tag: String, stableId: String) {
         unary(
-            StartedServiceKurpc.setTailscaleExitNode,
+            { started.SetTailscaleExitNode() },
             SetTailscaleExitNodeRequest(endpointTag = tag, stableID = stableId),
         )
     }
 
     override suspend fun tailscaleLogout(tag: String) {
-        unary(StartedServiceKurpc.tailscaleLogout, TailscaleLogoutRequest(endpointTag = tag))
+        unary({ started.TailscaleLogout() }, TailscaleLogoutRequest(endpointTag = tag))
     }
 
     override suspend fun getTailscaleCertificate(
@@ -530,7 +521,7 @@ class KurpcCoreClient internal constructor(
         domain: String,
         minValiditySeconds: Long,
     ): TailscaleCertificate = unary(
-        StartedServiceKurpc.getTailscaleCertificate,
+        { started.GetTailscaleCertificate() },
         TailscaleCertificateRequest(
             endpointTag = tag,
             domain = domain,
@@ -540,55 +531,55 @@ class KurpcCoreClient internal constructor(
 
     override fun subscribeTaildropInbox(tag: String): Flow<TaildropInbox> =
         stream(
-            StartedServiceKurpc.subscribeTaildropInbox,
+            { started.SubscribeTaildropInbox() },
             SubscribeTaildropInboxRequest(endpointTag = tag),
         )
 
     override suspend fun markTaildropInboxRead(tag: String) {
         unary(
-            StartedServiceKurpc.markTaildropInboxRead,
+            { started.MarkTaildropInboxRead() },
             MarkTaildropInboxReadRequest(endpointTag = tag),
         )
     }
 
     override suspend fun deleteTaildropFile(tag: String, name: String) {
         unary(
-            StartedServiceKurpc.deleteTaildropFile,
+            { started.DeleteTaildropFile() },
             DeleteTaildropFileRequest(endpointTag = tag, name = name),
         )
     }
 
     override suspend fun cancelTaildropReceiving(tag: String, senderId: String, name: String) {
         unary(
-            StartedServiceKurpc.cancelTaildropReceiving,
+            { started.CancelTaildropReceiving() },
             CancelTaildropReceivingRequest(endpointTag = tag, senderID = senderId, name = name),
         )
     }
 
     override fun downloadTaildropFile(tag: String, name: String): Flow<DownloadTaildropFileChunk> {
         val request = DownloadTaildropFileRequest(endpointTag = tag, name = name)
-        return oneShotStream(StartedServiceKurpc.downloadTaildropFile, request)
+        return oneShotStream({ started.DownloadTaildropFile() }, request)
     }
 
     override fun sendTaildropFiles(
         requests: Flow<TaildropSendClientMessage>,
-    ): Flow<TaildropSendServerMessage> = bidiStream(StartedServiceKurpc.sendTaildropFiles, requests)
+    ): Flow<TaildropSendServerMessage> = bidiStream({ started.SendTaildropFiles() }, requests)
 
     override fun startTailscaleSSHSession(
         requests: Flow<TailscaleSSHClientMessage>,
-    ): Flow<TailscaleSSHServerMessage> = bidiStream(StartedServiceKurpc.startTailscaleSSHSession, requests)
+    ): Flow<TailscaleSSHServerMessage> = bidiStream({ started.StartTailscaleSSHSession() }, requests)
 
     override suspend fun getVersion(): GetVersionResponse =
-        unary(CoreServiceKurpc.getVersion, GetVersionRequest())
+        unary({ core.GetVersion() }, GetVersionRequest())
 
     override suspend fun getDaemonVersion(): Version =
-        unary(StartedServiceKurpc.getVersion, Unit)
+        unary({ started.GetVersion() }, Unit)
 
     override suspend fun getStartedAt(): Long =
-        unary(StartedServiceKurpc.getStartedAt, Unit).startedAt
+        unary({ started.GetStartedAt() }, Unit).startedAt
 
     override suspend fun daemonUrlTest(outboundTag: String) {
-        unary(StartedServiceKurpc.urlTest, DaemonURLTestRequest(outboundTag = outboundTag))
+        unary({ started.URLTest() }, DaemonURLTestRequest(outboundTag = outboundTag))
     }
 
     override suspend fun urlTest(
@@ -604,7 +595,7 @@ class KurpcCoreClient internal constructor(
             options = options,
         )
         val timeout = (timeoutMs + 2000).milliseconds
-        return unary(CoreServiceKurpc.urlTest, request, timeout).latency_ms
+        return unary({ core.URLTest() }, request, timeout).latency_ms
     }
 
     override suspend fun standaloneUrlTest(
@@ -631,19 +622,19 @@ class KurpcCoreClient internal constructor(
             3000
         }
         val timeout = (timeoutMs + 2000 + pluginHeadroomMs).milliseconds
-        return unary(ApplicationServiceKurpc.standaloneURLTest, request, timeout).latency_ms
+        return unary({ application.StandaloneURLTest() }, request, timeout).latency_ms
     }
 
     override suspend fun checkConfig(config: String) {
-        unary(ApplicationServiceKurpc.checkConfig, CheckConfigRequest(config = config), 30.seconds)
+        unary({ application.CheckConfig() }, CheckConfigRequest(config = config), 30.seconds)
     }
 
     override suspend fun formatConfig(config: String): String =
-        unary(ApplicationServiceKurpc.formatConfig, FormatConfigRequest(config = config)).config
+        unary({ application.FormatConfig() }, FormatConfigRequest(config = config)).config
 
     override suspend fun generateSchema(kind: SchemaKind): String =
         unary(
-            ApplicationServiceKurpc.generateSchema,
+            { application.GenerateSchema() },
             GenerateSchemaRequest(kind = kind),
             30.seconds,
         ).schema
@@ -660,56 +651,50 @@ class KurpcCoreClient internal constructor(
             mode = mode,
             socks_proxy_url = socksProxyUrl,
         )
-        return unary(ApplicationServiceKurpc.getCert, request, 30.seconds).pem
+        return unary({ application.GetCert() }, request, 30.seconds).pem
     }
 
-    override suspend fun webdavList(request: WebDAVListRequest): WebDAVListResponse =
-        unary(ApplicationServiceKurpc.webDAVList, request, WEBDAV_TIMEOUT)
-
-    override suspend fun webdavUpload(requests: Flow<WebDAVUploadRequest>) {
-        clientStream(ApplicationServiceKurpc.webDAVUpload, requests, WEBDAV_TIMEOUT)
-    }
-
-    // A server stream carries no deadline of its own, so the download sets the upload's.
-    override fun webdavDownload(request: WebDAVDownloadRequest): Flow<WebDAVDownloadResponse> = flow {
-        withTimeout(WEBDAV_TIMEOUT) {
-            emitAll(oneShotStream(ApplicationServiceKurpc.webDAVDownload, request))
-        }
-    }
-
-    override suspend fun webdavDelete(request: WebDAVDeleteRequest) {
-        unary(ApplicationServiceKurpc.webDAVDelete, request, WEBDAV_TIMEOUT)
-    }
-
-    override suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int {
-        val request = PingRequest(protocol = protocol, address = address, port = port, timeout_ms = timeoutMs)
+    override suspend fun ping(
+        protocol: PingProtocol,
+        address: String,
+        port: Int,
+        timeoutMs: Int,
+    ): Int {
+        val request = PingRequest(
+            protocol = protocol,
+            address = address,
+            port = port,
+            timeout_ms = timeoutMs,
+        )
         return unary(
-            ApplicationServiceKurpc.ping, request, timeoutMs.milliseconds + DEFAULT_UNARY_TIMEOUT,
+            { application.Ping() },
+            request,
+            timeoutMs.milliseconds + DEFAULT_UNARY_TIMEOUT,
         ).latency_ms
     }
 
     override suspend fun detectIP(server: String): String =
-        unary(CoreServiceKurpc.detectIP, DetectIPRequest(server = server), 15.seconds).ip
+        unary({ core.DetectIP() }, DetectIPRequest(server = server), 15.seconds).ip
 
     override suspend fun lookupIPCountry(dir: File, ip: String): String {
         val request = LookupIPCountryRequest(ip = ip, directory = dir.invariantPathString())
-        return unary(ApplicationServiceKurpc.lookupIPCountry, request, 30.seconds).country_code
+        return unary({ application.LookupIPCountry() }, request, 30.seconds).country_code
     }
 
     override suspend fun matchRuleSets(dir: File, keyword: String): List<String> {
         val request = MatchRuleSetsRequest(directory = dir.invariantPathString(), keyword = keyword)
-        return unary(ApplicationServiceKurpc.matchRuleSets, request, 30.seconds).names
+        return unary({ application.MatchRuleSets() }, request, 30.seconds).names
     }
 
     override suspend fun getRootCertificates(store: RootCertificateStore): String =
         unary(
-            ApplicationServiceKurpc.getRootCertificates,
+            { application.GetRootCertificates() },
             GetRootCertificatesRequest(store = store),
         ).pem
 
     override suspend fun readAndroidVPNType(apkPaths: List<String>): AndroidVPNType? {
         val response = unary(
-            ApplicationServiceKurpc.readAndroidVPNType,
+            { application.ReadAndroidVPNType() },
             ReadAndroidVPNTypeRequest(apk_paths = apkPaths),
         )
         return response.type
@@ -717,12 +702,12 @@ class KurpcCoreClient internal constructor(
 
     override fun stunTest(server: String, outboundTag: String): Flow<STUNTestProgress> {
         val request = STUNTestRequest(server = server, outboundTag = outboundTag)
-        return oneShotStream(StartedServiceKurpc.startSTUNTest, request)
+        return oneShotStream({ started.StartSTUNTest() }, request)
     }
 
     override fun standaloneStunTest(server: String): Flow<STUNTestProgress> =
         oneShotStream(
-            ApplicationServiceKurpc.standaloneSTUNTest,
+            { application.StandaloneSTUNTest() },
             StandaloneSTUNTestRequest(server = server),
         )
 
@@ -740,7 +725,7 @@ class KurpcCoreClient internal constructor(
             maxRuntimeSeconds = maxRuntimeSeconds,
             http3 = http3,
         )
-        return oneShotStream(StartedServiceKurpc.startNetworkQualityTest, request)
+        return oneShotStream({ started.StartNetworkQualityTest() }, request)
     }
 
     override fun standaloneNetworkQualityTest(
@@ -755,107 +740,71 @@ class KurpcCoreClient internal constructor(
             max_runtime_seconds = maxRuntimeSeconds,
             http3 = http3,
         )
-        return oneShotStream(ApplicationServiceKurpc.standaloneNetworkQualityTest, request)
+        return oneShotStream({ application.StandaloneNetworkQualityTest() }, request)
     }
 
-    override fun httpFetch(request: HTTPFetchRequest): Flow<HTTPFetchResponse> =
-        oneShotStream(ApplicationServiceKurpc.httpFetch, request)
+    override fun decryptAge(requests: Flow<DecryptAgeRequest>): Flow<DecryptAgeResponse> =
+        bidiStream({ application.DecryptAge() }, requests, bufferCapacity = Channel.RENDEZVOUS)
 
     override suspend fun resetNetwork() {
-        unary(CoreServiceKurpc.resetNetwork, ResetNetworkRequest())
+        unary({ core.ResetNetwork() }, ResetNetworkRequest())
     }
 
     override suspend fun runTask(taskId: String) {
-        unary(AppServiceKurpc.runTask, RunTaskRequest(task_id = taskId))
+        unary({ app.RunTask() }, RunTaskRequest(task_id = taskId))
     }
 
     override suspend fun getDaemonInfo(): GetDaemonInfoResponse =
-        unary(DaemonServiceKurpc.getDaemonInfo, GetDaemonInfoRequest())
+        unary({ daemon.GetDaemonInfo() }, GetDaemonInfoRequest())
 
     override suspend fun claimService() {
-        unary(DaemonServiceKurpc.claimService, ClaimServiceRequest())
+        unary({ daemon.ClaimService() }, ClaimServiceRequest())
     }
 
     override suspend fun takeOverService() {
-        unary(DaemonServiceKurpc.takeOverService, TakeOverServiceRequest(), TAKE_OVER_TIMEOUT)
+        unary({ daemon.TakeOverService() }, TakeOverServiceRequest(), TAKE_OVER_TIMEOUT)
     }
 
     override suspend fun startService(request: StartServiceRequest) {
-        unary(DaemonServiceKurpc.startService, request, 60.seconds)
+        unary({ daemon.StartService() }, request, 60.seconds)
     }
 
     override suspend fun stopService() {
-        unary(DaemonServiceKurpc.stopService, StopServiceRequest(), 30.seconds)
+        unary({ daemon.StopService() }, StopServiceRequest(), 30.seconds)
     }
 
     override suspend fun getClientMetadata(): GetClientMetadataResponse =
-        unary(DaemonServiceKurpc.getClientMetadata, GetClientMetadataRequest())
+        unary({ daemon.GetClientMetadata() }, GetClientMetadataRequest())
 
     override fun attachClient(): Flow<Unit> =
-        stream(DaemonServiceKurpc.attachClient, AttachClientRequest()).map { }
+        stream({ daemon.AttachClient() }, AttachClientRequest()).map { }
 
     override suspend fun setStartAtBoot(enabled: Boolean) {
-        unary(DaemonServiceKurpc.setStartAtBoot, SetStartAtBootRequest(enabled = enabled))
+        unary({ daemon.SetStartAtBoot() }, SetStartAtBootRequest(enabled = enabled))
     }
 
-    /**
-     * gRPC health check; any status but SERVING is a failure. Encoded by hand: husi has no
-     * health proto for one field.
-     */
     override suspend fun probe() {
-        val response = rpc {
-            // Not wait-for-ready: a probe answers whether a host is there now.
-            channel().unary(
-                HEALTH_CHECK_METHOD,
-                EMPTY_HEALTH_CHECK_REQUEST,
-                NativeCallOptions(timeout = DEFAULT_UNARY_TIMEOUT, waitForReady = false),
-            )
-        }
-        val status = healthCheckStatus(response)
-        if (status != HEALTH_SERVING) {
-            throw CoreRpcException(RpcStatus.Code.UNAVAILABLE, "health status: $status")
+        val response = unary({ health.Check() }, HealthCheckRequest())
+        if (response.status != ServingStatus.SERVING) {
+            throw CoreRpcException(GrpcStatus.UNAVAILABLE, "health status: ${response.status}")
         }
     }
 
     companion object {
         private val DEFAULT_UNARY_TIMEOUT = 10.seconds
-        private val WEBDAV_TIMEOUT = 2.minutes
 
-        /**
-         * Longer than [DEFAULT_UNARY_TIMEOUT]: take-over blocks on a human
-         * typing an administrator password, and ten seconds would cancel
-         * the prompt.
-         */
+        // Take-over can wait for the user to enter an administrator password.
         private val TAKE_OVER_TIMEOUT = 10.minutes
 
-        private const val HEALTH_CHECK_METHOD = "/grpc.health.v1.Health/Check"
+        fun local(basePath: () -> String): WireCoreClient =
+            WireCoreClient(openChannel = { openLocalCoreChannel(basePath()) })
 
-        /** A `HealthCheckRequest` for the whole server: no fields, zero bytes. */
-        private val EMPTY_HEALTH_CHECK_REQUEST = ByteArray(0)
-
-        /** `grpc.health.v1.HealthCheckResponse.ServingStatus.SERVING`. */
-        private const val HEALTH_SERVING = 1
-
-        /** Local core at [basePath] (see [localCoreTransport]), resolved again on every [close]. */
-        fun local(basePath: () -> String): KurpcCoreClient = KurpcCoreClient(
-            openChannel = {
-                KurpcCoreChannel(RpcChannel(ChannelConfig(localCoreTransport(basePath()))))
-            },
-        )
-
-        /**
-         * A remote sing-box daemon, as `daemon.NewRemoteClient` dials it. [trust] gives the TLS
-         * roots on every dial; see [rootCertificatesSocketFactory].
-         */
-        fun remote(serverUrl: String, secret: String, trust: () -> SSLSocketFactory): KurpcCoreClient = KurpcCoreClient(
-            openChannel = {
-                KurpcCoreChannel(RpcChannel(remoteCoreChannelConfig(serverUrl, secret, trust)))
-            },
-        )
+        fun remote(serverUrl: String, secret: String, roots: File? = null): WireCoreClient =
+            WireCoreClient(openChannel = { openRemoteCoreChannel(serverUrl, secret, roots) })
     }
 }
 
-/** Runs one call, reporting every kurpc failure as a [CoreRpcException]. */
+/** Normalizes transport and server failures for the UI and CLI. */
 private suspend fun <T> rpc(call: suspend () -> T): T = try {
     call()
 } catch (e: CancellationException) {
@@ -866,13 +815,25 @@ private suspend fun <T> rpc(call: suspend () -> T): T = try {
 
 internal fun Throwable.toCoreRpcException(): CoreRpcException = when (this) {
     is CoreRpcException -> this
-    is StatusException -> CoreRpcException(code, description, this)
+    is GrpcException -> CoreRpcException(
+        grpcStatus,
+        // Wire exposes the grpc-message header verbatim. Its percent escapes are not form encoding.
+        decodeGrpcMessage(grpcMessage, grpcStatus.name),
+        this,
+    )
 
-    // No status from a server: it was never reached or went away, as grpc-go reports it.
-    is TransportException, is ChannelClosedException ->
-        CoreRpcException(RpcStatus.Code.UNAVAILABLE, message ?: toString(), this)
+    is IOException -> CoreRpcException(GrpcStatus.UNAVAILABLE, message ?: toString(), this)
 
-    else -> CoreRpcException(RpcStatus.Code.UNKNOWN, message ?: toString(), this)
+    else -> CoreRpcException(GrpcStatus.UNKNOWN, message ?: toString(), this)
+}
+
+private fun decodeGrpcMessage(message: String?, fallback: String): String {
+    if (message == null) return fallback
+    return if ('%' in message) {
+        message.replace("+", "%2B").unUrlSafe()
+    } else {
+        message
+    }
 }
 
 /** Build URLTestOptions from DataStore-style flags. */

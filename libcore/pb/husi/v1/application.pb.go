@@ -803,30 +803,32 @@ func (x *StandaloneNetworkQualityTestRequest) GetHttp3() bool {
 	return false
 }
 
-// Socks inbound on the host's loopback that HTTPFetch dials through.
-type HTTPFetchSocks5 struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Port          int32                  `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
-	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+// Send identities once, followed by the ASCII-armored ciphertext in chunks.
+type DecryptAgeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Payload:
+	//
+	//	*DecryptAgeRequest_Identities
+	//	*DecryptAgeRequest_Chunk
+	Payload       isDecryptAgeRequest_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HTTPFetchSocks5) Reset() {
-	*x = HTTPFetchSocks5{}
+func (x *DecryptAgeRequest) Reset() {
+	*x = DecryptAgeRequest{}
 	mi := &file_husi_v1_application_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HTTPFetchSocks5) String() string {
+func (x *DecryptAgeRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HTTPFetchSocks5) ProtoMessage() {}
+func (*DecryptAgeRequest) ProtoMessage() {}
 
-func (x *HTTPFetchSocks5) ProtoReflect() protoreflect.Message {
+func (x *DecryptAgeRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_husi_v1_application_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -838,748 +840,74 @@ func (x *HTTPFetchSocks5) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HTTPFetchSocks5.ProtoReflect.Descriptor instead.
-func (*HTTPFetchSocks5) Descriptor() ([]byte, []int) {
+// Deprecated: Use DecryptAgeRequest.ProtoReflect.Descriptor instead.
+func (*DecryptAgeRequest) Descriptor() ([]byte, []int) {
 	return file_husi_v1_application_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *HTTPFetchSocks5) GetPort() int32 {
-	if x != nil {
-		return x.Port
-	}
-	return 0
-}
-
-func (x *HTTPFetchSocks5) GetUsername() string {
-	if x != nil {
-		return x.Username
-	}
-	return ""
-}
-
-func (x *HTTPFetchSocks5) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
-// One GET. A status other than 200 fails the call with the start of the body
-// in the error message.
-type HTTPFetchRequest struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Url     string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
-	Headers map[string]string      `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Leaves the exchange without an overall deadline, for large downloads on
-	// slow links. Connection setup still times out, and a body that stops making
-	// progress still fails.
-	NoOverallDeadline bool `protobuf:"varint,3,opt,name=no_overall_deadline,json=noOverallDeadline,proto3" json:"no_overall_deadline,omitempty"`
-	// Forces TLS 1.3.
-	RestrictedTls bool `protobuf:"varint,4,opt,name=restricted_tls,json=restrictedTls,proto3" json:"restricted_tls,omitempty"`
-	// Hex SHA-256 of a leaf certificate accepted even when it does not chain to
-	// a trusted root (OOCv1).
-	PinnedSha256 string `protobuf:"bytes,5,opt,name=pinned_sha256,json=pinnedSha256,proto3" json:"pinned_sha256,omitempty"`
-	// Unset dials the server directly.
-	Socks5 *HTTPFetchSocks5 `protobuf:"bytes,6,opt,name=socks5,proto3" json:"socks5,omitempty"`
-	// age identities that decrypt an armored response body.
-	AgeIdentities string `protobuf:"bytes,7,opt,name=age_identities,json=ageIdentities,proto3" json:"age_identities,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HTTPFetchRequest) Reset() {
-	*x = HTTPFetchRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HTTPFetchRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HTTPFetchRequest) ProtoMessage() {}
-
-func (x *HTTPFetchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HTTPFetchRequest.ProtoReflect.Descriptor instead.
-func (*HTTPFetchRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *HTTPFetchRequest) GetUrl() string {
-	if x != nil {
-		return x.Url
-	}
-	return ""
-}
-
-func (x *HTTPFetchRequest) GetHeaders() map[string]string {
-	if x != nil {
-		return x.Headers
-	}
-	return nil
-}
-
-func (x *HTTPFetchRequest) GetNoOverallDeadline() bool {
-	if x != nil {
-		return x.NoOverallDeadline
-	}
-	return false
-}
-
-func (x *HTTPFetchRequest) GetRestrictedTls() bool {
-	if x != nil {
-		return x.RestrictedTls
-	}
-	return false
-}
-
-func (x *HTTPFetchRequest) GetPinnedSha256() string {
-	if x != nil {
-		return x.PinnedSha256
-	}
-	return ""
-}
-
-func (x *HTTPFetchRequest) GetSocks5() *HTTPFetchSocks5 {
-	if x != nil {
-		return x.Socks5
-	}
-	return nil
-}
-
-func (x *HTTPFetchRequest) GetAgeIdentities() string {
-	if x != nil {
-		return x.AgeIdentities
-	}
-	return ""
-}
-
-type HTTPFetchHead struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// First value of each response header, keyed by canonical header name.
-	Headers map[string]string `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Length of the body that follows, or -1 when unknown.
-	ContentLength int64 `protobuf:"varint,2,opt,name=content_length,json=contentLength,proto3" json:"content_length,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HTTPFetchHead) Reset() {
-	*x = HTTPFetchHead{}
-	mi := &file_husi_v1_application_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HTTPFetchHead) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HTTPFetchHead) ProtoMessage() {}
-
-func (x *HTTPFetchHead) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HTTPFetchHead.ProtoReflect.Descriptor instead.
-func (*HTTPFetchHead) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *HTTPFetchHead) GetHeaders() map[string]string {
-	if x != nil {
-		return x.Headers
-	}
-	return nil
-}
-
-func (x *HTTPFetchHead) GetContentLength() int64 {
-	if x != nil {
-		return x.ContentLength
-	}
-	return 0
-}
-
-// The stream carries one head, then the body in chunks.
-type HTTPFetchResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Payload:
-	//
-	//	*HTTPFetchResponse_Head
-	//	*HTTPFetchResponse_Chunk
-	Payload       isHTTPFetchResponse_Payload `protobuf_oneof:"payload"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HTTPFetchResponse) Reset() {
-	*x = HTTPFetchResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HTTPFetchResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HTTPFetchResponse) ProtoMessage() {}
-
-func (x *HTTPFetchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HTTPFetchResponse.ProtoReflect.Descriptor instead.
-func (*HTTPFetchResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *HTTPFetchResponse) GetPayload() isHTTPFetchResponse_Payload {
+func (x *DecryptAgeRequest) GetPayload() isDecryptAgeRequest_Payload {
 	if x != nil {
 		return x.Payload
 	}
 	return nil
 }
 
-func (x *HTTPFetchResponse) GetHead() *HTTPFetchHead {
+func (x *DecryptAgeRequest) GetIdentities() string {
 	if x != nil {
-		if x, ok := x.Payload.(*HTTPFetchResponse_Head); ok {
-			return x.Head
+		if x, ok := x.Payload.(*DecryptAgeRequest_Identities); ok {
+			return x.Identities
 		}
 	}
-	return nil
+	return ""
 }
 
-func (x *HTTPFetchResponse) GetChunk() []byte {
+func (x *DecryptAgeRequest) GetChunk() []byte {
 	if x != nil {
-		if x, ok := x.Payload.(*HTTPFetchResponse_Chunk); ok {
+		if x, ok := x.Payload.(*DecryptAgeRequest_Chunk); ok {
 			return x.Chunk
 		}
 	}
 	return nil
 }
 
-type isHTTPFetchResponse_Payload interface {
-	isHTTPFetchResponse_Payload()
+type isDecryptAgeRequest_Payload interface {
+	isDecryptAgeRequest_Payload()
 }
 
-type HTTPFetchResponse_Head struct {
-	Head *HTTPFetchHead `protobuf:"bytes,1,opt,name=head,proto3,oneof"`
+type DecryptAgeRequest_Identities struct {
+	Identities string `protobuf:"bytes,1,opt,name=identities,proto3,oneof"`
 }
 
-type HTTPFetchResponse_Chunk struct {
+type DecryptAgeRequest_Chunk struct {
 	Chunk []byte `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
 }
 
-func (*HTTPFetchResponse_Head) isHTTPFetchResponse_Payload() {}
+func (*DecryptAgeRequest_Identities) isDecryptAgeRequest_Payload() {}
 
-func (*HTTPFetchResponse_Chunk) isHTTPFetchResponse_Payload() {}
+func (*DecryptAgeRequest_Chunk) isDecryptAgeRequest_Payload() {}
 
-type WebDAVServer struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The directory that holds the files.
-	Url      string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
-	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	// Unset dials the server directly.
-	Socks5        *HTTPFetchSocks5 `protobuf:"bytes,4,opt,name=socks5,proto3" json:"socks5,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVServer) Reset() {
-	*x = WebDAVServer{}
-	mi := &file_husi_v1_application_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVServer) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVServer) ProtoMessage() {}
-
-func (x *WebDAVServer) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVServer.ProtoReflect.Descriptor instead.
-func (*WebDAVServer) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *WebDAVServer) GetUrl() string {
-	if x != nil {
-		return x.Url
-	}
-	return ""
-}
-
-func (x *WebDAVServer) GetUsername() string {
-	if x != nil {
-		return x.Username
-	}
-	return ""
-}
-
-func (x *WebDAVServer) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
-func (x *WebDAVServer) GetSocks5() *HTTPFetchSocks5 {
-	if x != nil {
-		return x.Socks5
-	}
-	return nil
-}
-
-type WebDAVListRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Server        *WebDAVServer          `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVListRequest) Reset() {
-	*x = WebDAVListRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[17]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVListRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVListRequest) ProtoMessage() {}
-
-func (x *WebDAVListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[17]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVListRequest.ProtoReflect.Descriptor instead.
-func (*WebDAVListRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *WebDAVListRequest) GetServer() *WebDAVServer {
-	if x != nil {
-		return x.Server
-	}
-	return nil
-}
-
-// One file of the directory; subdirectories are not listed.
-type WebDAVEntry struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Size           int64                  `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
-	ModifiedUnixMs int64                  `protobuf:"varint,3,opt,name=modified_unix_ms,json=modifiedUnixMs,proto3" json:"modified_unix_ms,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *WebDAVEntry) Reset() {
-	*x = WebDAVEntry{}
-	mi := &file_husi_v1_application_proto_msgTypes[18]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVEntry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVEntry) ProtoMessage() {}
-
-func (x *WebDAVEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[18]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVEntry.ProtoReflect.Descriptor instead.
-func (*WebDAVEntry) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{18}
-}
-
-func (x *WebDAVEntry) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *WebDAVEntry) GetSize() int64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
-}
-
-func (x *WebDAVEntry) GetModifiedUnixMs() int64 {
-	if x != nil {
-		return x.ModifiedUnixMs
-	}
-	return 0
-}
-
-type WebDAVListResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Entries       []*WebDAVEntry         `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVListResponse) Reset() {
-	*x = WebDAVListResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[19]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVListResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVListResponse) ProtoMessage() {}
-
-func (x *WebDAVListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[19]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVListResponse.ProtoReflect.Descriptor instead.
-func (*WebDAVListResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{19}
-}
-
-func (x *WebDAVListResponse) GetEntries() []*WebDAVEntry {
-	if x != nil {
-		return x.Entries
-	}
-	return nil
-}
-
-// Names the file the chunks that follow it are stored as. A file of the same
-// name is replaced. A missing directory is created, but not its parents. A name
-// that is empty or would leave the directory is an INVALID_ARGUMENT error.
-type WebDAVUploadHead struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	Server *WebDAVServer          `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
-	Name   string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// Total length of the chunks, sent to the server as the Content-Length.
-	Size          int64 `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVUploadHead) Reset() {
-	*x = WebDAVUploadHead{}
-	mi := &file_husi_v1_application_proto_msgTypes[20]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVUploadHead) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVUploadHead) ProtoMessage() {}
-
-func (x *WebDAVUploadHead) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[20]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVUploadHead.ProtoReflect.Descriptor instead.
-func (*WebDAVUploadHead) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{20}
-}
-
-func (x *WebDAVUploadHead) GetServer() *WebDAVServer {
-	if x != nil {
-		return x.Server
-	}
-	return nil
-}
-
-func (x *WebDAVUploadHead) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *WebDAVUploadHead) GetSize() int64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
-}
-
-// The stream carries one head, then the file in chunks.
-type WebDAVUploadRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Payload:
-	//
-	//	*WebDAVUploadRequest_Head
-	//	*WebDAVUploadRequest_Chunk
-	Payload       isWebDAVUploadRequest_Payload `protobuf_oneof:"payload"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVUploadRequest) Reset() {
-	*x = WebDAVUploadRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVUploadRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVUploadRequest) ProtoMessage() {}
-
-func (x *WebDAVUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVUploadRequest.ProtoReflect.Descriptor instead.
-func (*WebDAVUploadRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *WebDAVUploadRequest) GetPayload() isWebDAVUploadRequest_Payload {
-	if x != nil {
-		return x.Payload
-	}
-	return nil
-}
-
-func (x *WebDAVUploadRequest) GetHead() *WebDAVUploadHead {
-	if x != nil {
-		if x, ok := x.Payload.(*WebDAVUploadRequest_Head); ok {
-			return x.Head
-		}
-	}
-	return nil
-}
-
-func (x *WebDAVUploadRequest) GetChunk() []byte {
-	if x != nil {
-		if x, ok := x.Payload.(*WebDAVUploadRequest_Chunk); ok {
-			return x.Chunk
-		}
-	}
-	return nil
-}
-
-type isWebDAVUploadRequest_Payload interface {
-	isWebDAVUploadRequest_Payload()
-}
-
-type WebDAVUploadRequest_Head struct {
-	Head *WebDAVUploadHead `protobuf:"bytes,1,opt,name=head,proto3,oneof"`
-}
-
-type WebDAVUploadRequest_Chunk struct {
-	Chunk []byte `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
-}
-
-func (*WebDAVUploadRequest_Head) isWebDAVUploadRequest_Payload() {}
-
-func (*WebDAVUploadRequest_Chunk) isWebDAVUploadRequest_Payload() {}
-
-type WebDAVUploadResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVUploadResponse) Reset() {
-	*x = WebDAVUploadResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[22]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVUploadResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVUploadResponse) ProtoMessage() {}
-
-func (x *WebDAVUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[22]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVUploadResponse.ProtoReflect.Descriptor instead.
-func (*WebDAVUploadResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{22}
-}
-
-type WebDAVDownloadRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Server        *WebDAVServer          `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVDownloadRequest) Reset() {
-	*x = WebDAVDownloadRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVDownloadRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVDownloadRequest) ProtoMessage() {}
-
-func (x *WebDAVDownloadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVDownloadRequest.ProtoReflect.Descriptor instead.
-func (*WebDAVDownloadRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *WebDAVDownloadRequest) GetServer() *WebDAVServer {
-	if x != nil {
-		return x.Server
-	}
-	return nil
-}
-
-func (x *WebDAVDownloadRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-// The stream carries the file in chunks.
-type WebDAVDownloadResponse struct {
+type DecryptAgeResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Chunk         []byte                 `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *WebDAVDownloadResponse) Reset() {
-	*x = WebDAVDownloadResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[24]
+func (x *DecryptAgeResponse) Reset() {
+	*x = DecryptAgeResponse{}
+	mi := &file_husi_v1_application_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *WebDAVDownloadResponse) String() string {
+func (x *DecryptAgeResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WebDAVDownloadResponse) ProtoMessage() {}
+func (*DecryptAgeResponse) ProtoMessage() {}
 
-func (x *WebDAVDownloadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[24]
+func (x *DecryptAgeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_husi_v1_application_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1590,106 +918,16 @@ func (x *WebDAVDownloadResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WebDAVDownloadResponse.ProtoReflect.Descriptor instead.
-func (*WebDAVDownloadResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{24}
+// Deprecated: Use DecryptAgeResponse.ProtoReflect.Descriptor instead.
+func (*DecryptAgeResponse) Descriptor() ([]byte, []int) {
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *WebDAVDownloadResponse) GetChunk() []byte {
+func (x *DecryptAgeResponse) GetChunk() []byte {
 	if x != nil {
 		return x.Chunk
 	}
 	return nil
-}
-
-// A name that is empty or would leave the directory is an INVALID_ARGUMENT
-// error.
-type WebDAVDeleteRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Server        *WebDAVServer          `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVDeleteRequest) Reset() {
-	*x = WebDAVDeleteRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVDeleteRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVDeleteRequest) ProtoMessage() {}
-
-func (x *WebDAVDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVDeleteRequest.ProtoReflect.Descriptor instead.
-func (*WebDAVDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *WebDAVDeleteRequest) GetServer() *WebDAVServer {
-	if x != nil {
-		return x.Server
-	}
-	return nil
-}
-
-func (x *WebDAVDeleteRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-type WebDAVDeleteResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WebDAVDeleteResponse) Reset() {
-	*x = WebDAVDeleteResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[26]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WebDAVDeleteResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WebDAVDeleteResponse) ProtoMessage() {}
-
-func (x *WebDAVDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[26]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WebDAVDeleteResponse.ProtoReflect.Descriptor instead.
-func (*WebDAVDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{26}
 }
 
 type PingRequest struct {
@@ -1706,7 +944,7 @@ type PingRequest struct {
 
 func (x *PingRequest) Reset() {
 	*x = PingRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[27]
+	mi := &file_husi_v1_application_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1718,7 +956,7 @@ func (x *PingRequest) String() string {
 func (*PingRequest) ProtoMessage() {}
 
 func (x *PingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[27]
+	mi := &file_husi_v1_application_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1731,7 +969,7 @@ func (x *PingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
 func (*PingRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{27}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PingRequest) GetProtocol() PingProtocol {
@@ -1771,7 +1009,7 @@ type PingResponse struct {
 
 func (x *PingResponse) Reset() {
 	*x = PingResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[28]
+	mi := &file_husi_v1_application_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1783,7 +1021,7 @@ func (x *PingResponse) String() string {
 func (*PingResponse) ProtoMessage() {}
 
 func (x *PingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[28]
+	mi := &file_husi_v1_application_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1796,7 +1034,7 @@ func (x *PingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
 func (*PingResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{28}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *PingResponse) GetLatencyMs() int32 {
@@ -1818,7 +1056,7 @@ type MatchRuleSetsRequest struct {
 
 func (x *MatchRuleSetsRequest) Reset() {
 	*x = MatchRuleSetsRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[29]
+	mi := &file_husi_v1_application_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1830,7 +1068,7 @@ func (x *MatchRuleSetsRequest) String() string {
 func (*MatchRuleSetsRequest) ProtoMessage() {}
 
 func (x *MatchRuleSetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[29]
+	mi := &file_husi_v1_application_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1843,7 +1081,7 @@ func (x *MatchRuleSetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MatchRuleSetsRequest.ProtoReflect.Descriptor instead.
 func (*MatchRuleSetsRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{29}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *MatchRuleSetsRequest) GetKeyword() string {
@@ -1871,7 +1109,7 @@ type MatchRuleSetsResponse struct {
 
 func (x *MatchRuleSetsResponse) Reset() {
 	*x = MatchRuleSetsResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[30]
+	mi := &file_husi_v1_application_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1883,7 +1121,7 @@ func (x *MatchRuleSetsResponse) String() string {
 func (*MatchRuleSetsResponse) ProtoMessage() {}
 
 func (x *MatchRuleSetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[30]
+	mi := &file_husi_v1_application_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1896,7 +1134,7 @@ func (x *MatchRuleSetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MatchRuleSetsResponse.ProtoReflect.Descriptor instead.
 func (*MatchRuleSetsResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{30}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *MatchRuleSetsResponse) GetNames() []string {
@@ -1915,7 +1153,7 @@ type GetRootCertificatesRequest struct {
 
 func (x *GetRootCertificatesRequest) Reset() {
 	*x = GetRootCertificatesRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[31]
+	mi := &file_husi_v1_application_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1927,7 +1165,7 @@ func (x *GetRootCertificatesRequest) String() string {
 func (*GetRootCertificatesRequest) ProtoMessage() {}
 
 func (x *GetRootCertificatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[31]
+	mi := &file_husi_v1_application_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1940,7 +1178,7 @@ func (x *GetRootCertificatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRootCertificatesRequest.ProtoReflect.Descriptor instead.
 func (*GetRootCertificatesRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{31}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetRootCertificatesRequest) GetStore() RootCertificateStore {
@@ -1961,7 +1199,7 @@ type GetRootCertificatesResponse struct {
 
 func (x *GetRootCertificatesResponse) Reset() {
 	*x = GetRootCertificatesResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[32]
+	mi := &file_husi_v1_application_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1973,7 +1211,7 @@ func (x *GetRootCertificatesResponse) String() string {
 func (*GetRootCertificatesResponse) ProtoMessage() {}
 
 func (x *GetRootCertificatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[32]
+	mi := &file_husi_v1_application_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1986,7 +1224,7 @@ func (x *GetRootCertificatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRootCertificatesResponse.ProtoReflect.Descriptor instead.
 func (*GetRootCertificatesResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{32}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetRootCertificatesResponse) GetPem() string {
@@ -2006,7 +1244,7 @@ type ReadAndroidVPNTypeRequest struct {
 
 func (x *ReadAndroidVPNTypeRequest) Reset() {
 	*x = ReadAndroidVPNTypeRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[33]
+	mi := &file_husi_v1_application_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2018,7 +1256,7 @@ func (x *ReadAndroidVPNTypeRequest) String() string {
 func (*ReadAndroidVPNTypeRequest) ProtoMessage() {}
 
 func (x *ReadAndroidVPNTypeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[33]
+	mi := &file_husi_v1_application_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2031,7 +1269,7 @@ func (x *ReadAndroidVPNTypeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadAndroidVPNTypeRequest.ProtoReflect.Descriptor instead.
 func (*ReadAndroidVPNTypeRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{33}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ReadAndroidVPNTypeRequest) GetApkPaths() []string {
@@ -2054,7 +1292,7 @@ type AndroidVPNType struct {
 
 func (x *AndroidVPNType) Reset() {
 	*x = AndroidVPNType{}
-	mi := &file_husi_v1_application_proto_msgTypes[34]
+	mi := &file_husi_v1_application_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2066,7 +1304,7 @@ func (x *AndroidVPNType) String() string {
 func (*AndroidVPNType) ProtoMessage() {}
 
 func (x *AndroidVPNType) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[34]
+	mi := &file_husi_v1_application_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2079,7 +1317,7 @@ func (x *AndroidVPNType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AndroidVPNType.ProtoReflect.Descriptor instead.
 func (*AndroidVPNType) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{34}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AndroidVPNType) GetCoreType() string {
@@ -2113,7 +1351,7 @@ type ReadAndroidVPNTypeResponse struct {
 
 func (x *ReadAndroidVPNTypeResponse) Reset() {
 	*x = ReadAndroidVPNTypeResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[35]
+	mi := &file_husi_v1_application_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2125,7 +1363,7 @@ func (x *ReadAndroidVPNTypeResponse) String() string {
 func (*ReadAndroidVPNTypeResponse) ProtoMessage() {}
 
 func (x *ReadAndroidVPNTypeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[35]
+	mi := &file_husi_v1_application_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +1376,7 @@ func (x *ReadAndroidVPNTypeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadAndroidVPNTypeResponse.ProtoReflect.Descriptor instead.
 func (*ReadAndroidVPNTypeResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{35}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ReadAndroidVPNTypeResponse) GetType() *AndroidVPNType {
@@ -2159,7 +1397,7 @@ type LookupIPCountryRequest struct {
 
 func (x *LookupIPCountryRequest) Reset() {
 	*x = LookupIPCountryRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[36]
+	mi := &file_husi_v1_application_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2171,7 +1409,7 @@ func (x *LookupIPCountryRequest) String() string {
 func (*LookupIPCountryRequest) ProtoMessage() {}
 
 func (x *LookupIPCountryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[36]
+	mi := &file_husi_v1_application_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2184,7 +1422,7 @@ func (x *LookupIPCountryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LookupIPCountryRequest.ProtoReflect.Descriptor instead.
 func (*LookupIPCountryRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{36}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *LookupIPCountryRequest) GetIp() string {
@@ -2210,7 +1448,7 @@ type LookupIPCountryResponse struct {
 
 func (x *LookupIPCountryResponse) Reset() {
 	*x = LookupIPCountryResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[37]
+	mi := &file_husi_v1_application_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2222,7 +1460,7 @@ func (x *LookupIPCountryResponse) String() string {
 func (*LookupIPCountryResponse) ProtoMessage() {}
 
 func (x *LookupIPCountryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[37]
+	mi := &file_husi_v1_application_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2235,7 +1473,7 @@ func (x *LookupIPCountryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LookupIPCountryResponse.ProtoReflect.Descriptor instead.
 func (*LookupIPCountryResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{37}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *LookupIPCountryResponse) GetCountryCode() string {
@@ -2287,63 +1525,15 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"config_url\x18\x01 \x01(\tR\tconfigUrl\x12\x16\n" +
 	"\x06serial\x18\x02 \x01(\bR\x06serial\x12.\n" +
 	"\x13max_runtime_seconds\x18\x03 \x01(\x05R\x11maxRuntimeSeconds\x12\x14\n" +
-	"\x05http3\x18\x04 \x01(\bR\x05http3\"]\n" +
-	"\x0fHTTPFetchSocks5\x12\x12\n" +
-	"\x04port\x18\x01 \x01(\x05R\x04port\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\"\xf7\x02\n" +
-	"\x10HTTPFetchRequest\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\x12@\n" +
-	"\aheaders\x18\x02 \x03(\v2&.husi.v1.HTTPFetchRequest.HeadersEntryR\aheaders\x12.\n" +
-	"\x13no_overall_deadline\x18\x03 \x01(\bR\x11noOverallDeadline\x12%\n" +
-	"\x0erestricted_tls\x18\x04 \x01(\bR\rrestrictedTls\x12#\n" +
-	"\rpinned_sha256\x18\x05 \x01(\tR\fpinnedSha256\x120\n" +
-	"\x06socks5\x18\x06 \x01(\v2\x18.husi.v1.HTTPFetchSocks5R\x06socks5\x12%\n" +
-	"\x0eage_identities\x18\a \x01(\tR\rageIdentities\x1a:\n" +
-	"\fHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb1\x01\n" +
-	"\rHTTPFetchHead\x12=\n" +
-	"\aheaders\x18\x01 \x03(\v2#.husi.v1.HTTPFetchHead.HeadersEntryR\aheaders\x12%\n" +
-	"\x0econtent_length\x18\x02 \x01(\x03R\rcontentLength\x1a:\n" +
-	"\fHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"d\n" +
-	"\x11HTTPFetchResponse\x12,\n" +
-	"\x04head\x18\x01 \x01(\v2\x16.husi.v1.HTTPFetchHeadH\x00R\x04head\x12\x16\n" +
+	"\x05http3\x18\x04 \x01(\bR\x05http3\"X\n" +
+	"\x11DecryptAgeRequest\x12 \n" +
+	"\n" +
+	"identities\x18\x01 \x01(\tH\x00R\n" +
+	"identities\x12\x16\n" +
 	"\x05chunk\x18\x02 \x01(\fH\x00R\x05chunkB\t\n" +
-	"\apayload\"\x8a\x01\n" +
-	"\fWebDAVServer\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\x120\n" +
-	"\x06socks5\x18\x04 \x01(\v2\x18.husi.v1.HTTPFetchSocks5R\x06socks5\"B\n" +
-	"\x11WebDAVListRequest\x12-\n" +
-	"\x06server\x18\x01 \x01(\v2\x15.husi.v1.WebDAVServerR\x06server\"_\n" +
-	"\vWebDAVEntry\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04size\x18\x02 \x01(\x03R\x04size\x12(\n" +
-	"\x10modified_unix_ms\x18\x03 \x01(\x03R\x0emodifiedUnixMs\"D\n" +
-	"\x12WebDAVListResponse\x12.\n" +
-	"\aentries\x18\x01 \x03(\v2\x14.husi.v1.WebDAVEntryR\aentries\"i\n" +
-	"\x10WebDAVUploadHead\x12-\n" +
-	"\x06server\x18\x01 \x01(\v2\x15.husi.v1.WebDAVServerR\x06server\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04size\x18\x03 \x01(\x03R\x04size\"i\n" +
-	"\x13WebDAVUploadRequest\x12/\n" +
-	"\x04head\x18\x01 \x01(\v2\x19.husi.v1.WebDAVUploadHeadH\x00R\x04head\x12\x16\n" +
-	"\x05chunk\x18\x02 \x01(\fH\x00R\x05chunkB\t\n" +
-	"\apayload\"\x16\n" +
-	"\x14WebDAVUploadResponse\"Z\n" +
-	"\x15WebDAVDownloadRequest\x12-\n" +
-	"\x06server\x18\x01 \x01(\v2\x15.husi.v1.WebDAVServerR\x06server\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\".\n" +
-	"\x16WebDAVDownloadResponse\x12\x14\n" +
-	"\x05chunk\x18\x01 \x01(\fR\x05chunk\"X\n" +
-	"\x13WebDAVDeleteRequest\x12-\n" +
-	"\x06server\x18\x01 \x01(\v2\x15.husi.v1.WebDAVServerR\x06server\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\x16\n" +
-	"\x14WebDAVDeleteResponse\"\x8d\x01\n" +
+	"\apayload\"*\n" +
+	"\x12DecryptAgeResponse\x12\x14\n" +
+	"\x05chunk\x18\x01 \x01(\fR\x05chunk\"\x8d\x01\n" +
 	"\vPingRequest\x121\n" +
 	"\bprotocol\x18\x01 \x01(\x0e2\x15.husi.v1.PingProtocolR\bprotocol\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x12\n" +
@@ -2389,8 +1579,7 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\fPingProtocol\x12\x1d\n" +
 	"\x19PING_PROTOCOL_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12PING_PROTOCOL_ICMP\x10\x01\x12\x15\n" +
-	"\x11PING_PROTOCOL_TCP\x10\x022\xfc\n" +
-	"\n" +
+	"\x11PING_PROTOCOL_TCP\x10\x022\xc9\b\n" +
 	"\x12ApplicationService\x12H\n" +
 	"\vCheckConfig\x12\x1b.husi.v1.CheckConfigRequest\x1a\x1c.husi.v1.CheckConfigResponse\x12K\n" +
 	"\fFormatConfig\x12\x1c.husi.v1.FormatConfigRequest\x1a\x1d.husi.v1.FormatConfigResponse\x12Q\n" +
@@ -2398,13 +1587,9 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\x11StandaloneURLTest\x12!.husi.v1.StandaloneURLTestRequest\x1a\".husi.v1.StandaloneURLTestResponse\x12<\n" +
 	"\aGetCert\x12\x17.husi.v1.GetCertRequest\x1a\x18.husi.v1.GetCertResponse\x12T\n" +
 	"\x12StandaloneSTUNTest\x12\".husi.v1.StandaloneSTUNTestRequest\x1a\x18.daemon.STUNTestProgress0\x01\x12r\n" +
-	"\x1cStandaloneNetworkQualityTest\x12,.husi.v1.StandaloneNetworkQualityTestRequest\x1a\".daemon.NetworkQualityTestProgress0\x01\x12D\n" +
-	"\tHTTPFetch\x12\x19.husi.v1.HTTPFetchRequest\x1a\x1a.husi.v1.HTTPFetchResponse0\x01\x12E\n" +
+	"\x1cStandaloneNetworkQualityTest\x12,.husi.v1.StandaloneNetworkQualityTestRequest\x1a\".daemon.NetworkQualityTestProgress0\x01\x12I\n" +
 	"\n" +
-	"WebDAVList\x12\x1a.husi.v1.WebDAVListRequest\x1a\x1b.husi.v1.WebDAVListResponse\x12M\n" +
-	"\fWebDAVUpload\x12\x1c.husi.v1.WebDAVUploadRequest\x1a\x1d.husi.v1.WebDAVUploadResponse(\x01\x12S\n" +
-	"\x0eWebDAVDownload\x12\x1e.husi.v1.WebDAVDownloadRequest\x1a\x1f.husi.v1.WebDAVDownloadResponse0\x01\x12K\n" +
-	"\fWebDAVDelete\x12\x1c.husi.v1.WebDAVDeleteRequest\x1a\x1d.husi.v1.WebDAVDeleteResponse\x123\n" +
+	"DecryptAge\x12\x1a.husi.v1.DecryptAgeRequest\x1a\x1b.husi.v1.DecryptAgeResponse(\x010\x01\x123\n" +
 	"\x04Ping\x12\x14.husi.v1.PingRequest\x1a\x15.husi.v1.PingResponse\x12T\n" +
 	"\x0fLookupIPCountry\x12\x1f.husi.v1.LookupIPCountryRequest\x1a .husi.v1.LookupIPCountryResponse\x12N\n" +
 	"\rMatchRuleSets\x12\x1d.husi.v1.MatchRuleSetsRequest\x1a\x1e.husi.v1.MatchRuleSetsResponse\x12`\n" +
@@ -2425,7 +1610,7 @@ func file_husi_v1_application_proto_rawDescGZIP() []byte {
 }
 
 var file_husi_v1_application_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_husi_v1_application_proto_goTypes = []any{
 	(SchemaKind)(0),                             // 0: husi.v1.SchemaKind
 	(GetCertMode)(0),                            // 1: husi.v1.GetCertMode
@@ -2442,98 +1627,64 @@ var file_husi_v1_application_proto_goTypes = []any{
 	(*GetCertResponse)(nil),                     // 12: husi.v1.GetCertResponse
 	(*StandaloneSTUNTestRequest)(nil),           // 13: husi.v1.StandaloneSTUNTestRequest
 	(*StandaloneNetworkQualityTestRequest)(nil), // 14: husi.v1.StandaloneNetworkQualityTestRequest
-	(*HTTPFetchSocks5)(nil),                     // 15: husi.v1.HTTPFetchSocks5
-	(*HTTPFetchRequest)(nil),                    // 16: husi.v1.HTTPFetchRequest
-	(*HTTPFetchHead)(nil),                       // 17: husi.v1.HTTPFetchHead
-	(*HTTPFetchResponse)(nil),                   // 18: husi.v1.HTTPFetchResponse
-	(*WebDAVServer)(nil),                        // 19: husi.v1.WebDAVServer
-	(*WebDAVListRequest)(nil),                   // 20: husi.v1.WebDAVListRequest
-	(*WebDAVEntry)(nil),                         // 21: husi.v1.WebDAVEntry
-	(*WebDAVListResponse)(nil),                  // 22: husi.v1.WebDAVListResponse
-	(*WebDAVUploadHead)(nil),                    // 23: husi.v1.WebDAVUploadHead
-	(*WebDAVUploadRequest)(nil),                 // 24: husi.v1.WebDAVUploadRequest
-	(*WebDAVUploadResponse)(nil),                // 25: husi.v1.WebDAVUploadResponse
-	(*WebDAVDownloadRequest)(nil),               // 26: husi.v1.WebDAVDownloadRequest
-	(*WebDAVDownloadResponse)(nil),              // 27: husi.v1.WebDAVDownloadResponse
-	(*WebDAVDeleteRequest)(nil),                 // 28: husi.v1.WebDAVDeleteRequest
-	(*WebDAVDeleteResponse)(nil),                // 29: husi.v1.WebDAVDeleteResponse
-	(*PingRequest)(nil),                         // 30: husi.v1.PingRequest
-	(*PingResponse)(nil),                        // 31: husi.v1.PingResponse
-	(*MatchRuleSetsRequest)(nil),                // 32: husi.v1.MatchRuleSetsRequest
-	(*MatchRuleSetsResponse)(nil),               // 33: husi.v1.MatchRuleSetsResponse
-	(*GetRootCertificatesRequest)(nil),          // 34: husi.v1.GetRootCertificatesRequest
-	(*GetRootCertificatesResponse)(nil),         // 35: husi.v1.GetRootCertificatesResponse
-	(*ReadAndroidVPNTypeRequest)(nil),           // 36: husi.v1.ReadAndroidVPNTypeRequest
-	(*AndroidVPNType)(nil),                      // 37: husi.v1.AndroidVPNType
-	(*ReadAndroidVPNTypeResponse)(nil),          // 38: husi.v1.ReadAndroidVPNTypeResponse
-	(*LookupIPCountryRequest)(nil),              // 39: husi.v1.LookupIPCountryRequest
-	(*LookupIPCountryResponse)(nil),             // 40: husi.v1.LookupIPCountryResponse
-	nil,                                         // 41: husi.v1.HTTPFetchRequest.HeadersEntry
-	nil,                                         // 42: husi.v1.HTTPFetchHead.HeadersEntry
-	(*URLTestOptions)(nil),                      // 43: husi.v1.URLTestOptions
-	(*PluginProcessSpec)(nil),                   // 44: husi.v1.PluginProcessSpec
-	(RootCertificateStore)(0),                   // 45: husi.v1.RootCertificateStore
-	(*daemon.STUNTestProgress)(nil),             // 46: daemon.STUNTestProgress
-	(*daemon.NetworkQualityTestProgress)(nil),   // 47: daemon.NetworkQualityTestProgress
+	(*DecryptAgeRequest)(nil),                   // 15: husi.v1.DecryptAgeRequest
+	(*DecryptAgeResponse)(nil),                  // 16: husi.v1.DecryptAgeResponse
+	(*PingRequest)(nil),                         // 17: husi.v1.PingRequest
+	(*PingResponse)(nil),                        // 18: husi.v1.PingResponse
+	(*MatchRuleSetsRequest)(nil),                // 19: husi.v1.MatchRuleSetsRequest
+	(*MatchRuleSetsResponse)(nil),               // 20: husi.v1.MatchRuleSetsResponse
+	(*GetRootCertificatesRequest)(nil),          // 21: husi.v1.GetRootCertificatesRequest
+	(*GetRootCertificatesResponse)(nil),         // 22: husi.v1.GetRootCertificatesResponse
+	(*ReadAndroidVPNTypeRequest)(nil),           // 23: husi.v1.ReadAndroidVPNTypeRequest
+	(*AndroidVPNType)(nil),                      // 24: husi.v1.AndroidVPNType
+	(*ReadAndroidVPNTypeResponse)(nil),          // 25: husi.v1.ReadAndroidVPNTypeResponse
+	(*LookupIPCountryRequest)(nil),              // 26: husi.v1.LookupIPCountryRequest
+	(*LookupIPCountryResponse)(nil),             // 27: husi.v1.LookupIPCountryResponse
+	(*URLTestOptions)(nil),                      // 28: husi.v1.URLTestOptions
+	(*PluginProcessSpec)(nil),                   // 29: husi.v1.PluginProcessSpec
+	(RootCertificateStore)(0),                   // 30: husi.v1.RootCertificateStore
+	(*daemon.STUNTestProgress)(nil),             // 31: daemon.STUNTestProgress
+	(*daemon.NetworkQualityTestProgress)(nil),   // 32: daemon.NetworkQualityTestProgress
 }
 var file_husi_v1_application_proto_depIdxs = []int32{
 	0,  // 0: husi.v1.GenerateSchemaRequest.kind:type_name -> husi.v1.SchemaKind
-	43, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
-	44, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
+	28, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
+	29, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
 	1,  // 3: husi.v1.GetCertRequest.mode:type_name -> husi.v1.GetCertMode
-	41, // 4: husi.v1.HTTPFetchRequest.headers:type_name -> husi.v1.HTTPFetchRequest.HeadersEntry
-	15, // 5: husi.v1.HTTPFetchRequest.socks5:type_name -> husi.v1.HTTPFetchSocks5
-	42, // 6: husi.v1.HTTPFetchHead.headers:type_name -> husi.v1.HTTPFetchHead.HeadersEntry
-	17, // 7: husi.v1.HTTPFetchResponse.head:type_name -> husi.v1.HTTPFetchHead
-	15, // 8: husi.v1.WebDAVServer.socks5:type_name -> husi.v1.HTTPFetchSocks5
-	19, // 9: husi.v1.WebDAVListRequest.server:type_name -> husi.v1.WebDAVServer
-	21, // 10: husi.v1.WebDAVListResponse.entries:type_name -> husi.v1.WebDAVEntry
-	19, // 11: husi.v1.WebDAVUploadHead.server:type_name -> husi.v1.WebDAVServer
-	23, // 12: husi.v1.WebDAVUploadRequest.head:type_name -> husi.v1.WebDAVUploadHead
-	19, // 13: husi.v1.WebDAVDownloadRequest.server:type_name -> husi.v1.WebDAVServer
-	19, // 14: husi.v1.WebDAVDeleteRequest.server:type_name -> husi.v1.WebDAVServer
-	2,  // 15: husi.v1.PingRequest.protocol:type_name -> husi.v1.PingProtocol
-	45, // 16: husi.v1.GetRootCertificatesRequest.store:type_name -> husi.v1.RootCertificateStore
-	37, // 17: husi.v1.ReadAndroidVPNTypeResponse.type:type_name -> husi.v1.AndroidVPNType
-	3,  // 18: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
-	5,  // 19: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
-	7,  // 20: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
-	9,  // 21: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
-	11, // 22: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
-	13, // 23: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
-	14, // 24: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
-	16, // 25: husi.v1.ApplicationService.HTTPFetch:input_type -> husi.v1.HTTPFetchRequest
-	20, // 26: husi.v1.ApplicationService.WebDAVList:input_type -> husi.v1.WebDAVListRequest
-	24, // 27: husi.v1.ApplicationService.WebDAVUpload:input_type -> husi.v1.WebDAVUploadRequest
-	26, // 28: husi.v1.ApplicationService.WebDAVDownload:input_type -> husi.v1.WebDAVDownloadRequest
-	28, // 29: husi.v1.ApplicationService.WebDAVDelete:input_type -> husi.v1.WebDAVDeleteRequest
-	30, // 30: husi.v1.ApplicationService.Ping:input_type -> husi.v1.PingRequest
-	39, // 31: husi.v1.ApplicationService.LookupIPCountry:input_type -> husi.v1.LookupIPCountryRequest
-	32, // 32: husi.v1.ApplicationService.MatchRuleSets:input_type -> husi.v1.MatchRuleSetsRequest
-	34, // 33: husi.v1.ApplicationService.GetRootCertificates:input_type -> husi.v1.GetRootCertificatesRequest
-	36, // 34: husi.v1.ApplicationService.ReadAndroidVPNType:input_type -> husi.v1.ReadAndroidVPNTypeRequest
-	4,  // 35: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
-	6,  // 36: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
-	8,  // 37: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
-	10, // 38: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
-	12, // 39: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
-	46, // 40: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
-	47, // 41: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
-	18, // 42: husi.v1.ApplicationService.HTTPFetch:output_type -> husi.v1.HTTPFetchResponse
-	22, // 43: husi.v1.ApplicationService.WebDAVList:output_type -> husi.v1.WebDAVListResponse
-	25, // 44: husi.v1.ApplicationService.WebDAVUpload:output_type -> husi.v1.WebDAVUploadResponse
-	27, // 45: husi.v1.ApplicationService.WebDAVDownload:output_type -> husi.v1.WebDAVDownloadResponse
-	29, // 46: husi.v1.ApplicationService.WebDAVDelete:output_type -> husi.v1.WebDAVDeleteResponse
-	31, // 47: husi.v1.ApplicationService.Ping:output_type -> husi.v1.PingResponse
-	40, // 48: husi.v1.ApplicationService.LookupIPCountry:output_type -> husi.v1.LookupIPCountryResponse
-	33, // 49: husi.v1.ApplicationService.MatchRuleSets:output_type -> husi.v1.MatchRuleSetsResponse
-	35, // 50: husi.v1.ApplicationService.GetRootCertificates:output_type -> husi.v1.GetRootCertificatesResponse
-	38, // 51: husi.v1.ApplicationService.ReadAndroidVPNType:output_type -> husi.v1.ReadAndroidVPNTypeResponse
-	35, // [35:52] is the sub-list for method output_type
-	18, // [18:35] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	2,  // 4: husi.v1.PingRequest.protocol:type_name -> husi.v1.PingProtocol
+	30, // 5: husi.v1.GetRootCertificatesRequest.store:type_name -> husi.v1.RootCertificateStore
+	24, // 6: husi.v1.ReadAndroidVPNTypeResponse.type:type_name -> husi.v1.AndroidVPNType
+	3,  // 7: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
+	5,  // 8: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
+	7,  // 9: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
+	9,  // 10: husi.v1.ApplicationService.StandaloneURLTest:input_type -> husi.v1.StandaloneURLTestRequest
+	11, // 11: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
+	13, // 12: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
+	14, // 13: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
+	15, // 14: husi.v1.ApplicationService.DecryptAge:input_type -> husi.v1.DecryptAgeRequest
+	17, // 15: husi.v1.ApplicationService.Ping:input_type -> husi.v1.PingRequest
+	26, // 16: husi.v1.ApplicationService.LookupIPCountry:input_type -> husi.v1.LookupIPCountryRequest
+	19, // 17: husi.v1.ApplicationService.MatchRuleSets:input_type -> husi.v1.MatchRuleSetsRequest
+	21, // 18: husi.v1.ApplicationService.GetRootCertificates:input_type -> husi.v1.GetRootCertificatesRequest
+	23, // 19: husi.v1.ApplicationService.ReadAndroidVPNType:input_type -> husi.v1.ReadAndroidVPNTypeRequest
+	4,  // 20: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
+	6,  // 21: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
+	8,  // 22: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
+	10, // 23: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
+	12, // 24: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
+	31, // 25: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
+	32, // 26: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
+	16, // 27: husi.v1.ApplicationService.DecryptAge:output_type -> husi.v1.DecryptAgeResponse
+	18, // 28: husi.v1.ApplicationService.Ping:output_type -> husi.v1.PingResponse
+	27, // 29: husi.v1.ApplicationService.LookupIPCountry:output_type -> husi.v1.LookupIPCountryResponse
+	20, // 30: husi.v1.ApplicationService.MatchRuleSets:output_type -> husi.v1.MatchRuleSetsResponse
+	22, // 31: husi.v1.ApplicationService.GetRootCertificates:output_type -> husi.v1.GetRootCertificatesResponse
+	25, // 32: husi.v1.ApplicationService.ReadAndroidVPNType:output_type -> husi.v1.ReadAndroidVPNTypeResponse
+	20, // [20:33] is the sub-list for method output_type
+	7,  // [7:20] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_husi_v1_application_proto_init() }
@@ -2543,13 +1694,9 @@ func file_husi_v1_application_proto_init() {
 	}
 	file_husi_v1_core_proto_init()
 	file_husi_v1_daemon_proto_init()
-	file_husi_v1_application_proto_msgTypes[15].OneofWrappers = []any{
-		(*HTTPFetchResponse_Head)(nil),
-		(*HTTPFetchResponse_Chunk)(nil),
-	}
-	file_husi_v1_application_proto_msgTypes[21].OneofWrappers = []any{
-		(*WebDAVUploadRequest_Head)(nil),
-		(*WebDAVUploadRequest_Chunk)(nil),
+	file_husi_v1_application_proto_msgTypes[12].OneofWrappers = []any{
+		(*DecryptAgeRequest_Identities)(nil),
+		(*DecryptAgeRequest_Chunk)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2557,7 +1704,7 @@ func file_husi_v1_application_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_application_proto_rawDesc), len(file_husi_v1_application_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   40,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

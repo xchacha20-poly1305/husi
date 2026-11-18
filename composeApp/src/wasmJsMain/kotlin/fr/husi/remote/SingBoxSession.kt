@@ -28,8 +28,6 @@ import fr.husi.ui.dashboard.ConnectionDetailState
 import fr.husi.ui.dashboard.DashboardState
 import fr.husi.ui.dashboard.ProxyItem
 import fr.husi.ui.dashboard.ProxySet
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
@@ -41,6 +39,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class SingBoxSession(
     val client: RemoteClient,
@@ -79,28 +79,28 @@ internal class SingBoxSession(
     }
 
     override suspend fun select(group: String, name: String) {
-        client.service.selectOutbound(SelectOutboundRequest(group, name))
+        client.service.SelectOutbound().execute(SelectOutboundRequest(group, name))
     }
 
     override suspend fun testDelay(name: String): Int? {
-        client.service.urlTest(URLTestRequest(name))
+        client.service.URLTest().execute(URLTestRequest(name))
         return null
     }
 
     override suspend fun closeConnection(id: String) {
-        client.service.closeConnection(CloseConnectionRequest(id))
+        client.service.CloseConnection().execute(CloseConnectionRequest(id))
     }
 
     override suspend fun closeConnections() {
-        client.service.closeAllConnections()
+        client.service.CloseAllConnections().execute()
     }
 
     override suspend fun setMode(mode: String) {
-        client.service.setClashMode(ClashMode(mode))
+        client.service.SetClashMode().execute(ClashMode(mode))
     }
 
     override suspend fun clearLogs() {
-        client.service.clearLogs()
+        client.service.ClearLogs().execute()
         logs.clear()
     }
 
@@ -112,7 +112,7 @@ internal class SingBoxSession(
         supervisorScope {
             val service = client.service
             try {
-                subscribe(this, "SubscribeGroups", { service.subscribeGroups() }) {
+                subscribe(this, "SubscribeGroups", { service.SubscribeGroups().responses() }) {
                     groups.clear()
                     groups.addAll(it.group)
                 }
@@ -124,7 +124,7 @@ internal class SingBoxSession(
                             subscribe(
                                 this,
                                 "SubscribeStatus",
-                                { service.subscribeStatus(SubscribeStatusRequest(nanoseconds)) },
+                                { service.SubscribeStatus().responses(SubscribeStatusRequest(nanoseconds)) },
                             ) {
                                 traffic = RemoteTraffic.fromStatus(it)
                                 history.add((traffic.upload + traffic.download).toFloat())
@@ -136,7 +136,7 @@ internal class SingBoxSession(
                                 this,
                                 "SubscribeConnections",
                                 {
-                                    service.subscribeConnections(
+                                    service.SubscribeConnections().responses(
                                         SubscribeConnectionsRequest(nanoseconds),
                                     )
                                 },
@@ -150,7 +150,7 @@ internal class SingBoxSession(
                         }
                     }
                 }
-                subscribe(this, "SubscribeLog", { service.subscribeLog() }) { update ->
+                subscribe(this, "SubscribeLog", { service.SubscribeLog().responses() }) { update ->
                     if (update.reset) {
                         logs.clear()
                     }
@@ -164,33 +164,45 @@ internal class SingBoxSession(
                 subscribe(
                     this,
                     "SubscribeTailscaleStatus",
-                    { service.subscribeTailscaleStatus() },
+                    { service.SubscribeTailscaleStatus().responses() },
                 ) {
                     tailscale = it
                 }
                 subscribe(
                     this,
                     "SubscribeOpenConnectStatus",
-                    { service.subscribeOpenConnectStatus() },
+                    { service.SubscribeOpenConnectStatus().responses() },
                 ) {
                     openConnect = it
                     onNativeUpdate(this@SingBoxSession)
                 }
-                subscribe(this, "SubscribeOpenVPNStatus", { service.subscribeOpenVPNStatus() }) {
+                subscribe(
+                    this,
+                    "SubscribeOpenVPNStatus",
+                    { service.SubscribeOpenVPNStatus().responses() },
+                ) {
                     openVPN = it
                     onNativeUpdate(this@SingBoxSession)
                 }
-                subscribe(this, "SubscribeClashMode", { service.subscribeClashMode() }) {
+                subscribe(
+                    this,
+                    "SubscribeClashMode",
+                    { service.SubscribeClashMode().responses() },
+                ) {
                     clashMode = clashMode.copy(currentMode = it.mode)
                 }
-                subscribe(this, "SubscribeServiceStatus", { service.subscribeServiceStatus() }) {
+                subscribe(
+                    this,
+                    "SubscribeServiceStatus",
+                    { service.SubscribeServiceStatus().responses() },
+                ) {
                     val status = it.status
                     if (status !is ServiceStatus.Type.Unrecognized) {
                         serviceStatus = status.toString()
                     }
                 }
                 launch {
-                    runCatching { service.getClashModeStatus() }
+                    runCatching { service.GetClashModeStatus().execute() }
                         .onSuccess {
                             clashMode = it
                             publishDashboard()
@@ -202,7 +214,7 @@ internal class SingBoxSession(
                 }
                 while (isActive) {
                     val remoteStartedAt = try {
-                        service.getStartedAt().startedAt.takeIf { it > 0L }
+                        service.GetStartedAt().execute().startedAt.takeIf { it > 0L }
                     } catch (failure: Exception) {
                         if (failure is CancellationException) throw failure
                         Logs.d("GetStartedAt unavailable", failure)
@@ -211,7 +223,7 @@ internal class SingBoxSession(
                     ensureActive()
                     startedAt = remoteStartedAt
                     delay(HEARTBEAT_INTERVAL)
-                    service.getVersion()
+                    service.GetVersion().execute()
                 }
             } finally {
                 coroutineContext.cancelChildren()

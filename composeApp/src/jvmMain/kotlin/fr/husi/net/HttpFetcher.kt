@@ -4,7 +4,7 @@ import fr.husi.database.DataStore
 import org.koin.core.context.GlobalContext
 import java.io.File
 
-data class Socks5Proxy(
+data class LocalHttpProxy(
     val port: Int,
     val username: String,
     val password: String,
@@ -24,7 +24,7 @@ data class HttpFetchRequest(
     val restrictedTls: Boolean = false,
     /** Hex SHA-256 of a leaf certificate accepted even when self-signed (OOCv1). */
     val pinnedSha256: String? = null,
-    val socks5: Socks5Proxy? = null,
+    val proxy: LocalHttpProxy? = null,
     /** age identities that decrypt an armored response body. */
     val ageIdentities: String? = null,
 )
@@ -51,9 +51,9 @@ interface HttpFetcher {
 
 fun resolveHttpFetcher(): HttpFetcher = GlobalContext.get().get()
 
-suspend fun localSocks5Proxy(): Socks5Proxy? {
+suspend fun localHttpProxy(): LocalHttpProxy? {
     if (!DataStore.serviceState.connected) return null
-    return Socks5Proxy(
+    return LocalHttpProxy(
         port = DataStore.mixedPort.get(),
         username = DataStore.inboundUsername.get(),
         password = DataStore.inboundPassword.get(),
