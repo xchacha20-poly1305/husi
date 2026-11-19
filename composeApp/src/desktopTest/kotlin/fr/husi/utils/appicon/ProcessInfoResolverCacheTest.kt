@@ -2,11 +2,19 @@ package fr.husi.utils.appicon
 
 import fr.husi.ui.dashboard.ProcessInfo
 import fr.husi.ui.dashboard.ProcessInfoResolver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
+
+private const val LOOKUP_START_TIMEOUT_SECONDS = 5L
 
 class ProcessInfoResolverCacheTest {
     @Test
@@ -53,5 +61,39 @@ class ProcessInfoResolverCacheTest {
         assertNull(resolver.resolve(null, 12))
         assertNull(resolver.resolve("   ", 12))
         assertEquals(0, lookups)
+    }
+
+    @Test
+    fun `clear does not block on an in-flight lookup and discards its stale result`() = runTest {
+        val lookups = AtomicInteger(0)
+        val lookupStarted = CountDownLatch(1)
+        val allowLookupFinish = CountDownLatch(1)
+        val path = "/usr/bin/firefox"
+        val staleInfo = ProcessInfo(packageName = path, label = "Firefox stale")
+        val freshInfo = ProcessInfo(packageName = path, label = "Firefox fresh")
+        val resolver = ProcessInfoResolver {
+            if (lookups.incrementAndGet() == 1) {
+                lookupStarted.countDown()
+                allowLookupFinish.await()
+                staleInfo
+            } else {
+                freshInfo
+            }
+        }
+
+        val firstJob = async(Dispatchers.IO) {
+            resolver.resolve(path, 0)
+        }
+        try {
+            assertTrue(lookupStarted.await(LOOKUP_START_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+            resolver.clear()
+        } finally {
+            allowLookupFinish.countDown()
+        }
+
+        assertSame(staleInfo, firstJob.await())
+        val secondResult = resolver.resolve(path, 0)
+        assertSame(freshInfo, secondResult)
+        assertEquals(2, lookups.get())
     }
 }

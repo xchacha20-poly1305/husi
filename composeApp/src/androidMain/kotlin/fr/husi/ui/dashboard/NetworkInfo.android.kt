@@ -6,7 +6,9 @@ import android.net.NetworkCapabilities
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -30,11 +32,11 @@ actual fun rememberLoadPlatformNetworkInfo(): suspend () -> Triple<List<NetworkI
 
 private suspend fun buildPlatformNetworkInfo(
     connectivity: ConnectivityManager,
-): Triple<List<NetworkInterfaceInfo>, String?, String?> {
+): Triple<List<NetworkInterfaceInfo>, String?, String?> = withContext(Dispatchers.IO) {
     @Suppress("DEPRECATION") val networks = connectivity.allNetworks.toList().ifEmpty {
         connectivity.activeNetwork?.let(::listOf).orEmpty()
     }
-    if (networks.isEmpty()) return Triple(emptyList(), null, null)
+    if (networks.isEmpty()) return@withContext Triple(emptyList(), null, null)
 
     val interfaces = mutableListOf<Pair<Int, Pair<NetworkInterfaceInfo, List<InetAddress>>>>()
     val knownNames = mutableSetOf<String>()
@@ -68,7 +70,7 @@ private suspend fun buildPlatformNetworkInfo(
         findWifiInterfaceFallback(knownNames)?.let { interfaces += PRIORITY_WIFI to it }
     }
 
-    if (interfaces.isEmpty()) return Triple(emptyList(), null, null)
+    if (interfaces.isEmpty()) return@withContext Triple(emptyList(), null, null)
 
     val sortedInterfaces = interfaces.sortedWith(
         compareBy<Pair<Int, Pair<NetworkInterfaceInfo, List<InetAddress>>>> { it.first }
@@ -93,7 +95,7 @@ private suspend fun buildPlatformNetworkInfo(
         }
     }
 
-    return Triple(interfaceInfos, ipv4, ipv6)
+    Triple(interfaceInfos, ipv4, ipv6)
 }
 
 private suspend fun loadInterfaceAddresses(interfaceName: String): List<Pair<InetAddress, Short>> {

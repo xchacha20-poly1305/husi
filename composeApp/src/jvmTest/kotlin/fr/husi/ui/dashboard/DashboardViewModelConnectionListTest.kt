@@ -13,14 +13,18 @@ import fr.husi.proto.daemon.ConnectionEventType
 import fr.husi.proto.daemon.ConnectionEvents
 import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinMainDispatcherTest
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
 import kotlin.experimental.or
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 private const val CLOSED_AT_MILLIS = 1_700_000_000_000L
@@ -161,5 +165,60 @@ class DashboardViewModelConnectionListTest : HusiKoinMainDispatcherTest() {
         advanceUntilIdle()
 
         assertEquals(listOf("a", "b"), viewModel.uiState.value.connections.map { it.uuid })
+    }
+
+    @Test
+    fun `connection events are processed on computeDispatcher and selection stays consistent`() =
+        runTest(dispatcher.scheduler) {
+            val recordingDispatcher = RecordingDispatcher(dispatcher)
+            val viewModel = DashboardViewModel(
+                loadPlatformNetworkInfo = { Triple(emptyList(), null, null) },
+                coreClient = coreClient,
+                computeDispatcher = recordingDispatcher,
+            )
+            viewModel.initialize(isConnected = true)
+            advanceUntilIdle()
+
+            val dispatchesBefore = recordingDispatcher.dispatches
+            emitNew(listOf("c1"))
+            advanceUntilIdle()
+
+            assertTrue(recordingDispatcher.dispatches > dispatchesBefore)
+            viewModel.selectConnection("c1")
+            assertEquals("c1", viewModel.uiState.value.selectedConnection?.uuid)
+
+            viewModel.selectConnection(null)
+            assertNull(viewModel.uiState.value.selectedConnection)
+
+            coreClient.connectionsFlow.emit(
+                ConnectionEvents(
+                    events = listOf(
+                        ConnectionEvent(
+                            type = ConnectionEventType.CONNECTION_EVENT_UPDATE,
+                            id = "c1",
+                            uplinkDelta = 100L,
+                            downlinkDelta = 200L,
+                        ),
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            assertNull(viewModel.uiState.value.selectedConnection)
+        }
+
+    private class RecordingDispatcher(
+        private val delegate: CoroutineDispatcher,
+    ) : CoroutineDispatcher() {
+        var dispatches = 0
+            private set
+
+        override fun isDispatchNeeded(context: CoroutineContext): Boolean =
+            delegate.isDispatchNeeded(context)
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            dispatches += 1
+            delegate.dispatch(context, block)
+        }
     }
 }

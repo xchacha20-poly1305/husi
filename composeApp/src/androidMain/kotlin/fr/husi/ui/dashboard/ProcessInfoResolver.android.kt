@@ -2,43 +2,37 @@ package fr.husi.ui.dashboard
 
 import fr.husi.ktx.emptyAsNull
 import fr.husi.utils.PackageResolver
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 internal actual class ProcessInfoResolver actual constructor() {
-    private val processLabelAccess = Mutex()
-    private val processLabelCache = mutableMapOf<String, String>()
-    private val processIconCache = mutableMapOf<String, Any>()
-    private val processIconAccess = Mutex()
+    private class CacheSnapshot(
+        val labels: ConcurrentHashMap<String, String> = ConcurrentHashMap(),
+        val icons: ConcurrentHashMap<String, Any> = ConcurrentHashMap(),
+    )
+
+    private val cacheRef = AtomicReference(CacheSnapshot())
 
     actual suspend fun resolve(process: String?, uid: Int): ProcessInfo? {
         if (process.isNullOrBlank() && uid < 0) return null
         PackageResolver.awaitLoad()
         val packageName = resolvePackageName(process, uid) ?: return null
         if (!PackageResolver.isAppInstalled(packageName)) return null
-        val label = processLabelAccess.withLock {
-            processLabelCache[packageName]
-                ?: PackageResolver.loadAppLabel(packageName)
-                    ?.also { processLabelCache[packageName] = it }
-        } ?: return null
-        val icon = processIconAccess.withLock {
-            processIconCache[packageName]
-                ?: PackageResolver.loadAppIcon(packageName)
-                    ?.also { processIconCache[packageName] = it }
-        }
+        val snapshot = cacheRef.get()
+        val label = snapshot.labels[packageName]
+            ?: PackageResolver.loadAppLabel(packageName)?.let { loaded ->
+                snapshot.labels.putIfAbsent(packageName, loaded) ?: loaded
+            }
+            ?: return null
+        val icon = snapshot.icons[packageName]
+            ?: PackageResolver.loadAppIcon(packageName)?.let { loaded ->
+                snapshot.icons.putIfAbsent(packageName, loaded) ?: loaded
+            }
         return ProcessInfo(packageName = packageName, label = label, icon = icon)
     }
 
     actual fun clear() {
-        runBlocking {
-            processLabelAccess.withLock {
-                processLabelCache.clear()
-            }
-            processIconAccess.withLock {
-                processIconCache.clear()
-            }
-        }
+        cacheRef.set(CacheSnapshot())
     }
 
     private fun resolvePackageName(process: String?, uid: Int): String? {

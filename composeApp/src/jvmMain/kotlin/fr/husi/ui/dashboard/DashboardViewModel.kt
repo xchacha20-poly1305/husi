@@ -79,7 +79,7 @@ class DashboardViewModel(
     private val loadPlatformNetworkInfo: suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>,
     coreClient: CoreClient? = null,
     private val remoteControl: RemoteControlManager? = null,
-    computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val coreClientOverride = coreClient
 
@@ -97,6 +97,7 @@ class DashboardViewModel(
     val proxySetSearchTextFieldState = TextFieldState()
     val proxyGroupSearchTextFieldState = TextFieldState()
 
+    private val connectionLock = Any()
     private val connections = LinkedHashMap<String, ConnectionDetailState>()
     private val closedConnectionOrder = ArrayDeque<String>()
     private val connectionSnapshot = MutableStateFlow<List<ConnectionDetailState>>(emptyList())
@@ -277,10 +278,12 @@ class DashboardViewModel(
         statusJob?.cancel()
         groupsJob?.cancel()
         outboundsJob?.cancel()
-        connectionsJob?.cancel()
+        connectionsJob?.cancelAndJoin()
         clashModeJob?.cancel()
-        connections.clear()
-        closedConnectionOrder.clear()
+        synchronized(connectionLock) {
+            connections.clear()
+            closedConnectionOrder.clear()
+        }
         connectionSnapshot.value = emptyList()
         latestGroups = emptyList()
         latestOutbounds = emptyList()
@@ -359,11 +362,13 @@ class DashboardViewModel(
             }
         }
 
-        connectionsJob = viewModelScope.launch {
+        connectionsJob = viewModelScope.launch(computeDispatcher) {
             try {
                 coreClient.subscribeConnections(LOOP_INTERVAL).collect { events ->
                     handleConnectionEvents(events)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("subscribe connections", e)
             }
@@ -407,9 +412,14 @@ class DashboardViewModel(
     }
 
     fun togglePause() {
-        val isPause = !uiState.value.isPause
-        uiState.update { state -> state.copy(isPause = isPause) }
-        if (!isPause) publishConnections()
+        val snapshot = synchronized(connectionLock) {
+            val isPause = !uiState.value.isPause
+            uiState.update { state -> state.copy(isPause = isPause) }
+            if (isPause) null else snapshotConnectionsLocked()
+        }
+        if (snapshot != null) {
+            connectionSnapshot.value = snapshot
+        }
     }
 
     fun clearSearchQuery() {
@@ -597,13 +607,13 @@ class DashboardViewModel(
             .sortedWith(buildComparator(query.sortMode, query.isDescending))
     }
 
-    private fun publishConnections() {
-        if (uiState.value.isPause) return
-        refreshSelectedConnection()
-        connectionSnapshot.value = connections.values.toList()
+    private fun snapshotConnectionsLocked(): List<ConnectionDetailState>? {
+        if (uiState.value.isPause) return null
+        refreshSelectedConnectionLocked()
+        return connections.values.toList()
     }
 
-    private fun refreshSelectedConnection() {
+    private fun refreshSelectedConnectionLocked() {
         val uuid = selectedUuid ?: return
         val selected = connections[uuid]
         uiState.update { state -> state.copy(selectedConnection = selected) }
@@ -616,9 +626,12 @@ class DashboardViewModel(
      * being hidden by the status filter or by the search query.
      */
     fun selectConnection(uuid: String?) {
-        selectedUuid = uuid
-        uiState.update { state ->
-            state.copy(selectedConnection = uuid?.let(connections::get))
+        synchronized(connectionLock) {
+            selectedUuid = uuid
+            val selected = uuid?.let(connections::get)
+            uiState.update { state ->
+                state.copy(selectedConnection = selected)
+            }
         }
     }
 
@@ -630,48 +643,60 @@ class DashboardViewModel(
     }
 
     private fun handleConnectionEvents(events: ConnectionEvents) {
-        if (events.reset) {
-            connections.clear()
-            closedConnectionOrder.clear()
-            for (event in events.events) {
+        val snapshot = if (events.reset) {
+            val resetEntries = events.events.mapNotNull { event ->
                 if (event.type != ConnectionEventType.CONNECTION_EVENT_NEW) {
-                    continue
+                    return@mapNotNull null
                 }
-                val connection = event.connection ?: continue
-                putConnection(event.id, connection.toDetailState())
+                val connection = event.connection ?: return@mapNotNull null
+                event.id to connection.toDetailState()
+            }
+            synchronized(connectionLock) {
+                connections.clear()
+                closedConnectionOrder.clear()
+                for ((id, detail) in resetEntries) {
+                    putConnectionLocked(id, detail)
+                }
+                evictOverflowClosedConnectionsLocked()
+                snapshotConnectionsLocked()
             }
         } else {
-            var changed = false
-            for (event in events.events) {
-                if (handleConnectionEvent(event)) {
-                    changed = true
+            synchronized(connectionLock) {
+                var changed = false
+                for (event in events.events) {
+                    if (handleConnectionEventLocked(event)) {
+                        changed = true
+                    }
                 }
+                if (!changed) return@synchronized null
+                evictOverflowClosedConnectionsLocked()
+                snapshotConnectionsLocked()
             }
-            if (!changed) return
         }
-        evictOverflowClosedConnections()
-        publishConnections()
+        if (snapshot != null) {
+            connectionSnapshot.value = snapshot
+        }
     }
 
-    private fun putConnection(id: String, connection: ConnectionDetailState) {
+    private fun putConnectionLocked(id: String, connection: ConnectionDetailState) {
         connections[id] = connection
         if (connection.isClosed) closedConnectionOrder.addLast(id)
     }
 
-    private fun evictOverflowClosedConnections() {
+    private fun evictOverflowClosedConnectionsLocked() {
         while (closedConnectionOrder.size > MAX_CLOSED_CONNECTIONS) {
             val id = closedConnectionOrder.removeFirst()
             if (connections[id]?.isClosed == true) connections.remove(id)
         }
     }
 
-    private fun handleConnectionEvent(event: ConnectionEvent): Boolean {
+    private fun handleConnectionEventLocked(event: ConnectionEvent): Boolean {
         when (event.type) {
             is ConnectionEventType.Unrecognized -> return false
 
             ConnectionEventType.CONNECTION_EVENT_NEW -> {
                 val connection = event.connection ?: return false
-                putConnection(event.id, connection.toDetailState())
+                putConnectionLocked(event.id, connection.toDetailState())
                 return true
             }
 
@@ -698,7 +723,7 @@ class DashboardViewModel(
                 val id = event.id
                 val current = connections[id] ?: return false
                 if (current.closedAt == closedAt) return false
-                putConnection(
+                putConnectionLocked(
                     id,
                     current.copy(
                         closedAt = closedAt,

@@ -2,34 +2,27 @@ package fr.husi.ui.dashboard
 
 import fr.husi.ktx.blankAsNull
 import fr.husi.utils.appicon.DesktopAppIcons
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 internal actual class ProcessInfoResolver(
     private val lookup: (String) -> ProcessInfo?,
 ) {
     actual constructor() : this(DesktopAppIcons::resolve)
 
-    private val cacheAccess = Mutex()
-    private val cache = mutableMapOf<String, ProcessInfo?>()
+    private class CacheEntry(val info: ProcessInfo?)
+
+    private val cacheRef = AtomicReference(ConcurrentHashMap<String, CacheEntry>())
 
     actual suspend fun resolve(process: String?, uid: Int): ProcessInfo? {
         val path = process?.trim().blankAsNull() ?: return null
-        return cacheAccess.withLock {
-            if (cache.containsKey(path)) {
-                cache.getValue(path)
-            } else {
-                lookup(path).also { cache[path] = it }
-            }
-        }
+        val currentCache = cacheRef.get()
+        currentCache[path]?.let { return it.info }
+        val resolved = lookup(path)
+        return currentCache.putIfAbsent(path, CacheEntry(resolved))?.info ?: resolved
     }
 
     actual fun clear() {
-        runBlocking {
-            cacheAccess.withLock {
-                cache.clear()
-            }
-        }
+        cacheRef.set(ConcurrentHashMap())
     }
 }

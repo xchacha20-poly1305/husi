@@ -15,7 +15,7 @@ import java.net.NetworkInterface
 actual object DefaultNetworkListener {
     private val listeners = mutableMapOf<Any, suspend () -> Unit>()
     private val access = Mutex()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var monitorJob: Job? = null
     private var interfaceSnapshot = emptySet<String>()
 
@@ -23,13 +23,11 @@ actual object DefaultNetworkListener {
         access.withLock {
             listeners[key] = listener
             if (monitorJob == null) {
-                interfaceSnapshot = snapshotInterfaces()
                 monitorJob = scope.launch {
                     monitorInterfaces()
                 }
             }
         }
-        listener()
     }
 
     actual suspend fun stop(key: Any) {
@@ -43,15 +41,23 @@ actual object DefaultNetworkListener {
     }
 
     private suspend fun monitorInterfaces() {
+        val initialSnapshot = snapshotInterfaces()
+        access.withLock {
+            if (listeners.isNotEmpty()) {
+                interfaceSnapshot = initialSnapshot
+            }
+        }
         while (currentCoroutineContext().isActive) {
             delay(1000)
+            val currentSnapshot = snapshotInterfaces()
             val callbacks = access.withLock {
-                val currentSnapshot = snapshotInterfaces()
-                if (currentSnapshot == interfaceSnapshot) return@withLock emptyList()
+                if (listeners.isEmpty() || currentSnapshot == interfaceSnapshot) {
+                    return@withLock emptyList()
+                }
                 interfaceSnapshot = currentSnapshot
                 listeners.values.toList()
             }
-            callbacks.forEach { callback ->
+            for (callback in callbacks) {
                 runCatching {
                     callback()
                 }
