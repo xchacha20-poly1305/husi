@@ -27,9 +27,9 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.validateTunInterfaceName
 import fr.husi.core.CoreClient
 import fr.husi.database.DataStore
-import fr.husi.database.preference.setBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
+import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.platform.DesktopPackageEnvironment
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DaemonInstallResult
@@ -90,14 +90,28 @@ import org.koin.compose.koinInject
 internal actual fun AutoConnectPreference(showMessage: (String) -> Unit) {
     val value by DataStore.persistAcrossReboot.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    var updating by remember { mutableStateOf(false) }
     SwitchPreference(
         value = value,
+        enabled = !updating,
         onValueChange = { enabled ->
-            val failure = DesktopAutoStart.setEnabled(enabled).failureString()
-            if (failure == null) {
-                DataStore.persistAcrossReboot.setBlocking(enabled)
-            } else {
-                scope.launch { showMessage(getString(failure)) }
+            if (updating) return@SwitchPreference
+            updating = true
+            scope.launch {
+                try {
+                    val failure = withContext(Dispatchers.IO) {
+                        val result = DesktopAutoStart.setEnabled(enabled).failureString()
+                        if (result == null) {
+                            DataStore.persistAcrossReboot.set(enabled)
+                        }
+                        result
+                    }
+                    if (failure != null) {
+                        showMessage(getString(failure))
+                    }
+                } finally {
+                    updating = false
+                }
             }
         },
         title = { Text(stringResource(Res.string.auto_connect_desktop)) },
@@ -368,7 +382,7 @@ internal actual fun PlatformGeneralOptions(needReload: () -> Unit) {
     val rememberWindowSizeValue by DataStore.rememberWindowSize.collectAsStateWithLifecycle()
     SwitchPreference(
         value = rememberWindowSizeValue,
-        onValueChange = { DataStore.rememberWindowSize.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.rememberWindowSize.set(it) } },
         title = { Text(stringResource(Res.string.remember_window_size)) },
         icon = {
             MaskedIcon(
@@ -388,8 +402,10 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         SwitchPreference(
             value = networkManagerValue,
             onValueChange = {
-                DataStore.networkManagerTun.setBlocking(it)
-                needReload()
+                runOnIoDispatcher {
+                    DataStore.networkManagerTun.set(it)
+                    needReload()
+                }
             },
             title = { Text(stringResource(Res.string.network_manager_tun)) },
             summary = { Text(stringResource(Res.string.network_manager_tun_summary)) },
@@ -402,8 +418,10 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
     TextFieldPreference(
         value = tunInterfaceNameValue,
         onValueChange = {
-            DataStore.tunInterfaceName.setBlocking(it)
-            needReload()
+            runOnIoDispatcher {
+                DataStore.tunInterfaceName.set(it)
+                needReload()
+            }
         },
         title = { Text(stringResource(Res.string.tun_interface_name)) },
         textToValue = { it },
@@ -433,8 +451,10 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
     SwitchPreference(
         value = strictRouteValue,
         onValueChange = {
-            DataStore.tunStrictRoute.setBlocking(it)
-            needReload()
+            runOnIoDispatcher {
+                DataStore.tunStrictRoute.set(it)
+                needReload()
+            }
         },
         title = { Text(stringResource(Res.string.tun_strict_route)) },
         icon = {
@@ -450,8 +470,10 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
         SwitchPreference(
             value = autoRedirectValue,
             onValueChange = {
-                DataStore.tunAutoRedirect.setBlocking(it)
-                needReload()
+                runOnIoDispatcher {
+                    DataStore.tunAutoRedirect.set(it)
+                    needReload()
+                }
             },
             title = { Text(stringResource(Res.string.tun_auto_redirect)) },
             icon = {
@@ -468,8 +490,10 @@ internal actual fun PlatformRouteOptions(needReload: () -> Unit, isVpnMode: Bool
     SwitchPreference(
         value = forcedSearchProcessValue,
         onValueChange = {
-            DataStore.forcedSearchProcess.setBlocking(it)
-            needReload()
+            runOnIoDispatcher {
+                DataStore.forcedSearchProcess.set(it)
+                needReload()
+            }
         },
         title = { Text(stringResource(Res.string.forced_search_process)) },
         icon = {
@@ -512,7 +536,7 @@ internal actual fun rememberAppLanguageController(defaultTag: String): AppLangua
         override var value: String
             get() = state.ifBlank { defaultTag }
             set(value) {
-                DataStore.appLanguage.setBlocking(value)
+                runOnIoDispatcher { DataStore.appLanguage.set(value) }
             }
         override val flow = DataStore.appLanguage.flow()
     }

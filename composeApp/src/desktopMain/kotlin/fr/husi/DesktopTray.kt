@@ -3,6 +3,7 @@ package fr.husi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.painter.Painter
 import dev.nucleusframework.composenativetray.menu.api.ComposableTrayMenuScope
@@ -10,10 +11,9 @@ import dev.nucleusframework.composenativetray.menu.api.KeyShortcut
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
+import fr.husi.bg.ServiceStatus
 import fr.husi.compose.setSystemClipboardPlainText
 import fr.husi.database.DataStore
-import fr.husi.database.preference.getBlocking
-import fr.husi.database.preference.setBlocking
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DesktopRepository
@@ -31,6 +31,9 @@ import fr.husi.resources.start
 import fr.husi.resources.stop
 import fr.husi.resources.system_proxy
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -109,6 +112,15 @@ private fun ComposableTrayMenuScope.TraySubMenu(
     SubMenu(label = trayMenuText(label), submenuContent = submenuContent)
 }
 
+internal data class TrayServiceSummary(
+    val state: ServiceState,
+    val profileName: String?,
+)
+
+internal fun Flow<ServiceStatus>.traySummary(): Flow<TrayServiceSummary> =
+    map { TrayServiceSummary(state = it.state, profileName = it.profileName) }
+        .distinctUntilChanged()
+
 /** The tray icon and its menu, the app's only handle once the window is hidden. */
 @Composable
 internal fun HusiTray(
@@ -118,7 +130,14 @@ internal fun HusiTray(
 ) {
     val scope = rememberCoroutineScope()
 
-    val serviceStatus by BackendState.status.collectAsState()
+    val serviceSummary by remember {
+        BackendState.status.traySummary()
+    }.collectAsState(
+        TrayServiceSummary(
+            state = BackendState.status.value.state,
+            profileName = BackendState.status.value.profileName,
+        ),
+    )
     val serviceMode by DataStore.serviceMode.flow()
         .collectAsState(Key.MODE_VPN)
     val systemProxyEnabled by DataStore.systemProxy.flow()
@@ -127,10 +146,12 @@ internal fun HusiTray(
         .collectAsState(false)
 
     fun setServiceMode(mode: String) {
-        if (DataStore.serviceMode.getBlocking() == mode) return
-        DataStore.serviceMode.setBlocking(mode)
-        if (serviceStatus.state.canStop) {
-            repository.reloadService()
+        scope.launch(Dispatchers.IO) {
+            if (DataStore.serviceMode.get() == mode) return@launch
+            DataStore.serviceMode.set(mode)
+            if (BackendState.status.value.state.canStop) {
+                repository.reloadService()
+            }
         }
     }
 
@@ -140,13 +161,13 @@ internal fun HusiTray(
         primaryAction = onOpenWindow,
         menuContent = {
             TrayItem(
-                label = serviceStatus.profileName ?: stringResource(Res.string.app_name),
+                label = serviceSummary.profileName ?: stringResource(Res.string.app_name),
                 accessKey = TrayKey.O,
                 onClick = onOpenWindow,
             )
             TrayItem(
                 label = stringResource(
-                    if (serviceStatus.state == ServiceState.Connected) {
+                    if (serviceSummary.state == ServiceState.Connected) {
                         Res.string.stop
                     } else {
                         Res.string.start
@@ -154,7 +175,7 @@ internal fun HusiTray(
                 ),
                 accessKey = TrayKey.S,
             ) {
-                when (serviceStatus.state) {
+                when (serviceSummary.state) {
                     ServiceState.Stopped -> repository.startService()
                     ServiceState.Idle, ServiceState.Connected -> repository.stopService()
                     else -> {}
@@ -180,7 +201,11 @@ internal fun HusiTray(
                 label = stringResource(Res.string.system_proxy),
                 checked = systemProxyEnabled && !hasInboundAuth,
                 enabled = !hasInboundAuth,
-                onCheckedChange = { DataStore.systemProxy.setBlocking(it) },
+                onCheckedChange = { enabled ->
+                    scope.launch(Dispatchers.IO) {
+                        DataStore.systemProxy.set(enabled)
+                    }
+                },
             )
             TrayItem(
                 label = stringResource(Res.string.copy_terminal_proxy),

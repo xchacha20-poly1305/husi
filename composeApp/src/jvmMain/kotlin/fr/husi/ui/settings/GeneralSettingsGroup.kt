@@ -20,9 +20,9 @@ import fr.husi.compose.collectAdvancedFeatureAsStateWithLifecycle
 import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
-import fr.husi.database.preference.setBlocking
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
+import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.logLevelString
 import fr.husi.repository.LocalRepository
 import fr.husi.resources.Res
@@ -82,11 +82,11 @@ internal fun GeneralSettingsGroup(
     val appLanguage by languageController.flow.collectAsStateWithLifecycle(languageController.value)
     AppearanceSettingsGroup(
         appTheme = appTheme,
-        onAppThemeChange = { DataStore.appTheme.setBlocking(it) },
+        onAppThemeChange = { runOnIoDispatcher { DataStore.appTheme.set(it) } },
         extraColors = rememberThemeExtraColors(),
         nightTheme = nightTheme,
         onNightThemeChange = {
-            DataStore.nightTheme.setBlocking(it)
+            runOnIoDispatcher { DataStore.nightTheme.set(it) }
             applyNightMode(it)
         },
         appLanguage = appLanguage,
@@ -100,13 +100,15 @@ internal fun GeneralSettingsGroup(
     }
 
     val serviceModeValue by DataStore.serviceMode.collectAsStateWithLifecycle()
-    val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     ListPreference(
         value = serviceModeValue,
         onValueChange = { mode ->
-            DataStore.serviceMode.setBlocking(mode)
-            if (serviceStatus.state.canStop) {
-                repository.reloadService()
+            runOnIoDispatcher {
+                if (DataStore.serviceMode.get() == mode) return@runOnIoDispatcher
+                DataStore.serviceMode.set(mode)
+                if (BackendState.status.value.state.canStop) {
+                    repository.reloadService()
+                }
             }
         },
         values = listOf(Key.MODE_VPN, Key.MODE_PROXY),
@@ -126,8 +128,10 @@ internal fun GeneralSettingsGroup(
     TextFieldPreference(
         value = mtuValue,
         onValueChange = {
-            DataStore.mtu.setBlocking(it)
-            needReload()
+            runOnIoDispatcher {
+                DataStore.mtu.set(it)
+                needReload()
+            }
         },
         title = { Text(stringResource(Res.string.mtu)) },
         textToValue = { it.toIntOrNull() ?: 9000 },
@@ -144,8 +148,10 @@ internal fun GeneralSettingsGroup(
     SwitchPreference(
         value = bypassValue,
         onValueChange = {
-            DataStore.allowAppsBypassVpn.setBlocking(it)
-            needReload()
+            runOnIoDispatcher {
+                DataStore.allowAppsBypassVpn.set(it)
+                needReload()
+            }
         },
         title = { Text(stringResource(Res.string.allow_apps_bypass_vpn)) },
         icon = {
@@ -157,13 +163,13 @@ internal fun GeneralSettingsGroup(
     val speedIntervalValue by DataStore.speedInterval.collectAsStateWithLifecycle()
     SpeedIntervalPreference(
         value = speedIntervalValue,
-        onValueChange = { DataStore.speedInterval.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.speedInterval.set(it) } },
     )
 
     val profileTrafficStatisticsValue by DataStore.profileTrafficStatistics.collectAsStateWithLifecycle()
     SwitchPreference(
         value = profileTrafficStatisticsValue,
-        onValueChange = { DataStore.profileTrafficStatistics.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.profileTrafficStatistics.set(it) } },
         title = { Text(stringResource(Res.string.profile_traffic_statistics)) },
         icon = {
             MaskedIcon(
@@ -178,7 +184,7 @@ internal fun GeneralSettingsGroup(
     val showDirectSpeedValue by DataStore.showDirectSpeed.collectAsStateWithLifecycle()
     SwitchPreference(
         value = showDirectSpeedValue,
-        onValueChange = { DataStore.showDirectSpeed.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.showDirectSpeed.set(it) } },
         title = { Text(stringResource(Res.string.show_direct_speed)) },
         icon = {
             MaskedIcon(Res.drawable.speed, color = IconMaskColors.IconLightPink)
@@ -190,7 +196,7 @@ internal fun GeneralSettingsGroup(
     val alwaysShowAddressValue by DataStore.alwaysShowAddress.collectAsStateWithLifecycle()
     SwitchPreference(
         value = alwaysShowAddressValue,
-        onValueChange = { DataStore.alwaysShowAddress.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.alwaysShowAddress.set(it) } },
         title = { Text(stringResource(Res.string.always_show_address)) },
         icon = {
             MaskedIcon(
@@ -204,7 +210,7 @@ internal fun GeneralSettingsGroup(
     val blurredAddressValue by DataStore.blurredAddress.collectAsStateWithLifecycle()
     SwitchPreference(
         value = blurredAddressValue,
-        onValueChange = { DataStore.blurredAddress.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.blurredAddress.set(it) } },
         title = { Text(stringResource(Res.string.blurred_address)) },
         icon = {
             MaskedIcon(
@@ -218,7 +224,7 @@ internal fun GeneralSettingsGroup(
     val securityAdvisoryValue by DataStore.securityAdvisory.collectAsStateWithLifecycle()
     SwitchPreference(
         value = securityAdvisoryValue,
-        onValueChange = { DataStore.securityAdvisory.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.securityAdvisory.set(it) } },
         title = { Text(stringResource(Res.string.insecure_warn)) },
         icon = {
             MaskedIcon(
@@ -235,8 +241,10 @@ internal fun GeneralSettingsGroup(
     ListPreference(
         value = logLevelValue,
         onValueChange = {
-            DataStore.logLevel.setBlocking(it)
-            needRestart()
+            runOnIoDispatcher {
+                DataStore.logLevel.set(it)
+                needRestart()
+            }
         },
         values = intListN(7),
         title = { Text(stringResource(Res.string.log_level)) },
@@ -255,7 +263,7 @@ internal fun GeneralSettingsGroup(
     var previewValue by remember { mutableFloatStateOf(maxLogLineValue.toFloat()) }
     SliderPreference(
         value = maxLogLineValue.toFloat(),
-        onValueChange = { DataStore.logMaxLine.setBlocking(it.toInt()) },
+        onValueChange = { runOnIoDispatcher { DataStore.logMaxLine.set(it.toInt()) } },
         sliderValue = previewValue,
         onSliderValueChange = { previewValue = it },
         title = { Text(stringResource(Res.string.max_log_line)) },
@@ -273,15 +281,17 @@ internal fun GeneralSettingsGroup(
     val logTerminalModeValue by DataStore.logTerminalMode.collectAsStateWithLifecycle()
     LogTerminalModePreference(
         value = logTerminalModeValue,
-        onValueChange = { DataStore.logTerminalMode.setBlocking(it) },
+        onValueChange = { runOnIoDispatcher { DataStore.logTerminalMode.set(it) } },
     )
     if (debugListenFeature != null) {
         val debugListenValue by DataStore.debugListen.collectAsStateWithLifecycle()
         TextFieldPreference(
             value = debugListenValue,
             onValueChange = {
-                DataStore.debugListen.setBlocking(it)
-                needReload()
+                runOnIoDispatcher {
+                    DataStore.debugListen.set(it)
+                    needReload()
+                }
             },
             title = { Text("pprof listen") },
             textToValue = { it },
