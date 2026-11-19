@@ -21,7 +21,9 @@ import fr.husi.test.FakeCoreClient
 import fr.husi.test.HusiKoinTest
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -30,6 +32,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -82,12 +85,15 @@ class CoreHostControllerTest : HusiKoinTest() {
 
     private fun newSystemProxyController(
         backend: RecordingSystemProxyBackend = RecordingSystemProxyBackend(),
+        coreClient: FakeCoreClient = fakeClient,
+        ioDispatcher: CoroutineDispatcher = dispatcher,
     ): Pair<CoreHostController, RecordingSystemProxyBackend> {
         val systemProxyController = CoreHostController(
             repository = repository,
-            resolveCoreClient = { fakeClient },
+            resolveCoreClient = { coreClient },
             resolveCoreBinary = { null },
             dispatcher = dispatcher,
+            ioDispatcher = ioDispatcher,
             systemProxyBackend = backend,
         )
         return systemProxyController to backend
@@ -393,6 +399,61 @@ class CoreHostControllerTest : HusiKoinTest() {
     }
 
     @Test
+    fun `stop stops core service before clearing system proxy`() = runTest(dispatcher.scheduler) {
+        val events = mutableListOf<String>()
+        val recordingClient = object : FakeCoreClient() {
+            override suspend fun stopService() {
+                events += "stopService"
+                super.stopService()
+            }
+        }
+        val backend = RecordingSystemProxyBackend(
+            onDisable = { events += "disableSystemProxy" },
+        )
+        val (systemProxyController, _) = newSystemProxyController(
+            backend = backend,
+            coreClient = recordingClient,
+        )
+        DataStore.serviceState = ServiceState.Connected
+        systemProxyController.attachHostForTest(daemon = true)
+
+        DataStore.systemProxy.set(true)
+        advanceUntilIdle()
+        assertEquals(listOf(LOCALHOST4 to 2080), backend.enableCalls)
+
+        systemProxyController.stop()
+        advanceUntilIdle()
+
+        assertEquals(listOf("stopService", "disableSystemProxy"), events)
+        assertEquals(1, backend.disableCalls)
+        assertEquals(ServiceState.Stopped, DataStore.serviceState)
+    }
+
+    @Test
+    fun `system proxy enable and disable dispatch through ioDispatcher`() = runTest(dispatcher.scheduler) {
+        val countingDispatcher = CountingDispatcher(dispatcher)
+        val (systemProxyController, backend) = newSystemProxyController(
+            ioDispatcher = countingDispatcher,
+        )
+        DataStore.mixedPort.set(3456)
+        DataStore.serviceState = ServiceState.Connected
+
+        val beforeEnable = countingDispatcher.dispatches
+        DataStore.systemProxy.set(true)
+        advanceUntilIdle()
+
+        assertEquals(beforeEnable + 1, countingDispatcher.dispatches)
+        assertEquals(listOf(LOCALHOST4 to 3456), backend.enableCalls)
+
+        val beforeDisable = countingDispatcher.dispatches
+        DataStore.systemProxy.set(false)
+        advanceUntilIdle()
+
+        assertEquals(beforeDisable + 1, countingDispatcher.dispatches)
+        assertEquals(1, backend.disableCalls)
+    }
+
+    @Test
     fun `reload clears and re-applies with the new port`() = runTest(dispatcher.scheduler) {
         val (systemProxyController, backend) = newSystemProxyController()
         DataStore.selectedProxy.set(createSocksProfile())
@@ -576,7 +637,24 @@ class CoreHostControllerTest : HusiKoinTest() {
     }
 }
 
-private class RecordingSystemProxyBackend : SystemProxyBackend {
+private class CountingDispatcher(
+    private val delegate: CoroutineDispatcher,
+) : CoroutineDispatcher() {
+    var dispatches = 0
+        private set
+
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean =
+        delegate.isDispatchNeeded(context)
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        dispatches += 1
+        delegate.dispatch(context, block)
+    }
+}
+
+private class RecordingSystemProxyBackend(
+    private val onDisable: () -> Unit = {},
+) : SystemProxyBackend {
     val enableCalls = mutableListOf<Pair<String, Int>>()
     var disableCalls = 0
     var enableThrowable: Throwable? = null
@@ -588,6 +666,7 @@ private class RecordingSystemProxyBackend : SystemProxyBackend {
 
     override fun disable() {
         disableCalls += 1
+        onDisable()
     }
 }
 

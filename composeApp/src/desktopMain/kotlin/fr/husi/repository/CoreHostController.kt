@@ -72,6 +72,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.context.GlobalContext
 import java.io.File
@@ -105,6 +106,7 @@ internal class CoreHostController(
     private val resolveCoreClient: () -> CoreClient = { GlobalContext.get().get() },
     private val resolveCoreBinary: () -> PlatformFile? = ::resolveHusiCoreBinary,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val systemProxyBackend: SystemProxyBackend = platformSystemProxyBackend(),
     private val daemonBasePath: String = daemonSocketBasePath(),
     private val createDaemonClient: (String) -> CoreClient = { path ->
@@ -252,26 +254,28 @@ internal class CoreHostController(
      * alone; only the UI client's connection is re-established.
      */
     suspend fun reattachDaemon() {
-        access.withLock {
-            if (connectedToDaemon) {
-                detachDaemonClientLocked()
-            } else {
-                discardingSession = true
-                try {
-                    if (hostReady && DataStore.serviceState.canStop) {
-                        stopLocked()
+        withContext(ioDispatcher) {
+            access.withLock {
+                if (connectedToDaemon) {
+                    detachDaemonClientLocked()
+                } else {
+                    discardingSession = true
+                    try {
+                        if (hostReady && DataStore.serviceState.canStop) {
+                            stopLocked()
+                        }
+                        closeSessionLocked()
+                    } finally {
+                        discardingSession = false
                     }
-                    closeSessionLocked()
-                } finally {
-                    discardingSession = false
                 }
+                triedDaemon = false
+                apiVersionMismatch = false
+                foreignOwner = null
+                publishHostState()
+                ensureHostLocked()
+                writeRootCertificatesLocked()
             }
-            triedDaemon = false
-            apiVersionMismatch = false
-            foreignOwner = null
-            publishHostState()
-            ensureHostLocked()
-            writeRootCertificatesLocked()
         }
     }
 
@@ -280,15 +284,17 @@ internal class CoreHostController(
      * that owner's client. Failures propagate so the UI can surface them.
      */
     suspend fun takeOverDaemon() {
-        access.withLock {
-            coreClient.takeOverService()
-            val ownership = coreClient.getDaemonInfo().requireOwnership()
-            if (!ownership.claimed) {
-                coreClient.claimService()
+        withContext(ioDispatcher) {
+            access.withLock {
+                coreClient.takeOverService()
+                val ownership = coreClient.getDaemonInfo().requireOwnership()
+                if (!ownership.claimed) {
+                    coreClient.claimService()
+                }
+                foreignOwner = null
+                startDaemonLease()
+                publishHostState()
             }
-            foreignOwner = null
-            startDaemonLease()
-            publishHostState()
         }
     }
 
@@ -345,13 +351,15 @@ internal class CoreHostController(
     private suspend fun writeRootCertificatesLocked() {
         try {
             val pem = coreClient.getRootCertificates(rootCertificateStore(DataStore.certProvider.get()))
-            val directory = repository.externalAssetsDir
-            val pending = createPlatformTempFile("husi-roots-", ".pem", directory)
-            try {
-                pending.writeText(pem)
-                pending.atomicReplace(directory.resolve(PLUGIN_CA_FILE))
-            } finally {
-                pending.deleteBlocking()
+            withContext(ioDispatcher) {
+                val directory = repository.externalAssetsDir
+                val pending = createPlatformTempFile("husi-roots-", ".pem", directory)
+                try {
+                    pending.writeText(pem)
+                    pending.atomicReplace(directory.resolve(PLUGIN_CA_FILE))
+                } finally {
+                    pending.deleteBlocking()
+                }
             }
         } catch (e: CancellationException) {
             throw e
@@ -660,8 +668,8 @@ internal class CoreHostController(
         changeState(ServiceState.Stopping, runningProfileName)
         BackendState.setConnected(false)
 
-        syncSystemProxyLocked()
         cleanupLocked()
+        syncSystemProxyLocked()
         runningProfileName = null
 
         BackendState.reset()
@@ -693,10 +701,14 @@ internal class CoreHostController(
             }
         }
 
-        cacheFiles.forEach { file ->
-            runCatching { file.deleteBlocking() }
+        if (cacheFiles.isNotEmpty()) {
+            withContext(ioDispatcher) {
+                for (file in cacheFiles) {
+                    runCatching { file.deleteBlocking() }
+                }
+            }
+            cacheFiles.clear()
         }
-        cacheFiles.clear()
     }
 
     private suspend fun stopBoxLocked(): Boolean {
@@ -751,35 +763,37 @@ internal class CoreHostController(
         foreignOwner = null
         publishHostState()
 
-        coreRunDir.createDirectories()
-        val binary = resolveCoreBinary()
-            ?: throw IOException("husi-core binary not found (looked in: ${describeHusiCoreSearchLocations()})")
+        val process = withContext(ioDispatcher) {
+            coreRunDir.createDirectories()
+            val binary = resolveCoreBinary()
+                ?: throw IOException("husi-core binary not found (looked in: ${describeHusiCoreSearchLocations()})")
 
-        // The host owns the socket file: it refuses to start on one another
-        // host still answers on, and clears it otherwise.
-        val socketPath = coreRunDir.resolve(CORE_SOCKET_NAME)
+            // The host owns the socket file: it refuses to start on one another
+            // host still answers on, and clears it otherwise.
+            val socketPath = coreRunDir.resolve(CORE_SOCKET_NAME)
 
-        val command = listOf(
-            binary.absolutePath(),
-            "session",
-            "--dir",
-            coreRunDir.absolutePath(),
-            "--socket",
-            socketPath.absolutePath(),
-        )
-        Logs.i("starting core host: ${command.joinToString(" ")}")
+            val command = listOf(
+                binary.absolutePath(),
+                "session",
+                "--dir",
+                coreRunDir.absolutePath(),
+                "--socket",
+                socketPath.absolutePath(),
+            )
+            Logs.i("starting core host: ${command.joinToString(" ")}")
 
-        val process = ProcessBuilder(command)
-            .directory(coreRunDir.toJavaFile())
-            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .start()
+            ProcessBuilder(command)
+                .directory(coreRunDir.toJavaFile())
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
+                .start()
+        }
 
         sessionProcess = process
         sessionStdin = process.outputStream
 
         scope.launch {
-            val exit = runInterruptible(Dispatchers.IO) { process.waitFor() }
+            val exit = runInterruptible(ioDispatcher) { process.waitFor() }
             Logs.w("husi-core session exited with code $exit")
             access.withLock {
                 if (sessionProcess === process) {
@@ -845,7 +859,11 @@ internal class CoreHostController(
 
         val stdin = sessionStdin
         sessionStdin = null
-        runCatching { stdin?.close() }
+        if (stdin != null) {
+            withContext(ioDispatcher) {
+                runCatching { stdin.close() }
+            }
+        }
 
         val process = sessionProcess
         sessionProcess = null
@@ -856,12 +874,12 @@ internal class CoreHostController(
             return
         }
 
-        val exited = teardown == SessionTeardown.Graceful && runInterruptible(Dispatchers.IO) {
+        val exited = teardown == SessionTeardown.Graceful && runInterruptible(ioDispatcher) {
             process.waitFor(2, TimeUnit.SECONDS)
         }
         if (!exited) {
             process.destroy()
-            val forceExited = runInterruptible(Dispatchers.IO) {
+            val forceExited = runInterruptible(ioDispatcher) {
                 process.waitFor(1, TimeUnit.SECONDS)
             }
             if (!forceExited) {
@@ -886,8 +904,12 @@ internal class CoreHostController(
         if (shouldApply) {
             val port = DataStore.mixedPort.get()
             try {
-                systemProxyBackend.enable(LOCALHOST4, port)
+                withContext(ioDispatcher) {
+                    systemProxyBackend.enable(LOCALHOST4, port)
+                }
                 systemProxyApplied = true
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("failed to set system proxy", e)
                 systemProxyApplied = false
@@ -898,10 +920,14 @@ internal class CoreHostController(
         }
     }
 
-    private fun clearOsSystemProxyLocked() {
+    private suspend fun clearOsSystemProxyLocked() {
         if (!systemProxyApplied) return
         try {
-            systemProxyBackend.disable()
+            withContext(ioDispatcher) {
+                systemProxyBackend.disable()
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logs.w("failed to clear system proxy", e)
         }

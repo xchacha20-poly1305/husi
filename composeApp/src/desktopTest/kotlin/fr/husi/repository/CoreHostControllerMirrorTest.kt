@@ -57,6 +57,7 @@ class CoreHostControllerMirrorTest : HusiKoinTest() {
             // No core binary: a session restart is attempted but never spawns.
             resolveCoreBinary = { null },
             dispatcher = dispatcher,
+            ioDispatcher = dispatcher,
         )
     }
 

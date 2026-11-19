@@ -208,7 +208,9 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
                         when (result) {
                             DaemonInstallResult.Success -> {
                                 runCatching {
-                                    repository.reattachDaemon()
+                                    withContext(Dispatchers.IO) {
+                                        repository.reattachDaemon()
+                                    }
                                 }.onFailure {
                                     Logs.w("reattach after daemon install failed", it)
                                     showMessage(it.readableMessage)
@@ -287,7 +289,9 @@ private fun DaemonOptionsGroup(showMessage: (String) -> Unit) {
                                 return@launch
                             }
                             runCatching {
-                                repository.reattachDaemon()
+                                withContext(Dispatchers.IO) {
+                                    repository.reattachDaemon()
+                                }
                             }.onFailure {
                                 Logs.w("reattach after takeover failed", it)
                                 showMessage(it.readableMessage)
