@@ -181,3 +181,22 @@ fun updateName(name: String) {
       return null
   }
   ```
+
+#### Prefer `Duration` overloads
+
+* Prefer `Duration` overloads over raw numeric time parameters (e.g., `Long` milliseconds) whenever available.
+  A raw number leaves the unit implicit at the call site, whereas `Duration` makes the unit explicit and prevents unit-mismatch bugs.
+
+  **Bad:**
+
+  ```kotlin
+  delay(1000L)
+  ```
+
+  **Good:**
+
+  ```kotlin
+  import kotlin.time.Duration.Companion.milliseconds
+
+  delay(1000.milliseconds)
+  ```
