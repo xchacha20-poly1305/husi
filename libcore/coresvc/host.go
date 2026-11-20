@@ -69,6 +69,7 @@ type HostOptions struct {
 	// SkipDefaultInterceptors skips the built-in locale interceptors. Use when
 	// ServerOptions already chain locale + auth in the desired order.
 	SkipDefaultInterceptors bool
+	OOMKillerEnabled        bool
 	OnStuck                 func(error)
 }
 
@@ -88,7 +89,7 @@ func NewHost(options HostOptions) (*Host, error) {
 		Context:          options.Context,
 		Handler:          platformHandler{},
 		LogMaxLines:      logMaxLines,
-		OOMKillerEnabled: true,
+		OOMKillerEnabled: options.OOMKillerEnabled,
 	})
 	h := &Host{
 		ctx:                      options.Context,
