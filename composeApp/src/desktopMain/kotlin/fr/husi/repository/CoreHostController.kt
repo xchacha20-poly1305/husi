@@ -900,8 +900,8 @@ internal class CoreHostController(
             DataStore.serviceState == ServiceState.Connected &&
             foreignOwner == null &&
             !DataStore.hasInboundAuth()
-        if (shouldApply == systemProxyApplied) return
         if (shouldApply) {
+            if (systemProxyApplied) return
             val port = DataStore.mixedPort.get()
             try {
                 withContext(ioDispatcher) {
@@ -921,7 +921,7 @@ internal class CoreHostController(
     }
 
     private suspend fun clearOsSystemProxyLocked() {
-        if (!systemProxyApplied) return
+        if (!systemProxyApplied && !systemProxyBackend.needsCleanup) return
         try {
             withContext(ioDispatcher) {
                 systemProxyBackend.disable()

@@ -4,6 +4,8 @@ import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 
 internal interface SystemProxyBackend {
+    val needsCleanup: Boolean get() = false
+
     fun enable(host: String, port: Int)
     fun disable()
 }
