@@ -9,23 +9,45 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import fr.husi.ktx.listenForPackageChanges
 import fr.husi.plugin.Plugins
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 object PackageCache {
+    private data class Snapshot(
+        val installedPackages: Map<String, PackageInfo>,
+        val installedPluginPackages: Map<String, PackageInfo>,
+        val installedApps: Map<String, ApplicationInfo>,
+        val packageMap: Map<String, Int>,
+        val uidMap: Map<Int, Set<String>>,
+    )
+
     lateinit var packageManager: PackageManager
     lateinit var selfPackageName: String
 
-    lateinit var installedPackages: Map<String, PackageInfo>
-    lateinit var installedPluginPackages: Map<String, PackageInfo>
-    lateinit var installedApps: Map<String, ApplicationInfo>
-    lateinit var packageMap: Map<String, Int>
-    val uidMap = HashMap<Int, HashSet<String>>()
-    val loaded = Mutex(true)
+    private val snapshot = MutableStateFlow<Snapshot?>(null)
     private val registered = AtomicBoolean(false)
+    private val reloadLock = Any()
+    private val labelMap = ConcurrentHashMap<String, String>()
+
+    val installedPackages: Map<String, PackageInfo>
+        get() = snapshot.value?.installedPackages.orEmpty()
+
+    val installedPluginPackages: Map<String, PackageInfo>
+        get() = snapshot.value?.installedPluginPackages.orEmpty()
+
+    val installedApps: Map<String, ApplicationInfo>
+        get() = snapshot.value?.installedApps.orEmpty()
+
+    val packageMap: Map<String, Int>
+        get() = snapshot.value?.packageMap.orEmpty()
+
+    val uidMap: Map<Int, Set<String>>
+        get() = snapshot.value?.uidMap.orEmpty()
 
     // called from init (suspend)
     fun register(context: Context) {
@@ -38,70 +60,69 @@ object PackageCache {
             reload()
             labelMap.clear()
         }
-        loaded.unlock()
     }
 
     fun reload() {
-        val rawPackageInfo = packageManager.getInstalledPackages(
-            PackageManager.MATCH_UNINSTALLED_PACKAGES
-                    or PackageManager.GET_PERMISSIONS
-                    or PackageManager.GET_PROVIDERS
-                    or PackageManager.GET_META_DATA,
-        )
+        synchronized(reloadLock) {
+            val rawPackageInfo = packageManager.getInstalledPackages(
+                PackageManager.MATCH_UNINSTALLED_PACKAGES
+                        or PackageManager.GET_PERMISSIONS
+                        or PackageManager.GET_PROVIDERS
+                        or PackageManager.GET_META_DATA,
+            )
 
-        installedPackages = rawPackageInfo.filter {
-            when (it.packageName) {
-                "android" -> true
-                else -> it.requestedPermissions?.contains(Manifest.permission.INTERNET) == true
+            val newInstalledPackages = rawPackageInfo.filter {
+                when (it.packageName) {
+                    "android" -> true
+                    else -> it.requestedPermissions?.contains(Manifest.permission.INTERNET) == true
+                }
+            }.associateBy { it.packageName }
+
+            val newInstalledPluginPackages = rawPackageInfo.filter {
+                Plugins.isPlugin(it)
+            }.associateBy { it.packageName }
+
+            val installed = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+            val newInstalledApps = installed.associateBy { it.packageName }
+            val newPackageMap = installed.associate { it.packageName to it.uid }
+            val newUidMap = HashMap<Int, HashSet<String>>()
+            for (info in installed) {
+                newUidMap.getOrPut(info.uid) { HashSet() }.add(info.packageName)
             }
-        }.associateBy { it.packageName }
 
-        installedPluginPackages = rawPackageInfo.filter {
-            Plugins.isPlugin(it)
-        }.associateBy { it.packageName }
-
-        val installed = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-        installedApps = installed.associateBy { it.packageName }
-        packageMap = installed.associate { it.packageName to it.uid }
-        uidMap.clear()
-        for (info in installed) {
-            val uid = info.uid
-            uidMap.getOrPut(uid) { HashSet() }.add(info.packageName)
+            snapshot.value = Snapshot(
+                installedPackages = newInstalledPackages,
+                installedPluginPackages = newInstalledPluginPackages,
+                installedApps = newInstalledApps,
+                packageMap = newPackageMap,
+                uidMap = newUidMap,
+            )
         }
     }
 
-    operator fun get(uid: Int) = uidMap[uid]
-    operator fun get(packageName: String) = packageMap[packageName]
+    operator fun get(uid: Int): Set<String>? = snapshot.value?.uidMap?.get(uid)
+    operator fun get(packageName: String): Int? = snapshot.value?.packageMap?.get(packageName)
 
     suspend fun awaitLoad() {
-        if (::packageMap.isInitialized) {
-            return
-        }
-        loaded.withLock {
-            // just await
-        }
+        snapshot.filterNotNull().first()
     }
 
     fun awaitLoadSync() {
-        if (::packageMap.isInitialized) {
+        if (snapshot.value != null) {
             return
         }
         if (!registered.load()) {
             error("PackageCache.register(context) must be called before awaitLoadSync()")
         }
         runBlocking {
-            loaded.withLock {
-                // just await
-            }
+            awaitLoad()
         }
     }
 
-    private val labelMap = mutableMapOf<String, String>()
     fun loadLabel(packageManager: PackageManager, packageName: String): String {
-        var label = labelMap[packageName]
-        if (label != null) return label
-        val info = installedApps[packageName] ?: return packageName
-        label = info.loadLabel(packageManager).toString()
+        labelMap[packageName]?.let { return it }
+        val info = snapshot.value?.installedApps?.get(packageName) ?: return packageName
+        val label = info.loadLabel(packageManager).toString()
         labelMap[packageName] = label
         return label
     }

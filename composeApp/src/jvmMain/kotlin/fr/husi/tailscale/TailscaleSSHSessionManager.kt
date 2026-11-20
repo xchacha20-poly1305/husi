@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package fr.husi.tailscale
 
 import fr.husi.core.remote.CoreNotRunningException
@@ -27,6 +29,9 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.ByteString.Companion.toByteString
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 
 class TailscaleSSHSession internal constructor(
     override val id: Long,
@@ -112,11 +117,10 @@ class TailscaleSSHSessionManager(
     val state: StateFlow<TailscaleSSHState>
         field = MutableStateFlow(TailscaleSSHState())
 
-    private val access = Any()
-    private var nextSessionId = 0L
+    private val nextSessionId = AtomicLong(0L)
 
     fun open(target: TailscaleSSHTarget): Long {
-        val sessionId = synchronized(access) { ++nextSessionId }
+        val sessionId = nextSessionId.incrementAndFetch()
         val terminal = GhosttyTerminalSession(
             GhosttyTerminalSession.Options(
                 reportedVersion = TERMINAL_REPORTED_VERSION,
@@ -130,9 +134,11 @@ class TailscaleSSHSessionManager(
             current.copy(sessions = current.sessions + session, activeSessionId = sessionId)
         }
         val coreTarget = targets.value
-        session.job = scope.launch(start = CoroutineStart.LAZY) {
+        val job = scope.launch(start = CoroutineStart.LAZY) {
             runSession(session, coreTarget)
-        }.also { it.start() }
+        }
+        session.job = job
+        job.start()
         return sessionId
     }
 

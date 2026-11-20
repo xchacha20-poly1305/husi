@@ -10,9 +10,10 @@ import androidx.work.WorkerParameters
 import androidx.work.multiprocess.RemoteWorkManager
 import fr.husi.lib.R
 import fr.husi.repository.resolveAndroidRepository
-import fr.husi.repository.resolveRepository
-import fr.husi.resources.*
-import kotlinx.coroutines.runBlocking
+import fr.husi.resources.Res
+import fr.husi.resources.forward_success
+import fr.husi.resources.subscription_update
+import fr.husi.resources.subscription_update_message
 import java.util.concurrent.TimeUnit
 
 actual object SubscriptionUpdater {
@@ -46,20 +47,18 @@ actual object SubscriptionUpdater {
 
         val nm = NotificationManagerCompat.from(applicationContext)
 
-        val notification = runBlocking {
+        override suspend fun doWork(): Result {
             val repo = resolveAndroidRepository()
-            NotificationCompat.Builder(applicationContext, "service-subscription")
+            val notification = NotificationCompat.Builder(applicationContext, "service-subscription")
                 .setWhen(0)
                 .setTicker(repo.getString(Res.string.forward_success))
                 .setContentTitle(repo.getString(Res.string.subscription_update))
                 .setSmallIcon(R.drawable.ic_service_active)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
-        }
 
-        override suspend fun doWork(): Result {
             SubscriptionAutoUpdateRunner.run { profile ->
                 notification.setContentText(
-                    resolveRepository().getString(
+                    repo.getString(
                         Res.string.subscription_update_message,
                         profile.displayName(),
                     ),

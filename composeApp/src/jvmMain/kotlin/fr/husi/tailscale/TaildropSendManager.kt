@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package fr.husi.tailscale
 
 import fr.husi.core.TAILDROP_CHUNK_SIZE
@@ -26,6 +28,10 @@ import kotlinx.coroutines.launch
 import okio.BufferedSource
 import okio.ByteString.Companion.toByteString
 import okio.buffer
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 
 class TaildropSendManager(
     private val targets: StateFlow<CoreTarget?>,
@@ -34,13 +40,12 @@ class TaildropSendManager(
     val sessions: StateFlow<List<TaildropSendSession>>
         field = MutableStateFlow(emptyList<TaildropSendSession>())
 
-    private val access = Any()
-    private var nextSessionId = 0L
-    private val jobs = mutableMapOf<Long, Job>()
+    private val nextSessionId = AtomicLong(0L)
+    private val jobs = ConcurrentHashMap<Long, Job>()
 
     fun send(tag: String, peerStableId: String, peerName: String, files: List<TaildropSource>): Long {
         if (files.isEmpty()) return NO_SESSION_ID
-        val sessionId = synchronized(access) { ++nextSessionId }
+        val sessionId = nextSessionId.incrementAndFetch()
         sessions.update { current ->
             current + TaildropSendSession(
                 id = sessionId,
@@ -53,13 +58,13 @@ class TaildropSendManager(
         val job = scope.launch(start = CoroutineStart.LAZY) {
             runSession(sessionId, target, tag, peerStableId, files)
         }
-        synchronized(access) { jobs[sessionId] = job }
+        jobs[sessionId] = job
         job.start()
         return sessionId
     }
 
     fun cancel(sessionId: Long) {
-        val job = synchronized(access) { jobs.remove(sessionId) }
+        val job = jobs.remove(sessionId)
         dismiss(sessionId)
         job?.cancel()
     }
@@ -94,7 +99,7 @@ class TaildropSendManager(
         } catch (e: Exception) {
             updateSession(sessionId) { copy(finished = true, errorMessage = e.readableMessage) }
         } finally {
-            synchronized(access) { jobs.remove(sessionId) }
+            jobs.remove(sessionId)
         }
     }
 

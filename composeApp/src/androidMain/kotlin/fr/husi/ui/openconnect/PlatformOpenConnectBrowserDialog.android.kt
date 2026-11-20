@@ -34,7 +34,15 @@ import fr.husi.resources.openconnect_authentication
 import fr.husi.vpn.OpenConnectBrowserCompletionMode
 import fr.husi.vpn.OpenConnectBrowserRequestState
 import fr.husi.vpn.OpenConnectBrowserResultState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,9 +114,11 @@ private class OpenConnectWebViewBrowser(
 ) {
     companion object {
         private const val COOKIE_RETRY_COUNT = 30
-        private const val COOKIE_RETRY_DELAY_MILLIS = 100L
+        private val COOKIE_RETRY_DELAY = 100.milliseconds
     }
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var cookieCheckJob: Job? = null
     private var webView: WebView? = null
     private var completed = false
     private var closed = false
@@ -150,7 +160,7 @@ private class OpenConnectWebViewBrowser(
             override fun onPageFinished(view: WebView, url: String) {
                 super.onPageFinished(view, url)
                 if (request.completionMode == OpenConnectBrowserCompletionMode.Cookie) {
-                    completeWhenCookiesAvailable(view, url, 0)
+                    completeWhenCookiesAvailable(view, url)
                 }
             }
         }
@@ -160,6 +170,7 @@ private class OpenConnectWebViewBrowser(
     fun close() {
         if (closed) return
         closed = true
+        scope.cancel()
         webView?.also { view ->
             view.stopLoading()
             view.removeAllViews()
@@ -168,25 +179,29 @@ private class OpenConnectWebViewBrowser(
         webView = null
     }
 
-    private fun completeWhenCookiesAvailable(view: WebView, url: String, attempt: Int) {
-        if (completed || closed || webView !== view) return
-        val cookies = requestedCookies(url)
-        if (completeEarlyCookie(cookies)) return
-        if (url != request.finalUrl) return
-        val finalCookies = cookies.filterKeys { it in request.cookieNames && cookies[it].orEmpty().isNotEmpty() }
-        if (finalCookies.isNotEmpty()) {
-            completed = true
-            onResult(OpenConnectBrowserResultState(url, finalCookies, emptyMap()))
-            return
+    private fun completeWhenCookiesAvailable(view: WebView, url: String) {
+        cookieCheckJob?.cancel()
+        cookieCheckJob = scope.launch {
+            for (attempt in 0..COOKIE_RETRY_COUNT) {
+                if (completed || closed || webView !== view) return@launch
+                val cookies = requestedCookies(url)
+                if (completeEarlyCookie(cookies)) return@launch
+                if (url != request.finalUrl) return@launch
+                val finalCookies = cookies.filterKeys {
+                    it in request.cookieNames && cookies[it].orEmpty().isNotEmpty()
+                }
+                if (finalCookies.isNotEmpty()) {
+                    completed = true
+                    onResult(OpenConnectBrowserResultState(url, finalCookies, emptyMap()))
+                    return@launch
+                }
+                if (attempt >= COOKIE_RETRY_COUNT) {
+                    fail(missingCookieMessage)
+                    return@launch
+                }
+                delay(COOKIE_RETRY_DELAY)
+            }
         }
-        if (attempt >= COOKIE_RETRY_COUNT) {
-            fail(missingCookieMessage)
-            return
-        }
-        view.postDelayed(
-            { completeWhenCookiesAvailable(view, url, attempt + 1) },
-            COOKIE_RETRY_DELAY_MILLIS,
-        )
     }
 
     private fun handleNavigation(view: WebView, url: String): Boolean {

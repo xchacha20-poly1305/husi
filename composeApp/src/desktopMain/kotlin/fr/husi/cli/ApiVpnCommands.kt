@@ -10,19 +10,24 @@ import fr.husi.core.CoreRpcException
 import fr.husi.ktx.readableMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
-import kotlin.concurrent.thread
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -180,7 +185,7 @@ internal abstract class ApiVpnAuthCommand<E : Any>(
                         else -> Unit
                     }
                 }
-                val input = InteractiveConsoleInput().also { it.start() }
+                val input = InteractiveConsoleInput()
                 runVpnAuthLoop(client, protocol, watcher, input, endpoint.tag)
             } finally {
                 collector.cancel()
@@ -321,20 +326,12 @@ internal class VpnStatusWatcher<E : Any> {
 }
 
 internal class InteractiveConsoleInput {
-    internal class ReadRequest(val prompt: String, val hidden: Boolean) {
-        val result = CompletableDeferred<Result<String>>()
-    }
+    private val mutex = Mutex()
 
-    val requests = Channel<ReadRequest>(Channel.RENDEZVOUS)
-
-    fun start() {
-        thread(isDaemon = true, name = "cli-auth-input") {
-            runBlocking {
-                for (request in requests) {
-                    System.err.print(request.prompt)
-                    request.result.complete(runCatching { readConsoleLine(request.hidden) })
-                }
-            }
+    suspend fun read(prompt: String, hidden: Boolean): String = mutex.withLock {
+        withContext(Dispatchers.IO) {
+            System.err.print(prompt)
+            readConsoleLine(hidden)
         }
     }
 
@@ -351,22 +348,30 @@ internal class InteractiveConsoleInput {
 internal class VpnAuthPrompter(private val input: InteractiveConsoleInput) {
     /** Completed at most once; every pending or later prompt then throws the signal. */
     val aborted = CompletableDeferred<VpnAuthSignal>()
+    private val readScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun abort(signal: VpnAuthSignal) {
         aborted.complete(signal)
+        readScope.cancel()
     }
 
     suspend fun read(prompt: String, hidden: Boolean): String {
-        val request = InteractiveConsoleInput.ReadRequest(prompt, hidden)
-        select<Unit> {
-            input.requests.onSend(request) {}
-            aborted.onAwait { throw it }
-        }
-        return select {
-            request.result.onAwait { result ->
-                result.getOrElse { throw VpnCliException(it.readableMessage) }
+        if (aborted.isCompleted) throw aborted.await()
+        val result = readScope.async {
+            runCatching {
+                input.read(prompt, hidden)
             }
-            aborted.onAwait { throw it }
+        }
+        return try {
+            select {
+                result.onAwait { outcome ->
+                    outcome.getOrElse { throw VpnCliException(it.readableMessage) }
+                }
+                aborted.onAwait { throw it }
+            }
+        } catch (e: Throwable) {
+            result.cancel()
+            throw e
         }
     }
 

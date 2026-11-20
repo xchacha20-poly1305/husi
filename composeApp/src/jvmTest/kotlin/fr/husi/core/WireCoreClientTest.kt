@@ -18,11 +18,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import okio.Timeout
 import java.io.IOException
 import kotlin.test.Test
@@ -206,13 +208,11 @@ class WireCoreClientTest {
 
 private suspend fun awaitCondition(description: String, condition: () -> Boolean) {
     withContext(Dispatchers.Default) {
-        val deadline = System.nanoTime() + 2_000_000_000L
-        while (!condition()) {
-            if (System.nanoTime() > deadline) {
-                error("timed out waiting for $description")
+        withTimeoutOrNull(2.seconds) {
+            while (!condition()) {
+                delay(5.milliseconds)
             }
-            Thread.sleep(5)
-        }
+        } ?: error("timed out waiting for $description")
     }
 }
 

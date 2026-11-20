@@ -114,6 +114,8 @@ import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -121,7 +123,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
-import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -202,7 +203,7 @@ private fun ScannerScreen(
 
     LaunchedEffect(context, lifecycleOwner, hasCameraPermission) {
         if (!hasCameraPermission) return@LaunchedEffect
-        val analysisExecutor = Executors.newSingleThreadExecutor()
+        val analysisExecutor = Dispatchers.Default.limitedParallelism(1).asExecutor()
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequest = req }
         }
@@ -248,8 +249,6 @@ private fun ScannerScreen(
         } catch (e: Exception) {
             Logs.w("Failed to start the QR scanner camera", e)
             snackbarHostState.showSnackbar(e.readableMessage)
-        } finally {
-            analysisExecutor.shutdown()
         }
     }
 

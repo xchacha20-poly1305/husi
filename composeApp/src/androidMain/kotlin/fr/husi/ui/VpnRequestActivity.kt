@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.core.content.getSystemService
+import androidx.lifecycle.lifecycleScope
 import fr.husi.Key
 import fr.husi.bg.VpnRequestNotification
 import fr.husi.database.DataStore
@@ -20,7 +21,7 @@ import fr.husi.ktx.showToast
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.vpn_permission_denied
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 class VpnRequestActivity : PrivacyModeActivity() {
     private var receiver: BroadcastReceiver? = null
@@ -45,10 +46,14 @@ class VpnRequestActivity : PrivacyModeActivity() {
 
     private val connect = registerForActivityResult(StartService()) {
         if (it) {
-            val text = runBlocking { resolveRepository().getString(Res.string.vpn_permission_denied) }
-            showToast(text, long = true)
+            lifecycleScope.launch {
+                val text = resolveRepository().getString(Res.string.vpn_permission_denied)
+                showToast(text, long = true)
+                finish()
+            }
+        } else {
+            finish()
         }
-        finish()
     }
 
     override fun onDestroy() {

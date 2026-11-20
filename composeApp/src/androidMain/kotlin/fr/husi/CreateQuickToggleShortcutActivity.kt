@@ -1,23 +1,3 @@
-/*******************************************************************************
- *                                                                             *
- *  Copyright (C) 2017 by Max Lv <max.c.lv@gmail.com>                          *
- *  Copyright (C) 2017 by Mygod Studio <contact-shadowsocks-android@mygod.be>  *
- *                                                                             *
- *  This program is free software: you can redistribute it and/or modify       *
- *  it under the terms of the GNU General Public License as published by       *
- *  the Free Software Foundation, either version 3 of the License, or          *
- *  (at your option) any later version.                                        *
- *                                                                             *
- *  This program is distributed in the hope that it will be useful,            *
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- *  GNU General Public License for more details.                               *
- *                                                                             *
- *  You should have received a copy of the GNU General Public License          *
- *  along with this program. If not, see <http://www.gnu.org/licenses/>.       *
- *                                                                             *
- *******************************************************************************/
-
 package fr.husi
 
 import android.app.Activity
@@ -30,33 +10,49 @@ import fr.husi.lib.R
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.quick_toggle
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class CreateQuickToggleShortcutActivity : Activity() {
 
+    private val scope = CoroutineScope(Dispatchers.Main.immediate)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setResult(
-            RESULT_OK,
-            ShortcutManagerCompat.createShortcutResultIntent(
-                this,
-                ShortcutInfoCompat.Builder(this, QuickToggleActivity.SHORTCUT_ID_TOGGLE)
-                    .setIntent(
-                        Intent(
-                            this,
-                            QuickToggleActivity::class.java,
-                        ).setAction(Intent.ACTION_MAIN),
+        scope.launch {
+            val shortLabel = resolveRepository().getString(Res.string.quick_toggle)
+            setResult(
+                RESULT_OK,
+                ShortcutManagerCompat.createShortcutResultIntent(
+                    this@CreateQuickToggleShortcutActivity,
+                    ShortcutInfoCompat.Builder(
+                        this@CreateQuickToggleShortcutActivity,
+                        QuickToggleActivity.SHORTCUT_ID_TOGGLE,
                     )
-                    .setIcon(
-                        IconCompat.createWithResource(
-                            this,
-                            R.drawable.ic_qu_shadowsocks_launcher,
-                        ),
-                    )
-                    .setShortLabel(runBlocking { resolveRepository().getString(Res.string.quick_toggle) })
-                    .build(),
-            ),
-        )
-        finish()
+                        .setIntent(
+                            Intent(
+                                this@CreateQuickToggleShortcutActivity,
+                                QuickToggleActivity::class.java,
+                            ).setAction(Intent.ACTION_MAIN),
+                        )
+                        .setIcon(
+                            IconCompat.createWithResource(
+                                this@CreateQuickToggleShortcutActivity,
+                                R.drawable.ic_qu_shadowsocks_launcher,
+                            ),
+                        )
+                        .setShortLabel(shortLabel)
+                        .build(),
+                ),
+            )
+            finish()
+        }
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
     }
 }

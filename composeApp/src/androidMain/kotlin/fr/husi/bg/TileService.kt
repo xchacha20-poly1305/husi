@@ -23,7 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import android.net.VpnService as BaseVpnService
 import android.service.quicksettings.TileService as BaseTileService
@@ -70,8 +69,14 @@ class TileService : BaseTileService() {
         if (isLocked) unlockAndRun(this::toggle) else toggle()
     }
 
-    private fun updateTile(serviceState: ServiceState, profileName: String?) {
-        qsTile?.apply {
+    private suspend fun updateTile(serviceState: ServiceState, profileName: String?) {
+        val tile = qsTile ?: return
+        val defaultLabel = if (serviceState == ServiceState.Connected && profileName != null) {
+            null
+        } else {
+            resolveRepository().getString(Res.string.app_name)
+        }
+        tile.apply {
             label = null
             when (serviceState) {
                 ServiceState.Connecting -> {
@@ -96,9 +101,7 @@ class TileService : BaseTileService() {
                     state = Tile.STATE_INACTIVE
                 }
             }
-            label = label ?: runBlocking {
-                resolveRepository().getString(Res.string.app_name)
-            }
+            label = label ?: defaultLabel
             updateTile()
         }
     }

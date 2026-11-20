@@ -20,6 +20,7 @@ import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineIgnoringComments
+import fr.husi.ktx.runOnMainDispatcher
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -52,11 +53,13 @@ class VpnService : BaseVpnService(),
     var conn: ParcelFileDescriptor? = null
 
     private var metered = false
+    private var defaultSessionName = ""
 
     override var upstreamInterfaceName: String? = null
 
     override suspend fun startProcesses() {
         ServiceRegistry.vpnService = this
+        defaultSessionName = resolveRepository().getString(Res.string.app_name)
         super.startProcesses() // launch proxy instance
     }
 
@@ -68,7 +71,7 @@ class VpnService : BaseVpnService(),
             .apply { acquire() }
     }
 
-    override fun killProcesses() {
+    override suspend fun killProcesses() {
         conn?.close()
         conn = null
         super.killProcesses()
@@ -103,7 +106,7 @@ class VpnService : BaseVpnService(),
             Intent(this, VpnRequestActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
-        runBlocking { VpnRequestNotification.show(this@VpnService) }
+        runOnMainDispatcher { VpnRequestNotification.show(applicationContext) }
     }
 
     inner class NullConnectionException : NullPointerException() {
@@ -115,7 +118,7 @@ class VpnService : BaseVpnService(),
     fun startVpn(): Int {
         // address & route & MTU ...... use GUI config
         val sessionName = DataStore.vpnSessionName.getBlocking().trim().blankAsNull()
-            ?: runBlocking { resolveRepository().getString(Res.string.app_name) }
+            ?: defaultSessionName
         val builder = Builder().setConfigureIntent(resolveAndroidRepository().configureIntent(this))
             .setSession(sessionName)
             .setMtu(DataStore.mtu.getBlocking())

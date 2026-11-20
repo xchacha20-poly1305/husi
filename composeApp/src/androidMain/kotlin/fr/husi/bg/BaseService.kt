@@ -16,7 +16,6 @@ import fr.husi.bg.proto.ProxyInstance
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.SagerDatabase
-import fr.husi.database.preference.getBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.broadcastReceiver
 import fr.husi.ktx.hasPermission
@@ -33,7 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.UnknownHostException
@@ -48,7 +46,7 @@ class BaseService {
 
         suspend fun start(onFatal: suspend (Throwable) -> Unit)
 
-        fun stop()
+        suspend fun stop()
 
         fun resetNetwork()
     }
@@ -75,8 +73,8 @@ class BaseService {
             proxy.launch()
         }
 
-        override fun stop() {
-            proxy?.close()
+        override suspend fun stop() {
+            proxy?.shutdown()
             proxy = null
         }
 
@@ -176,31 +174,33 @@ class BaseService {
         }
 
         fun reload() {
-            if (DataStore.selectedProxy.getBlocking() == 0L) {
-                stopRunner(false, runBlocking { resolveRepository().getString(Res.string.profile_empty) })
-                return
-            }
-
-            val state = data.state
-            val restartCurrentService = javaClass == SagerConnection.serviceClass
-            when {
-                state == ServiceState.Stopped -> {
-                    if (restartCurrentService) {
-                        startRunner()
-                    } else {
-                        resolveRepository().startService()
-                    }
+            runOnMainDispatcher {
+                if (DataStore.selectedProxy.get() == 0L) {
+                    stopRunner(false, resolveRepository().getString(Res.string.profile_empty))
+                    return@runOnMainDispatcher
                 }
 
-                state.canStop -> {
-                    if (restartCurrentService) {
-                        stopRunner(true)
-                    } else {
-                        stopRunner(afterStop = resolveRepository()::startService)
+                val state = data.state
+                val restartCurrentService = javaClass == SagerConnection.serviceClass
+                when {
+                    state == ServiceState.Stopped -> {
+                        if (restartCurrentService) {
+                            startRunner()
+                        } else {
+                            resolveRepository().startService()
+                        }
                     }
-                }
 
-                else -> Logs.w("Illegal state $state when invoking use")
+                    state.canStop -> {
+                        if (restartCurrentService) {
+                            stopRunner(true)
+                        } else {
+                            stopRunner(afterStop = resolveRepository()::startService)
+                        }
+                    }
+
+                    else -> Logs.w("Illegal state $state when invoking use")
+                }
             }
         }
 
@@ -230,7 +230,7 @@ class BaseService {
             }
         }
 
-        fun killProcesses() {
+        suspend fun killProcesses() {
             data.backend.stop()
             wakeLock?.apply {
                 release()
@@ -315,14 +315,7 @@ class BaseService {
             val data = data
             if (data.state != ServiceState.Stopped) return Service.START_NOT_STICKY
             data.notification = createNotifier("")
-            val profile = runBlocking { SagerDatabase.proxyDao.getById(DataStore.selectedProxy.getBlocking()) }
             this as Context
-            if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
-                stopRunner(false, runBlocking { resolveRepository().getString(Res.string.profile_empty) })
-                return Service.START_NOT_STICKY
-            }
-
-            setBootReceiverEnabled(DataStore.persistAcrossReboot.getBlocking())
             if (!data.closeReceiverRegistered) {
                 val filter = IntentFilter().apply {
                     addAction(Action.RELOAD)
@@ -354,6 +347,13 @@ class BaseService {
             data.changeState(ServiceState.Connecting)
             data.connectingJob = runOnDefaultDispatcher {
                 try {
+                    val profile = SagerDatabase.proxyDao.getById(DataStore.selectedProxy.get())
+                    if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
+                        stopRunner(false, resolveRepository().getString(Res.string.profile_empty))
+                        return@runOnDefaultDispatcher
+                    }
+
+                    setBootReceiverEnabled(DataStore.persistAcrossReboot.get())
                     data.notification.onTitle(profile.displayNameForService())
 
                     Executable.killAll()    // clean up old processes

@@ -10,13 +10,24 @@ import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
 import fr.husi.repository.resolveAndroidRepository
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.withIndex
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 actual object DefaultNetworkListener {
     actual suspend fun start(key: Any, listener: suspend () -> Unit) {
@@ -31,110 +42,135 @@ actual object DefaultNetworkListener {
 }
 
 internal object AndroidDefaultNetworkListener {
-    private sealed class NetworkMessage {
-        class Start(val key: Any, val listener: suspend (Network?) -> Unit) : NetworkMessage()
-        class Get : NetworkMessage() {
-            val response = CompletableDeferred<Network>()
-        }
-
-        class Stop(val key: Any) : NetworkMessage()
-
-        class Put(val network: Network) : NetworkMessage()
-        class Update(val network: Network) : NetworkMessage()
-        class Lost(val network: Network) : NetworkMessage()
+    private sealed interface CallbackEvent {
+        class Available(val network: Network) : CallbackEvent
+        class Update(val network: Network) : CallbackEvent
+        class Lost(val network: Network) : CallbackEvent
+        data object Fallback : CallbackEvent
     }
 
-    @OptIn(ObsoleteCoroutinesApi::class, DelicateCoroutinesApi::class)
-    private val networkActor = GlobalScope.actor<NetworkMessage>(Dispatchers.Unconfined) {
-        val listeners = mutableMapOf<Any, suspend (Network?) -> Unit>()
-        var network: Network? = null
-        val pendingRequests = arrayListOf<NetworkMessage.Get>()
-        for (message in channel) when (message) {
-            is NetworkMessage.Start -> {
-                if (listeners.isEmpty()) register()
-                listeners[message.key] = message.listener
-                if (network != null) message.listener(network)
-            }
-
-            is NetworkMessage.Get -> {
-                check(listeners.isNotEmpty()) { "Getting network without any listeners is not supported" }
-                if (network == null) {
-                    pendingRequests += message
-                } else {
-                    message.response.complete(network)
-                }
-            }
-
-            is NetworkMessage.Stop -> if (listeners.isNotEmpty() && // was not empty
-                listeners.remove(message.key) != null && listeners.isEmpty()
-            ) {
-                network = null
-                unregister()
-            }
-
-            is NetworkMessage.Put -> {
-                network = message.network
-                pendingRequests.forEach { it.response.complete(message.network) }
-                pendingRequests.clear()
-                listeners.values.forEach { it(network) }
-            }
-
-            is NetworkMessage.Update -> if (network == message.network) listeners.values.forEach {
-                it(network)
-            }
-
-            is NetworkMessage.Lost -> if (network == message.network) {
-                network = null
-                listeners.values.forEach { it(null) }
-            }
-        }
-    }
-
-    suspend fun start(key: Any, listener: suspend (Network?) -> Unit) = networkActor.send(
-        NetworkMessage.Start(
-            key,
-            listener,
-        ),
+    private data class NetworkEvent(
+        val network: Network?,
+        val version: Long,
+        val isFallback: Boolean = false,
     )
 
-    suspend fun get() = if (fallback) {
-        resolveAndroidRepository().connectivity.activeNetwork
-            ?: error("missing default network") // failed to listen, return current if available
-    } else NetworkMessage.Get().run {
-        networkActor.send(this)
-        response.await()
-    }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val access = Mutex()
+    private val listeners = mutableMapOf<Any, Job>()
 
-    suspend fun stop(key: Any) = networkActor.send(NetworkMessage.Stop(key))
-
-    // NB: this runs in ConnectivityThread, and this behavior cannot be changed until API 26
-    private object Callback : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) = runBlocking {
-            networkActor.send(
-                NetworkMessage.Put(network),
-            )
-        }
-
-        override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities,
-        ) {
-            // it's a good idea to refresh capabilities
-            runBlocking { networkActor.send(NetworkMessage.Update(network)) }
-        }
-
-        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-            runBlocking { networkActor.send(NetworkMessage.Update(network)) }
-        }
-
-        override fun onLost(network: Network) = runBlocking {
-            networkActor.send(
-                NetworkMessage.Lost(network),
-            )
-        }
-    }
-
+    @Volatile
     private var fallback = false
+
+    private val networkEvents: SharedFlow<NetworkEvent> = flow {
+        var currentNetwork: Network? = null
+        var version = 0L
+        rawNetworkEvents().collect { event ->
+            when (event) {
+                is CallbackEvent.Available -> {
+                    currentNetwork = event.network
+                    emit(NetworkEvent(currentNetwork, ++version))
+                }
+
+                is CallbackEvent.Update -> {
+                    if (currentNetwork == event.network) {
+                        emit(NetworkEvent(currentNetwork, ++version))
+                    }
+                }
+
+                is CallbackEvent.Lost -> {
+                    if (currentNetwork == event.network) {
+                        currentNetwork = null
+                        emit(NetworkEvent(null, ++version))
+                    }
+                }
+
+                CallbackEvent.Fallback -> {
+                    currentNetwork = null
+                    emit(NetworkEvent(null, ++version, isFallback = true))
+                }
+            }
+        }
+    }.shareIn(
+        scope = scope,
+        started = SharingStarted.WhileSubscribed(
+            stopTimeoutMillis = 0L,
+            replayExpirationMillis = 0L,
+        ),
+        replay = 1,
+    )
+
+    private fun rawNetworkEvents() = callbackFlow {
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                trySend(CallbackEvent.Available(network))
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities,
+            ) {
+                // it's a good idea to refresh capabilities
+                trySend(CallbackEvent.Update(network))
+            }
+
+            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+                trySend(CallbackEvent.Update(network))
+            }
+
+            override fun onLost(network: Network) {
+                trySend(CallbackEvent.Lost(network))
+            }
+        }
+        val registered = register(callback)
+        if (!registered) {
+            trySend(CallbackEvent.Fallback)
+        }
+        awaitClose {
+            if (registered) {
+                unregister(callback)
+            }
+            fallback = false
+        }
+    }.buffer(Channel.UNLIMITED)
+
+    suspend fun start(key: Any, listener: suspend (Network?) -> Unit) {
+        access.withLock {
+            listeners.remove(key)?.cancel()
+            listeners[key] = scope.launch {
+                networkEvents.withIndex().collect { (index, event) ->
+                    if (event.isFallback || (index == 0 && event.network == null)) {
+                        return@collect
+                    }
+                    listener(event.network)
+                }
+            }
+        }
+    }
+
+    suspend fun get(): Network {
+        if (fallback) {
+            return resolveAndroidRepository().connectivity.activeNetwork
+                ?: error("missing default network") // failed to listen, return current if available
+        }
+        check(access.withLock { listeners.isNotEmpty() }) {
+            "Getting network without any listeners is not supported"
+        }
+        val event = networkEvents.first { it.isFallback || it.network != null }
+        if (event.isFallback) {
+            return resolveAndroidRepository().connectivity.activeNetwork
+                ?: error("missing default network") // failed to listen, return current if available
+        }
+        return event.network!!
+    }
+
+    suspend fun stop(key: Any) {
+        val job = access.withLock {
+            listeners.remove(key)
+        }
+        job?.cancelAndJoin()
+    }
+
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
@@ -151,41 +187,35 @@ internal object AndroidDefaultNetworkListener {
      *
      * Source: https://android.googlesource.com/platform/frameworks/base/+/2df4c7d/services/core/java/com/android/server/ConnectivityService.java#887
      */
-    private fun register() {
+    private fun register(callback: ConnectivityManager.NetworkCallback): Boolean {
         when (Build.VERSION.SDK_INT) {
             in 31..Int.MAX_VALUE -> @RequiresApi(31) {
                 resolveAndroidRepository().connectivity.registerBestMatchingNetworkCallback(
                     request,
-                    Callback,
+                    callback,
                     mainHandler,
                 )
             }
 
             in 28 until 31 -> @RequiresApi(28) {  // we want REQUEST here instead of LISTEN
-                resolveAndroidRepository().connectivity.requestNetwork(request, Callback, mainHandler)
+                resolveAndroidRepository().connectivity.requestNetwork(request, callback, mainHandler)
             }
 
             in 26 until 28 -> @RequiresApi(26) {
-                resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
+                resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(callback, mainHandler)
             }
 
-            in 24 until 26 ->  {
-                resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(Callback)
+            in 24 until 26 -> {
+                resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(callback)
             }
 
-            else -> try {
-                fallback = false
-                resolveAndroidRepository().connectivity.requestNetwork(request, Callback)
-            } catch (_: RuntimeException) {
-                // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
-                fallback = true
-            }
         }
+        return true
     }
 
-    private fun unregister() {
+    private fun unregister(callback: ConnectivityManager.NetworkCallback) {
         runCatching {
-            resolveAndroidRepository().connectivity.unregisterNetworkCallback(Callback)
+            resolveAndroidRepository().connectivity.unregisterNetworkCallback(callback)
         }
     }
 }

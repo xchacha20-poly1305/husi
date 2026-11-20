@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.koin.core.context.GlobalContext
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
@@ -60,12 +59,19 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         }
     }
 
+    suspend fun shutdown() {
+        super.close()
+        try {
+            trafficLooper?.stop()
+        } finally {
+            trafficLooper = null
+            looperScope.cancel()
+        }
+    }
+
     override fun close() {
         super.close()
-        runBlocking {
-            trafficLooper?.stop()
-            trafficLooper = null
-        }
+        trafficLooper = null
         looperScope.cancel()
     }
 }

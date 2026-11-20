@@ -1,21 +1,3 @@
-/******************************************************************************
- * Copyright (C) 2022 by nekohasekai <contact-git@sekai.icu>                  *
- *                                                                            *
- * This program is free software: you can redistribute it and/or modify       *
- * it under the terms of the GNU General Public License as published by       *
- * the Free Software Foundation, either version 3 of the License, or          *
- *  (at your option) any later version.                                       *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
- *                                                                            *
- ******************************************************************************/
-
 package fr.husi.tasker
 
 import android.content.Intent
@@ -33,13 +15,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material3.AlertDialog
-import fr.husi.compose.ProvidePreferenceLocals
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import fr.husi.compose.CapsuleTopBar
-import fr.husi.compose.ListPreference
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -52,8 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import fr.husi.compose.CapsuleTopBar
+import fr.husi.compose.ListPreference
+import fr.husi.compose.ProvidePreferenceLocals
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.ProfileManager
@@ -82,7 +65,7 @@ import fr.husi.resources.tasker_start_current_profile
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.ui.ComposeActivity
 import fr.husi.ui.configuration.ProfileSelectSheet
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ListPreferenceType
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -207,39 +190,39 @@ class TaskerActivity : ComposeActivity() {
     }
 
     private fun saveAndExit() {
-        setResult(RESULT_OK, buildIntent())
-        finish()
+        lifecycleScope.launch {
+            setResult(RESULT_OK, buildIntent())
+            finish()
+        }
     }
 
-    private fun buildIntent(): Intent {
+    private suspend fun buildIntent(): Intent {
         val uiState = viewModel.uiState.value
         val action = uiState.action
         val profileId = uiState.profileID
         settings.action = action
         settings.profileId = profileId
-        val blurb = runBlocking {
-            when (action) {
-                TaskerBundle.ACTION_START -> {
-                    val entity = if (profileId > 0) {
-                        ProfileManager.getProfile(profileId)
-                    } else {
-                        null
-                    }
-                    if (entity != null) {
-                        resolveRepository().getString(
-                            Res.string.tasker_blurb_start_profile, entity.displayName(),
-                        )
-                    } else {
-                        resolveRepository().getString(Res.string.tasker_action_start_service)
-                    }
+        val blurb = when (action) {
+            TaskerBundle.ACTION_START -> {
+                val entity = if (profileId > 0) {
+                    ProfileManager.getProfile(profileId)
+                } else {
+                    null
                 }
-
-                TaskerBundle.ACTION_STOP -> {
-                    resolveRepository().getString(Res.string.tasker_action_stop_service)
+                if (entity != null) {
+                    resolveRepository().getString(
+                        Res.string.tasker_blurb_start_profile, entity.displayName(),
+                    )
+                } else {
+                    resolveRepository().getString(Res.string.tasker_action_start_service)
                 }
-
-                else -> ""
             }
+
+            TaskerBundle.ACTION_STOP -> {
+                resolveRepository().getString(Res.string.tasker_action_stop_service)
+            }
+
+            else -> ""
         }
         return Intent().apply {
             putExtra(TaskerBundle.EXTRA_BUNDLE, settings.bundle)
@@ -254,9 +237,11 @@ class TaskerActivity : ComposeActivity() {
         ProvidePreferenceLocals {
             val uiState by viewModel.uiState.collectAsState()
 
+            val startServiceText = stringResource(Res.string.tasker_action_start_service)
+            val stopServiceText = stringResource(Res.string.tasker_action_stop_service)
             fun actionText(action: Int) = when (action) {
-                TaskerBundle.ACTION_START -> Res.string.tasker_action_start_service
-                TaskerBundle.ACTION_STOP -> Res.string.tasker_action_stop_service
+                TaskerBundle.ACTION_START -> startServiceText
+                TaskerBundle.ACTION_STOP -> stopServiceText
                 else -> error("impossible")
             }
             ListPreference(
@@ -265,14 +250,15 @@ class TaskerActivity : ComposeActivity() {
                 values = intListN(2),
                 title = { Text(stringResource(Res.string.tasker_action)) },
                 icon = { Icon(vectorResource(Res.drawable.layers), null) },
-                summary = { Text(stringResource(actionText(uiState.action))) },
+                summary = { Text(actionText(uiState.action)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = {
-                    val text = runBlocking { resolveRepository().getString(actionText(it)) }
-                    AnnotatedString(text)
+                    AnnotatedString(actionText(it))
                 },
             )
 
+            val startCurrentProfileText = stringResource(Res.string.tasker_start_current_profile)
+            val selectProfileText = stringResource(Res.string.select_profile)
             ListPreference(
                 value = uiState.profileID,
                 onValueChange = {
@@ -298,12 +284,11 @@ class TaskerActivity : ComposeActivity() {
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = {
-                    val id = if (it == -1L) {
-                        Res.string.tasker_start_current_profile
+                    val text = if (it == -1L) {
+                        startCurrentProfileText
                     } else {
-                        Res.string.select_profile
+                        selectProfileText
                     }
-                    val text = runBlocking { resolveRepository().getString(id) }
                     AnnotatedString(text)
                 },
             )
