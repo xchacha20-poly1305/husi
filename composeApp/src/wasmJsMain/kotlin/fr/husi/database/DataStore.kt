@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.PreferencesSerializer
 import androidx.datastore.preferences.core.emptyPreferences
 import fr.husi.compose.theme.RED
 import fr.husi.database.preference.DataStorePreferenceDataStore
+import fr.husi.database.preference.string
 
 object DataStore : ApplicationPreferences(
     DataStorePreferenceDataStore.create(
@@ -16,4 +17,11 @@ object DataStore : ApplicationPreferences(
         ),
     ),
     defaultTheme = { RED },
-)
+) {
+    private const val KEY_CLASH_STORAGE_BACKUP_KEY = "clashStorageBackupKey"
+    const val DEFAULT_CLASH_STORAGE_BACKUP_KEY = "husi"
+
+    val clashStorageBackupKey = configurationStore.string(KEY_CLASH_STORAGE_BACKUP_KEY) {
+        DEFAULT_CLASH_STORAGE_BACKUP_KEY
+    }
+}

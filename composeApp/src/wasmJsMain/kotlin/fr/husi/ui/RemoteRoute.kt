@@ -24,6 +24,8 @@ internal sealed interface RemoteRoute : NavKey {
 
     @Serializable data object Tools : RemoteRoute
 
+    @Serializable data object Backup : RemoteRoute
+
     @Serializable data object Settings : RemoteRoute
 
     @Serializable data object GeneralSettings : RemoteRoute
@@ -64,6 +66,7 @@ internal sealed interface RemoteRoute : NavKey {
                     subclass(Providers::class, Providers.serializer())
                     subclass(Dns::class, Dns.serializer())
                     subclass(Tools::class, Tools.serializer())
+                    subclass(Backup::class, Backup.serializer())
                     subclass(Servers::class, Servers.serializer())
                     subclass(Settings::class, Settings.serializer())
                     subclass(GeneralSettings::class, GeneralSettings.serializer())

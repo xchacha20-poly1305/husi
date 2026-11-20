@@ -17,7 +17,6 @@ import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.ui.dashboard.DashboardState
 import fr.husi.ui.openconnect.RemoteOpenConnectActions
 import fr.husi.ui.openvpn.RemoteOpenVPNActions
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -25,12 +24,15 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import kotlin.time.Duration.Companion.seconds
 
 internal class RemoteState(
     private val scope: CoroutineScope,
@@ -97,8 +99,15 @@ internal class RemoteState(
         error = failure.message ?: failure.toString()
     }
 
+    private sealed interface ReplacementState {
+        data object Idle : ReplacementState
+        data object InProgress : ReplacementState
+        data class Expected(val activeId: Long) : ReplacementState
+    }
+
     private var session: Job? = null
     private var generation = 0
+    private val replacementState = MutableStateFlow<ReplacementState>(ReplacementState.Idle)
     val detector = BackendDetector(client, openClash)
 
     private companion object {
@@ -108,26 +117,41 @@ internal class RemoteState(
 
     init {
         scope.launch {
-            combine(serverStore.observe(), activeServerId.flow()) { servers, activeId ->
-                servers to servers.firstOrNull { it.id == activeId }
+            combine(serverStore.observe(), activeServerId.flow(), replacementState) { servers, activeId, replacement ->
+                Triple(servers, activeId, replacement)
             }
                 .catch { failure ->
                     if (failure is CancellationException) throw failure
                     reportCriticalError("Remote server storage failed", failure)
                     initialized = true
                 }
-                .collect { (servers, server) ->
-                    this@RemoteState.servers.clear()
-                    this@RemoteState.servers.addAll(servers)
-                    if (selected != server) {
-                        if (server == null) {
-                            stopSession()
-                        } else {
-                            startSession(server)
+                .collect { (servers, activeId, replacement) ->
+                    when (replacement) {
+                        ReplacementState.InProgress -> return@collect
+                        is ReplacementState.Expected -> {
+                            if (activeId != replacement.activeId) {
+                                return@collect
+                            }
+                            replacementState.value = ReplacementState.Idle
                         }
+
+                        ReplacementState.Idle -> Unit
                     }
+                    applyServerList(servers, servers.firstOrNull { it.id == activeId })
                     initialized = true
                 }
+        }
+    }
+
+    private fun applyServerList(servers: List<RemoteServer>, server: RemoteServer?) {
+        this.servers.clear()
+        this.servers.addAll(servers)
+        if (selected != server) {
+            if (server == null) {
+                stopSession()
+            } else {
+                startSession(server)
+            }
         }
     }
 
@@ -140,7 +164,37 @@ internal class RemoteState(
         scope.launch { Logs.w(getString(resource)) }
     }
 
+    suspend fun listServers(): List<RemoteServer> = serverStore.observe().first()
+
     suspend fun save(server: RemoteServer): RemoteServer = serverStore.save(server)
+
+    suspend fun replaceServers(servers: List<RemoteServer>): List<RemoteServer> {
+        val previous = selected
+        replacementState.value = ReplacementState.InProgress
+        return try {
+            val replaced = serverStore.replaceAll(servers)
+            val next = if (previous != null) {
+                replaced.firstOrNull {
+                    it.url == previous.url
+                        && it.secret == previous.secret
+                        && it.backend == previous.backend
+                }
+                    ?: replaced.firstOrNull { it.id == previous.id }
+                    ?: replaced.firstOrNull()
+            } else {
+                replaced.firstOrNull()
+            }
+            val nextId = next?.id ?: 0L
+            activeServerId.set(nextId)
+            replacementState.value = ReplacementState.Expected(nextId)
+            applyServerList(replaced, next)
+            replaced
+        } finally {
+            if (replacementState.value === ReplacementState.InProgress) {
+                replacementState.value = ReplacementState.Idle
+            }
+        }
+    }
 
     suspend fun delete(server: RemoteServer) {
         serverStore.delete(server.id)
@@ -148,11 +202,17 @@ internal class RemoteState(
     }
 
     fun connect(server: RemoteServer) {
-        scope.launch { activeServerId.set(server.id) }
+        scope.launch {
+            replacementState.value = ReplacementState.Idle
+            activeServerId.set(server.id)
+        }
     }
 
     fun disconnect() {
-        scope.launch { activeServerId.set(0L) }
+        scope.launch {
+            replacementState.value = ReplacementState.Idle
+            activeServerId.set(0L)
+        }
     }
 
     private fun stopSession() {

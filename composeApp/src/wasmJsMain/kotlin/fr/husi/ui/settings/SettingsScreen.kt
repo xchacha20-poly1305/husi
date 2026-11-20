@@ -14,7 +14,9 @@ import fr.husi.database.DataStore
 import fr.husi.resources.Res
 import fr.husi.remote.RemoteState
 import org.koin.compose.koinInject
+import fr.husi.resources.backup
 import fr.husi.resources.clash_providers
+import fr.husi.resources.file_export
 import fr.husi.resources.general_settings
 import fr.husi.resources.info
 import fr.husi.resources.menu_about
@@ -58,6 +60,11 @@ internal fun SettingsScreen() {
                 title = { Text(stringResource(Res.string.tools_network)) },
                 icon = { MaskedIcon(Res.drawable.wifi, IconMaskColors.IconLightBlue) },
                 onClick = { navigator.navigateTo(RemoteRoute.Tools) },
+            )
+            Preference(
+                title = { Text(stringResource(Res.string.backup)) },
+                icon = { MaskedIcon(Res.drawable.file_export, IconMaskColors.IconLightYellow) },
+                onClick = { navigator.navigateTo(RemoteRoute.Backup) },
             )
             Preference(
                 title = { Text(stringResource(Res.string.menu_about)) },

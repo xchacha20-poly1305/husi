@@ -42,6 +42,8 @@ import fr.husi.ui.tailscale.RemoteExitNodeBinding
 import fr.husi.ui.tailscale.RemoteInboxBinding
 import fr.husi.ui.tailscale.RemotePeerBinding
 import fr.husi.ui.tailscale.RemoteSshBinding
+import fr.husi.ui.tools.BackupViewModel
+import fr.husi.ui.tools.RemoteBackupBinding
 import fr.husi.ui.tools.RemoteNetworkBinding
 import fr.husi.ui.tools.RemoteNetworkQualityPresenter
 import fr.husi.ui.tools.RemoteQualityBinding
@@ -79,6 +81,7 @@ internal val remoteApplicationModule = module {
         viewModel { RemoteLogViewModel(get()) }
         viewModel { RemoteStunPresenter(get()) }
         viewModel { RemoteNetworkQualityPresenter(get()) }
+        viewModel { BackupViewModel(remote = get()) }
         viewModel { parameters -> RemotePeerModel(parameters.get(), get()) }
         viewModel { parameters -> RemoteInboxModel(parameters.get(), get()) }
 
@@ -91,6 +94,7 @@ internal val remoteApplicationModule = module {
         navigation<RemoteRoute.Providers> { ClashProvidersBinding() }
         navigation<RemoteRoute.Dns> { ClashDnsBinding() }
         navigation<RemoteRoute.Tools> { RemoteNetworkBinding() }
+        navigation<RemoteRoute.Backup> { RemoteBackupBinding() }
         navigation<RemoteRoute.Settings> { SettingsScreen() }
         navigation<RemoteRoute.GeneralSettings> { GeneralSettingsScreen() }
         navigation<RemoteRoute.About> { RemoteAboutBinding() }

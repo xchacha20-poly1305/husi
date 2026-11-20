@@ -50,4 +50,19 @@
     <string name="clash_dns_authority">Authority records</string>
     <string name="clash_dns_additional">Additional records</string>
     <string name="clash_dns_ttl">TTL: %1$s s</string>
+    <string name="web_backup_servers">Remote servers</string>
+    <string name="web_backup_import_summary">Import remote servers and settings from a backup file.</string>
+    <string name="web_backup_invalid_file">Selected file is not a .json backup file.</string>
+    <string name="web_clash_storage">Remote storage</string>
+    <string name="web_clash_storage_summary">Sync backups through the Clash Storage API.</string>
+    <string name="web_clash_storage_key">Storage key</string>
+    <string name="web_clash_storage_key_invalid">Key must be 1–64 bytes without / or ..</string>
+    <string name="web_clash_storage_push">Push to remote</string>
+    <string name="web_clash_storage_push_summary">Pushes the items selected under Export.</string>
+    <string name="web_clash_storage_push_success">Backup pushed to remote</string>
+    <string name="web_clash_storage_pull">Pull from remote</string>
+    <string name="web_clash_storage_empty">No remote backup found.</string>
+    <string name="web_clash_storage_delete">Delete remote backup</string>
+    <string name="web_clash_storage_delete_confirm">Remove backup \"%1$s\" from remote storage?</string>
+    <string name="web_clash_storage_delete_success">Remote backup deleted</string>
 </resources>

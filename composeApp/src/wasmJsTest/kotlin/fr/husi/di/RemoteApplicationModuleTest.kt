@@ -15,6 +15,7 @@ import fr.husi.test.FakeRemoteServerStore
 import fr.husi.ui.MainScreenScope
 import fr.husi.ui.remote.RemoteServerEditor
 import fr.husi.ui.remote.RemoteServerTestState
+import fr.husi.ui.tools.BackupViewModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -85,6 +86,9 @@ class RemoteApplicationModuleTest {
             )
             assertSame(client, remote.client)
             assertTrue(scope.get<RemoteSshSessions>().sessions.isEmpty())
+            val backupViewModel = scope.get<BackupViewModel>()
+            store.put("backup", backupViewModel)
+            assertTrue(backupViewModel.uiState.value.hasSelection)
 
             val existingEditor = scope.get<RemoteServerEditor> { parametersOf(server.id) }
             store.put("existingEditor", existingEditor)

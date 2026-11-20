@@ -27,7 +27,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFalse
+import kotlin.test.assertNotSame
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -382,6 +384,105 @@ class RemoteStateTest {
         state.action { setMode("global") }
         runCurrent()
         assertEquals("", state.error)
+    }
+
+    @Test
+    fun `replaceServers keeps matching active server connected and avoids transient disconnect`() = runTest {
+        val api = FakeClashApi().apply {
+            handler = { operation, _ ->
+                Json.parseToJsonElement(
+                    when (operation) {
+                        "version" -> """{"version":"fixture"}"""
+                        "proxies" -> "{}"
+                        "config" -> """{"mode":"rule"}"""
+                        else -> error(operation)
+                    },
+                )
+            }
+        }
+        val state = RemoteState(
+            backgroundScope,
+            FakeRemoteClient(),
+            FakeRemoteServerStore(),
+            flowOf(1000),
+            FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
+            openClash = { _, _ -> api },
+        )
+        val first = state.save(server.copy(name = "Clash A", backend = RemoteBackend.CLASH))
+        state.connect(first)
+        runCurrent()
+        assertTrue(state.connected)
+        val initialSession = state.currentSession
+
+        // Identical credentials with a different server ID switches directly without dropping to null.
+        val replacedSameEndpoint = state.replaceServers(
+            listOf(
+                RemoteServer(
+                    id = 42L,
+                    userOrder = 1L,
+                    name = "Clash A Renamed",
+                    url = first.url,
+                    secret = first.secret,
+                    backend = RemoteBackend.CLASH,
+                ),
+            ),
+        )
+        assertEquals(42L, state.selected?.id)
+        assertEquals(replacedSameEndpoint, state.servers.toList())
+        runCurrent()
+        assertTrue(state.connected)
+        assertEquals(42L, state.selected?.id)
+        assertNotSame(initialSession, state.currentSession)
+
+        // Keeping exact same server object keeps existing session intact.
+        val activeSession = state.currentSession
+        state.replaceServers(replacedSameEndpoint)
+        runCurrent()
+        assertTrue(state.connected)
+        assertSame(activeSession, state.currentSession)
+
+        // Replacing with an unrelated server selects the first restored server.
+        val replacement = RemoteServer(
+            id = 99L,
+            userOrder = 1L,
+            name = "Clash B",
+            url = "https://other.example",
+            secret = "other",
+            backend = RemoteBackend.CLASH,
+        )
+        state.replaceServers(listOf(replacement))
+        assertEquals(replacement, state.selected)
+        runCurrent()
+        assertTrue(state.connected)
+        assertEquals(replacement, state.selected)
+
+        // Replacing with empty list disconnects cleanly.
+        state.replaceServers(emptyList())
+        runCurrent()
+        assertNull(state.selected)
+        assertFalse(state.connected)
+        assertTrue(state.servers.isEmpty())
+    }
+
+    @Test
+    fun `failed replaceServers keeps existing servers and active connection intact`() = runTest {
+        val client = RecordingClient { testScheduler.currentTime }
+        val store = FakeRemoteServerStore()
+        val state = state(client, store)
+        val saved = state.save(server)
+        state.connect(saved)
+        runCurrent()
+        assertTrue(state.connected)
+
+        store.writeFailure = IllegalStateException("Storage error")
+        assertFails {
+            state.replaceServers(listOf(server.copy(id = 2L, url = "https://other.example")))
+        }
+        runCurrent()
+
+        assertEquals(saved, state.selected)
+        assertEquals(listOf(saved), state.servers.toList())
+        assertTrue(state.connected)
     }
 
     private fun TestScope.state(client: RemoteClient, store: FakeRemoteServerStore = FakeRemoteServerStore()) =

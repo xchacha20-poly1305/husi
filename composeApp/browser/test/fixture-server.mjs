@@ -8,6 +8,7 @@ import {WebSocketServer} from "ws";
 const root = resolve(process.argv[2] ?? fileURLToPath(new URL("../../build/dist/wasmJs/productionExecutable", import.meta.url)));
 const port = Number(process.argv[3] ?? 18088);
 const events = [];
+const storage = new Map();
 let disabled = false;
 const config = {
     mode: "rule",
@@ -147,6 +148,30 @@ const server = createServer(async (req, res) => {
         }
         if (url.pathname.startsWith("/controller/connections") && req.method === "DELETE") {
             return json(res, undefined, 204);
+        }
+        if (url.pathname.startsWith("/controller/storage/")) {
+            const key = decodeURIComponent(url.pathname.slice("/controller/storage/".length));
+            if (req.method === "GET") {
+                return json(res, storage.has(key) ? storage.get(key) : null);
+            }
+            if (req.method === "PUT") {
+                if (Buffer.byteLength(body) > 1024 * 1024) {
+                    return json(res, {message: "payload exceeds 1MB limit"}, 413);
+                }
+                let parsed;
+                try {
+                    parsed = JSON.parse(body);
+                } catch {
+                    return json(res, {message: "Bad Request"}, 400);
+                }
+                storage.set(key, parsed);
+                return json(res, undefined, 204);
+            }
+            if (req.method === "DELETE") {
+                storage.delete(key);
+                return json(res, undefined, 204);
+            }
+            return json(res, {message: "Method Not Allowed"}, 405);
         }
         return json(res, {message: "Unsupported fixture endpoint"}, 404);
     }

@@ -50,4 +50,19 @@
     <string name="clash_dns_authority">权威记录</string>
     <string name="clash_dns_additional">附加记录</string>
     <string name="clash_dns_ttl">TTL：%1$s 秒</string>
+    <string name="web_backup_servers">远程服务器</string>
+    <string name="web_backup_import_summary">从备份文件导入远程服务器和设置。</string>
+    <string name="web_backup_invalid_file">所选文件不是 .json 备份文件。</string>
+    <string name="web_clash_storage">远端存储</string>
+    <string name="web_clash_storage_summary">通过 Clash Storage API 同步备份。</string>
+    <string name="web_clash_storage_key">存储键</string>
+    <string name="web_clash_storage_key_invalid">键名须为 1–64 字节，且不能包含 / 或 ..</string>
+    <string name="web_clash_storage_push">推送到远端</string>
+    <string name="web_clash_storage_push_summary">推送“导出”中勾选的项目。</string>
+    <string name="web_clash_storage_push_success">已推送备份到远端</string>
+    <string name="web_clash_storage_pull">从远端拉取</string>
+    <string name="web_clash_storage_empty">未找到远端备份。</string>
+    <string name="web_clash_storage_delete">删除远端备份</string>
+    <string name="web_clash_storage_delete_confirm">从远端存储中删除备份“%1$s”？</string>
+    <string name="web_clash_storage_delete_success">已删除远端备份</string>
 </resources>

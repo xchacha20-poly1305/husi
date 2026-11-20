@@ -57,6 +57,12 @@ internal object ClashRequests {
 
     fun dns(name: String, type: String) = request<ClashDnsResponse>("dns", "name" to name, "type" to type)
 
+    fun storageGet(key: String): ClashRequest<JsonElement> = ClashRequest("storageGet", mapOf("key" to key)) { it }
+
+    fun storagePut(key: String, value: String) = command("storagePut", "key" to key, "value" to value)
+
+    fun storageDelete(key: String) = command("storageDelete", "key" to key)
+
     private inline fun <reified T> request(operation: String, vararg input: Pair<String, String>): ClashRequest<T> {
         return ClashRequest(operation, input.toMap()) {
             clashJson.decodeFromJsonElement<T>(it)

@@ -151,6 +151,71 @@ class IndexedDbRemoteServerStoreTest {
             deleteDatabase(name).await()
         }
     }
+
+    @Test
+    fun `replaceAll atomically replaces records with valid or generated IDs and notifies observers`() = runTest {
+        val name = uniqueDatabaseName()
+        val writer = IndexedDbRemoteServerStore(name)
+        val reader = IndexedDbRemoteServerStore(name)
+        val updates = Channel<List<RemoteServer>>(Channel.UNLIMITED)
+        val collector = backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            reader.observe().collect { updates.send(it) }
+        }
+        try {
+            assertEquals(emptyList(), updates.receive())
+            val old = writer.save(RemoteServer(name = "Old", url = "http://old.example"))
+            assertEquals(listOf(old), updates.receive())
+
+            val replaced = writer.replaceAll(
+                listOf(
+                    RemoteServer(id = 0L, userOrder = 0L, name = "Generated", url = "http://gen.example"),
+                    RemoteServer(id = 5L, userOrder = 2L, name = "Explicit", url = "http://exp.example", backend = RemoteBackend.CLASH),
+                    RemoteServer(id = 5L, userOrder = 1L, name = "DuplicateId", url = "http://dup.example"),
+                ),
+            )
+            assertEquals(3, replaced.size)
+            assertEquals(3, replaced.map { it.id }.toSet().size)
+            assertEquals(listOf("DuplicateId", "Explicit", "Generated"), replaced.map { it.name })
+            assertEquals(5L, replaced.first { it.name == "Explicit" }.id)
+            assertEquals(replaced, updates.receive())
+
+            writer.close()
+            val reopened = IndexedDbRemoteServerStore(name)
+            try {
+                assertEquals(replaced, reopened.observe().first())
+                assertEquals(emptyList(), reopened.replaceAll(emptyList()))
+                assertEquals(emptyList(), updates.receive())
+            } finally {
+                reopened.close()
+            }
+        } finally {
+            collector.cancel()
+            writer.close()
+            reader.close()
+            deleteDatabase(name).await()
+        }
+    }
+
+    @Test
+    fun `aborted replaceAll leaves existing records unchanged`() = runTest {
+        val name = uniqueDatabaseName()
+        val store = IndexedDbRemoteServerStore(name)
+        try {
+            val original = store.save(RemoteServer(name = "Original", url = "http://original.example"))
+            val failure = abortNextWrite(name)
+            try {
+                assertFails {
+                    store.replaceAll(listOf(RemoteServer(name = "Replacement", url = "http://new.example")))
+                }
+            } finally {
+                failure.close()
+            }
+            assertEquals(listOf(original), store.observe().first())
+        } finally {
+            store.close()
+            deleteDatabase(name).await()
+        }
+    }
 }
 
 @JsFun("() => 'husi-test-servers-' + Date.now() + '-' + Math.random()")

@@ -17,6 +17,8 @@ class RemoteRouteTest {
         assertFalse(remoteRouteAvailable(RemoteRoute.Stun, true))
         assertFalse(remoteRouteAvailable(RemoteRoute.Peer("tag", "peer"), true))
         assertTrue(remoteRouteAvailable(RemoteRoute.Settings, true))
+        assertTrue(remoteRouteAvailable(RemoteRoute.Backup, true))
+        assertTrue(remoteRouteAvailable(RemoteRoute.Backup, false))
     }
 
     @Test
@@ -28,7 +30,7 @@ class RemoteRouteTest {
         val routes = listOf(
             RemoteRoute.Setup,
             RemoteRoute.Stats, RemoteRoute.ProxySet, RemoteRoute.Connections, RemoteRoute.Logs,
-            RemoteRoute.Tools, RemoteRoute.Servers, RemoteRoute.GeneralSettings,
+            RemoteRoute.Tools, RemoteRoute.Backup, RemoteRoute.Servers, RemoteRoute.GeneralSettings,
             RemoteRoute.Rules, RemoteRoute.Providers, RemoteRoute.Dns,
             RemoteRoute.Settings, RemoteRoute.About, RemoteRoute.Libraries,
             RemoteRoute.ServerEdit(1L), RemoteRoute.Stun, RemoteRoute.NetworkQuality,
@@ -81,6 +83,7 @@ class RemoteRouteTest {
         for (destination in listOf(
             RemoteRoute.GeneralSettings,
             RemoteRoute.Tools,
+            RemoteRoute.Backup,
             RemoteRoute.Servers,
         )) {
             val stack = mutableListOf<NavKey>(RemoteRoute.Stats)

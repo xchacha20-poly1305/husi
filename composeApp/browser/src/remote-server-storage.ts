@@ -81,6 +81,69 @@ class RemoteServerStorage {
         return JSON.stringify(saved);
     }
 
+    async replaceAll(value: string): Promise<string> {
+        const raw = JSON.parse(value);
+        if (!Array.isArray(raw)) throw new Error("Invalid server list");
+        const normalized: RemoteServer[] = raw.map(item => {
+            if (typeof item !== "object" || item === null || Array.isArray(item)) {
+                throw new Error("Invalid server entry");
+            }
+            const server: RemoteServer = {
+                id: 0, userOrder: 0, name: "", url: "", secret: "", ...item,
+            };
+            if (!Number.isSafeInteger(server.id) || server.id < 0 ||
+                !Number.isSafeInteger(server.userOrder) || server.userOrder < 0) {
+                throw new Error("Invalid server ID or order");
+            }
+            return server;
+        });
+        let nextOrder = 0;
+        for (const server of normalized) {
+            if (server.userOrder > nextOrder) {
+                nextOrder = server.userOrder;
+            }
+        }
+        const usedIds = new Set<number>();
+        const prepared = normalized.map(server => {
+            const userOrder = server.userOrder || ++nextOrder;
+            const keepId = server.id > 0 && !usedIds.has(server.id);
+            if (keepId) {
+                usedIds.add(server.id);
+            }
+            return {server: {...server, userOrder}, keepId};
+        });
+        const ordered = [
+            ...prepared.filter(entry => entry.keepId),
+            ...prepared.filter(entry => !entry.keepId),
+        ];
+        const replaced = await this.transaction<RemoteServer[]>("readwrite", (store, result) => {
+            const inserted: RemoteServer[] = [];
+            const cleared = store.clear();
+            cleared.onsuccess = () => {
+                if (ordered.length === 0) {
+                    result([]);
+                    return;
+                }
+                for (const entry of ordered) {
+                    const record: Omit<RemoteServer, "id"> & {id?: number} = {...entry.server};
+                    if (!entry.keepId) {
+                        delete record.id;
+                    }
+                    const added = store.add(record);
+                    added.onsuccess = () => {
+                        inserted.push({...entry.server, id: added.result as number});
+                        if (inserted.length === ordered.length) {
+                            inserted.sort((left, right) => left.userOrder - right.userOrder || left.id - right.id);
+                            result(inserted);
+                        }
+                    };
+                }
+            };
+        });
+        this.changed();
+        return JSON.stringify(replaced);
+    }
+
     async delete(id: string): Promise<void> {
         const key = Number(id);
         if (!Number.isSafeInteger(key) || key <= 0) throw new Error("Invalid server ID");

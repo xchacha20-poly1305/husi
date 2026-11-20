@@ -28,6 +28,9 @@ internal class IndexedDbRemoteServerStore(databaseName: String = "husi-remote") 
     override suspend fun save(server: RemoteServer): RemoteServer =
         Json.decodeFromString(stringValue(storage.save(Json.encodeToString(server)).await()))
 
+    override suspend fun replaceAll(servers: List<RemoteServer>): List<RemoteServer> =
+        Json.decodeFromString(stringValue(storage.replaceAll(Json.encodeToString(servers)).await()))
+
     override suspend fun delete(id: Long) {
         storage.delete(id.toString()).await()
     }
@@ -38,6 +41,7 @@ internal class IndexedDbRemoteServerStore(databaseName: String = "husi-remote") 
 private external interface ServerStorage : JsAny {
     fun list(): Promise<JsString>
     fun save(server: String): Promise<JsString>
+    fun replaceAll(servers: String): Promise<JsString>
     fun delete(id: String): Promise<JsAny?>
     fun subscribe(onChange: () -> Unit): StorageSubscription
     fun close()

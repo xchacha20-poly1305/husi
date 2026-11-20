@@ -43,6 +43,67 @@ class DataStorePreferenceDataStore private constructor(
         fun create(dataStore: DataStore<Preferences>): DataStorePreferenceDataStore {
             return DataStorePreferenceDataStore(dataStore)
         }
+
+        fun validateBackupJson(json: JsonObject) {
+            parseBackupEntries(json)
+        }
+
+        private fun parseBackupEntries(
+            json: JsonObject,
+            skipKeys: Set<String> = emptySet(),
+        ): List<Pair<Preferences.Key<*>, Any>> {
+            val versionElement = json[KEY_BACKUP_VERSION]
+            val version = versionElement?.jsonPrimitive?.longOrNull
+            if (version != BACKUP_VERSION) {
+                throw IllegalArgumentException("Backup version mismatch: $version")
+            }
+
+            val entries = mutableListOf<Pair<Preferences.Key<*>, Any>>()
+            for ((key, value) in json) {
+                if (key == KEY_BACKUP_VERSION || key == KEY_MIGRATION || key in skipKeys) continue
+
+                val holder = value as? JsonObject ?: error("invalid holder of key: $key")
+                val typeElement = holder[FIELD_TYPE]?.jsonPrimitive?.intOrNull
+                    ?: error("missing type for key: $key")
+                val type = ValueType.fromJson(typeElement)
+                when (type) {
+                    ValueType.BOOLEAN -> {
+                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.booleanOrNull ?: false
+                        entries.add(Pair(booleanPreferencesKey(key), v))
+                    }
+
+                    ValueType.FLOAT -> {
+                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.doubleOrNull?.toFloat() ?: 0f
+                        entries.add(Pair(floatPreferencesKey(key), v))
+                    }
+
+                    ValueType.INT, ValueType.LONG -> {
+                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.longOrNull
+                        if (v != null) {
+                            entries.add(Pair(longPreferencesKey(key), v))
+                        }
+                    }
+
+                    ValueType.STRING -> {
+                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.contentOrNull
+                        if (v != null) {
+                            entries.add(Pair(stringPreferencesKey(key), v))
+                        }
+                    }
+
+                    ValueType.STRING_SET -> {
+                        val arr = holder[FIELD_VALUE] as? JsonArray
+                        val set = buildSet {
+                            if (arr != null) {
+                                for (element in arr) add(element.jsonPrimitive.content)
+                            }
+                        }
+                        entries.add(Pair(stringSetPreferencesKey(key), set))
+                    }
+                }
+            }
+            return entries
+        }
     }
 
     suspend fun <T> readValue(key: Preferences.Key<T>): T? = dataStore.data.first()[key]
@@ -86,12 +147,12 @@ class DataStorePreferenceDataStore private constructor(
         }
     }
 
-    suspend fun exportToJson(): JsonObject {
+    suspend fun exportToJson(excludeKeys: Set<String> = emptySet()): JsonObject {
         val preferences = dataStore.data.first()
         val map = mutableMapOf<String, JsonElement>()
         map[KEY_BACKUP_VERSION] = JsonPrimitive(BACKUP_VERSION)
         preferences.asMap().forEach { (key, value) ->
-            if (key.name == KEY_MIGRATION) {
+            if (key.name == KEY_MIGRATION || key.name in excludeKeys) {
                 return@forEach
             }
             map[key.name] = toValueHolder(value)
@@ -112,60 +173,25 @@ class DataStorePreferenceDataStore private constructor(
         }
     }
 
-    suspend fun importFromJson(json: JsonObject) {
-        val versionElement = json[KEY_BACKUP_VERSION]
-        val version = versionElement?.jsonPrimitive?.longOrNull
-        if (version != BACKUP_VERSION) {
-            throw IllegalArgumentException("Backup version mismatch: $version")
-        }
+    suspend fun importFromJson(
+        json: JsonObject,
+        preserveKeys: Set<String> = emptySet(),
+    ) {
+        val entries = parseBackupEntries(json, skipKeys = preserveKeys)
 
-        val changedKeys = HashSet<String>()
         dataStore.edit { prefs ->
+            val preserved = if (preserveKeys.isEmpty()) {
+                emptyMap()
+            } else {
+                prefs.asMap().filterKeys { it.name in preserveKeys }.toMap()
+            }
             prefs.clear()
 
-            for ((key, value) in json) {
-                if (key == KEY_BACKUP_VERSION || key == KEY_MIGRATION) continue
-
-                val holder = value as? JsonObject ?: error("invalid holder of key: $key")
-                val typeElement = holder[FIELD_TYPE]?.jsonPrimitive?.intOrNull
-                    ?: error("missing type for key: $key")
-                val type = ValueType.fromJson(typeElement)
-                when (type) {
-                    ValueType.BOOLEAN -> {
-                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.booleanOrNull ?: false
-                        prefs[booleanPreferencesKey(key)] = v
-                        changedKeys += key
-                    }
-
-                    ValueType.FLOAT -> {
-                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.doubleOrNull?.toFloat() ?: 0f
-                        prefs[floatPreferencesKey(key)] = v
-                        changedKeys += key
-                    }
-
-                    ValueType.INT, ValueType.LONG -> {
-                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.longOrNull
-                        v?.let { prefs[longPreferencesKey(key)] = it }
-                        if (v != null) changedKeys += key
-                    }
-
-                    ValueType.STRING -> {
-                        val v = holder[FIELD_VALUE]?.jsonPrimitive?.contentOrNull
-                        v?.let { prefs[stringPreferencesKey(key)] = it }
-                        if (v != null) changedKeys += key
-                    }
-
-                    ValueType.STRING_SET -> {
-                        val arr = holder[FIELD_VALUE] as? JsonArray
-                        val set = buildSet {
-                            if (arr != null) {
-                                for (element in arr) add(element.jsonPrimitive.content)
-                            }
-                        }
-                        prefs[stringSetPreferencesKey(key)] = set
-                        changedKeys += key
-                    }
-                }
+            for ((key, value) in entries) {
+                prefs[key as Preferences.Key<Any>] = value
+            }
+            for ((key, value) in preserved) {
+                prefs[key as Preferences.Key<Any>] = value
             }
         }
     }

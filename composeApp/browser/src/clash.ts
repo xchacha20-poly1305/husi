@@ -108,6 +108,9 @@ export class ClashSession {
             case "providerDelay": return this.client.proxyProviders.delayProxy(args.provider, args.name, undefined, options);
             case "updateRuleProvider": return this.client.ruleProviders.update(args.name, options);
             case "dns": return this.client.dns.query({name: args.name, type: args.type}, options);
+            case "storageGet": return this.client.storage.getJson(args.key, undefined, options);
+            case "storagePut": return this.client.storage.putJson(args.key, JSON.parse(args.value), options);
+            case "storageDelete": return this.client.storage.delete(args.key, options);
             default: throw new Error("Unknown Clash operation");
         }
     }
