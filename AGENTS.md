@@ -108,7 +108,7 @@ Windows payloads (launcher, `husi-core.exe`, installer) are Authenticode signed 
 
 ### String resources & localization
 
-When adding new string resources, only add English (`composeApp/src/commonMain/composeResources/values/strings.xml`) and the user's own language — never add translations for other languages.
+When adding new string resources, place them in the appropriate source set (`commonMain`, `jvmMain`, `androidMain`, `desktopMain`, or `wasmJsMain`) under `composeApp/src/<sourceSet>/composeResources/` and only add English (`values/strings.xml`) and the user's own language — never add translations for other languages.
 
 ## Project-specific context
 

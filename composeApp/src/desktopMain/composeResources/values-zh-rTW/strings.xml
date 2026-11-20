@@ -26,4 +26,7 @@
     <string name="daemon_takeover">接管</string>
     <string name="daemon_stay_read_only">保持唯讀</string>
     <string name="copy_terminal_proxy">複製終端機代理</string>
+    <string name="network_manager_tun">使用 NetworkManager TUN</string>
+    <string name="network_manager_tun_summary">由 NetworkManager 管理 TUN、路由和 DNS，無需系統守護程式。需要 NetworkManager 授權。使用單佇列，不支援嚴格路由和自動重新導向。</string>
+    <string name="tun_backend_required">TUN 模式需要系統守護程式或 NetworkManager，請在設定中選擇後端。</string>
 </resources>

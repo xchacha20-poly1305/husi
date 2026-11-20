@@ -26,4 +26,14 @@
     <string name="daemon_takeover">接管</string>
     <string name="daemon_stay_read_only">保持只读</string>
     <string name="copy_terminal_proxy">复制终端代理</string>
+    <string name="desktop_plugins">桌面插件</string>
+    <string name="exit">退出</string>
+    <string name="tun_strict_route">Tun 严格路由</string>
+    <string name="tun_auto_redirect">Tun 自动重定向</string>
+    <string name="remember_window_size">记住窗口大小</string>
+    <string name="remember_window_size_summary">启动时恢复主窗口上次关闭时的大小</string>
+    <string name="select_file">选择文件</string>
+    <string name="network_manager_tun">使用 NetworkManager TUN</string>
+    <string name="network_manager_tun_summary">由 NetworkManager 管理 TUN、路由和 DNS，无需系统守护进程。需要 NetworkManager 授权。使用单队列，不支持严格路由和自动重定向。</string>
+    <string name="tun_backend_required">TUN 模式需要系统守护进程或 NetworkManager，请在设置中选择后端。</string>
 </resources>

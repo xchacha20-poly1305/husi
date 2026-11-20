@@ -11,6 +11,13 @@ component:
   file_format: cmp-resource
 
 components:
+  - name: JVM
+    slug: jvm
+    project: husi
+    repo: weblate://husi/husi
+    filemask: composeApp/src/jvmMain/composeResources/values-*/strings.xml
+    template: composeApp/src/jvmMain/composeResources/values/strings.xml
+    file_format: cmp-resource
   - name: Android
     slug: android
     project: husi

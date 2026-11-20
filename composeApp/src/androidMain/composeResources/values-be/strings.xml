@@ -1,3 +1,28 @@
 <resources>
     <string name="route_opt_bypass_lan">Абыход LAN</string>
+    <string name="speed_detail">Проксі : %1$s↑ %2$s↓\nПрамая : %3$s↑ %4$s↓</string>
+    <string name="quick_toggle">Пераключыць</string>
+    <string name="metered">Падказка аб злучэнні з лімітны тарыфным планам</string>
+    <string name="metered_summary">Падказваць сістэме, што VPN варта разглядаць як сетку з лімітны тарыфных планам</string>
+    <string name="proxied_apps">Рэжым VPN для прыкладанняў</string>
+    <string name="proxied_apps_summary">Наладзіць рэжым VPN для выбраных прыкладанняў</string>
+    <string name="invert_selections">Інвертаваць выбар</string>
+    <string name="clear_selections">Ачысціць выбар</string>
+    <string name="bypass_apps">Абыход</string>
+    <string name="service_vpn">VPN сэрвіс</string>
+    <string name="service_proxy">Проксі сэрвіс</string>
+    <string name="forward_success">Проксі запушчаны.</string>
+    <string name="reboot_required">Не атрымалася запусціць службу VPN. Магчыма, вам спатрэбіцца перазагрузіць прылада.</string>
+    <string name="action_scan_china_apps">Сканаваць кітайскія прыкладання</string>
+    <string name="action_import_err">Не ўдалося імпартаваць.</string>
+    <string name="add_profile_methods_scan_qr_code">Сканіраванне QR-кода</string>
+    <string name="privacy_mode">Прыватны Рэжым</string>
+    <string name="privacy_mode_summary">Забараніць скрыншоты і запіс экрана, а таксама схаваць змесціва ў спісе нядаўніх прыкладанняў</string>
+    <string name="append_http_proxy">Дадаць HTTP проксі VPN</string>
+    <string name="append_http_proxy_sum">HTTP-проксі будзе выкарыстоўвацца напрамую з (браўзэра / некаторых падтрымоўваных прыкладанняў), без выкарыстання віртуальнага сеткавага інтэрфейсу (Android 10+)</string>
+    <string name="service_subscription">Служба абнаўлення Падпіскі</string>
+    <string name="subscription_update">Абнаўленне падпіскі</string>
+    <string name="subscription_update_message">Абнаўленне %1$s …</string>
+    <string name="apps">Прыкладанне</string>
+    <string name="select_apps">Выберыце прыкладання</string>
 </resources>

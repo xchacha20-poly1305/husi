@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tun_strict_route">Строгая маршрутизация к TUN</string>
+    <string name="exit">Выход</string>
+    <string name="desktop_plugins">Десктопные Плагины</string>
+    <string name="tun_auto_redirect">Автоперенаправление перед TUN</string>
+    <string name="select_file">Выбрать файл</string>
+    <string name="remember_window_size">Запомнить размер окна</string>
+    <string name="remember_window_size_summary">Восстанавливать размер главного окна, которое оно имело при последнем закрытии</string>
+    <string name="network_manager_tun">Использовать NetworkManager TUN</string>
+    <string name="network_manager_tun_summary">Позволить NetworkManager управлять TUN, маршрутами и DNS без системного демона. Требуется разрешение NetworkManager. Используется одна очередь; строгая маршрутизация и автоперенаправление недоступны.</string>
+    <string name="tun_backend_required">Режим TUN требует системный демон или NetworkManager. Выберите бэкенд в Настройках.</string>
+</resources>

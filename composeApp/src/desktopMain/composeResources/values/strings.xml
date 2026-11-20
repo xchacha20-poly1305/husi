@@ -26,4 +26,14 @@
     <string name="daemon_takeover">Take over</string>
     <string name="daemon_stay_read_only">Stay read-only</string>
     <string name="copy_terminal_proxy">Copy terminal proxy</string>
+    <string name="desktop_plugins">Desktop Plugins</string>
+    <string name="exit">Exit</string>
+    <string name="tun_strict_route">Tun strict route</string>
+    <string name="tun_auto_redirect">Tun auto redirect</string>
+    <string name="remember_window_size">Remember window size</string>
+    <string name="remember_window_size_summary">Restore the main window to the size it had when last closed</string>
+    <string name="select_file">Select File</string>
+    <string name="network_manager_tun">Use NetworkManager TUN</string>
+    <string name="network_manager_tun_summary">Let NetworkManager manage TUN, routes and DNS without the system daemon. Requires NetworkManager permission. Single queue; strict route and auto redirect are unavailable.</string>
+    <string name="tun_backend_required">TUN mode requires the system daemon or NetworkManager. Choose a backend in Settings.</string>
 </resources>

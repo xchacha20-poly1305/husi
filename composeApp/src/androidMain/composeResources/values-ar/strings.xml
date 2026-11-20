@@ -2,4 +2,27 @@
     <string name="auto_connect">اتصال تلقائي</string>
     <string name="auto_connect_summary">قم بتمكين البروکسی عند تحديث بدء التشغيل/التطبيق إذا كان يعمل من قبل</string>
     <string name="route_opt_bypass_lan">جانبا LAN</string>
+    <string name="quick_toggle">تبديل</string>
+    <string name="speed_detail">بروکسی:\n\t%1$s↑ %2$s↓\nمباشر:\n\t%3$s↑ %4$s↓</string>
+    <string name="metered_summary">نظام تلميح لمعاملة VPN على أنها محسوبة</string>
+    <string name="metered">تلميح مقنن</string>
+    <string name="add_profile_methods_scan_qr_code">مسح رمز كيو آر</string>
+    <string name="action_import_err">فشل الاستيراد.</string>
+    <string name="action_scan_china_apps">فحص تطبيقات الصين</string>
+    <string name="reboot_required">فشل بدء تشغيل خدمة VPN. قد تحتاج إلى إعادة تشغيل جهازك.</string>
+    <string name="forward_success">بدأت البروکسی.</string>
+    <string name="service_proxy">خدمة البروکسی</string>
+    <string name="service_vpn">خدمة VPN</string>
+    <string name="bypass_apps">ضع جانبا</string>
+    <string name="clear_selections">تحديدات واضحة</string>
+    <string name="invert_selections">عكس التحديدات</string>
+    <string name="proxied_apps_summary">تكوين وضع VPN للتطبيقات المحددة</string>
+    <string name="proxied_apps">وضع تطبيقات VPN</string>
+    <string name="select_apps">حدد التطبيقات</string>
+    <string name="apps">التطبيقات</string>
+    <string name="subscription_update_message">جاري تحديث %1$s …</string>
+    <string name="subscription_update">تحديث الاشتراك</string>
+    <string name="service_subscription">خدمة تحديث الاشتراك</string>
+    <string name="append_http_proxy_sum">سيتم استخدام بروکسی HTTP مباشرة من (المتصفح/ بعض التطبيقات المدعومة)، دون المرور عبر جهاز NIC الافتراضي (Android 10+)</string>
+    <string name="append_http_proxy">إلحاق بروکسی HTTP ب VPN</string>
 </resources>
