@@ -12,7 +12,7 @@ tool (
 )
 
 replace (
-	github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20261001065223-6e0057f95c32
+	github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20261120142420-bb1b0c7028c2
 
 // github.com/sagernet/sing-box => ../../sing-box
 )
