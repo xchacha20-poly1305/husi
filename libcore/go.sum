@@ -352,8 +352,8 @@ github.com/xchacha20-poly1305/libping v0.10.5 h1:YswEIbhL0EmIFR9FetRBjHDK62nNr5p
 github.com/xchacha20-poly1305/libping v0.10.5/go.mod h1:SXTHinnDLUAnAaMSy3sg5Ts07EUil3XQNt40+uOzgu8=
 github.com/xchacha20-poly1305/protect-go v0.2.0 h1:sOb/DToy4P4oeofpUbJDKSilIPjBjEwFMs/4INbpWKc=
 github.com/xchacha20-poly1305/protect-go v0.2.0/go.mod h1:tddzCrw5CXwFuDB9ti1RlDg+sYjFPaD+4OYw2Zwn2uc=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.4.0-beta.0 h1:9DOqKbh9wRZurOP+M3Ju+3M9sTej6/ROhu75WpoAdsU=
-github.com/xchacha20-poly1305/sing-trusttunnel v0.4.0-beta.0/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.4.0-beta.1 h1:XA3offpnETlmSoleg4pC0aOhhMzslqV0cqqkzwzthug=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.4.0-beta.1/go.mod h1:yM25Hg+iQTeJBaIMi8igVdXORBXJC1HGxAW1WEKqJOI=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20261120142420-bb1b0c7028c2 h1:IaZY0+d5i0RNaEcLmUczVs1QMxRmljOCF3vPvhzmoqM=
 github.com/xchacha20-poly1305/sing-vmess v0.2.9-0.20261120142420-bb1b0c7028c2/go.mod h1:ZeRYl1GULgvP4GWhqW/W1v0OoD8+iukQReyTNcFdiA8=
 github.com/xchacha20-poly1305/stunuri-go v0.2.0 h1:acE/f7KfbyHPigxWYfKfoIkHazFLVWzyDELaT1Y+mtQ=
