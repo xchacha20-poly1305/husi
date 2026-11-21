@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import fr.husi.compose.IconMaskColors
+import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.Preference
 import fr.husi.compose.PreferenceCategory
@@ -11,18 +12,21 @@ import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.database.DataStore
-import fr.husi.resources.Res
 import fr.husi.remote.RemoteState
-import org.koin.compose.koinInject
+import fr.husi.resources.Res
 import fr.husi.resources.backup
+import fr.husi.resources.clash
 import fr.husi.resources.clash_providers
+import fr.husi.resources.clash_rules
 import fr.husi.resources.file_export
 import fr.husi.resources.general_settings
 import fr.husi.resources.info
+import fr.husi.resources.layers
 import fr.husi.resources.menu_about
 import fr.husi.resources.more
 import fr.husi.resources.phonelink_ring
 import fr.husi.resources.remote_control
+import fr.husi.resources.route
 import fr.husi.resources.settings
 import fr.husi.resources.tools_network
 import fr.husi.resources.wifi
@@ -30,6 +34,7 @@ import fr.husi.ui.LocalNavigator
 import fr.husi.ui.RemoteRoute
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 internal fun SettingsScreen() {
@@ -43,11 +48,30 @@ internal fun SettingsScreen() {
                 onClick = { navigator.navigateTo(RemoteRoute.GeneralSettings) },
             )
         }
-        if (remote.isClash) preferenceGroup {
-            Preference(title = { Text(stringResource(Res.string.clash_providers)) },
-                icon = { MaskedIcon(Res.drawable.settings, IconMaskColors.IconCyan) },
-                onClick = { navigator.navigateTo(RemoteRoute.Providers) })
-
+        if (remote.isClash) {
+            item {
+                PreferenceCategory(
+                    text = { Text(stringResource(Res.string.clash)) },
+                )
+            }
+            preferenceGroup {
+                Preference(
+                    title = { Text(stringResource(Res.string.clash_rules)) },
+                    icon = {
+                        MaskedIcon(
+                            resource =  Res.drawable.route,
+                            color = IconMaskColors.IconLightBlue,
+                            shape = IconMaskShapes.route(),
+                        )
+                    },
+                    onClick = { navigator.navigateTo(RemoteRoute.Rules) },
+                )
+                Preference(
+                    title = { Text(stringResource(Res.string.clash_providers)) },
+                    icon = { MaskedIcon(Res.drawable.layers, IconMaskColors.IconCyan) },
+                    onClick = { navigator.navigateTo(RemoteRoute.Providers) },
+                )
+            }
         }
         item { PreferenceCategory(text = { Text(stringResource(Res.string.more)) }) }
         preferenceGroup {

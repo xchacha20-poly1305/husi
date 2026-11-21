@@ -79,9 +79,17 @@ class RemoteRouteTest {
     }
 
     @Test
+    fun `top level destinations stay at five without rules`() {
+        assertEquals(5, RemoteRoute.topLevel.size)
+        assertFalse(RemoteRoute.Rules in RemoteRoute.topLevel)
+    }
+
+    @Test
     fun `settings subpages keep settings selected and return to the hub`() {
         for (destination in listOf(
             RemoteRoute.GeneralSettings,
+            RemoteRoute.Rules,
+            RemoteRoute.Providers,
             RemoteRoute.Tools,
             RemoteRoute.Backup,
             RemoteRoute.Servers,

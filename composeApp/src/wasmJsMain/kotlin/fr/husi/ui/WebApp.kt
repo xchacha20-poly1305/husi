@@ -31,7 +31,6 @@ import fr.husi.installAppLanguageEnvironment
 import fr.husi.ktx.Logs
 import fr.husi.remote.RemoteState
 import fr.husi.resources.Res
-import fr.husi.resources.clash_rules
 import fr.husi.resources.description
 import fr.husi.resources.layers
 import fr.husi.resources.link
@@ -172,7 +171,6 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                                     Res.string.menu_log,
                                     Res.drawable.description,
                                 ),
-                                Triple(RemoteRoute.Rules, Res.string.clash_rules, Res.drawable.description),
                                 Triple(
                                     RemoteRoute.Settings,
                                     Res.string.settings,

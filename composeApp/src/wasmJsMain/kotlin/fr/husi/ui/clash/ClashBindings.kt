@@ -19,11 +19,13 @@ internal fun ClashRulesBinding(modifier: Modifier = Modifier) {
     val model = session.rules
     key(session) {
         val scope = rememberCoroutineScope()
+        val navigator = LocalNavigator.current
         LaunchedEffect(model) { model.refresh() }
         ClashRulesScreen(
             state = model.state,
             onRefresh = { scope.launch { model.refresh() } },
             onToggle = { rule -> scope.launch { model.toggle(rule) } },
+            onBackPress = { navigator.popBackStack() },
             modifier = modifier,
         )
     }

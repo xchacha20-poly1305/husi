@@ -53,7 +53,7 @@ internal sealed interface RemoteRoute : NavKey {
     @Serializable data object Ssh : RemoteRoute
 
     companion object {
-        val topLevel: Set<NavKey> = setOf(Stats, ProxySet, Connections, Logs, Rules, Settings)
+        val topLevel: Set<NavKey> = setOf(Stats, ProxySet, Connections, Logs, Settings)
         val savedStateConfiguration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {

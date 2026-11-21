@@ -27,6 +27,7 @@
     <string name="remote_stream_overflow">Too many remote updates arrived before they could be processed</string>
     <string name="remote_backend">Backend</string>
     <string name="remote_backend_auto">Automatic detection</string>
+    <string name="clash" translatable="false">Clash</string>
     <string name="clash_rules">Rules</string>
     <string name="clash_providers">Providers</string>
     <string name="clash_dns">DNS query</string>

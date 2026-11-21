@@ -48,6 +48,8 @@ import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.remote.ClashRule
 import fr.husi.resources.Res
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
 import fr.husi.resources.cancel
 import fr.husi.resources.clash_enabled
 import fr.husi.resources.clash_rule_unavailable
@@ -69,6 +71,7 @@ internal fun ClashRulesScreen(
     state: ClashRulesState,
     onRefresh: () -> Unit,
     onToggle: (ClashRule) -> Unit,
+    onBackPress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -109,6 +112,13 @@ internal fun ClashRulesScreen(
             CapsuleSearchTopBar(
                 hazeState = hazeState,
                 inputField = inputField,
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.arrow_back),
+                        contentDescription = stringResource(Res.string.back),
+                        onClick = onBackPress,
+                    )
+                },
                 actions = {
                     CapsuleActionButton {
                         SimpleIconButton(
