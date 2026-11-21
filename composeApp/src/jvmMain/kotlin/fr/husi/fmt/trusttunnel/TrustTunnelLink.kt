@@ -10,13 +10,23 @@ import okio.ByteString.Companion.decodeBase64
 import okio.ByteString.Companion.decodeHex
 import java.io.EOFException
 
+enum class TrustTunnelTlsProfile(val id: Byte) {
+    CHROME(0x00),
+    CHROME_CANARY(0x01),
+    SAFARI(0x02),
+    FIREFOX(0x03),
+    OKHTTP(0x04),
+    OPENSSL(0x05),
+    BORINGSSL(0x06),
+}
+
 /**
  * A TrustTunnel deep link: `tt://?` followed by unpadded URL-safe Base64 of TLV records, each a
  * QUIC variable-length tag, a QUIC variable-length length, then the value.
  *
  * https://github.com/TrustTunnel/TrustTunnel/blob/master/DEEP_LINK.md
  */
-internal data class TrustTunnelLink(
+data class TrustTunnelLink(
     val hostname: String,
     /** Each `host:port`, an IPv6 host in brackets. */
     val addresses: List<String>,
@@ -27,7 +37,7 @@ internal data class TrustTunnelLink(
     /** Concatenated DER certificates, empty when the link pins none. */
     val certificate: ByteString = ByteString.EMPTY,
     val http3: Boolean = false,
-    val tlsProfile: String = "",
+    val tlsProfile: TrustTunnelTlsProfile? = null,
     val name: String = "",
 ) {
 
@@ -52,7 +62,7 @@ internal data class TrustTunnelLink(
         if (skipVerification) records.writeRecord(TAG_SKIP_VERIFICATION, byteArrayOf(1))
         if (certificate.size > 0) records.writeRecord(TAG_CERTIFICATE, certificate.toByteArray())
         if (http3) records.writeRecord(TAG_UPSTREAM_PROTOCOL, byteArrayOf(UPSTREAM_HTTP3))
-        if (tlsProfile.isNotEmpty()) records.writeRecord(TAG_TLS_PROFILE, tlsProfile)
+        if (tlsProfile != null) records.writeRecord(TAG_TLS_PROFILE, byteArrayOf(tlsProfile.id))
         if (name.isNotEmpty()) records.writeRecord(TAG_NAME, name)
         val encoded = records.readByteString().base64Url().trimEnd('=')
         return "$SCHEME_PREFIX?$encoded"
@@ -106,7 +116,7 @@ internal data class TrustTunnelLink(
             var skipVerification = false
             var certificate = ByteString.EMPTY
             var http3 = false
-            var tlsProfile = ""
+            var tlsProfile: TrustTunnelTlsProfile? = null
             var name = ""
             var subscriptionUrl: String? = null
             try {
@@ -164,7 +174,9 @@ internal data class TrustTunnelLink(
                         }
 
                         TAG_TLS_PROFILE -> {
-                            tlsProfile = value.strictUtf8(tag)
+                            val id = value.singleByte(tag)
+                            tlsProfile = TrustTunnelTlsProfile.entries.firstOrNull { it.id == id }
+                                ?: throw IllegalArgumentException("invalid TLS profile ID: ${id.toUByte()}")
                         }
 
                         else -> Unit

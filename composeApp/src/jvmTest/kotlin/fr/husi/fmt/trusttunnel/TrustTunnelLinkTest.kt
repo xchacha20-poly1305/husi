@@ -216,14 +216,6 @@ class TrustTunnelLinkTest {
                 http3 = true,
                 name = "My VPN Server",
             ),
-            // test_tls_profile_roundtrip
-            TrustTunnelLink(
-                hostname = "vpn.example.com",
-                addresses = listOf("1.2.3.4:443"),
-                username = "user",
-                password = "pass",
-                tlsProfile = "safari",
-            ),
         )
         for (link in links) {
             assertEquals(link, TrustTunnelLink.parse(link.build()))
@@ -392,71 +384,71 @@ class TrustTunnelLinkTest {
     }
 
     @Test
-    fun `parse reads tls profile`() {
-        for (profile in listOf("safari", "future")) {
-            val parsed = TrustTunnelLink.parse(link(*minimalServerRecords, TAG_TLS_PROFILE to profile.encodeUtf8()))
-            assertEquals(minimalServer.copy(tlsProfile = profile), parsed)
+    fun `parse rejects invalid tls profile records`() {
+        // https://github.com/TrustTunnel/TrustTunnel/commit/a262b5b921ed445d00024c99b16f7fefad5e52e1
+        // Previous uses string but breaking changed to byte.
+        for (value in listOf(bytes(), bytes(0x07), bytes(0xFF), bytes(0x00, 0x01), "safari".encodeUtf8())) {
+            assertFailsWith<IllegalArgumentException> {
+                parseTrustTunnel(link(versionRecord(2), *minimalServerRecords, TAG_TLS_PROFILE to value))
+            }
         }
     }
 
     @Test
     fun `parseTrustTunnel maps tls profile to utls fingerprint`() {
         val expected = mapOf(
-            "chrome" to SingBoxOptions.FINGERPRINT_CHROME,
-            "safari" to SingBoxOptions.FINGERPRINT_SAFARI,
-            "firefox" to SingBoxOptions.FINGERPRINT_FIREFOX,
-            "chrome_canary" to SingBoxOptions.FINGERPRINT_CHROME,
-            "okhttp" to SingBoxOptions.FINGERPRINT_ANDROID,
-            "boringssl" to "",
-            "openssl" to "",
-            "default" to "",
-            "future" to "",
+            0x00 to SingBoxOptions.FINGERPRINT_CHROME,
+            0x01 to SingBoxOptions.FINGERPRINT_CHROME,
+            0x02 to SingBoxOptions.FINGERPRINT_SAFARI,
+            0x03 to SingBoxOptions.FINGERPRINT_FIREFOX,
+            0x04 to SingBoxOptions.FINGERPRINT_ANDROID,
+            0x05 to "",
+            0x06 to "",
         )
-        for ((profile, fingerprint) in expected) {
-            val bean = parseTrustTunnel(link(*minimalServerRecords, TAG_TLS_PROFILE to profile.encodeUtf8()))
-            assertEquals(fingerprint, bean.utlsFingerprint, "profile=$profile")
+        for ((id, fingerprint) in expected) {
+            val bean = parseTrustTunnel(link(versionRecord(2), *minimalServerRecords, TAG_TLS_PROFILE to bytes(id)))
+            assertEquals(fingerprint, bean.utlsFingerprint, "profile ID=$id")
         }
     }
 
     @Test
     fun `bean toUri exports supported tls profiles only`() {
-        val baseBean = { fingerprint: String ->
-            TrustTunnelBean().apply {
-                serverAddress = "1.2.3.4"
-                serverPort = 443
-                username = "alice"
-                password = "secret"
-                utlsFingerprint = fingerprint
-            }
+        val bean = TrustTunnelBean().apply {
+            serverAddress = "vpn.example.com"
+            serverPort = 443
+            username = "alice"
+            password = "secret"
         }
-        val expectedParsed = mapOf(
-            SingBoxOptions.FINGERPRINT_CHROME to SingBoxOptions.FINGERPRINT_CHROME,
-            SingBoxOptions.FINGERPRINT_SAFARI to SingBoxOptions.FINGERPRINT_SAFARI,
-            SingBoxOptions.FINGERPRINT_FIREFOX to SingBoxOptions.FINGERPRINT_FIREFOX,
-            SingBoxOptions.FINGERPRINT_ANDROID to "okhttp",
-            "okhttp" to "",
-            SingBoxOptions.FINGERPRINT_EDGE to "",
-            SingBoxOptions.FINGERPRINT_360 to "",
-            SingBoxOptions.FINGERPRINT_QQ to "",
-            SingBoxOptions.FINGERPRINT_IOS to "",
-            SingBoxOptions.FINGERPRINT_RANDOM to "",
-            SingBoxOptions.FINGERPRINT_RANDOMIZED to "",
-            "" to "",
+        val records = arrayOf(
+            versionRecord(1),
+            TAG_HOSTNAME to "vpn.example.com".encodeUtf8(),
+            TAG_ADDRESSES to "vpn.example.com:443".encodeUtf8(),
+            TAG_USERNAME to "alice".encodeUtf8(),
+            TAG_PASSWORD to "secret".encodeUtf8(),
         )
-        for ((fingerprint, parsedUtls) in expectedParsed) {
-            val uri = baseBean(fingerprint).toUri()
-            val parsed = TrustTunnelLink.parse(uri)
-            assertEquals(parsedUtls, parsed.tlsProfile, "fingerprint=$fingerprint")
+        val expectedIds = mapOf(
+            SingBoxOptions.FINGERPRINT_CHROME to 0x00,
+            SingBoxOptions.FINGERPRINT_SAFARI to 0x02,
+            SingBoxOptions.FINGERPRINT_FIREFOX to 0x03,
+            SingBoxOptions.FINGERPRINT_ANDROID to 0x04,
+            "okhttp" to null,
+            SingBoxOptions.FINGERPRINT_EDGE to null,
+            SingBoxOptions.FINGERPRINT_360 to null,
+            SingBoxOptions.FINGERPRINT_QQ to null,
+            SingBoxOptions.FINGERPRINT_IOS to null,
+            SingBoxOptions.FINGERPRINT_RANDOM to null,
+            SingBoxOptions.FINGERPRINT_RANDOMIZED to null,
+            "" to null,
+        )
+        for ((fingerprint, id) in expectedIds) {
+            bean.utlsFingerprint = fingerprint
+            val expectedLink = if (id == null) {
+                link(*records)
+            } else {
+                link(*records, TAG_TLS_PROFILE to bytes(id))
+            }
+            assertEquals(expectedLink, bean.toUri(), "fingerprint=$fingerprint")
         }
-        val androidLink = baseBean(SingBoxOptions.FINGERPRINT_ANDROID).toUri()
-        val expectedAndroidLink = TrustTunnelLink(
-            hostname = "1.2.3.4",
-            addresses = listOf("1.2.3.4:443"),
-            username = "alice",
-            password = "secret",
-            tlsProfile = "okhttp",
-        ).build()
-        assertEquals(expectedAndroidLink, androidLink)
     }
 
     @Test

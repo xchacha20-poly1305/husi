@@ -99,26 +99,18 @@ fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.O
     }
 }
 
-private const val TLS_PROFILE_CHROME_CANARY = "chrome_canary"
-private const val TLS_PROFILE_OKHTTP = "okhttp"
-
-private fun String.toUtlsFingerprint(): String = when (this) {
-    SingBoxOptions.FINGERPRINT_CHROME,
-    SingBoxOptions.FINGERPRINT_SAFARI,
-    SingBoxOptions.FINGERPRINT_FIREFOX,
-        -> this
-
-    TLS_PROFILE_CHROME_CANARY -> SingBoxOptions.FINGERPRINT_CHROME
-    TLS_PROFILE_OKHTTP -> SingBoxOptions.FINGERPRINT_ANDROID
-    else -> ""
+private fun TrustTunnelTlsProfile?.toUtlsFingerprint(): String = when (this) {
+    TrustTunnelTlsProfile.CHROME, TrustTunnelTlsProfile.CHROME_CANARY -> SingBoxOptions.FINGERPRINT_CHROME
+    TrustTunnelTlsProfile.SAFARI -> SingBoxOptions.FINGERPRINT_SAFARI
+    TrustTunnelTlsProfile.FIREFOX -> SingBoxOptions.FINGERPRINT_FIREFOX
+    TrustTunnelTlsProfile.OKHTTP -> SingBoxOptions.FINGERPRINT_ANDROID
+    TrustTunnelTlsProfile.OPENSSL, TrustTunnelTlsProfile.BORINGSSL, null -> ""
 }
 
-private fun String.toTlsProfile(): String = when (this) {
-    SingBoxOptions.FINGERPRINT_CHROME,
-    SingBoxOptions.FINGERPRINT_SAFARI,
-    SingBoxOptions.FINGERPRINT_FIREFOX,
-        -> this
-
-    SingBoxOptions.FINGERPRINT_ANDROID -> TLS_PROFILE_OKHTTP
-    else -> ""
+private fun String.toTlsProfile(): TrustTunnelTlsProfile? = when (this) {
+    SingBoxOptions.FINGERPRINT_CHROME -> TrustTunnelTlsProfile.CHROME
+    SingBoxOptions.FINGERPRINT_SAFARI -> TrustTunnelTlsProfile.SAFARI
+    SingBoxOptions.FINGERPRINT_FIREFOX -> TrustTunnelTlsProfile.FIREFOX
+    SingBoxOptions.FINGERPRINT_ANDROID -> TrustTunnelTlsProfile.OKHTTP
+    else -> null
 }
