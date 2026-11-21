@@ -383,6 +383,15 @@
             android:exported="false" />
 
         <receiver
+            android:name=".bg.ServiceCloseReceiver"
+            android:exported="false"
+            android:process=":bg">
+            <intent-filter>
+                <action android:name="fr.husi.CLOSE" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".BootReceiver"
             android:enabled="false"
             android:exported="true"

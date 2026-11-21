@@ -50,9 +50,13 @@ class ServiceNotification(
         const val FLAGS = PendingIntent.FLAG_IMMUTABLE
     }
 
+    @Volatile
     private var listenPostSpeed = true
 
-    override fun canPostSpeed(): Boolean = listenPostSpeed
+    @Volatile
+    private var destroyed = false
+
+    override fun canPostSpeed(): Boolean = !destroyed && listenPostSpeed
 
     override suspend fun onSpeed(speed: SpeedStats) {
         postNotificationSpeedUpdate(speed)
@@ -63,6 +67,7 @@ class ServiceNotification(
     }
 
     suspend fun postNotificationSpeedUpdate(stats: SpeedStats) {
+        if (destroyed) return
         val context = service as Context
         val repo = resolveRepository()
         val contentText = if (showDirectSpeed) {
@@ -114,6 +119,7 @@ class ServiceNotification(
     }
 
     override suspend fun onTitle(title: String) {
+        if (destroyed) return
         useBuilder {
             it.setContentTitle(title)
         }
@@ -121,10 +127,14 @@ class ServiceNotification(
     }
 
     suspend fun postNotificationWakeLockStatus(acquired: Boolean) {
+        if (destroyed) return
         updateActions()
         useBuilder {
-            it.priority =
-                if (acquired) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_LOW
+            it.priority = if (acquired) {
+                NotificationCompat.PRIORITY_HIGH
+            } else {
+                NotificationCompat.PRIORITY_LOW
+            }
         }
         update()
     }
@@ -223,6 +233,7 @@ class ServiceNotification(
     }
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (destroyed) return
         if (service.data.state == ServiceState.Connected) {
             listenPostSpeed = intent.action == Intent.ACTION_SCREEN_ON
         }
@@ -230,13 +241,24 @@ class ServiceNotification(
 
     @SuppressLint("MissingPermission")
     private suspend fun update() = useBuilder {
+        if (destroyed) return@useBuilder
         NotificationManagerCompat.from(service as Service).notify(NOTIFICATION_ID, it.build())
     }
 
     override fun destroy() {
-        initJob.cancel()
+        destroyed = true
         listenPostSpeed = false
-        (service as Service).stopForeground(Service.STOP_FOREGROUND_REMOVE)
-        service.unregisterReceiver(this)
+        initJob.cancel()
+        val androidService = service as Service
+        androidService.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+        NotificationManagerCompat.from(androidService).cancel(NOTIFICATION_ID)
+        runCatching {
+            androidService.unregisterReceiver(this)
+        }
+        runOnMainDispatcher {
+            if (service.data.notification === NoopServiceNotifier || service.data.notification === this) {
+                NotificationManagerCompat.from(androidService).cancel(NOTIFICATION_ID)
+            }
+        }
     }
 }

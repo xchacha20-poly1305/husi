@@ -10,6 +10,7 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import fr.husi.Action
 import fr.husi.bg.proto.ProxyInstance
@@ -167,7 +168,21 @@ class BaseService {
         fun createBackendEngine(): BackendEngine = AndroidBackendEngine(this)
         fun createNotifier(profileName: String): ServiceNotifier = NoopServiceNotifier
 
+        fun clearStaleForegroundState(startId: Int? = null) {
+            val service = this as Service
+            service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+            NotificationManagerCompat.from(service).cancel(ServiceNotification.NOTIFICATION_ID)
+            if (startId != null) {
+                service.stopSelf(startId)
+            } else {
+                service.stopSelf()
+            }
+        }
+
         fun onBind(intent: Intent): IBinder? = if (intent.action == Action.SERVICE) {
+            if (data.state == ServiceState.Stopped) {
+                clearStaleForegroundState()
+            }
             data.binder
         } else {
             null
@@ -310,6 +325,13 @@ class BaseService {
 
         @SuppressLint("UnspecifiedRegisterReceiverFlag")
         fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+            if (intent == null) {
+                if (data.state == ServiceState.Stopped) {
+                    clearStaleForegroundState(startId)
+                }
+                return Service.START_NOT_STICKY
+            }
+
             ServiceRegistry.baseService = this
 
             val data = data
@@ -395,6 +417,24 @@ class BaseService {
                 }
             }
             return Service.START_NOT_STICKY
+        }
+
+        fun onDestroy() {
+            if (data.state != ServiceState.Stopped && data.state != ServiceState.Stopping) {
+                stopRunner()
+            } else {
+                data.notification.destroy()
+                data.notification = NoopServiceNotifier
+                if (data.closeReceiverRegistered) {
+                    runCatching {
+                        (this as Service).unregisterReceiver(data.receiver)
+                    }
+                    data.closeReceiverRegistered = false
+                }
+            }
+            if (ServiceRegistry.baseService === this) {
+                ServiceRegistry.baseService = null
+            }
         }
     }
 

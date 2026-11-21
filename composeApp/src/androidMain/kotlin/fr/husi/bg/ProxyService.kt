@@ -32,4 +32,9 @@ class ProxyService : Service(), BaseService.Interface {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int =
         super<BaseService.Interface>.onStartCommand(intent, flags, startId)
 
+    override fun onDestroy() {
+        super<BaseService.Interface>.onDestroy()
+        super<Service>.onDestroy()
+    }
+
 }

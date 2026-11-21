@@ -88,6 +88,12 @@ class VpnService : BaseVpnService(),
         ServiceNotification(this, profileName, "service-vpn")
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null) {
+            if (data.state == ServiceState.Stopped) {
+                clearStaleForegroundState(startId)
+            }
+            return START_NOT_STICKY
+        }
         if (DataStore.serviceMode.getBlocking() == Key.MODE_VPN) {
             if (prepare(this) != null) {
                 requestVpnPermission()
@@ -318,8 +324,13 @@ class VpnService : BaseVpnService(),
     override fun onRevoke() = stopRunner()
 
     override fun onDestroy() {
-        ServiceRegistry.vpnService = null
-        super.onDestroy()
+        conn?.close()
+        conn = null
+        super<BaseService.Interface>.onDestroy()
+        if (ServiceRegistry.vpnService === this) {
+            ServiceRegistry.vpnService = null
+        }
+        super<BaseVpnService>.onDestroy()
     }
 
     private val privateRoutes
