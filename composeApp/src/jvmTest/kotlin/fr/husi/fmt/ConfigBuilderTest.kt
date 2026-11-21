@@ -1,5 +1,7 @@
 package fr.husi.fmt
 
+import fr.husi.CUSTOM_CA_FILE
+import fr.husi.CertProvider
 import fr.husi.Key
 import fr.husi.ProtocolProvider
 import fr.husi.RuleProvider
@@ -27,6 +29,9 @@ import fr.husi.fmt.tailscale.TailscaleBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
 import fr.husi.test.HusiKoinTest
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.resolve
+import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -40,6 +45,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ConfigBuilderTest : HusiKoinTest() {
@@ -3292,6 +3298,79 @@ class ConfigBuilderTest : HusiKoinTest() {
                 parseRouteOptions(result)["default_http_client"]?.jsonPrimitive?.content,
             )
         }
+
+    @Test
+    fun `buildConfig for export sets certificate store for chrome and mozilla only`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        DataStore.certProvider.set(CertProvider.CHROME)
+        val chromeCert = Json.parseToJsonElement(buildConfig(proxy, forExport = true).configJson)
+            .jsonObject["certificate"]?.jsonObject
+        assertEquals(SingBoxOptions.CERTIFICATE_STORE_CHROME, chromeCert?.get("store")?.jsonPrimitive?.content)
+
+        DataStore.certProvider.set(CertProvider.MOZILLA)
+        val mozillaCert = Json.parseToJsonElement(buildConfig(proxy, forExport = true).configJson)
+            .jsonObject["certificate"]?.jsonObject
+        assertEquals(SingBoxOptions.CERTIFICATE_STORE_MOZILLA, mozillaCert?.get("store")?.jsonPrimitive?.content)
+
+        DataStore.certProvider.set(CertProvider.SYSTEM)
+        val systemCert = Json.parseToJsonElement(buildConfig(proxy, forExport = true).configJson)
+            .jsonObject["certificate"]?.jsonObject
+        assertNull(systemCert?.get("store"))
+
+        DataStore.certProvider.set(CertProvider.SYSTEM_AND_USER)
+        val systemAndUserCert = Json.parseToJsonElement(buildConfig(proxy, forExport = true).configJson)
+            .jsonObject["certificate"]?.jsonObject
+        assertNull(systemAndUserCert?.get("store"))
+
+        DataStore.certProvider.set(CertProvider.CHROME)
+        val nonExportCert = Json.parseToJsonElement(buildConfig(proxy, forExport = false).configJson)
+            .jsonObject["certificate"]
+        assertNull(nonExportCert)
+    }
+
+    @Test
+    fun `buildExportCertificateOptions includes sideloaded certificate on Android only`() = runBlocking {
+        val tempDir = Files.createTempDirectory("husi-cert-test")
+        try {
+            val assetsDir = PlatformFile(tempDir.toFile())
+            val pem = "-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----"
+            assetsDir.resolve(CUSTOM_CA_FILE).writeString(pem)
+
+            val androidChrome = buildExportCertificateOptions(
+                certProvider = CertProvider.CHROME,
+                externalAssetsDir = assetsDir,
+                isAndroid = true,
+            )
+            assertEquals(SingBoxOptions.CERTIFICATE_STORE_CHROME, androidChrome?.store)
+            assertEquals(pem.lines(), androidChrome?.certificate?.toList())
+
+            val androidSystem = buildExportCertificateOptions(
+                certProvider = CertProvider.SYSTEM,
+                externalAssetsDir = assetsDir,
+                isAndroid = true,
+            )
+            assertNull(androidSystem?.store)
+            assertEquals(pem.lines(), androidSystem?.certificate?.toList())
+
+            val desktopSystem = buildExportCertificateOptions(
+                certProvider = CertProvider.SYSTEM,
+                externalAssetsDir = assetsDir,
+                isAndroid = false,
+            )
+            assertNull(desktopSystem)
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
 
     private fun parseRouteOptions(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.configJson).jsonObject["route"]!!.jsonObject

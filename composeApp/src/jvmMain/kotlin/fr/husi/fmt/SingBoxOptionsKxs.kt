@@ -1,5 +1,6 @@
 package fr.husi.fmt
 
+import fr.husi.fmt.SingBoxOptions.CertificateOptions
 import fr.husi.fmt.SingBoxOptions.DomainResolveOptions
 import fr.husi.fmt.SingBoxOptions.ExperimentalOptions
 import fr.husi.fmt.SingBoxOptions.HTTPClient
@@ -55,6 +56,7 @@ data class MyOptionsKxs(
     val log: LogOptions? = null,
     val dns: MyDNSOptionsKxs? = null,
     val ntp: NTPOptions? = null,
+    val certificate: CertificateOptions? = null,
     val http_clients: List<HTTPClient>? = null,
     val inbounds: List<JsonObject>? = null,
     val outbounds: List<JsonObject>? = null,
@@ -100,6 +102,7 @@ fun MyOptions.toKxs(): MyOptionsKxs = MyOptionsKxs(
     log = log,
     dns = dns?.toKxs(),
     ntp = ntp,
+    certificate = certificate,
     http_clients = http_clients,
     inbounds = inbounds?.map { it.toJsonObjectKxs() },
     outbounds = outbounds?.map { it.toJsonObjectKxs() },

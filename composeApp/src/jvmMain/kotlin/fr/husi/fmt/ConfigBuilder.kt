@@ -1,5 +1,7 @@
 package fr.husi.fmt
 
+import fr.husi.CUSTOM_CA_FILE
+import fr.husi.CertProvider
 import fr.husi.DOMAIN_STRATEGY_AUTO
 import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
@@ -94,6 +96,7 @@ import fr.husi.ktx.listByLineIgnoringComments
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.mergeJson
 import fr.husi.ktx.mkPort
+import fr.husi.ktx.readText
 import fr.husi.ktx.serverAddressDomainStrategy
 import fr.husi.ktx.showToast
 import fr.husi.ktx.toJsonElementKxs
@@ -103,6 +106,8 @@ import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.isRegularFile
+import io.github.vinceglb.filekit.resolve
 import io.github.xchacha20_poly1305.kpuri.Url
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.JsonPrimitive
@@ -1765,6 +1770,10 @@ suspend fun buildConfig(
         if (!forTest) dns!!.final_ = remoteDNSGroup.primaryTag
 
         if (forExport) {
+            certificate = buildExportCertificateOptions(
+                certProvider = DataStore.certProvider.get(),
+                externalAssetsDir = repository.externalAssetsDir,
+            )
             http_clients = mutableListOf(
                 SingBoxOptions.HTTPClient().apply {
                     tag = TAG_HTTP_CLIENT_DEFAULT
@@ -1872,4 +1881,31 @@ fun mapNetworkInterfaceStrategy(strategy: Int): String = when (strategy) {
     NetworkInterfaceStrategy.HYBRID -> SingBoxOptions.STRATEGY_HYBRID
     NetworkInterfaceStrategy.FALLBACK -> SingBoxOptions.STRATEGY_FALLBACK
     else -> throw IllegalStateException()
+}
+
+internal fun buildExportCertificateOptions(
+    certProvider: Int,
+    externalAssetsDir: PlatformFile,
+    isAndroid: Boolean = PlatformInfo.isAndroid,
+): SingBoxOptions.CertificateOptions? {
+    val storeName = when (certProvider) {
+        CertProvider.CHROME -> SingBoxOptions.CERTIFICATE_STORE_CHROME
+        CertProvider.MOZILLA -> SingBoxOptions.CERTIFICATE_STORE_MOZILLA
+        else -> null
+    }
+    val customCertificate = if (isAndroid) {
+        externalAssetsDir.resolve(CUSTOM_CA_FILE)
+            .takeIf { it.isRegularFile() }
+            ?.readText()
+            ?.blankAsNull()
+    } else {
+        null
+    }
+    if (storeName == null && customCertificate == null) return null
+    return SingBoxOptions.CertificateOptions().apply {
+        store = storeName
+        if (customCertificate != null) {
+            certificate = customCertificate.lineSequence().toMutableList()
+        }
+    }
 }

@@ -143,6 +143,9 @@ object SingBoxOptions {
     const val TLS_SPOOF_WRONG_MD5 = "wrong-md5"
     const val TLS_SPOOF_WRONG_TIMESTAMP = "wrong-timestamp"
 
+    const val CERTIFICATE_STORE_CHROME = "chrome"
+    const val CERTIFICATE_STORE_MOZILLA = "mozilla"
+
     // base
 
     @KxsSerializable
@@ -172,6 +175,9 @@ object SingBoxOptions {
 
         @JvmField
         var ntp: NTPOptions? = null
+
+        @JvmField
+        var certificate: CertificateOptions? = null
 
         @JvmField
         var http_clients: MutableList<HTTPClient>? = null

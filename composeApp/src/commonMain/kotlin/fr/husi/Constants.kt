@@ -12,6 +12,12 @@ const val CORE_SOCKET_NAME = "api.sock"
  */
 const val PLUGIN_CA_FILE = "plugin-ca.pem"
 
+/**
+ * Sideloaded custom root CA PEM under the external assets dir on Android
+ * (mirrors libcore.customCaFile).
+ */
+const val CUSTOM_CA_FILE = "ca.pem"
+
 const val LOG_FILE_NAME = "stderr.log"
 
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
