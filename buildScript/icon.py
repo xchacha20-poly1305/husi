@@ -15,6 +15,7 @@ SOURCE_SMALL = ROOT / "art" / "icon-small.svg"
 
 CANVAS = 135.47
 ANDROID_LAYER_DP = 108
+COMPOSE_ICON_DP = 24
 
 BACKGROUND = "#191C15"
 MONOCHROME_COLOR = "#000000"
@@ -23,6 +24,7 @@ MONOCHROME_STROKE_SCALE = 1.6
 ANDROID_MARK_FRACTION = 0.53
 PLATED_MARK_FRACTION = 0.58
 SMALL_MARK_FRACTION = 0.72
+COMPOSE_MARK_FRACTION = 0.90
 SMALL_ARTWORK_MAX_SIZE = 96
 
 MIN_STROKE_PIXELS = 1.25
@@ -252,12 +254,12 @@ def flatten(source: Path, destination: Path) -> None:
     run(magick, str(source), "-background", BACKGROUND, "-alpha", "remove", "-alpha", "off", str(destination))
 
 
-def android_vector(artwork: Artwork, monochrome: bool) -> str:
-    scale, x, y = mark_transform(artwork.bounds, Plate(), ANDROID_MARK_FRACTION)
+def vector_drawable(artwork: Artwork, size_dp: int, mark_fraction: float, *, monochrome: bool = False) -> str:
+    scale, x, y = mark_transform(artwork.bounds, Plate(), mark_fraction)
     lines = [
         '<vector xmlns:android="http://schemas.android.com/apk/res/android"',
-        f'    android:width="{ANDROID_LAYER_DP}dp"',
-        f'    android:height="{ANDROID_LAYER_DP}dp"',
+        f'    android:width="{size_dp}dp"',
+        f'    android:height="{size_dp}dp"',
         f'    android:viewportWidth="{CANVAS}"',
         f'    android:viewportHeight="{CANVAS}">',
         "  <group",
@@ -294,8 +296,14 @@ def write(destination: Path, content: str) -> None:
 def emit_android(artworks: ArtworkSet, workspace: Path) -> None:
     magick = require_tool("magick")
     resources = ROOT / "composeApp" / "src" / "androidMain" / "res"
-    write(resources / "drawable" / "ic_launcher_foreground.xml", android_vector(artworks.large, monochrome=False))
-    write(resources / "drawable" / "ic_launcher_monochrome.xml", android_vector(artworks.large, monochrome=True))
+    write(
+        resources / "drawable" / "ic_launcher_foreground.xml",
+        vector_drawable(artworks.large, ANDROID_LAYER_DP, ANDROID_MARK_FRACTION),
+    )
+    write(
+        resources / "drawable" / "ic_launcher_monochrome.xml",
+        vector_drawable(artworks.large, ANDROID_LAYER_DP, ANDROID_MARK_FRACTION, monochrome=True),
+    )
     write(
         resources / "values" / "ic_launcher_background.xml",
         '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -358,6 +366,14 @@ def emit_linux(artworks: ArtworkSet) -> None:
     print(f"icon: wrote {destination.relative_to(ROOT)}")
 
 
+def emit_compose(artworks: ArtworkSet) -> None:
+    resources = ROOT / "composeApp" / "src" / "commonMain" / "composeResources"
+    write(
+        resources / "drawable" / "husi_app_icon.xml",
+        vector_drawable(artworks.large, COMPOSE_ICON_DP, COMPOSE_MARK_FRACTION),
+    )
+
+
 def emit_web(artworks: ArtworkSet, workspace: Path) -> None:
     magick = require_tool("magick")
     resources = ROOT / "composeApp" / "src" / "wasmJsMain" / "resources"
@@ -399,6 +415,7 @@ def main() -> None:
         emit_windows(artworks, workspace)
         emit_macos(artworks, workspace)
         emit_linux(artworks)
+        emit_compose(artworks)
         emit_web(artworks, workspace)
 
 

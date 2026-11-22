@@ -1,5 +1,6 @@
 package fr.husi.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
@@ -51,7 +53,6 @@ import fr.husi.compose.setPlainText
 import fr.husi.compose.theme.HusiScrollbarDefaults
 import fr.husi.compose.withNavigation
 import fr.husi.resources.Res
-import fr.husi.resources.android
 import fr.husi.resources.app_name
 import fr.husi.resources.battery_charging_full
 import fr.husi.resources.build
@@ -65,19 +66,21 @@ import fr.husi.resources.document
 import fr.husi.resources.g_translate
 import fr.husi.resources.gavel
 import fr.husi.resources.github
+import fr.husi.resources.husi_app_icon
 import fr.husi.resources.ignore_battery_optimizations
 import fr.husi.resources.ignore_battery_optimizations_sum
-import fr.husi.resources.library_music
 import fr.husi.resources.menu_about
 import fr.husi.resources.oss_licenses
 import fr.husi.resources.project
 import fr.husi.resources.shuowenxiaozhuan_husi
+import fr.husi.resources.sing_box_icon
 import fr.husi.resources.translate_platform
 import fr.husi.resources.version_x
 import fr.husi.utils.AppVersion
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -164,7 +167,14 @@ fun AboutScreenContent(
                         ) {
                             val isChinese = Locale.current.language == "zh"
                             CardItem(
-                                icon = { Icon(vectorResource(Res.drawable.android), null) },
+                                icon = {
+                                    Icon(
+                                        imageVector = vectorResource(Res.drawable.husi_app_icon),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        tint = Color.Unspecified,
+                                    )
+                                },
                                 title = stringResource(Res.string.app_name),
                                 titleTextStyle = if (isChinese) {
                                     MaterialTheme.typography.titleMedium.copy(
@@ -180,9 +190,10 @@ fun AboutScreenContent(
                             if (!boxVersion.isNullOrEmpty()) {
                                 CardItem(
                                     icon = {
-                                        Icon(
-                                            vectorResource(Res.drawable.library_music),
-                                            null,
+                                        Image(
+                                            painter = painterResource(Res.drawable.sing_box_icon),
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
                                         )
                                     },
                                     title = stringResource(Res.string.version_x, "sing-box"),
