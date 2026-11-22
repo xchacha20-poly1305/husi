@@ -33,6 +33,7 @@ import fr.husi.database.DataStore
 import fr.husi.database.preference.setBlocking
 import fr.husi.ktx.findActivity
 import fr.husi.ktx.getColour
+import fr.husi.net.isHttpEngineSupported
 import fr.husi.resources.Res
 import fr.husi.resources.acquire_wake_lock
 import fr.husi.resources.acquire_wake_lock_summary
@@ -54,7 +55,10 @@ import fr.husi.resources.format_align_left
 import fr.husi.resources.hide_launcher_icon
 import fr.husi.resources.hide_launcher_icon_confirm
 import fr.husi.resources.hide_launcher_icon_summary
+import fr.husi.resources.http_engine_allow_system_cert
+import fr.husi.resources.http_engine_allow_system_cert_summary
 import fr.husi.resources.http_proxy_bypass
+import fr.husi.resources.https
 import fr.husi.resources.keyboard_tab
 import fr.husi.resources.label
 import fr.husi.resources.legend_toggle
@@ -361,6 +365,25 @@ private fun Context.setComponentEnabled(component: ComponentName, enabled: Boole
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         },
         PackageManager.DONT_KILL_APP,
+    )
+}
+
+@Composable
+internal actual fun HttpEngineSystemCertPreference() {
+    if (!isHttpEngineSupported()) return
+    val value by DataStore.httpEngineAllowSystemCert.collectAsStateWithLifecycle()
+    SwitchPreference(
+        value = value,
+        onValueChange = { DataStore.httpEngineAllowSystemCert.setBlocking(it) },
+        title = { Text(stringResource(Res.string.http_engine_allow_system_cert)) },
+        icon = {
+            MaskedIcon(
+                Res.drawable.https,
+                color = IconMaskColors.IconCoral,
+                shape = IconMaskShapes.credential(),
+            )
+        },
+        summary = { Text(stringResource(Res.string.http_engine_allow_system_cert_summary)) },
     )
 }
 

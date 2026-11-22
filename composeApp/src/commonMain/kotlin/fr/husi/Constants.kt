@@ -155,6 +155,7 @@ object Key {
     const val PROFILE_TRAFFIC_STATISTICS = "profileTrafficStatistics"
 
     const val CERT_PROVIDER = "certProvider"
+    const val HTTP_ENGINE_ALLOW_SYSTEM_CERT = "httpEngineAllowSystemCert"
     const val DISABLE_PROCESS_TEXT = "disableProcessText"
     const val HIDE_LAUNCHER_ICON = "hideLauncherIcon"
     const val ENABLE_TASKER = "enableTasker"

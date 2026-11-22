@@ -28,6 +28,7 @@ import fr.husi.ui.openvpn.OpenVPNAuthController
 import io.github.vinceglb.filekit.resolve
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.Flow
+import okhttp3.Call
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -45,9 +46,11 @@ private fun commonUiModule() = module {
         WireCoreClient.local { coreClientBasePath(repository) }
     }
     single {
+        val repository = get<LocalRepository>()
         AppHttpClient(
-            get<LocalRepository>().externalAssetsDir.resolve(PLUGIN_CA_FILE),
+            repository.externalAssetsDir.resolve(PLUGIN_CA_FILE),
             ::prepareHttpRoots,
+            platformDirectCallFactory(repository),
         )
     }
     single<HttpFetcher> {
@@ -99,6 +102,7 @@ private fun commonUiModule() = module {
 internal expect fun coreClientBasePath(repository: LocalRepository): String
 
 internal expect suspend fun prepareHttpRoots()
+internal expect fun platformDirectCallFactory(repository: LocalRepository): suspend (isHttps: Boolean) -> Call.Factory?
 internal expect fun <T> withAgeCore(decrypt: () -> Flow<T>): Flow<T>
 
 internal expect fun platformMaterialApi(): PlatformMaterialApi

@@ -7,6 +7,7 @@ import fr.husi.compose.theme.standardPlatformThemeApi
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.LocalRepository
 import kotlinx.coroutines.flow.Flow
+import okhttp3.Call
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -22,6 +23,10 @@ internal actual fun platformRepositoryModule(repository: LocalRepository): Modul
 internal actual fun platformKoinModules(): List<Module> = emptyList()
 
 internal actual suspend fun prepareHttpRoots() = Unit
+
+internal actual fun platformDirectCallFactory(repository: LocalRepository): suspend (isHttps: Boolean) -> Call.Factory? {
+    return { null }
+}
 
 internal actual fun <T> withAgeCore(decrypt: () -> Flow<T>): Flow<T> = decrypt()
 

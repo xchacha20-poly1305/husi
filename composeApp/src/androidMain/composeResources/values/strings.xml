@@ -58,6 +58,8 @@
     <string name="tasker_start_current_profile">Current profile</string>
     <string name="tasker_blurb_start_profile">Start profile %1$s</string>
     <string name="disable_process_text">Disable Process Text</string>
+    <string name="http_engine_allow_system_cert">Use system certificates for HttpEngine</string>
+    <string name="http_engine_allow_system_cert_summary">Allow Android HttpEngine (Cronet) to use system CA certificates regardless of the selected certificate authority</string>
     <string name="enable_tasker">Enable Tasker plugin</string>
     <string name="enable_tasker_summary">Let automation apps start and stop the service. Any app that requests the Tasker permission can then toggle the tunnel.</string>
     <string name="hide_launcher_icon">Hide launcher icon</string>

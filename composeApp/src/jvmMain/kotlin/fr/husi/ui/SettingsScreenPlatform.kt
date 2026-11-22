@@ -53,6 +53,9 @@ internal expect fun PlatformAppendHttpProxyPreferences(needReload: () -> Unit)
 internal expect fun PlatformMiscOptions(needReload: () -> Unit)
 
 @Composable
+internal expect fun HttpEngineSystemCertPreference()
+
+@Composable
 internal expect fun DisableProcessTextPreference()
 
 @Composable

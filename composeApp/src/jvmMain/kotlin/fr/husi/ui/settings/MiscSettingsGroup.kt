@@ -54,6 +54,7 @@ import fr.husi.resources.timer
 import fr.husi.ui.DisableProcessTextPreference
 import fr.husi.ui.EnableTaskerPreference
 import fr.husi.ui.HideLauncherIconPreference
+import fr.husi.ui.HttpEngineSystemCertPreference
 import fr.husi.ui.PlatformMiscOptions
 import me.zhanghai.compose.preference.ListPreferenceType
 import org.jetbrains.compose.resources.StringResource
@@ -210,6 +211,8 @@ internal fun MiscSettingsGroup(
         type = ListPreferenceType.DROPDOWN_MENU,
         valueToText = { AnnotatedString(stringResource(certProviderTextRes(it))) },
     )
+
+    HttpEngineSystemCertPreference()
 
     DisableProcessTextPreference()
     EnableTaskerPreference()

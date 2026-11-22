@@ -1,7 +1,7 @@
 package fr.husi.net
 
+import fr.husi.CertProvider
 import fr.husi.core.rootCertificatesTrustManager
-import fr.husi.ktx.inputStream
 import fr.husi.ktx.readBytesBlocking
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.isRegularFile
@@ -41,6 +41,7 @@ internal expect fun appTlsContext(trust: X509TrustManager, restrictedTls: Boolea
 internal class AppHttpClient(
     private val rootsFile: PlatformFile,
     private val prepareRoots: suspend () -> Unit = {},
+    private val directCallFactory: suspend (isHttps: Boolean) -> Call.Factory? = { null },
 ) {
     private val base = OkHttpClient.Builder()
         .proxy(Proxy.NO_PROXY)
@@ -82,6 +83,11 @@ internal class AppHttpClient(
         restrictedTls: Boolean,
         pin: String?,
     ): Call {
+        if (proxy == null && !restrictedTls && pin == null) {
+            directCallFactory(request.url.isHttps)?.let { factory ->
+                return factory.newCall(request)
+            }
+        }
         val builder = base.newBuilder()
         if (proxy != null) {
             builder.configureProxy(proxy)
@@ -211,6 +217,10 @@ internal class AppHttpClient(
             .tlsVersions(TlsVersion.TLS_1_3)
             .build()
     }
+}
+
+internal fun canUseHttpEngineForCert(certProvider: Int, allowSystemCert: Boolean): Boolean {
+    return allowSystemCert || certProvider == CertProvider.SYSTEM
 }
 
 private const val STATUS_ERROR_PREVIEW_BYTES = 100

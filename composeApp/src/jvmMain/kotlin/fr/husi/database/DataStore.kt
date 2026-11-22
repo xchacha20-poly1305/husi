@@ -282,6 +282,7 @@ object DataStore : ApplicationPreferences(
 
     val profileTrafficStatistics = configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
     val certProvider = configurationStore.int(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
+    val httpEngineAllowSystemCert = configurationStore.boolean(Key.HTTP_ENGINE_ALLOW_SYSTEM_CERT) { true }
     val disableProcessText = configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
     val hideLauncherIcon = configurationStore.boolean(Key.HIDE_LAUNCHER_ICON)
     val enableTasker = configurationStore.boolean(Key.ENABLE_TASKER) { false }

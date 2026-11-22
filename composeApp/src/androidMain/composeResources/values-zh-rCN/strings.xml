@@ -57,6 +57,8 @@
     <string name="tasker_start_current_profile">当前配置</string>
     <string name="tasker_blurb_start_profile">启动配置 %1$s</string>
     <string name="disable_process_text">禁用 Process Text</string>
+    <string name="http_engine_allow_system_cert">允许在使用 HttpEngine 时使用系统证书</string>
+    <string name="http_engine_allow_system_cert_summary">开启后，证书提供者不影响 HttpEngine 使用；关闭后，使用 Mozilla、Chrome 或用户证书时回退至 OkHttp</string>
     <string name="enable_tasker">启用 Tasker 插件</string>
     <string name="enable_tasker_summary">允许自动化应用启动和停止服务。任何申请了 Tasker 权限的应用都能借此开关隧道。</string>
     <string name="hide_launcher_icon">隐藏桌面图标</string>

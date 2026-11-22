@@ -543,6 +543,10 @@ internal actual fun rememberAppLanguageController(defaultTag: String): AppLangua
 }
 
 @Composable
+internal actual fun HttpEngineSystemCertPreference() {
+}
+
+@Composable
 internal actual fun DisableProcessTextPreference() {
 }
 
