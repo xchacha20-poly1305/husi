@@ -1,30 +1,7 @@
 import org.gradle.kotlin.dsl.withType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    base
-}
-
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-allprojects {
-    apply(from = "${rootProject.projectDir}/repositories.gradle.kts")
-}
-
-tasks.named<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory.get().asFile.path)
-}
-
-tasks.withType<AbstractArchiveTask>().configureEach {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.add(
-            "-Xbackend-threads=${Runtime.getRuntime().availableProcessors()}"
-        )
-    }
+    id("husi.root-conventions")
 }
 
 // Use the Node installation supplied by the developer or CI.

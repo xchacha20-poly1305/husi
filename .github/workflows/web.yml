@@ -14,8 +14,7 @@ on:
       - kotlin-js-store/**
       - build.gradle.kts
       - settings.gradle.kts
-      - repositories.gradle.kts
-      - buildSrc/**
+      - build-logic/**
       - buildScript/publish_web.sh
       - .github/workflows/web.yml
   workflow_dispatch:

@@ -7,7 +7,7 @@
 # plugins; Rust/custom plugins redefine both after sourcing.
 #
 # dispatch implements the `./run plugin <name> [arg]` contract used by
-# setupPlugin in buildSrc: no argument builds every ABI, `init` prepares
+# setupPlugin in build-logic: no argument builds every ABI, `init` prepares
 # sources, an ABI name builds that ABI, and `end` finalizes a per-ABI build
 # (currently nothing to do).
 

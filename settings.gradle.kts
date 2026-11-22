@@ -1,4 +1,7 @@
 pluginManagement {
+    // In a composite build, AGP allows Kotlin's npm resolver to run during task graph creation.
+    includeBuild("build-logic")
+
     repositories {
         google()
         mavenCentral()
@@ -13,6 +16,16 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        maven("https://packages.jetbrains.team/maven/p/cmp/dev")
+        gradlePluginPortal()
+    }
 }
 
 include(":plugin:api")

@@ -9,7 +9,7 @@ on:
       - .github/workflows/test.yml
       - androidApp/**
       - buildScript/**
-      - buildSrc/**
+      - build-logic/**
       - build.gradle.kts
       - composeApp/**
       - gradle/**
@@ -20,7 +20,6 @@ on:
       - Makefile
       - proto/**
       - release/**
-      - repositories.gradle.kts
       - run
       - settings.gradle.kts
   pull_request:
@@ -29,7 +28,7 @@ on:
       - .github/workflows/test.yml
       - androidApp/**
       - buildScript/**
-      - buildSrc/**
+      - build-logic/**
       - build.gradle.kts
       - composeApp/**
       - gradle/**
@@ -40,7 +39,6 @@ on:
       - Makefile
       - proto/**
       - release/**
-      - repositories.gradle.kts
       - run
       - settings.gradle.kts
 
