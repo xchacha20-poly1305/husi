@@ -2,6 +2,17 @@
 
 Read [docs/code-style.md](./docs/code-style.md) before writing code. For full release packaging and cross-compilation details, see [docs/build.md](./docs/build.md).
 
+## Hard rule: do not touch the real environment
+
+- Never connect to, start, stop, restart, install, or reconfigure the user's real Husi daemon.
+- Never change the host's system proxy, network settings (including TUN and routes), system
+  services, or real Husi configuration and data.
+- Before running the app, scripts, or tests, verify that they cannot reach the real daemon or
+  modify host settings or data. A temporary app data directory alone is insufficient. This rule
+  applies to all commands below, including `make test`, `make test_gradle`, and `make desktop`.
+- Run verification that needs a live app or service only in an isolated environment with its
+  own services and settings. When isolation cannot be established, use static checks only.
+
 ## Tools & commands
 
 ### Build and test through the Makefile

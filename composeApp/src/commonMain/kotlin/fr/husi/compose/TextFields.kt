@@ -192,6 +192,7 @@ fun SingleLineTextField(
     OutlinedTextField(
         state = state,
         modifier = modifier.fillMaxWidth(),
+        outputTransformation = LocalFlagEmojiTextStyler.current?.outputTransformation,
         onKeyboardAction = { onOk() },
         lineLimits = TextFieldLineLimits.SingleLine,
         supportingText = supportingText,

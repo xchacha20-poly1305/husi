@@ -259,7 +259,7 @@ class DesktopMain(
                 { windowVisible = false }
             }
 
-            DesktopResourceEnvironmentFix {
+            ProvideDesktopEnvironment {
                 LaunchedEffect(Unit) {
                     if (shouldAutoConnectOnLaunch()) {
                         repository.startService()

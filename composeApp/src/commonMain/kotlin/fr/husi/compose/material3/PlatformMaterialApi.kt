@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import fr.husi.compose.LocalFlagEmojiTextStyler
 import org.koin.compose.koinInject
 import org.koin.mp.KoinPlatformTools
 
@@ -290,6 +291,29 @@ private object MaterialPlatformMaterialApi : PlatformMaterialApi {
         onTextLayout: (TextLayoutResult) -> Unit,
         style: TextStyle?,
     ) {
+        val styledText = LocalFlagEmojiTextStyler.current?.style(text)
+        if (styledText != null) {
+            Text(
+                text = styledText,
+                modifier = modifier,
+                color = color,
+                fontSize = fontSize,
+                fontStyle = fontStyle,
+                fontWeight = fontWeight,
+                fontFamily = fontFamily,
+                letterSpacing = letterSpacing,
+                textDecoration = textDecoration,
+                textAlign = textAlign,
+                lineHeight = lineHeight,
+                overflow = overflow,
+                softWrap = softWrap,
+                maxLines = maxLines,
+                minLines = minLines,
+                onTextLayout = onTextLayout,
+                style = style,
+            )
+            return
+        }
         MaterialText(
             text = text,
             modifier = modifier,
@@ -849,7 +873,7 @@ fun Text(
     style: TextStyle? = null,
 ) {
     currentPlatformMaterialApi().Text(
-        text = text,
+        text = LocalFlagEmojiTextStyler.current?.style(text) ?: text,
         modifier = modifier,
         color = color,
         fontSize = fontSize,

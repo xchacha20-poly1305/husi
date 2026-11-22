@@ -1,0 +1,21 @@
+{
+  "uniqueId": "org.mozilla:twemoji-colr",
+  "artifactVersion": "0.7.0",
+  "name": "Twemoji Mozilla (Flag Subset)",
+  "description": "Husi subsets Twemoji Mozilla to render country and subdivision flags on Windows. The font build code is licensed under Apache-2.0 and the Twemoji artwork under CC BY 4.0.",
+  "website": "https://github.com/mozilla/twemoji-colr/releases/tag/v0.7.0",
+  "developers": [
+    {
+      "name": "Mozilla Foundation",
+      "organisationUrl": "https://www.mozilla.org"
+    },
+    {
+      "name": "Twitter, Inc. and other contributors",
+      "organisationUrl": "https://github.com/twitter/twemoji"
+    }
+  ],
+  "licenses": [
+    "Apache-2.0",
+    "CC-BY-4.0"
+  ]
+}

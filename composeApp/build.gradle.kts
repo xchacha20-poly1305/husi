@@ -518,6 +518,9 @@ kotlin {
         }
         val desktopMain = getByName("desktopMain") {
             kotlin.srcDir(generateDesktopPlatformInfo)
+            if (desktopTarget.platform == DesktopPlatform.Windows) {
+                resources.srcDir("src/desktopMain/windowsResources")
+            }
             dependencies {
                 if (requestedDesktopTarget == null) {
                     implementation(compose.desktop.currentOs)
@@ -615,6 +618,9 @@ val mergeDesktopAboutLibraries = tasks.register<Sync>("mergeDesktopAboutLibrarie
     description = "Merges shared and desktop-only AboutLibraries presets."
     from(commonAboutLibrariesDir)
     from(desktopAboutLibrariesDir)
+    if (desktopTarget.platform == DesktopPlatform.Windows) {
+        from(layout.projectDirectory.dir("src/desktopMain/windowsAboutLibraries"))
+    }
     into(desktopAboutLibrariesConfig)
 }
 
