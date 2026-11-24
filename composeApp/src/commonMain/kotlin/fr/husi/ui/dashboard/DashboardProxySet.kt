@@ -75,6 +75,9 @@ import fr.husi.resources.expand_more
 import fr.husi.resources.no_results
 import fr.husi.resources.search
 import fr.husi.resources.selected
+import fr.husi.resources.smart_clear_fixed
+import fr.husi.resources.smart_fixed
+import fr.husi.resources.undo
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -85,6 +88,7 @@ internal fun DashboardProxySetScreen(
     uiState: DashboardState,
     contentPadding: PaddingValues,
     selectProxy: (group: String, tag: String) -> Unit,
+    clearFixedProxy: (group: String) -> Unit = {},
     urlTestForSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
     groupSearchTextFieldState: TextFieldState,
@@ -113,6 +117,7 @@ internal fun DashboardProxySetScreen(
                     isRemote = uiState.isRemote,
                     urlTestingTags = uiState.urlTestingTags,
                     selectProxy = selectProxy,
+                    clearFixedProxy = clearFixedProxy,
                     urlTestSingle = urlTestForSingle,
                     urlTestForGroup = urlTestForGroup,
                     isSearching = query.searchingProxyGroup == proxySet.id,
@@ -142,6 +147,7 @@ private fun ProxySetCard(
     isRemote: Boolean,
     urlTestingTags: Map<String, Int>,
     selectProxy: (group: String, tag: String) -> Unit,
+    clearFixedProxy: (group: String) -> Unit = {},
     urlTestSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
     isSearching: Boolean,
@@ -237,6 +243,13 @@ private fun ProxySetCard(
                                     }
                                 }
                             }
+                            if (proxySet.fixed.isNotEmpty()) {
+                                SimpleIconButton(
+                                    imageVector = vectorResource(Res.drawable.undo),
+                                    contentDescription = stringResource(Res.string.smart_clear_fixed),
+                                    onClick = { clearFixedProxy(proxySet.tag) },
+                                )
+                            }
                             if (shownExpanded && showGroupSearchButton) {
                                 SimpleIconButton(
                                     imageVector = vectorResource(Res.drawable.search),
@@ -280,6 +293,7 @@ private fun ProxySetCard(
                                 proxySet = proxySet,
                                 urlTestingTags = urlTestingTags,
                                 selectProxy = selectProxy,
+                                clearFixedProxy = clearFixedProxy,
                                 urlTestSingle = urlTestSingle,
                             )
                         }
@@ -313,7 +327,13 @@ private fun ProxySetCard(
                                         verticalArrangement = Arrangement.spacedBy(2.dp),
                                     ) {
                                         Text(
-                                            text = stringResource(Res.string.selected),
+                                            text = stringResource(
+                                                if (proxySet.fixed.isNotEmpty()) {
+                                                    Res.string.smart_fixed
+                                                } else {
+                                                    Res.string.selected
+                                                },
+                                            ),
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             style = MaterialTheme.typography.labelSmall,
                                         )
@@ -329,6 +349,7 @@ private fun ProxySetCard(
                                     )
                                 }
                             }
+                            val menuItemCount = if (proxySet.fixed.isNotEmpty()) 2 else 1
                             DropdownMenu(
                                 expanded = selectedProxyMenuExpanded,
                                 onDismissRequest = { selectedProxyMenuExpanded = false },
@@ -341,8 +362,18 @@ private fun ProxySetCard(
                                         selectedProxyMenuExpanded = false
                                         urlTestSingle(proxySet.selected)
                                     },
-                                    shape = MenuDefaults.itemShape(0, 1).shape,
+                                    shape = MenuDefaults.itemShape(0, menuItemCount).shape,
                                 )
+                                if (proxySet.fixed.isNotEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.smart_clear_fixed)) },
+                                        onClick = {
+                                            selectedProxyMenuExpanded = false
+                                            clearFixedProxy(proxySet.tag)
+                                        },
+                                        shape = MenuDefaults.itemShape(1, menuItemCount).shape,
+                                    )
+                                }
                             }
                         }
                     }
@@ -398,6 +429,7 @@ private fun ProxyGrid(
     proxySet: ProxySet,
     urlTestingTags: Map<String, Int>,
     selectProxy: (group: String, tag: String) -> Unit,
+    clearFixedProxy: (group: String) -> Unit = {},
     urlTestSingle: (tag: String) -> Unit,
 ) {
     Grid(
@@ -416,13 +448,16 @@ private fun ProxyGrid(
         modifier = modifier.fillMaxWidth(),
     ) {
         proxySet.items.forEach { proxy ->
+            val isFixed = proxySet.fixed == proxy.tag
             ProxyCard(
                 proxy = proxy,
                 selected = proxySet.selected == proxy.tag,
+                isFixed = isFixed,
                 isTesting = urlTestingTags.containsKey(proxy.tag),
                 selectable = proxySet.selectable,
                 select = { selectProxy(proxySet.tag, proxy.tag) },
                 urlTest = { urlTestSingle(proxy.tag) },
+                clearFixed = if (isFixed) ({ clearFixedProxy(proxySet.tag) }) else null,
             )
         }
     }
@@ -433,10 +468,12 @@ private fun ProxyCard(
     modifier: Modifier = Modifier,
     proxy: ProxyItem,
     selected: Boolean,
+    isFixed: Boolean = false,
     isTesting: Boolean,
     selectable: Boolean,
     select: () -> Unit,
     urlTest: () -> Unit,
+    clearFixed: (() -> Unit)? = null,
 ) {
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val containerColor = if (selected) {
@@ -492,8 +529,20 @@ private fun ProxyCard(
                     delay = proxy.urlTestDelay,
                     isTesting = isTesting,
                 )
+                val smartSummary = listOfNotNull(
+                    proxy.smartRank.takeIf { it.isNotEmpty() }?.let { smartRankLabel(it) },
+                    proxy.smartWeight?.let(::formatSmartWeight)?.takeIf { it.isNotEmpty() },
+                ).joinToString(" · ")
+                if (smartSummary.isNotEmpty()) {
+                    Text(
+                        text = smartSummary,
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
             }
         }
+        val menuItemCount = if (isFixed && clearFixed != null) 2 else 1
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
@@ -506,8 +555,18 @@ private fun ProxyCard(
                     menuExpanded = false
                     urlTest()
                 },
-                shape = MenuDefaults.itemShape(0, 1).shape,
+                shape = MenuDefaults.itemShape(0, menuItemCount).shape,
             )
+            if (isFixed && clearFixed != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(Res.string.smart_clear_fixed)) },
+                    onClick = {
+                        menuExpanded = false
+                        clearFixed()
+                    },
+                    shape = MenuDefaults.itemShape(1, menuItemCount).shape,
+                )
+            }
         }
     }
 }

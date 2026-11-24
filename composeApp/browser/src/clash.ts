@@ -1,8 +1,9 @@
 import {
     createClashClient, ClashError, HttpError,
-    type ClashClient, type ClashStream, type RequestOptions,
+    type ClashClient, type ClashStream, type ConnectionsSnapshot, type RequestOptions,
 } from "tshomo";
 import {isRefindRule, refind} from "tshomo/extensions/refind";
+import {isSmartConnection, isSmartGroup, smart} from "tshomo/extensions/smart";
 
 /** One owner for requests and streams. Only tshomo performs controller I/O. */
 export function createClashSession(url: string, secret: string, logDebug: (message: string) => void) {
@@ -16,12 +17,14 @@ export function createClashSession(url: string, secret: string, logDebug: (messa
 }
 
 export class ClashSession {
-    private readonly extension;
+    private readonly refindExtension;
+    private readonly smartExtension;
     private closed = false;
     private readonly requests = new Map<number, AbortController>();
 
     constructor(private readonly client: ClashClient, private readonly logDebug: (message: string) => void) {
-        this.extension = client.extend(refind);
+        this.refindExtension = client.extend(refind);
+        this.smartExtension = client.extend(smart);
     }
 
     close() {
@@ -72,7 +75,10 @@ export class ClashSession {
             try {
                 for await (const value of stream) {
                     if (!stopped && !this.closed) {
-                        receive(JSON.stringify({value}));
+                        const payload = kind === "connections"
+                            ? annotateConnections(value as ConnectionsSnapshot)
+                            : value;
+                        receive(JSON.stringify({value: payload}));
                     }
                 }
                 if (!stopped && !this.closed) {
@@ -90,15 +96,21 @@ export class ClashSession {
     private async execute(operation: string, args: Record<string, string>, options: RequestOptions): Promise<unknown> {
         switch (operation) {
             case "version": return this.client.system.getVersion(options);
-            case "proxies": return this.client.proxies.list(options);
+            case "proxies": return Object.fromEntries(
+                Object.entries(await this.client.proxies.list(options)).map(([name, proxy]) => [
+                    name,
+                    {...proxy, smart: isSmartGroup(proxy)},
+                ]),
+            );
             case "select": return this.client.proxies.select(args.group, args.name, options);
+            case "clearFixed": return this.client.proxies.clearFixed(args.group, options);
             case "delay": return this.client.proxies.delay(args.name, undefined, options);
             case "closeConnection": return this.client.connections.close(args.id, options);
             case "closeConnections": return this.client.connections.closeAll(options);
             case "config": return this.client.configs.get(options);
             case "setMode": return this.client.configs.patch({mode: args.mode}, options);
             case "rules": return (await this.client.rules.list(options)).map(rule => ({...rule, toggleable: isRefindRule(rule)}));
-            case "toggleRule": return this.extension.rules.toggleByUuid(args.uuid, options);
+            case "toggleRule": return this.refindExtension.rules.toggleByUuid(args.uuid, options);
             case "proxyProviders": return Object.entries(await this.client.proxyProviders.list(options)).map(([name, provider]) => ({
                 ...provider, name,
             }));
@@ -111,9 +123,25 @@ export class ClashSession {
             case "storageGet": return this.client.storage.getJson(args.key, undefined, options);
             case "storagePut": return this.client.storage.putJson(args.key, JSON.parse(args.value), options);
             case "storageDelete": return this.client.storage.delete(args.key, options);
+            case "smartWeights": return this.smartExtension.groups.listWeights(options);
+            case "smartGroupWeights": return this.smartExtension.groups.getWeights(args.name, options);
+            case "flushSmartCache": return this.smartExtension.cache.flushSmart(options);
+            case "flushSmartConfigCache": return this.smartExtension.cache.flushSmartConfig(args.config, options);
+            case "blockSmartConnection": return this.smartExtension.connections.block(args.id, options);
+            case "upgradeLgbm": return this.smartExtension.system.upgradeLgbm(options);
             default: throw new Error("Unknown Clash operation");
         }
     }
+}
+
+function annotateConnections(snapshot: ConnectionsSnapshot) {
+    return {
+        ...snapshot,
+        connections: snapshot.connections?.map(connection => ({
+            ...connection,
+            smart: isSmartConnection(connection),
+        })) ?? [],
+    };
 }
 
 function describeError(error: unknown) {

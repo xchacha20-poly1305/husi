@@ -32,6 +32,18 @@ const proxies = {
         all: ["Node", "DIRECT"],
         now: "Node",
     },
+    SmartGroup: {
+        name: "SmartGroup",
+        type: "Smart",
+        all: ["Node", "DIRECT"],
+        now: "Smart - Select",
+        fixed: "",
+        useLightGBM: true,
+        collectData: false,
+        sampleRate: 0.5,
+        preferASN: true,
+        tolerance: 50,
+    },
     Node: {
         name: "Node",
         type: "Shadowsocks",
@@ -43,6 +55,13 @@ const proxies = {
         history: [],
     },
 };
+let smartWeights = {
+    SmartGroup: [
+        {Name: "Node", Rank: "MostUsed", Weight: 92.5},
+        {Name: "DIRECT", Rank: "RarelyUsed", Weight: 12},
+    ],
+};
+let smartBlocked = false;
 
 function json(res, data, status = 200) {
     res.writeHead(status, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"});
@@ -92,6 +111,34 @@ const server = createServer(async (req, res) => {
         if (url.pathname === "/controller/proxies/Group" && req.method === "PUT") {
             proxies.Group.now = JSON.parse(body).name;
             return json(res, undefined, 204);
+        }
+        if (url.pathname === "/controller/proxies/SmartGroup" && req.method === "PUT") {
+            const name = JSON.parse(body).name;
+            proxies.SmartGroup.fixed = name;
+            proxies.SmartGroup.now = name;
+            return json(res, undefined, 204);
+        }
+        if (url.pathname === "/controller/proxies/SmartGroup" && req.method === "DELETE") {
+            proxies.SmartGroup.fixed = "";
+            proxies.SmartGroup.now = "Smart - Select";
+            return json(res, undefined, 204);
+        }
+        if (url.pathname === "/controller/group/weights") {
+            return json(res, {weights: smartWeights});
+        }
+        if (url.pathname === "/controller/group/SmartGroup/weights") {
+            return json(res, {weights: smartWeights.SmartGroup ?? []});
+        }
+        if (url.pathname === "/controller/cache/smart/flush" && req.method === "POST") {
+            smartWeights = {SmartGroup: []};
+            return json(res, undefined, 204);
+        }
+        if (url.pathname.startsWith("/controller/cache/smart/flush/") && req.method === "POST") {
+            smartWeights = {SmartGroup: []};
+            return json(res, undefined, 204);
+        }
+        if (url.pathname === "/controller/upgrade/lgbm" && req.method === "POST") {
+            return json(res, {status: "ok"});
         }
         if (url.pathname.endsWith("/delay") || url.pathname.endsWith("/healthcheck")) {
             return json(res, {delay: 36});
@@ -145,6 +192,10 @@ const server = createServer(async (req, res) => {
                 Question: [{Name: url.searchParams.get("name"), Qtype: 1, Qclass: 1}],
                 Answer: [{name: "example.test.", type: 1, TTL: 60, data: "192.0.2.1"}]
             });
+        }
+        if (url.pathname.startsWith("/controller/connections/smart/") && req.method === "DELETE") {
+            smartBlocked = true;
+            return json(res, undefined, 204);
         }
         if (url.pathname.startsWith("/controller/connections") && req.method === "DELETE") {
             return json(res, undefined, 204);
@@ -232,7 +283,24 @@ sockets.on("connection", (socket, req) => {
                     chains: ["Node", "Group"],
                     rule: "DomainSuffix",
                     rulePayload: "example.test",
-                }],
+                }, ...(smartBlocked ? [] : [{
+                    id: "fixture-smart-connection",
+                    metadata: {
+                        network: "tcp", type: "Mixed", sourceIP: "127.0.0.1", sourcePort: 1235,
+                        destinationIP: "192.0.2.2", destinationPort: "443", host: "smart.example.test",
+                        smartBlock: "normal",
+                        smartTarget: "Domain [smart.example.test]",
+                        wildcardTarget: "Domain [*.example.test]",
+                        exitGeoIP: "US",
+                        exitIPASN: "AS13335",
+                    },
+                    upload: 2048,
+                    download: 4096,
+                    start: "2026-11-13T00:00:05Z",
+                    chains: ["Node", "SmartGroup"],
+                    rule: "DomainSuffix",
+                    rulePayload: "example.test",
+                }])],
             }));
         } else if (path.endsWith("/logs")) {
             socket.send(JSON.stringify({

@@ -570,6 +570,7 @@ internal fun DashboardContent(
                         selectProxy = { group, proxy ->
                             dashboardViewModel.selectOutbound(group, proxy)
                         },
+                        clearFixedProxy = dashboardViewModel::clearFixedProxy,
                         urlTestForSingle = dashboardViewModel::urlTestForSingle,
                         urlTestForGroup = dashboardViewModel::urlTestForGroup,
                         groupSearchTextFieldState = dashboardViewModel.proxyGroupSearchTextFieldState,
@@ -618,6 +619,7 @@ internal fun DashboardContent(
                 connection = connection,
                 resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
                 closeConnection = dashboardViewModel::closeConnection,
+                blockSmartConnection = dashboardViewModel::blockSmartConnection,
                 onDismiss = { dashboardViewModel.selectConnection(null) },
                 openRouteSettings = onCreateRoute?.let { create ->
                     { fields, selectedConnection ->

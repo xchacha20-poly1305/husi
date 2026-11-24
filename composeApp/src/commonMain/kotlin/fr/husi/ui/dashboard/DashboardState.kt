@@ -107,6 +107,7 @@ data class ProxySet(
     val displayType: String = "",
     val selectable: Boolean = false,
     var selected: String = "",
+    val fixed: String = "",
     var items: List<ProxyItem> = emptyList(),
     val urlTestProgress: GroupUrlTestProgress? = null,
     val isAll: Boolean = false,
@@ -139,6 +140,8 @@ data class ProxyItem(
     val type: String = "",
     val urlTestDelay: Int = -1,
     val displayType: String = type,
+    val smartRank: String = "",
+    val smartWeight: Double? = null,
 )
 
 

@@ -37,9 +37,23 @@ internal object ClashRequests {
 
     fun select(group: String, name: String) = command("select", "group" to group, "name" to name)
 
+    fun clearFixed(group: String) = command("clearFixed", "group" to group)
+
     fun delay(name: String) = request<ClashDelay>("delay", "name" to name)
 
     fun closeConnection(id: String) = command("closeConnection", "id" to id)
+
+    fun blockSmartConnection(id: String) = command("blockSmartConnection", "id" to id)
+
+    val smartWeights = request<ClashSmartWeightsSnapshot>("smartWeights")
+
+    fun smartGroupWeights(name: String) = request<List<ClashSmartNodeRank>>("smartGroupWeights", "name" to name)
+
+    val flushSmartCache = command("flushSmartCache")
+
+    fun flushSmartConfigCache(config: String) = command("flushSmartConfigCache", "config" to config)
+
+    val upgradeLgbm = request<ClashMaintenanceResult>("upgradeLgbm")
 
     fun setMode(mode: String) = command("setMode", "mode" to mode)
 

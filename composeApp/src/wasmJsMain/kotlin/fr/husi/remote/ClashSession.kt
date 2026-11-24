@@ -13,6 +13,7 @@ import fr.husi.ui.clash.ClashRulesModel
 import fr.husi.ui.dashboard.ConnectionDetailState
 import fr.husi.ui.dashboard.ProxyItem
 import fr.husi.ui.dashboard.ProxySet
+import fr.husi.ui.dashboard.SmartConnectionInfo
 import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
@@ -44,6 +45,8 @@ internal class ClashSession(
     val rules = ClashRulesModel(api)
 
     private var closed = false
+    private var smartWeightsUnsupported = false
+    private var lastSmartWeights: Map<String, List<ClashSmartNodeRank>> = emptyMap()
     private val history = ArrayDeque<Float>()
     private val connectionTracker = ClashConnectionTracker()
 
@@ -173,22 +176,58 @@ internal class ClashSession(
         }
     }
 
-    private suspend fun refreshProxies() {
+    internal suspend fun refreshProxies() {
         val proxies = api.request(ClashRequests.proxies)
+        currentCoroutineContext().ensureActive()
+        if (closed) return
+
+        val hasSmartGroups = proxies.values.any { it.isSmartGroup }
+        val weights = if (hasSmartGroups && !smartWeightsUnsupported) {
+            try {
+                api.request(ClashRequests.smartWeights).weights.also {
+                    lastSmartWeights = it
+                }
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                Logs.w("Clash smart weights refresh failed", failure)
+                if (failure is ClashApiException && failure.unsupported) {
+                    smartWeightsUnsupported = true
+                    lastSmartWeights = emptyMap()
+                    emptyMap()
+                } else {
+                    lastSmartWeights
+                }
+            }
+        } else {
+            emptyMap()
+        }
         currentCoroutineContext().ensureActive()
         if (closed) return
 
         dashboard = dashboard.copy(
             proxySets = proxies.mapNotNull { (name, proxy) ->
                 val members = proxy.members ?: return@mapNotNull null
+                val ranksByNode = if (proxy.isSmartGroup) {
+                    weights[name]?.associateBy { it.name }.orEmpty()
+                } else {
+                    emptyMap()
+                }
                 ProxySet(
                     tag = name,
                     displayType = proxy.type,
                     selected = proxy.selected,
+                    fixed = proxy.fixed,
                     selectable = proxy.selectable,
                     items = members.map { tag ->
                         val item = proxies[tag]
-                        ProxyItem(tag = tag, type = item?.type.orEmpty(), urlTestDelay = item?.delay ?: -1)
+                        val rank = ranksByNode[tag]
+                        ProxyItem(
+                            tag = tag,
+                            type = item?.type.orEmpty(),
+                            urlTestDelay = item?.delay ?: -1,
+                            smartRank = rank?.rank.orEmpty(),
+                            smartWeight = rank?.weight,
+                        )
                     },
                 )
             },
@@ -205,6 +244,11 @@ internal class ClashSession(
 
     override suspend fun select(group: String, name: String) {
         api.request(ClashRequests.select(group, name))
+        refreshProxies()
+    }
+
+    override suspend fun clearFixed(group: String) {
+        api.request(ClashRequests.clearFixed(group))
         refreshProxies()
     }
 
@@ -231,6 +275,10 @@ internal class ClashSession(
 
     override suspend fun closeConnection(id: String) {
         api.request(ClashRequests.closeConnection(id))
+    }
+
+    override suspend fun blockSmartConnection(id: String) {
+        api.request(ClashRequests.blockSmartConnection(id))
     }
 
     override suspend fun closeConnections() {
@@ -300,6 +348,17 @@ internal class ClashConnectionTracker {
                 outbound = chain.firstOrNull().orEmpty(),
                 chain = chain.joinToString(" => "),
                 processes = metadata.processPath.blankAsNull()?.let(::listOf),
+                smart = if (connection.isSmart) {
+                    SmartConnectionInfo(
+                        blockState = metadata.smartBlock,
+                        target = metadata.smartTarget,
+                        wildcardTarget = metadata.wildcardTarget,
+                        exitGeoIP = metadata.exitGeoIP,
+                        exitIPASN = metadata.exitIPASN,
+                    )
+                } else {
+                    null
+                },
             )
             active[id] = upload to download
         }

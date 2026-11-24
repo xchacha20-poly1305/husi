@@ -49,6 +49,7 @@ import fr.husi.ktx.formatBytes
 import fr.husi.resources.Res
 import fr.husi.resources.active
 import fr.husi.resources.add_road
+import fr.husi.resources.block
 import fr.husi.resources.cancel
 import fr.husi.resources.chain
 import fr.husi.resources.close
@@ -70,6 +71,12 @@ import fr.husi.resources.outbound
 import fr.husi.resources.outbound_rule
 import fr.husi.resources.process
 import fr.husi.resources.protocol
+import fr.husi.resources.smart_block_connection
+import fr.husi.resources.smart_exit_asn
+import fr.husi.resources.smart_exit_geoip
+import fr.husi.resources.smart_status
+import fr.husi.resources.smart_target
+import fr.husi.resources.smart_wildcard_target
 import fr.husi.resources.source_address
 import fr.husi.resources.speed
 import fr.husi.resources.start_time
@@ -107,6 +114,7 @@ internal fun ConnectionDetailSheet(
     resolveProcessInfo: suspend (String?, Int) -> ProcessInfo?,
     closeConnection: (uuid: String) -> Unit,
     onDismiss: () -> Unit,
+    blockSmartConnection: ((uuid: String) -> Unit)? = null,
     openRouteSettings: ((Set<ConnectionFields>, ConnectionDetailState) -> Unit)? = null,
 ) {
     val uuid = connection.uuid
@@ -156,6 +164,16 @@ internal fun ConnectionDetailSheet(
                     contentDescription = stringResource(Res.string.create_rule),
                     onClick = { isSelecting = true },
                 )
+                if (!connection.isClosed && connection.smart?.canBlock == true && blockSmartConnection != null) {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.block),
+                        contentDescription = stringResource(Res.string.smart_block_connection),
+                        onClick = {
+                            blockSmartConnection(uuid)
+                            onDismiss()
+                        },
+                    )
+                }
                 SimpleIconButton(
                     imageVector = vectorResource(Res.drawable.delete_forever),
                     contentDescription = stringResource(Res.string.close),
@@ -353,6 +371,53 @@ internal fun ConnectionDetailSheet(
                             isSelecting = isSelecting,
                         ) {
                             Text(connection.chain)
+                        }
+                    }
+                }
+
+                connection.smart?.let { smart ->
+                    item("smart") {
+                        ConnectionGroupCard {
+                            if (smart.blockState.isNotBlank()) {
+                                ConnectionField(
+                                    field = Res.string.smart_status,
+                                    isSelecting = isSelecting,
+                                ) {
+                                    Text(smartBlockStateLabel(smart.blockState))
+                                }
+                            }
+                            if (smart.target.isNotBlank()) {
+                                ConnectionField(
+                                    field = Res.string.smart_target,
+                                    isSelecting = isSelecting,
+                                ) {
+                                    Text(smart.target)
+                                }
+                            }
+                            if (smart.wildcardTarget.isNotBlank()) {
+                                ConnectionField(
+                                    field = Res.string.smart_wildcard_target,
+                                    isSelecting = isSelecting,
+                                ) {
+                                    Text(smart.wildcardTarget)
+                                }
+                            }
+                            if (smart.exitGeoIP.isNotBlank()) {
+                                ConnectionField(
+                                    field = Res.string.smart_exit_geoip,
+                                    isSelecting = isSelecting,
+                                ) {
+                                    Text(smart.exitGeoIP)
+                                }
+                            }
+                            if (smart.exitIPASN.isNotBlank()) {
+                                ConnectionField(
+                                    field = Res.string.smart_exit_asn,
+                                    isSelecting = isSelecting,
+                                ) {
+                                    Text(smart.exitIPASN)
+                                }
+                            }
                         }
                     }
                 }

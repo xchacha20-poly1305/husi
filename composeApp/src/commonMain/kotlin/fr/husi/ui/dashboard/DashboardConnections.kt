@@ -47,6 +47,7 @@ import fr.husi.resources.connection_empty_search
 import fr.husi.resources.connection_speed
 import fr.husi.resources.connection_status_closed
 import fr.husi.resources.delete_forever
+import fr.husi.resources.smart_status
 import fr.husi.resources.traffic
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.StringResource
@@ -249,6 +250,18 @@ private fun ConnectionCard(
                         Color.Green
                     },
                 )
+                val smart = connection.smart
+                if (smart != null && smart.blockState.isNotBlank() && smart.blockState != SmartConnectionInfo.SMART_BLOCK_NORMAL) {
+                    Text(
+                        text = "${stringResource(Res.string.smart_status)}: ${smartBlockStateLabel(smart.blockState)}",
+                        fontSize = 14.sp,
+                        color = if (smart.blockState == SmartConnectionInfo.SMART_BLOCK_BLOCKED) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.tertiary
+                        },
+                    )
+                }
             }
             processInfo?.icon?.let { icon ->
                 ProcessIcon(

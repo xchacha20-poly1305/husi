@@ -66,4 +66,29 @@
     <string name="web_clash_storage_delete">Delete remote backup</string>
     <string name="web_clash_storage_delete_confirm">Remove backup \"%1$s\" from remote storage?</string>
     <string name="web_clash_storage_delete_success">Remote backup deleted</string>
+    <string name="clash_smart" translatable="false">Smart</string>
+    <string name="clash_smart_groups">Smart groups</string>
+    <string name="clash_smart_fixed_node">Fixed: %1$s</string>
+    <string name="clash_smart_refresh_weights">Refresh weights</string>
+    <string name="clash_smart_no_weights">No weight data</string>
+    <string name="clash_smart_lightgbm" translatable="false">LightGBM</string>
+    <string name="clash_smart_collect_data">Collect data</string>
+    <string name="clash_smart_prefer_asn">Prefer ASN</string>
+    <string name="clash_smart_sample_rate">Sample rate: %1$s</string>
+    <string name="clash_smart_tolerance">Tolerance: %1$d ms</string>
+    <string name="clash_smart_empty_fallback">Fallback: %1$s</string>
+    <string name="clash_smart_expected_status">Expected status: %1$s</string>
+    <string name="clash_smart_policy_priority">Policy priority: %1$s</string>
+    <string name="clash_smart_cache">Smart cache</string>
+    <string name="clash_smart_flush_all">Flush all cache</string>
+    <string name="clash_smart_flush_all_confirm">Flush all Smart weight and statistics caches?</string>
+    <string name="clash_smart_flush_success">Smart cache flushed</string>
+    <string name="clash_smart_config_name">Config name</string>
+    <string name="clash_smart_config_name_invalid">Config name cannot be empty, . or ..</string>
+    <string name="clash_smart_flush_config">Flush config cache</string>
+    <string name="clash_smart_flush_config_confirm">Flush Smart cache for \"%1$s\"?</string>
+    <string name="clash_smart_flush_config_success">Smart cache flushed for %1$s</string>
+    <string name="clash_smart_lgbm">LightGBM model</string>
+    <string name="clash_smart_upgrade_lgbm">Update model</string>
+    <string name="clash_smart_upgrade_lgbm_success">LightGBM model updated</string>
 </resources>

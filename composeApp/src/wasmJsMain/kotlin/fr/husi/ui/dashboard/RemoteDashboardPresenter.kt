@@ -98,6 +98,9 @@ internal class RemoteDashboardPresenter(
                     connection.inbound,
                     connection.outbound,
                     connection.matchedRule,
+                    connection.smart?.target.orEmpty(),
+                    connection.smart?.exitGeoIP.orEmpty(),
+                    connection.smart?.exitIPASN.orEmpty(),
                 )
                     .any { it.contains(search, ignoreCase = true) }
         }
@@ -281,6 +284,14 @@ internal class RemoteDashboardPresenter(
 
     override fun selectOutbound(groupName: String, tag: String) {
         state.action { select(groupName, tag) }
+    }
+
+    override fun clearFixedProxy(groupName: String) {
+        state.action { clearFixed(groupName) }
+    }
+
+    override fun blockSmartConnection(uuid: String) {
+        state.action { blockSmartConnection(uuid) }
     }
 
     override fun urlTestForSingle(tag: String) {

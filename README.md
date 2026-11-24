@@ -88,7 +88,7 @@ Arguments:
 
 ### 🌐 Web Dashboard
 
-The Web Dashboard (Wasm) supports both the sing-box API and the Clash API (including [reF1nd/sing-box](https://github.com/reF1nd/sing-box) extensions).
+The Web Dashboard (Wasm) supports both the sing-box API and the Clash API (including [reF1nd/sing-box](https://github.com/reF1nd/sing-box) and [vernesong/mihomo](https://github.com/vernesong/mihomo) Smart extensions).
 
 Application diagnostics are written to the browser console: filter for `[husi` and enable **Verbose** to see request timing and subscription state changes.
 

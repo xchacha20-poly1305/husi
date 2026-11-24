@@ -11,7 +11,7 @@
     "@kyralabs/m3e-css": "1.8.0",
     "@kyralabs/m3e-elements": "1.8.0",
     "qrcode": "1.5.4",
-    "tshomo": "0.0.3"
+    "tshomo": "0.0.4"
   },
   "devDependencies": {
     "@types/node": "26.6.6",

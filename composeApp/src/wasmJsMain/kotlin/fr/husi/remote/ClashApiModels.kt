@@ -14,10 +14,23 @@ internal data class ClashProxy(
     val type: String,
     @SerialName("all") val members: List<String>? = null,
     @SerialName("now") val selected: String = "",
+    val fixed: String = "",
     val history: List<ClashDelayHistory> = emptyList(),
+    val smart: Boolean? = null,
+    val expectedStatus: String = "",
+    val emptyFallback: String = "",
+    @SerialName("policy-priority") val policyPriority: String = "",
+    val useLightGBM: Boolean? = null,
+    val collectData: Boolean? = null,
+    val sampleRate: Double? = null,
+    val preferASN: Boolean? = null,
+    val tolerance: Int? = null,
 ) {
+    val isSmartGroup: Boolean
+        get() = smart ?: (type == "Smart" && members != null)
+
     val selectable: Boolean
-        get() = type == "Selector"
+        get() = type == "Selector" || isSmartGroup
 
     val delay: Int
         get() = history.lastOrNull()?.delay ?: -1
@@ -79,7 +92,11 @@ internal data class ClashConnection(
     val rule: String,
     val rulePayload: String,
     val metadata: ClashConnectionMetadata,
-)
+    val smart: Boolean? = null,
+) {
+    val isSmart: Boolean
+        get() = smart ?: metadata.smartBlock.isNotBlank()
+}
 
 @Serializable
 internal data class ClashConnectionMetadata(
@@ -91,6 +108,11 @@ internal data class ClashConnectionMetadata(
     @Serializable(with = PortSerializer::class) val destinationPort: String,
     val host: String,
     val processPath: String = "",
+    val smartBlock: String = "",
+    val smartTarget: String = "",
+    val wildcardTarget: String = "",
+    val exitGeoIP: String = "",
+    val exitIPASN: String = "",
 )
 
 @Serializable
@@ -161,4 +183,23 @@ internal data class ClashDnsResponse(
     @SerialName("Answer") val answers: List<ClashDnsRecord> = emptyList(),
     @SerialName("Authority") val authority: List<ClashDnsRecord> = emptyList(),
     @SerialName("Additional") val additional: List<ClashDnsRecord> = emptyList(),
+)
+
+@Serializable
+internal data class ClashSmartNodeRank(
+    @SerialName("Name") val name: String,
+    @SerialName("Rank") val rank: String = "",
+    @SerialName("Weight") val weight: Double = 0.0,
+)
+
+@Serializable
+internal data class ClashSmartWeightsSnapshot(
+    val weights: Map<String, List<ClashSmartNodeRank>> = emptyMap(),
+    val errors: Map<String, String> = emptyMap(),
+    val message: String = "",
+)
+
+@Serializable
+internal data class ClashMaintenanceResult(
+    val status: String,
 )

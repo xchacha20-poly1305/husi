@@ -13,6 +13,8 @@ class RemoteRouteTest {
     fun `destinations follow the active controller protocol`() {
         assertTrue(remoteRouteAvailable(RemoteRoute.Rules, true))
         assertFalse(remoteRouteAvailable(RemoteRoute.Rules, false))
+        assertTrue(remoteRouteAvailable(RemoteRoute.Smart, true))
+        assertFalse(remoteRouteAvailable(RemoteRoute.Smart, false))
         assertTrue(remoteRouteAvailable(RemoteRoute.Stun, false))
         assertFalse(remoteRouteAvailable(RemoteRoute.Stun, true))
         assertFalse(remoteRouteAvailable(RemoteRoute.Peer("tag", "peer"), true))
@@ -31,7 +33,7 @@ class RemoteRouteTest {
             RemoteRoute.Setup,
             RemoteRoute.Stats, RemoteRoute.ProxySet, RemoteRoute.Connections, RemoteRoute.Logs,
             RemoteRoute.Tools, RemoteRoute.Backup, RemoteRoute.Servers, RemoteRoute.GeneralSettings,
-            RemoteRoute.Rules, RemoteRoute.Providers, RemoteRoute.Dns,
+            RemoteRoute.Rules, RemoteRoute.Providers, RemoteRoute.Smart, RemoteRoute.Dns,
             RemoteRoute.Settings, RemoteRoute.About, RemoteRoute.Libraries,
             RemoteRoute.ServerEdit(1L), RemoteRoute.Stun, RemoteRoute.NetworkQuality,
             RemoteRoute.Endpoint("tailscale"), RemoteRoute.Peer("tailscale", "peer"),
@@ -90,6 +92,7 @@ class RemoteRouteTest {
             RemoteRoute.GeneralSettings,
             RemoteRoute.Rules,
             RemoteRoute.Providers,
+            RemoteRoute.Smart,
             RemoteRoute.Tools,
             RemoteRoute.Backup,
             RemoteRoute.Servers,

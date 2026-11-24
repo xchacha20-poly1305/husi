@@ -27,9 +27,13 @@ internal abstract class RemoteSession {
 
     abstract suspend fun select(group: String, name: String)
 
+    open suspend fun clearFixed(group: String) {}
+
     abstract suspend fun testDelay(name: String): Int?
 
     abstract suspend fun closeConnection(id: String)
+
+    open suspend fun blockSmartConnection(id: String) {}
 
     abstract suspend fun closeConnections()
 

@@ -2,10 +2,13 @@
 
 package fr.husi.remote
 
+import fr.husi.net.HttpStatus
 import fr.husi.test.FakeClashApi
+import fr.husi.ui.dashboard.SmartConnectionInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
@@ -103,7 +106,200 @@ class ClashSessionTest {
         runCurrent()
         assertTrue(api.closed)
         assertTrue(active.isEmpty())
+        assertEquals(0, api.requests.count { it.first == "smartWeights" })
     }
+
+    @Test
+    fun `Smart groups expose fixed selection, weights, clearFixed, and survive unsupported weights endpoint`() =
+        runTest {
+            val api = FakeClashApi()
+            var fixed = "NodeA"
+            api.handler = { operation, _ ->
+                when (operation) {
+                    "version" -> Json.parseToJsonElement("""{"version":"test"}""")
+                    "config" -> Json.parseToJsonElement("""{"mode":"rule"}""")
+                    "proxies" -> Json.parseToJsonElement(
+                        """
+                        {
+                          "SmartGroup": {
+                            "name": "SmartGroup",
+                            "type": "Smart",
+                            "all": ["NodeA", "NodeB"],
+                            "now": "${if (fixed.isEmpty()) "Smart - Select" else fixed}",
+                            "fixed": "$fixed",
+                            "smart": true
+                          },
+                          "NodeA": {"name": "NodeA", "type": "Shadowsocks", "history": [{"time": "now", "delay": 24}]},
+                          "NodeB": {"name": "NodeB", "type": "Direct", "history": []}
+                        }
+                        """.trimIndent(),
+                    )
+                    "smartWeights" -> Json.parseToJsonElement(
+                        """
+                        {
+                          "weights": {
+                            "SmartGroup": [
+                              {"Name": "NodeA", "Rank": "MostUsed", "Weight": 95.5},
+                              {"Name": "NodeB", "Rank": "RarelyUsed", "Weight": 10}
+                            ]
+                          }
+                        }
+                        """.trimIndent(),
+                    )
+                    "clearFixed" -> {
+                        fixed = ""
+                        JsonNull
+                    }
+                    else -> JsonNull
+                }
+            }
+            val session = ClashSession("url", "secret", api)
+            session.connect("url", "secret")
+            val observation = backgroundScope.async { session.observe(MutableStateFlow(0)) }
+            runCurrent()
+
+            val group = session.dashboard.proxySets.single()
+            assertEquals("SmartGroup", group.tag)
+            assertTrue(group.selectable)
+            assertEquals("NodeA", group.fixed)
+            assertEquals("MostUsed", group.items[0].smartRank)
+            assertEquals(95.5, group.items[0].smartWeight)
+            assertEquals("RarelyUsed", group.items[1].smartRank)
+            assertEquals(10.0, group.items[1].smartWeight)
+
+            session.clearFixed("SmartGroup")
+            assertEquals(
+                """{"group":"SmartGroup"}""",
+                api.requests.single { it.first == "clearFixed" }.second.toString(),
+            )
+            assertEquals("", session.dashboard.proxySets.single().fixed)
+            assertEquals("Smart - Select", session.dashboard.proxySets.single().selected)
+
+            session.close()
+            observation.cancel()
+            runCurrent()
+
+            val unsupportedApi = FakeClashApi()
+            unsupportedApi.handler = { operation, _ ->
+                when (operation) {
+                    "version" -> Json.parseToJsonElement("""{"version":"test"}""")
+                    "config" -> Json.parseToJsonElement("""{"mode":"rule"}""")
+                    "proxies" -> Json.parseToJsonElement(
+                        """{"SmartGroup":{"name":"SmartGroup","type":"Smart","all":["NodeA"],"now":"Smart - Select","smart":true},"NodeA":{"name":"NodeA","type":"Direct"}}""",
+                    )
+                    "smartWeights" -> throw ClashApiException("http", HttpStatus.NOT_FOUND, "Not found")
+                    else -> JsonNull
+                }
+            }
+            val fallbackSession = ClashSession("url", "secret", unsupportedApi)
+            fallbackSession.connect("url", "secret")
+            val fallbackObservation = backgroundScope.async { fallbackSession.observe(MutableStateFlow(0)) }
+            runCurrent()
+            assertEquals("SmartGroup", fallbackSession.dashboard.proxySets.single().tag)
+            assertEquals(1, unsupportedApi.requests.count { it.first == "smartWeights" })
+
+            fallbackSession.refreshProxies()
+            assertEquals(1, unsupportedApi.requests.count { it.first == "smartWeights" })
+            fallbackSession.close()
+            fallbackObservation.cancel()
+            runCurrent()
+        }
+
+    @Test
+    fun `ClashConnectionTracker maps Smart metadata, preserves it on close, and ClashSession blocks Smart connections`() =
+        runTest {
+            val tracker = ClashConnectionTracker()
+            val mixedSnapshot = ClashStreams.connections.decode(buildJsonObject {
+                put("uploadTotal", 300)
+                put("downloadTotal", 600)
+                put("connections", buildJsonArray {
+                    add(buildJsonObject {
+                        put("id", "smart-1")
+                        put("upload", 100)
+                        put("download", 200)
+                        put("start", "2026-01-01T00:00:00Z")
+                        put("smart", true)
+                        putJsonObject("metadata") {
+                            put("network", "tcp")
+                            put("type", "Mixed")
+                            put("sourceIP", "127.0.0.1")
+                            put("sourcePort", "1234")
+                            put("destinationIP", "192.0.2.1")
+                            put("destinationPort", "443")
+                            put("host", "smart.test")
+                            put("smartBlock", "normal")
+                            put("smartTarget", "Domain [smart.test]")
+                            put("wildcardTarget", "Domain [*.smart.test]")
+                            put("exitGeoIP", "US")
+                            put("exitIPASN", "AS13335")
+                        }
+                        put("chains", buildJsonArray {
+                            add("NodeA")
+                            add("SmartGroup")
+                        })
+                        put("rule", "Domain")
+                        put("rulePayload", "smart.test")
+                    })
+                    add(buildJsonObject {
+                        put("id", "plain-1")
+                        put("upload", 200)
+                        put("download", 400)
+                        put("start", "2026-01-01T00:00:00Z")
+                        put("smart", false)
+                        putJsonObject("metadata") {
+                            put("network", "tcp")
+                            put("type", "HTTP")
+                            put("sourceIP", "::1")
+                            put("sourcePort", "1235")
+                            put("destinationIP", "192.0.2.2")
+                            put("destinationPort", "443")
+                            put("host", "plain.test")
+                        }
+                        put("chains", buildJsonArray { add("DIRECT") })
+                        put("rule", "Match")
+                        put("rulePayload", "")
+                    })
+                })
+            })
+
+            val records = tracker.apply(mixedSnapshot, 1000)
+            val smartRecord = records.single { it.uuid == "smart-1" }
+            val plainRecord = records.single { it.uuid == "plain-1" }
+            assertEquals(
+                SmartConnectionInfo(
+                    blockState = "normal",
+                    target = "Domain [smart.test]",
+                    wildcardTarget = "Domain [*.smart.test]",
+                    exitGeoIP = "US",
+                    exitIPASN = "AS13335",
+                ),
+                smartRecord.smart,
+            )
+            assertTrue(smartRecord.smart?.canBlock == true)
+            assertNull(plainRecord.smart)
+
+            val closedSnapshot = snapshot(300, 600, includeConnection = false)
+            val closedRecords = tracker.apply(closedSnapshot, 2000)
+            val closedSmart = closedRecords.single { it.uuid == "smart-1" }
+            assertTrue(closedSmart.isClosed)
+            assertEquals("Domain [smart.test]", closedSmart.smart?.target)
+
+            val api = FakeClashApi()
+            api.handler = { operation, _ ->
+                when (operation) {
+                    "version" -> Json.parseToJsonElement("""{"version":"test"}""")
+                    else -> JsonNull
+                }
+            }
+            val session = ClashSession("url", "secret", api)
+            session.connect("url", "secret")
+            session.blockSmartConnection("smart-1")
+            assertEquals(
+                """{"id":"smart-1"}""",
+                api.requests.single { it.first == "blockSmartConnection" }.second.toString(),
+            )
+            session.close()
+        }
 
     private fun snapshot(upload: Long, download: Long, includeConnection: Boolean = true) = ClashStreams.connections.decode(buildJsonObject {
         put("uploadTotal", upload)

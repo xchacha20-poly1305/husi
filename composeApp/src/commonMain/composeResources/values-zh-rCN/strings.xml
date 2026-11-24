@@ -290,4 +290,18 @@
     <string name="ip_test_detect">轻触卡片检测</string>
     <string name="dashboard_traffic_usage">流量统计</string>
     <string name="dashboard_traffic_total">合计</string>
+    <string name="smart_fixed">已固定</string>
+    <string name="smart_clear_fixed">取消固定节点</string>
+    <string name="smart_rank_most_used">常用</string>
+    <string name="smart_rank_occasional_used">偶用</string>
+    <string name="smart_rank_rarely_used">少用</string>
+    <string name="smart_status">Smart 状态</string>
+    <string name="smart_block_normal">正常</string>
+    <string name="smart_block_degraded">已降级</string>
+    <string name="smart_block_blocked">已阻止</string>
+    <string name="smart_block_connection">阻止 Smart 连接</string>
+    <string name="smart_target">Smart 目标</string>
+    <string name="smart_wildcard_target">通配目标</string>
+    <string name="smart_exit_geoip">出口 GeoIP</string>
+    <string name="smart_exit_asn">出口 ASN</string>
 </resources>

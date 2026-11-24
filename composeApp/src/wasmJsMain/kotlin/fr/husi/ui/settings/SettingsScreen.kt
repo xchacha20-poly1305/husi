@@ -18,10 +18,12 @@ import fr.husi.resources.backup
 import fr.husi.resources.clash
 import fr.husi.resources.clash_providers
 import fr.husi.resources.clash_rules
+import fr.husi.resources.clash_smart
 import fr.husi.resources.file_export
 import fr.husi.resources.general_settings
 import fr.husi.resources.info
 import fr.husi.resources.layers
+import fr.husi.resources.legend_toggle
 import fr.husi.resources.menu_about
 import fr.husi.resources.more
 import fr.husi.resources.phonelink_ring
@@ -70,6 +72,11 @@ internal fun SettingsScreen() {
                     title = { Text(stringResource(Res.string.clash_providers)) },
                     icon = { MaskedIcon(Res.drawable.layers, IconMaskColors.IconCyan) },
                     onClick = { navigator.navigateTo(RemoteRoute.Providers) },
+                )
+                Preference(
+                    title = { Text(stringResource(Res.string.clash_smart)) },
+                    icon = { MaskedIcon(Res.drawable.legend_toggle, IconMaskColors.IconLightGreen) },
+                    onClick = { navigator.navigateTo(RemoteRoute.Smart) },
                 )
             }
         }

@@ -65,4 +65,27 @@
     <string name="web_clash_storage_delete">删除远端备份</string>
     <string name="web_clash_storage_delete_confirm">从远端存储中删除备份“%1$s”？</string>
     <string name="web_clash_storage_delete_success">已删除远端备份</string>
+    <string name="clash_smart_groups">Smart 策略组</string>
+    <string name="clash_smart_fixed_node">已固定：%1$s</string>
+    <string name="clash_smart_refresh_weights">刷新权重</string>
+    <string name="clash_smart_no_weights">暂无权重数据</string>
+    <string name="clash_smart_collect_data">收集数据</string>
+    <string name="clash_smart_prefer_asn">优先 ASN</string>
+    <string name="clash_smart_sample_rate">采样率：%1$s</string>
+    <string name="clash_smart_tolerance">容差：%1$d ms</string>
+    <string name="clash_smart_empty_fallback">回退：%1$s</string>
+    <string name="clash_smart_expected_status">预期状态：%1$s</string>
+    <string name="clash_smart_policy_priority">策略优先级：%1$s</string>
+    <string name="clash_smart_cache">Smart 缓存</string>
+    <string name="clash_smart_flush_all">清空全部缓存</string>
+    <string name="clash_smart_flush_all_confirm">确定清空所有 Smart 权重和统计缓存？</string>
+    <string name="clash_smart_flush_success">已清空 Smart 缓存</string>
+    <string name="clash_smart_config_name">配置名称</string>
+    <string name="clash_smart_config_name_invalid">配置名称不能为空，也不能为 . 或 ..</string>
+    <string name="clash_smart_flush_config">清空指定配置缓存</string>
+    <string name="clash_smart_flush_config_confirm">确定清空配置“%1$s”的 Smart 缓存？</string>
+    <string name="clash_smart_flush_config_success">已清空 %1$s 的 Smart 缓存</string>
+    <string name="clash_smart_lgbm">LightGBM 模型</string>
+    <string name="clash_smart_upgrade_lgbm">更新模型</string>
+    <string name="clash_smart_upgrade_lgbm_success">LightGBM 模型已更新</string>
 </resources>

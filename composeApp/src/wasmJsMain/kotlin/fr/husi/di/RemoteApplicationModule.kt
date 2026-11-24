@@ -19,6 +19,7 @@ import fr.husi.tailscale.RemoteSshSessions
 import fr.husi.tailscale.RemoteUploads
 import fr.husi.ui.clash.ClashRulesBinding
 import fr.husi.ui.clash.ClashProvidersBinding
+import fr.husi.ui.clash.ClashSmartBinding
 import fr.husi.ui.clash.ClashDnsBinding
 import fr.husi.ui.LibrariesScreen
 import fr.husi.ui.LocalNavigator
@@ -92,6 +93,7 @@ internal val remoteApplicationModule = module {
         navigation<RemoteRoute.Logs> { RemoteLogBinding() }
         navigation<RemoteRoute.Rules> { ClashRulesBinding() }
         navigation<RemoteRoute.Providers> { ClashProvidersBinding() }
+        navigation<RemoteRoute.Smart> { ClashSmartBinding() }
         navigation<RemoteRoute.Dns> { ClashDnsBinding() }
         navigation<RemoteRoute.Tools> { RemoteNetworkBinding() }
         navigation<RemoteRoute.Backup> { RemoteBackupBinding() }

@@ -303,4 +303,18 @@
     <string name="ip_test_detect">Tap the card to detect</string>
     <string name="dashboard_traffic_usage">Traffic usage</string>
     <string name="dashboard_traffic_total">Total</string>
+    <string name="smart_fixed">Fixed</string>
+    <string name="smart_clear_fixed">Clear fixed selection</string>
+    <string name="smart_rank_most_used">Most used</string>
+    <string name="smart_rank_occasional_used">Occasionally used</string>
+    <string name="smart_rank_rarely_used">Rarely used</string>
+    <string name="smart_status">Smart status</string>
+    <string name="smart_block_normal">Normal</string>
+    <string name="smart_block_degraded">Degraded</string>
+    <string name="smart_block_blocked">Blocked</string>
+    <string name="smart_block_connection">Block Smart connection</string>
+    <string name="smart_target">Smart target</string>
+    <string name="smart_wildcard_target">Wildcard target</string>
+    <string name="smart_exit_geoip">Exit GeoIP</string>
+    <string name="smart_exit_asn">Exit ASN</string>
 </resources>

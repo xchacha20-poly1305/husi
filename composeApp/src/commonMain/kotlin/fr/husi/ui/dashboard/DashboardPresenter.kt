@@ -28,6 +28,8 @@ internal interface DashboardPresenter {
     fun selectConnection(uuid: String?)
     fun closeConnection(uuid: String)
     fun selectOutbound(groupName: String, tag: String)
+    fun clearFixedProxy(groupName: String) {}
+    fun blockSmartConnection(uuid: String) {}
     fun urlTestForSingle(tag: String)
     fun urlTestForGroup(id: String)
     fun detectIP()

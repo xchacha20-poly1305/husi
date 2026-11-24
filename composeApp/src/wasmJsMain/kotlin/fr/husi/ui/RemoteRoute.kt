@@ -20,6 +20,7 @@ internal sealed interface RemoteRoute : NavKey {
 
     @Serializable data object Rules : RemoteRoute
     @Serializable data object Providers : RemoteRoute
+    @Serializable data object Smart : RemoteRoute
     @Serializable data object Dns : RemoteRoute
 
     @Serializable data object Tools : RemoteRoute
@@ -64,6 +65,7 @@ internal sealed interface RemoteRoute : NavKey {
                     subclass(Logs::class, Logs.serializer())
                     subclass(Rules::class, Rules.serializer())
                     subclass(Providers::class, Providers.serializer())
+                    subclass(Smart::class, Smart.serializer())
                     subclass(Dns::class, Dns.serializer())
                     subclass(Tools::class, Tools.serializer())
                     subclass(Backup::class, Backup.serializer())
@@ -94,7 +96,7 @@ internal fun remoteBackStack(backStack: List<NavKey>, hasServer: Boolean): List<
 
 /** Validate restored destinations whenever the selected controller protocol changes. */
 internal fun remoteRouteAvailable(route: NavKey, clash: Boolean): Boolean = when (route) {
-    RemoteRoute.Rules, RemoteRoute.Providers, RemoteRoute.Dns -> clash
+    RemoteRoute.Rules, RemoteRoute.Providers, RemoteRoute.Smart, RemoteRoute.Dns -> clash
     RemoteRoute.Stun, RemoteRoute.NetworkQuality, RemoteRoute.Ssh,
     is RemoteRoute.Endpoint, is RemoteRoute.Peer, is RemoteRoute.ExitNode, is RemoteRoute.Inbox -> !clash
     else -> true
