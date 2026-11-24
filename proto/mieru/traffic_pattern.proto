@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// Vendored from mieru bcd14b88d0fb7e7707bb80e5d7f6c33675d26c06 by buildScript/mieru_proto.py. Do not edit.
+// Vendored from mieru 9812207bb8aefc3dd4dcc6a5ce268bf5e28b6c54 by buildScript/mieru_proto.py. Do not edit.
 syntax = "proto3";
 
 package mieru.appctl;
