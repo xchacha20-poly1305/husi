@@ -14,7 +14,6 @@ func Write(path string, data []byte, perm os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	defer tempFile.Close()
 	tempPath := tempFile.Name()
 	cleanup := true
 	defer func() {
@@ -22,11 +21,23 @@ func Write(path string, data []byte, perm os.FileMode) error {
 			_ = os.Remove(tempPath)
 		}
 	}()
+	closed := false
+	defer func() {
+		if !closed {
+			_ = tempFile.Close()
+		}
+	}()
 	_, err = tempFile.Write(data)
 	if err != nil {
 		return err
 	}
 	err = tempFile.Chmod(perm)
+	if err != nil {
+		return err
+	}
+	// Close before renaming: Windows rejects renaming an open file handle.
+	closed = true
+	err = tempFile.Close()
 	if err != nil {
 		return err
 	}
