@@ -27,8 +27,6 @@ import fr.husi.proto.daemon.TailscaleSSHClientMessage
 import fr.husi.proto.daemon.TailscaleSSHServerMessage
 import fr.husi.proto.daemon.TailscaleStatusUpdate
 import fr.husi.proto.daemon.Version
-import fr.husi.proto.v1.DecryptAgeRequest
-import fr.husi.proto.v1.DecryptAgeResponse
 import fr.husi.proto.v1.AndroidVPNType
 import fr.husi.proto.v1.GetCertMode
 import fr.husi.proto.v1.GetClientMetadataResponse
@@ -347,8 +345,6 @@ open class FakeCoreClient : CoreClient {
             throw throwable
         }
     }
-
-    override fun decryptAge(requests: Flow<DecryptAgeRequest>): Flow<DecryptAgeResponse> = emptyFlow()
 
     override suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int = 0
 

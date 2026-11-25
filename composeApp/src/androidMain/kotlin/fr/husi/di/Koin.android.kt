@@ -18,9 +18,6 @@ import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import okhttp3.Call
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -74,12 +71,6 @@ internal actual fun platformDirectCallFactory(repository: LocalRepository): susp
         } else {
             null
         }
-    }
-}
-
-internal actual fun <T> withAgeCore(decrypt: () -> Flow<T>): Flow<T> = flow {
-    withBackgroundProcess {
-        emitAll(decrypt())
     }
 }
 

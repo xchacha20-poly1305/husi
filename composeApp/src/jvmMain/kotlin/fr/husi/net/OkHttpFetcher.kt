@@ -5,17 +5,12 @@ import fr.husi.ktx.atomicReplace
 import fr.husi.ktx.createPlatformTempFile
 import fr.husi.ktx.deleteBlocking
 import fr.husi.ktx.toAbsoluteFile
-import fr.husi.proto.v1.DecryptAgeRequest
-import fr.husi.proto.v1.DecryptAgeResponse
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.parent
+import io.github.xchacha20_poly1305.yan.Age
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Credentials
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -25,23 +20,21 @@ import okio.Buffer
 import okio.BufferedSource
 import okio.Sink
 import okio.buffer
+import okio.source
 import java.nio.charset.StandardCharsets.UTF_8
 
 internal class OkHttpFetcher(
     private val http: AppHttpClient,
-    private val decryptAge: (Flow<DecryptAgeRequest>) -> Flow<DecryptAgeResponse>,
 ) : HttpFetcher {
     override suspend fun fetchText(request: HttpFetchRequest): HttpTextResponse =
-        fetch(request) { response, cancel ->
+        fetch(request) { response ->
             val headers = response.headers
             val content = if (request.ageIdentities.isNullOrEmpty()) {
                 response.body.bytes().decodeToString()
             } else {
-                val plaintext = Buffer()
-                decrypt(response.body.source(), request.ageIdentities, cancel) { message ->
-                    plaintext.write(message.chunk)
+                decrypt(response.body.source(), request.ageIdentities) { plaintext ->
+                    plaintext.readByteArray().decodeToString()
                 }
-                plaintext.readByteArray().decodeToString()
             }
             HttpTextResponse(content) {
                 headers.values(it).firstOrNull()
@@ -56,17 +49,14 @@ internal class OkHttpFetcher(
         val destination = target.toAbsoluteFile()
         val partial = createPlatformTempFile("husi-http-", ".part", destination.parent())
         try {
-            fetch(request) { response, cancel ->
+            fetch(request) { response ->
                 partial.asOkioSink().buffer().use { output ->
                     val source = response.body.source()
                     if (request.ageIdentities.isNullOrEmpty()) {
                         copy(source, output, response.body.contentLength(), onProgress)
                     } else {
-                        var copied = 0L
-                        decrypt(source, request.ageIdentities, cancel) { message ->
-                            output.write(message.chunk)
-                            copied += message.chunk.size
-                            onProgress(copied, -1)
+                        decrypt(source, request.ageIdentities) { plaintext ->
+                            copy(plaintext, output, -1, onProgress)
                         }
                     }
                 }
@@ -80,7 +70,7 @@ internal class OkHttpFetcher(
 
     private suspend fun <T : Any> fetch(
         request: HttpFetchRequest,
-        consume: suspend (Response, () -> Unit) -> T,
+        consume: suspend (Response) -> T,
     ): T {
         val url = request.url.toHttpUrl()
         val call = Request.Builder().url(url.withoutCredentials())
@@ -104,55 +94,36 @@ internal class OkHttpFetcher(
     private suspend fun <T : Any> executeFetch(
         httpRequest: Request,
         fetchRequest: HttpFetchRequest,
-        consume: suspend (Response, () -> Unit) -> T,
+        consume: suspend (Response) -> T,
     ): T {
         return http.exchange(
             request = httpRequest,
             proxy = fetchRequest.proxy,
             restrictedTls = fetchRequest.restrictedTls,
             pinnedSha256 = fetchRequest.pinnedSha256,
-        ) { response, cancel ->
+        ) { response, _ ->
             if (response.code != HttpStatus.OK) {
                 throw response.statusError()
             }
-            consume(response, cancel)
+            consume(response)
         }
     }
 
-    private suspend fun decrypt(
+    private inline fun <T> decrypt(
         source: BufferedSource,
         identities: String,
-        cancelHttp: () -> Unit,
-        consume: (DecryptAgeResponse) -> Unit,
-    ) = coroutineScope {
-        val chunks = Channel<DecryptAgeRequest>(1)
-        val reader = launch(Dispatchers.IO) {
-            try {
-                chunks.send(DecryptAgeRequest(identities = identities))
-                while (!source.exhausted()) {
-                    val available = minOf(source.buffer.size, AGE_CHUNK_SIZE)
-                    chunks.send(DecryptAgeRequest(chunk = source.readByteString(available)))
-                }
-            } finally {
-                chunks.close()
-            }
-        }
-        try {
-            decryptAge(chunks.receiveAsFlow()).collect(consume)
-        } finally {
-            // The decoder can reject a key or header before HTTP delivers the rest of the body.
-            if (!reader.isCompleted) {
-                reader.cancel()
-                cancelHttp()
-            }
-        }
+        consume: (BufferedSource) -> T,
+    ): T = withAgeIdentities(identities) { parsed ->
+        Age.decrypt(source.inputStream(), parsed, armor = true).source().buffer().use(consume)
     }
 
-    private fun copy(source: BufferedSource, target: Sink, length: Long, onProgress: DownloadProgress) {
+    private suspend fun copy(source: BufferedSource, target: Sink, length: Long, onProgress: DownloadProgress) {
+        val context = currentCoroutineContext()
         val sourceBuffer = Buffer()
         var copied = 0L
         while (true) {
-            val count = source.read(sourceBuffer, AGE_CHUNK_SIZE)
+            context.ensureActive()
+            val count = source.read(sourceBuffer, COPY_CHUNK_SIZE)
             if (count == -1L) break
             target.write(sourceBuffer, count)
             copied += count
@@ -161,6 +132,6 @@ internal class OkHttpFetcher(
     }
 
     private companion object {
-        const val AGE_CHUNK_SIZE = 16 * 1024L
+        const val COPY_CHUNK_SIZE = 16 * 1024L
     }
 }

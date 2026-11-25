@@ -45,6 +45,7 @@ import fr.husi.compose.SwitchPreference
 import fr.husi.compose.TextButton
 import fr.husi.compose.TextFieldPreference
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.ValidatedTextField
 import fr.husi.compose.fadingEdge
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
@@ -54,8 +55,10 @@ import fr.husi.compose.withNavigation
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
+import fr.husi.net.isValidAgeIdentityInput
 import fr.husi.resources.Res
 import fr.husi.resources.age_identity
+import fr.husi.resources.age_identity_invalid
 import fr.husi.resources.apply
 import fr.husi.resources.auto_update
 import fr.husi.resources.auto_update_delay
@@ -432,7 +435,9 @@ private fun LazyListScope.groupSettings(
                     value = uiState.subscriptionAgeIdentity,
                     onValueChange = { viewModel.setSubscriptionAgeIdentity(it) },
                     title = { Text(stringResource(Res.string.age_identity)) },
-                    textToValue = { it },
+                    textToValue = { text ->
+                        text.takeIf(::isValidAgeIdentityInput)?.ifBlank { "" }
+                    },
                     icon = {
                         MaskedIcon(
                             Res.drawable.security,
@@ -440,7 +445,12 @@ private fun LazyListScope.groupSettings(
                         )
                     },
                     summary = { Text(contentOrUnset(uiState.subscriptionAgeIdentity)) },
-                    valueToText = { it },
+                    textField = { state, onOk ->
+                        val invalidIdentity = stringResource(Res.string.age_identity_invalid)
+                        ValidatedTextField(state, onOk, singleLine = false, maxLine = 8) { text ->
+                            invalidIdentity.takeUnless { isValidAgeIdentityInput(text) }
+                        }
+                    },
                 )
             }
         }

@@ -20,6 +20,8 @@ android {
         // Keep equal to ANDROID_NDK_VERSION in buildScript/init/version.sh.
         ndkVersion = "30.0.16248370"
     }
+    // The Bouncy Castle provider, TLS and utility JARs carry the same license.
+    packaging.resources.pickFirsts += "META-INF/LICENSE.md"
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false

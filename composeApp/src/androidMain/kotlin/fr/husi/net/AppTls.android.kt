@@ -1,10 +1,10 @@
 package fr.husi.net
 
-import org.conscrypt.Conscrypt
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
-private val tlsProvider by lazy { Conscrypt.newProvider() }
+private val tlsProvider by lazy { BouncyCastleJsseProvider() }
 
 internal actual fun appTlsContext(trust: X509TrustManager, restrictedTls: Boolean): SSLContext {
     val system = SSLContext.getInstance("TLS").apply {

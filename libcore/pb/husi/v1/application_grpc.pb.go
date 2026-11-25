@@ -27,7 +27,6 @@ const (
 	ApplicationService_GetCert_FullMethodName                      = "/husi.v1.ApplicationService/GetCert"
 	ApplicationService_StandaloneSTUNTest_FullMethodName           = "/husi.v1.ApplicationService/StandaloneSTUNTest"
 	ApplicationService_StandaloneNetworkQualityTest_FullMethodName = "/husi.v1.ApplicationService/StandaloneNetworkQualityTest"
-	ApplicationService_DecryptAge_FullMethodName                   = "/husi.v1.ApplicationService/DecryptAge"
 	ApplicationService_Ping_FullMethodName                         = "/husi.v1.ApplicationService/Ping"
 	ApplicationService_LookupIPCountry_FullMethodName              = "/husi.v1.ApplicationService/LookupIPCountry"
 	ApplicationService_MatchRuleSets_FullMethodName                = "/husi.v1.ApplicationService/MatchRuleSets"
@@ -72,8 +71,6 @@ type ApplicationServiceClient interface {
 	GetCert(ctx context.Context, in *GetCertRequest, opts ...grpc.CallOption) (*GetCertResponse, error)
 	StandaloneSTUNTest(ctx context.Context, in *StandaloneSTUNTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.STUNTestProgress], error)
 	StandaloneNetworkQualityTest(ctx context.Context, in *StandaloneNetworkQualityTestRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[daemon.NetworkQualityTestProgress], error)
-	// Available on local IPC only. The caller fetches the encrypted content.
-	DecryptAge(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[DecryptAgeRequest, DecryptAgeResponse], error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	LookupIPCountry(ctx context.Context, in *LookupIPCountryRequest, opts ...grpc.CallOption) (*LookupIPCountryResponse, error)
 	MatchRuleSets(ctx context.Context, in *MatchRuleSetsRequest, opts ...grpc.CallOption) (*MatchRuleSetsResponse, error)
@@ -178,19 +175,6 @@ func (c *applicationServiceClient) StandaloneNetworkQualityTest(ctx context.Cont
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ApplicationService_StandaloneNetworkQualityTestClient = grpc.ServerStreamingClient[daemon.NetworkQualityTestProgress]
 
-func (c *applicationServiceClient) DecryptAge(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[DecryptAgeRequest, DecryptAgeResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ApplicationService_ServiceDesc.Streams[2], ApplicationService_DecryptAge_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[DecryptAgeRequest, DecryptAgeResponse]{ClientStream: stream}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ApplicationService_DecryptAgeClient = grpc.BidiStreamingClient[DecryptAgeRequest, DecryptAgeResponse]
-
 func (c *applicationServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PingResponse)
@@ -278,8 +262,6 @@ type ApplicationServiceServer interface {
 	GetCert(context.Context, *GetCertRequest) (*GetCertResponse, error)
 	StandaloneSTUNTest(*StandaloneSTUNTestRequest, grpc.ServerStreamingServer[daemon.STUNTestProgress]) error
 	StandaloneNetworkQualityTest(*StandaloneNetworkQualityTestRequest, grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]) error
-	// Available on local IPC only. The caller fetches the encrypted content.
-	DecryptAge(grpc.BidiStreamingServer[DecryptAgeRequest, DecryptAgeResponse]) error
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	LookupIPCountry(context.Context, *LookupIPCountryRequest) (*LookupIPCountryResponse, error)
 	MatchRuleSets(context.Context, *MatchRuleSetsRequest) (*MatchRuleSetsResponse, error)
@@ -316,9 +298,6 @@ func (UnimplementedApplicationServiceServer) StandaloneSTUNTest(*StandaloneSTUNT
 }
 func (UnimplementedApplicationServiceServer) StandaloneNetworkQualityTest(*StandaloneNetworkQualityTestRequest, grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]) error {
 	return status.Error(codes.Unimplemented, "method StandaloneNetworkQualityTest not implemented")
-}
-func (UnimplementedApplicationServiceServer) DecryptAge(grpc.BidiStreamingServer[DecryptAgeRequest, DecryptAgeResponse]) error {
-	return status.Error(codes.Unimplemented, "method DecryptAge not implemented")
 }
 func (UnimplementedApplicationServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
@@ -468,13 +447,6 @@ func _ApplicationService_StandaloneNetworkQualityTest_Handler(srv interface{}, s
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ApplicationService_StandaloneNetworkQualityTestServer = grpc.ServerStreamingServer[daemon.NetworkQualityTestProgress]
 
-func _ApplicationService_DecryptAge_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ApplicationServiceServer).DecryptAge(&grpc.GenericServerStream[DecryptAgeRequest, DecryptAgeResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ApplicationService_DecryptAgeServer = grpc.BidiStreamingServer[DecryptAgeRequest, DecryptAgeResponse]
-
 func _ApplicationService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
@@ -623,12 +595,6 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "StandaloneNetworkQualityTest",
 			Handler:       _ApplicationService_StandaloneNetworkQualityTest_Handler,
 			ServerStreams: true,
-		},
-		{
-			StreamName:    "DecryptAge",
-			Handler:       _ApplicationService_DecryptAge_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
 		},
 	},
 	Metadata: "husi/v1/application.proto",

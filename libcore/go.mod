@@ -18,7 +18,6 @@ replace (
 )
 
 require (
-	filippo.io/age v1.3.2
 	github.com/coder/websocket v1.8.15
 	github.com/exclavenetwork/sing-juicity v0.3.1
 	github.com/godbus/dbus/v5 v5.2.2
@@ -58,7 +57,6 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	filippo.io/hpke v0.4.0 // indirect
 	github.com/RyuaNerin/go-krypto v1.3.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/akutz/memconn v0.1.0 // indirect

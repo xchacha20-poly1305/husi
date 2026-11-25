@@ -44,8 +44,6 @@ service ApplicationService {
   rpc GetCert(GetCertRequest) returns (GetCertResponse);
   rpc StandaloneSTUNTest(StandaloneSTUNTestRequest) returns (stream daemon.STUNTestProgress);
   rpc StandaloneNetworkQualityTest(StandaloneNetworkQualityTestRequest) returns (stream daemon.NetworkQualityTestProgress);
-  // Available on local IPC only. The caller fetches the encrypted content.
-  rpc DecryptAge(stream DecryptAgeRequest) returns (stream DecryptAgeResponse);
   rpc Ping(PingRequest) returns (PingResponse);
   rpc LookupIPCountry(LookupIPCountryRequest) returns (LookupIPCountryResponse);
   rpc MatchRuleSets(MatchRuleSetsRequest) returns (MatchRuleSetsResponse);
@@ -145,18 +143,6 @@ message StandaloneNetworkQualityTestRequest {
   bool serial = 2;
   int32 max_runtime_seconds = 3;
   bool http3 = 4;
-}
-
-// Send identities once, followed by the ASCII-armored ciphertext in chunks.
-message DecryptAgeRequest {
-  oneof payload {
-    string identities = 1;
-    bytes chunk = 2;
-  }
-}
-
-message DecryptAgeResponse {
-  bytes chunk = 1;
 }
 
 enum PingProtocol {

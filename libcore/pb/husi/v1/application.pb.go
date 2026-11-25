@@ -803,133 +803,6 @@ func (x *StandaloneNetworkQualityTestRequest) GetHttp3() bool {
 	return false
 }
 
-// Send identities once, followed by the ASCII-armored ciphertext in chunks.
-type DecryptAgeRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Payload:
-	//
-	//	*DecryptAgeRequest_Identities
-	//	*DecryptAgeRequest_Chunk
-	Payload       isDecryptAgeRequest_Payload `protobuf_oneof:"payload"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DecryptAgeRequest) Reset() {
-	*x = DecryptAgeRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DecryptAgeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DecryptAgeRequest) ProtoMessage() {}
-
-func (x *DecryptAgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DecryptAgeRequest.ProtoReflect.Descriptor instead.
-func (*DecryptAgeRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *DecryptAgeRequest) GetPayload() isDecryptAgeRequest_Payload {
-	if x != nil {
-		return x.Payload
-	}
-	return nil
-}
-
-func (x *DecryptAgeRequest) GetIdentities() string {
-	if x != nil {
-		if x, ok := x.Payload.(*DecryptAgeRequest_Identities); ok {
-			return x.Identities
-		}
-	}
-	return ""
-}
-
-func (x *DecryptAgeRequest) GetChunk() []byte {
-	if x != nil {
-		if x, ok := x.Payload.(*DecryptAgeRequest_Chunk); ok {
-			return x.Chunk
-		}
-	}
-	return nil
-}
-
-type isDecryptAgeRequest_Payload interface {
-	isDecryptAgeRequest_Payload()
-}
-
-type DecryptAgeRequest_Identities struct {
-	Identities string `protobuf:"bytes,1,opt,name=identities,proto3,oneof"`
-}
-
-type DecryptAgeRequest_Chunk struct {
-	Chunk []byte `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
-}
-
-func (*DecryptAgeRequest_Identities) isDecryptAgeRequest_Payload() {}
-
-func (*DecryptAgeRequest_Chunk) isDecryptAgeRequest_Payload() {}
-
-type DecryptAgeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Chunk         []byte                 `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DecryptAgeResponse) Reset() {
-	*x = DecryptAgeResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DecryptAgeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DecryptAgeResponse) ProtoMessage() {}
-
-func (x *DecryptAgeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DecryptAgeResponse.ProtoReflect.Descriptor instead.
-func (*DecryptAgeResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *DecryptAgeResponse) GetChunk() []byte {
-	if x != nil {
-		return x.Chunk
-	}
-	return nil
-}
-
 type PingRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Protocol PingProtocol           `protobuf:"varint,1,opt,name=protocol,proto3,enum=husi.v1.PingProtocol" json:"protocol,omitempty"`
@@ -944,7 +817,7 @@ type PingRequest struct {
 
 func (x *PingRequest) Reset() {
 	*x = PingRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[14]
+	mi := &file_husi_v1_application_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -956,7 +829,7 @@ func (x *PingRequest) String() string {
 func (*PingRequest) ProtoMessage() {}
 
 func (x *PingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[14]
+	mi := &file_husi_v1_application_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -969,7 +842,7 @@ func (x *PingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
 func (*PingRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{14}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PingRequest) GetProtocol() PingProtocol {
@@ -1009,7 +882,7 @@ type PingResponse struct {
 
 func (x *PingResponse) Reset() {
 	*x = PingResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[15]
+	mi := &file_husi_v1_application_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1021,7 +894,7 @@ func (x *PingResponse) String() string {
 func (*PingResponse) ProtoMessage() {}
 
 func (x *PingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[15]
+	mi := &file_husi_v1_application_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1034,7 +907,7 @@ func (x *PingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
 func (*PingResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{15}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PingResponse) GetLatencyMs() int32 {
@@ -1056,7 +929,7 @@ type MatchRuleSetsRequest struct {
 
 func (x *MatchRuleSetsRequest) Reset() {
 	*x = MatchRuleSetsRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[16]
+	mi := &file_husi_v1_application_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1068,7 +941,7 @@ func (x *MatchRuleSetsRequest) String() string {
 func (*MatchRuleSetsRequest) ProtoMessage() {}
 
 func (x *MatchRuleSetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[16]
+	mi := &file_husi_v1_application_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1081,7 +954,7 @@ func (x *MatchRuleSetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MatchRuleSetsRequest.ProtoReflect.Descriptor instead.
 func (*MatchRuleSetsRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{16}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *MatchRuleSetsRequest) GetKeyword() string {
@@ -1109,7 +982,7 @@ type MatchRuleSetsResponse struct {
 
 func (x *MatchRuleSetsResponse) Reset() {
 	*x = MatchRuleSetsResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[17]
+	mi := &file_husi_v1_application_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1121,7 +994,7 @@ func (x *MatchRuleSetsResponse) String() string {
 func (*MatchRuleSetsResponse) ProtoMessage() {}
 
 func (x *MatchRuleSetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[17]
+	mi := &file_husi_v1_application_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1134,7 +1007,7 @@ func (x *MatchRuleSetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MatchRuleSetsResponse.ProtoReflect.Descriptor instead.
 func (*MatchRuleSetsResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{17}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *MatchRuleSetsResponse) GetNames() []string {
@@ -1153,7 +1026,7 @@ type GetRootCertificatesRequest struct {
 
 func (x *GetRootCertificatesRequest) Reset() {
 	*x = GetRootCertificatesRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[18]
+	mi := &file_husi_v1_application_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1165,7 +1038,7 @@ func (x *GetRootCertificatesRequest) String() string {
 func (*GetRootCertificatesRequest) ProtoMessage() {}
 
 func (x *GetRootCertificatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[18]
+	mi := &file_husi_v1_application_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1178,7 +1051,7 @@ func (x *GetRootCertificatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRootCertificatesRequest.ProtoReflect.Descriptor instead.
 func (*GetRootCertificatesRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{18}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetRootCertificatesRequest) GetStore() RootCertificateStore {
@@ -1199,7 +1072,7 @@ type GetRootCertificatesResponse struct {
 
 func (x *GetRootCertificatesResponse) Reset() {
 	*x = GetRootCertificatesResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[19]
+	mi := &file_husi_v1_application_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1211,7 +1084,7 @@ func (x *GetRootCertificatesResponse) String() string {
 func (*GetRootCertificatesResponse) ProtoMessage() {}
 
 func (x *GetRootCertificatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[19]
+	mi := &file_husi_v1_application_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1224,7 +1097,7 @@ func (x *GetRootCertificatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRootCertificatesResponse.ProtoReflect.Descriptor instead.
 func (*GetRootCertificatesResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{19}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetRootCertificatesResponse) GetPem() string {
@@ -1244,7 +1117,7 @@ type ReadAndroidVPNTypeRequest struct {
 
 func (x *ReadAndroidVPNTypeRequest) Reset() {
 	*x = ReadAndroidVPNTypeRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[20]
+	mi := &file_husi_v1_application_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1256,7 +1129,7 @@ func (x *ReadAndroidVPNTypeRequest) String() string {
 func (*ReadAndroidVPNTypeRequest) ProtoMessage() {}
 
 func (x *ReadAndroidVPNTypeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[20]
+	mi := &file_husi_v1_application_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1269,7 +1142,7 @@ func (x *ReadAndroidVPNTypeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadAndroidVPNTypeRequest.ProtoReflect.Descriptor instead.
 func (*ReadAndroidVPNTypeRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{20}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ReadAndroidVPNTypeRequest) GetApkPaths() []string {
@@ -1292,7 +1165,7 @@ type AndroidVPNType struct {
 
 func (x *AndroidVPNType) Reset() {
 	*x = AndroidVPNType{}
-	mi := &file_husi_v1_application_proto_msgTypes[21]
+	mi := &file_husi_v1_application_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1304,7 +1177,7 @@ func (x *AndroidVPNType) String() string {
 func (*AndroidVPNType) ProtoMessage() {}
 
 func (x *AndroidVPNType) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[21]
+	mi := &file_husi_v1_application_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1317,7 +1190,7 @@ func (x *AndroidVPNType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AndroidVPNType.ProtoReflect.Descriptor instead.
 func (*AndroidVPNType) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{21}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AndroidVPNType) GetCoreType() string {
@@ -1351,7 +1224,7 @@ type ReadAndroidVPNTypeResponse struct {
 
 func (x *ReadAndroidVPNTypeResponse) Reset() {
 	*x = ReadAndroidVPNTypeResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[22]
+	mi := &file_husi_v1_application_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1363,7 +1236,7 @@ func (x *ReadAndroidVPNTypeResponse) String() string {
 func (*ReadAndroidVPNTypeResponse) ProtoMessage() {}
 
 func (x *ReadAndroidVPNTypeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[22]
+	mi := &file_husi_v1_application_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1376,7 +1249,7 @@ func (x *ReadAndroidVPNTypeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadAndroidVPNTypeResponse.ProtoReflect.Descriptor instead.
 func (*ReadAndroidVPNTypeResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{22}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ReadAndroidVPNTypeResponse) GetType() *AndroidVPNType {
@@ -1397,7 +1270,7 @@ type LookupIPCountryRequest struct {
 
 func (x *LookupIPCountryRequest) Reset() {
 	*x = LookupIPCountryRequest{}
-	mi := &file_husi_v1_application_proto_msgTypes[23]
+	mi := &file_husi_v1_application_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1282,7 @@ func (x *LookupIPCountryRequest) String() string {
 func (*LookupIPCountryRequest) ProtoMessage() {}
 
 func (x *LookupIPCountryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[23]
+	mi := &file_husi_v1_application_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1295,7 @@ func (x *LookupIPCountryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LookupIPCountryRequest.ProtoReflect.Descriptor instead.
 func (*LookupIPCountryRequest) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{23}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *LookupIPCountryRequest) GetIp() string {
@@ -1448,7 +1321,7 @@ type LookupIPCountryResponse struct {
 
 func (x *LookupIPCountryResponse) Reset() {
 	*x = LookupIPCountryResponse{}
-	mi := &file_husi_v1_application_proto_msgTypes[24]
+	mi := &file_husi_v1_application_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1460,7 +1333,7 @@ func (x *LookupIPCountryResponse) String() string {
 func (*LookupIPCountryResponse) ProtoMessage() {}
 
 func (x *LookupIPCountryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_husi_v1_application_proto_msgTypes[24]
+	mi := &file_husi_v1_application_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1473,7 +1346,7 @@ func (x *LookupIPCountryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LookupIPCountryResponse.ProtoReflect.Descriptor instead.
 func (*LookupIPCountryResponse) Descriptor() ([]byte, []int) {
-	return file_husi_v1_application_proto_rawDescGZIP(), []int{24}
+	return file_husi_v1_application_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *LookupIPCountryResponse) GetCountryCode() string {
@@ -1525,15 +1398,7 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"config_url\x18\x01 \x01(\tR\tconfigUrl\x12\x16\n" +
 	"\x06serial\x18\x02 \x01(\bR\x06serial\x12.\n" +
 	"\x13max_runtime_seconds\x18\x03 \x01(\x05R\x11maxRuntimeSeconds\x12\x14\n" +
-	"\x05http3\x18\x04 \x01(\bR\x05http3\"X\n" +
-	"\x11DecryptAgeRequest\x12 \n" +
-	"\n" +
-	"identities\x18\x01 \x01(\tH\x00R\n" +
-	"identities\x12\x16\n" +
-	"\x05chunk\x18\x02 \x01(\fH\x00R\x05chunkB\t\n" +
-	"\apayload\"*\n" +
-	"\x12DecryptAgeResponse\x12\x14\n" +
-	"\x05chunk\x18\x01 \x01(\fR\x05chunk\"\x8d\x01\n" +
+	"\x05http3\x18\x04 \x01(\bR\x05http3\"\x8d\x01\n" +
 	"\vPingRequest\x121\n" +
 	"\bprotocol\x18\x01 \x01(\x0e2\x15.husi.v1.PingProtocolR\bprotocol\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x12\n" +
@@ -1579,7 +1444,7 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\fPingProtocol\x12\x1d\n" +
 	"\x19PING_PROTOCOL_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12PING_PROTOCOL_ICMP\x10\x01\x12\x15\n" +
-	"\x11PING_PROTOCOL_TCP\x10\x022\xc9\b\n" +
+	"\x11PING_PROTOCOL_TCP\x10\x022\xfe\a\n" +
 	"\x12ApplicationService\x12H\n" +
 	"\vCheckConfig\x12\x1b.husi.v1.CheckConfigRequest\x1a\x1c.husi.v1.CheckConfigResponse\x12K\n" +
 	"\fFormatConfig\x12\x1c.husi.v1.FormatConfigRequest\x1a\x1d.husi.v1.FormatConfigResponse\x12Q\n" +
@@ -1587,9 +1452,7 @@ const file_husi_v1_application_proto_rawDesc = "" +
 	"\x11StandaloneURLTest\x12!.husi.v1.StandaloneURLTestRequest\x1a\".husi.v1.StandaloneURLTestResponse\x12<\n" +
 	"\aGetCert\x12\x17.husi.v1.GetCertRequest\x1a\x18.husi.v1.GetCertResponse\x12T\n" +
 	"\x12StandaloneSTUNTest\x12\".husi.v1.StandaloneSTUNTestRequest\x1a\x18.daemon.STUNTestProgress0\x01\x12r\n" +
-	"\x1cStandaloneNetworkQualityTest\x12,.husi.v1.StandaloneNetworkQualityTestRequest\x1a\".daemon.NetworkQualityTestProgress0\x01\x12I\n" +
-	"\n" +
-	"DecryptAge\x12\x1a.husi.v1.DecryptAgeRequest\x1a\x1b.husi.v1.DecryptAgeResponse(\x010\x01\x123\n" +
+	"\x1cStandaloneNetworkQualityTest\x12,.husi.v1.StandaloneNetworkQualityTestRequest\x1a\".daemon.NetworkQualityTestProgress0\x01\x123\n" +
 	"\x04Ping\x12\x14.husi.v1.PingRequest\x1a\x15.husi.v1.PingResponse\x12T\n" +
 	"\x0fLookupIPCountry\x12\x1f.husi.v1.LookupIPCountryRequest\x1a .husi.v1.LookupIPCountryResponse\x12N\n" +
 	"\rMatchRuleSets\x12\x1d.husi.v1.MatchRuleSetsRequest\x1a\x1e.husi.v1.MatchRuleSetsResponse\x12`\n" +
@@ -1610,7 +1473,7 @@ func file_husi_v1_application_proto_rawDescGZIP() []byte {
 }
 
 var file_husi_v1_application_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_husi_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_husi_v1_application_proto_goTypes = []any{
 	(SchemaKind)(0),                             // 0: husi.v1.SchemaKind
 	(GetCertMode)(0),                            // 1: husi.v1.GetCertMode
@@ -1627,33 +1490,31 @@ var file_husi_v1_application_proto_goTypes = []any{
 	(*GetCertResponse)(nil),                     // 12: husi.v1.GetCertResponse
 	(*StandaloneSTUNTestRequest)(nil),           // 13: husi.v1.StandaloneSTUNTestRequest
 	(*StandaloneNetworkQualityTestRequest)(nil), // 14: husi.v1.StandaloneNetworkQualityTestRequest
-	(*DecryptAgeRequest)(nil),                   // 15: husi.v1.DecryptAgeRequest
-	(*DecryptAgeResponse)(nil),                  // 16: husi.v1.DecryptAgeResponse
-	(*PingRequest)(nil),                         // 17: husi.v1.PingRequest
-	(*PingResponse)(nil),                        // 18: husi.v1.PingResponse
-	(*MatchRuleSetsRequest)(nil),                // 19: husi.v1.MatchRuleSetsRequest
-	(*MatchRuleSetsResponse)(nil),               // 20: husi.v1.MatchRuleSetsResponse
-	(*GetRootCertificatesRequest)(nil),          // 21: husi.v1.GetRootCertificatesRequest
-	(*GetRootCertificatesResponse)(nil),         // 22: husi.v1.GetRootCertificatesResponse
-	(*ReadAndroidVPNTypeRequest)(nil),           // 23: husi.v1.ReadAndroidVPNTypeRequest
-	(*AndroidVPNType)(nil),                      // 24: husi.v1.AndroidVPNType
-	(*ReadAndroidVPNTypeResponse)(nil),          // 25: husi.v1.ReadAndroidVPNTypeResponse
-	(*LookupIPCountryRequest)(nil),              // 26: husi.v1.LookupIPCountryRequest
-	(*LookupIPCountryResponse)(nil),             // 27: husi.v1.LookupIPCountryResponse
-	(*URLTestOptions)(nil),                      // 28: husi.v1.URLTestOptions
-	(*PluginProcessSpec)(nil),                   // 29: husi.v1.PluginProcessSpec
-	(RootCertificateStore)(0),                   // 30: husi.v1.RootCertificateStore
-	(*daemon.STUNTestProgress)(nil),             // 31: daemon.STUNTestProgress
-	(*daemon.NetworkQualityTestProgress)(nil),   // 32: daemon.NetworkQualityTestProgress
+	(*PingRequest)(nil),                         // 15: husi.v1.PingRequest
+	(*PingResponse)(nil),                        // 16: husi.v1.PingResponse
+	(*MatchRuleSetsRequest)(nil),                // 17: husi.v1.MatchRuleSetsRequest
+	(*MatchRuleSetsResponse)(nil),               // 18: husi.v1.MatchRuleSetsResponse
+	(*GetRootCertificatesRequest)(nil),          // 19: husi.v1.GetRootCertificatesRequest
+	(*GetRootCertificatesResponse)(nil),         // 20: husi.v1.GetRootCertificatesResponse
+	(*ReadAndroidVPNTypeRequest)(nil),           // 21: husi.v1.ReadAndroidVPNTypeRequest
+	(*AndroidVPNType)(nil),                      // 22: husi.v1.AndroidVPNType
+	(*ReadAndroidVPNTypeResponse)(nil),          // 23: husi.v1.ReadAndroidVPNTypeResponse
+	(*LookupIPCountryRequest)(nil),              // 24: husi.v1.LookupIPCountryRequest
+	(*LookupIPCountryResponse)(nil),             // 25: husi.v1.LookupIPCountryResponse
+	(*URLTestOptions)(nil),                      // 26: husi.v1.URLTestOptions
+	(*PluginProcessSpec)(nil),                   // 27: husi.v1.PluginProcessSpec
+	(RootCertificateStore)(0),                   // 28: husi.v1.RootCertificateStore
+	(*daemon.STUNTestProgress)(nil),             // 29: daemon.STUNTestProgress
+	(*daemon.NetworkQualityTestProgress)(nil),   // 30: daemon.NetworkQualityTestProgress
 }
 var file_husi_v1_application_proto_depIdxs = []int32{
 	0,  // 0: husi.v1.GenerateSchemaRequest.kind:type_name -> husi.v1.SchemaKind
-	28, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
-	29, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
+	26, // 1: husi.v1.StandaloneURLTestRequest.options:type_name -> husi.v1.URLTestOptions
+	27, // 2: husi.v1.StandaloneURLTestRequest.plugins:type_name -> husi.v1.PluginProcessSpec
 	1,  // 3: husi.v1.GetCertRequest.mode:type_name -> husi.v1.GetCertMode
 	2,  // 4: husi.v1.PingRequest.protocol:type_name -> husi.v1.PingProtocol
-	30, // 5: husi.v1.GetRootCertificatesRequest.store:type_name -> husi.v1.RootCertificateStore
-	24, // 6: husi.v1.ReadAndroidVPNTypeResponse.type:type_name -> husi.v1.AndroidVPNType
+	28, // 5: husi.v1.GetRootCertificatesRequest.store:type_name -> husi.v1.RootCertificateStore
+	22, // 6: husi.v1.ReadAndroidVPNTypeResponse.type:type_name -> husi.v1.AndroidVPNType
 	3,  // 7: husi.v1.ApplicationService.CheckConfig:input_type -> husi.v1.CheckConfigRequest
 	5,  // 8: husi.v1.ApplicationService.FormatConfig:input_type -> husi.v1.FormatConfigRequest
 	7,  // 9: husi.v1.ApplicationService.GenerateSchema:input_type -> husi.v1.GenerateSchemaRequest
@@ -1661,27 +1522,25 @@ var file_husi_v1_application_proto_depIdxs = []int32{
 	11, // 11: husi.v1.ApplicationService.GetCert:input_type -> husi.v1.GetCertRequest
 	13, // 12: husi.v1.ApplicationService.StandaloneSTUNTest:input_type -> husi.v1.StandaloneSTUNTestRequest
 	14, // 13: husi.v1.ApplicationService.StandaloneNetworkQualityTest:input_type -> husi.v1.StandaloneNetworkQualityTestRequest
-	15, // 14: husi.v1.ApplicationService.DecryptAge:input_type -> husi.v1.DecryptAgeRequest
-	17, // 15: husi.v1.ApplicationService.Ping:input_type -> husi.v1.PingRequest
-	26, // 16: husi.v1.ApplicationService.LookupIPCountry:input_type -> husi.v1.LookupIPCountryRequest
-	19, // 17: husi.v1.ApplicationService.MatchRuleSets:input_type -> husi.v1.MatchRuleSetsRequest
-	21, // 18: husi.v1.ApplicationService.GetRootCertificates:input_type -> husi.v1.GetRootCertificatesRequest
-	23, // 19: husi.v1.ApplicationService.ReadAndroidVPNType:input_type -> husi.v1.ReadAndroidVPNTypeRequest
-	4,  // 20: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
-	6,  // 21: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
-	8,  // 22: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
-	10, // 23: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
-	12, // 24: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
-	31, // 25: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
-	32, // 26: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
-	16, // 27: husi.v1.ApplicationService.DecryptAge:output_type -> husi.v1.DecryptAgeResponse
-	18, // 28: husi.v1.ApplicationService.Ping:output_type -> husi.v1.PingResponse
-	27, // 29: husi.v1.ApplicationService.LookupIPCountry:output_type -> husi.v1.LookupIPCountryResponse
-	20, // 30: husi.v1.ApplicationService.MatchRuleSets:output_type -> husi.v1.MatchRuleSetsResponse
-	22, // 31: husi.v1.ApplicationService.GetRootCertificates:output_type -> husi.v1.GetRootCertificatesResponse
-	25, // 32: husi.v1.ApplicationService.ReadAndroidVPNType:output_type -> husi.v1.ReadAndroidVPNTypeResponse
-	20, // [20:33] is the sub-list for method output_type
-	7,  // [7:20] is the sub-list for method input_type
+	15, // 14: husi.v1.ApplicationService.Ping:input_type -> husi.v1.PingRequest
+	24, // 15: husi.v1.ApplicationService.LookupIPCountry:input_type -> husi.v1.LookupIPCountryRequest
+	17, // 16: husi.v1.ApplicationService.MatchRuleSets:input_type -> husi.v1.MatchRuleSetsRequest
+	19, // 17: husi.v1.ApplicationService.GetRootCertificates:input_type -> husi.v1.GetRootCertificatesRequest
+	21, // 18: husi.v1.ApplicationService.ReadAndroidVPNType:input_type -> husi.v1.ReadAndroidVPNTypeRequest
+	4,  // 19: husi.v1.ApplicationService.CheckConfig:output_type -> husi.v1.CheckConfigResponse
+	6,  // 20: husi.v1.ApplicationService.FormatConfig:output_type -> husi.v1.FormatConfigResponse
+	8,  // 21: husi.v1.ApplicationService.GenerateSchema:output_type -> husi.v1.GenerateSchemaResponse
+	10, // 22: husi.v1.ApplicationService.StandaloneURLTest:output_type -> husi.v1.StandaloneURLTestResponse
+	12, // 23: husi.v1.ApplicationService.GetCert:output_type -> husi.v1.GetCertResponse
+	29, // 24: husi.v1.ApplicationService.StandaloneSTUNTest:output_type -> daemon.STUNTestProgress
+	30, // 25: husi.v1.ApplicationService.StandaloneNetworkQualityTest:output_type -> daemon.NetworkQualityTestProgress
+	16, // 26: husi.v1.ApplicationService.Ping:output_type -> husi.v1.PingResponse
+	25, // 27: husi.v1.ApplicationService.LookupIPCountry:output_type -> husi.v1.LookupIPCountryResponse
+	18, // 28: husi.v1.ApplicationService.MatchRuleSets:output_type -> husi.v1.MatchRuleSetsResponse
+	20, // 29: husi.v1.ApplicationService.GetRootCertificates:output_type -> husi.v1.GetRootCertificatesResponse
+	23, // 30: husi.v1.ApplicationService.ReadAndroidVPNType:output_type -> husi.v1.ReadAndroidVPNTypeResponse
+	19, // [19:31] is the sub-list for method output_type
+	7,  // [7:19] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -1694,17 +1553,13 @@ func file_husi_v1_application_proto_init() {
 	}
 	file_husi_v1_core_proto_init()
 	file_husi_v1_daemon_proto_init()
-	file_husi_v1_application_proto_msgTypes[12].OneofWrappers = []any{
-		(*DecryptAgeRequest_Identities)(nil),
-		(*DecryptAgeRequest_Chunk)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_husi_v1_application_proto_rawDesc), len(file_husi_v1_application_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   25,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

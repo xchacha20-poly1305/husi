@@ -57,8 +57,6 @@ import fr.husi.proto.v1.AndroidVPNType
 import fr.husi.proto.v1.AttachClientRequest
 import fr.husi.proto.v1.CheckConfigRequest
 import fr.husi.proto.v1.ClaimServiceRequest
-import fr.husi.proto.v1.DecryptAgeRequest
-import fr.husi.proto.v1.DecryptAgeResponse
 import fr.husi.proto.v1.DetectIPRequest
 import fr.husi.proto.v1.FormatConfigRequest
 import fr.husi.proto.v1.GenerateSchemaRequest
@@ -237,8 +235,6 @@ interface CoreClient {
         http3: Boolean,
     ): Flow<NetworkQualityTestProgress>
 
-    fun decryptAge(requests: Flow<DecryptAgeRequest>): Flow<DecryptAgeResponse>
-
     /** Latency in milliseconds. [port] is ignored by ICMP. */
     suspend fun ping(protocol: PingProtocol, address: String, port: Int, timeoutMs: Int): Int
 
@@ -378,7 +374,6 @@ class WireCoreClient internal constructor(
     private fun <Request : Any, Response : Any> bidiStream(
         method: CoreChannel.() -> GrpcStreamingCall<Request, Response>,
         requests: Flow<Request>,
-        bufferCapacity: Int = Channel.UNLIMITED,
     ): Flow<Response> = flow {
         val call = rpc { channel().method() }
         coroutineScope {
@@ -401,7 +396,7 @@ class WireCoreClient internal constructor(
                 sender.cancel()
             }
         }
-    }.buffer(bufferCapacity)
+    }.buffer(Channel.UNLIMITED)
 
     override fun subscribeServiceStatus(): Flow<ServiceStatus> {
         return stream({ started.SubscribeServiceStatus() }, Unit)
@@ -743,9 +738,6 @@ class WireCoreClient internal constructor(
         )
         return oneShotStream({ application.StandaloneNetworkQualityTest() }, request)
     }
-
-    override fun decryptAge(requests: Flow<DecryptAgeRequest>): Flow<DecryptAgeResponse> =
-        bidiStream({ application.DecryptAge() }, requests, bufferCapacity = Channel.RENDEZVOUS)
 
     override suspend fun resetNetwork() {
         unary({ core.ResetNetwork() }, ResetNetworkRequest())
