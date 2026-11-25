@@ -13,6 +13,7 @@ import (
 	"github.com/sagernet/sing-box/dns/transport/mdns"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 
@@ -95,7 +96,7 @@ func (p *platformTransport) SearchDomains() []string {
 	if defaultInterface == nil {
 		return nil
 	}
-	return defaultInterface.DNSSearchDomains
+	return normalizeSearchDomains(defaultInterface.DNSSearchDomains)
 }
 
 func (p *platformTransport) Environment() []string {
@@ -103,7 +104,17 @@ func (p *platformTransport) Environment() []string {
 	if defaultInterface == nil {
 		return nil
 	}
-	return defaultInterface.DNSServers
+	searchDomains := normalizeSearchDomains(defaultInterface.DNSSearchDomains)
+	environment := make([]string, 0, len(defaultInterface.DNSServers)+len(searchDomains))
+	environment = append(environment, defaultInterface.DNSServers...)
+	environment = append(environment, searchDomains...)
+	return environment
+}
+
+func normalizeSearchDomains(searchDomains []string) []string {
+	return common.Filter(common.Map(searchDomains, mDNS.Fqdn), func(it string) bool {
+		return it != "."
+	})
 }
 
 func (p *platformTransport) defaultNetworkInterface() *adapter.NetworkInterface {
