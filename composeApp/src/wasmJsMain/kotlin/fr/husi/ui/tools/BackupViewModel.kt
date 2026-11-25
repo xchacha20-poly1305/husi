@@ -73,7 +73,10 @@ internal class BackupViewModel(
         const val DEFAULT_CLASH_STORAGE_KEY = DataStore.DEFAULT_CLASH_STORAGE_BACKUP_KEY
         const val MAX_CLASH_STORAGE_KEY_BYTES = 64
 
-        val EXCLUDED_SETTING_KEYS = setOf(Key.ACTIVE_REMOTE_SERVER_ID)
+        val EXCLUDED_SETTING_KEYS = setOf(
+            Key.ACTIVE_REMOTE_SERVER_ID,
+            DataStore.KEY_BROWSER_NOTIFICATIONS,
+        )
 
         private val compactJson = Json {
             explicitNulls = false

@@ -2,7 +2,10 @@ package fr.husi.ui.openvpn
 
 import fr.husi.vpn.OpenVPNChallengeState
 import fr.husi.vpn.OpenVPNEndpointState
+import fr.husi.vpn.PendingVpnAuth
 import kotlinx.coroutines.flow.StateFlow
+
+typealias PendingOpenVPNAuth = PendingVpnAuth<OpenVPNChallengeState>
 
 interface OpenVPNAuthActions {
     val endpoints: StateFlow<List<OpenVPNEndpointState>>

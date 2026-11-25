@@ -45,7 +45,9 @@ import kotlin.time.Duration.Companion.seconds
 
 internal class SingBoxSession(
     val client: RemoteClient,
-    private val onNativeUpdate: (SingBoxSession) -> Unit = {},
+    private val onTailscaleUpdate: (SingBoxSession, TailscaleStatusUpdate) -> Unit = { _, _ -> },
+    private val onOpenConnectUpdate: (SingBoxSession, OpenConnectStatusUpdate) -> Unit = { _, _ -> },
+    private val onOpenVPNUpdate: (SingBoxSession, OpenVPNStatusUpdate) -> Unit = { _, _ -> },
 ) : RemoteSession() {
     override val backend = RemoteBackend.SING_BOX
     var coreVersion by mutableStateOf<Version?>(null)
@@ -215,6 +217,7 @@ internal class SingBoxSession(
                     { service.SubscribeTailscaleStatus().responses() },
                 ) {
                     tailscale = it
+                    onTailscaleUpdate(this@SingBoxSession, it)
                 }
                 subscribe(
                     this,
@@ -222,7 +225,7 @@ internal class SingBoxSession(
                     { service.SubscribeOpenConnectStatus().responses() },
                 ) {
                     openConnect = it
-                    onNativeUpdate(this@SingBoxSession)
+                    onOpenConnectUpdate(this@SingBoxSession, it)
                 }
                 subscribe(
                     this,
@@ -230,7 +233,7 @@ internal class SingBoxSession(
                     { service.SubscribeOpenVPNStatus().responses() },
                 ) {
                     openVPN = it
-                    onNativeUpdate(this@SingBoxSession)
+                    onOpenVPNUpdate(this@SingBoxSession, it)
                 }
                 subscribe(
                     this,

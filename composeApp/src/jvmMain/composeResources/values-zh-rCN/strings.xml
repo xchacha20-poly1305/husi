@@ -445,11 +445,7 @@
     <string name="openvpn_control_wrap_type">控制通道保护</string>
     <string name="openvpn_control_wrap_key">控制通道密钥</string>
     <string name="openvpn_control_wrap_direction">控制通道密钥方向</string>
-    <string name="openconnect_authentication">OpenConnect 身份验证</string>
-    <string name="openvpn_authentication">OpenVPN 身份验证</string>
     <string name="clear_remembered_authentication_answers">清除已记住的身份验证答案</string>
-    <string name="later">稍后</string>
-    <string name="auth_verifying">正在验证…</string>
     <string name="auth_later_hint">您可以稍后在“仪表板 → 状态”中完成身份验证。</string>
     <string name="remote_connect_failed">无法连接到 %1$s</string>
     <string name="remote_disconnected_from">已与 %1$s 断开连接</string>
@@ -461,9 +457,6 @@
     <string name="app_update_installing">安装中…</string>
     <string name="app_update_install_failed">安装失败：%1$s</string>
     <string name="app_update_no_matching_asset">没有与此设备匹配的安装包。请打开发布页面手动下载。</string>
-    <plurals name="taildrop_received_notification">
-        <item quantity="other">收到 %1$d 个文件</item>
-    </plurals>
     <string name="taildrop_open_directory">打开接收目录</string>
     <string name="taildrop_open_download_directory">打开下载的文件</string>
     <string name="taildrop_no_targets">没有可接收文件的设备</string>

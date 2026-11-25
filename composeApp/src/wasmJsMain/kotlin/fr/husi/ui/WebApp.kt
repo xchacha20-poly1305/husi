@@ -22,6 +22,8 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import fr.husi.ProvideAppLanguageEnvironment
+import fr.husi.bg.RemoteNotificationAction
+import fr.husi.bg.RemoteNotificationWatcher
 import fr.husi.compose.material3.NavigationSuite
 import fr.husi.compose.material3.NavigationSuiteItem
 import fr.husi.compose.theme.AppTheme
@@ -40,6 +42,10 @@ import fr.husi.resources.settings
 import fr.husi.resources.speed
 import fr.husi.resources.traffic_connections
 import fr.husi.resources.traffic_status
+import fr.husi.resources.web_auth_later_hint
+import fr.husi.ui.dashboard.DashboardNoticeTracker
+import fr.husi.ui.openconnect.OpenConnectAuthDialog
+import fr.husi.ui.openvpn.OpenVPNAuthDialog
 import fr.husi.ui.remote.LocalRemoteSetupLink
 import fr.husi.ui.remote.readRemoteSetupLink
 import io.github.xchacha20_poly1305.libghostty.GhosttyWebAssembly
@@ -82,6 +88,8 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
         val scope = viewModel { MainScreenScopeHolder(koin) }.scope
         UnboundKoinScope(scope) {
             val state = koinInject<RemoteState>()
+            val watcher = koinInject<RemoteNotificationWatcher>()
+            val dashboardNoticeTracker = koinInject<DashboardNoticeTracker>()
             if (!state.initialized) return@UnboundKoinScope
             LaunchedEffect(Unit) {
                 val link = setupLink?.takeIf { it.addImmediately } ?: return@LaunchedEffect
@@ -121,6 +129,44 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
             }
             val navigator = remember(backStack) { Navigator(backStack, RemoteRoute.topLevel) }
             val entryProvider = koinEntryProvider<NavKey>(scope = scope)
+            val unreadStatsNoticeCount by dashboardNoticeTracker.unreadCount.collectAsStateWithLifecycle()
+            val isStatsSelected = routes.lastOrNull() == RemoteRoute.Stats
+            SideEffect { watcher.currentRoute = routes.lastOrNull() }
+            LaunchedEffect(isStatsSelected, unreadStatsNoticeCount) {
+                if (isStatsSelected && unreadStatsNoticeCount > 0) {
+                    dashboardNoticeTracker.markAllRead()
+                }
+            }
+            LaunchedEffect(watcher, navigator, state) {
+                watcher.clickActions.collect { action ->
+                    if (state.selected == null || state.isClash) return@collect
+                    when (action) {
+                        is RemoteNotificationAction.OpenOpenConnectAuth -> {
+                            state.openConnectActions.undismissDialog(action.endpointTag, action.challengeId)
+                            navigator.navigateToTopLevelRoute(RemoteRoute.Stats)
+                        }
+
+                        is RemoteNotificationAction.OpenOpenVPNAuth -> {
+                            state.openVPNActions.undismissDialog(action.endpointTag, action.challengeId)
+                            navigator.navigateToTopLevelRoute(RemoteRoute.Stats)
+                        }
+
+                        is RemoteNotificationAction.OpenTailscaleEndpoint -> {
+                            val target = RemoteRoute.Endpoint(action.endpointTag)
+                            if (navigator.currentRoute != target) {
+                                navigator.navigateTo(target)
+                            }
+                        }
+
+                        is RemoteNotificationAction.OpenTaildropInbox -> {
+                            val target = RemoteRoute.Inbox(action.endpointTag)
+                            if (navigator.currentRoute != target) {
+                                navigator.navigateTo(target)
+                            }
+                        }
+                    }
+                }
+            }
             SnackbarEmitterEffect(snackbar, snackbarHost)
             LaunchedEffect(Unit) {
                 document.getElementById("loading")?.remove()
@@ -186,6 +232,7 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                                         icon,
                                         routes.lastOrNull { it in RemoteRoute.topLevel } == route,
                                         { navigator.navigateToTopLevelRoute(route) },
+                                        badgeCount = if (route == RemoteRoute.Stats) unreadStatsNoticeCount else 0,
                                     )
                                 }
                                 .toPersistentList(),
@@ -209,6 +256,40 @@ private fun WebAppContent(appTheme: Int, isDarkMode: Boolean) {
                                 ),
                             entryProvider = entryProvider,
                         )
+
+                        if (state.selected != null && !state.isClash) {
+                            val pendingOpenConnectAuth by state.openConnectActions.pendingDialogAuth
+                                .collectAsStateWithLifecycle()
+                            pendingOpenConnectAuth?.let { pending ->
+                                OpenConnectAuthDialog(
+                                    pending = pending,
+                                    actions = state.openConnectActions,
+                                    onDismiss = {
+                                        state.openConnectActions.dismissDialog(
+                                            pending.endpointTag,
+                                            pending.challenge.id,
+                                        )
+                                        snackbar.show(StringOrRes.Res(Res.string.web_auth_later_hint))
+                                    },
+                                )
+                            }
+
+                            val pendingOpenVPNAuth by state.openVPNActions.pendingDialogAuth
+                                .collectAsStateWithLifecycle()
+                            pendingOpenVPNAuth?.let { pending ->
+                                OpenVPNAuthDialog(
+                                    pending = pending,
+                                    actions = state.openVPNActions,
+                                    onDismiss = {
+                                        state.openVPNActions.dismissDialog(
+                                            pending.endpointTag,
+                                            pending.challenge.id,
+                                        )
+                                        snackbar.show(StringOrRes.Res(Res.string.web_auth_later_hint))
+                                    },
+                                )
+                            }
+                        }
                     }
                 }
             }

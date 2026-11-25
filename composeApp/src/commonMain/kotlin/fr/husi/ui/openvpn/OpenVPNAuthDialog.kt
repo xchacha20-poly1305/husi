@@ -22,7 +22,6 @@ import fr.husi.compose.TextButton
 import fr.husi.compose.VerticalScrollColumn
 import fr.husi.compose.WindowedDialog
 import fr.husi.compose.material3.Text
-import fr.husi.ktx.readableMessage
 import fr.husi.resources.Res
 import fr.husi.resources.auth_open_url
 import fr.husi.resources.auth_submit
@@ -40,6 +39,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.material3.TextButton as Material3TextButton
 
 /**
@@ -47,13 +47,13 @@ import androidx.compose.material3.TextButton as Material3TextButton
  *
  * Dismissing it (back press, outside touch or "Later") only hides the
  * dialog; the challenge stays pending in the core and can be picked up again
- * from the OpenVPN status page.
+ * from the status page.
  */
 @Composable
 fun OpenVPNAuthDialog(
     pending: PendingOpenVPNAuth,
-    controller: OpenVPNAuthController,
-    onDismissed: () -> Unit = {},
+    actions: OpenVPNAuthActions,
+    onDismiss: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val challenge = pending.challenge
@@ -72,21 +72,16 @@ fun OpenVPNAuthDialog(
     if (challenge.deadline > 0) {
         LaunchedEffect(challenge.id) {
             while (true) {
-                delay(1000)
+                delay(1000.milliseconds)
                 nowEpochSeconds = Clock.System.now().epochSeconds
             }
         }
     }
 
-    fun dismiss() {
-        controller.dismissDialog(pending.endpointTag, challenge.id)
-        onDismissed()
-    }
-
     fun submit(snackbar: SnackbarEmitter) {
         scope.launch {
             submitting = true
-            val error = controller.submitAuthChallenge(
+            val error = actions.submitAuthChallenge(
                 endpointTag = pending.endpointTag,
                 challenge = challenge,
                 username = if (challenge.kind == OPENVPN_CHALLENGE_CREDENTIALS) username else "",
@@ -103,18 +98,18 @@ fun OpenVPNAuthDialog(
     }
 
     WindowedDialog(
-        onDismissRequest = ::dismiss,
+        onDismissRequest = onDismiss,
         title = stringResource(Res.string.openvpn_authentication),
         windowSize = AuthDialogWindowSize,
         buttons = {
             val snackbar = LocalSnackbarEmitter.current
             val uriHandler = LocalUriHandler.current
-            TextButton(stringResource(Res.string.later), onClick = ::dismiss)
+            TextButton(stringResource(Res.string.later), onClick = onDismiss)
             if (!submitted) {
                 if (challenge.kind == OPENVPN_CHALLENGE_OPEN_URL && challenge.url.isNotEmpty()) {
                     TextButton(stringResource(Res.string.auth_open_url)) {
                         runCatching { uriHandler.openUri(challenge.url) }
-                            .onFailure { snackbar.show(StringOrRes.Direct(it.readableMessage)) }
+                            .onFailure { snackbar.show(StringOrRes.Direct(it.message ?: it.toString())) }
                     }
                     TextButton(stringResource(Res.string.share_qr_nfc)) {
                         showQr = true

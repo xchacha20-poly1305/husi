@@ -295,4 +295,14 @@
     <string name="ip_test_detect">Нажмите на карточку, чтобы определить</string>
     <string name="dashboard_traffic_usage">Использование трафика</string>
     <string name="dashboard_traffic_total">Всего</string>
+    <string name="openconnect_authentication">Аутентификация OpenConnect</string>
+    <string name="openvpn_authentication">Аутентификация OpenVPN</string>
+    <string name="later">Позже</string>
+    <string name="auth_verifying">Проверка…</string>
+    <plurals name="taildrop_received_notification">
+        <item quantity="one">Получен %1$d файл</item>
+        <item quantity="few">Получено %1$d файла</item>
+        <item quantity="many">Получено %1$d файлов</item>
+        <item quantity="other">Получено %1$d файлов</item>
+    </plurals>
 </resources>

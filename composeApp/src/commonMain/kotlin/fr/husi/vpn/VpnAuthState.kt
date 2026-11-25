@@ -24,3 +24,19 @@ data class VpnAuthPendingNotice(
     val endpointTag: String,
     val challengeId: String,
 )
+
+fun vpnAuthChallengeKey(endpointTag: String, challengeId: String): String = "$endpointTag\n$challengeId"
+
+fun <T> firstVpnAuthPending(
+    endpoints: Iterable<T>,
+    state: (T) -> String,
+    challengeId: (T) -> String?,
+    tag: (T) -> String,
+): VpnAuthPendingNotice? {
+    for (endpoint in endpoints) {
+        if (state(endpoint) != VPN_ENDPOINT_STATE_AUTH_PENDING) continue
+        val id = challengeId(endpoint) ?: continue
+        return VpnAuthPendingNotice(tag(endpoint), id)
+    }
+    return null
+}

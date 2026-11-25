@@ -317,4 +317,13 @@
     <string name="smart_wildcard_target">Wildcard target</string>
     <string name="smart_exit_geoip">Exit GeoIP</string>
     <string name="smart_exit_asn">Exit ASN</string>
+    <string name="openconnect_authentication">OpenConnect Authentication</string>
+    <string name="openvpn_authentication">OpenVPN Authentication</string>
+    <string name="later">Later</string>
+    <string name="auth_verifying">Verifying…</string>
+    <string name="tailscale_with_tag" translatable="false">Tailscale: %1$s</string>
+    <plurals name="taildrop_received_notification">
+        <item quantity="one">Received %1$d file</item>
+        <item quantity="other">Received %1$d files</item>
+    </plurals>
 </resources>

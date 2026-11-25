@@ -16,8 +16,11 @@ fun AuthChallengeDialogs(onDismissed: () -> Unit) {
     pendingOpenConnectAuth?.let { pending ->
         OpenConnectAuthDialog(
             pending = pending,
-            controller = openConnectController,
-            onDismissed = onDismissed,
+            actions = openConnectController,
+            onDismiss = {
+                openConnectController.dismissDialog(pending.endpointTag, pending.challenge.id)
+                onDismissed()
+            },
         )
     }
 
@@ -26,8 +29,11 @@ fun AuthChallengeDialogs(onDismissed: () -> Unit) {
     pendingOpenVPNAuth?.let { pending ->
         OpenVPNAuthDialog(
             pending = pending,
-            controller = openVPNController,
-            onDismissed = onDismissed,
+            actions = openVPNController,
+            onDismiss = {
+                openVPNController.dismissDialog(pending.endpointTag, pending.challenge.id)
+                onDismissed()
+            },
         )
     }
 }

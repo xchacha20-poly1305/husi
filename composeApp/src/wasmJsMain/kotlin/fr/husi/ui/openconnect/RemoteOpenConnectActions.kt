@@ -9,6 +9,7 @@ import fr.husi.proto.daemon.OpenConnectBrowserHeader
 import fr.husi.proto.daemon.OpenConnectBrowserResult
 import fr.husi.proto.daemon.OpenConnectStatusUpdate
 import fr.husi.remote.RemoteState
+import fr.husi.vpn.OPENCONNECT_STATE_AUTH_PENDING
 import fr.husi.vpn.OpenConnectAuthChallengeState
 import fr.husi.vpn.OpenConnectAuthChoice
 import fr.husi.vpn.OpenConnectAuthField
@@ -17,6 +18,8 @@ import fr.husi.vpn.OpenConnectBrowserRequestState
 import fr.husi.vpn.OpenConnectBrowserResultState
 import fr.husi.vpn.OpenConnectEndpointState
 import fr.husi.vpn.OpenConnectTunnelInfoState
+import fr.husi.vpn.PendingVpnAuth
+import fr.husi.vpn.vpnAuthChallengeKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -24,34 +27,72 @@ internal class RemoteOpenConnectActions(private val state: RemoteState) : OpenCo
     override val endpoints: StateFlow<List<OpenConnectEndpointState>>
         field = MutableStateFlow(emptyList())
 
-    fun update(value: OpenConnectStatusUpdate) {
-        endpoints.value =
-            value.endpoints.map { endpoint ->
-                OpenConnectEndpointState(
-                    tag = endpoint.endpointTag,
-                    state = endpoint.state,
-                    error = endpoint.error,
-                    authChallenge =
-                        endpoint
-                            .authChallenge
-                            ?.let(::openConnectChallenge),
-                    tunnelInfo =
-                        endpoint
-                            .tunnelInfo
-                            ?.let { tunnel ->
-                                OpenConnectTunnelInfoState(
-                                    server = tunnel.server,
-                                    flavor = tunnel.flavor,
-                                    transport = tunnel.transport,
-                                    ipv4 = tunnel.ipv4,
-                                    ipv6 = tunnel.ipv6,
-                                    dns = tunnel.dns,
-                                    mtu = tunnel.mtu,
-                                    connectedSince = tunnel.connectedSince,
-                                )
-                            },
-                )
+    val pendingChallengeKeys: StateFlow<Set<String>>
+        field = MutableStateFlow(emptySet())
+
+    val pendingDialogAuth: StateFlow<PendingOpenConnectAuth?>
+        field = MutableStateFlow(null)
+
+    private val dismissedChallenges = mutableSetOf<String>()
+
+    fun update(value: OpenConnectStatusUpdate): List<OpenConnectEndpointState> {
+        val mapped = value.endpoints.map { endpoint ->
+            OpenConnectEndpointState(
+                tag = endpoint.endpointTag,
+                state = endpoint.state,
+                error = endpoint.error,
+                authChallenge = endpoint.authChallenge?.let(::openConnectChallenge),
+                tunnelInfo = endpoint.tunnelInfo?.let { tunnel ->
+                    OpenConnectTunnelInfoState(
+                        server = tunnel.server,
+                        flavor = tunnel.flavor,
+                        transport = tunnel.transport,
+                        ipv4 = tunnel.ipv4,
+                        ipv6 = tunnel.ipv6,
+                        dns = tunnel.dns,
+                        mtu = tunnel.mtu,
+                        connectedSince = tunnel.connectedSince,
+                    )
+                },
+            )
+        }
+        endpoints.value = mapped
+        recomputePending(mapped)
+        return mapped
+    }
+
+    fun dismissDialog(endpointTag: String, challengeId: String) {
+        dismissedChallenges.add(vpnAuthChallengeKey(endpointTag, challengeId))
+        recomputePending(endpoints.value)
+    }
+
+    fun undismissDialog(endpointTag: String, challengeId: String) {
+        if (dismissedChallenges.remove(vpnAuthChallengeKey(endpointTag, challengeId))) {
+            recomputePending(endpoints.value)
+        }
+    }
+
+    fun clearDismissed() {
+        if (dismissedChallenges.isEmpty()) return
+        dismissedChallenges.clear()
+        recomputePending(endpoints.value)
+    }
+
+    private fun recomputePending(list: List<OpenConnectEndpointState>) {
+        val keys = HashSet<String>()
+        var firstDialog: PendingOpenConnectAuth? = null
+        for (endpoint in list) {
+            val challenge = endpoint.authChallenge?.takeIf {
+                endpoint.state == OPENCONNECT_STATE_AUTH_PENDING
+            } ?: continue
+            val key = vpnAuthChallengeKey(endpoint.tag, challenge.id)
+            keys.add(key)
+            if (firstDialog == null && key !in dismissedChallenges) {
+                firstDialog = PendingVpnAuth(endpoint.tag, challenge)
             }
+        }
+        pendingChallengeKeys.value = keys
+        pendingDialogAuth.value = firstDialog
     }
 
     override suspend fun submitAuthChallenge(

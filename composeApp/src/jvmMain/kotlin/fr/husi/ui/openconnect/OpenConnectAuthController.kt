@@ -25,8 +25,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
-typealias PendingOpenConnectAuth = PendingVpnAuth<OpenConnectAuthChallengeState>
-
 /**
  * Long-lived owner of the OpenConnect endpoint status subscription.
  *

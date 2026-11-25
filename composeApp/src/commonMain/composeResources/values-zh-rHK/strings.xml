@@ -79,4 +79,8 @@
     <string name="connected_since">連線時間</string>
     <string name="system_proxy">系統代理</string>
     <string name="system_proxy_unavailable_inbound_auth">已設置入站用戶名或密碼，不可用</string>
+    <string name="openconnect_authentication">OpenConnect 驗證</string>
+    <string name="openvpn_authentication">OpenVPN 驗證</string>
+    <string name="later">稍後</string>
+    <string name="auth_verifying">驗證中…</string>
 </resources>

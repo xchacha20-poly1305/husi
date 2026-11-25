@@ -3,6 +3,8 @@ package fr.husi.di
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.ViewModelStore
+import fr.husi.bg.BrowserNotificationClient
+import fr.husi.bg.RemoteNotificationWatcher
 import fr.husi.database.RemoteServerStore
 import fr.husi.proto.daemon.Version
 import fr.husi.remote.RemoteClient
@@ -10,9 +12,11 @@ import fr.husi.remote.RemoteState
 import fr.husi.repository.Repository
 import fr.husi.repository.WebRepository
 import fr.husi.tailscale.RemoteSshSessions
+import fr.husi.test.FakeBrowserNotificationClient
 import fr.husi.test.FakeRemoteClient
 import fr.husi.test.FakeRemoteServerStore
 import fr.husi.ui.MainScreenScope
+import fr.husi.ui.dashboard.DashboardNoticeTracker
 import fr.husi.ui.remote.RemoteServerEditor
 import fr.husi.ui.remote.RemoteServerTestState
 import fr.husi.ui.tools.BackupViewModel
@@ -43,10 +47,12 @@ class RemoteApplicationModuleTest {
     fun `scoped editor saves and tests current text field state with the shared remote client`() = runTest {
         val client = FakeClient()
         val serverStore = FakeRemoteServerStore()
+        val notificationClient = FakeBrowserNotificationClient()
         val application = koinApplication {
             modules(browserPlatformModule, remoteApplicationModule, module {
                 single<RemoteClient> { client }
                 single<RemoteServerStore> { serverStore }
+                single<BrowserNotificationClient> { notificationClient }
             })
         }
         val scope = application.koin.createScope<MainScreenScope>()
@@ -58,6 +64,8 @@ class RemoteApplicationModuleTest {
             assertSame(application.koin.get<Repository>(), repository)
             val remote = scope.get<RemoteState>()
             assertSame(remote, scope.get<RemoteState>())
+            assertSame(scope.get<DashboardNoticeTracker>(), scope.get<DashboardNoticeTracker>())
+            assertSame(scope.get<RemoteNotificationWatcher>(), scope.get<RemoteNotificationWatcher>())
             val editor = scope.get<RemoteServerEditor> { parametersOf(null as Long?) }
             store.put("editor", editor)
             assertEquals(RemoteServerTestState.Idle, editor.state.test)

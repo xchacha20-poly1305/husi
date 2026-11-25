@@ -503,11 +503,7 @@
     <string name="plugin_not_installed_summary">Tap to open the download page</string>
     <string name="traffic_pattern">Traffic Pattern</string>
     <string name="route_invert">Invert Match</string>
-    <string name="openconnect_authentication">OpenConnect Authentication</string>
-    <string name="openvpn_authentication">OpenVPN Authentication</string>
     <string name="clear_remembered_authentication_answers">Clear remembered authentication answers</string>
-    <string name="later">Later</string>
-    <string name="auth_verifying">Verifying…</string>
     <string name="auth_later_hint">You can finish authentication later from Dashboard → Status.</string>
     <string name="app_update_settings">App Update</string>
     <string name="app_update_available">Version %1$s is available</string>
@@ -517,11 +513,6 @@
     <string name="app_update_installing">Installing…</string>
     <string name="app_update_install_failed">Install failed: %1$s</string>
     <string name="app_update_no_matching_asset">No package matches this device. Open the release page to download it manually.</string>
-    <string name="tailscale_with_tag" translatable="false">Tailscale: %1$s</string>
-    <plurals name="taildrop_received_notification">
-        <item quantity="one">Received %1$d file</item>
-        <item quantity="other">Received %1$d files</item>
-    </plurals>
     <string name="taildrop_open_directory">Open receive directory</string>
     <string name="taildrop_open_download_directory">Open downloaded files</string>
     <string name="taildrop_no_targets">No devices can receive files</string>

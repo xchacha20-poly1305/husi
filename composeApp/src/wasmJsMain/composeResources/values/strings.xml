@@ -91,4 +91,10 @@
     <string name="clash_smart_lgbm">LightGBM model</string>
     <string name="clash_smart_upgrade_lgbm">Update model</string>
     <string name="clash_smart_upgrade_lgbm_success">LightGBM model updated</string>
+    <string name="web_auth_later_hint">You can finish authentication later from Status.</string>
+    <string name="web_browser_notifications">Browser notifications</string>
+    <string name="web_browser_notifications_enabled">Notify for VPN authentication and Taildrop files</string>
+    <string name="web_browser_notifications_disabled">Off</string>
+    <string name="web_browser_notifications_denied">Blocked in browser site settings</string>
+    <string name="web_browser_notifications_unsupported">Unavailable in this browser or insecure HTTP context</string>
 </resources>

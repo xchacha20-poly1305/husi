@@ -304,4 +304,11 @@
     <string name="smart_wildcard_target">通配目标</string>
     <string name="smart_exit_geoip">出口 GeoIP</string>
     <string name="smart_exit_asn">出口 ASN</string>
+    <string name="openconnect_authentication">OpenConnect 身份验证</string>
+    <string name="openvpn_authentication">OpenVPN 身份验证</string>
+    <string name="later">稍后</string>
+    <string name="auth_verifying">正在验证…</string>
+    <plurals name="taildrop_received_notification">
+        <item quantity="other">收到 %1$d 个文件</item>
+    </plurals>
 </resources>

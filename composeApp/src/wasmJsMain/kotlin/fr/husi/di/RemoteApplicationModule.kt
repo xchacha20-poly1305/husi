@@ -2,6 +2,9 @@
 
 package fr.husi.di
 
+import fr.husi.bg.BrowserNotificationClient
+import fr.husi.bg.RemoteNotificationWatcher
+import fr.husi.bg.WebBrowserNotificationClient
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.material3.standardPlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
@@ -17,6 +20,7 @@ import fr.husi.tailscale.RemoteInboxModel
 import fr.husi.tailscale.RemotePeerModel
 import fr.husi.tailscale.RemoteSshSessions
 import fr.husi.tailscale.RemoteUploads
+import fr.husi.tailscale.dashboardNoticeCounts
 import fr.husi.ui.clash.ClashRulesBinding
 import fr.husi.ui.clash.ClashProvidersBinding
 import fr.husi.ui.clash.ClashSmartBinding
@@ -27,9 +31,11 @@ import fr.husi.ui.MainScreenScope
 import fr.husi.ui.RemoteAboutBinding
 import fr.husi.ui.RemoteRoute
 import fr.husi.ui.SnackbarEmitter
+import fr.husi.ui.dashboard.DashboardNoticeTracker
 import fr.husi.ui.dashboard.DashboardPage
 import fr.husi.ui.dashboard.RemoteDashboardBinding
 import fr.husi.ui.dashboard.RemoteDashboardPresenter
+import fr.husi.ui.dashboard.asNoticeCounts
 import fr.husi.ui.log.RemoteLogBinding
 import fr.husi.ui.log.RemoteLogViewModel
 import fr.husi.ui.remote.RemoteServerEditor
@@ -54,6 +60,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.viewModel
@@ -66,6 +73,7 @@ internal val browserPlatformModule = module {
     single<Repository> { WebRepository() }
     single<RemoteClient> { BrowserClient() }
     single<RemoteServerStore> { IndexedDbRemoteServerStore() } onClose { it?.close() }
+    single<BrowserNotificationClient> { WebBrowserNotificationClient() } onClose { it?.close() }
 }
 
 internal val remoteApplicationModule = module {
@@ -74,6 +82,23 @@ internal val remoteApplicationModule = module {
     scope<MainScreenScope> {
         scoped { CoroutineScope(SupervisorJob() + Dispatchers.Default) } onClose { it?.cancel() }
         scoped { RemoteState(get(), get(), get()) } onClose { it?.close() }
+        scoped {
+            DashboardNoticeTracker(
+                noticeCounts = listOf(
+                    get<RemoteState>().openConnectActions.pendingChallengeKeys.map { it.asNoticeCounts() },
+                    get<RemoteState>().openVPNActions.pendingChallengeKeys.map { it.asNoticeCounts() },
+                    get<RemoteState>().tailscaleEndpoints.map { it.dashboardNoticeCounts() },
+                ),
+            )
+        }
+        scoped {
+            RemoteNotificationWatcher(
+                scope = get(),
+                remote = get(),
+                notifications = get(),
+                repository = get(),
+            )
+        } onClose { it?.close() }
         scoped { RemoteDashboardPresenter(get(), get()) }
         scopedOf(::SnackbarEmitter)
         scopedOf(::RemoteUploads)

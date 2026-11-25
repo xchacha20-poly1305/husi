@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,7 +29,6 @@ import fr.husi.ui.AuthDialogWindowSize
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.SnackbarEmitter
 import fr.husi.ui.StringOrRes
-import fr.husi.vpn.OpenConnectAuthChallengeState
 import fr.husi.vpn.OpenConnectBrowserResultState
 import fr.husi.vpn.buildResult
 import kotlinx.coroutines.launch
@@ -42,13 +40,13 @@ import androidx.compose.material3.TextButton as Material3TextButton
  *
  * Dismissing it (back press, outside touch or "Later") only hides the
  * dialog; the challenge stays pending in the core and can be picked up again
- * from the OpenConnect status page.
+ * from the status page.
  */
 @Composable
 fun OpenConnectAuthDialog(
     pending: PendingOpenConnectAuth,
-    controller: OpenConnectAuthController,
-    onDismissed: () -> Unit = {},
+    actions: OpenConnectAuthActions,
+    onDismiss: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val challenge = pending.challenge
@@ -78,11 +76,6 @@ fun OpenConnectAuthDialog(
     var submitted by remember(challenge.id) { mutableStateOf(false) }
     var showBrowser by remember(pending.endpointTag, challenge.id) { mutableStateOf(false) }
 
-    fun dismiss() {
-        controller.dismissDialog(pending.endpointTag, challenge.id)
-        onDismissed()
-    }
-
     fun submit(
         snackbar: SnackbarEmitter,
         browserResult: OpenConnectBrowserResultState? = browser?.buildResult(
@@ -93,7 +86,7 @@ fun OpenConnectAuthDialog(
     ) {
         scope.launch {
             submitting = true
-            val error = controller.submitAuthChallenge(
+            val error = actions.submitAuthChallenge(
                 endpointTag = pending.endpointTag,
                 challenge = challenge,
                 formValues = form?.let { values.toMap() },
@@ -109,12 +102,12 @@ fun OpenConnectAuthDialog(
     }
 
     WindowedDialog(
-        onDismissRequest = ::dismiss,
+        onDismissRequest = onDismiss,
         title = stringResource(Res.string.openconnect_authentication),
         windowSize = AuthDialogWindowSize,
         buttons = {
             val snackbar = LocalSnackbarEmitter.current
-            TextButton(stringResource(Res.string.later), onClick = ::dismiss)
+            TextButton(stringResource(Res.string.later), onClick = onDismiss)
             if (!submitted) {
                 if (browser != null) {
                     TextButton(stringResource(Res.string.auth_open_url)) {
@@ -174,4 +167,3 @@ fun OpenConnectAuthDialog(
         },
     )
 }
-

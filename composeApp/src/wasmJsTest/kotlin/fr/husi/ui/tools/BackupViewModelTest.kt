@@ -4,6 +4,7 @@ package fr.husi.ui.tools
 
 import androidx.lifecycle.ViewModelStore
 import fr.husi.Key
+import fr.husi.database.DataStore
 import fr.husi.database.RemoteBackend
 import fr.husi.database.RemoteServer
 import fr.husi.database.preference.DataStorePreferenceDataStore
@@ -113,6 +114,7 @@ class BackupViewModelTest {
             harness.activeServerPref.set(saved.id)
             harness.prefsStore.int(Key.APP_THEME).set(3)
             harness.prefsStore.boolean(Key.LOG_TERMINAL_MODE).set(true)
+            harness.prefsStore.boolean(DataStore.KEY_BROWSER_NOTIFICATIONS).set(true)
             runCurrent()
 
             // Servers + Settings
@@ -138,6 +140,7 @@ class BackupViewModelTest {
             assertEquals(listOf(saved), fullPayload.servers)
             val fullSettings = assertNotNull(fullPayload.settings)
             assertFalse(Key.ACTIVE_REMOTE_SERVER_ID in fullSettings)
+            assertFalse(DataStore.KEY_BROWSER_NOTIFICATIONS in fullSettings)
             assertTrue(Key.APP_THEME in fullSettings)
             assertTrue(Key.LOG_TERMINAL_MODE in fullSettings)
 
@@ -194,6 +197,7 @@ class BackupViewModelTest {
 
             val sourcePrefs = FakePreferencesDataStore().preferences
             sourcePrefs.int(Key.APP_THEME).set(7)
+            sourcePrefs.boolean(DataStore.KEY_BROWSER_NOTIFICATIONS).set(true)
             sourcePrefs.string("clashStorageBackupKey").set("restored-key")
             val importedSettings = sourcePrefs.exportToJson()
             val importedServers = listOf(
@@ -225,6 +229,7 @@ class BackupViewModelTest {
             assertEquals(1, successCount)
             assertNull(harness.viewModel.uiState.value.inputResult)
             assertEquals(7, harness.prefsStore.int(Key.APP_THEME).get())
+            assertFalse(harness.prefsStore.boolean(DataStore.KEY_BROWSER_NOTIFICATIONS).get())
             assertEquals(original.id, harness.activeServerPref.get())
             assertEquals(listOf(original), harness.remote.servers.toList())
             assertEquals("restored-key", harness.viewModel.storageKeyState.text.toString())

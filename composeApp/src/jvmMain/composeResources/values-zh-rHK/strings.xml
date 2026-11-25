@@ -50,11 +50,7 @@
     <string name="connection_test_icmp_ping_unavailable">ICMPing 不可用</string>
     <string name="system_daemon">系統守護程序</string>
     <string name="quic">QUIC</string>
-    <string name="openconnect_authentication">OpenConnect 驗證</string>
-    <string name="openvpn_authentication">OpenVPN 驗證</string>
     <string name="clear_remembered_authentication_answers">清除已記住的驗證答案</string>
-    <string name="later">稍後</string>
-    <string name="auth_verifying">驗證中…</string>
     <string name="auth_later_hint">您可以稍後在「儀表板 → 狀態」完成驗證。</string>
     <string name="app_update_settings">應用程式更新</string>
     <string name="app_update_available">版本 %1$s 可用</string>

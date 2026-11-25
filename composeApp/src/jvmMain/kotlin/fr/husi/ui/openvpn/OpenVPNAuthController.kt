@@ -13,8 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
-typealias PendingOpenVPNAuth = PendingVpnAuth<OpenVPNChallengeState>
-
 class OpenVPNAuthController(
     targets: StateFlow<CoreTarget?>,
     ioDispatcher: CoroutineDispatcher = Dispatchers.IO,

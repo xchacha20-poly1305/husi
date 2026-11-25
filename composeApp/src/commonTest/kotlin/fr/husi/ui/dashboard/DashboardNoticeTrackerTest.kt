@@ -1,9 +1,9 @@
 package fr.husi.ui.dashboard
 
-import fr.husi.test.MainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -11,7 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class DashboardNoticeTrackerTest : MainDispatcherTest() {
+class DashboardNoticeTrackerTest {
 
     private val authCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val tailscaleCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
@@ -19,14 +19,14 @@ class DashboardNoticeTrackerTest : MainDispatcherTest() {
     private fun TestScope.newObservedTracker(): DashboardNoticeTracker {
         val tracker = DashboardNoticeTracker(
             noticeCounts = listOf(authCounts, tailscaleCounts),
-            dispatcher = dispatcher,
+            dispatcher = StandardTestDispatcher(testScheduler),
         )
         backgroundScope.launch { tracker.unreadCount.collect {} }
         return tracker
     }
 
     @Test
-    fun `notice from any source is unread until marked read`() = runTest(dispatcher.scheduler) {
+    fun `notice from any source is unread until marked read`() = runTest {
         val tracker = newObservedTracker()
         advanceUntilIdle()
         assertEquals(0, tracker.unreadCount.value)
@@ -41,7 +41,7 @@ class DashboardNoticeTrackerTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `new auth challenge after reading is unread again`() = runTest(dispatcher.scheduler) {
+    fun `new auth challenge after reading is unread again`() = runTest {
         val tracker = newObservedTracker()
         authCounts.value = setOf("office-c1").asNoticeCounts()
         advanceUntilIdle()
@@ -54,7 +54,7 @@ class DashboardNoticeTrackerTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `resolved notice does not leave the badge on`() = runTest(dispatcher.scheduler) {
+    fun `resolved notice does not leave the badge on`() = runTest {
         val tracker = newObservedTracker()
         authCounts.value = setOf("office-c1").asNoticeCounts()
         advanceUntilIdle()
@@ -66,7 +66,7 @@ class DashboardNoticeTrackerTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `only files received since the last read are counted`() = runTest(dispatcher.scheduler) {
+    fun `only files received since the last read are counted`() = runTest {
         val tracker = newObservedTracker()
         tailscaleCounts.value = mapOf("ts-files" to 2)
         advanceUntilIdle()
@@ -83,7 +83,7 @@ class DashboardNoticeTrackerTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `file received after the inbox was read is unread`() = runTest(dispatcher.scheduler) {
+    fun `file received after the inbox was read is unread`() = runTest {
         val tracker = newObservedTracker()
         tailscaleCounts.value = mapOf("ts-files" to 2)
         advanceUntilIdle()
@@ -98,7 +98,7 @@ class DashboardNoticeTrackerTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `count sums notices across sources`() = runTest(dispatcher.scheduler) {
+    fun `count sums notices across sources`() = runTest {
         val tracker = newObservedTracker()
         authCounts.value = setOf("office-c1", "home-c1").asNoticeCounts()
         tailscaleCounts.value = mapOf("ts-login" to 1, "ts-files" to 5)
@@ -108,10 +108,10 @@ class DashboardNoticeTrackerTest : MainDispatcherTest() {
     }
 
     @Test
-    fun `sources are not collected until the badge is observed`() = runTest(dispatcher.scheduler) {
+    fun `sources are not collected until the badge is observed`() = runTest {
         DashboardNoticeTracker(
             noticeCounts = listOf(tailscaleCounts),
-            dispatcher = dispatcher,
+            dispatcher = StandardTestDispatcher(testScheduler),
         )
         advanceUntilIdle()
 

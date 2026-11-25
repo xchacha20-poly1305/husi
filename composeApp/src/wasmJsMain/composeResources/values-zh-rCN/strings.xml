@@ -88,4 +88,10 @@
     <string name="clash_smart_lgbm">LightGBM 模型</string>
     <string name="clash_smart_upgrade_lgbm">更新模型</string>
     <string name="clash_smart_upgrade_lgbm_success">LightGBM 模型已更新</string>
+    <string name="web_auth_later_hint">您可以稍后在「状态」页完成身份验证。</string>
+    <string name="web_browser_notifications">浏览器通知</string>
+    <string name="web_browser_notifications_enabled">在需要 VPN 身份验证或收到 Taildrop 文件时通知</string>
+    <string name="web_browser_notifications_disabled">已关闭</string>
+    <string name="web_browser_notifications_denied">已在浏览器站点设置中禁止</string>
+    <string name="web_browser_notifications_unsupported">当前浏览器或非 HTTPS 上下文不支持</string>
 </resources>
