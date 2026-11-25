@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.preferenceGroup
@@ -54,6 +55,10 @@ fun TailscalePeerScreen(
         closed = viewModel.closed,
         onBackPress = onBackPress,
     )
+
+    LifecycleStartEffect(viewModel) {
+        onStopOrDispose { viewModel.stopPing() }
+    }
 
     val canSend = endpoint != null
         && peer != null

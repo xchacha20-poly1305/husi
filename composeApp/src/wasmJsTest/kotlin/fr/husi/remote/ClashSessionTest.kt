@@ -14,6 +14,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -24,6 +25,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.jsonPrimitive
+import kotlin.time.Duration.Companion.milliseconds
 
 class ClashSessionTest {
     @Test
@@ -78,7 +80,15 @@ class ClashSessionTest {
         val session = ClashSession("url", "secret", api)
         session.connect("url", "secret")
         val intervals = MutableStateFlow(1000)
-        val observation = backgroundScope.async { session.observe(intervals) }
+        val subscriptions = MutableStateFlow(
+            setOf(
+                RemoteSubscription.STATS,
+                RemoteSubscription.PROXY_SET,
+                RemoteSubscription.CONNECTIONS,
+                RemoteSubscription.LOGS,
+            ),
+        )
+        val observation = backgroundScope.async { session.observe(intervals, subscriptions) }
         runCurrent()
         assertEquals("Node", session.dashboard.proxySets.single().selected)
         assertEquals(42, session.dashboard.proxySets.single().items.single().urlTestDelay)
@@ -155,7 +165,9 @@ class ClashSessionTest {
             }
             val session = ClashSession("url", "secret", api)
             session.connect("url", "secret")
-            val observation = backgroundScope.async { session.observe(MutableStateFlow(0)) }
+            val observation = backgroundScope.async {
+                session.observe(MutableStateFlow(0), MutableStateFlow(setOf(RemoteSubscription.PROXY_SET)))
+            }
             runCurrent()
 
             val group = session.dashboard.proxySets.single()
@@ -193,7 +205,9 @@ class ClashSessionTest {
             }
             val fallbackSession = ClashSession("url", "secret", unsupportedApi)
             fallbackSession.connect("url", "secret")
-            val fallbackObservation = backgroundScope.async { fallbackSession.observe(MutableStateFlow(0)) }
+            val fallbackObservation = backgroundScope.async {
+                fallbackSession.observe(MutableStateFlow(0), MutableStateFlow(setOf(RemoteSubscription.PROXY_SET)))
+            }
             runCurrent()
             assertEquals("SmartGroup", fallbackSession.dashboard.proxySets.single().tag)
             assertEquals(1, unsupportedApi.requests.count { it.first == "smartWeights" })
@@ -300,6 +314,112 @@ class ClashSessionTest {
             )
             session.close()
         }
+
+    @Test
+    fun `page subscriptions gate Clash streams and polling independently`() = runTest {
+        val api = FakeClashApi()
+        val activeStreams = mutableMapOf<String, Int>()
+        val startedCounts = mutableMapOf<String, Int>()
+        api.handler = { operation, _ ->
+            when (operation) {
+                "version" -> Json.parseToJsonElement("""{"version":"test"}""")
+                "config" -> Json.parseToJsonElement("""{"mode":"rule"}""")
+                "proxies" -> Json.parseToJsonElement("{}")
+                else -> JsonNull
+            }
+        }
+        api.streams = { kind, _ ->
+            flow {
+                startedCounts[kind] = (startedCounts[kind] ?: 0) + 1
+                activeStreams[kind] = (activeStreams[kind] ?: 0) + 1
+                if (kind == "connections") {
+                    emit(
+                        buildJsonObject {
+                            put("uploadTotal", 100)
+                            put("downloadTotal", 200)
+                            put("connections", buildJsonArray {
+                                add(buildJsonObject {
+                                    put("id", "one")
+                                    put("upload", 100)
+                                    put("download", 200)
+                                    put("start", "2026-01-01T00:00:00Z")
+                                    putJsonObject("metadata") {
+                                        put("network", "tcp")
+                                        put("type", "HTTP")
+                                        put("sourceIP", "::1")
+                                        put("sourcePort", "1234")
+                                        put("destinationIP", "192.0.2.1")
+                                        put("destinationPort", "443")
+                                        put("host", "example.test")
+                                    }
+                                    put("chains", buildJsonArray { add("DIRECT") })
+                                    put("rule", "Match")
+                                    put("rulePayload", "")
+                                })
+                            })
+                        },
+                    )
+                }
+                try {
+                    awaitCancellation()
+                } finally {
+                    val remaining = (activeStreams[kind] ?: 0) - 1
+                    if (remaining <= 0) {
+                        activeStreams.remove(kind)
+                    } else {
+                        activeStreams[kind] = remaining
+                    }
+                }
+            }
+        }
+        val session = ClashSession("url", "secret", api)
+        session.connect("url", "secret")
+        val subscriptions = MutableStateFlow(emptySet<RemoteSubscription>())
+        val observation = backgroundScope.async { session.observe(MutableStateFlow(1000), subscriptions) }
+        runCurrent()
+
+        assertTrue(activeStreams.isEmpty())
+        assertEquals(0, api.requests.count { it.first == "proxies" })
+        assertEquals(0, api.requests.count { it.first == "config" })
+
+        subscriptions.value = setOf(RemoteSubscription.STATS)
+        runCurrent()
+        assertEquals(setOf("traffic", "memory", "connections"), activeStreams.keys)
+        assertTrue(api.requests.count { it.first == "config" } >= 1)
+        assertEquals(0, api.requests.count { it.first == "proxies" })
+        assertEquals(1, session.dashboard.connections.size)
+
+        subscriptions.value = setOf(RemoteSubscription.STATS, RemoteSubscription.CONNECTIONS)
+        runCurrent()
+        subscriptions.value = setOf(RemoteSubscription.CONNECTIONS)
+        runCurrent()
+        assertEquals(setOf("connections"), activeStreams.keys)
+        assertEquals(1, startedCounts["connections"])
+
+        subscriptions.value = setOf(RemoteSubscription.PROXY_SET)
+        runCurrent()
+        assertTrue(activeStreams.isEmpty())
+        assertTrue(session.dashboard.connections.isEmpty())
+        assertTrue(api.requests.count { it.first == "proxies" } >= 1)
+
+        subscriptions.value = setOf(RemoteSubscription.LOGS)
+        runCurrent()
+        assertEquals(setOf("logs"), activeStreams.keys)
+        val proxiesBefore = api.requests.count { it.first == "proxies" }
+        val configBefore = api.requests.count { it.first == "config" }
+        advanceTimeBy(5000.milliseconds)
+        runCurrent()
+        assertEquals(proxiesBefore, api.requests.count { it.first == "proxies" })
+        assertEquals(configBefore, api.requests.count { it.first == "config" })
+
+        subscriptions.value = emptySet()
+        runCurrent()
+        assertTrue(activeStreams.isEmpty())
+
+        session.close()
+        observation.cancel()
+        runCurrent()
+    }
 
     private fun snapshot(upload: Long, download: Long, includeConnection: Boolean = true) = ClashStreams.connections.decode(buildJsonObject {
         put("uploadTotal", upload)

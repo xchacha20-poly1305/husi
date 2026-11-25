@@ -108,6 +108,8 @@ internal class RemoteState(
     private var session: Job? = null
     private var generation = 0
     private val replacementState = MutableStateFlow<ReplacementState>(ReplacementState.Idle)
+    private val subscriptionCounts = mutableMapOf<RemoteSubscription, Int>()
+    private val activeSubscriptions = MutableStateFlow<Set<RemoteSubscription>>(emptySet())
     val detector = BackendDetector(client, openClash)
 
     private companion object {
@@ -215,6 +217,27 @@ internal class RemoteState(
         }
     }
 
+    fun retainSubscription(subscription: RemoteSubscription): () -> Unit {
+        val current = subscriptionCounts[subscription] ?: 0
+        subscriptionCounts[subscription] = current + 1
+        if (current == 0) {
+            activeSubscriptions.value = subscriptionCounts.keys.toSet()
+        }
+        var released = false
+        return {
+            if (!released) {
+                released = true
+                val remaining = (subscriptionCounts[subscription] ?: 0) - 1
+                if (remaining <= 0) {
+                    subscriptionCounts.remove(subscription)
+                    activeSubscriptions.value = subscriptionCounts.keys.toSet()
+                } else {
+                    subscriptionCounts[subscription] = remaining
+                }
+            }
+        }
+    }
+
     private fun stopSession() {
         session?.cancel()
         session = null
@@ -275,7 +298,7 @@ internal class RemoteState(
                     connecting = false
                     error = ""
                     retryDelay = INITIAL_RETRY_DELAY
-                    opened.observe(speedInterval)
+                    opened.observe(speedInterval, activeSubscriptions)
                 } catch (failure: Exception) {
                     if (failure is CancellationException) throw failure
                     ensureActive()

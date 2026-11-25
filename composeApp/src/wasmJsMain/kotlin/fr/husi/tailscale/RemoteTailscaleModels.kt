@@ -28,6 +28,7 @@ internal class RemotePeerModel(private val tag: String, private val remote: Remo
 
     fun stopPing() {
         pingJob?.cancel()
+        pingJob = null
     }
 
     fun startPing(ip: String) {
@@ -70,8 +71,11 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
     var receiving by mutableStateOf(emptyList<TaildropReceivingFileState>())
         private set
 
-    init {
-        viewModelScope.launch {
+    private var subscriptionJob: Job? = null
+
+    fun startSubscription() {
+        if (subscriptionJob?.isActive == true) return
+        subscriptionJob = viewModelScope.launch {
             try {
                 remote.client.service
                     .SubscribeTaildropInbox()
@@ -108,6 +112,16 @@ internal class RemoteInboxModel(private val tag: String, private val remote: Rem
                 Logs.w("RemoteTailscaleModels operation failed", failure)
             }
         }
+    }
+
+    fun stopSubscription() {
+        subscriptionJob?.cancel()
+        subscriptionJob = null
+    }
+
+    override fun onCleared() {
+        stopSubscription()
+        super.onCleared()
     }
 
     fun delete(name: String) {

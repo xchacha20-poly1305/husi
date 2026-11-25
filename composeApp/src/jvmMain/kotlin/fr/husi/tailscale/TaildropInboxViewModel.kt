@@ -8,6 +8,7 @@ import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -31,7 +32,7 @@ data class TaildropFilesDirectory(
 
 class TaildropInboxViewModel(
     private val endpointTag: String,
-    repository: TailscaleStatusRepository,
+    private val repository: TailscaleStatusRepository,
     private val localReceiveDirectory: PlatformFile?,
     private val downloadDirectory: PlatformFile,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -46,16 +47,19 @@ class TaildropInboxViewModel(
         field = MutableSharedFlow()
 
     private val presence = TailscalePresence.endpoint(endpointTag)
+    private var presenceJob: Job? = null
+    private var inboxJob: Job? = null
 
-    init {
-        viewModelScope.launch {
+    fun startSubscription() {
+        if (presenceJob?.isActive == true || inboxJob?.isActive == true) return
+        presenceJob = viewModelScope.launch {
             repository.snapshot.collect { snapshot ->
                 if (presence.shouldClose(snapshot)) {
                     closed.emit(Unit)
                 }
             }
         }
-        viewModelScope.launch(ioDispatcher) {
+        inboxJob = viewModelScope.launch(ioDispatcher) {
             try {
                 // The same first core that presence binds to; another core closes the screen.
                 val target = repository.snapshot.mapNotNull { it.target }.first()
@@ -80,6 +84,18 @@ class TaildropInboxViewModel(
                 uiEvent.emit(TailscaleUiEvent.Message(e.readableMessage))
             }
         }
+    }
+
+    fun stopSubscription() {
+        presenceJob?.cancel()
+        presenceJob = null
+        inboxJob?.cancel()
+        inboxJob = null
+    }
+
+    override fun onCleared() {
+        stopSubscription()
+        super.onCleared()
     }
 
     fun delete(name: String) = launchAction {

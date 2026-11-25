@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LifecycleStartEffect
 import fr.husi.compose.preferenceGroup
 import fr.husi.proto.daemon.SetTailscaleExitNodeRequest
 import fr.husi.proto.daemon.TailscaleLogoutRequest
@@ -47,6 +48,9 @@ internal fun RemotePeerBinding(tag: String, id: String) {
     val endpoint = remote.tailscale.toTailscaleEndpoints().firstOrNull { it.endpointTag == tag }
     val peer = endpoint?.findPeer(id)
     var showLogin by remember { mutableStateOf(false) }
+    LifecycleStartEffect(model) {
+        onStopOrDispose { model.stopPing() }
+    }
     TailscalePeerContent(
         endpoint = endpoint,
         peer = peer,
@@ -120,6 +124,10 @@ internal fun RemoteInboxBinding(tag: String) {
     val model = koinViewModel<RemoteInboxModel>(parameters = { parametersOf(tag) })
     val uploads = koinInject<RemoteUploads>()
     val navigator = LocalNavigator.current
+    LifecycleStartEffect(model) {
+        model.startSubscription()
+        onStopOrDispose { model.stopSubscription() }
+    }
     TaildropInboxContent(
         files = model.files,
         receiving = model.receiving,

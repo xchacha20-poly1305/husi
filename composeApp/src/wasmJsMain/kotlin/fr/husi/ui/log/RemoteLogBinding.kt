@@ -3,11 +3,13 @@ package fr.husi.ui.log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.LifecycleStartEffect
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.collectAsStateWithLifecycle
 import fr.husi.compose.material3.Icon
 import fr.husi.database.DataStore
 import fr.husi.remote.RemoteState
+import fr.husi.remote.RemoteSubscription
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
 import fr.husi.resources.download
@@ -27,6 +29,10 @@ internal fun RemoteLogBinding() {
     val remote = koinInject<RemoteState>()
     val model = koinViewModel<RemoteLogViewModel>()
     val terminalMode by DataStore.logTerminalMode.collectAsStateWithLifecycle()
+    LifecycleStartEffect(remote) {
+        val release = remote.retainSubscription(RemoteSubscription.LOGS)
+        onStopOrDispose { release() }
+    }
     LogcatContent(
         uiState = model.presentation,
         searchTextFieldState = model.searchTextFieldState,

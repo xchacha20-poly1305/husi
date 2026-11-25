@@ -9,6 +9,7 @@ internal data class RemoteTraffic(
     val downloadTotal: Long = 0,
     val memory: Long = 0,
     val connections: Long = 0,
+    val connectionsIn: Int = 0,
     val goroutines: Int = 0,
 ) {
     companion object {
@@ -21,6 +22,7 @@ internal data class RemoteTraffic(
                 memory = value.memory,
                 goroutines = value.goroutines,
                 connections = value.connectionsIn.toLong() + value.connectionsOut,
+                connectionsIn = value.connectionsIn,
             )
     }
 }

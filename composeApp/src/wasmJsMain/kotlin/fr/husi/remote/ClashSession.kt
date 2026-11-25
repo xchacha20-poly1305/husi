@@ -25,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -56,66 +57,91 @@ internal class ClashSession(
         check(version.isNotBlank()) { "Missing Clash version" }
     }
 
-    override suspend fun observe(intervals: Flow<Int>) =
+    override suspend fun observe(
+        intervals: Flow<Int>,
+        subscriptions: Flow<Set<RemoteSubscription>>,
+    ) =
         supervisorScope {
-            watch(this, ClashStreams.logs) { message ->
-                val level = when (val value = message.level.uppercase()) {
-                    "WARNING" -> "WARN"
-                    "SILENT" -> "FATAL"
-                    else -> value
-                }
+            observeWhile(subscriptions.map { RemoteSubscription.LOGS in it }) {
+                watch(this, ClashStreams.logs) { message ->
+                    val level = when (val value = message.level.uppercase()) {
+                        "WARNING" -> "WARN"
+                        "SILENT" -> "FATAL"
+                        else -> value
+                    }
 
-                logs.add(RemoteLogEntry(level, message.message))
-                while (logs.size > 2000) {
-                    logs.removeAt(0)
-                }
-            }
-
-            launch {
-                intervals.collectLatest { interval ->
-                    coroutineScope {
-                        if (interval <= 0) return@coroutineScope
-
-                        watch(this, ClashStreams.traffic, interval) { sample ->
-                            val up = sample.up
-                            val down = sample.down
-
-                            history.addLast((up + down).toFloat())
-                            while (history.size > 60) {
-                                history.removeFirst()
-                            }
-
-                            dashboard = dashboard.copy(
-                                txRateProxy = up,
-                                rxRateProxy = down,
-                                proxySpeedHistory = history.toList(),
-                            )
-                        }
-
-                        watch(this, ClashStreams.connections, interval) { snapshot ->
-                            dashboard =
-                                dashboard.copy(
-                                    txTotal = snapshot.uploadTotal,
-                                    rxTotal = snapshot.downloadTotal,
-                                    connections = connectionTracker.apply(snapshot, nowMillis().toLong()),
-                                    activeConnectionCount = snapshot.connections.size,
-                                    memoryAvailable = dashboard.memoryAvailable || snapshot.memory != null,
-                                    memory = snapshot.memory ?: dashboard.memory,
-                                )
-                        }
-
-                        watch(this, ClashStreams.memory, interval) {
-                            dashboard = dashboard.copy(
-                                memory = it.inuse,
-                                memoryAvailable = true,
-                            )
-                        }
+                    logs.add(RemoteLogEntry(level, message.message))
+                    while (logs.size > 2000) {
+                        logs.removeAt(0)
                     }
                 }
             }
 
-            poll(this, "proxies", ::refreshProxies)
-            poll(this, "config", ::refreshConfig)
+            observeWhile(subscriptions.map { RemoteSubscription.STATS in it }) {
+                launch {
+                    intervals.collectLatest { interval ->
+                        if (interval <= 0) return@collectLatest
+                        coroutineScope {
+                            watch(this, ClashStreams.traffic, interval) { sample ->
+                                val up = sample.up
+                                val down = sample.down
+
+                                history.addLast((up + down).toFloat())
+                                while (history.size > 60) {
+                                    history.removeFirst()
+                                }
+
+                                dashboard = dashboard.copy(
+                                    txRateProxy = up,
+                                    rxRateProxy = down,
+                                    proxySpeedHistory = history.toList(),
+                                )
+                            }
+
+                            watch(this, ClashStreams.memory, interval) {
+                                dashboard = dashboard.copy(
+                                    memory = it.inuse,
+                                    memoryAvailable = true,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                poll(this, "config", ::refreshConfig)
+            }
+
+            observeWhile(
+                subscriptions.map {
+                    RemoteSubscription.STATS in it || RemoteSubscription.CONNECTIONS in it
+                },
+            ) {
+                try {
+                    intervals.collectLatest { interval ->
+                        if (interval <= 0) return@collectLatest
+                        coroutineScope {
+                            watch(this, ClashStreams.connections, interval) { snapshot ->
+                                dashboard =
+                                    dashboard.copy(
+                                        txTotal = snapshot.uploadTotal,
+                                        rxTotal = snapshot.downloadTotal,
+                                        connections = connectionTracker.apply(snapshot, nowMillis().toLong()),
+                                        activeConnectionCount = snapshot.connections.size,
+                                        memoryAvailable = dashboard.memoryAvailable || snapshot.memory != null,
+                                        memory = snapshot.memory ?: dashboard.memory,
+                                    )
+                            }
+                        }
+                    }
+                } finally {
+                    connectionTracker.clear()
+                    dashboard = dashboard.copy(connections = emptyList())
+                }
+            }
+
+            observeWhile(subscriptions.map { RemoteSubscription.PROXY_SET in it }) {
+                poll(this, "proxies", ::refreshProxies)
+            }
 
             try {
                 while (isActive) {
@@ -381,6 +407,12 @@ internal class ClashConnectionTracker {
         sampledAt = now
         previous = active
         return records.values.toList()
+    }
+
+    fun clear() {
+        sampledAt = null
+        previous = emptyMap()
+        records.clear()
     }
 }
 

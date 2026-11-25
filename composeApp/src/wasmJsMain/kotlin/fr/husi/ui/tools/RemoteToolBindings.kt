@@ -7,6 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.MaskedIcon
 import fr.husi.compose.Preference
@@ -54,6 +58,9 @@ internal fun RemoteStunBinding() {
     val remote = koinInject<RemoteState>()
     val presenter = koinViewModel<RemoteStunPresenter>()
     val navigator = LocalNavigator.current
+    LifecycleStartEffect(presenter) {
+        onStopOrDispose { presenter.cancel() }
+    }
     StunScreenContent(
         presenter,
         remote.connected,
@@ -68,6 +75,9 @@ internal fun RemoteQualityBinding() {
     val remote = koinInject<RemoteState>()
     val presenter = koinViewModel<RemoteNetworkQualityPresenter>()
     val navigator = LocalNavigator.current
+    LifecycleStartEffect(presenter) {
+        onStopOrDispose { presenter.cancel() }
+    }
     NetworkQualityScreenContent(
         presenter,
         remote.connected,
@@ -80,15 +90,18 @@ internal fun RemoteQualityBinding() {
 @Composable
 private fun RemoteOutboundBinding(value: String, select: (String) -> Unit, modifier: Modifier) {
     val remote = koinInject<RemoteState>()
+    val lifecycleOwner = LocalLifecycleOwner.current
     var tags by remember(remote.selected) { mutableStateOf(listOf("")) }
-    LaunchedEffect(remote.selected) {
-        try {
-            remote.client.service.SubscribeOutbounds().responses().collect { update ->
-                tags = listOf("") + update.outbounds.map { it.tag }
+    LaunchedEffect(lifecycleOwner, remote.selected) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            try {
+                remote.client.service.SubscribeOutbounds().responses().collect { update ->
+                    tags = listOf("") + update.outbounds.map { it.tag }
+                }
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                Logs.w("RemoteToolBindings operation failed", failure)
             }
-        } catch (failure: Exception) {
-            if (failure is CancellationException) throw failure
-            Logs.w("RemoteToolBindings operation failed", failure)
         }
     }
     OutboundSelector(value, select, tags, modifier)

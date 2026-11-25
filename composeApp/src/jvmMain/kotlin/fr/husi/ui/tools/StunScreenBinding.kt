@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.core.remote.RemoteControlManager
@@ -21,6 +22,9 @@ internal fun StunScreen(
     },
 ) {
     val targetConnected by remoteControl.targetConnected.collectAsStateWithLifecycle()
+    LifecycleStartEffect(viewModel) {
+        onStopOrDispose { viewModel.cancel() }
+    }
     val presenter =
         remember(viewModel) {
             object : StunPresenter {

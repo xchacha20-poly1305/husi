@@ -260,7 +260,26 @@ class DashboardViewModel(
     fun setDashboardActive(active: Boolean) {
         if (dashboardActive == active) return
         dashboardActive = active
-        if (active && initialized) autoDetectIP()
+        if (active) {
+            if (initialized) autoDetectIP()
+        } else {
+            stopSubscriptions()
+        }
+    }
+
+    private fun stopSubscriptions() {
+        ipProbeJob?.cancel()
+        ipProbeJob = null
+        statusJob?.cancel()
+        statusJob = null
+        groupsJob?.cancel()
+        groupsJob = null
+        outboundsJob?.cancel()
+        outboundsJob = null
+        connectionsJob?.cancel()
+        connectionsJob = null
+        clashModeJob?.cancel()
+        clashModeJob = null
     }
 
     private fun autoDetectIP() = viewModelScope.launch {
@@ -335,6 +354,8 @@ class DashboardViewModel(
                         )
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("subscribe status", e)
             }
@@ -346,6 +367,8 @@ class DashboardViewModel(
                     latestGroups = groups.group
                     publishProxySets()
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("subscribe groups", e)
             }
@@ -357,6 +380,8 @@ class DashboardViewModel(
                     latestOutbounds = list.outbounds
                     publishProxySets()
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("subscribe outbounds", e)
             }
@@ -383,6 +408,8 @@ class DashboardViewModel(
                         selectedClashMode = status.currentMode,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("query clash modes", e)
             }
@@ -392,6 +419,8 @@ class DashboardViewModel(
                         state.copy(selectedClashMode = mode.mode)
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("subscribe clash mode", e)
             }
@@ -399,11 +428,7 @@ class DashboardViewModel(
     }
 
     override fun onCleared() {
-        statusJob?.cancel()
-        groupsJob?.cancel()
-        outboundsJob?.cancel()
-        connectionsJob?.cancel()
-        clashModeJob?.cancel()
+        stopSubscriptions()
         runOnDefaultDispatcher {
             DefaultNetworkListener.stop(this@DashboardViewModel)
         }

@@ -266,14 +266,21 @@ class LogcatScreenViewModel(
                     val entries = batch.messages.map { it.toLogEntry() }
                     liveLogs.update { it.appendBounded(entries, maxEntries) }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.w("subscribe logs", e)
             }
         }
     }
 
-    override fun onCleared() {
+    fun stop() {
         job?.cancel()
+        job = null
+    }
+
+    override fun onCleared() {
+        stop()
         super.onCleared()
     }
 

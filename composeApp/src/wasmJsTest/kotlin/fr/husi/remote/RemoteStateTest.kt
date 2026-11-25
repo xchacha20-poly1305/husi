@@ -292,6 +292,7 @@ class RemoteStateTest {
         val client = RecordingClient { testScheduler.currentTime }
         client.logFailure = true
         val state = state(client)
+        state.retainSubscription(RemoteSubscription.LOGS)
         state.save(server)
         state.connect(server)
         runCurrent()
@@ -349,7 +350,13 @@ class RemoteStateTest {
         assertTrue(state.isClash)
         assertNull(state.coreVersion)
         assertEquals("fixture", state.version)
+        assertEquals(0, activeStreams)
+        val releaseStats = state.retainSubscription(RemoteSubscription.STATS)
+        val releaseLogs = state.retainSubscription(RemoteSubscription.LOGS)
+        runCurrent()
         assertEquals(4, activeStreams)
+        releaseStats()
+        releaseLogs()
         state.disconnect()
         runCurrent()
         assertFalse(state.connected)
@@ -373,6 +380,7 @@ class RemoteStateTest {
             FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
             openClash = { _, _ -> api },
         )
+        state.retainSubscription(RemoteSubscription.STATS)
         val saved = state.save(server.copy(backend = RemoteBackend.CLASH))
         state.connect(saved)
         runCurrent()

@@ -3,8 +3,12 @@ package fr.husi.ui.log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.collectAsStateWithLifecycle
@@ -33,7 +37,19 @@ fun LogcatScreen(
     val subscribeLogs = session == null || connected
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarEmitter.current
-    LaunchedEffect(session?.server?.id, subscribeLogs) { viewModel.initialize(subscribeLogs) }
+    var isStarted by remember { mutableStateOf(false) }
+    LifecycleStartEffect(viewModel) {
+        isStarted = true
+        onStopOrDispose {
+            isStarted = false
+            viewModel.stop()
+        }
+    }
+    LaunchedEffect(isStarted, session?.server?.id, subscribeLogs) {
+        if (isStarted) {
+            viewModel.initialize(subscribeLogs)
+        }
+    }
     LogcatContent(
         uiState =
             LogcatPresentation(

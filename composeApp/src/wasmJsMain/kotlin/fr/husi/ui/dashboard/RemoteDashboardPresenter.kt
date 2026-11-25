@@ -3,10 +3,12 @@ package fr.husi.ui.dashboard
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.util.fastCoerceAtLeast
 import fr.husi.TrafficSortMode
 import fr.husi.database.DataStore
 import fr.husi.database.RemoteBackend
@@ -40,7 +42,9 @@ internal class RemoteDashboardPresenter(
     private var selected by mutableStateOf<String?>(null)
     private var searchMode by mutableStateOf(ProxySetSearchMode.Outbound)
     private var groupSearch by mutableStateOf<String?>(null)
-    private var active by mutableStateOf(false)
+    private var activeCount by mutableIntStateOf(0)
+    private val active: Boolean
+        get() = activeCount > 0
     private var lastPresentation = state.dashboard
     private var testSession: RemoteSession? = null
     private var testScope: CoroutineScope? = null
@@ -175,7 +179,19 @@ internal class RemoteDashboardPresenter(
     }
 
     override fun setDashboardActive(active: Boolean) {
-        this.active = active
+        activeCount = if (active) {
+            activeCount + 1
+        } else {
+            (activeCount - 1).fastCoerceAtLeast(0)
+        }
+    }
+
+    fun cancelUrlTests() {
+        testScope?.cancel()
+        testSession = null
+        testScope = null
+        urlTestingTags.clear()
+        groupTestProgress.clear()
     }
 
     override suspend fun initialize(isConnected: Boolean) {

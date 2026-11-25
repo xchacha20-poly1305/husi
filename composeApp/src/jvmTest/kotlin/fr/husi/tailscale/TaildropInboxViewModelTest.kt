@@ -10,7 +10,10 @@ import fr.husi.test.MainDispatcherTest
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -114,9 +117,47 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
         assertEquals("ts" to "a.txt", client.lastDeletedTaildropFile)
     }
 
+    @Test
+    fun `stopSubscription cancels the inbox stream and startSubscription resumes it`() =
+        runTest(dispatcher.scheduler) {
+            var activeStreams = 0
+            val client = object : FakeCoreClient() {
+                override fun subscribeTaildropInbox(tag: String): Flow<TaildropInbox> =
+                    super.subscribeTaildropInbox(tag)
+                        .onStart { activeStreams += 1 }
+                        .onCompletion { activeStreams -= 1 }
+            }
+            val viewModel = newViewModel(client, start = false)
+            advanceUntilIdle()
+            assertEquals(0, activeStreams)
+
+            viewModel.startSubscription()
+            advanceUntilIdle()
+            assertEquals(1, activeStreams)
+
+            viewModel.stopSubscription()
+            advanceUntilIdle()
+            assertEquals(0, activeStreams)
+
+            client.taildropInboxFlow.emit(
+                TaildropInbox(
+                    endpointTag = "ts",
+                    files = listOf(TaildropFile(name = "ignored.txt")),
+                ),
+            )
+            advanceUntilIdle()
+            assertNull(client.lastTaildropInboxRead)
+
+            viewModel.startSubscription()
+            advanceUntilIdle()
+            assertEquals(1, activeStreams)
+            assertEquals("ts", client.lastTaildropInboxRead)
+        }
+
     private fun newViewModel(
         client: FakeCoreClient,
         target: CoreTarget = CoreTarget(client),
+        start: Boolean = true,
     ): TaildropInboxViewModel {
         client.tailscaleStatusFlow.tryEmit(
             TailscaleStatusUpdate(endpoints = listOf(TailscaleEndpointStatus(endpointTag = "ts"))),
@@ -128,7 +169,7 @@ class TaildropInboxViewModelTest : MainDispatcherTest() {
             localReceiveDirectory = RECEIVE_DIRECTORY,
             downloadDirectory = DOWNLOAD_DIRECTORY,
             ioDispatcher = dispatcher,
-        )
+        ).also { if (start) it.startSubscription() }
     }
 }
 

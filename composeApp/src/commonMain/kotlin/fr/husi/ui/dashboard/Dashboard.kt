@@ -260,13 +260,20 @@ internal fun DashboardContent(
         }
     }
 
+    var isResumed by remember { mutableStateOf(false) }
     LifecycleResumeEffect(dashboardViewModel) {
+        isResumed = true
         dashboardViewModel.setDashboardActive(true)
-        onPauseOrDispose { dashboardViewModel.setDashboardActive(false) }
+        onPauseOrDispose {
+            isResumed = false
+            dashboardViewModel.setDashboardActive(false)
+        }
     }
 
-    LaunchedEffect(remoteSessionKey, targetConnected) {
-        dashboardViewModel.initialize(targetConnected)
+    LaunchedEffect(isResumed, remoteSessionKey, targetConnected) {
+        if (isResumed) {
+            dashboardViewModel.initialize(targetConnected)
+        }
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = rememberHazeState()

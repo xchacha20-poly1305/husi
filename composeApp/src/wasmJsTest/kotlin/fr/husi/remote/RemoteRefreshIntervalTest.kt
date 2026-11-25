@@ -32,6 +32,9 @@ class RemoteRefreshIntervalTest {
             backgroundScope, client, servers, intervals,
             FakePreferencesDataStore().preferences.long(Key.ACTIVE_REMOTE_SERVER_ID),
         )
+        state.retainSubscription(RemoteSubscription.STATS)
+        state.retainSubscription(RemoteSubscription.CONNECTIONS)
+        state.retainSubscription(RemoteSubscription.LOGS)
         val server = state.save(RemoteServer(name = "Test", url = "http://localhost"))
         state.connect(server)
         runCurrent()

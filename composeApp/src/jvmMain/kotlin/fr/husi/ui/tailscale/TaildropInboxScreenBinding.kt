@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.ktx.readableMessage
@@ -81,6 +82,11 @@ fun TaildropInboxScreen(
         closed = viewModel.closed,
         onBackPress = onBackPress,
     )
+
+    LifecycleStartEffect(viewModel) {
+        viewModel.startSubscription()
+        onStopOrDispose { viewModel.stopSubscription() }
+    }
 
     fun openFile(name: String) {
         scope.launch {
