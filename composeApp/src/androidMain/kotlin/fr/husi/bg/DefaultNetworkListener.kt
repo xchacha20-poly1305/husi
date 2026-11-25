@@ -114,10 +114,6 @@ internal object AndroidDefaultNetworkListener {
                 trySend(CallbackEvent.Update(network))
             }
 
-            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-                trySend(CallbackEvent.Update(network))
-            }
-
             override fun onLost(network: Network) {
                 trySend(CallbackEvent.Lost(network))
             }
