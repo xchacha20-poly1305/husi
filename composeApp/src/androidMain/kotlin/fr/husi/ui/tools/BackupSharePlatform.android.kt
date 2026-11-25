@@ -11,6 +11,7 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.share
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.extension
 
 @Composable
 internal actual fun rememberShareBackupFile(): (PlatformFile) -> Unit {
@@ -22,8 +23,13 @@ internal actual fun rememberShareBackupFile(): (PlatformFile) -> Unit {
                 "${context.packageName}.cache",
                 file.toJavaFile(),
             )
+            val mimeType = if (file.extension == BackupViewModel.BACKUP_FILE_EXTENSION) {
+                "application/json"
+            } else {
+                "application/octet-stream"
+            }
             val intent = Intent(Intent.ACTION_SEND)
-                .setType("application/json")
+                .setType(mimeType)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 .putExtra(Intent.EXTRA_STREAM, fileUri)
 

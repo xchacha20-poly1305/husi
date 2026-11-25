@@ -37,8 +37,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,6 +51,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -82,6 +85,15 @@ import fr.husi.resources.action_import_file
 import fr.husi.resources.arrow_back
 import fr.husi.resources.back
 import fr.husi.resources.backup
+import fr.husi.resources.backup_age_armor
+import fr.husi.resources.backup_age_decrypt_failed
+import fr.husi.resources.backup_age_identity_invalid
+import fr.husi.resources.backup_age_no_matching_identity
+import fr.husi.resources.backup_age_private_key
+import fr.husi.resources.backup_age_recipient
+import fr.husi.resources.backup_age_recipient_invalid
+import fr.husi.resources.backup_age_recipient_optional
+import fr.husi.resources.backup_age_restore_title
 import fr.husi.resources.backup_groups_and_configurations
 import fr.husi.resources.backup_import
 import fr.husi.resources.backup_import_summary
@@ -91,12 +103,16 @@ import fr.husi.resources.cancel
 import fr.husi.resources.delete
 import fr.husi.resources.error
 import fr.husi.resources.error_title
+import fr.husi.resources.hide
 import fr.husi.resources.ok
 import fr.husi.resources.password
 import fr.husi.resources.question_mark
 import fr.husi.resources.settings
 import fr.husi.resources.share
+import fr.husi.resources.show
 import fr.husi.resources.username
+import fr.husi.resources.visibility
+import fr.husi.resources.visibility_off
 import fr.husi.resources.webdav
 import fr.husi.resources.webdav_configure
 import fr.husi.resources.webdav_delete
@@ -113,18 +129,27 @@ import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
-import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
-import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import io.github.vinceglb.filekit.write
+import io.github.xchacha20_poly1305.yan.Age
+import io.github.xchacha20_poly1305.yan.KeyFormatException
+import io.github.xchacha20_poly1305.yan.NoMatchingIdentityException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.time.Instant
+
+private enum class BackupDestination(val title: StringResource) {
+    EXPORT(Res.string.action_export),
+    SHARE(Res.string.share),
+    WEBDAV(Res.string.webdav_upload),
+}
 
 @Composable
 internal fun BackupScreen(
@@ -145,18 +170,27 @@ internal fun BackupScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var errorDialog by remember { mutableStateOf<String?>(null) }
     var showWebDAVConfig by rememberSaveable { mutableStateOf(false) }
+    var backupDestination by remember { mutableStateOf<BackupDestination?>(null) }
 
     val exportFileLauncher = rememberFileSaverLauncher(
         dialogSettings = FileKitDialogSettings.createDefault(),
+        onError = { error ->
+            Logs.e(error)
+            showSnackbar(error.readableMessage)
+            viewModel.postExport()
+        },
     ) { file ->
+        val backup = viewModel.uiState.value.exported ?: return@rememberFileSaverLauncher
         if (file == null) {
             viewModel.postExport()
             return@rememberFileSaverLauncher
         }
         lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                file.write(uiState.exported!!.encodeToByteArray())
+                file.write(backup.bytes)
                 showSnackbar(resolveRepository().getString(Res.string.action_export_msg))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logs.e(e)
                 showSnackbar(e.readableMessage)
@@ -166,23 +200,16 @@ internal fun BackupScreen(
         }
     }
     LaunchedEffect(uiState.exported) {
-        uiState.exported?.let {
+        uiState.exported?.let { backup ->
             exportFileLauncher.launch(
-                suggestedName = BackupViewModel.backupFileBaseName(),
-                defaultExtension = BackupViewModel.BACKUP_FILE_EXTENSION,
+                suggestedName = if (backup.encrypted) backup.name else backup.name.substringBeforeLast('.'),
+                defaultExtension = if (backup.encrypted) null else BackupViewModel.BACKUP_FILE_EXTENSION,
             )
         }
     }
 
-    val importFileLauncher = rememberFilePickerLauncher(
-        type = FileKitType.File(extensions = listOf(BackupViewModel.BACKUP_FILE_EXTENSION)),
-    ) { file ->
+    val importFileLauncher = rememberFilePickerLauncher { file ->
         if (file == null) return@rememberFilePickerLauncher
-        val fileName = file.name
-        if (!fileName.endsWith(".${BackupViewModel.BACKUP_FILE_EXTENSION}", ignoreCase = true)) {
-            showSnackbar("Selected file is not a .json backup file.")
-            return@rememberFilePickerLauncher
-        }
         lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val bytes = try {
                 file.readBytes()
@@ -268,24 +295,16 @@ internal fun BackupScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
-                            onClick = { viewModel.export() },
+                            onClick = { backupDestination = BackupDestination.EXPORT },
                             modifier = Modifier.fillMaxWidth(),
+                            enabled = !uiState.isExporting && uiState.exported == null,
                         ) {
                             Text(stringResource(Res.string.action_export))
                         }
                         if (PlatformInfo.isAndroid) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
-                                onClick = {
-                                    viewModel.share(
-                                        launch = { file ->
-                                            shareBackupFile(file)
-                                        },
-                                        onFailed = { message ->
-                                            showSnackbar(message)
-                                        },
-                                    )
-                                },
+                                onClick = { backupDestination = BackupDestination.SHARE },
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Text(stringResource(Res.string.share))
@@ -329,14 +348,7 @@ internal fun BackupScreen(
                 WebDAVCard(
                     uiState = uiState,
                     onConfigure = { showWebDAVConfig = true },
-                    onUpload = {
-                        viewModel.uploadToWebDAV(
-                            onSuccess = {
-                                snackbar.show(StringOrRes.Res(Res.string.webdav_upload_success))
-                            },
-                            onFailed = showSnackbar,
-                        )
-                    },
+                    onUpload = { backupDestination = BackupDestination.WEBDAV },
                     onRestore = {
                         viewModel.loadWebDAVBackups(WebDAVBackupsPurpose.RESTORE, onFailed = showSnackbar)
                     },
@@ -355,6 +367,36 @@ internal fun BackupScreen(
                     .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = scrollState),
                 style = HusiScrollbarDefaults.style(),
+            )
+        }
+    }
+
+    backupDestination?.let { destination ->
+        BackupEncryptionDialog(
+            title = destination.title,
+            onConfirm = { encryption ->
+                backupDestination = null
+                when (destination) {
+                    BackupDestination.EXPORT -> viewModel.export(encryption, onFailed = showSnackbar)
+                    BackupDestination.SHARE -> viewModel.share(encryption, shareBackupFile, onFailed = showSnackbar)
+                    BackupDestination.WEBDAV -> viewModel.uploadToWebDAV(
+                        encryption = encryption,
+                        onSuccess = {
+                            snackbar.show(StringOrRes.Res(Res.string.webdav_upload_success))
+                        },
+                        onFailed = showSnackbar,
+                    )
+                }
+            },
+            onDismiss = { backupDestination = null },
+        )
+    }
+
+    uiState.encryptedInput?.let { backup ->
+        key(backup) {
+            BackupDecryptionDialog(
+                onDecrypt = { identity -> viewModel.decryptInput(backup, identity) },
+                onDismiss = viewModel::dismissEncryptedInput,
             )
         }
     }
@@ -479,6 +521,159 @@ internal fun BackupScreen(
     ) {
         CircularWavyProgressIndicator()
     }
+}
+
+@Composable
+private fun BackupEncryptionDialog(
+    title: StringResource,
+    onConfirm: (BackupEncryption?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var recipient by remember { mutableStateOf("") }
+    var armor by remember { mutableStateOf(false) }
+    var invalidRecipient by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(title)) },
+        confirmButton = {
+            TextButton(stringResource(Res.string.ok)) {
+                val encryption = try {
+                    if (recipient.isBlank()) null else BackupEncryption(Age.parseRecipient(recipient.trim()), armor)
+                } catch (_: KeyFormatException) {
+                    invalidRecipient = true
+                    return@TextButton
+                }
+                onConfirm(encryption)
+            }
+        },
+        dismissButton = { TextButton(stringResource(Res.string.cancel), onDismiss) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = recipient,
+                    onValueChange = {
+                        recipient = it
+                        invalidRecipient = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(Res.string.backup_age_recipient)) },
+                    supportingText = {
+                        val message = if (invalidRecipient) {
+                            Res.string.backup_age_recipient_invalid
+                        } else {
+                            Res.string.backup_age_recipient_optional
+                        }
+                        Text(stringResource(message))
+                    },
+                    isError = invalidRecipient,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
+                )
+                val armorEnabled = recipient.isNotBlank()
+                Row(
+                    modifier = Modifier.fillMaxWidth().toggleable(
+                        value = armor && armorEnabled,
+                        enabled = armorEnabled,
+                        role = Role.Checkbox,
+                        onValueChange = { armor = it },
+                    ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Checkbox(checked = armor && armorEnabled, onCheckedChange = null, enabled = armorEnabled)
+                    Text(stringResource(Res.string.backup_age_armor))
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun BackupDecryptionDialog(
+    onDecrypt: suspend (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var identity by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<StringResource?>(null) }
+    var decrypting by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = { if (!decrypting) onDismiss() },
+        title = { Text(stringResource(Res.string.backup_age_restore_title)) },
+        confirmButton = {
+            TextButton(
+                enabled = identity.isNotBlank() && !decrypting,
+                onClick = {
+                    decrypting = true
+                    error = null
+                    scope.launch {
+                        try {
+                            onDecrypt(identity)
+                            identity = ""
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (_: KeyFormatException) {
+                            error = Res.string.backup_age_identity_invalid
+                        } catch (_: NoMatchingIdentityException) {
+                            error = Res.string.backup_age_no_matching_identity
+                        } catch (_: Exception) {
+                            error = Res.string.backup_age_decrypt_failed
+                        } finally {
+                            decrypting = false
+                        }
+                    }
+                },
+            ) {
+                Text(stringResource(Res.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !decrypting) {
+                Text(stringResource(Res.string.cancel))
+            }
+        },
+        text = {
+            BackupIdentityField(
+                identity = identity,
+                onIdentityChange = {
+                    identity = it
+                    error = null
+                },
+                error = error,
+                enabled = !decrypting,
+            )
+        },
+    )
+}
+
+@Composable
+private fun BackupIdentityField(
+    identity: String,
+    onIdentityChange: (String) -> Unit,
+    error: StringResource? = null,
+    enabled: Boolean = true,
+) {
+    var identityVisible by remember { mutableStateOf(false) }
+    OutlinedTextField(
+        value = identity,
+        onValueChange = onIdentityChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(Res.string.backup_age_private_key)) },
+        supportingText = error?.let { { Text(stringResource(it)) } },
+        isError = error != null,
+        enabled = enabled,
+        maxLines = 4,
+        visualTransformation = if (identityVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            SimpleIconButton(
+                imageVector = vectorResource(if (identityVisible) Res.drawable.visibility_off else Res.drawable.visibility),
+                contentDescription = stringResource(if (identityVisible) Res.string.hide else Res.string.show),
+                enabled = enabled,
+                onClick = { identityVisible = !identityVisible },
+            )
+        },
+        keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, keyboardType = KeyboardType.Password),
+    )
 }
 
 @Composable

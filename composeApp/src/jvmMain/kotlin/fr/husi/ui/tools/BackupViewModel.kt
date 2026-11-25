@@ -25,8 +25,9 @@ import fr.husi.net.localHttpProxy
 import fr.husi.net.resolveWebDAVClient
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.writeString
+import io.github.vinceglb.filekit.write
+import io.github.xchacha20_poly1305.yan.Age
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,11 +74,15 @@ internal data class WebDAVBackups(
     val entries: List<WebDAVEntry>,
 )
 
+internal class BackupFile(val name: String, val bytes: ByteArray, val encrypted: Boolean)
+
 @Immutable
 internal data class BackupUiState(
     val options: Int = OPTIONS_GROUPS_AND_CONFIGURATION or OPTIONS_RULES or OPTIONS_SETTINGS,
-    val exported: String? = null,
+    val exported: BackupFile? = null,
+    val isExporting: Boolean = false,
     val inputResult: BackupPayload? = null,
+    val encryptedInput: EncryptedBackup? = null,
     val isImporting: Boolean = false,
     val webdav: WebDAVConfig = WebDAVConfig(),
     val webdavBackups: WebDAVBackups? = null,
@@ -103,15 +108,12 @@ internal class BackupViewModel(
     companion object {
         const val BACKUP_VERSION = 3
         const val BACKUP_FILE_EXTENSION = "json"
+        private const val ENCRYPTED_BACKUP_EXTENSION = "$BACKUP_FILE_EXTENSION.age"
         private const val BACKUP_FILE_PREFIX = "husi_backup_"
 
-        /** File name of a new backup, without [BACKUP_FILE_EXTENSION]. */
-        fun backupFileBaseName(): String = BACKUP_FILE_PREFIX + fileNameTimestamp()
-
-        private fun backupFileName(): String = "${backupFileBaseName()}.$BACKUP_FILE_EXTENSION"
-
         fun isBackupFileName(name: String): Boolean =
-            name.startsWith(BACKUP_FILE_PREFIX) && name.endsWith(".$BACKUP_FILE_EXTENSION")
+            name.startsWith(BACKUP_FILE_PREFIX) &&
+                    (name.endsWith(".$BACKUP_FILE_EXTENSION") || name.endsWith(".$ENCRYPTED_BACKUP_EXTENSION"))
     }
 
     val uiState: StateFlow<BackupUiState>
@@ -163,21 +165,37 @@ internal class BackupViewModel(
         }
     }
 
-    fun export() = viewModelScope.launch {
-        val content = withContext(ioDispatcher) {
-            createBackup()
-        }
-        uiState.update { state ->
-            state.copy(exported = content)
+    fun export(
+        encryption: BackupEncryption?,
+        onFailed: (message: String) -> Unit,
+    ) = viewModelScope.launch {
+        if (uiState.value.isExporting || uiState.value.exported != null) return@launch
+        uiState.update { state -> state.copy(isExporting = true) }
+        try {
+            val backup = withContext(ioDispatcher) { createBackupFile(encryption) }
+            uiState.update { state -> state.copy(exported = backup) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logs.e(e)
+            onFailed(e.readableMessage)
+        } finally {
+            uiState.update { state -> state.copy(isExporting = false) }
         }
     }
 
     fun share(
+        encryption: BackupEncryption?,
         launch: (PlatformFile) -> Unit,
         onFailed: (message: String) -> Unit,
     ) = viewModelScope.launch(ioDispatcher) {
         try {
-            launch(writeBackupFile())
+            val backup = createBackupFile(encryption)
+            val file = PlatformFile(resolveRepository().cacheDir, backup.name)
+            file.write(backup.bytes)
+            launch(file)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logs.e(e)
             onFailed(e.readableMessage)
@@ -191,14 +209,12 @@ internal class BackupViewModel(
     }
 
     fun uploadToWebDAV(
+        encryption: BackupEncryption? = null,
         onSuccess: () -> Unit,
         onFailed: (message: String) -> Unit,
     ) = runWebDAV(onFailed) {
-        webdavClient.upload(
-            webdavServer(),
-            backupFileName(),
-            createBackup().encodeToByteArray(),
-        )
+        val backup = createBackupFile(encryption)
+        webdavClient.upload(webdavServer(), backup.name, backup.bytes)
         onSuccess()
     }
 
@@ -222,7 +238,7 @@ internal class BackupViewModel(
     ) = runWebDAV(onFailed) {
         dismissWebDAVBackups()
         val content = webdavClient.download(webdavServer(), entry.name)
-        input(content.decodeToString())
+        input(content)
     }
 
     /** Stops at the first failure; the backups before it stay deleted. */
@@ -244,20 +260,50 @@ internal class BackupViewModel(
         onError: (message: String) -> Unit,
     ) = viewModelScope.launch(ioDispatcher) {
         try {
-            input(bytes.decodeToString())
+            input(bytes)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logs.e(e)
             onError(e.readableMessage)
         }
     }
 
-    private fun input(content: String) {
-        val backup = kxs.decodeFromString<BackupPayload>(content)
+    private fun input(bytes: ByteArray) {
+        val encrypted = EncryptedBackup.detect(bytes)
+        val backup = if (encrypted == null) decodeBackup(bytes) else null
+        uiState.update { state -> state.copy(inputResult = backup, encryptedInput = encrypted) }
+    }
+
+    suspend fun decryptInput(backup: EncryptedBackup, identity: String) {
+        val decoded = withContext(ioDispatcher) {
+            val plaintext = backup.decrypt(identity)
+            try {
+                decodeBackup(plaintext)
+            } finally {
+                plaintext.fill(0)
+            }
+        }
+        uiState.update { state ->
+            if (state.encryptedInput !== backup) state
+            else state.copy(inputResult = decoded, encryptedInput = null)
+        }
+    }
+
+    fun dismissEncryptedInput() {
+        uiState.update { state -> state.copy(encryptedInput = null) }
+    }
+
+    private fun decodeBackup(bytes: ByteArray): BackupPayload {
+        val backup = try {
+            kxs.decodeFromString<BackupPayload>(bytes.decodeToString())
+        } catch (_: IllegalArgumentException) {
+            // Serialization errors can contain the contents of the selected file.
+            throw IllegalArgumentException("Invalid backup JSON")
+        }
         val version = backup.version
         if (version != BACKUP_VERSION) error("Unsupported backup version $version (expected $BACKUP_VERSION)")
-        uiState.update { state ->
-            state.copy(inputResult = backup)
-        }
+        return backup
     }
 
     private fun runWebDAV(
@@ -267,6 +313,8 @@ internal class BackupViewModel(
         uiState.update { state -> state.copy(isWebDAVBusy = true) }
         try {
             block()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logs.e(e)
             onFailed(e.readableMessage)
@@ -362,10 +410,17 @@ internal class BackupViewModel(
         }
     }
 
-    private suspend fun writeBackupFile(): PlatformFile {
-        val file = PlatformFile(resolveRepository().cacheDir, backupFileName())
-        file.writeString(createBackup())
-        return file
+    private suspend fun createBackupFile(encryption: BackupEncryption?): BackupFile {
+        val extension = if (encryption == null) BACKUP_FILE_EXTENSION else ENCRYPTED_BACKUP_EXTENSION
+        val name = "$BACKUP_FILE_PREFIX${fileNameTimestamp()}.$extension"
+        val plaintext = createBackup().encodeToByteArray()
+        if (encryption == null) return BackupFile(name, plaintext, encrypted = false)
+        val ciphertext = try {
+            Age.encryptBytes(plaintext, listOf(encryption.recipient), armor = encryption.armor)
+        } finally {
+            plaintext.fill(0)
+        }
+        return BackupFile(name, ciphertext, encrypted = true)
     }
 
     private suspend fun createBackup(): String {

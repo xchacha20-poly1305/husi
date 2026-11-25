@@ -301,6 +301,15 @@
     <string name="backup_groups_and_configurations">Groups and configurations</string>
     <string name="backup_rules">Routing rules</string>
     <string name="backup_summary">If the routing settings are not backed up with configurations, then custom outbounds will be lost.</string>
+    <string name="backup_age_recipient">age public key</string>
+    <string name="backup_age_recipient_optional">Leave blank to create an unencrypted backup.</string>
+    <string name="backup_age_recipient_invalid">Enter one valid age public key.</string>
+    <string name="backup_age_private_key">age private key</string>
+    <string name="backup_age_identity_invalid">Enter one valid age secret key.</string>
+    <string name="backup_age_armor">ASCII armor</string>
+    <string name="backup_age_restore_title">Decrypt backup</string>
+    <string name="backup_age_no_matching_identity">This age identity cannot decrypt this backup.</string>
+    <string name="backup_age_decrypt_failed">Could not read the encrypted backup.</string>
     <string name="webdav" translatable="false">WebDAV</string>
     <string name="webdav_configure">Configure</string>
     <string name="webdav_directory_url">Directory URL</string>
