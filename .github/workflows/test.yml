@@ -22,6 +22,7 @@ on:
       - release/**
       - run
       - settings.gradle.kts
+      - '!**.md'
   pull_request:
     paths:
       - .github/actions/**
@@ -41,6 +42,7 @@ on:
       - release/**
       - run
       - settings.gradle.kts
+      - '!**.md'
 
 permissions:
   contents: read

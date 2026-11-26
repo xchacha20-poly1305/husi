@@ -3,6 +3,8 @@ name: Web dashboard
 on:
   push:
     branches: [dev]
+    paths-ignore:
+      - '**.md'
   pull_request:
     paths:
       - composeApp/**
@@ -17,6 +19,7 @@ on:
       - build-logic/**
       - buildScript/publish_web.sh
       - .github/workflows/web.yml
+      - '!**.md'
   workflow_dispatch:
 
 permissions:
