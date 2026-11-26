@@ -182,6 +182,7 @@ external-ui-url: "https://github.com/xchacha20-poly1305/husi/archive/refs/heads/
 * [Daemon Host (`husi-core run` & `daemon.json`)](./docs/daemon.md)
 * [Configuration Screen Hotkeys](./docs/hotkeys.md)
 * [Custom plugin](./docs/custom-plugin.md)
+* [Android Native Plugin Specification](./docs/android-plugin.md)
 * [Subscription Import Link (`husi://subscription`)](./docs/subscription-link.md)
 
 ## 🛠️ Contributing & Building

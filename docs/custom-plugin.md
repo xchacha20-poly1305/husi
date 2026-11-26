@@ -8,7 +8,7 @@ Your plugin must listen for SOCKS5 connections (without authentication) on the a
 
 ### Android
 
-Android launches plugins from installed plugin APKs via their `pluginId`:
+Android launches plugins from installed plugin APKs via their `pluginId` (see [android-plugin.md](./android-plugin.md) for the plugin APK specification):
 
 1. Install the plugin APK on the device.
 2. Open **Settings → Plugin → Approved Custom Plugins** and approve the plugin ID (either check it under **Installed Plugins** or add it manually).
