@@ -149,6 +149,7 @@ object Key {
     const val PROVIDER_JUICITY = "providerJuicity"
     const val PROVIDER_NAIVE = "providerNaive"
     const val CUSTOM_PLUGIN_PREFIX = "customPluginPrefix"
+    const val APPROVED_CUSTOM_PLUGIN_IDS = "approvedCustomPluginIds"
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
 

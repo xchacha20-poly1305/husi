@@ -15,6 +15,7 @@ import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openvpn.OpenVPNBean
+import fr.husi.fmt.plugin.CustomPluginBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowtls.ShadowTLSBean
@@ -99,6 +100,13 @@ class BeanConverters {
         fun configDeserialize(bytes: ByteArray?): ConfigBean? {
             if (bytes?.isNotEmpty() != true) return null
             return deserialize(ConfigBean(), bytes)
+        }
+
+        @ColumnTypeConverter
+        @JvmStatic
+        fun customPluginDeserialize(bytes: ByteArray?): CustomPluginBean? {
+            if (bytes?.isNotEmpty() != true) return null
+            return deserialize(CustomPluginBean(), bytes)
         }
 
         @ColumnTypeConverter

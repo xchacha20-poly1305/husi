@@ -3,9 +3,11 @@ package fr.husi.fmt
 import fr.husi.CUSTOM_CA_FILE
 import fr.husi.CertProvider
 import fr.husi.Key
+import fr.husi.PLUGIN_CA_FILE
 import fr.husi.ProtocolProvider
 import fr.husi.RuleProvider
 import fr.husi.bg.buildPluginSpecs
+import fr.husi.bg.initPlugins
 import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.database.PluginEntity
@@ -21,15 +23,19 @@ import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openvpn.OpenVPNBean
+import fr.husi.fmt.plugin.CustomPluginBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.fmt.tailscale.TailcatBean
 import fr.husi.fmt.tailscale.TailscaleBean
 import fr.husi.ktx.applyDefaultValues
+import fr.husi.ktx.invariantPathString
 import fr.husi.platform.PlatformInfo
+import fr.husi.repository.resolveRepository
 import fr.husi.test.HusiKoinTest
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.resolve
 import io.github.vinceglb.filekit.writeString
 import kotlinx.coroutines.runBlocking
@@ -40,6 +46,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -3132,6 +3139,201 @@ class ConfigBuilderTest : HusiKoinTest() {
             directory.deleteRecursively()
         }
     }
+
+    @Test
+    fun `buildConfig emits socks outbound and registers externalIndex for CustomPluginBean`() = runBlocking {
+        DataStore.serviceMode.set(Key.MODE_PROXY)
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+            CustomPluginBean().apply {
+                name = "custom"
+                executablePath = "/tmp/custom-plugin"
+            }.applyDefaultValues(),
+        )
+        proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+        val result = buildConfig(proxy)
+        val chainEntry = result.metadata.externalIndex.single().chain.entries.single()
+        val pluginPort = chainEntry.key
+
+        assertEquals(proxy.id, chainEntry.value.id)
+        val outbound = assertNotNull(parseOutbounds(result)[result.metadata.mainTag])
+        assertEquals(SingBoxOptions.TYPE_SOCKS, outbound["type"]?.jsonPrimitive?.content)
+        assertEquals(LOCALHOST4, outbound["server"]?.jsonPrimitive?.content)
+        assertEquals(pluginPort, outbound["server_port"]?.jsonPrimitive?.int)
+        assertTrue(result.metadata.protectedPluginPorts.isEmpty())
+        assertTrue(parseInbounds(result).none { it["type"]?.jsonPrimitive?.content == SingBoxOptions.TYPE_DIRECT })
+    }
+
+    @Test
+    fun `buildConfig creates direct mapping inbound for CustomPluginBean with server and without supportProtect`() =
+        runBlocking {
+            DataStore.serviceMode.set(Key.MODE_VPN)
+            DataStore.tunAutoRedirect.set(false)
+
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                CustomPluginBean().apply {
+                    name = "custom-mapped"
+                    serverAddress = "example.com"
+                    serverPort = 443
+                    supportProtect = false
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            val result = buildConfig(proxy)
+            val bean = result.metadata.externalIndex.single().chain.values.single().requireBean()
+            val directInbound = parseInbounds(result).single {
+                it["type"]?.jsonPrimitive?.content == SingBoxOptions.TYPE_DIRECT
+            }
+            val mappingPort = directInbound["listen_port"]!!.jsonPrimitive.int
+            val mappingTag = directInbound["tag"]!!.jsonPrimitive.content
+
+            assertTrue(result.metadata.protectedPluginPorts.isEmpty())
+            assertEquals(LOCALHOST4, directInbound["listen"]?.jsonPrimitive?.content)
+            assertEquals(LOCALHOST4, bean.finalAddress)
+            assertEquals(mappingPort, bean.finalPort)
+            assertTrue(
+                parseRouteRules(result).any { rule ->
+                    rule["outbound"]?.jsonPrimitive?.content == TAG_DIRECT &&
+                        rule["inbound"]?.jsonArray?.map { it.jsonPrimitive.content } == listOf(mappingTag)
+                },
+            )
+        }
+
+    @Test
+    fun `buildConfig protects CustomPluginBean port and skips mapping when supportProtect is true in VPN mode`() =
+        runBlocking {
+            DataStore.serviceMode.set(Key.MODE_VPN)
+
+            val group = ProxyGroup(name = "group").applyDefaultValues()
+            group.id = SagerDatabase.groupDao.createGroup(group)
+            val proxy = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                CustomPluginBean().apply {
+                    name = "custom-protect"
+                    serverAddress = "1.1.1.1"
+                    serverPort = 443
+                    supportProtect = true
+                }.applyDefaultValues(),
+            )
+            proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
+
+            val result = buildConfig(proxy, forTest = false)
+            val entry = result.metadata.externalIndex.single().chain.entries.single()
+            val pluginPort = entry.key
+            val bean = entry.value.requireBean()
+
+            assertEquals(setOf(pluginPort), result.metadata.protectedPluginPorts)
+            assertEquals("1.1.1.1", bean.finalAddress)
+            assertEquals(443, bean.finalPort)
+            assertTrue(parseInbounds(result).none { it["type"]?.jsonPrimitive?.content == SingBoxOptions.TYPE_DIRECT })
+        }
+
+    @Test
+    fun `buildPluginSpecs expands CustomPluginBean command environment and config files end to end`() =
+        runBlocking {
+            DataStore.serviceMode.set(Key.MODE_VPN)
+            DataStore.logLevel.set(3)
+
+            val repository = resolveRepository()
+            val tempDir = Files.createTempDirectory("husi-custom-plugin-spec").toFile()
+            val caFile = repository.externalAssetsDir.resolve(PLUGIN_CA_FILE)
+            val caFileIo = File(caFile.absolutePath())
+            try {
+                val executable = tempDir.resolve("my-plugin").apply {
+                    writeText("#!/bin/sh\n")
+                    if (!PlatformInfo.isWindows) {
+                        check(setExecutable(true))
+                    }
+                }
+                val caPem = "-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----"
+                caFile.writeString(caPem)
+
+                val group = ProxyGroup(name = "group").applyDefaultValues()
+                group.id = SagerDatabase.groupDao.createGroup(group)
+
+                val withConfig = ProxyEntity(groupId = group.id, userOrder = 1).putBean(
+                    CustomPluginBean().apply {
+                        name = "custom-with-config"
+                        executablePath = executable.absolutePath
+                        serverAddress = "vpn.example.com"
+                        serverPort = 8443
+                        supportProtect = true
+                        commandArgs = "--listen {{listen_addr}} --remote {{final_addr}} -c {{config}} --protect {{protect_path}}"
+                        configFileName = "client.yaml"
+                        config = "listen: {{listen_addr}}\nserver: {{server_host}}:{{server_port}}\nca: {{ca_path}}\ncache: {{cache_dir}}\nlog: {{log_level}}"
+                        environment = "CA_PEM={{ca_content}}\nCFG_PATH={{config}}"
+                    }.applyDefaultValues(),
+                )
+                withConfig.id = SagerDatabase.proxyDao.addProxy(withConfig)
+
+                val result = buildConfig(withConfig)
+                val pluginPort = result.metadata.externalIndex.single().chain.keys.single()
+                val cacheFiles = mutableListOf<PlatformFile>()
+                val pluginConfigs = initPlugins(result.metadata, cacheFiles)
+                val spec = buildPluginSpecs(result.metadata, pluginConfigs).single()
+
+                val expectedConfigName = "custom_${pluginPort}_client.yaml"
+                val expectedToken = $$"${file:$$expectedConfigName}"
+                val expectedConfig = "listen: 127.0.0.1:$pluginPort\n" +
+                    "server: vpn.example.com:8443\n" +
+                    "ca: ${caFile.invariantPathString()}\n" +
+                    "cache: ${repository.cacheDir.invariantPathString()}\n" +
+                    "log: warn"
+
+                assertEquals(
+                    listOf(
+                        executable.absolutePath,
+                        "--listen", "127.0.0.1:$pluginPort",
+                        "--remote", "vpn.example.com:8443",
+                        "-c", expectedToken,
+                        "--protect", protectPath,
+                    ),
+                    spec.command,
+                )
+                assertEquals(caFile.absolutePath(), spec.environment["SSL_CERT_FILE"])
+                assertEquals("/not_exists", spec.environment["SSL_CERT_DIR"])
+                assertEquals(caPem, spec.environment["CA_PEM"])
+                assertEquals(expectedToken, spec.environment["CFG_PATH"])
+                assertEquals(1, spec.files.size)
+                assertEquals(expectedConfigName, spec.files.single().name)
+                assertEquals(expectedConfig, spec.files.single().content.utf8())
+
+                val withoutConfig = ProxyEntity(groupId = group.id, userOrder = 2).putBean(
+                    CustomPluginBean().apply {
+                        name = "custom-no-config"
+                        executablePath = executable.absolutePath
+                        commandArgs = "--listen {{listen_addr}} --cfg {{config}}"
+                        config = "   "
+                        environment = "EMPTY_CFG={{config}}"
+                    }.applyDefaultValues(),
+                )
+                withoutConfig.id = SagerDatabase.proxyDao.addProxy(withoutConfig)
+
+                val noConfigResult = buildConfig(withoutConfig)
+                val noConfigPort = noConfigResult.metadata.externalIndex.single().chain.keys.single()
+                val noConfigPluginConfigs = initPlugins(noConfigResult.metadata, cacheFiles)
+                val noConfigSpec = buildPluginSpecs(noConfigResult.metadata, noConfigPluginConfigs).single()
+
+                assertEquals(
+                    listOf(
+                        executable.absolutePath,
+                        "--listen", "127.0.0.1:$noConfigPort",
+                        "--cfg", "",
+                    ),
+                    noConfigSpec.command,
+                )
+                assertEquals("", noConfigSpec.environment["EMPTY_CFG"])
+                assertTrue(noConfigSpec.files.isEmpty())
+            } finally {
+                caFileIo.delete()
+                tempDir.deleteRecursively()
+            }
+        }
 
     private suspend fun usePluginForJuicity() {
         DataStore.providerJuicity.set(ProtocolProvider.PLUGIN)

@@ -499,4 +499,42 @@
     <string name="ip_test_servers_summary">用于仪表盘探测 IP 的服务器。</string>
     <string name="ip_test_servers_description">一行一个，使用 stun:host（UDP，默认端口 3478）、turn:host（默认端口 3478）或 turns:host（TLS，默认端口 5349）。TURN 服务器仅用于 STUN 绑定请求。TURN URI 可添加 ?transport=udp 或 ?transport=tcp，TLS 必须使用 TCP。每次检测随机选择一个服务器。</string>
     <string name="ip_test_no_servers">请先在杂项设置中填写 IP 检测服务器。</string>
+    <string name="custom_plugin">自定义插件</string>
+    <string name="custom_plugin_plugin_id">插件 ID</string>
+    <string name="custom_plugin_executable_path">可执行文件路径</string>
+    <string name="custom_plugin_not_approved_hint">尚未在插件设置中批准</string>
+    <string name="custom_plugin_not_approved_summary">%1$s（未批准）</string>
+    <string name="custom_plugin_approved_ids">已批准的自定义插件</string>
+    <string name="custom_plugin_approved_ids_summary">允许自定义插件配置启动指定的外部插件</string>
+    <string name="custom_plugin_approved_ids_installed">已安装的插件</string>
+    <string name="custom_plugin_approved_ids_manual">手动批准的 ID</string>
+    <string name="custom_plugin_approved_ids_input_hint">输入插件 ID</string>
+    <string name="custom_plugin_approved_ids_add">添加</string>
+    <string name="custom_plugin_approved_ids_empty">暂无已批准的自定义插件，请先在插件设置中批准插件 ID。</string>
+    <string name="custom_plugin_support_protect">支持 Protect 路径</string>
+    <string name="custom_plugin_support_protect_summary">插件通过 {{protect_path}} 自行保护出站连接</string>
+    <string name="custom_plugin_launch_config">启动与配置</string>
+    <string name="custom_plugin_command_args">启动参数</string>
+    <string name="custom_plugin_config_file_name">配置文件名</string>
+    <string name="custom_plugin_config_content">配置内容</string>
+    <string name="custom_plugin_environment">环境变量</string>
+    <string name="custom_plugin_environment_summary_empty">未设置（每行一个 KEY=VALUE）</string>
+    <string name="custom_plugin_placeholder_reference">占位符参考</string>
+    <string name="custom_plugin_server_mapping">可选服务器映射</string>
+    <string name="custom_plugin_server_address_summary">可选 — 填写后支持代理链、延迟测试及直连映射</string>
+    <string name="custom_plugin_placeholder_listen_host">本地转发监听主机（127.0.0.1）</string>
+    <string name="custom_plugin_placeholder_listen_port">分配的本地转发端口</string>
+    <string name="custom_plugin_placeholder_listen_addr">本地转发监听地址（127.0.0.1:端口）</string>
+    <string name="custom_plugin_placeholder_final_host">最终目标主机（映射时为 127.0.0.1，否则为服务器主机）</string>
+    <string name="custom_plugin_placeholder_final_port">最终目标端口或服务器端口（未设置时为空）</string>
+    <string name="custom_plugin_placeholder_final_addr">可直接连接的拨号地址（未设置时为空）</string>
+    <string name="custom_plugin_placeholder_server_host">原始服务器地址（例如用于 SNI）</string>
+    <string name="custom_plugin_placeholder_server_port">原始服务器端口（未设置时为空）</string>
+    <string name="custom_plugin_placeholder_config">生成的配置文件路径（用于启动参数和环境变量；配置为空时为空）</string>
+    <string name="custom_plugin_placeholder_protect_path">启用支持 Protect 路径且需要保护时的路径，否则为空</string>
+    <string name="custom_plugin_placeholder_ca_path">自定义插件 CA 证书文件（plugin-ca.pem）路径（若存在）</string>
+    <string name="custom_plugin_placeholder_ca_content">plugin-ca.pem 的原始 UTF-8 文本内容（若存在）</string>
+    <string name="custom_plugin_placeholder_ca_content_json">经 JSON 转义的 plugin-ca.pem 内容（不含首尾引号）</string>
+    <string name="custom_plugin_placeholder_log_level">当前日志级别（trace、debug、info、warn、error、fatal）</string>
+    <string name="custom_plugin_placeholder_cache_dir">应用缓存目录路径</string>
 </resources>

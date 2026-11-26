@@ -7,6 +7,7 @@ import fr.husi.Key
 import fr.husi.NetworkInterfaceStrategy
 import fr.husi.RuleProvider
 import fr.husi.bg.VpnConstants
+import fr.husi.bg.resolvePluginExecutable
 import fr.husi.bg.routeCustomGeoDir
 import fr.husi.bg.routeGeoDir
 import fr.husi.database.DataStore
@@ -103,7 +104,6 @@ import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
-import fr.husi.plugin.PluginManager
 import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.isRegularFile
@@ -1036,7 +1036,7 @@ suspend fun buildConfig(
                     val canBypass = canBypassPluginProcesses && !bean.canSelfProtect
                     val canDialDirect = !bean.canMapping || ((canProtect || canBypass) && needDirectRoute)
                     if (canDialDirect && canBypass) {
-                        val executable = PluginManager.init(bean.pluginEntry().pluginId)!!.path
+                        val executable = resolvePluginExecutable(bean)
                         bypassPluginPaths.add(PlatformFile(executable).canonicalFile().invariantPathString())
                     }
                     if (canDialDirect && canProtect && isVPN) { // Only VPN needs protect.

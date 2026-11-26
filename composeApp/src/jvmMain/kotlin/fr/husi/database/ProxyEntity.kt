@@ -62,8 +62,20 @@ import fr.husi.fmt.v2ray.toUriVMessVLESSTrojan
 import fr.husi.fmt.wireguard.WireGuardBean
 import fr.husi.fmt.openconnect.OpenConnectBean
 import fr.husi.fmt.openvpn.OpenVPNBean
+import fr.husi.fmt.plugin.CustomPluginBean
+import fr.husi.fmt.plugin.CustomPluginRenderContext
+import fr.husi.fmt.plugin.buildCustomPluginConfig
+import fr.husi.fmt.plugin.readPluginCaInfo
+import fr.husi.fmt.plugin.renderCommandArgs
+import fr.husi.fmt.plugin.renderEnvironment
+import fr.husi.fmt.plugin.sanitizedConfigFileName
+import fr.husi.fmt.protectPath
 import fr.husi.io.BinaryInput
 import fr.husi.io.BinaryOutput
+import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.invariantPathString
+import fr.husi.platform.PlatformInfo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -108,6 +120,7 @@ data class ProxyEntity(
     var proxySetBean: ProxySetBean? = null,
     var chainBean: ChainBean? = null,
     var configBean: ConfigBean? = null,
+    var customPluginBean: CustomPluginBean? = null,
 ) : Serializable() {
 
     companion object {
@@ -138,6 +151,7 @@ data class ProxyEntity(
         const val TYPE_MASQUE = 31
         const val TYPE_TAILSCALE = 32
         const val TYPE_TAILCAT = 33
+        const val TYPE_CUSTOM_PLUGIN = 997
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -243,6 +257,7 @@ data class ProxyEntity(
             TYPE_TRUST_TUNNEL -> trustTunnelBean = BeanConverters.trustTunnelDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = BeanConverters.chainDeserialize(byteArray)
             TYPE_CONFIG -> configBean = BeanConverters.configDeserialize(byteArray)
+            TYPE_CUSTOM_PLUGIN -> customPluginBean = BeanConverters.customPluginDeserialize(byteArray)
         }
     }
 
@@ -287,6 +302,7 @@ data class ProxyEntity(
             TYPE_TRUST_TUNNEL -> trustTunnelBean
             TYPE_CHAIN -> chainBean
             TYPE_CONFIG -> configBean
+            TYPE_CUSTOM_PLUGIN -> customPluginBean
             else -> error("Undefined type $type")
         } ?: error("Null $type profile")
     }
@@ -296,6 +312,7 @@ data class ProxyEntity(
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_DIRECT -> false
+        TYPE_CUSTOM_PLUGIN -> false
         else -> true
     }
 
@@ -307,6 +324,7 @@ data class ProxyEntity(
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
+        TYPE_CUSTOM_PLUGIN -> false
         TYPE_SNELL -> false
         TYPE_MASQUE -> false
         TYPE_TAILSCALE -> false
@@ -345,6 +363,7 @@ data class ProxyEntity(
         TYPE_MIERU -> true
         TYPE_JUICITY -> true
         TYPE_SHADOWQUIC -> true
+        TYPE_CUSTOM_PLUGIN -> true
         else -> false
     }
 
@@ -388,6 +407,56 @@ data class ProxyEntity(
                                 append("\n\n")
                                 append(bean.buildShadowQUICConfig(port, false, logLevel))
                             }
+
+                            is CustomPluginBean -> {
+                                val repository = resolveRepository()
+                                val caInfo = readPluginCaInfo(repository.externalAssetsDir)
+                                val cacheDir = repository.cacheDir.invariantPathString()
+                                val shouldProtect = port in config.metadata.protectedPluginPorts
+                                val renderedConfig = bean.buildCustomPluginConfig(
+                                    port = port,
+                                    shouldProtect = shouldProtect,
+                                    logLevel = logLevel,
+                                    caPath = caInfo.path,
+                                    caContent = caInfo.content,
+                                    cacheDir = cacheDir,
+                                )
+                                val configName = bean.sanitizedConfigFileName(port)
+                                val context = CustomPluginRenderContext(
+                                    port = port,
+                                    shouldProtect = shouldProtect,
+                                    logLevel = logLevel,
+                                    protectPath = if (shouldProtect) protectPath else "",
+                                    caPath = caInfo.path,
+                                    caContent = caInfo.content,
+                                    cacheDir = cacheDir,
+                                    configFileToken = if (renderedConfig.isNotBlank()) configName else "",
+                                )
+                                val target = if (PlatformInfo.isAndroid) {
+                                    bean.pluginId.blankAsNull() ?: bean.executablePath.blankAsNull()
+                                } else {
+                                    bean.executablePath.blankAsNull() ?: bean.pluginId.blankAsNull()
+                                }
+                                val commandLine = (listOfNotNull(target) + bean.renderCommandArgs(context))
+                                    .joinToString(" ")
+                                val env = bean.renderEnvironment(context)
+                                if (commandLine.isNotBlank() || env.isNotEmpty() || renderedConfig.isNotBlank()) {
+                                    append("\n\n")
+                                    if (commandLine.isNotBlank()) {
+                                        append(commandLine)
+                                    }
+                                    if (env.isNotEmpty()) {
+                                        if (commandLine.isNotBlank()) append("\n")
+                                        for ((key, value) in env) {
+                                            append("$key=$value\n")
+                                        }
+                                    }
+                                    if (renderedConfig.isNotBlank()) {
+                                        if (commandLine.isNotBlank() || env.isNotEmpty()) append("\n")
+                                        append(renderedConfig)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -401,6 +470,7 @@ data class ProxyEntity(
         return when (type) {
             TYPE_MIERU -> true
             TYPE_SHADOWQUIC -> true
+            TYPE_CUSTOM_PLUGIN -> true
 
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
 
@@ -456,6 +526,7 @@ data class ProxyEntity(
         proxySetBean = null
         chainBean = null
         configBean = null
+        customPluginBean = null
 
         when (bean) {
             is SOCKSBean -> {
@@ -591,6 +662,11 @@ data class ProxyEntity(
             is ConfigBean -> {
                 type = TYPE_CONFIG
                 configBean = bean
+            }
+
+            is CustomPluginBean -> {
+                type = TYPE_CUSTOM_PLUGIN
+                customPluginBean = bean
             }
 
             else -> error("Undefined type $type")

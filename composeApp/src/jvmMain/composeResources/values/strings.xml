@@ -556,4 +556,42 @@
     <string name="ip_test_servers_summary">Servers used by the dashboard to detect the IP address.</string>
     <string name="ip_test_servers_description">One server per line. Use stun:host (UDP, default port 3478), turn:host (default port 3478), or turns:host (TLS, default port 5349). TURN servers are used only for STUN binding requests. TURN URIs accept ?transport=udp or ?transport=tcp; TLS requires TCP. Each detection randomly selects one server.</string>
     <string name="ip_test_no_servers">Configure an IP detection server in miscellaneous settings.</string>
+    <string name="custom_plugin">Custom Plugin</string>
+    <string name="custom_plugin_plugin_id">Plugin ID</string>
+    <string name="custom_plugin_executable_path">Executable Path</string>
+    <string name="custom_plugin_not_approved_hint">Not approved in Plugin Settings</string>
+    <string name="custom_plugin_not_approved_summary">%1$s (not approved)</string>
+    <string name="custom_plugin_approved_ids">Approved Custom Plugins</string>
+    <string name="custom_plugin_approved_ids_summary">Allow external plugins to be launched by Custom Plugin profiles</string>
+    <string name="custom_plugin_approved_ids_installed">Installed Plugins</string>
+    <string name="custom_plugin_approved_ids_manual">Manually Approved IDs</string>
+    <string name="custom_plugin_approved_ids_input_hint">Enter plugin ID</string>
+    <string name="custom_plugin_approved_ids_add">Add</string>
+    <string name="custom_plugin_approved_ids_empty">No approved custom plugins. Approve plugin IDs in Plugin Settings first.</string>
+    <string name="custom_plugin_support_protect">Supports Protect Path</string>
+    <string name="custom_plugin_support_protect_summary">Plugin protects its own outbound sockets using {{protect_path}}</string>
+    <string name="custom_plugin_launch_config">Launch &amp; Configuration</string>
+    <string name="custom_plugin_command_args">Launch Arguments</string>
+    <string name="custom_plugin_config_file_name">Config File Name</string>
+    <string name="custom_plugin_config_content">Config Content</string>
+    <string name="custom_plugin_environment">Environment Variables</string>
+    <string name="custom_plugin_environment_summary_empty">Not set (KEY=VALUE per line)</string>
+    <string name="custom_plugin_placeholder_reference">Placeholder Reference</string>
+    <string name="custom_plugin_server_mapping">Optional Server Mapping</string>
+    <string name="custom_plugin_server_address_summary">Optional — enables proxy chains, latency test, and direct mapping</string>
+    <string name="custom_plugin_placeholder_listen_host">Local forwarding bind host (127.0.0.1)</string>
+    <string name="custom_plugin_placeholder_listen_port">Allocated local forwarding port</string>
+    <string name="custom_plugin_placeholder_listen_addr">Local forwarding address (127.0.0.1:port)</string>
+    <string name="custom_plugin_placeholder_final_host">Mapped host (127.0.0.1 when mapped, otherwise server host)</string>
+    <string name="custom_plugin_placeholder_final_port">Mapped port or server port (empty if unset)</string>
+    <string name="custom_plugin_placeholder_final_addr">Ready-to-use dial address (empty if unset)</string>
+    <string name="custom_plugin_placeholder_server_host">Original server address (e.g. for SNI)</string>
+    <string name="custom_plugin_placeholder_server_port">Original server port (empty if unset)</string>
+    <string name="custom_plugin_placeholder_config">Generated config file path (for launch arguments &amp; env; empty if config is blank)</string>
+    <string name="custom_plugin_placeholder_protect_path">Protect socket/path when Supports Protect Path is active, else empty</string>
+    <string name="custom_plugin_placeholder_ca_path">Path to custom plugin CA file (plugin-ca.pem) if present</string>
+    <string name="custom_plugin_placeholder_ca_content">Raw UTF-8 text of plugin-ca.pem if present</string>
+    <string name="custom_plugin_placeholder_ca_content_json">JSON-escaped content of plugin-ca.pem (without surrounding quotes)</string>
+    <string name="custom_plugin_placeholder_log_level">Current log level (trace, debug, info, warn, error, fatal)</string>
+    <string name="custom_plugin_placeholder_cache_dir">Application cache directory path</string>
 </resources>

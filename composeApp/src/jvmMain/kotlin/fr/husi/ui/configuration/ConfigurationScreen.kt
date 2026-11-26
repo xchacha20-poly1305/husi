@@ -144,6 +144,7 @@ import fr.husi.resources.connection_test_unreachable
 import fr.husi.resources.connection_test_url_test
 import fr.husi.resources.copy_success
 import fr.husi.resources.custom_config
+import fr.husi.resources.custom_plugin
 import fr.husi.resources.delete_profiles_confirm_prompt
 import fr.husi.resources.ecg
 import fr.husi.resources.group_order_by_delay
@@ -331,6 +332,7 @@ fun ConfigurationScreen(
             Res.string.action_trusttunnel to ProxyEntity.TYPE_TRUST_TUNNEL,
             Res.string.action_snell to ProxyEntity.TYPE_SNELL,
             Res.string.custom_config to ProxyEntity.TYPE_CONFIG,
+            Res.string.custom_plugin to ProxyEntity.TYPE_CUSTOM_PLUGIN,
             Res.string.proxy_chain to ProxyEntity.TYPE_CHAIN,
         )
     }

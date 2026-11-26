@@ -298,6 +298,7 @@ object DataStore : ApplicationPreferences(
     val uploadSpeed = configurationStore.int(Key.UPLOAD_SPEED) { 0 }
     val downloadSpeed = configurationStore.int(Key.DOWNLOAD_SPEED) { 0 }
     val customPluginPrefix = configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
+    val approvedCustomPluginIds = configurationStore.stringSet(Key.APPROVED_CUSTOM_PLUGIN_IDS)
 
     val rulesFirstCreate = configurationStore.boolean(Key.RULES_FIRST_CREATE)
 

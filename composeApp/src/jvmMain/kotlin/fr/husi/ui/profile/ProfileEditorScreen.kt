@@ -117,6 +117,13 @@ fun ProfileEditorScreen(
             onOpenConfigEditor = onOpenConfigEditor,
         )
 
+        ProxyEntity.TYPE_CUSTOM_PLUGIN -> CustomPluginSettingsScreen(
+            profileId = profileId,
+            isSubscription = isSubscription,
+            onResult = onResult,
+            onOpenConfigEditor = onOpenConfigEditor,
+        )
+
         ProxyEntity.TYPE_DIRECT -> DirectSettingsScreen(
             profileId = profileId,
             isSubscription = isSubscription,

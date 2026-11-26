@@ -1,0 +1,167 @@
+package fr.husi.ui.profile
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import fr.husi.compose.IconMaskColors
+import fr.husi.compose.MaskedIcon
+import fr.husi.compose.Preference
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TextButton
+import fr.husi.compose.hasFileList
+import fr.husi.compose.material3.Text
+import fr.husi.compose.rememberFileDropTarget
+import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.cancel
+import fr.husi.resources.custom_plugin_executable_path
+import fr.husi.resources.folder_open
+import fr.husi.resources.ok
+import fr.husi.resources.select_file
+import fr.husi.resources.terminal
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.parent
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+
+@Composable
+internal actual fun CustomPluginExecutableRow(
+    pluginId: String,
+    executablePath: String,
+    onPluginIdChange: (String) -> Unit,
+    onExecutablePathChange: (String) -> Unit,
+) {
+    var isRowDragOver by remember { mutableStateOf(false) }
+    val rowDropTarget = rememberFileDropTarget(
+        onDragStateChange = { isRowDragOver = it },
+    ) { files ->
+        onExecutablePathChange(files.first().absolutePath())
+    }
+    val rowHighlightColor by animateColorAsState(
+        targetValue = if (isRowDragOver) {
+            MaterialTheme.colorScheme.surfaceVariant
+        } else {
+            Color.Transparent
+        },
+    )
+    var openDialog by rememberSaveable { mutableStateOf(false) }
+
+    Preference(
+        title = { Text(stringResource(Res.string.custom_plugin_executable_path)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(rowHighlightColor)
+            .dragAndDropTarget(
+                shouldStartDragAndDrop = { it.hasFileList() },
+                target = rowDropTarget,
+            ),
+        icon = {
+            MaskedIcon(Res.drawable.terminal, color = IconMaskColors.IconLightBlue)
+        },
+        summary = { Text(contentOrUnset(executablePath)) },
+        onClick = { openDialog = true },
+    )
+
+    if (openDialog) {
+        ExecutablePathDialog(
+            initialPath = executablePath,
+            onDismiss = { openDialog = false },
+            onConfirm = { newPath ->
+                onExecutablePathChange(newPath.trim())
+                openDialog = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun ExecutablePathDialog(
+    initialPath: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var dialogText by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(initialPath, TextRange(initialPath.length)))
+    }
+    var isDialogDragOver by remember { mutableStateOf(false) }
+    val dropTarget = rememberFileDropTarget(
+        onDragStateChange = { isDialogDragOver = it },
+    ) { files ->
+        val absolute = files.first().absolutePath()
+        dialogText = TextFieldValue(absolute, TextRange(absolute.length))
+    }
+    val containerColor by animateColorAsState(
+        targetValue = if (isDialogDragOver) {
+            MaterialTheme.colorScheme.surfaceVariant
+        } else {
+            AlertDialogDefaults.containerColor
+        },
+    )
+    val filePicker = rememberFilePickerLauncher(
+        directory = initialPath.blankAsNull()?.let(::PlatformFile)?.parent(),
+    ) { file ->
+        if (file == null) return@rememberFilePickerLauncher
+        val absolute = file.absolutePath()
+        dialogText = TextFieldValue(absolute, TextRange(absolute.length))
+    }
+    val onOk = { onConfirm(dialogText.text) }
+    val focusRequester = remember { FocusRequester() }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = { TextButton(stringResource(Res.string.ok), onClick = onOk) },
+        modifier = Modifier.dragAndDropTarget(
+            shouldStartDragAndDrop = { it.hasFileList() },
+            target = dropTarget,
+        ),
+        dismissButton = { TextButton(stringResource(Res.string.cancel), onClick = onDismiss) },
+        title = { Text(stringResource(Res.string.custom_plugin_executable_path)) },
+        text = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = dialogText,
+                    onValueChange = { dialogText = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusRequester),
+                    keyboardActions = KeyboardActions { onOk() },
+                    singleLine = true,
+                )
+                SimpleIconButton(
+                    imageVector = vectorResource(Res.drawable.folder_open),
+                    contentDescription = stringResource(Res.string.select_file),
+                    onClick = filePicker::launch,
+                )
+            }
+        },
+        containerColor = containerColor,
+    )
+
+    LaunchedEffect(focusRequester) {
+        focusRequester.requestFocus()
+    }
+}

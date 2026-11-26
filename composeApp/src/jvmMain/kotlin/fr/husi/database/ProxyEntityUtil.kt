@@ -3,6 +3,7 @@ package fr.husi.database
 import fr.husi.database.ProxyEntity.Companion.TYPE_ANYTLS
 import fr.husi.database.ProxyEntity.Companion.TYPE_CHAIN
 import fr.husi.database.ProxyEntity.Companion.TYPE_CONFIG
+import fr.husi.database.ProxyEntity.Companion.TYPE_CUSTOM_PLUGIN
 import fr.husi.database.ProxyEntity.Companion.TYPE_DIRECT
 import fr.husi.database.ProxyEntity.Companion.TYPE_HTTP
 import fr.husi.database.ProxyEntity.Companion.TYPE_HYSTERIA
@@ -61,5 +62,8 @@ fun ProxyEntity.displayType(): String = when (type) {
         resolveRepository().getString(Res.string.proxy_chain)
     }
     TYPE_CONFIG -> configBean!!.displayType()
+    TYPE_CUSTOM_PLUGIN -> runBlocking {
+        resolveRepository().getString(Res.string.custom_plugin)
+    }
     else -> "Undefined type $type"
 }

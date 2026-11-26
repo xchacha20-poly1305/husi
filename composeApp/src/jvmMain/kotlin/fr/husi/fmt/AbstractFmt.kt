@@ -58,6 +58,7 @@ import fr.husi.fmt.openconnect.parseOpenConnectEndpoint
 import fr.husi.fmt.openvpn.OpenVPNBean
 import fr.husi.fmt.openvpn.buildSingBoxEndpointOpenVPNBean
 import fr.husi.fmt.openvpn.parseOpenVPNEndpoint
+import fr.husi.fmt.plugin.CustomPluginBean
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
@@ -134,6 +135,7 @@ fun String.toECHPem(): String {
 fun AbstractBean.toJsonStringKxs(): String = when (this) {
     is AnyTLSBean -> kxs.encodeToString(this)
     is ConfigBean -> kxs.encodeToString(this)
+    is CustomPluginBean -> kxs.encodeToString(this)
     is DirectBean -> kxs.encodeToString(this)
     is HttpBean -> kxs.encodeToString(this)
     is HysteriaBean -> kxs.encodeToString(this)

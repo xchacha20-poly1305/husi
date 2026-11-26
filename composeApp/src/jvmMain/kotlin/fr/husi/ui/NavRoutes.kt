@@ -147,7 +147,8 @@ sealed class NavRoutes : NavKey {
     data class ConfigEditor(
         val initialText: String = "",
         val resultKey: String,
-        val schema: ConfigSchema = ConfigSchema.CONFIG,
+        val schema: ConfigSchema? = ConfigSchema.CONFIG,
+        val showPluginPlaceholders: Boolean = false,
     ) : NavRoutes()
 
     @Serializable

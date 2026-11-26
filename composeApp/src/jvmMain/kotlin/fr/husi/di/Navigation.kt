@@ -252,6 +252,7 @@ internal val commonNavigationModule = module {
                 initialText = route.initialText,
                 resultKey = route.resultKey,
                 schema = route.schema,
+                showPluginPlaceholders = route.showPluginPlaceholders,
                 onBack = { navigator.popBackStack() },
             )
         }

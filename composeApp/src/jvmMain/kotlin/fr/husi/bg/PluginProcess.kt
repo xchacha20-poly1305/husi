@@ -3,6 +3,7 @@ package fr.husi.bg
 import fr.husi.PLUGIN_CA_FILE
 import fr.husi.database.DataStore
 import fr.husi.database.preference.getBlocking
+import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.ConfigMetadata
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.hysteria.buildHysteriaConfig
@@ -12,10 +13,18 @@ import fr.husi.fmt.mieru.MieruBean
 import fr.husi.fmt.mieru.buildMieruConfig
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.naive.buildNaiveConfig
+import fr.husi.fmt.plugin.CustomPluginBean
+import fr.husi.fmt.plugin.CustomPluginRenderContext
+import fr.husi.fmt.plugin.buildCustomPluginConfig
+import fr.husi.fmt.plugin.readPluginCaInfo
+import fr.husi.fmt.plugin.renderCommandArgs
+import fr.husi.fmt.plugin.renderEnvironment
+import fr.husi.fmt.plugin.sanitizedConfigFileName
 import fr.husi.fmt.pluginEntry
 import fr.husi.fmt.protectPath
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
+import fr.husi.ktx.invariantPathString
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
 import fr.husi.proto.v1.PluginFile
@@ -29,6 +38,15 @@ import io.github.vinceglb.filekit.parent
 import io.github.vinceglb.filekit.resolve
 import okio.ByteString.Companion.encodeUtf8
 
+fun resolvePluginExecutable(bean: AbstractBean): String = when (bean) {
+    is CustomPluginBean -> PluginManager.resolveCustomPluginExecutable(
+        pluginId = bean.pluginId,
+        executablePath = bean.executablePath,
+    )
+
+    else -> PluginManager.init(bean.pluginEntry().pluginId)!!.path
+}
+
 fun initPlugins(
     metadata: ConfigMetadata,
     cacheFiles: MutableList<PlatformFile>,
@@ -36,11 +54,13 @@ fun initPlugins(
     val repository = resolveRepository()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     val logLevel = DataStore.logLevel.getBlocking()
+    val caInfo = readPluginCaInfo(repository.externalAssetsDir)
+    val cacheDir = repository.cacheDir.invariantPathString()
     for ((chain) in metadata.externalIndex) {
         chain.entries.forEach { (port, profile) ->
             val shouldProtect = port in metadata.protectedPluginPorts
             val bean = profile.requireBean()
-            PluginManager.init(bean.pluginEntry().pluginId)
+            resolvePluginExecutable(bean)
             when (bean) {
                 is MieruBean -> {
                     pluginConfigs[port] = profile.type to bean.buildMieruConfig(port, logLevel)
@@ -72,6 +92,17 @@ fun initPlugins(
                             }
                         }
                 }
+
+                is CustomPluginBean -> {
+                    pluginConfigs[port] = profile.type to bean.buildCustomPluginConfig(
+                        port = port,
+                        shouldProtect = shouldProtect,
+                        logLevel = logLevel,
+                        caPath = caInfo.path,
+                        caContent = caInfo.content,
+                        cacheDir = cacheDir,
+                    )
+                }
             }
         }
     }
@@ -85,6 +116,8 @@ fun buildPluginSpecs(
     val repository = resolveRepository()
     val logLevel = DataStore.logLevel.getBlocking()
     val specs = ArrayList<PluginProcessSpec>()
+    val caInfo = readPluginCaInfo(repository.externalAssetsDir)
+    val cacheDir = repository.cacheDir.invariantPathString()
 
     val sharedEnv = linkedMapOf<String, String>()
     repository.externalAssetsDir.resolve(PLUGIN_CA_FILE)
@@ -100,12 +133,12 @@ fun buildPluginSpecs(
         chain.entries.forEach { (port, profile) ->
             val bean = profile.requireBean()
             val (_, cfg) = pluginConfigs[port] ?: return@forEach
-            val pluginId = bean.pluginEntry().pluginId
-            val executable = PluginManager.init(pluginId)!!.path
+            val executable = resolvePluginExecutable(bean)
             val env = linkedMapOf<String, String>().apply { putAll(sharedEnv) }
 
             val spec = when (bean) {
                 is MieruBean -> {
+                    val pluginId = bean.pluginEntry().pluginId
                     val configName = "mieru_$port.json"
                     if (port in metadata.protectedPluginPorts) {
                         env["MIERU_PROTECT_PATH"] = protectPath
@@ -120,6 +153,7 @@ fun buildPluginSpecs(
                 }
 
                 is NaiveBean -> {
+                    val pluginId = bean.pluginEntry().pluginId
                     val configName = "naive_$port.json"
                     PluginProcessSpec(
                         name = pluginId,
@@ -130,6 +164,7 @@ fun buildPluginSpecs(
                 }
 
                 is HysteriaBean -> {
+                    val pluginId = bean.pluginEntry().pluginId
                     val configName = "hysteria_$port.json"
                     env["HYSTERIA_DISABLE_UPDATE_CHECK"] = "1"
                     val commands = if (bean.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
@@ -167,6 +202,7 @@ fun buildPluginSpecs(
                 }
 
                 is JuicityBean -> {
+                    val pluginId = bean.pluginEntry().pluginId
                     val configName = "juicity_$port.json"
                     env["QUIC_GO_DISABLE_GSO"] = "1"
                     PluginProcessSpec(
@@ -178,12 +214,40 @@ fun buildPluginSpecs(
                 }
 
                 is ShadowQUICBean -> {
+                    val pluginId = bean.pluginEntry().pluginId
                     val configName = "shadowquic_$port.yaml"
                     PluginProcessSpec(
                         name = pluginId,
                         command = listOf(executable, "-c", pluginFileToken(configName)),
                         environment = env,
                         files = listOf(pluginConfigFile(configName, cfg)),
+                    )
+                }
+
+                is CustomPluginBean -> {
+                    val shouldProtect = port in metadata.protectedPluginPorts
+                    val configName = bean.sanitizedConfigFileName(port)
+                    val hasConfig = cfg.isNotBlank()
+                    val context = CustomPluginRenderContext(
+                        port = port,
+                        shouldProtect = shouldProtect,
+                        logLevel = logLevel,
+                        protectPath = if (shouldProtect) protectPath else "",
+                        caPath = caInfo.path,
+                        caContent = caInfo.content,
+                        cacheDir = cacheDir,
+                        configFileToken = if (hasConfig) pluginFileToken(configName) else "",
+                    )
+                    env.putAll(bean.renderEnvironment(context))
+                    PluginProcessSpec(
+                        name = bean.pluginId.ifBlank { bean.displayName() }.ifBlank { "custom-plugin" },
+                        command = listOf(executable) + bean.renderCommandArgs(context),
+                        environment = env,
+                        files = if (hasConfig) {
+                            listOf(pluginConfigFile(configName, cfg))
+                        } else {
+                            emptyList()
+                        },
                     )
                 }
 

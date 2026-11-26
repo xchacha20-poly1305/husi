@@ -1,6 +1,8 @@
 package fr.husi.plugin
 
 import android.content.pm.ProviderInfo
+import fr.husi.database.DataStore
+import fr.husi.database.preference.getBlocking
 import fr.husi.ktx.Logs
 import fr.husi.ktx.canExecute
 import fr.husi.repository.resolveAndroidRepository
@@ -24,6 +26,16 @@ actual object PluginManager {
         }
 
         throw throwable ?: PluginNotFoundException(pluginId)
+    }
+
+    @Throws(Throwable::class)
+    actual fun resolveCustomPluginExecutable(pluginId: String, executablePath: String): String {
+        val normalizedId = pluginId.trim()
+        require(normalizedId.isNotEmpty()) { "Custom plugin ID is blank" }
+        if (normalizedId !in DataStore.approvedCustomPluginIds.getBlocking()) {
+            throw CustomPluginNotApprovedException(normalizedId)
+        }
+        return init(normalizedId)!!.path
     }
 
     private fun initNative(pluginId: String): PluginInitResult? {

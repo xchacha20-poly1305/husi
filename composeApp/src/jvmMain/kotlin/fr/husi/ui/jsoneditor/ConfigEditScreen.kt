@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -108,6 +109,7 @@ import fr.husi.resources.action_format
 import fr.husi.resources.action_test_config
 import fr.husi.resources.apply
 import fr.husi.resources.close
+import fr.husi.resources.custom_plugin_placeholder_reference
 import fr.husi.resources.done
 import fr.husi.resources.edit_config
 import fr.husi.resources.error
@@ -126,6 +128,7 @@ import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
 import fr.husi.ui.LocalSnackbarEmitter
 import fr.husi.ui.StringOrRes
+import fr.husi.ui.profile.CustomPluginPlaceholderReferenceDialog
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -187,6 +190,7 @@ private fun RepeatableIconButton(
 private fun BoxScope.ConfigEditFloatingToolbar(
     viewModel: ConfigEditViewModel,
     uiState: ConfigEditUiState,
+    showCheckConfig: Boolean,
     coroutineScope: CoroutineScope,
     toolbarYOffset: Dp,
     onHeightChanged: (Int) -> Unit,
@@ -293,16 +297,18 @@ private fun BoxScope.ConfigEditFloatingToolbar(
                 colors = toolbarIconButtonColors,
                 onClick = { viewModel.formatCurrentText() },
             )
-            TooltipIconButton(
-                icon = vectorResource(Res.drawable.info),
-                contentDescription = stringResource(Res.string.action_test_config),
-                colors = toolbarIconButtonColors,
-                onClick = {
-                    coroutineScope.launch {
-                        viewModel.checkConfig()
-                    }
-                },
-            )
+            if (showCheckConfig) {
+                TooltipIconButton(
+                    icon = vectorResource(Res.drawable.info),
+                    contentDescription = stringResource(Res.string.action_test_config),
+                    colors = toolbarIconButtonColors,
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.checkConfig()
+                        }
+                    },
+                )
+            }
         }
     }
 }
@@ -360,7 +366,8 @@ fun ConfigEditScreen(
     modifier: Modifier = Modifier,
     initialText: String,
     resultKey: String,
-    schema: ConfigSchema = ConfigSchema.CONFIG,
+    schema: ConfigSchema? = ConfigSchema.CONFIG,
+    showPluginPlaceholders: Boolean = false,
     onBack: () -> Unit,
 ) {
     val viewModel: ConfigEditViewModel = viewModel {
@@ -373,6 +380,8 @@ fun ConfigEditScreen(
             viewModel = viewModel,
             initialText = initialText,
             resultKey = resultKey,
+            showCheckConfig = schema != null,
+            showPluginPlaceholders = showPluginPlaceholders,
             onBack = onBack,
         )
     }
@@ -384,6 +393,8 @@ private fun ConfigEditScreenContent(
     viewModel: ConfigEditViewModel,
     initialText: String,
     resultKey: String,
+    showCheckConfig: Boolean,
+    showPluginPlaceholders: Boolean,
     onBack: () -> Unit,
 ) {
     val resultBus = LocalResultEventBus.current
@@ -408,6 +419,7 @@ private fun ConfigEditScreenContent(
     val uiState by viewModel.uiState.collectAsState()
 
     var showBackDialog by remember { mutableStateOf(false) }
+    var showPlaceholderReference by rememberSaveable { mutableStateOf(false) }
     val isDirty by remember(viewModel, initialText) {
         derivedStateOf { viewModel.textFieldState.text.toString() != initialText }
     }
@@ -452,6 +464,15 @@ private fun ConfigEditScreenContent(
                 },
                 title = { Text(stringResource(Res.string.edit_config)) },
                 actions = {
+                    if (showPluginPlaceholders) {
+                        CapsuleActionButton {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.info),
+                                contentDescription = stringResource(Res.string.custom_plugin_placeholder_reference),
+                                onClick = { showPlaceholderReference = true },
+                            )
+                        }
+                    }
                     CapsuleActionButton {
                         SimpleIconButton(
                             imageVector = vectorResource(Res.drawable.done),
@@ -483,6 +504,7 @@ private fun ConfigEditScreenContent(
             ConfigEditFloatingToolbar(
                 viewModel = viewModel,
                 uiState = uiState,
+                showCheckConfig = showCheckConfig,
                 coroutineScope = coroutineScope,
                 toolbarYOffset = toolbarYOffset,
                 onHeightChanged = { toolbarHeightPx = it },
@@ -638,6 +660,17 @@ private fun ConfigEditScreenContent(
         icon = { Icon(vectorResource(Res.drawable.warning), null) },
         title = { Text(stringResource(Res.string.unsaved_changes_prompt)) },
     )
+
+    if (showPlaceholderReference) {
+        CustomPluginPlaceholderReferenceDialog(
+            includeConfigPlaceholder = false,
+            onInsert = { token ->
+                viewModel.insertText(token)
+                showPlaceholderReference = false
+            },
+            onDismiss = { showPlaceholderReference = false },
+        )
+    }
 }
 
 @Preview

@@ -31,6 +31,17 @@ actual object PluginManager {
         }
     }
 
+    @Throws(Throwable::class)
+    actual fun resolveCustomPluginExecutable(pluginId: String, executablePath: String): String {
+        val rawPath = executablePath.trim()
+        require(rawPath.isNotEmpty()) { "Custom plugin executable path is blank" }
+        val file = PlatformFile(rawPath).toAbsoluteFile()
+        if (!file.exists() || !file.isRegularFile() || !isExecutable(file)) {
+            throw PluginNotFoundException(executablePath)
+        }
+        return file.absolutePath()
+    }
+
     @Synchronized
     private fun resolvePath(pluginId: String): String? {
         val entry = runBlocking {

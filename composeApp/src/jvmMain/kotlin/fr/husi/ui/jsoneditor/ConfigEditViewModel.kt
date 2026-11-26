@@ -57,7 +57,7 @@ private data class EditorPosition(
 @Stable
 class ConfigEditViewModel(
     initialText: String,
-    schema: ConfigSchema = ConfigSchema.CONFIG,
+    private val schema: ConfigSchema? = ConfigSchema.CONFIG,
     private val coreClient: CoreClient = GlobalContext.get().get(),
     completionDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
@@ -82,17 +82,19 @@ class ConfigEditViewModel(
 
     init {
         initialize(initialText)
-        viewModelScope.launch(completionDispatcher) {
-            val schemaCompleter = try {
-                schema.loadCompleter(coreClient)
-            } catch (e: Exception) {
-                Logs.w("failed to load config schema", e)
-                return@launch
-            }
-            editorPosition.filterNotNull().collectLatest { position ->
-                val completions = schemaCompleter.complete(position.text, position.cursor)
-                uiState.update {
-                    it.copy(schemaCompletions = completions, selectedSchemaCompletion = 0)
+        if (schema != null) {
+            viewModelScope.launch(completionDispatcher) {
+                val schemaCompleter = try {
+                    schema.loadCompleter(coreClient)
+                } catch (e: Exception) {
+                    Logs.w("failed to load config schema", e)
+                    return@launch
+                }
+                editorPosition.filterNotNull().collectLatest { position ->
+                    val completions = schemaCompleter.complete(position.text, position.cursor)
+                    uiState.update {
+                        it.copy(schemaCompletions = completions, selectedSchemaCompletion = 0)
+                    }
                 }
             }
         }
@@ -270,13 +272,18 @@ class ConfigEditViewModel(
     }
 
     fun saveAndExit() = viewModelScope.launch {
-        val formatted = try {
-            formatJson(textFieldState.text.toString())
-        } catch (e: Exception) {
-            Logs.w(e)
-            uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
-            return@launch
+        val text = textFieldState.text.toString()
+        val result = if (schema != null) {
+            try {
+                formatJson(text)
+            } catch (e: Exception) {
+                Logs.w(e)
+                uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))
+                return@launch
+            }
+        } else {
+            text
         }
-        uiEvent.emit(ConfigEditUiEvent.Finish(formatted))
+        uiEvent.emit(ConfigEditUiEvent.Finish(result))
     }
 }
