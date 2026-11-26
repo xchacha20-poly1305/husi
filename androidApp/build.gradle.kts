@@ -46,6 +46,4 @@ dependencies {
     implementation(project(":composeApp"))
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.room.runtime)
-    debugImplementation(project.dependencies.platform(libs.androidx.compose.bom))
-    debugImplementation(libs.androidx.compose.ui.tooling)
 }
