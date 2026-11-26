@@ -30,18 +30,16 @@ dependencyResolutionManagement {
 
 include(":plugin:api")
 
+val pluginApks = listOf("hysteria2", "juicity", "mieru", "shadowquic")
 val buildPlugin = providers.environmentVariable("BUILD_PLUGIN").orNull
 when {
     buildPlugin.isNullOrBlank() -> {
-        include(":plugin:hysteria2")
-        include(":plugin:juicity")
-        include(":plugin:naive")
-        include(":plugin:mieru")
-        include(":plugin:shadowquic")
+        pluginApks.forEach { include(":plugin:$it") }
     }
     buildPlugin == "none" -> {
     }
     else -> {
+        require(buildPlugin in pluginApks) { "Unknown plugin APK: $buildPlugin" }
         include(":plugin:$buildPlugin")
     }
 }

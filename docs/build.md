@@ -341,6 +341,5 @@ Valid plugin names:
 
 * `hysteria2`
 * `juicity`
-* `naive` (Deprecated; build the official repository directly.)
 * `mieru`
 * `shadowquic`

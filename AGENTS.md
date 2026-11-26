@@ -58,7 +58,7 @@ Common targets:
 | `make desktop_package[_linux/_macos/_windows]` | Native packages |
 | `make desktop_package_windows_jbr DESKTOP_TARGET=...` | Windows zip/MSI plus a -jbr pair with jlink JetBrains Runtime |
 | `make launcher` | Zig native UI launcher from `launcher/` |
-| `make plugin PLUGIN=<name>` | Plugin APK; valid: `hysteria2 juicity naive mieru shadowquic` |
+| `make plugin PLUGIN=<name>` | Plugin APK; valid: `hysteria2 juicity mieru shadowquic` |
 | `make icon` | Regenerate all icons from `art/` (needs `rsvg-convert` + ImageMagick) |
 | `make aboutlibraries` | Regenerate OSS license JSON |
 | `make generate_option` | Regenerate sing-box option mappings; output piped through `$CLIP` |
