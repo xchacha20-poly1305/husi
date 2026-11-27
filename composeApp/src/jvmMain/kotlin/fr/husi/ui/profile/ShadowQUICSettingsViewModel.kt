@@ -29,6 +29,8 @@ internal data class ShadowQUICUiState(
     val mtuDiscovery: Boolean = false,
     val blackholeDetection: Boolean = false,
     val subProtocol: Int = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC,
+    val hopInterval: String = "",
+    val hopIntervalJitter: String = "",
 
     val extraPaths: String = "",
     val maxPaths: Int = 0,
@@ -64,6 +66,8 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
                 mtuDiscovery = mtuDiscovery,
                 blackholeDetection = blackholeDetection,
                 subProtocol = subProtocol,
+                hopInterval = hopInterval,
+                hopIntervalJitter = hopIntervalJitter,
 
                 extraPaths = extraPaths,
                 maxPaths = maxPaths.coerceIn(
@@ -96,6 +100,8 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
         mtuDiscovery = state.mtuDiscovery
         blackholeDetection = state.blackholeDetection
         subProtocol = state.subProtocol
+        hopInterval = state.hopInterval
+        hopIntervalJitter = state.hopIntervalJitter
 
         extraPaths = state.extraPaths
         maxPaths = state.maxPaths
@@ -124,6 +130,14 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
 
     fun setPort(port: Int) {
         uiState.update { it.copy(port = port) }
+    }
+
+    fun setHopInterval(interval: String) {
+        uiState.update { it.copy(hopInterval = interval) }
+    }
+
+    fun setHopIntervalJitter(jitter: String) {
+        uiState.update { it.copy(hopIntervalJitter = jitter) }
     }
 
     fun setUsername(username: String) {

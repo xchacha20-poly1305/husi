@@ -6,6 +6,7 @@ import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.protectPath
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineOrComma
+import fr.husi.ktx.parseGoDuration
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.writeText
@@ -177,6 +178,15 @@ fun ShadowQUICBean.buildShadowQUICConfig(
                 },
             )
             put("addr", pluginDialAddress())
+            if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC && hopInterval.isNotBlank()) {
+                putJsonObject("port-hopping") {
+                    put("enable", true)
+                    put("interval", parseGoDuration(hopInterval).inWholeMilliseconds)
+                    hopIntervalJitter.blankAsNull()?.let {
+                        put("interval-jitter", parseGoDuration(it).inWholeMilliseconds)
+                    }
+                }
+            }
             put("username", username)
             put("password", password)
             put("server-name", pluginServerName(sni))

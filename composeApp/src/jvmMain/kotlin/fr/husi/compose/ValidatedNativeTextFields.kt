@@ -1,35 +1,16 @@
 package fr.husi.compose
 
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.InputTransformation
-import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import fr.husi.compose.material3.Text
 import fr.husi.ktx.parseGoDuration
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.cleartext_http_warning
+import fr.husi.resources.duration_minimum
 import io.github.xchacha20_poly1305.kpuri.Url
+import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration
 
 @Composable
 fun LinkOrContentTextField(
@@ -71,7 +52,10 @@ fun LinkOrContentTextField(
 fun DurationTextField(
     state: TextFieldState,
     onOk: () -> Unit,
+    minimum: Duration? = null,
 ) {
+    val minimumError = minimum?.let { stringResource(Res.string.duration_minimum, it.toString()) }
+
     fun validate(text: String): String? {
         if (text.isBlank()) {
             return null
@@ -82,8 +66,12 @@ fun DurationTextField(
         }
 
         return try {
-            parseGoDuration(text)
-            null
+            val duration = parseGoDuration(text)
+            if (minimum != null && duration < minimum) {
+                minimumError
+            } else {
+                null
+            }
         } catch (e: Exception) {
             e.readableMessage
         }
