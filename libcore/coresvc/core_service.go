@@ -2,12 +2,13 @@ package coresvc
 
 import (
 	"context"
+	"errors"
+	"os"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/daemon"
-	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 
@@ -33,16 +34,35 @@ func (s *coreService) GetVersion(ctx context.Context, _ *husiv1.GetVersionReques
 }
 
 func (s *coreService) URLTest(ctx context.Context, req *husiv1.URLTestRequest) (*husiv1.URLTestResponse, error) {
-	if s.host.started.Instance() == nil {
-		return nil, status.Error(codes.FailedPrecondition, "instance not created")
+	instance, err := s.host.started.WaitStartedInstance(ctx)
+	if err != nil {
+		if ctx.Err() != nil {
+			return nil, status.FromContextError(ctx.Err()).Err()
+		}
+		if errors.Is(err, os.ErrInvalid) {
+			return nil, status.Error(codes.FailedPrecondition, "instance not created")
+		}
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
+	instanceCtx := instance.Context()
+	if instanceCtx == nil {
+		return nil, status.Error(codes.FailedPrecondition, "instance context not available")
+	}
+
 	options := urltest.FlagsFromProto(req.GetOptions())
 	timeoutMs := req.GetTimeoutMs()
 	if timeoutMs <= 0 {
 		timeoutMs = int32(C.TCPTimeout / time.Millisecond)
 	}
 
-	latency, err := defaultURLTest(s.host, req.GetOutboundTag(), req.GetLink(), timeoutMs, options)
+	latency, err := urltest.RunTag(
+		instanceCtx,
+		service.FromContext[adapter.OutboundManager](instanceCtx),
+		req.GetOutboundTag(),
+		req.GetLink(),
+		timeoutMs,
+		options,
+	)
 	if err != nil {
 		return nil, urltest.WrapError(err)
 	}
@@ -77,21 +97,6 @@ func (s *coreService) SubscribeServiceEvents(
 			}
 		}
 	}
-}
-
-func defaultURLTest(host *Host, tag, link string, timeoutMs int32, options urltest.Flags) (int32, error) {
-	instanceCtx := host.liveInstanceContext()
-	if instanceCtx == nil {
-		return -1, E.New("instance context not available")
-	}
-	return urltest.RunTag(
-		instanceCtx,
-		service.FromContext[adapter.OutboundManager](instanceCtx),
-		tag,
-		link,
-		timeoutMs,
-		options,
-	)
 }
 
 func (s *coreService) DetectIP(ctx context.Context, req *husiv1.DetectIPRequest) (*husiv1.DetectIPResponse, error) {

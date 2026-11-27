@@ -121,6 +121,14 @@ func (h *Host) Started() *daemon.StartedService {
 	return h.started
 }
 
+func (h *Host) liveInstanceContext() context.Context {
+	instant := h.started.Instance()
+	if instant == nil {
+		return nil
+	}
+	return instant.Context()
+}
+
 func (h *Host) SetAppHandler(handler AppHandler) {
 	h.access.Lock()
 	defer h.access.Unlock()
