@@ -192,6 +192,8 @@ object DataStore : ApplicationPreferences(
     suspend fun hasInboundAuth(): Boolean = hasInboundAuthFlow().first()
 
     val allowAccess = configurationStore.boolean(Key.ALLOW_ACCESS)
+    val localNetworkPermissionDenialShown =
+        configurationStore.boolean(Key.LOCAL_NETWORK_PERMISSION_DENIAL_SHOWN)
     val showGroupInNotification = configurationStore.boolean(Key.SHOW_GROUP_IN_NOTIFICATION)
 
     val remoteDns = configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
