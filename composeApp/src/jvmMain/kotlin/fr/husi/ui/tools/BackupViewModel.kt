@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.Key
 import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
@@ -110,6 +111,7 @@ internal class BackupViewModel(
         const val BACKUP_FILE_EXTENSION = "json"
         private const val ENCRYPTED_BACKUP_EXTENSION = "$BACKUP_FILE_EXTENSION.age"
         private const val BACKUP_FILE_PREFIX = "husi_backup_"
+        private val localSettings = setOf(Key.APPROVED_CUSTOM_PLUGIN_IDS)
 
         fun isBackupFileName(name: String): Boolean =
             name.startsWith(BACKUP_FILE_PREFIX) &&
@@ -341,6 +343,7 @@ internal class BackupViewModel(
         profile: Boolean,
         rule: Boolean,
         setting: Boolean,
+        onCustomPluginsSkipped: (Int) -> Unit,
     ) = runOnDefaultDispatcher {
         uiState.update { state ->
             state.copy(
@@ -348,11 +351,17 @@ internal class BackupViewModel(
                 isImporting = true,
             )
         }
+        var skippedCustomPlugins = 0
         if (profile && content.profiles != null) {
             val profiles = mutableListOf<ProxyEntity>()
             for (entry in content.profiles) {
                 val data = entry.b64Decode()
-                profiles.add(BeanConverters.deserialize(ProxyEntity(), data))
+                val restoredProfile = BeanConverters.deserialize(ProxyEntity(), data)
+                if (restoredProfile.type == ProxyEntity.TYPE_CUSTOM_PLUGIN) {
+                    skippedCustomPlugins++
+                    continue
+                }
+                profiles.add(restoredProfile)
             }
             withContext(ioDispatcher) {
                 SagerDatabase.proxyDao.reset()
@@ -386,11 +395,11 @@ internal class BackupViewModel(
             withContext(ioDispatcher) {
                 when (val rawSettings = content.settings) {
                     is JsonArray -> {
-                        importLegacySettingPairs(rawSettings)
+                        importLegacySettingPairs(rawSettings, preserveKeys = localSettings)
                     }
 
                     is JsonObject -> {
-                        DataStore.configurationStore.importFromJson(rawSettings)
+                        DataStore.configurationStore.importFromJson(rawSettings, preserveKeys = localSettings)
                     }
 
                     else -> {
@@ -401,6 +410,9 @@ internal class BackupViewModel(
         }
         uiState.update { state ->
             state.copy(isImporting = false)
+        }
+        if (skippedCustomPlugins > 0) {
+            onCustomPluginsSkipped(skippedCustomPlugins)
         }
     }
 
@@ -428,11 +440,35 @@ internal class BackupViewModel(
         val profile = state.backupGroupsAndConfig
         val rule = state.backupRules
         val setting = state.backupSettings
-        val profiles = if (profile) SagerDatabase.proxyDao.getAll().map { it.toBase64Str() } else null
-        val groups = if (profile) SagerDatabase.groupDao.allGroups().first().map { it.toBase64Str() } else null
-        val rules = if (rule) SagerDatabase.rulesDao.allRules().first() else null
-        val assets = if (rule) SagerDatabase.assetDao.getAll().first() else null
-        val settings = if (setting) DataStore.configurationStore.exportToJson() else null
+        val profiles = if (profile) {
+            SagerDatabase.proxyDao.getAll()
+                .filterNot { it.type == ProxyEntity.TYPE_CUSTOM_PLUGIN }
+                .map { it.toBase64Str() }
+        } else {
+            null
+        }
+        val groups = if (profile) {
+            SagerDatabase.groupDao.allGroups().first().map {
+                it.toBase64Str()
+            }
+        } else {
+            null
+        }
+        val rules = if (rule) {
+            SagerDatabase.rulesDao.allRules().first()
+        } else {
+            null
+        }
+        val assets = if (rule) {
+            SagerDatabase.assetDao.getAll().first()
+        } else {
+            null
+        }
+        val settings = if (setting) {
+            DataStore.configurationStore.exportToJson(excludeKeys = localSettings)
+        } else {
+            null
+        }
         val backup = BackupPayload(
             version = BACKUP_VERSION,
             profiles = profiles,

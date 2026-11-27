@@ -93,7 +93,7 @@ fun ByteArray.zlibDecompress(): ByteArray {
 
 class SubscriptionFoundException(val link: String) : RuntimeException()
 
-suspend fun parseProxies(text: String): List<AbstractBean> {
+suspend fun parseProxies(text: String, allowHusiLinks: Boolean = true): List<AbstractBean> {
     val links = text.split('\n').flatMap { it.trim().split(' ') }
     val linksByLine = text.split('\n').map { it.trim() }
 
@@ -101,13 +101,17 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
     val entitiesByLine = ArrayList<AbstractBean>()
 
     suspend fun String.parseLink(entities: MutableList<AbstractBean>) {
-        if (startsWith("sing-box://import-remote-profile?") || startsWith("husi://subscription?")) {
+        if (startsWith("sing-box://import-remote-profile?")) {
             throw SubscriptionFoundException(this)
         }
 
         val scheme = this.substringBefore("://")
         when (scheme) {
             "husi" -> {
+                if (!allowHusiLinks) return
+                if (startsWith("husi://subscription?")) {
+                    throw SubscriptionFoundException(this)
+                }
                 Logs.d("Try parse universal link: $this")
                 runCatching {
                     entities.add(parseUniversal(this))

@@ -299,6 +299,7 @@
     <string name="naive_tunnel_timeout">Tunnel Timeout (s)</string>
     <string name="naive_idle_timeout">Idle Timeout (s)</string>
     <string name="backup_groups_and_configurations">Groups and configurations</string>
+    <string name="backup_import_custom_plugins_skipped">Custom plugin profiles skipped: %1$d</string>
     <string name="backup_rules">Routing rules</string>
     <string name="backup_summary">If the routing settings are not backed up with configurations, then custom outbounds will be lost.</string>
     <string name="backup_age_recipient">age public key</string>

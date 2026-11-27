@@ -235,6 +235,7 @@
     <string name="naive_tunnel_timeout">隧道超时（秒）</string>
     <string name="naive_idle_timeout">空闲超时（秒）</string>
     <string name="backup_groups_and_configurations">分组和配置</string>
+    <string name="backup_import_custom_plugins_skipped">已跳过 %1$d 个自定义插件节点</string>
     <string name="backup_summary">如果路由规则与配置一起备份，则自定义出站将丢失。</string>
     <string name="backup_rules">路由规则</string>
     <string name="backup_age_recipient">age 公钥</string>

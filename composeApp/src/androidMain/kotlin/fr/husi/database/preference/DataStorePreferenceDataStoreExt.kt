@@ -6,16 +6,20 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 
-suspend fun DataStorePreferenceDataStore.importLegacyPairs(pairs: List<KeyValuePair>) {
-    if (pairs.isEmpty()) {
-        edit { it.clear() }
-        return
-    }
+suspend fun DataStorePreferenceDataStore.importLegacyPairs(
+    pairs: List<KeyValuePair>,
+    preserveKeys: Set<String>,
+) {
     val changedKeys = HashSet<String>()
     edit { prefs ->
-        prefs.clear()
+        for (key in prefs.asMap().keys.toList()) {
+            if (key.name !in preserveKeys){
+                prefs.remove(key)
+            }
+        }
         pairs.forEach { pair ->
             val key = pair.key
+            if (key in preserveKeys) return@forEach
             when (key) {
                 RoomToDataStoreMigration.MIGRATION_KEY -> {
                     return@forEach

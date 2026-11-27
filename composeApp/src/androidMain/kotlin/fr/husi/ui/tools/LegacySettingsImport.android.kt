@@ -9,7 +9,7 @@ import kotlinx.parcelize.parcelableCreator
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonPrimitive
 
-internal actual suspend fun importLegacySettingPairs(rawSettings: Any) {
+internal actual suspend fun importLegacySettingPairs(rawSettings: Any, preserveKeys: Set<String>) {
     val array = rawSettings as JsonArray
     val pairs = mutableListOf<KeyValuePair>()
     for (element in array) {
@@ -20,5 +20,5 @@ internal actual suspend fun importLegacySettingPairs(rawSettings: Any) {
         pairs.add(parcelableCreator<KeyValuePair>().createFromParcel(parcel))
         parcel.recycle()
     }
-    DataStore.configurationStore.importLegacyPairs(pairs)
+    DataStore.configurationStore.importLegacyPairs(pairs, preserveKeys)
 }

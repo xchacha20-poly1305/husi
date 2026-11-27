@@ -59,7 +59,7 @@ object RawUpdater : GroupUpdater() {
             userInfo = response.header("Subscription-Userinfo").orEmpty()
         }
 
-        val proxies = parseRaw(contentText) ?: errNotFound()
+        val proxies = parseRaw(contentText, allowHusiLinks = false) ?: errNotFound()
 
         if (!subscription.link.startsWith("content://")) {
             // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
@@ -92,7 +92,11 @@ object RawUpdater : GroupUpdater() {
         return tidyProxies(proxies, subscription, proxyGroup, byUser, warnings)
     }
     @Suppress("UNCHECKED_CAST")
-    suspend fun parseRaw(text: String, fileName: String = ""): List<AbstractBean>? {
+    suspend fun parseRaw(
+        text: String,
+        fileName: String = "",
+        allowHusiLinks: Boolean = true,
+    ): List<AbstractBean>? {
 
         val proxies = mutableListOf<AbstractBean>()
 
@@ -139,14 +143,15 @@ object RawUpdater : GroupUpdater() {
 
         if (!text.contains("://")) {
             try {
-                parseProxies(text.b64DecodeToString()).takeIf { it.isNotEmpty() }?.let { return it }
+                parseProxies(text.b64DecodeToString(), allowHusiLinks)
+                    .takeIf { it.isNotEmpty() }?.let { return it }
             } catch (e: Exception) {
                 Logs.w(e)
             }
         }
 
         try {
-            parseProxies(text).takeIf { it.isNotEmpty() }?.let { return it }
+            parseProxies(text, allowHusiLinks).takeIf { it.isNotEmpty() }?.let { return it }
         } catch (e: SubscriptionFoundException) {
             throw e
         } catch (e: Exception) {

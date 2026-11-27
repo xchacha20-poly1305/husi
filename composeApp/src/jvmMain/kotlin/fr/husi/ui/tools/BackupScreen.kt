@@ -96,6 +96,7 @@ import fr.husi.resources.backup_age_recipient_optional
 import fr.husi.resources.backup_age_restore_title
 import fr.husi.resources.backup_groups_and_configurations
 import fr.husi.resources.backup_import
+import fr.husi.resources.backup_import_custom_plugins_skipped
 import fr.husi.resources.backup_import_summary
 import fr.husi.resources.backup_rules
 import fr.husi.resources.backup_summary
@@ -433,6 +434,9 @@ internal fun BackupScreen(
                         importGroupsAndConfig,
                         importRules,
                         importSettings,
+                        onCustomPluginsSkipped = { count ->
+                            snackbar.show(StringOrRes.ResWithParams(Res.string.backup_import_custom_plugins_skipped, count))
+                        },
                     )
                 }
             },

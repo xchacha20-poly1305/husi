@@ -1,3 +1,3 @@
 package fr.husi.ui.tools
 
-internal expect suspend fun importLegacySettingPairs(rawSettings: Any)
+internal expect suspend fun importLegacySettingPairs(rawSettings: Any, preserveKeys: Set<String>)
