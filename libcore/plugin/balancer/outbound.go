@@ -125,8 +125,8 @@ func (o *Outbound) All() []string {
 	return o.tags
 }
 
-func (o *Outbound) References() []string {
-	return []string{o.selected().Tag()}
+func (o *Outbound) References() (outbounds []string, dnsServers []string) {
+	return []string{o.selected().Tag()}, nil
 }
 
 func (o *Outbound) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
