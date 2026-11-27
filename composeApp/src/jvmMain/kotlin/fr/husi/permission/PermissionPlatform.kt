@@ -1,6 +1,8 @@
 package fr.husi.permission
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 enum class AppPermission {
     QueryInstalledApps,
@@ -20,6 +22,11 @@ interface PermissionPlatform {
 
     fun openPermissionSettings()
 }
+
+internal suspend fun PermissionPlatform.awaitPermission(permission: AppPermission): Boolean =
+    suspendCancellableCoroutine { continuation ->
+        requestPermission(permission) { granted -> continuation.resume(granted) }
+    }
 
 object NoPermissionPlatform : PermissionPlatform {
 

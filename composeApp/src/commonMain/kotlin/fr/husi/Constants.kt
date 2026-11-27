@@ -105,6 +105,7 @@ object Key {
 
     const val MIXED_PORT = "mixedPort"
     const val ALLOW_ACCESS = "allowAccess"
+    const val LOCAL_NETWORK_PERMISSION_DENIAL_SHOWN = "localNetworkPermissionDenialShown"
     const val SHOW_GROUP_IN_NOTIFICATION = "showGroupInNotification"
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"

@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -37,12 +38,14 @@ import fr.husi.compose.material3.NavigationSuite
 import fr.husi.compose.material3.NavigationSuiteItem
 import fr.husi.compose.material3.Text
 import fr.husi.core.remote.RemoteControlManager
+import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
+import fr.husi.permission.awaitPermission
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
@@ -157,40 +160,36 @@ private fun MainScreenContent(
      * @see <a href="https://www.taf.org.cn/upload/AssociationStandard/TTAF%20108-2022%20%E7%A7%BB%E5%8A%A8%E7%BB%88%E7%AB%AF%E5%BA%94%E7%94%A8%E8%BD%AF%E4%BB%B6%E5%88%97%E8%A1%A8%E6%9D%83%E9%99%90%E5%AE%9E%E6%96%BD%E6%8C%87%E5%8D%97.pdf">移动终端应用软件列表权限实施指南</a>
      */
     var showQueryPackageDeniedDialog by remember { mutableStateOf(false) }
+    var showLocalNetworkDeniedDialog by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         if (permission.canRequestPermission(AppPermission.QueryInstalledApps) &&
             !permission.hasPermission(AppPermission.QueryInstalledApps)
         ) {
-            permission.requestPermission(AppPermission.QueryInstalledApps) { granted ->
-                if (granted) runOnDefaultDispatcher {
+            if (permission.awaitPermission(AppPermission.QueryInstalledApps)) {
+                runOnDefaultDispatcher {
                     resolveRepository().stopService()
                     delay(500.milliseconds)
                     SagerDatabase.instance.close()
                     Executable.killAll(true)
                     restartApplication()
-                } else {
-                    showQueryPackageDeniedDialog = true
                 }
+                return@LaunchedEffect
             }
+            showQueryPackageDeniedDialog = true
         }
-    }
 
-    LaunchedEffect(Unit) {
-        val hasPostNotification =
-            permission.hasPermission(AppPermission.PostNotifications)
-        if (!hasPostNotification) {
-            permission.requestPermission(AppPermission.PostNotifications)
+        if (!permission.hasPermission(AppPermission.PostNotifications)) {
+            permission.awaitPermission(AppPermission.PostNotifications)
         }
-    }
 
-    var showLocalNetworkDeniedDialog by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        if (permission.canRequestPermission(AppPermission.LocalNetwork) &&
-            !permission.hasPermission(AppPermission.LocalNetwork)
-        ) {
-            permission.requestPermission(AppPermission.LocalNetwork) { granted ->
-                if (!granted) showLocalNetworkDeniedDialog = true
-            }
+        if (!permission.canRequestPermission(AppPermission.LocalNetwork)) return@LaunchedEffect
+        val denialShown = DataStore.localNetworkPermissionDenialShown
+        if (permission.hasPermission(AppPermission.LocalNetwork)) {
+            if (denialShown.get()) denialShown.set(false)
+            showLocalNetworkDeniedDialog = false
+        } else if (!denialShown.get() && !permission.awaitPermission(AppPermission.LocalNetwork)) {
+            denialShown.set(true)
+            showLocalNetworkDeniedDialog = true
         }
     }
 
@@ -367,13 +366,11 @@ private fun MainScreenContent(
     )
 
     if (showLocalNetworkDeniedDialog) AlertDialog(
-        onDismissRequest = {},
+        onDismissRequest = { showLocalNetworkDeniedDialog = false },
         confirmButton = {
-            TextButton(stringResource(Res.string.ok)) {
+            TextButton(stringResource(Res.string.settings)) {
                 showLocalNetworkDeniedDialog = false
-                permission.requestPermission(AppPermission.LocalNetwork) { granted ->
-                    if (!granted) showLocalNetworkDeniedDialog = true
-                }
+                permission.openPermissionSettings()
             }
         },
         dismissButton = {
