@@ -43,7 +43,7 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.9.0
 	github.com/xchacha20-poly1305/libping v0.10.5
 	github.com/xchacha20-poly1305/protect-go v0.2.0
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.4.0-beta.0
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.4.0-beta.1
 	github.com/xchacha20-poly1305/stunuri-go v0.2.0
 	go4.org/netipx v0.0.0-20260823151212-3075585bcbeb
 	golang.org/x/mod v0.43.0
