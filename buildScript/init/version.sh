@@ -14,7 +14,7 @@ RUST_VERSION="1.100.0"
 # JAVA_VERSION is the JBR feature version: the host jlink links these jmods,
 # and jlink cannot read jmods newer than itself.
 # renovate: datasource=github-releases depName=JetBrains/JetBrainsRuntime
-JBR_RELEASE="25.0.4.1b635.79"
+JBR_RELEASE="25.0.5.1b635.102"
 JBR_VERSION="${JBR_RELEASE%b*}"
 JBR_BUILD="${JBR_RELEASE#*b}"
 JAVA_VERSION="${JBR_VERSION%%.*}"
