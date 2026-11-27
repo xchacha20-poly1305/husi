@@ -72,6 +72,13 @@
 # Wire's desktop runtime also ships its unused Android Parcelable adapter.
 -dontwarn com.squareup.wire.AndroidMessage**
 
+# Retrofit ships its Android runtime code in the same jar as its JVM code.
+-dontwarn android.annotation.TargetApi
+-dontwarn android.os.Build
+-dontwarn android.os.Build$VERSION
+-dontwarn android.os.Handler
+-dontwarn android.os.Looper
+
 # OkHttp checks for these optional JSSE providers before using them.
 -dontwarn org.bouncycastle.jsse.**
 -dontwarn org.conscrypt.**
