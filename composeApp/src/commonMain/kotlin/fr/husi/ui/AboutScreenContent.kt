@@ -79,6 +79,7 @@ import fr.husi.resources.version_x
 import fr.husi.utils.AppVersion
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -90,6 +91,7 @@ fun AboutScreenContent(
     onBackPress: () -> Unit,
     onNavigateToLibraries: () -> Unit,
     boxVersion: String? = null,
+    boxVersionIcon: DrawableResource = Res.drawable.sing_box_icon,
     buildEnvironment: String? = null,
     requestIgnoreBatteryOptimizations: (() -> Unit)? = null,
 ) {
@@ -191,7 +193,7 @@ fun AboutScreenContent(
                                 CardItem(
                                     icon = {
                                         Image(
-                                            painter = painterResource(Res.drawable.sing_box_icon),
+                                            painter = painterResource(boxVersionIcon),
                                             contentDescription = null,
                                             modifier = Modifier.fillMaxSize(),
                                         )
