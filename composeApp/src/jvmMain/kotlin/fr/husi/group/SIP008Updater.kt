@@ -27,52 +27,33 @@ import fr.husi.fmt.shadowsocks.pluginToLocal
 import fr.husi.ktx.Logs
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.kxs
-import fr.husi.net.HttpFetchRequest
+import fr.husi.net.HTTP_TIMEOUT
+import fr.husi.net.HttpRequestOptions
+import fr.husi.net.basicAuthorization
 import fr.husi.net.buildUserAgent
 import fr.husi.net.localHttpProxy
-import fr.husi.net.resolveHttpFetcher
+import fr.husi.net.requireOkBody
+import fr.husi.net.withHttpDeadline
+import fr.husi.net.withoutCredentials
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.no_proxies_found_in_subscription
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 /** https://shadowsocks.org/doc/sip008.html */
 object SIP008Updater : GroupUpdater() {
 
-    @Serializable
-    private data class SIP008Response(
-        @SerialName("bytes_used")
-        val bytesUsed: Long? = null,
-        @SerialName("bytes_remaining")
-        val bytesRemaining: Long? = null,
-        val servers: List<SIP008Server> = emptyList(),
-    )
+    private fun SIP008Server.toBean(): ShadowsocksBean = ShadowsocksBean().also {
+        it.serverAddress = server.orEmpty()
+        it.serverPort = serverPort ?: it.defaultPort
+        it.password = password.orEmpty()
+        it.method = method.orEmpty()
+        it.name = remarks.orEmpty()
 
-    @Serializable
-    private data class SIP008Server(
-        val server: String? = null,
-        @SerialName("server_port")
-        val serverPort: Int? = null,
-        val method: String? = null,
-        val password: String? = null,
-        val remarks: String? = null,
-        val plugin: String? = null,
-        @SerialName("plugin_opts")
-        val pluginOpts: String? = null,
-    ) {
-        fun toBean(): ShadowsocksBean = ShadowsocksBean().also {
-            it.serverAddress = server.orEmpty()
-            it.serverPort = serverPort ?: it.defaultPort
-            it.password = password.orEmpty()
-            it.method = method.orEmpty()
-            it.name = remarks.orEmpty()
-
-            val pluginName = plugin
-            if (!pluginName.isNullOrBlank()) {
-                it.plugin = pluginName + ";" + pluginOpts.orEmpty()
-                it.pluginToLocal()
-            }
+        val pluginName = plugin
+        if (!pluginName.isNullOrBlank()) {
+            it.plugin = pluginName + ";" + pluginOpts.orEmpty()
+            it.pluginToLocal()
         }
     }
 
@@ -92,17 +73,21 @@ object SIP008Updater : GroupUpdater() {
             sip008Response = contentText?.let { kxs.decodeFromString<SIP008Response>(it) }
                 ?: error(repository.getString(Res.string.no_proxies_found_in_subscription))
         } else {
-
-            val request = HttpFetchRequest(
-                url = subscription.link,
-                userAgent = buildUserAgent(subscription.customUserAgent),
+            val url = subscription.link.toHttpUrl()
+            val authorization = url.basicAuthorization()
+            val options = HttpRequestOptions(
+                proxy = localHttpProxy(),
                 // Strict !!!
                 restrictedTls = true,
-                proxy = localHttpProxy(),
             )
-            val response = resolveHttpFetcher().fetchText(request)
-
-            sip008Response = kxs.decodeFromString(response.content)
+            sip008Response = withHttpDeadline(HTTP_TIMEOUT) {
+                resolveSIP008Api().fetch(
+                    url = url.withoutCredentials(),
+                    userAgent = buildUserAgent(subscription.customUserAgent),
+                    authorization = authorization,
+                    options = options,
+                )
+            }.requireOkBody()
         }
 
         subscription.bytesUsed = sip008Response.bytesUsed ?: -1

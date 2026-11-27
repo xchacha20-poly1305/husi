@@ -7,16 +7,19 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.copyNewFileTo
 import fr.husi.ktx.deleteBlocking
 import fr.husi.ktx.deleteOnExit
-import fr.husi.ktx.kxs
 import fr.husi.ktx.readText
 import fr.husi.ktx.renameTo
 import fr.husi.ktx.unpackArchive
 import fr.husi.ktx.writeText
+import fr.husi.net.HTTP_TIMEOUT
 import fr.husi.net.HttpFetchRequest
 import fr.husi.net.HttpFetcher
+import fr.husi.net.HttpRequestOptions
 import fr.husi.net.buildUserAgent
 import fr.husi.net.localHttpProxy
+import fr.husi.net.requireOkBody
 import fr.husi.net.resolveHttpFetcher
+import fr.husi.net.withHttpDeadline
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.delete
@@ -300,9 +303,6 @@ internal abstract class AssetsUpdater(
     suspend fun downloadRequest(url: String): HttpFetchRequest =
         request(url).copy(noOverallDeadline = true)
 
-    protected suspend fun fetchString(url: String): String =
-        httpFetcher.fetchText(request(url)).content
-
     protected suspend fun download(url: String, target: PlatformFile) {
         httpFetcher.download(downloadRequest(url), target)
     }
@@ -378,6 +378,7 @@ internal class GithubAssetUpdater(
     val sources: List<GithubAssetSource>,
     val useUnstableBranch: Boolean,
     httpFetcher: HttpFetcher = resolveHttpFetcher(),
+    private val gitHubApi: GitHubApi = resolveGitHubApi(),
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, httpFetcher) {
 
     override suspend fun check(): List<UpdateInfo> {
@@ -447,8 +448,15 @@ internal class GithubAssetUpdater(
     }
 
     private suspend fun fetchVersion(repository: GithubRepository): String {
-        val body = fetchString(githubApiLatestReleaseUrl(repository.fullName))
-        return kxs.decodeFromString<GithubRelease>(body).tagName.blankAsNull().orEmpty()
+        val release = withHttpDeadline(HTTP_TIMEOUT) {
+            gitHubApi.latestRelease(
+                owner = repository.author,
+                repo = repository.name,
+                userAgent = buildUserAgent(),
+                options = HttpRequestOptions(proxy = localHttpProxy()),
+            )
+        }.requireOkBody()
+        return release.tagName.blankAsNull().orEmpty()
     }
 }
 
@@ -459,12 +467,19 @@ internal class GithubReleaseZipUpdater(
     destinationDir: PlatformFile,
     val source: GithubReleaseSource,
     httpFetcher: HttpFetcher = resolveHttpFetcher(),
+    private val gitHubApi: GitHubApi = resolveGitHubApi(),
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir, httpFetcher) {
 
     override suspend fun check(): List<UpdateInfo> {
-        val body = fetchString(githubApiLatestReleaseUrl(source.repository.fullName))
-        val latestVersion = kxs.decodeFromString<GithubRelease>(body)
-            .tagName.blankAsNull().orEmpty()
+        val release = withHttpDeadline(HTTP_TIMEOUT) {
+            gitHubApi.latestRelease(
+                owner = source.repository.author,
+                repo = source.repository.name,
+                userAgent = buildUserAgent(),
+                options = HttpRequestOptions(proxy = localHttpProxy()),
+            )
+        }.requireOkBody()
+        val latestVersion = release.tagName.blankAsNull().orEmpty()
         val currentVersion = source.versionFile.takeIf(PlatformFile::isRegularFile)
             ?.readText()?.trim().orEmpty()
         return if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {

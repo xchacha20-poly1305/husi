@@ -154,7 +154,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
             versionFile = versionFile,
         )
-        fakeHttp.nextResponseContent = """{"tag_name":"202605161045"}""".encodeToByteArray()
+        fakeGitHub.nextLatestRelease = GithubRelease(tagName = "202605161045")
         val updater = GithubAssetUpdater(
             versionFiles = listOf(versionFile),
             updateProgress = {},
@@ -163,13 +163,14 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             sources = listOf(source),
             useUnstableBranch = false,
             httpFetcher = fakeHttp,
+            gitHubApi = fakeGitHub,
         )
 
         val updates = updater.check()
 
         assertEquals(1, updates.size)
         assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
-        assertContains(fakeHttp.requests.map { it.url }, githubApiLatestReleaseUrl("SagerNet/sing-geoip"))
+        assertContains(fakeGitHub.calls.map { "${it.owner}/${it.repo}" }, "SagerNet/sing-geoip")
     }
 
     @Test
@@ -180,7 +181,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
             versionFile = versionFile,
         )
-        fakeHttp.nextResponseContent = """{"tag_name":"202605161045"}""".encodeToByteArray()
+        fakeGitHub.nextLatestRelease = GithubRelease(tagName = "202605161045")
         val updater = GithubAssetUpdater(
             versionFiles = listOf(versionFile),
             updateProgress = {},
@@ -189,6 +190,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             sources = listOf(source),
             useUnstableBranch = false,
             httpFetcher = fakeHttp,
+            gitHubApi = fakeGitHub,
         )
 
         assertTrue(updater.check().isEmpty())
@@ -201,7 +203,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             repository = GithubRepository(author = "SagerNet", name = "sing-geoip"),
             versionFile = dir.resolve("geoip.version.txt"),
         )
-        fakeHttp.nextResponseContent = """{"tag_name":""}""".encodeToByteArray()
+        fakeGitHub.nextLatestRelease = GithubRelease(tagName = "")
         val updater = GithubAssetUpdater(
             versionFiles = emptyList(),
             updateProgress = {},
@@ -210,6 +212,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             sources = listOf(source),
             useUnstableBranch = false,
             httpFetcher = fakeHttp,
+            gitHubApi = fakeGitHub,
         )
 
         assertTrue(updater.check().isEmpty())
@@ -231,7 +234,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
                 vf2,
             ),
         )
-        fakeHttp.nextResponseContent = """{"tag_name":"202605161045"}""".encodeToByteArray()
+        fakeGitHub.nextLatestRelease = GithubRelease(tagName = "202605161045")
         val updater = GithubAssetUpdater(
             versionFiles = listOf(vf1, vf2),
             updateProgress = {},
@@ -240,12 +243,14 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             sources = sources,
             useUnstableBranch = true,
             httpFetcher = fakeHttp,
+            gitHubApi = fakeGitHub,
         )
 
         updater.check()
 
-        assertContains(fakeHttp.requests.map { it.url }, githubApiLatestReleaseUrl("SagerNet/sing-geoip"))
-        assertContains(fakeHttp.requests.map { it.url }, githubApiLatestReleaseUrl("SagerNet/sing-geosite"))
+        val repos = fakeGitHub.calls.map { "${it.owner}/${it.repo}" }
+        assertContains(repos, "SagerNet/sing-geoip")
+        assertContains(repos, "SagerNet/sing-geosite")
     }
 
     // endregion
@@ -261,7 +266,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             assetName = "sing-box.zip",
             versionFile = versionFile,
         )
-        fakeHttp.nextResponseContent = """{"tag_name":"202605161045"}""".encodeToByteArray()
+        fakeGitHub.nextLatestRelease = GithubRelease(tagName = "202605161045")
         val updater = GithubReleaseZipUpdater(
             versionFiles = listOf(versionFile),
             updateProgress = {},
@@ -269,6 +274,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             destinationDir = dir,
             source = source,
             httpFetcher = fakeHttp,
+            gitHubApi = fakeGitHub,
         )
 
         val updates = updater.check()
@@ -276,8 +282,8 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
         assertEquals(1, updates.size)
         assertEquals("202605161045", (updates[0] as UpdateInfo.Github).newVersion)
         assertContains(
-            fakeHttp.requests.map { it.url },
-            githubApiLatestReleaseUrl("runetfreedom/russia-v2ray-rules-dat"),
+            fakeGitHub.calls.map { "${it.owner}/${it.repo}" },
+            "runetfreedom/russia-v2ray-rules-dat",
         )
     }
 
@@ -290,7 +296,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             assetName = "sing-box.zip",
             versionFile = versionFile,
         )
-        fakeHttp.nextResponseContent = """{"tag_name":"202605161045"}""".encodeToByteArray()
+        fakeGitHub.nextLatestRelease = GithubRelease(tagName = "202605161045")
         val updater = GithubReleaseZipUpdater(
             versionFiles = listOf(versionFile),
             updateProgress = {},
@@ -298,6 +304,7 @@ class RouteAssetUpdatesTest : HusiHttpKoinTest() {
             destinationDir = dir,
             source = source,
             httpFetcher = fakeHttp,
+            gitHubApi = fakeGitHub,
         )
 
         assertTrue(updater.check().isEmpty())

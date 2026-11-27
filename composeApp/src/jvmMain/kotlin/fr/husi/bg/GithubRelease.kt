@@ -4,7 +4,7 @@ import fr.husi.ktx.blankAsNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-private const val RELEASE_LIST_PAGE_SIZE = 10
+internal const val RELEASE_LIST_PAGE_SIZE = 10
 
 internal const val PLUGIN_RELEASE_TAG_PREFIX = "plugin-"
 

@@ -8,6 +8,7 @@ koin = "4.2.2"
 kotlinCoroutines = "1.11.0"
 wire = "7.2.2"
 okhttp = "5.5.1"
+retrofit = "3.0.0"
 bouncycastle = "1.87"
 libghostty = "0.5.1"
 kotlinxSerialization = "1.13.0"
@@ -52,6 +53,8 @@ haze = "2.1.0"
 wire-grpc-client = { module = "com.squareup.wire:wire-grpc-client", version.ref = "wire" }
 bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wire" }
 libghostty-compose = { module = "io.github.xchacha20-poly1305:libghostty-compose", version.ref = "libghostty" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }

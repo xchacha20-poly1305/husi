@@ -2,6 +2,7 @@ package fr.husi.di
 
 import fr.husi.PLUGIN_CA_FILE
 import fr.husi.bg.AppUpdateAutoChecker
+import fr.husi.bg.GitHubApi
 import fr.husi.compose.material3.PlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.core.CoreClient
@@ -9,11 +10,16 @@ import fr.husi.core.CoreVersionCache
 import fr.husi.core.WireCoreClient
 import fr.husi.core.remote.RemoteControlManager
 import fr.husi.database.SagerDatabase
+import fr.husi.group.OpenOnlineConfigApi
+import fr.husi.group.SIP008Api
 import fr.husi.net.AppHttpClient
 import fr.husi.net.HttpFetcher
-import fr.husi.net.OkHttpFetcher
-import fr.husi.net.OkHttpWebDAVClient
+import fr.husi.net.RawHttpApi
+import fr.husi.net.RetrofitHttpFetcher
+import fr.husi.net.RetrofitWebDAVClient
+import fr.husi.net.WebDAVApi
 import fr.husi.net.WebDAVClient
+import fr.husi.net.createAppRetrofit
 import fr.husi.repository.LocalRepository
 import fr.husi.repository.Repository
 import fr.husi.tailscale.TaildropSendManager
@@ -33,6 +39,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.create
 
 private fun commonUiModule() = module {
     single<Repository> { get<LocalRepository>() }
@@ -52,8 +60,16 @@ private fun commonUiModule() = module {
             platformDirectCallFactory(repository),
         )
     }
-    single<HttpFetcher> { OkHttpFetcher(get()) }
-    single<WebDAVClient> { OkHttpWebDAVClient(get()) }
+    single {
+        createAppRetrofit(callFactory = get<AppHttpClient>())
+    }
+    single<RawHttpApi> { get<Retrofit>().create() }
+    single<WebDAVApi> { get<Retrofit>().create() }
+    single<GitHubApi> { get<Retrofit>().create() }
+    single<SIP008Api> { get<Retrofit>().create() }
+    single<OpenOnlineConfigApi> { get<Retrofit>().create() }
+    single<HttpFetcher> { RetrofitHttpFetcher(get()) }
+    single<WebDAVClient> { RetrofitWebDAVClient(get()) }
     single { CoreVersionCache(coreClient = get()) }
     single {
         // Written at startup from the user's certificate provider: by loadCA() on Android, by

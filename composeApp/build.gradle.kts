@@ -449,6 +449,8 @@ kotlin {
         getByName("jvmMain") {
             dependencies {
                 implementation(libs.okhttp)
+                implementation(libs.retrofit)
+                implementation(libs.retrofit.converter.kotlinx.serialization)
                 implementation(libs.jetbrains.compose.animation.graphics)
                 implementation(libs.androidx.datastore.preferences)
                 implementation(libs.androidx.sqlite.bundled)

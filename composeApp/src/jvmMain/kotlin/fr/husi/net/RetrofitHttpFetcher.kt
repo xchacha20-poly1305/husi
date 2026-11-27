@@ -12,27 +12,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import okhttp3.Credentials
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.ResponseBody
 import okio.Buffer
 import okio.BufferedSource
 import okio.Sink
 import okio.buffer
 import okio.source
-import java.nio.charset.StandardCharsets.UTF_8
+import retrofit2.Response
 
-internal class OkHttpFetcher(
-    private val http: AppHttpClient,
+internal class RetrofitHttpFetcher(
+    private val api: RawHttpApi,
 ) : HttpFetcher {
     override suspend fun fetchText(request: HttpFetchRequest): HttpTextResponse =
-        fetch(request) { response ->
-            val headers = response.headers
+        fetch(request) { response, body ->
+            val headers = response.headers()
             val content = if (request.ageIdentities.isNullOrEmpty()) {
-                response.body.bytes().decodeToString()
+                body.bytes().decodeToString()
             } else {
-                decrypt(response.body.source(), request.ageIdentities) { plaintext ->
+                decrypt(body.source(), request.ageIdentities) { plaintext ->
                     plaintext.readByteArray().decodeToString()
                 }
             }
@@ -49,11 +48,11 @@ internal class OkHttpFetcher(
         val destination = target.toAbsoluteFile()
         val partial = createPlatformTempFile("husi-http-", ".part", destination.parent())
         try {
-            fetch(request) { response ->
+            fetch(request) { _, body ->
                 partial.asOkioSink().buffer().use { output ->
-                    val source = response.body.source()
+                    val source = body.source()
                     if (request.ageIdentities.isNullOrEmpty()) {
-                        copy(source, output, response.body.contentLength(), onProgress)
+                        copy(source, output, body.contentLength(), onProgress)
                     } else {
                         decrypt(source, request.ageIdentities) { plaintext ->
                             copy(plaintext, output, -1, onProgress)
@@ -70,42 +69,38 @@ internal class OkHttpFetcher(
 
     private suspend fun <T : Any> fetch(
         request: HttpFetchRequest,
-        consume: suspend (Response) -> T,
+        consume: suspend (Response<ResponseBody>, ResponseBody) -> T,
     ): T {
         val url = request.url.toHttpUrl()
-        val call = Request.Builder().url(url.withoutCredentials())
-        for ((name, value) in request.headers) {
-            call.header(name, value)
+        val headers = buildMap {
+            putAll(request.headers)
+            put("User-Agent", request.userAgent)
+            url.basicAuthorization()?.let { put("Authorization", it) }
         }
-        call.header("User-Agent", request.userAgent)
-        if (url.encodedUsername.isNotEmpty() || url.encodedPassword.isNotEmpty()) {
-            call.header("Authorization", Credentials.basic(url.username, url.password, UTF_8))
-        }
-        val httpRequest = call.build()
+        val targetUrl = url.withoutCredentials()
+        val options = HttpRequestOptions(
+            proxy = request.proxy,
+            restrictedTls = request.restrictedTls,
+            pinnedSha256 = request.pinnedSha256,
+        )
         return if (request.noOverallDeadline) {
-            executeFetch(httpRequest, request, consume)
+            executeFetch(targetUrl, headers, options, consume)
         } else {
             withHttpDeadline(HTTP_TIMEOUT) {
-                executeFetch(httpRequest, request, consume)
+                executeFetch(targetUrl, headers, options, consume)
             }
         }
     }
 
     private suspend fun <T : Any> executeFetch(
-        httpRequest: Request,
-        fetchRequest: HttpFetchRequest,
-        consume: suspend (Response) -> T,
+        url: HttpUrl,
+        headers: Map<String, String>,
+        options: HttpRequestOptions,
+        consume: suspend (Response<ResponseBody>, ResponseBody) -> T,
     ): T {
-        return http.exchange(
-            request = httpRequest,
-            proxy = fetchRequest.proxy,
-            restrictedTls = fetchRequest.restrictedTls,
-            pinnedSha256 = fetchRequest.pinnedSha256,
-        ) { response, _ ->
-            if (response.code != HttpStatus.OK) {
-                throw response.statusError()
-            }
-            consume(response)
+        return api.fetch(url, headers, options).awaitAndUse { response ->
+            val body = response.requireOkBody()
+            consume(response, body)
         }
     }
 

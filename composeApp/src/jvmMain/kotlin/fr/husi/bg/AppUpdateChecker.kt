@@ -5,12 +5,12 @@ import fr.husi.HUSI_REPOSITORY
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.kxs
-import fr.husi.net.HttpFetchRequest
-import fr.husi.net.HttpFetcher
+import fr.husi.net.HTTP_TIMEOUT
+import fr.husi.net.HttpRequestOptions
 import fr.husi.net.buildUserAgent
 import fr.husi.net.localHttpProxy
-import fr.husi.net.resolveHttpFetcher
+import fr.husi.net.requireOkBody
+import fr.husi.net.withHttpDeadline
 import fr.husi.platform.PlatformAbis
 import fr.husi.utils.AppVersion
 import kotlinx.coroutines.CoroutineDispatcher
@@ -111,12 +111,13 @@ internal fun selectApkAsset(
     return null
 }
 
-class AppUpdateChecker(
-    private val httpFetcher: HttpFetcher = resolveHttpFetcher(),
+class AppUpdateChecker internal constructor(
+    private val gitHubApi: GitHubApi = resolveGitHubApi(),
     private val currentVersion: String = BuildConfig.VERSION_NAME,
     private val abis: List<String> = PlatformAbis.supported,
     private val repository: String = HUSI_REPOSITORY,
 ) {
+    constructor() : this(gitHubApi = resolveGitHubApi())
 
     suspend fun check(): AppUpdateInfo? {
         val acceptPreRelease = DataStore.appUpdatePreRelease.get()
@@ -138,31 +139,32 @@ class AppUpdateChecker(
     }
 
     private suspend fun fetchRelease(acceptPreRelease: Boolean): GithubRelease? {
-        val url = if (acceptPreRelease) {
-            githubApiReleasesUrl(repository)
-        } else {
-            githubApiLatestReleaseUrl(repository)
-        }
-        val body = fetchString(url)
+        val (owner, repo) = repository.split('/', limit = 2)
+        val userAgent = buildUserAgent()
+        val authorization = DataStore.appUpdateToken.get().blankAsNull()?.let { "Bearer $it" }
+        val options = HttpRequestOptions(proxy = localHttpProxy())
         return if (acceptPreRelease) {
-            kxs.decodeFromString<List<GithubRelease>>(body).firstOrNull {
+            withHttpDeadline(HTTP_TIMEOUT) {
+                gitHubApi.releases(
+                    owner = owner,
+                    repo = repo,
+                    userAgent = userAgent,
+                    authorization = authorization,
+                    options = options,
+                )
+            }.requireOkBody().firstOrNull {
                 !it.draft && !it.tagName.startsWith(PLUGIN_RELEASE_TAG_PREFIX)
             }
         } else {
-            kxs.decodeFromString<GithubRelease>(body)
+            withHttpDeadline(HTTP_TIMEOUT) {
+                gitHubApi.latestRelease(
+                    owner = owner,
+                    repo = repo,
+                    userAgent = userAgent,
+                    authorization = authorization,
+                    options = options,
+                )
+            }.requireOkBody()
         }
-    }
-
-    private suspend fun fetchString(url: String): String {
-        val token = DataStore.appUpdateToken.get()
-        val request = HttpFetchRequest(
-            url = url,
-            userAgent = buildUserAgent(),
-            headers = token.blankAsNull()
-                ?.let { mapOf("Authorization" to "Bearer $it") }
-                .orEmpty(),
-            proxy = localHttpProxy(),
-        )
-        return httpFetcher.fetchText(request).content
     }
 }

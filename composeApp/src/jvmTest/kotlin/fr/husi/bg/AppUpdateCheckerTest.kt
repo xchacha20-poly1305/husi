@@ -2,6 +2,7 @@ package fr.husi.bg
 
 import fr.husi.database.DataStore
 import fr.husi.test.HusiHttpKoinTest
+import fr.husi.test.RecordedGitHubCall
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,28 +27,29 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
             "husi-9.9.9-x86.apk",
         ),
         digest: String? = "sha256:$ASSET_SHA256",
-    ): String {
-        val digestJson = digest?.let { ""","digest":"$it"""" }.orEmpty()
-        val assetsJson = assets.joinToString(",") { name ->
-            """{"name":"$name","browser_download_url":"https://example.invalid/$name",""" +
-                """"size":128$digestJson}"""
-        }
-        return """
-            {
-              "tag_name": "$tag",
-              "body": "release notes",
-              "draft": false,
-              "html_url": "https://example.invalid/$tag",
-              "assets": [$assetsJson]
-            }
-        """.trimIndent()
+        draft: Boolean = false,
+    ): GithubRelease {
+        return GithubRelease(
+            tagName = tag,
+            body = "release notes",
+            draft = draft,
+            htmlUrl = "https://example.invalid/$tag",
+            assets = assets.map { name ->
+                GithubReleaseAsset(
+                    name = name,
+                    browserDownloadUrl = "https://example.invalid/$name",
+                    size = 128L,
+                    digest = digest,
+                )
+            },
+        )
     }
 
     private fun checker(
         currentVersion: String = "1.0.0",
         abis: List<String> = listOf("arm64-v8a", "armeabi-v7a"),
     ) = AppUpdateChecker(
-        httpFetcher = fakeHttp,
+        gitHubApi = fakeGitHub,
         currentVersion = currentVersion,
         abis = abis,
         repository = TEST_REPOSITORY,
@@ -193,57 +195,58 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     @Test
     fun `check requests the latest release when pre-releases are off`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("9.9.9").encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9")
 
         checker().check()
 
-        assertEquals(
-            githubApiLatestReleaseUrl(TEST_REPOSITORY),
-            fakeHttp.lastRequest?.url,
-        )
+        val call = assertNotNull(fakeGitHub.lastCall)
+        assertEquals(RecordedGitHubCall.Kind.LATEST_RELEASE, call.kind)
+        assertEquals("xchacha20-poly1305", call.owner)
+        assertEquals("husi", call.repo)
     }
 
     @Test
     fun `check requests the release list when pre-releases are on`() = runTest {
         DataStore.appUpdatePreRelease.set(true)
-        fakeHttp.nextResponseContent = "[${release("9.9.9")}]".encodeToByteArray()
+        fakeGitHub.nextReleases = listOf(release("9.9.9"))
 
         checker().check()
 
-        assertEquals(
-            githubApiReleasesUrl(TEST_REPOSITORY),
-            fakeHttp.lastRequest?.url,
-        )
+        val call = assertNotNull(fakeGitHub.lastCall)
+        assertEquals(RecordedGitHubCall.Kind.RELEASES, call.kind)
+        assertEquals("xchacha20-poly1305", call.owner)
+        assertEquals("husi", call.repo)
+        assertEquals(RELEASE_LIST_PAGE_SIZE, call.perPage)
     }
 
     @Test
     fun `check sends the github token as a bearer header`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
         DataStore.appUpdateToken.set("secret-token")
-        fakeHttp.nextResponseContent = release("9.9.9").encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9")
 
         checker().check()
 
         assertEquals(
             "Bearer secret-token",
-            fakeHttp.lastRequest?.headers["Authorization"],
+            fakeGitHub.lastCall?.authorization,
         )
     }
 
     @Test
     fun `check sends no authorization header without a token`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("9.9.9").encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9")
 
         checker().check()
 
-        assertNull(fakeHttp.lastRequest?.headers["Authorization"])
+        assertNull(fakeGitHub.lastCall?.authorization)
     }
 
     @Test
     fun `check returns the matching asset for this device`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("9.9.9").encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9")
 
         val info = assertNotNull(checker().check())
 
@@ -258,7 +261,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     @Test
     fun `check returns no sha256 when the asset carries no digest`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("9.9.9", digest = null).encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9", digest = null)
 
         assertNull(assertNotNull(checker().check()).sha256)
     }
@@ -266,8 +269,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     @Test
     fun `check ignores a digest that is not sha256`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent =
-            release("9.9.9", digest = "md5:$ASSET_SHA256").encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9", digest = "md5:$ASSET_SHA256")
 
         assertNull(assertNotNull(checker().check()).sha256)
     }
@@ -275,8 +277,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     @Test
     fun `check lowercases an uppercase digest`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent =
-            release("9.9.9", digest = "sha256:${ASSET_SHA256.uppercase()}").encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9", digest = "sha256:${ASSET_SHA256.uppercase()}")
 
         assertEquals(ASSET_SHA256, assertNotNull(checker().check()).sha256)
     }
@@ -284,7 +285,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     @Test
     fun `check returns no download url when no asset matches`() = runTest {
         DataStore.appUpdatePreRelease.set(false)
-        fakeHttp.nextResponseContent = release("9.9.9", assets = emptyList()).encodeToByteArray()
+        fakeGitHub.nextLatestRelease = release("9.9.9", assets = emptyList())
 
         val info = assertNotNull(checker().check())
 
@@ -297,7 +298,7 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     fun `check skips plugin releases in the release list`() = runTest {
         DataStore.appUpdatePreRelease.set(true)
         val plugin = release("plugin-mieru-v3.37.0-0", assets = listOf("mieru-plugin.apk"))
-        fakeHttp.nextResponseContent = "[$plugin,${release("2.0.0")}]".encodeToByteArray()
+        fakeGitHub.nextReleases = listOf(plugin, release("2.0.0"))
 
         assertEquals("2.0.0", checker().check()?.version)
     }
@@ -305,8 +306,8 @@ class AppUpdateCheckerTest : HusiHttpKoinTest() {
     @Test
     fun `check skips draft releases in the release list`() = runTest {
         DataStore.appUpdatePreRelease.set(true)
-        val draft = release("9.9.9").replace("\"draft\": false", "\"draft\": true")
-        fakeHttp.nextResponseContent = "[$draft,${release("2.0.0")}]".encodeToByteArray()
+        val draft = release("9.9.9", draft = true)
+        fakeGitHub.nextReleases = listOf(draft, release("2.0.0"))
 
         assertEquals("2.0.0", checker().check()?.version)
     }

@@ -28,15 +28,20 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.kxs
-import fr.husi.net.HttpFetchRequest
+import fr.husi.net.HTTP_TIMEOUT
+import fr.husi.net.HttpRequestOptions
+import fr.husi.net.basicAuthorization
 import fr.husi.net.buildUserAgent
 import fr.husi.net.localHttpProxy
-import fr.husi.net.resolveHttpFetcher
+import fr.husi.net.requireOkBody
+import fr.husi.net.withHttpDeadline
+import fr.husi.net.withoutCredentials
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.ooc_missing_protocol
 import fr.husi.resources.ooc_subscription_token_invalid
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
@@ -53,27 +58,6 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         val secret: String,
         val userId: String,
         val certSha256: String? = null,
-    )
-
-    @Serializable
-    private data class OOCResponse(
-        val protocols: List<String> = emptyList(),
-        val username: String? = null,
-        val bytesUsed: Long? = null,
-        val bytesRemaining: Long? = null,
-        val expiryDate: Long? = null,
-        val shadowsocks: List<OOCShadowsocksProfile> = emptyList(),
-    )
-
-    @Serializable
-    private data class OOCShadowsocksProfile(
-        val name: String? = null,
-        val address: String? = null,
-        val port: Int? = null,
-        val method: String? = null,
-        val password: String? = null,
-        val pluginName: String? = null,
-        val pluginOptions: String? = null,
     )
 
     override suspend fun doUpdate(
@@ -122,19 +106,27 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             error(repository.getString(Res.string.ooc_subscription_token_invalid))
         }
 
-        val request = HttpFetchRequest(
-            url = baseLink.toString(),
-            userAgent = buildUserAgent(subscription.customUserAgent),
+        val authorization = baseLink.basicAuthorization()
+        val targetUrl = baseLink.withoutCredentials()
+        val options = HttpRequestOptions(
+            proxy = localHttpProxy(),
             // Strict !!!
             restrictedTls = true,
             pinnedSha256 = certSha256,
-            proxy = localHttpProxy(),
         )
-        val response = resolveHttpFetcher().fetchText(request)
-
         val oocResponse: OOCResponse = try {
-            kxs.decodeFromString(response.content)
-        } catch (e: Exception) {
+            withHttpDeadline(HTTP_TIMEOUT) {
+                resolveOpenOnlineConfigApi().fetch(
+                    url = targetUrl,
+                    userAgent = buildUserAgent(subscription.customUserAgent),
+                    authorization = authorization,
+                    options = options,
+                )
+            }.requireOkBody()
+        } catch (e: SerializationException) {
+            Logs.e("OOC response parse failed", e)
+            error(repository.getString(Res.string.ooc_subscription_token_invalid))
+        } catch (e: IllegalArgumentException) {
             Logs.e("OOC response parse failed", e)
             error(repository.getString(Res.string.ooc_subscription_token_invalid))
         }

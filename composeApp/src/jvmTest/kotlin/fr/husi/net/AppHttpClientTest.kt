@@ -2,6 +2,7 @@ package fr.husi.net
 
 import fr.husi.CertProvider
 import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.test.runTest
 import okhttp3.Call
 import okhttp3.Callback
@@ -15,6 +16,8 @@ import okio.Timeout
 import java.io.File
 import java.io.IOException
 import java.net.ServerSocket
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,12 +55,8 @@ class AppHttpClientTest {
             directCallFactory = { factory },
         )
 
-        val body = client.exchange(
-            request = Request.Builder().url("https://example.com/sub").build(),
-            proxy = null,
-        ) { response, _ ->
-            response.body.string()
-        }
+        val request = Request.Builder().url("https://example.com/sub").build()
+        val body = client.newCall(request).await().use { it.body.string() }
 
         assertEquals("from-http-engine", body)
         assertEquals(1, seenRequests.size)
@@ -76,13 +75,16 @@ class AppHttpClientTest {
         )
         val closedPort = ServerSocket(0).use { it.localPort }
 
+        val request = Request.Builder()
+            .url("http://example.com/sub")
+            .tag(
+                HttpRequestOptions::class.java,
+                HttpRequestOptions(proxy = LocalHttpProxy(port = closedPort, username = "", password = "")),
+            )
+            .build()
+
         assertFailsWith<IOException> {
-            client.exchange(
-                request = Request.Builder().url("http://example.com/sub").build(),
-                proxy = LocalHttpProxy(port = closedPort, username = "", password = ""),
-            ) { response, _ ->
-                response.body.string()
-            }
+            client.newCall(request).await().use { it.body.string() }
         }
         assertFalse(directCalled)
     }
@@ -98,14 +100,16 @@ class AppHttpClientTest {
             },
         )
 
+        val request = Request.Builder()
+            .url("https://example.com/sub")
+            .tag(
+                HttpRequestOptions::class.java,
+                HttpRequestOptions(restrictedTls = true),
+            )
+            .build()
+
         assertFailsWith<IOException> {
-            client.exchange(
-                request = Request.Builder().url("https://example.com/sub").build(),
-                proxy = null,
-                restrictedTls = true,
-            ) { response, _ ->
-                response.body.string()
-            }
+            client.newCall(request).await().use { it.body.string() }
         }
         assertFalse(directCalled)
     }
@@ -121,14 +125,16 @@ class AppHttpClientTest {
             },
         )
 
+        val request = Request.Builder()
+            .url("https://example.com/sub")
+            .tag(
+                HttpRequestOptions::class.java,
+                HttpRequestOptions(pinnedSha256 = "0123456789abcdef"),
+            )
+            .build()
+
         assertFailsWith<IOException> {
-            client.exchange(
-                request = Request.Builder().url("https://example.com/sub").build(),
-                proxy = null,
-                pinnedSha256 = "0123456789abcdef",
-            ) { response, _ ->
-                response.body.string()
-            }
+            client.newCall(request).await().use { it.body.string() }
         }
         assertFalse(directCalled)
     }
@@ -154,16 +160,12 @@ class AppHttpClientTest {
             directCallFactory = { factory },
         )
 
-        val result = client.exchange(
-            request = Request.Builder()
-                .url("https://origin.example/start")
-                .header("Authorization", "Bearer secret")
-                .header("Cookie", "sid=123")
-                .build(),
-            proxy = null,
-        ) { response, _ ->
-            response.body.string()
-        }
+        val request = Request.Builder()
+            .url("https://origin.example/start")
+            .header("Authorization", "Bearer secret")
+            .header("Cookie", "sid=123")
+            .build()
+        val result = client.newCall(request).await().use { it.body.string() }
 
         assertEquals("ok", result)
         assertEquals(2, seenRequests.size)
@@ -188,15 +190,77 @@ class AppHttpClientTest {
             directCallFactory = { factory },
         )
 
+        val request = Request.Builder()
+            .url("https://dav.example/")
+            .tag(
+                HttpRequestOptions::class.java,
+                HttpRequestOptions(sameOriginRedirects = true),
+            )
+            .build()
+
         assertFailsWith<IOException> {
-            client.exchange(
-                request = Request.Builder().url("https://dav.example/").build(),
-                proxy = null,
-                sameOriginRedirects = true,
-            ) { response, _ ->
-                response.body.string()
+            client.newCall(request).await().use { it.body.string() }
+        }
+    }
+
+    @Test
+    fun `execute runs synchronously with redirects`() {
+        val factory = StubCallFactory { request ->
+            if (request.url.encodedPath == "/redirect") {
+                responseFor(
+                    request = request,
+                    code = HttpStatus.FOUND,
+                    body = "",
+                    headers = mapOf("Location" to "https://example.com/target"),
+                )
+            } else {
+                responseFor(request = request, code = HttpStatus.OK, body = "sync-ok")
             }
         }
+        val client = AppHttpClient(
+            rootsFile = unusedRoots,
+            directCallFactory = { factory },
+        )
+
+        val request = Request.Builder().url("https://example.com/redirect").build()
+        val body = client.newCall(request).execute().use { it.body.string() }
+
+        assertEquals("sync-ok", body)
+    }
+
+    @Test
+    fun `canceled call fails enqueue without touching directCallFactory`() = runTest {
+        var directCalled = false
+        val client = AppHttpClient(
+            rootsFile = unusedRoots,
+            directCallFactory = {
+                directCalled = true
+                StubCallFactory { error("must not run after cancel") }
+            },
+        )
+        val call = client.newCall(Request.Builder().url("https://example.com/sub").build())
+        call.cancel()
+
+        assertTrue(call.isCanceled())
+        assertFailsWith<IOException> {
+            call.await()
+        }
+        assertFalse(directCalled)
+    }
+
+    private suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
+        continuation.invokeOnCancellation { cancel() }
+        enqueue(
+            object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    continuation.resume(response)
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    continuation.resumeWithException(e)
+                }
+            },
+        )
     }
 
     private fun responseFor(
