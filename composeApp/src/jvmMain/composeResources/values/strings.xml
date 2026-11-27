@@ -333,6 +333,9 @@
     <string name="connection_test_delete_unavailable">Clear unavailable</string>
     <string name="move">Move</string>
     <string name="hop_interval">Port Hopping Interval(second)</string>
+    <string name="shadowquic_hop_interval">Port hopping interval</string>
+    <string name="shadowquic_hop_interval_jitter">Port hopping jitter</string>
+    <string name="duration_minimum">Enter a duration of at least %1$s.</string>
     <string name="hysteria_hop_interval_range_hint">Use - to set a range, for example 10s-20s.</string>
     <string name="hysteria_bbr_profile">BBR Profile</string>
     <string name="hysteria_bbr_profile_conservative">Conservative</string>

@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.util.fastCoerceAtLeast
+import fr.husi.compose.DurationTextField
 import fr.husi.compose.IconMaskColors
 import fr.husi.compose.IconMaskShapes
 import fr.husi.compose.ListPreference
@@ -23,6 +24,7 @@ import fr.husi.compose.material3.Text
 import fr.husi.compose.preferenceGroup
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.ktx.contentOrUnset
+import fr.husi.ktx.parseGoDuration
 import fr.husi.resources.Res
 import fr.husi.resources.action_shadowquic
 import fr.husi.resources.action_sunnyquic
@@ -35,6 +37,7 @@ import fr.husi.resources.compare_arrows
 import fr.husi.resources.copyright
 import fr.husi.resources.developer_board
 import fr.husi.resources.directions_boat
+import fr.husi.resources.disabled
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.extra_paths
 import fr.husi.resources.extra_paths_max
@@ -57,8 +60,11 @@ import fr.husi.resources.search
 import fr.husi.resources.segment
 import fr.husi.resources.server_address
 import fr.husi.resources.server_port
+import fr.husi.resources.shadowquic_hop_interval
+import fr.husi.resources.shadowquic_hop_interval_jitter
 import fr.husi.resources.sni
 import fr.husi.resources.texture
+import fr.husi.resources.timelapse
 import fr.husi.resources.timer
 import fr.husi.resources.toc
 import fr.husi.resources.tuic_congestion_controller
@@ -70,6 +76,11 @@ import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.ListPreferenceType
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+
+private val MIN_HOP_INTERVAL = 1.seconds
+private const val DEFAULT_HOP_INTERVAL_JITTER = "30s"
 
 @Composable
 fun ShadowQUICSettingsScreen(
@@ -181,6 +192,37 @@ private fun LazyListScope.shadowQuicSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(subProtocolText(it))) },
         )
+        if (uiState.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
+            TextFieldPreference(
+                value = uiState.hopInterval,
+                onValueChange = { viewModel.setHopInterval(it) },
+                title = { Text(stringResource(Res.string.shadowquic_hop_interval)) },
+                textToValue = { parseOptionalHopDuration(it, MIN_HOP_INTERVAL) },
+                icon = {
+                    MaskedIcon(Res.drawable.timelapse, IconMaskColors.IconLightOrange)
+                },
+                summary = {
+                    Text(uiState.hopInterval.ifBlank { stringResource(Res.string.disabled) })
+                },
+                textField = { state, onOk ->
+                    DurationTextField(state, onOk, minimum = MIN_HOP_INTERVAL)
+                },
+            )
+            TextFieldPreference(
+                value = uiState.hopIntervalJitter,
+                onValueChange = { viewModel.setHopIntervalJitter(it) },
+                title = { Text(stringResource(Res.string.shadowquic_hop_interval_jitter)) },
+                textToValue = { parseOptionalHopDuration(it, Duration.ZERO) },
+                enabled = uiState.hopInterval.isNotBlank(),
+                icon = {
+                    MaskedIcon(Res.drawable.timer, IconMaskColors.IconLightOrange)
+                },
+                summary = { Text(uiState.hopIntervalJitter.ifBlank { DEFAULT_HOP_INTERVAL_JITTER }) },
+                textField = { state, onOk ->
+                    DurationTextField(state, onOk, minimum = Duration.ZERO)
+                },
+            )
+        }
         TextFieldPreference(
             value = uiState.username,
             onValueChange = { viewModel.setUsername(it) },
@@ -395,4 +437,10 @@ private fun LazyListScope.shadowQuicSettings(
             )
         }
     }
+}
+
+private fun parseOptionalHopDuration(text: String, minimum: Duration): String? {
+    if (text.isBlank()) return ""
+    val duration = runCatching { parseGoDuration(text) }.getOrNull() ?: return null
+    return text.takeIf { duration >= minimum }
 }

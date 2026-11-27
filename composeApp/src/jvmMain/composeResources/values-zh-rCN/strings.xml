@@ -264,6 +264,9 @@
     <string name="move">移动</string>
     <string name="update_all_subscription">更新所有订阅</string>
     <string name="hop_interval">端口跳跃间隔（秒）</string>
+    <string name="shadowquic_hop_interval">端口跳跃间隔</string>
+    <string name="shadowquic_hop_interval_jitter">间隔抖动</string>
+    <string name="duration_minimum">请输入至少为 %1$s 的时长。</string>
     <string name="hysteria_hop_interval_range_hint">可用 - 表示区间，例如 10s-20s。</string>
     <string name="hysteria_bbr_profile">BBR 配置</string>
     <string name="hysteria_bbr_profile_conservative">保守</string>
