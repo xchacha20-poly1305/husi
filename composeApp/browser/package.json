@@ -20,6 +20,6 @@
     "license-checker-rseidelsohn": "5.0.1",
     "spdx-expression-parse": "4.0.0",
     "typescript": "7.0.2",
-    "ws": "8.23.0"
+    "ws": "8.23.1"
   }
 }
