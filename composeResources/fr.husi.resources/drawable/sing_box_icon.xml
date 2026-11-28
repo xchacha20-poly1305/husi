@@ -1,0 +1,95 @@
+<!--
+  Source: https://github.com/SagerNet/sing-box/blob/039d829d20c7bfb963dd73113afa9f2d1f080a70/docs/assets/icon.svg
+  VectorDrawable does not support the SVG's grain and blur filters.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="21.3073dp"
+    android:height="24dp"
+    android:viewportWidth="728"
+    android:viewportHeight="820">
+    <group
+        android:scaleX="1.44"
+        android:scaleY="1.44"
+        android:translateX="-373.28"
+        android:translateY="-363.28">
+        <path android:pathData="M512 262 754.5 402 512 542 269.5 402Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="330"
+                    android:startY="320"
+                    android:endX="700"
+                    android:endY="490"
+                    android:startColor="#445863"
+                    android:endColor="#394C57" />
+            </aapt:attr>
+        </path>
+        <path android:pathData="M269.5 402 512 542 512 812 269.5 672Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="269.5"
+                    android:startY="480"
+                    android:endX="512"
+                    android:endY="720"
+                    android:startColor="#26323A"
+                    android:endColor="#1F2A31" />
+            </aapt:attr>
+        </path>
+        <path android:pathData="M512 542 754.5 402 754.5 672 512 812Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="512"
+                    android:startY="650"
+                    android:endX="754.5"
+                    android:endY="500"
+                    android:startColor="#30404A"
+                    android:endColor="#374854" />
+            </aapt:attr>
+        </path>
+
+        <path
+            android:pathData="M390.75 472 633.25 332"
+            android:strokeColor="#141E24"
+            android:strokeWidth="4"
+            android:strokeAlpha="0.9" />
+        <path
+            android:pathData="M390.75 469 633.25 329"
+            android:strokeColor="#6E8794"
+            android:strokeWidth="2"
+            android:strokeAlpha="0.7" />
+        <path
+            android:pathData="M512 262 754.5 402"
+            android:strokeColor="#66808D"
+            android:strokeWidth="2.5" />
+        <path
+            android:pathData="M512 262 269.5 402"
+            android:strokeColor="#5A737F"
+            android:strokeWidth="2.5" />
+        <path
+            android:pathData="M269.5 402 512 542 754.5 402"
+            android:strokeColor="#4E6773"
+            android:strokeWidth="2"
+            android:strokeAlpha="0.9" />
+        <path
+            android:pathData="M512 542 512 812"
+            android:strokeColor="#445963"
+            android:strokeWidth="2"
+            android:strokeAlpha="0.9" />
+
+        <path
+            android:pathData="M356.8 351.6 390.75 332 633.25 472 599.3 491.6Z"
+            android:fillColor="#99AAB5" />
+        <path
+            android:pathData="M390.75 332 424.7 312.4 667.2 452.4 633.25 472Z"
+            android:fillColor="#E1E8ED" />
+        <path
+            android:pathData="M599.3 491.6 633.25 472 633.25 592 599.3 611.6Z"
+            android:fillColor="#8296A1" />
+        <path
+            android:pathData="M633.25 472 667.2 452.4 667.2 572.4 633.25 592Z"
+            android:fillColor="#CCD6DD" />
+    </group>
+</vector>
