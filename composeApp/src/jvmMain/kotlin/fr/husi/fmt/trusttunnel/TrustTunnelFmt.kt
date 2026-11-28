@@ -2,12 +2,20 @@ package fr.husi.fmt.trusttunnel
 
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.decodePemBlocks
 import fr.husi.ktx.emptyAsNull
+import fr.husi.ktx.encodePemBlock
 import fr.husi.ktx.joinAddress
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.splitAddress
 import fr.husi.ktx.toPortOrNull
+import okio.Buffer
 import okio.ByteString
+import okio.ByteString.Companion.toByteString
+import org.bouncycastle.asn1.ASN1Encoding
+import org.bouncycastle.asn1.ASN1InputStream
+import org.bouncycastle.asn1.ASN1Sequence
+import java.io.IOException
 
 fun parseTrustTunnel(link: String): TrustTunnelBean {
     val url = TrustTunnelLink.parse(link)
@@ -97,6 +105,37 @@ fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.O
             }
         }
     }
+}
+
+private const val PEM_TYPE_CERTIFICATE = "CERTIFICATE"
+
+internal fun certificateChainToPem(chain: ByteString): String = buildString {
+    ASN1InputStream(chain.toByteArray()).use { input ->
+        while (true) {
+            val primitive = try {
+                input.readObject()
+            } catch (e: IOException) {
+                throw IllegalArgumentException("invalid DER certificate", e)
+            } ?: break
+            require(primitive is ASN1Sequence) { "DER certificate is not an ASN.1 SEQUENCE" }
+            val encoded = try {
+                primitive.getEncoded(ASN1Encoding.DER)
+            } catch (e: IOException) {
+                throw IllegalArgumentException("invalid DER certificate", e)
+            }
+            append(encodePemBlock(PEM_TYPE_CERTIFICATE, encoded.toByteString()))
+        }
+    }
+}
+
+internal fun pemToCertificateChain(pem: String): ByteString {
+    val certificates = decodePemBlocks(pem)
+    require(certificates.isNotEmpty()) { "no PEM block in certificate" }
+    val chain = Buffer()
+    for (certificate in certificates) {
+        chain.write(certificate)
+    }
+    return chain.readByteString()
 }
 
 private fun TrustTunnelTlsProfile?.toUtlsFingerprint(): String = when (this) {

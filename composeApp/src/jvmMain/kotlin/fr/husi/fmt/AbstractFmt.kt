@@ -95,13 +95,15 @@ import fr.husi.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import fr.husi.fmt.wireguard.parseWireGuardEndpoint
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.b64Decode
-import fr.husi.ktx.b64EncodeOneLine
+import fr.husi.ktx.decodePemBlocks
+import fr.husi.ktx.encodePemBlock
 import fr.husi.ktx.getBool
 import fr.husi.ktx.getIntOrNull
 import fr.husi.ktx.getObject
 import fr.husi.ktx.getStr
 import fr.husi.ktx.kxs
 import fr.husi.ktx.toJsonStringKxs
+import okio.ByteString.Companion.toByteString
 
 // https://github.com/SagerNet/sing-box/commit/24a429ad91db61dd0c1eb4a39d7d9f051f70ef17
 fun migrateDeletedCongestionControl(congestionControl: String): String {
@@ -114,22 +116,15 @@ fun migrateDeletedCongestionControl(congestionControl: String): String {
     }
 }
 
-const val ECH_CONFIGS_PEM_HEADER = "-----BEGIN ECH CONFIGS-----"
-const val ECH_CONFIGS_PEM_FOOTER = "-----END ECH CONFIGS-----"
+private const val PEM_TYPE_ECH_CONFIGS = "ECH CONFIGS"
 
 fun String.toECHOneLine(): String {
-    val base64 = lineSequence()
-        .filterNot { it == ECH_CONFIGS_PEM_HEADER || it == ECH_CONFIGS_PEM_FOOTER }
-        .joinToString(separator = "")
-    return base64.b64Decode().b64EncodeOneLine()
+    val der = decodePemBlocks(this).firstOrNull() ?: b64Decode().toByteString()
+    return der.base64()
 }
 
 fun String.toECHPem(): String {
-    return buildString {
-        appendLine(ECH_CONFIGS_PEM_HEADER)
-        appendLine(b64Decode().b64EncodeOneLine())
-        append(ECH_CONFIGS_PEM_FOOTER)
-    }
+    return encodePemBlock(PEM_TYPE_ECH_CONFIGS, b64Decode().toByteString()).trimEnd('\n')
 }
 
 fun AbstractBean.toJsonStringKxs(): String = when (this) {
@@ -380,7 +375,7 @@ fun parseHeader(header: Map<*, *>): Map<String, MutableList<String>> {
  */
 inline fun <reified T : Any> listable(value: Any?): MutableList<T>? = when (value) {
     null -> null
-    is List<*> -> value.mapNotNull { it as? T }.toMutableList()
+    is List<*> -> value.filterIsInstance<T>().toMutableList()
     is T -> mutableListOf(value)
     else -> (value as? T)?.let { mutableListOf(it) }
 }

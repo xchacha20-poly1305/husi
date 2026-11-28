@@ -458,6 +458,7 @@ kotlin {
 
                 implementation(libs.ini4j)
                 implementation(libs.okio)
+                implementation(libs.bcprov)
                 implementation(libs.filekit.dialogs.compose)
                 implementation(libs.zxing.core)
                 implementation(libs.kpuri)

@@ -51,6 +51,7 @@ haze = "2.1.0"
 
 [libraries]
 wire-grpc-client = { module = "com.squareup.wire:wire-grpc-client", version.ref = "wire" }
+bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }

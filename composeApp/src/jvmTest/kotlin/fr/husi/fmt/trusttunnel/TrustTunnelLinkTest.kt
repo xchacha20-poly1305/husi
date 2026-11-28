@@ -491,7 +491,7 @@ class TrustTunnelLinkTest {
             serverPort = 443
             username = "user"
             password = "pass"
-            certificates = certificateChainToPem(bytes(0x30, 0x03, 0x01, 0x02, 0x03, 0x30, 0x04, 0x04, 0x05, 0x06, 0x07))
+            certificates = certificateChainToPem(bytes(0x30, 0x03, 0x02, 0x01, 0x01, 0x30, 0x04, 0x04, 0x02, 0x06, 0x07))
         }
 
         assertEquals(bean.certificates, parseTrustTunnel(bean.toUri()).certificates)

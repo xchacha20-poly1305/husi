@@ -1,35 +1,36 @@
 package fr.husi.ktx
 
 import okio.ByteString
-import okio.ByteString.Companion.decodeBase64
+import okio.ByteString.Companion.toByteString
+import org.bouncycastle.util.encoders.DecoderException
+import org.bouncycastle.util.io.pem.PemObject
+import org.bouncycastle.util.io.pem.PemReader
+import org.bouncycastle.util.io.pem.PemWriter
+import java.io.IOException
+import java.io.StringReader
+import java.io.StringWriter
 
-private const val PEM_BEGIN_PREFIX = "-----BEGIN "
-private const val PEM_END_PREFIX = "-----END "
-
-/** Decodes the DER bodies of every PEM block in [pem], in order. Blocks with invalid Base64 are skipped. */
 fun decodePemBlocks(pem: String): List<ByteString> {
     val blocks = mutableListOf<ByteString>()
-    var body: StringBuilder? = null
-    for (line in pem.lineSequence().map(String::trim)) {
-        when {
-            line.startsWith(PEM_BEGIN_PREFIX) -> body = StringBuilder()
-
-            line.startsWith(PEM_END_PREFIX) -> {
-                body?.toString()?.decodeBase64()?.let { blocks += it }
-                body = null
-            }
-
-            else -> body?.append(line)
+    PemReader(StringReader(pem)).use { reader ->
+        while (true) {
+            val pemObject = try {
+                reader.readPemObject()
+            } catch (_: IOException) {
+                continue
+            } catch (_: DecoderException) {
+                continue
+            } ?: break
+            blocks += pemObject.content.toByteString()
         }
     }
     return blocks
 }
 
-private const val PEM_LINE_LENGTH = 64
-
-/** Encodes [der] as one PEM block of [type], e.g. `CERTIFICATE`. */
-fun encodePemBlock(type: String, der: ByteString): String = buildString {
-    append(PEM_BEGIN_PREFIX).append(type).append("-----\n")
-    der.base64().chunked(PEM_LINE_LENGTH).forEach { append(it).append('\n') }
-    append(PEM_END_PREFIX).append(type).append("-----\n")
+fun encodePemBlock(type: String, der: ByteString): String {
+    val writer = StringWriter()
+    PemWriter(writer).use { pemWriter ->
+        pemWriter.writeObject(PemObject(type, der.toByteArray()))
+    }
+    return writer.toString().replace("\r\n", "\n")
 }
